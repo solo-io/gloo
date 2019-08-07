@@ -3,6 +3,8 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import styled from '@emotion/styled/macro';
 import { List } from 'antd';
 import { colors } from 'Styles';
+import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { getFunctionList } from 'utils/helpers';
 
 const ExtraInfoContainer = styled.div`
   margin-top: -18px;
@@ -55,20 +57,19 @@ interface Props {
 
 export function ExtraInfo(props: Props) {
   const [showModal, setShowModal] = React.useState(true);
-  const { upstreamSpec } = props.upstream;
-  const functions =
-    (upstreamSpec &&
-      upstreamSpec.aws &&
-      upstreamSpec.aws.lambdaFunctionsList) ||
-    [];
+
+  // TODO: process upstream spec to support all types
+  const [functionsList, setFunctionsList] = React.useState<
+    { key: string; value: string }[]
+  >(() => getFunctionList(props.upstream.upstreamSpec!));
 
   return (
     <ExtraInfoContainer>
       <ToggleContainer>
         <ShowToggle
           onClick={() => {
-            console.log(functions);
-            if (functions.length !== 0) {
+            console.log(functionsList);
+            if (functionsList.length !== 0) {
               setShowModal(s => !s);
             }
           }}>
@@ -82,11 +83,16 @@ export function ExtraInfo(props: Props) {
             <List
               size='small'
               bordered
-              dataSource={functions}
-              locale={{ emptyText: 'No Functions' }}
+              dataSource={functionsList}
+              locale={{
+                emptyText: 'No Functions'
+              }}
               renderItem={item => (
-                <List.Item style={{ padding: '0 5px' }}>
-                  <List.Item.Meta title={item.logicalName} />
+                <List.Item
+                  style={{
+                    padding: '0 5px'
+                  }}>
+                  <List.Item.Meta title={item.value} />
                 </List.Item>
               )}
             />

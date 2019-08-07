@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix bug in displaying the available functions to route to.
+    issueLink: https://github.com/solo-io/solo-projects/issues/847

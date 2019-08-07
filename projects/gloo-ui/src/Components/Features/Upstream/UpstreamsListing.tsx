@@ -160,7 +160,11 @@ interface UpstreamCardData {
   cardSubtitle: string;
   onRemoveCard?: () => any;
   onExpand: () => void;
-  details: { title: string; value: string }[];
+  details: {
+    title: string;
+    value: string;
+    valueDisplay?: React.ReactNode;
+  }[];
   healthStatus: number;
 }
 interface Props extends RouteComponentProps {

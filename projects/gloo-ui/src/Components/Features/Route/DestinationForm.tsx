@@ -7,6 +7,7 @@ import {
 import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { HalfColumn } from './CreateRouteModal';
 import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
+import { getFunctionList } from 'utils/helpers';
 
 interface DestiantionFormProps {
   name: string;
@@ -15,44 +16,9 @@ interface DestiantionFormProps {
 
 export function DestinationForm(props: DestiantionFormProps) {
   const [field, meta] = useField(props.name);
-
+  const { upstreamSpec } = props;
   // TODO: process upstream spec to support all types
-  const [upstreamSpec, setUpstreamSpec] = React.useState<
-    UpstreamSpec.AsObject
-  >();
-  const [functionsList, setFunctionsList] = React.useState<
-    { key: string; value: string }[]
-  >([]);
-
-  React.useEffect(() => {
-    if (props.upstreamSpec) {
-      setUpstreamSpec(props.upstreamSpec);
-      setFunctionsList([]);
-      if (props.upstreamSpec.aws) {
-        let newList = props.upstreamSpec.aws.lambdaFunctionsList.map(lambda => {
-          return {
-            key: lambda.logicalName,
-            value: lambda.logicalName
-          };
-        });
-        setFunctionsList(newList);
-      }
-      if (props.upstreamSpec.kube) {
-        const { serviceSpec } = props.upstreamSpec.kube;
-        if (serviceSpec && serviceSpec.rest) {
-          let newFnList = serviceSpec.rest.transformationsMap.map(
-            ([func, transform]) => {
-              return {
-                key: func,
-                value: func
-              };
-            }
-          );
-          setFunctionsList(newFnList);
-        }
-      }
-    }
-  }, [props.upstreamSpec]);
+  const functionsList = getFunctionList(props.upstreamSpec);
 
   return (
     <React.Fragment>

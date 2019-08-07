@@ -3,6 +3,7 @@ import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import { CheckboxFilterProps } from 'Components/Common/ListingFilter';
 import _ from 'lodash';
 import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */
@@ -58,10 +59,49 @@ export function getFunctionInfo(upstream: Upstream.AsObject) {
   if (getUpstreamType(upstream) === 'Azure') {
     return `${upstream.upstreamSpec!.azure!.functionsList.length}`;
   }
-  if (getUpstreamType(upstream) === 'AWS') {
+  if (getUpstreamType(upstream) === 'Aws') {
     return `${upstream.upstreamSpec!.aws!.lambdaFunctionsList.length}`;
   }
+  if (
+    upstream.upstreamSpec!.kube &&
+    upstream.upstreamSpec!.kube.serviceSpec &&
+    upstream.upstreamSpec!.kube.serviceSpec.rest
+  ) {
+    return `${
+      upstream.upstreamSpec!.kube.serviceSpec.rest.transformationsMap.length
+    }`;
+  }
   return '';
+}
+
+export function getFunctionList(upstreamSpec: UpstreamSpec.AsObject) {
+  let functionsList: { key: string; value: string }[] = [];
+  if (upstreamSpec) {
+    if (upstreamSpec.aws && upstreamSpec.aws.lambdaFunctionsList.length > 0) {
+      let newList = upstreamSpec.aws.lambdaFunctionsList.map(lambda => {
+        return {
+          key: lambda.logicalName,
+          value: lambda.logicalName
+        };
+      });
+      functionsList = newList;
+    }
+    if (upstreamSpec.kube) {
+      const { serviceSpec } = upstreamSpec.kube;
+      if (serviceSpec && serviceSpec.rest) {
+        let newList = serviceSpec.rest.transformationsMap.map(
+          ([func, transform]) => {
+            return {
+              key: func,
+              value: func
+            };
+          }
+        );
+        functionsList = newList;
+      }
+    }
+  }
+  return functionsList;
 }
 
 // The upstreams we allow the user to create are not guaranteed to be the same
