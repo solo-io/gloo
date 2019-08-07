@@ -49,6 +49,8 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}} # stats
+            - name: NO_AUTH
+              value: "1"
             - name: GLOO_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
