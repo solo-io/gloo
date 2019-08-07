@@ -90,8 +90,8 @@ func ConfigFactoryForSettings(params ConfigFactoryParams, resourceCrd crd.Crd) (
 				return nil, err
 			}
 
-			if kube := settings.GetKubernetes(); kube != nil {
-				if rl := kube.GetRateLimits(); rl != nil {
+			if kubeSettingsConfig := settings.GetKubernetes(); kubeSettingsConfig != nil {
+				if rl := kubeSettingsConfig.GetRateLimits(); rl != nil {
 					c.QPS = rl.QPS
 					c.Burst = int(rl.Burst)
 				}
@@ -176,10 +176,14 @@ func SecretFactoryForSettings(ctx context.Context,
 		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
+		converterChain := kubeconverters.NewSecretConverterChain(
+			new(kubeconverters.TLSSecretConverter),
+			new(kubeconverters.AwsSecretConverter),
+		)
 		return &factory.KubeSecretClientFactory{
 			Clientset:       *clientset,
 			Cache:           *kubeCoreCache,
-			SecretConverter: new(kubeconverters.TLSSecretConverter),
+			SecretConverter: converterChain,
 		}, nil
 	case *v1.Settings_VaultSecretSource:
 		rootKey := source.VaultSecretSource.GetRootKey()
@@ -190,7 +194,6 @@ func SecretFactoryForSettings(ctx context.Context,
 			Vault:   vaultClient,
 			RootKey: rootKey,
 		}, nil
-		return nil, errors.Errorf("vault configuration not implemented")
 	case *v1.Settings_DirectorySecretSource:
 		return &factory.FileResourceClientFactory{
 			RootDir: filepath.Join(source.DirectorySecretSource.Directory, pluralName),
