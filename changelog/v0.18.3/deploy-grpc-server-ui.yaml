@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Replace former UI and API server with gRPC implementations.
+    issueLink: https://github.com/solo-io/solo-projects/issues/745

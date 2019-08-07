@@ -83,6 +83,11 @@ steps:
     path: /root/.ssh
   waitFor: ['dep', 'yarn-install']
   id: 'check-code-and-docs-gen'
+- name: 'gcr.io/cloud-builders/yarn'
+  args: ['build']
+  dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
+  id: 'yarn-build'
+  waitFor: ['yarn-install','check-code-and-docs-gen']
 
 # Helm related setup
 - name: gcr.io/cloud-builders/gsutil
@@ -171,7 +176,7 @@ steps:
     - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  waitFor: ['dep']
+  waitFor: ['dep','yarn-build']
   id: 'build-images'
 
   # Run regression tests

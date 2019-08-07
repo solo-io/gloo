@@ -183,7 +183,7 @@ generated-ui:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: apiserver gloo glooctl extauth rate-limit observability
+allprojects: grpcserver gloo glooctl extauth rate-limit observability
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -219,48 +219,36 @@ glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
 build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
 
 #----------------------------------------------------------------------------------
-# Apiserver
+# grpcserver
 #----------------------------------------------------------------------------------
-#
-#---------
-#--------- Graphql Stubs
-#---------
 
-APISERVER_DIR=projects/apiserver
-APISERVER_GRAPHQL_DIR=$(APISERVER_DIR)/pkg/graphql
-APISERVER_GRAPHQL_GENERATED_FILES=$(APISERVER_GRAPHQL_DIR)/models/generated.go $(APISERVER_GRAPHQL_DIR)/graph/generated.go
-APISERVER_SOURCES=$(shell find $(APISERVER_GRAPHQL_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-APISERVER_GQL_SCHEMAS=$(shell find $(APISERVER_DIR)/gql_schemas -name "*.graphql")
+GRPCSERVER_DIR=projects/grpcserver
 
-.PHONY: apiserver-dependencies
-apiserver-dependencies: $(APISERVER_GRAPHQL_GENERATED_FILES)
-$(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_GQL_SCHEMAS) $(APISERVER_DIR)/gqlgen.yaml $(APISERVER_SOURCES)
-	cd $(APISERVER_DIR) && \
-	go run gqlgen.go -v
+$(OUTPUT_DIR)/grpcserver-linux-amd64:
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/grpcserver/server/cmd/main.go
 
-.PHONY: apiserver
-apiserver: $(OUTPUT_DIR)/apiserver
+.PHONY: grpcserver
+grpcserver: $(OUTPUT_DIR)/grpcserver-linux-amd64
 
-# TODO(ilackarms): put these inside of a loop or function of some kind
-$(OUTPUT_DIR)/apiserver: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/apiserver/cmd/main.go
-
-$(OUTPUT_DIR)/apiserver-linux-amd64: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/apiserver/cmd/main.go
-
-$(OUTPUT_DIR)/apiserver-darwin-amd64: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/apiserver/cmd/main.go
-
-
-$(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
+$(OUTPUT_DIR)/Dockerfile.grpcserver: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: apiserver-docker
-apiserver-docker: $(OUTPUT_DIR)/.apiserver-docker
+.PHONY: grpcserver-docker
+grpcserver-docker: grpcserver $(OUTPUT_DIR)/Dockerfile.grpcserver $(OUTPUT_DIR)/.grpcserver-docker
 
-$(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
-	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION) $(call get_test_tag_option,apiserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
+$(OUTPUT_DIR)/.grpcserver-docker: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.grpcserver
+	docker build -t quay.io/solo-io/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserver
 	touch $@
+
+.PHONY: grpcserver-envoy-docker
+grpcserver-envoy-docker: $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+	docker build -t quay.io/solo-io/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+
+$(OUTPUT_DIR)/Dockerfile.grpcserverenvoy: $(GRPCSERVER_DIR)/envoy/Dockerfile
+	cp $(GRPCSERVER_DIR)/envoy/envoy_config_grpcserver.yaml $(OUTPUT_DIR)/envoy_config_grpcserver.yaml
+	cp $< $@
+
+# helpers for local testing
 
 .PHONY: run-apiserver
 run-apiserver:
@@ -269,7 +257,26 @@ run-apiserver:
 .PHONY: run-envoy
 run-envoy:
 	envoy -c projects/grpcserver/envoy/envoy.yaml -l debug
-	
+
+#----------------------------------------------------------------------------------
+# UI
+#----------------------------------------------------------------------------------
+
+GRPCSERVER_UI_DIR=projects/gloo-ui
+.PHONY: grpcserver-ui-build-local
+# TODO rename this so the local build flag is not needed, infer from artifacts
+# - should move the yarn build output to the _output dir
+grpcserver-ui-build-local:
+ifneq ($(LOCAL_BUILD),)
+	yarn --cwd $(GRPCSERVER_UI_DIR) install && \
+	yarn --cwd $(GRPCSERVER_UI_DIR) build
+endif
+
+.PHONY: grpcserver-ui-docker
+grpcserver-ui-docker: grpcserver-ui-build-local
+	docker build -t quay.io/solo-io/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GRPCSERVER_UI_DIR) -f $(GRPCSERVER_UI_DIR)/Dockerfile
+
+
 #----------------------------------------------------------------------------------
 # RateLimit
 #----------------------------------------------------------------------------------
@@ -402,6 +409,7 @@ $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64
 HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
 HELM_DIR := install/helm
 MANIFEST_DIR := install/manifest
+HELMFLAGS ?= ""
 
 .PHONY: manifest
 manifest: helm-template init-helm install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml update-helm-chart
@@ -419,10 +427,10 @@ init-helm:
 	helm dependency update install/helm/gloo-ee
 
 install/manifest/glooe-release.yaml: helm-template
-	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe > $@
+	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
 
 install/manifest/glooe-distribution.yaml: helm-template
-	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe > $@
+	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
 
 update-helm-chart:
 ifeq ($(RELEASE),"true")
@@ -470,7 +478,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker observability-docker
+docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker observability-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -479,7 +487,9 @@ docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-en
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/rate-limit-ee:$(VERSION) && \
-	docker push quay.io/solo-io/apiserver-ee:$(VERSION) && \
+	docker push quay.io/solo-io/grpcserver-ee:$(VERSION) && \
+	docker push quay.io/solo-io/grpcserver-envoy:$(VERSION) && \
+	docker push quay.io/solo-io/grpcserver-ui:$(VERSION) && \
 	docker push quay.io/solo-io/gloo-ee:$(VERSION) && \
 	docker push quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push quay.io/solo-io/observability-ee:$(VERSION) && \
@@ -489,7 +499,9 @@ endif
 
 push-kind-images: docker
 	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/apiserver-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/grpcserver-ui:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
@@ -526,16 +538,22 @@ endif
 # The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
 
 .PHONY: build-test-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
-build-test-assets: push-test-images build-test-chart
+build-test-assets: docker push-test-images build-test-chart
 .PHONY: build-kind-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-kind-assets: push-kind-images build-kind-chart
-TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
+TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
-apiserver-docker-test: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
-	docker push $(call get_test_tag,apiserver-ee)
+grpcserver-docker-test: $(OUTPUT_DIR)/grpcserver-linux-amd64 grpcserver-docker
+	docker push $(call get_test_tag,grpcserver-ee)
+
+grpcserver-envoy-docker-test: grpcserver-envoy-docker $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+	docker push $(call get_test_tag,grpcserver-envoy)
+
+grpcserver-ui-docker-test: grpcserver-ui-docker
+	docker push $(call get_test_tag,grpcserver-ui)
 
 rate-limit-docker-test: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
 	docker push $(call get_test_tag,rate-limit-ee)

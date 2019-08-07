@@ -38,7 +38,6 @@ const (
 
 var (
 	osGlooVersion string
-	glooiVersion  string
 )
 
 func main() {
@@ -59,12 +58,6 @@ func main() {
 		log.Fatalf("failed to determine open source Gloo version. Cause: %v", err)
 	}
 	log.Printf("Open source gloo version is: %v", osGlooVersion)
-
-	glooiVersion, err = GetVersionFromToml(depsToml, glooiPkg)
-	if err != nil {
-		log.Fatalf("failed to determine glooi version. Cause: %v", err)
-	}
-	log.Printf("glooi version is: %v", glooiVersion)
 
 	log.Printf("Generating helm files.")
 	if err := generateValuesYamls(version, repoPrefixOverride); err != nil {
@@ -130,9 +123,10 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	config.Gloo.Gateway.Deployment.Image.Tag = osGlooVersion
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
-	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ExtAuth.Deployment.Image.Tag = version
-	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
+	config.ApiServer.Deployment.Server.Image.Tag = version
+	config.ApiServer.Deployment.Envoy.Image.Tag = version
+	config.ApiServer.Deployment.Ui.Image.Tag = version
 
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	for _, v := range config.Gloo.GatewayProxies {
@@ -145,9 +139,10 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
 	config.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 
 	if repoPrefixOverride != "" {
@@ -160,7 +155,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 		}
 		config.RateLimit.Deployment.Image.Repository = replacePrefix(config.RateLimit.Deployment.Image.Repository, repoPrefixOverride)
 		config.Observability.Deployment.Image.Repository = replacePrefix(config.Observability.Deployment.Image.Repository, repoPrefixOverride)
+		config.ApiServer.Deployment.Ui.Image.Repository = replacePrefix(config.ApiServer.Deployment.Ui.Image.Repository, repoPrefixOverride)
 		config.ApiServer.Deployment.Server.Image.Repository = replacePrefix(config.ApiServer.Deployment.Server.Image.Repository, repoPrefixOverride)
+		config.ApiServer.Deployment.Envoy.Image.Repository = replacePrefix(config.ApiServer.Deployment.Envoy.Image.Repository, repoPrefixOverride)
 		config.ExtAuth.Deployment.Image.Repository = replacePrefix(config.ExtAuth.Deployment.Image.Repository, repoPrefixOverride)
 	}
 

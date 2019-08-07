@@ -33,13 +33,9 @@ spec:
               mountPath: /var/run
           ports:
             - name: static
-{{- if .Values.apiServer.noAuth }}
-              containerPort: {{.Values.apiServer.deployment.ui.staticPortNoAuth}}
-{{- else }}
               containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
-{{- end}}
               protocol: TCP
-        - name: apiserver
+        - name: grpcserver
           image: '{{.Values.apiServer.deployment.server.image.repository}}:{{.Values.apiServer.deployment.server.image.tag}}'
           imagePullPolicy: {{.Values.apiServer.deployment.server.image.pullPolicy}}
           env:
@@ -47,27 +43,30 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: OAUTH_CLIENT
-              value: {{.Values.apiServer.deployment.server.oauth.client}}
-            - name: OAUTH_SERVER
-              value: {{.Values.apiServer.deployment.server.oauth.server}}
-            {{- if .Values.apiServer.noAuth }}
-            - name: NO_AUTH
-              value: "1"
-            {{- end}}
+            - name: GRPC_PORT
+              value: '{{ .Values.apiServer.deployment.server.grpcPort }}'
             {{- if .Values.apiServer.deployment.stats }}
             - name: START_STATS_SERVER
               value: "true"
-            {{- end}}
+            {{- end}} # stats
             - name: GLOO_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
                   name: license
                   key: license-key
           ports:
-            - name: graphql
-              containerPort: {{.Values.apiServer.deployment.server.graphqlPort}}
+            - name: grpcport
+              containerPort: {{.Values.apiServer.deployment.server.grpcPort}}
               protocol: TCP
+        - name: gloo-grpcserver-envoy
+          image: '{{.Values.apiServer.deployment.envoy.image.repository}}:{{.Values.apiServer.deployment.envoy.image.tag}}'
+          imagePullPolicy: {{.Values.apiServer.deployment.envoy.image.pullPolicy}}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+            initialDelaySeconds: 5
       volumes:
         - name: empty-cache
           emptyDir: {}

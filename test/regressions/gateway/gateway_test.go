@@ -13,7 +13,6 @@ import (
 
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
-	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/solo-io/go-utils/testutils/helper"
@@ -26,8 +25,6 @@ import (
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-projects/projects/apiserver/test/harness"
-	qm "github.com/solo-io/solo-projects/projects/apiserver/test/queries"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -220,87 +217,6 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			}, helper.SimpleHttpResponse, 1, time.Minute*2)
-		})
-	})
-
-	Context("Call Apiserver", func() {
-		apiServer := harness.ApiServer{
-			Origin: "http://apiserver-ui:8088",
-			// Origin: "http://localhost:8082",
-			// Token:  "any_string",
-		}
-		addr := os.Getenv("APISERVER_ADDR")
-		if addr != "" {
-			apiServer.Origin = addr
-		}
-
-		AfterEach(func() {
-			// Delete the service created as part of the recodings.
-			// virtual service names found here:
-			// - projects/apiserver/test/queries/r4_prefix_rewrite.go
-			// - projects/apiserver/test/caller.go
-			for _, potentialVS := range []string{"has-prefix-rewrite", "m"} {
-				err := virtualServiceClient.Delete(testHelper.InstallNamespace, potentialVS, clients.DeleteOpts{})
-				if err != nil && !errors.IsNotExist(err) {
-					Expect(err).NotTo(HaveOccurred())
-				}
-			}
-		})
-
-		It("should call apiserver correctly", func() {
-			apiserverCurlOptions := func(body string) helper.CurlOpts {
-				serviceName := "apiserver-ui"
-				return helper.CurlOpts{
-					Protocol:          "http",
-					Path:              "/query",
-					Method:            "POST",
-					Host:              serviceName,
-					Service:           serviceName,
-					Port:              8088,
-					ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-					Body:              body,
-					WithoutStats:      true,
-				}
-			}
-			unmarshalGqlResponse := func(r string) harness.ResponseErrors {
-				re := harness.ResponseErrors{}
-				err := yaml.Unmarshal([]byte(r), &re)
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				return re
-			}
-
-			By("Basic Query")
-			testHelper.CurlEventuallyShouldRespond(
-				apiserverCurlOptions(qm.BasicUpstreamsQuery),
-				qm.BasicUpstreamsQueryMatch,
-				1,
-				time.Minute*2)
-
-			// After the first call has succeeded we can trust that the server is ready
-			By("Root Query")
-			response, err := testHelper.Curl(apiserverCurlOptions(qm.RootQuery))
-			Expect(err).NotTo(HaveOccurred())
-			re := unmarshalGqlResponse(response)
-			Expect(re.Errors).NotTo(HaveOccurred())
-			nsInterfaceList, ok := re.Data["allNamespaces"]
-			Expect(ok).To(BeTrue())
-			nsList, ok := nsInterfaceList.([]interface{})
-			Expect(ok).To(BeTrue())
-			Expect(len(nsList)).To(BeNumerically(">", 0))
-
-			// Run the recorded queries
-			recordedQueries := qm.Queries_6362475465567435311
-			recordedQueries = append(recordedQueries, qm.ReplaceNamespaces(qm.Queries_1731087844762345556, testHelper.InstallNamespace)...)
-			// recordedQueries = append(recordedQueries, qm.Queries_to_be_recorded_later...)
-			By(fmt.Sprintf("Run %v recorded queries", len(recordedQueries)))
-			for i, q := range recordedQueries {
-				By(fmt.Sprintf("Recorded query %v", i))
-				response, err := testHelper.Curl(apiserverCurlOptions(q))
-				Expect(err).NotTo(HaveOccurred())
-				re := unmarshalGqlResponse(response)
-				Expect(re.Errors).NotTo(HaveOccurred())
-			}
-
 		})
 	})
 })

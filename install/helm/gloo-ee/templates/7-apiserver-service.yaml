@@ -9,11 +9,7 @@ metadata:
 spec:
   ports:
     - name: static
-{{- if .Values.apiServer.noAuth }}
-      port: {{.Values.apiServer.deployment.ui.staticPortNoAuth}}
-{{- else }}
       port: {{.Values.apiServer.deployment.ui.staticPort}}
-{{- end}}
       protocol: TCP
   selector:
     gloo: {{ .Values.apiServer.service.name }}

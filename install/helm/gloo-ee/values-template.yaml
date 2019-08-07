@@ -131,28 +131,31 @@ extAuth:
 ########################################################################
 
 apiServer:
-  noAuth: true
+  enableBeta: true
   deployment:
     stats: true
-    name: 'apiserver-ui'
+    name: 'grpcserver-ui'
     server:
       image:
         name: apiserver
         pullPolicy: Always
-        repository: quay.io/solo-io/apiserver-ee
+        repository: quay.io/solo-io/grpcserver-ee
         pullSecret: solo-io-readerbot-pull-secret
-      graphqlPort: 8082
-      oauth:
-        client: gloo
-        server: 'localhost:9000'
+      grpcPort: "10101"
+      oauth: {}
     ui:
       image:
-        name: 'gloo-i'
+        name: 'gloo-ui'
         pullPolicy: Always
-        repository: quay.io/solo-io/gloo-i-ee
+        repository: quay.io/solo-io/grpcserver-ui
         pullSecret: solo-io-readerbot-pull-secret
       staticPort: 8080
-      staticPortNoAuth: 8088
+    envoy:
+      image:
+        name: 'grpcserver-envoy'
+        pullPolicy: Always
+        repository: quay.io/solo-io/grpcserver-envoy
+        pullSecret: solo-io-readerbot-pull-secret
   service:
     name: 'apiserver-ui'
 

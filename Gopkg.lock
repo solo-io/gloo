@@ -1324,7 +1324,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:7b340eb324d83602fdd1593c19b0e3af6a73716b2988ebdfed0a9103a4d1477c"
+  digest = "1:18eaa80dc30d6649c482db06b1a6cfa46d120e7490da939efe3ddcd8a94b1fbe"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",

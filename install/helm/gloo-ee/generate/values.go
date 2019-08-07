@@ -69,18 +69,25 @@ type ApiServer struct {
 	Deployment *ApiServerDeployment `json:"deployment,omitempty"`
 	Service    *ApiServerService    `json:"service,omitempty"`
 	ConfigMap  *ApiServerConfigMap  `json:"configMap,omitempty"`
+	EnableBeta bool                 `json:"enableBeta,omitempty"`
 }
 
 type ApiServerDeployment struct {
 	Server *ApiServerServerDeployment `json:"server,omitempty"`
 	Ui     *ApiServerUiDeployment     `json:"ui,omitempty"`
+	Envoy  *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
 	*generate.DeploymentSpec
 }
 
 type ApiServerServerDeployment struct {
-	GraphqlPort string          `json:"graphqlPort"`
-	OAuth       *OAuth          `json:"oauth,omitempty"`
-	Image       *generate.Image `json:"image"`
+	GrpcPort string          `json:"grpcPort"`
+	OAuth    *OAuth          `json:"oauth,omitempty"`
+	Image    *generate.Image `json:"image"`
+	*generate.DeploymentSpec
+}
+
+type ApiServerEnvoyDeployment struct {
+	Image *generate.Image `json:"image"`
 	*generate.DeploymentSpec
 }
 

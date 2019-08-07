@@ -29,7 +29,11 @@ static_resources:
                 allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web
                 max_age: "1728000"
                 expose_headers: custom-header-1,grpc-status,grpc-message
-                enabled: true
+                # enabled: true # now deprecated, use filter_enabled
+                filter_enabled: # the values 100/HUNDRED are the default. Still, we want to explicitly define them until we know that the envoy we are using conforms to the new api
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
           http_filters:
           - name: envoy.grpc_web
           - name: envoy.cors

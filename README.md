@@ -23,6 +23,34 @@ make docker -B # creates all your images locally and tags them as "dev" by defau
 # NOTE: glooe-distribution.yaml is the same as glooe-release.yaml except that "distribution" uses an IfNotPresent pull policy
 ```
 
+## Updated instructions for the grpcserver
+
+### prep
+- get the right version of protoc (3.6.1)
+  - the make target below will warn you if you need to update
+- on mac, you need to update your `sed`
+```bash
+brew install gnu-sed
+```
+- then add it to your path as `sed`
+```bash
+PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+```
+
+### build
+```bash
+make update-ui-deps
+make generated-ui
+make run-apiserver
+```
+
+# Noteworthy make targets
+
+- `build-test-assets`: pushes all images and creates the zipped helm chart
+  - requires `BUILD_ID` and `GCLOUD_PROJECT_ID` set
+  - zipped helm chart saved in the `_test` dir
+  - when running locally, should set `LOCAL_BUILD=1` in order to build the ui resources
+
 # Additional Notes
 - Shared projects across Solo.io.
 - This repo contains the git history for Gloo and Solo-Kit. 
