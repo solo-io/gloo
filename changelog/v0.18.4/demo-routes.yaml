@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Can now create routes without specifying a virtual service.
+    issueLink: https://github.com/solo-io/solo-projects/issues/818

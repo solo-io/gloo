@@ -64,8 +64,8 @@ interface Props
   }> {}
 
 export const VirtualServiceDetails = (props: Props) => {
-  const { match, history } = props;
-  const { virtualservicename, virtualservicenamespace } = match.params;
+  const { match, history, location } = props;
+  let { virtualservicename, virtualservicenamespace } = match.params;
 
   const [virtualService, setVirtualService] = React.useState<
     VirtualService.AsObject | undefined
@@ -116,6 +116,22 @@ export const VirtualServiceDetails = (props: Props) => {
   if (!!error || !virtualService) {
     return <ErrorText>{error}</ErrorText>;
   }
+
+  /*console.log({ virtualService, virtualservicename, virtualservicenamespace });
+  if (
+    virtualService.metadata &&
+    (virtualService.metadata.name !== virtualservicename ||
+      virtualService.metadata.namespace !== virtualservicenamespace)
+  ) {
+    let resourceRef = new ResourceRef();
+    resourceRef.setName(virtualservicename);
+    resourceRef.setNamespace(virtualservicenamespace);
+    let vsRequest = new GetVirtualServiceRequest();
+    vsRequest.setRef(resourceRef);
+
+    console.log('refetching');
+    getVSRefetch(vsRequest);
+  }*/
 
   const reloadVirtualService = (
     newVirtualService?: VirtualService.AsObject

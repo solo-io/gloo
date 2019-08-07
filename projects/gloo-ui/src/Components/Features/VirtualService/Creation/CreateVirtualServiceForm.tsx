@@ -41,6 +41,12 @@ const validate = (values: typeof initialValues) => {
   if (!values.virtualServiceName) {
     errors.virtualServiceName = 'Name is required';
   }
+  if (values.virtualServiceName.toLowerCase() !== values.virtualServiceName) {
+    errors.virtualServiceName = 'Letters in a name may only be lower-case';
+  }
+  if (values.virtualServiceName.length >= 254) {
+    errors.virtualServiceName = 'Names must be 253 characters or less';
+  }
 
   if (!values.namespace) {
     errors.namespace = 'Namespace is required';

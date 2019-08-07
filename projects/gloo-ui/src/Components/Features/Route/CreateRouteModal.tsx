@@ -213,6 +213,7 @@ interface Props extends RouteComponentProps {
   defaultUpstream?: Upstream.AsObject;
   completeCreation: (newVirtualService?: VirtualService.AsObject) => any;
   existingRoute?: Route.AsObject;
+  lockVirtualService?: boolean;
 }
 
 export const CreateRouteModalC = (props: Props) => {
@@ -242,6 +243,21 @@ export const CreateRouteModalC = (props: Props) => {
   React.useEffect(() => {
     if (!!createdVirtualServiceData) {
       props.completeCreation(createdVirtualServiceData.virtualService);
+
+      if (
+        !!createdVirtualServiceData.virtualServiceDetails &&
+        !!createdVirtualServiceData.virtualServiceDetails.virtualService
+      ) {
+        props.history.push({
+          pathname: `/virtualservices/${
+            createdVirtualServiceData.virtualServiceDetails.virtualService
+              .metadata!.namespace
+          }/${
+            createdVirtualServiceData.virtualServiceDetails.virtualService
+              .metadata!.name
+          }`
+        });
+      }
     }
   }, [createdVirtualServiceData]);
 
@@ -286,10 +302,12 @@ export const CreateRouteModalC = (props: Props) => {
     let reqRouteInput = new RouteInput();
 
     let virtualServiceResourceRef = new ResourceRef();
-    virtualServiceResourceRef.setName(values.virtualService!.metadata!.name);
-    virtualServiceResourceRef.setNamespace(
-      values.virtualService!.metadata!.namespace
-    );
+    if (!!values.virtualService) {
+      virtualServiceResourceRef.setName(values.virtualService!.metadata!.name);
+      virtualServiceResourceRef.setNamespace(
+        values.virtualService!.metadata!.namespace
+      );
+    }
     reqRouteInput.setVirtualServiceRef(virtualServiceResourceRef);
 
     //reqRouteInput.setIndex(vs.virtualHost!.routesList.length);
@@ -374,7 +392,7 @@ export const CreateRouteModalC = (props: Props) => {
     } else if (!!upstreamSpec.kube) {
       if (
         values.destinationSpec!.rest &&
-        values.destinationSpec!.rest.functionName
+        values.destinationSpec!.rest!.functionName
       ) {
         let kubeDestination = new RestDestinationSpec();
         kubeDestination.setFunctionName(
@@ -392,7 +410,7 @@ export const CreateRouteModalC = (props: Props) => {
       let newConsulDestinationSpec;
 
       newDestination.setDestinationSpec(newConsulDestinationSpec);
-    } 
+    }
 
     newRouteAction.setSingle(newDestination);
     newRoute.setRouteAction(newRouteAction);
@@ -403,12 +421,6 @@ export const CreateRouteModalC = (props: Props) => {
 
     newRouteReq.setInput(reqRouteInput);
     makeRequest(newRouteReq);
-
-    props.history.push({
-      pathname: `/virtualservices/${
-        values.virtualService!.metadata!.namespace
-      }/${values.virtualService!.metadata!.name}`
-    });
   };
 
   const isSubmittable = (
@@ -493,6 +505,9 @@ export const CreateRouteModalC = (props: Props) => {
                         value={values.virtualService}
                         placeholder='Virtual Service...'
                         options={allUsableVirtualServices}
+                        disabled={
+                          !!values.virtualService && props.lockVirtualService
+                        }
                       />
                     </HalfColumn>
                     {allUsableUpstreams.length && (
