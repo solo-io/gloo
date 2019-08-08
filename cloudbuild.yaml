@@ -222,7 +222,7 @@ steps:
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
-  args: ['manifest', 'upload-github-release-assets', 'push-docs']
+  args: ['manifest', 'upload-github-release-assets', 'push-docs', 'publish-dependencies']
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -274,7 +274,7 @@ secrets:
 # Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving
 # timeout for the final step, and the default (10m) is not enough.
-timeout: 2400s
+timeout: 3600s
 
 tags: ['solo-projects']
 options:

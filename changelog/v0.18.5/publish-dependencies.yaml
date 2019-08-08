@@ -1,0 +1,3 @@
+changelog:
+- type: NON_USER_FACING
+  description: Make the project's dependencies publicly available by uploading the Gopkg.lock file to a public Google Cloud bucket.

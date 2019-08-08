@@ -29,7 +29,7 @@ GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
 
 
 #----------------------------------------------------------------------------------
-# Marcos
+# Macros
 #----------------------------------------------------------------------------------
 
 # If both GCLOUD_PROJECT_ID and BUILD_ID are set, define a function that takes a docker image name
@@ -464,13 +464,18 @@ upload-github-release-assets: build-cli render-yaml
 push-docs:
 	go run ci/push_docs.go
 
+DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
+DEPENDENCIES_BUCKET=gloo-ee-dependencies
+
+.PHONY: publish-dependencies
+publish-dependencies:
+	mkdir -p $(DEPENDENCIES_DIR)
+	cp Gopkg.lock $(DEPENDENCIES_DIR)
+	gsutil cp -r $(DEPENDENCIES_DIR) gs://$(DEPENDENCIES_BUCKET)
+
 #----------------------------------------------------------------------------------
-# Docker
+# Docker push
 #----------------------------------------------------------------------------------
-#
-#---------
-#--------- Push
-#---------
 
 DOCKER_IMAGES :=
 ifeq ($(RELEASE),"true")
@@ -496,7 +501,6 @@ ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/extauth-ee:$(VERSION)
 endif
 
-
 push-kind-images: docker
 	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
@@ -513,7 +517,6 @@ push-kind-images: docker
 
 DISTRIBUTION_DIR=install/distribution
 DISTRIBUTION_OUTPUT=$(OUTPUT_DIR)/distribution
-
 
 .PHONY: distribution
 distribution: $(DISTRIBUTION_OUTPUT)
