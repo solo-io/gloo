@@ -20,8 +20,8 @@ import (
 /*
 Background:
 
-Currently the way to created descriptors in envoy is somewhate limited.
-Even though we can use the server configuration to express many forms of rate limtits, we
+Currently the way to created descriptors in envoy is somewhat limited.
+Even though we can use the server configuration to express many forms of rate limits, we
 are limited to configurations that we can also express in envoy.
 
 I modeled the desired user configuration of rate limits for authenticated users and anonymous requests in envoy,

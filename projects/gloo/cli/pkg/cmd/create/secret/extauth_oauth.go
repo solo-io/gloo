@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -28,9 +29,11 @@ func ExtAuthOathCmd(opts *options.Options) *cobra.Command {
 		Short: `Create an OAuth secret with the given name (Enterprise)`,
 		Long:  `Create an OAuth secret with the given name. The OAuth secrets contains the client_secret as defined in RFC 6749. This is an enterprise-only feature.`,
 		RunE: func(c *cobra.Command, args []string) error {
-			if len(args) == 1 {
-				meta.Name = args[0]
+			err := argsutils.MetadataArgsParse(opts, args)
+			if err != nil {
+				return err
 			}
+
 			if opts.Top.Interactive {
 				// and gather any missing args that are available through interactive mode
 				if err := oauthSecretArgsInteractive(meta, &input); err != nil {

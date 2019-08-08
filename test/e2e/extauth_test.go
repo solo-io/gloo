@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -67,6 +68,11 @@ var _ = Describe("External ", func() {
 		testClients = services.GetTestClients(cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
+		extauthAddr := "localhost"
+		if runtime.GOOS == "darwin" {
+			extauthAddr = "host.docker.internal"
+		}
+
 		extauthserver := &gloov1.Upstream{
 			Metadata: core.Metadata{
 				Name:      "extauth-server",
@@ -77,7 +83,7 @@ var _ = Describe("External ", func() {
 				UpstreamType: &gloov1.UpstreamSpec_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: "localhost",
+							Addr: extauthAddr,
 							Port: extauthport,
 						}},
 					},
@@ -350,6 +356,127 @@ var _ = Describe("External ", func() {
 				})
 			})
 		})
+
+		Context("api key sanity tests", func() {
+			BeforeEach(func() {
+
+				// drain channel as we dont care about it
+				go func() {
+					for range testUpstream.C {
+					}
+				}()
+
+				apiKeySecret1 := &extauth.ApiKeySecret{
+					ApiKey: "secretApiKey1",
+				}
+				secretStruct1, err := envoyutil.MessageToStruct(apiKeySecret1)
+				Expect(err).NotTo(HaveOccurred())
+
+				secret1 := &gloov1.Secret{
+					Metadata: core.Metadata{
+						Name:      "secret1",
+						Namespace: "default",
+					},
+					Kind: &gloov1.Secret_Extension{
+						Extension: &gloov1.Extension{
+							Config: secretStruct1,
+						},
+					},
+				}
+
+				apiKeySecret2 := &extauth.ApiKeySecret{
+					ApiKey: "secretApiKey2",
+				}
+				secretStruct2, err := envoyutil.MessageToStruct(apiKeySecret2)
+				Expect(err).NotTo(HaveOccurred())
+
+				secret2 := &gloov1.Secret{
+					Metadata: core.Metadata{
+						Name:      "secret2",
+						Namespace: "default",
+						Labels:    map[string]string{"team": "infrastructure"},
+					},
+					Kind: &gloov1.Secret_Extension{
+						Extension: &gloov1.Extension{
+							Config: secretStruct2,
+						},
+					},
+				}
+
+				_, err = testClients.SecretClient.Write(secret1, clients.WriteOpts{})
+				Expect(err).ToNot(HaveOccurred())
+
+				_, err = testClients.SecretClient.Write(secret2, clients.WriteOpts{})
+				Expect(err).ToNot(HaveOccurred())
+
+				proxy := getProxyExtAuthApiKeyAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(func() (core.Status, error) {
+					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+
+					return proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+			})
+
+			It("should deny ext auth envoy without apikey", func() {
+				Eventually(func() (int, error) {
+					resp, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort))
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+			})
+
+			It("should deny ext auth envoy with incorrect apikey", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					req.Header.Add("api-key", "badApiKey")
+					resp, err := http.DefaultClient.Do(req)
+
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+			})
+
+			It("should accept ext auth envoy with correct apikey -- secret ref match", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					req.Header.Add("api-key", "secretApiKey1")
+					resp, err := http.DefaultClient.Do(req)
+
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+			It("should accept ext auth envoy with correct apikey -- label match", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					req.Header.Add("api-key", "secretApiKey2")
+					resp, err := http.DefaultClient.Do(req)
+
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+		})
 	})
 })
 
@@ -461,7 +588,6 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 }
 
 func getProxyExtAuthOIDC(envoyPort uint32, secretRef, upstream core.ResourceRef) *gloov1.Proxy {
-
 	extauthCfg := &extauth.VhostExtension{
 		AuthConfig: &extauth.VhostExtension_Oauth{
 			Oauth: &extauth.OAuth{
@@ -476,8 +602,8 @@ func getProxyExtAuthOIDC(envoyPort uint32, secretRef, upstream core.ResourceRef)
 	}
 	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
 }
-func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 
+func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 	extauthCfg := GetBasicAuthExtension()
 	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
 }
@@ -496,6 +622,27 @@ func GetBasicAuthExtension() *extauth.VhostExtension {
 						},
 					},
 				},
+			},
+		},
+	}
+}
+
+func getProxyExtAuthApiKeyAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+	extauthCfg := GetApiKeyAuthExtension()
+	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
+}
+
+func GetApiKeyAuthExtension() *extauth.VhostExtension {
+	return &extauth.VhostExtension{
+		AuthConfig: &extauth.VhostExtension_ApiKeyAuth{
+			ApiKeyAuth: &extauth.ApiKeyAuth{
+				ApiKeySecretRefs: []*core.ResourceRef{
+					{
+						Namespace: "default",
+						Name:      "secret1",
+					},
+				},
+				LabelSelector: map[string]string{"team": "infrastructure"},
 			},
 		},
 	}
@@ -551,7 +698,7 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "127.0.0.1",
+			BindAddress: "0.0.0.0",
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{

@@ -308,6 +308,61 @@ export namespace OauthSecret {
   }
 }
 
+export class ApiKeyAuth extends jspb.Message {
+  getLabelSelectorMap(): jspb.Map<string, string>;
+  clearLabelSelectorMap(): void;
+  clearApiKeySecretRefsList(): void;
+  getApiKeySecretRefsList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+  setApiKeySecretRefsList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+  addApiKeySecretRefs(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyAuth): ApiKeyAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyAuth;
+  static deserializeBinaryFromReader(message: ApiKeyAuth, reader: jspb.BinaryReader): ApiKeyAuth;
+}
+
+export namespace ApiKeyAuth {
+  export type AsObject = {
+    labelSelectorMap: Array<[string, string]>,
+    apiKeySecretRefsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+  }
+}
+
+export class ApiKeySecret extends jspb.Message {
+  getGenerateApiKey(): boolean;
+  setGenerateApiKey(value: boolean): void;
+
+  getApiKey(): string;
+  setApiKey(value: string): void;
+
+  clearLabelsList(): void;
+  getLabelsList(): Array<string>;
+  setLabelsList(value: Array<string>): void;
+  addLabels(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeySecret.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeySecret): ApiKeySecret.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeySecret, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeySecret;
+  static deserializeBinaryFromReader(message: ApiKeySecret, reader: jspb.BinaryReader): ApiKeySecret;
+}
+
+export namespace ApiKeySecret {
+  export type AsObject = {
+    generateApiKey: boolean,
+    apiKey: string,
+    labelsList: Array<string>,
+  }
+}
+
 export class VhostExtension extends jspb.Message {
   hasBasicAuth(): boolean;
   clearBasicAuth(): void;
@@ -323,6 +378,11 @@ export class VhostExtension extends jspb.Message {
   clearCustomAuth(): void;
   getCustomAuth(): CustomAuth | undefined;
   setCustomAuth(value?: CustomAuth): void;
+
+  hasApiKeyAuth(): boolean;
+  clearApiKeyAuth(): void;
+  getApiKeyAuth(): ApiKeyAuth | undefined;
+  setApiKeyAuth(value?: ApiKeyAuth): void;
 
   getAuthConfigCase(): VhostExtension.AuthConfigCase;
   serializeBinary(): Uint8Array;
@@ -340,6 +400,7 @@ export namespace VhostExtension {
     basicAuth?: BasicAuth.AsObject,
     oauth?: OAuth.AsObject,
     customAuth?: CustomAuth.AsObject,
+    apiKeyAuth?: ApiKeyAuth.AsObject,
   }
 
   export enum AuthConfigCase {
@@ -347,6 +408,7 @@ export namespace VhostExtension {
     BASIC_AUTH = 1,
     OAUTH = 2,
     CUSTOM_AUTH = 3,
+    API_KEY_AUTH = 4,
   }
 }
 
@@ -384,6 +446,11 @@ export class ExtAuthConfig extends jspb.Message {
   getBasicAuth(): BasicAuth | undefined;
   setBasicAuth(value?: BasicAuth): void;
 
+  hasApiKeyAuth(): boolean;
+  clearApiKeyAuth(): void;
+  getApiKeyAuth(): ExtAuthConfig.ApiKeyAuthConfig | undefined;
+  setApiKeyAuth(value?: ExtAuthConfig.ApiKeyAuthConfig): void;
+
   getAuthConfigCase(): ExtAuthConfig.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
@@ -400,6 +467,7 @@ export namespace ExtAuthConfig {
     vhost: string,
     oauth?: ExtAuthConfig.OAuthConfig.AsObject,
     basicAuth?: BasicAuth.AsObject,
+    apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
   }
 
   export class OAuthConfig extends jspb.Message {
@@ -438,10 +506,30 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class ApiKeyAuthConfig extends jspb.Message {
+    getValidApiKeyAndUserMap(): jspb.Map<string, string>;
+    clearValidApiKeyAndUserMap(): void;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ApiKeyAuthConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: ApiKeyAuthConfig): ApiKeyAuthConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ApiKeyAuthConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ApiKeyAuthConfig;
+    static deserializeBinaryFromReader(message: ApiKeyAuthConfig, reader: jspb.BinaryReader): ApiKeyAuthConfig;
+  }
+
+  export namespace ApiKeyAuthConfig {
+    export type AsObject = {
+      validApiKeyAndUserMap: Array<[string, string]>,
+    }
+  }
+
   export enum AuthConfigCase {
     AUTH_CONFIG_NOT_SET = 0,
     OAUTH = 3,
     BASIC_AUTH = 4,
+    API_KEY_AUTH = 5,
   }
 }
 

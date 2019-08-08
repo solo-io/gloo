@@ -22,10 +22,13 @@ weight: 5
 - [SaltedHashedPassword](#saltedhashedpassword)
 - [OAuth](#oauth)
 - [OauthSecret](#oauthsecret)
+- [ApiKeyAuth](#apikeyauth)
+- [ApiKeySecret](#apikeysecret)
 - [VhostExtension](#vhostextension)
 - [RouteExtension](#routeextension)
 - [ExtAuthConfig](#extauthconfig)
 - [OAuthConfig](#oauthconfig)
+- [ApiKeyAuthConfig](#apikeyauthconfig)
   
 
 
@@ -97,7 +100,7 @@ weight: 5
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `allowedHeaders` | `[]string` | These headesr will copied from the incoming request to the request going to the auth server. Note that in addition to the user's supplied matchers: 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list. 2. *Content-Length* will be set to 0 and the request to the authorization service will not have a message body. |  |
+| `allowedHeaders` | `[]string` | These headers will be copied from the incoming request to the request going to the auth server. Note that in addition to the user's supplied matchers: 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list. 2. *Content-Length* will be set to 0 and the request to the authorization service will not have a message body. |  |
 | `headersToAdd` | `map<string, string>` | These headers that will be included to the request to authorization service. Note that client request of the same key will be overridden. |  |
 
 
@@ -257,6 +260,46 @@ This is used with custom auth servers.
 
 
 ---
+### ApiKeyAuth
+
+
+
+```yaml
+"labelSelector": map<string, string>
+"apiKeySecretRefs": []core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `labelSelector` | `map<string, string>` | identify all valid apikey secrets using the provided label selector. apikey secrets must be in gloo's watch namespaces for gloo to locate them |  |
+| `apiKeySecretRefs` | [[]core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | a way to reference apikey secrets individually (good for testing); prefer apikey groups via label selector |  |
+
+
+
+
+---
+### ApiKeySecret
+
+
+
+```yaml
+"generateApiKey": bool
+"apiKey": string
+"labels": []string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `generateApiKey` | `bool` | if true, generate an apikey |  |
+| `apiKey` | `string` | if present, use the provided apikey |  |
+| `labels` | `[]string` | a list of labels (key=value) for the apikey secret. virtual services may look for these labels using a provided label selector |  |
+
+
+
+
+---
 ### VhostExtension
 
 
@@ -265,6 +308,7 @@ This is used with custom auth servers.
 "basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
 "oauth": .extauth.plugins.gloo.solo.io.OAuth
 "customAuth": .extauth.plugins.gloo.solo.io.CustomAuth
+"apiKeyAuth": .extauth.plugins.gloo.solo.io.ApiKeyAuth
 
 ```
 
@@ -273,6 +317,7 @@ This is used with custom auth servers.
 | `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
 | `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#oauth) |  |  |
 | `customAuth` | [.extauth.plugins.gloo.solo.io.CustomAuth](../extauth.proto.sk#customauth) |  |  |
+| `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ApiKeyAuth](../extauth.proto.sk#apikeyauth) |  |  |
 
 
 
@@ -304,6 +349,7 @@ This is used with custom auth servers.
 "vhost": string
 "oauth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig
 "basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
+"apiKeyAuth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig
 
 ```
 
@@ -312,6 +358,7 @@ This is used with custom auth servers.
 | `vhost` | `string` |  |  |
 | `oauth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth.proto.sk#oauthconfig) |  |  |
 | `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
+| `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig](../extauth.proto.sk#apikeyauthconfig) |  |  |
 
 
 
@@ -337,6 +384,23 @@ This is used with custom auth servers.
 | `issuerUrl` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
 | `appUrl` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
 | `callbackPath` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
+
+
+
+
+---
+### ApiKeyAuthConfig
+
+
+
+```yaml
+"validApiKeyAndUser": map<string, string>
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `validApiKeyAndUser` | `map<string, string>` | a map of valid apikeys to their associated plaintext users. |  |
 
 
 

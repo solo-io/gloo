@@ -12,14 +12,17 @@ func AddVirtualServiceFlagsInteractive(opts *options.ExtraOptions) error {
 	if err := rateLimitingSurvey(&opts.RateLimit); err != nil {
 		return err
 	}
-	if err := OIDCSurvey(&opts.OIDCAuth); err != nil {
+	if err := oidcSurvey(&opts.OIDCAuth); err != nil {
+		return err
+	}
+	if err := apiKeySurvey(&opts.ApiKeyAuth); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// TODO: move this to input virtual  host
+// TODO: move this to input virtual host
 func rateLimitingSurvey(input *options.RateLimit) error {
 	yes, err := cliutil.GetYesInput("do you wish to add rate limiting to the virtual service [y/n]?")
 	if err != nil {
@@ -50,7 +53,7 @@ func rateLimitingSurvey(input *options.RateLimit) error {
 	return nil
 }
 
-func OIDCSurvey(input *options.OIDCAuth) error {
+func oidcSurvey(input *options.OIDCAuth) error {
 	yes, err := cliutil.GetYesInput("do you wish to add oidc auth to the virtual service [y/n]?")
 	if err != nil {
 		return err
@@ -85,6 +88,38 @@ func OIDCSurvey(input *options.OIDCAuth) error {
 	err = cliutil.GetStringInput("What is your client secret namespace?", &input.ClientSecretRef.Namespace)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func apiKeySurvey(input *options.ApiKeyAuth) error {
+	yes, err := cliutil.GetYesInput("do you wish to add apikey auth to the virtual service [y/n]?")
+	if err != nil {
+		return err
+	}
+
+	if !yes {
+		return nil
+	}
+
+	input.Enable = true
+
+	err = cliutil.GetStringSliceInput("provide a label (key=value) to be a part of your label selector (empty to finish)", &input.Labels)
+	if err != nil {
+		return err
+	}
+
+	err = cliutil.GetStringInput("apikey secret name to attach to this virtual service? (empty to skip)", &input.SecretName)
+	if err != nil {
+		return err
+	}
+
+	if input.SecretName != "" {
+		err = cliutil.GetStringInput("provide a namespace to search for the secret in (empty to finish)", &input.SecretNamespace)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

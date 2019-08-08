@@ -24,7 +24,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		translator  *ExtAuthTranslatorSyncerExtension
 		secret      *gloov1.Secret
 		apiSnapshot *gloov1.ApiSnapshot
-		snapcache   *mockSetSnapshot
+		snapCache   *mockSetSnapshot
 	)
 	BeforeEach(func() {
 		proxy = getProxy()
@@ -39,18 +39,20 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Extension: oidcSecret(),
 			},
 		}
-		apiSnapshot = &gloov1.ApiSnapshot{Proxies: []*gloov1.Proxy{proxy},
-			Secrets: []*gloov1.Secret{secret}}
-		snapcache = &mockSetSnapshot{}
+		apiSnapshot = &gloov1.ApiSnapshot{
+			Proxies: []*gloov1.Proxy{proxy},
+			Secrets: []*gloov1.Secret{secret},
+		}
+		snapCache = &mockSetSnapshot{}
 	})
 
 	translate := func() envoycache.Snapshot {
-		translator.SyncAndSet(context.Background(), apiSnapshot, snapcache)
-		Expect(snapcache.Snapshots).To(HaveKey("extauth"))
-		return snapcache.Snapshots["extauth"]
+		translator.SyncAndSet(context.Background(), apiSnapshot, snapCache)
+		Expect(snapCache.Snapshots).To(HaveKey("extauth"))
+		return snapCache.Snapshots["extauth"]
 	}
 
-	It("should work with one listeners", func() {
+	It("should work with one listener", func() {
 		snap := translate()
 		res := snap.GetResources(extauth.ExtAuthConfigType)
 		Expect(res.Items).To(HaveLen(1))

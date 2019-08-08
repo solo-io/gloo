@@ -22,7 +22,7 @@ func SetupKubeForTest(namespace string) error {
 	if context == "" {
 		current, err := KubectlOut("config", "current-context")
 		if err != nil {
-			return errors.Wrap(err, "getting currrent context")
+			return errors.Wrap(err, "getting current context")
 		}
 		context = strings.TrimSuffix(current, "\n")
 	}

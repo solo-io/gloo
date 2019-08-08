@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add external auth support for apikey-based authentication.
+    issueLink: https://github.com/solo-io/solo-projects/issues/719

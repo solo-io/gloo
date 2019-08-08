@@ -3,6 +3,8 @@ package secret_test
 import (
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -38,6 +40,12 @@ var _ = Describe("ExtauthOauth", func() {
 		err := testutils.GlooctlEE("create secret oauth --name oauth --namespace gloo-system")
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("client-secret not provided"))
+	})
+
+	It("should error when no name provided", func() {
+		err := testutils.GlooctlEE("create secret oauth --namespace gloo-system")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal(argsutils.NameError))
 	})
 
 	It("can print the kube yaml in dry run", func() {

@@ -238,7 +238,7 @@ var _ = Describe("NackDetector", func() {
 				Expect(lastchanvalue).To(Equal(InSync))
 			})
 
-			It("Should catch envoys that are not repsonding", func() {
+			It("Should catch envoys that are not responding", func() {
 
 				tp := newFakeTimeProvider()
 				envoyStates.TimeProvider = tp

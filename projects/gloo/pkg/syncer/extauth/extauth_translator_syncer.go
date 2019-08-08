@@ -62,15 +62,15 @@ func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap 
 						// no ext auth extension on this vhost - nothing else to do.
 						continue
 					}
-					return errors.Wrapf(err, "Error converting proto any to ingress ext auth plugin")
+					return errors.Wrapf(err, "Error converting proto to any ingress ext auth plugin")
 				}
 
-				extath, err := extAuthPlugin.TranslateUserConfigToExtAuthServerConfig(proxy, listener, virtualHost, snap, extAuthVhost)
+				extAuth, err := extAuthPlugin.TranslateUserConfigToExtAuthServerConfig(proxy, listener, virtualHost, snap, extAuthVhost)
 				if err != nil {
 					return err
 				}
-				if extath != nil {
-					cfgs = append(cfgs, extath)
+				if extAuth != nil {
+					cfgs = append(cfgs, extAuth)
 				}
 			}
 		}

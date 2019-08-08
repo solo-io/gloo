@@ -73,7 +73,7 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 
 	err := StartExtAuthWithGrpcServer(ctx, clientSettings, service)
 	if err != nil {
-		logger.Error("Failed to starting ext auth server: %v", err)
+		logger.Error("Failed to start extauth server: %v", err)
 		return err
 	}
 
@@ -93,18 +93,18 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 }
 
 func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, service extauthconfig.ConfigMutator) error {
-	var nodeinfo core.Node
+	var nodeInfo core.Node
 	var err error
-	nodeinfo.Id, err = os.Hostname()
+	nodeInfo.Id, err = os.Hostname()
 	// TODO(yuval-k): unhardcode this
 	if err != nil {
-		nodeinfo.Id = "extauth-unknown"
+		nodeInfo.Id = "extauth-unknown"
 	}
-	nodeinfo.Cluster = "extauth"
+	nodeInfo.Cluster = "extauth"
 	role := "extauth"
-	nodeinfo.Metadata = &types.Struct{
+	nodeInfo.Metadata = &types.Struct{
 		Fields: map[string]*types.Value{
-			"role": &types.Value{
+			"role": {
 				Kind: &types.Value_StringValue{
 					StringValue: role,
 				},
@@ -112,15 +112,15 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 		},
 	}
 
-	go clientLoop(ctx, clientSettings, nodeinfo, service)
+	go clientLoop(ctx, clientSettings, nodeInfo, service)
 	return nil
 }
 
-func clientLoop(ctx context.Context, clientSettings Settings, nodeinfo core.Node, service extauthconfig.ConfigMutator) {
+func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node, service extauthconfig.ConfigMutator) {
 	generator := configproto.NewConfigGenerator(ctx, []byte(clientSettings.SigningKey), clientSettings.UserIdHeader)
 
 	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
-		client := xdsproto.NewExtAuthConfigClient(&nodeinfo, func(version string, resources []*xdsproto.ExtAuthConfig) error {
+		client := xdsproto.NewExtAuthConfigClient(&nodeInfo, func(version string, resources []*xdsproto.ExtAuthConfig) error {
 			config, err := generator.GenerateConfig(resources)
 			if err != nil {
 				return err
@@ -129,7 +129,7 @@ func clientLoop(ctx context.Context, clientSettings Settings, nodeinfo core.Node
 			return nil
 		})
 
-		// We are using non secure grpc to gloo with the asumption that it will be
+		// We are using non secure grpc to gloo with the assumption that it will be
 		// secured by envoy. if this assumption is not correct this needs to change.
 		conn, err := grpc.DialContext(ctx, clientSettings.GlooAddress, grpc.WithInsecure())
 		if err != nil {

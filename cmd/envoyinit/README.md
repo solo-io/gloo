@@ -1,6 +1,6 @@
 # Test with:
 
-
+```bash
 cat <<EOF > /tmp/envoy.yaml
 node:
   cluster: doesntmatter
@@ -42,5 +42,10 @@ admin:
       port_value: 19000
 
 EOF
+```
 
+and then
+
+```bash
 docker run --rm -ti --network=host -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml:ro soloio/data-plane-ee:v1-304-gce45551
+```

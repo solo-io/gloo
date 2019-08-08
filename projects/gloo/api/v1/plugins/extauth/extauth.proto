@@ -39,7 +39,7 @@ message HttpService {
   string path_prefix = 1;
 
   message Request {
-  // These headesr will copied from the incoming request to the request going 
+  // These headers will be copied from the incoming request to the request going
   // to the auth server. Note that in addition to the user's supplied matchers:
   //
   // 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list.
@@ -89,7 +89,7 @@ message CustomAuth {
 }
 
 message BasicAuth {
-    string realm = 1;
+  string realm = 1;
 
   message Apr {
     message SaltedHashedPassword {
@@ -123,11 +123,30 @@ message OAuth {
 
 message OauthSecret { string client_secret = 1; }
 
+message ApiKeyAuth {
+  // identify all valid apikey secrets using the provided label selector.
+  // apikey secrets must be in gloo's watch namespaces for gloo to locate them
+  map<string, string> label_selector = 1;
+  // a way to reference apikey secrets individually (good for testing); prefer apikey groups via label selector
+  repeated core.solo.io.ResourceRef api_key_secret_refs = 2;
+}
+
+message ApiKeySecret {
+  // if true, generate an apikey
+  bool generate_api_key = 1;
+  // if present, use the provided apikey
+  string api_key = 2;
+  // a list of labels (key=value) for the apikey secret.
+  // virtual services may look for these labels using a provided label selector
+  repeated string labels = 3;
+}
+
 message VhostExtension {
   oneof auth_config {
     BasicAuth basic_auth = 1;
     OAuth oauth = 2;
     CustomAuth custom_auth = 3;
+    ApiKeyAuth api_key_auth = 4;
   }
 }
 
@@ -163,9 +182,15 @@ message ExtAuthConfig {
     string callback_path = 5;
   }
 
+  message ApiKeyAuthConfig {
+    // a map of valid apikeys to their associated plaintext users.
+    map<string, string> valid_api_key_and_user = 1;
+  }
+
   oneof auth_config {
     OAuthConfig oauth = 3;
     BasicAuth basic_auth = 4;
+    ApiKeyAuthConfig api_key_auth = 5;
   }
 }
 

@@ -28,6 +28,15 @@ import (
 
 var defaultDomains = []string{"*"}
 
+var (
+	ProvideNamespaceAndNameError = func(namespace, secretName string) error {
+		return errors.Errorf("provide both a secret namespace [%v] and secret name [%v]", namespace, secretName)
+	}
+	UnableToMarshalApiKeyConfig = func(err error) error {
+		return errors.Wrapf(err, "Error marshalling apikey config")
+	}
+)
+
 func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
 	optsExt := &optionsExt.ExtraOptions{}
@@ -42,7 +51,7 @@ func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra
 			"Virtual services are containers for routes assigned to a domain or set of domains. \n" +
 			"Virtual services must not have overlapping domains, as the virtual service to match a request " +
 			"is selected by the Host header (in HTTP1) or :authority header (in HTTP2). " +
-			"When using Gloo Enterprise, virtual services can be configured with rate limiting and oauth.",
+			"When using Gloo Enterprise, virtual services can be configured with rate limiting, oauth, and apikey auth.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Top.Interactive {
 				if err := surveyutils.AddVirtualServiceFlagsInteractive(&opts.Create.VirtualService); err != nil {
@@ -169,7 +178,7 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 		}
 		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
 		if err != nil {
-			return nil, errors.Wrapf(err, "Error marshalling ingress rate limit")
+			return nil, errors.Wrapf(err, "Error marshalling oauth config")
 		}
 		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
 			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
@@ -179,6 +188,52 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 		}
 		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth2.ExtensionName] = vhostAuthStruct
 
+	}
+
+	apiKey := extopts.ApiKeyAuth
+	if apiKey.Enable {
+		if vs.VirtualHost.VirtualHostPlugins == nil {
+			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
+		}
+
+		var secretRefs []*core.ResourceRef
+		if apiKey.SecretNamespace != "" && apiKey.SecretName != "" {
+			secretRefs = []*core.ResourceRef{
+				{
+					Namespace: apiKey.SecretNamespace,
+					Name:      apiKey.SecretName,
+				},
+			}
+		} else if apiKey.SecretNamespace != "" || apiKey.SecretName != "" {
+			return nil, ProvideNamespaceAndNameError(apiKey.SecretNamespace, apiKey.SecretName)
+		}
+
+		var labels options.InputMapStringString
+		labels.Entries = apiKey.Labels
+		var labelSelector map[string]string
+		if len(labels.MustMap()) > 0 {
+			labelSelector = labels.MustMap()
+		}
+
+		vhostAuth := &extauth.VhostExtension{
+			AuthConfig: &extauth.VhostExtension_ApiKeyAuth{
+				ApiKeyAuth: &extauth.ApiKeyAuth{
+					LabelSelector:    labelSelector,
+					ApiKeySecretRefs: secretRefs,
+				},
+			},
+		}
+		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
+		if err != nil {
+			return nil, UnableToMarshalApiKeyConfig(err)
+		}
+		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
+		}
+		if vs.VirtualHost.VirtualHostPlugins.Extensions.Configs == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
+		}
+		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth2.ExtensionName] = vhostAuthStruct
 	}
 
 	return vs, nil

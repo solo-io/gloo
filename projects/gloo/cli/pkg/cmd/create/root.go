@@ -24,6 +24,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 	// find the secret command and add to it
 	cmdutils.MustAddChildCommand(rootCmd, secret.CreateCmd(opts), glooesecret.ExtAuthOathCmd(opts))
+	cmdutils.MustAddChildCommand(rootCmd, secret.CreateCmd(opts), glooesecret.ExtAuthApiKeyCmd(opts))
 
 	return rootCmd
 }

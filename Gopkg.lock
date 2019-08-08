@@ -1310,21 +1310,22 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:7f4deca9b8f6d47de818cb5a8529c185d20a4c8f6d7fde649e8829f6223928f7"
+  digest = "1:1ae20c646667e673a5290bb610a9362e3f36473d3509267a048eee95b371b20b"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
+    "pkg/config/apikeys",
     "pkg/config/apr",
     "pkg/config/oidc",
     "pkg/consts",
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "5293ef751037364d3678dfa5d32549b3f93df513"
-  version = "v0.2.6"
+  revision = "34790ec23418dcd4fb28be37ebdce182f4f82cdb"
+  version = "v0.2.7"
 
 [[projects]]
-  digest = "1:18eaa80dc30d6649c482db06b1a6cfa46d120e7490da939efe3ddcd8a94b1fbe"
+  digest = "1:7b340eb324d83602fdd1593c19b0e3af6a73716b2988ebdfed0a9103a4d1477c"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -2656,6 +2657,7 @@
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/hashicorp/consul/api",
     "github.com/hashicorp/go-multierror",
+    "github.com/hashicorp/go-uuid",
     "github.com/hashicorp/vault/api",
     "github.com/kelseyhightower/envconfig",
     "github.com/keybase/go-ps",
@@ -2675,6 +2677,7 @@
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
     "github.com/solo-io/ext-auth-service/pkg/config",
+    "github.com/solo-io/ext-auth-service/pkg/config/apikeys",
     "github.com/solo-io/ext-auth-service/pkg/config/apr",
     "github.com/solo-io/ext-auth-service/pkg/config/oidc",
     "github.com/solo-io/ext-auth-service/pkg/service",

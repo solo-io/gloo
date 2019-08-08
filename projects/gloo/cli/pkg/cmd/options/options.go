@@ -9,9 +9,10 @@ import (
 )
 
 type ExtraOptions struct {
-	Install   InstallExtended
-	RateLimit RateLimit
-	OIDCAuth  OIDCAuth
+	Install    InstallExtended
+	RateLimit  RateLimit
+	OIDCAuth   OIDCAuth
+	ApiKeyAuth ApiKeyAuth
 }
 
 var RateLimit_TimeUnits = func() []string {
@@ -37,6 +38,13 @@ type OIDCAuth struct {
 
 	// Include all options from the vhost extension
 	extauth.OAuth
+}
+
+type ApiKeyAuth struct {
+	Enable          bool
+	Labels          []string
+	SecretNamespace string
+	SecretName      string
 }
 
 type OIDCSettings struct {

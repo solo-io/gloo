@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
-
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
+	"github.com/pkg/errors"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/gogo/protobuf/types"
 
@@ -45,9 +45,15 @@ var (
 	defaultTimeout = time.Second / 5
 )
 
+var (
+	NoMatchesForGroupError = func(labelSelector map[string]string) error {
+		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
+	}
+)
+
 type Plugin struct {
 	userIdHeader    string
-	extauthSettings *extauth.Settings
+	extAuthSettings *extauth.Settings
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -79,13 +85,13 @@ func GetAuthHeader(e *extauth.Settings) string {
 
 func (p *Plugin) Init(params plugins.InitParams) error {
 	p.userIdHeader = ""
-	p.extauthSettings = nil
+	p.extAuthSettings = nil
 
 	settings, err := GetSettings(params)
 	if err != nil {
 		return err
 	}
-	p.extauthSettings = settings
+	p.extAuthSettings = settings
 
 	p.userIdHeader = GetAuthHeader(settings)
 	return nil
@@ -145,17 +151,17 @@ func GetResourceName(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHo
 	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, vhost.Name)
 }
 
-func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostextauth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
+func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostExtAuth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
 	name := GetResourceName(proxy, listener, vhost)
 
-	extauthConfig := &extauth.ExtAuthConfig{
+	extAuthConfig := &extauth.ExtAuthConfig{
 		Vhost: name,
 	}
-	switch config := vhostextauth.AuthConfig.(type) {
+	switch config := vhostExtAuth.AuthConfig.(type) {
 	case *extauth.VhostExtension_CustomAuth:
 		return nil, nil
 	case *extauth.VhostExtension_BasicAuth:
-		extauthConfig.AuthConfig = &extauth.ExtAuthConfig_BasicAuth{
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_BasicAuth{
 			BasicAuth: config.BasicAuth,
 		}
 	case *extauth.VhostExtension_Oauth:
@@ -170,7 +176,7 @@ func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.List
 			return nil, err
 		}
 
-		extauthConfig.AuthConfig = &extauth.ExtAuthConfig_Oauth{
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Oauth{
 			Oauth: &extauth.ExtAuthConfig_OAuthConfig{
 				AppUrl:       config.Oauth.AppUrl,
 				ClientId:     config.Oauth.ClientId,
@@ -179,12 +185,54 @@ func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.List
 				CallbackPath: config.Oauth.CallbackPath,
 			},
 		}
+	case *extauth.VhostExtension_ApiKeyAuth:
+		validApiKeyAndUser := make(map[string]string)
+
+		// add valid apikey/user map entries using provided secret refs
+		for _, secretRef := range config.ApiKeyAuth.ApiKeySecretRefs {
+			secret, err := snap.Secrets.Find(secretRef.Namespace, secretRef.Name)
+			if err != nil {
+				return nil, err
+			}
+			var apiKeySecret extauth.ApiKeySecret
+			err = utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
+			if err != nil {
+				return nil, err
+			}
+			validApiKeyAndUser[apiKeySecret.ApiKey] = secretRef.Name
+		}
+
+		// add valid apikey/user map entries using secrets matching provided label selector
+		if config.ApiKeyAuth.LabelSelector != nil && len(config.ApiKeyAuth.LabelSelector) > 0 {
+			foundAny := false
+			for _, secret := range snap.Secrets {
+				selector := labels.Set(config.ApiKeyAuth.LabelSelector).AsSelectorPreValidated()
+				if selector.Matches(labels.Set(secret.Metadata.Labels)) {
+					var apiKeySecret extauth.ApiKeySecret
+					err := utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
+					if err != nil {
+						return nil, err
+					}
+					validApiKeyAndUser[apiKeySecret.ApiKey] = secret.Metadata.Name
+					foundAny = true
+				}
+			}
+			if !foundAny {
+				return nil, NoMatchesForGroupError(config.ApiKeyAuth.LabelSelector)
+			}
+		}
+
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_ApiKeyAuth{
+			ApiKeyAuth: &extauth.ExtAuthConfig_ApiKeyAuthConfig{
+				ValidApiKeyAndUser: validApiKeyAndUser,
+			},
+		}
 	default:
 		return nil, fmt.Errorf("unknown ext auth configuration")
 
 	}
 
-	return extauthConfig, nil
+	return extAuthConfig, nil
 }
 
 func markName(name string, out *envoyroute.VirtualHost) error {
@@ -202,7 +250,6 @@ func markName(name string, out *envoyroute.VirtualHost) error {
 }
 
 func markVhostNoAuth(out *envoyroute.VirtualHost) error {
-
 	return pluginutils.SetVhostPerFilterConfig(out, ExtAuthFilterName, getNoAuthConfig())
 }
 
@@ -257,10 +304,10 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 }
 
 func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth.ExtAuthz, error) {
-	if p.extauthSettings == nil {
+	if p.extAuthSettings == nil {
 		return nil, nil
 	}
-	upstreamRef := p.extauthSettings.GetExtauthzServerRef()
+	upstreamRef := p.extAuthSettings.GetExtauthzServerRef()
 	if upstreamRef == nil {
 		return nil, errors.New("no ext auth server configured")
 	}
@@ -273,7 +320,7 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 
 	cfg := &envoyauth.ExtAuthz{}
 
-	httpService := p.extauthSettings.GetHttpService()
+	httpService := p.extAuthSettings.GetHttpService()
 	if httpService == nil {
 		svc := &envoycore.GrpcService{
 			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
@@ -282,7 +329,7 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 				},
 			}}
 
-		timeout := p.extauthSettings.GetRequestTimeout()
+		timeout := p.extAuthSettings.GetRequestTimeout()
 		if timeout == nil {
 			timeout = &defaultTimeout
 		}
@@ -295,7 +342,7 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 		httpURI := &envoycore.HttpUri{
 			// this uri is not used by the filter but is required because of envoy validation.
 			Uri:     "http://not-used.example.com/",
-			Timeout: p.extauthSettings.GetRequestTimeout(),
+			Timeout: p.extAuthSettings.GetRequestTimeout(),
 			HttpUpstreamType: &envoycore.HttpUri_Cluster{
 				Cluster: translator.UpstreamToClusterName(*upstreamRef),
 			},
@@ -316,8 +363,8 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 		}
 	}
 
-	cfg.FailureModeAllow = p.extauthSettings.FailureModeAllow
-	cfg.WithRequestBody = translateRequestBody(p.extauthSettings.RequestBody)
+	cfg.FailureModeAllow = p.extAuthSettings.FailureModeAllow
+	cfg.WithRequestBody = translateRequestBody(p.extAuthSettings.RequestBody)
 
 	return cfg, nil
 }

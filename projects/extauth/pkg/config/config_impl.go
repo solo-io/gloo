@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
+	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
@@ -38,7 +39,7 @@ func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*e
 	}
 	ctx, cancel := context.WithCancel(c.originalCtx)
 
-	var startfuncs []func()
+	var startFuncs []func()
 
 	for _, resource := range resources {
 
@@ -47,18 +48,18 @@ func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*e
 			return nil, err
 		}
 		if startFunc != nil {
-			startfuncs = append(startfuncs, startFunc)
+			startFuncs = append(startFuncs, startFunc)
 		}
 
 		cfg.Configs[resource.Vhost] = curCfg
 	}
 
-	// success! cancel old context and start all start funcs
+	// success! cancel old context and start all startFuncs
 	if c.cancel != nil {
 		c.cancel()
 	}
 	c.cancel = cancel
-	for _, f := range startfuncs {
+	for _, f := range startFuncs {
 		go f()
 	}
 
@@ -68,23 +69,20 @@ func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*e
 func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAuthConfig) (extauthconfig.AuthConfig, func(), error) {
 
 	switch cfg := resource.AuthConfig.(type) {
-	case (*extauth.ExtAuthConfig_BasicAuth):
-
-		aprcfg := apr.AprConfig{
+	case *extauth.ExtAuthConfig_BasicAuth:
+		aprCfg := apr.AprConfig{
 			Realm:                            cfg.BasicAuth.Realm,
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
 		}
+		return &aprCfg, nil, nil
 
-		return &aprcfg, nil, nil
-
-	case (*extauth.ExtAuthConfig_Oauth):
-
-		stateSignser := oidc.NewStateSigner(c.key)
+	case *extauth.ExtAuthConfig_Oauth:
+		stateSigner := oidc.NewStateSigner(c.key)
 		cb := cfg.Oauth.CallbackPath
 		if cb == "" {
 			cb = DefaultCallback
 		}
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, nil /*TODO: add scopes*/, stateSignser)
+		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, nil /*TODO: add scopes*/, stateSigner)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -93,6 +91,12 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 			return nil, nil, err
 		}
 		return iss, func() { /*TODO: log the returned error */ iss.StartDiscover() }, nil
+
+	case *extauth.ExtAuthConfig_ApiKeyAuth:
+		apiKeyCfg := apikeys.ApiKeysConfig{
+			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
+		}
+		return &apiKeyCfg, nil, nil
 	}
 
 	return nil, nil, fmt.Errorf("config not supported")
