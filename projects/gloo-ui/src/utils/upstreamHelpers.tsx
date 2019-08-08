@@ -43,10 +43,10 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   if (!!upstream.upstreamSpec!.kube) {
     upstreamType = 'Kubernetes';
   }
-
-  if (!!upstream.upstreamSpec!.awsEc2) {
-    upstreamType = 'Aws Ec 2';
-  }
+  // TODO: add back
+  // if (!!upstream.upstreamSpec!.awsEc2) {
+  //   upstreamType = 'Aws Ec 2';
+  // }
 
   if (!!upstream.upstreamSpec!.pb_static) {
     upstreamType = 'Static';
@@ -129,13 +129,14 @@ export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
 )
   .filter(str => str !== 'SPEC_NOT_SET') // auto generated for oneof fields
   .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
+  .filter(str => str !== 'AWS_EC2')
   .map(str => {
     return {
       displayName: _.startCase(_.toLower(str)),
       value: false
     };
-  })
-  .concat({ displayName: 'other', value: false });
+  });
+// .concat({ displayName: 'other', value: false });
 
 // from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions
 export const AWS_REGIONS = [

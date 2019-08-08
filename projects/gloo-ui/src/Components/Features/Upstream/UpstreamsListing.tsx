@@ -20,6 +20,7 @@ import {
 } from '../../Common/ListingFilter';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import { useGetUpstreamsListV2 } from 'Api/useUpstreamClientV2';
 import {
   ListUpstreamsRequest,
   DeleteUpstreamRequest
@@ -36,8 +37,7 @@ import {
   groupBy,
   getIcon,
   getFunctionInfo,
-  CheckboxFilters,
-  UPSTREAM_TYPES
+  CheckboxFilters
 } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
@@ -45,9 +45,10 @@ import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from '../Route/CreateRouteModal';
+
 import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
-import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import _ from 'lodash';
+
 import { SuccessModal } from 'Components/Common/SuccessModal';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Popconfirm } from 'antd';
@@ -181,16 +182,30 @@ export const UpstreamsListing = (props: Props) => {
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
   const namespaces = React.useContext(NamespacesContext);
   let request = new ListUpstreamsRequest();
+
+  // const { data, loading, error } = useGetUpstreamsList(request);
   request.setNamespacesList(namespaces.namespacesList);
-  const { data, loading, error } = useGetUpstreamsList(request);
+  // const { data, loading, error } = useGetUpstreamsList(request);
   const { refetch: makeRequest } = useDeleteUpstream(null);
   const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
     []
   );
 
+  const {
+    data,
+    loading,
+    error,
+    setNewVariables,
+    refresh,
+    update,
+    requestId
+  } = useGetUpstreamsListV2({
+    namespaces: namespaces.namespacesList
+  });
+
   React.useEffect(() => {
-    if (data && data.upstreamsList) {
-      setUpstreamsList(data.upstreamsList);
+    if (data && data.toObject().upstreamsList) {
+      setUpstreamsList(data.toObject().upstreamsList);
     }
   }, [loading]);
 
@@ -203,11 +218,14 @@ export const UpstreamsListing = (props: Props) => {
   React.useEffect(() => {
     if (props.location.state && props.location.state.showSuccess) {
       setShowSuccessModal(true);
+      setTimeout(() => {
+        setNewVariables({ namespaces: namespaces.namespacesList });
+      }, 1000);
     }
     return () => setShowSuccessModal(false);
   }, [props.location.state && props.location.state.showSuccess]);
 
-  if (!data || loading) {
+  if (!data || (loading && requestId === 1)) {
     return <div>Loading...</div>;
   }
 
@@ -222,7 +240,9 @@ export const UpstreamsListing = (props: Props) => {
     )!.value!;
 
     // group by type
-    let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
+    let upstreamsByType = groupBy(data.toObject().upstreamsList, u =>
+      getUpstreamType(u)
+    );
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
@@ -271,7 +291,7 @@ export const UpstreamsListing = (props: Props) => {
           <SoloTable
             dataSource={getUsableTableData(
               nameFilterValue,
-              upstreamsList,
+              data.toObject().upstreamsList,
               checkboxes
             )}
             columns={getTableColumns(

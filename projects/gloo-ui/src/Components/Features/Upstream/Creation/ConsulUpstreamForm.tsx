@@ -10,7 +10,7 @@ import {
 import * as React from 'react';
 import * as yup from 'yup';
 
-interface ConsulVauesType {
+export interface ConsulVauesType {
   consulServiceName: string;
   consulServiceTagsList: string[];
   consulConnectEnabled: boolean;

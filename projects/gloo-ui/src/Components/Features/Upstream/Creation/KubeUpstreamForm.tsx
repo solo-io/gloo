@@ -12,7 +12,7 @@ import * as React from 'react';
 import * as yup from 'yup';
 
 // TODO: handle servicespec and subset spec
-interface KubeValuesType {
+export interface KubeValuesType {
   kubeServiceName: string;
   kubeServiceNamespace: string;
   kubeServicePort: number;

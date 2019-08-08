@@ -44,6 +44,11 @@ import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { withRouter } from 'react-router-dom';
 import { RouteComponentProps } from 'react-router';
+import { upstreams } from 'Api/UpstreamClient';
+import {
+  useCreateUpstreamV2,
+  useGetUpstreamsListV2
+} from 'Api/useUpstreamClientV2';
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -88,8 +93,10 @@ const validationSchema = yup.object().shape({
 
 const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
   const namespaces = React.useContext(NamespacesContext);
-
   const { refetch: makeRequest } = useCreateUpstream(null);
+  const { refresh } = useGetUpstreamsListV2({
+    namespaces: namespaces.namespacesList
+  });
 
   const initialValues = {
     name: '',
@@ -111,7 +118,8 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     kubeServiceNamespace: namespaces.defaultNamespace
   };
 
-  function createUpstream(values: typeof initialValues) {
+  // grpc request
+  async function createUpstream(values: typeof initialValues) {
     const newUpstreamReq = new CreateUpstreamRequest();
     const usInput = new UpstreamInput();
 
@@ -176,7 +184,14 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     }
 
     newUpstreamReq.setInput(usInput);
-    makeRequest(newUpstreamReq);
+    console.log(values);
+    // makeRequest(newUpstreamReq);
+    await upstreams.createUpstream({
+      name: values.name,
+      namespace: values.namespace,
+      type: values.type,
+      values
+    });
     props.toggleModal(s => !s);
     props.history.push('/upstreams', { showSuccess: true });
   }

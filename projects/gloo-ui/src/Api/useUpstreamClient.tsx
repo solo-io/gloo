@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { requestReducer, Reducer, RequestAction } from './request-reducer';
+import * as jspb from 'google-protobuf';
 
 import {
   ListUpstreamsRequest,

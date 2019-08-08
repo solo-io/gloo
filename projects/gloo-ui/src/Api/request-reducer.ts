@@ -10,12 +10,12 @@ export enum RequestAction {
 interface Action<T> {
   type: RequestAction;
   payload: T;
-  error?: ServiceError | undefined;
+  error?: ServiceError;
 }
 
 interface State<T> {
   isLoading: boolean;
-  error?: ServiceError | undefined;
+  error?: ServiceError;
   data: T;
 }
 

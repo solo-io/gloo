@@ -33,7 +33,7 @@ const StyledInputRow = styled(InputRow)`
 const IconContainer = styled.div`
   display: flex;
 `;
-interface AzureValuesType {
+export interface AzureValuesType {
   azureFunctionAppName: string;
   azureSecretRef: ResourceRef.AsObject;
 }

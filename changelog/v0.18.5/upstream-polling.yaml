@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: provide feedback after upstream creation
+    issueLink: https://github.com/solo-io/solo-projects/issues/822
+    resolvesIssue: false

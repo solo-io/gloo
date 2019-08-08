@@ -13,7 +13,8 @@ import * as yup from 'yup';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { withRouter, RouterProps } from 'react-router';
 import { useFormikContext, useField } from 'formik';
-interface AwsValuesType {
+
+export interface AwsValuesType {
   awsRegion: string;
   awsSecretRef: ResourceRef.AsObject;
 }
