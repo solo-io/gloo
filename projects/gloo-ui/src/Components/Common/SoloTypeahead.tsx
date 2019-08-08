@@ -128,7 +128,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
             : props.presetOptions!.length
             ? props.presetOptions![0].displayValue ||
               props.presetOptions![0].value
-            : namespaces.defaultNamespace
+            : ''
         }
         onSearch={setTypeInText}
         dataSource={getOptions()}

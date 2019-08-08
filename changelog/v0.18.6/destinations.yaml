@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow routing to a normal kube service without rest and fix a bug where aws destination spec wasnt being set.
+    issueLink: https://github.com/solo-io/solo-projects/issues/854

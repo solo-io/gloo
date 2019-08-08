@@ -310,18 +310,16 @@ export const CreateRouteModalC = (props: Props) => {
     let reqRouteInput = new RouteInput();
 
     let virtualServiceResourceRef = new ResourceRef();
-    if (!!values.virtualService) {
-      virtualServiceResourceRef.setName(values.virtualService!.metadata!.name);
+
+    if (!!values.virtualService && values.virtualService.metadata) {
+      virtualServiceResourceRef.setName(values.virtualService.metadata.name);
       virtualServiceResourceRef.setNamespace(
-        values.virtualService!.metadata!.namespace
+        values.virtualService.metadata.namespace
       );
+      reqRouteInput.setVirtualServiceRef(virtualServiceResourceRef);
     }
-    reqRouteInput.setVirtualServiceRef(virtualServiceResourceRef);
-
-    //reqRouteInput.setIndex(vs.virtualHost!.routesList.length);
-
     /* -------------------------- ROUTE CREATION BEGINS ------------------------- */
-
+    console.log('values', values);
     let newRoute = new Route();
     let routeMatcher = new Matcher();
     switch (values.matchType) {
@@ -389,7 +387,7 @@ export const CreateRouteModalC = (props: Props) => {
       newAWSDestinationSpec.setInvocationStyle(+invocationStyle);
       newAWSDestinationSpec.setResponseTransformation(responseTransformation);
       newDestinationSpec.setAws(newAWSDestinationSpec);
-
+      newDestination.setDestinationSpec(newDestinationSpec);
       /* ---------------------------- AZURE DESTINATION --------------------------- */
     } else if (!!upstreamSpec.azure) {
       let newAzureDestinationSpec = new AzureDestinationSpec();
@@ -399,7 +397,8 @@ export const CreateRouteModalC = (props: Props) => {
       /* ---------------------------- KUBE DESTINATION ---------------------------- */
     } else if (!!upstreamSpec.kube) {
       if (
-        values.destinationSpec!.rest &&
+        values.destinationSpec &&
+        values.destinationSpec.rest &&
         values.destinationSpec!.rest!.functionName
       ) {
         let kubeDestination = new RestDestinationSpec();
@@ -432,12 +431,6 @@ export const CreateRouteModalC = (props: Props) => {
       makeUpdateRequest(newRouteReq);
     } else {
       makeRequest(newRouteReq);
-
-      props.history.push({
-        pathname: `/virtualservices/${
-          values.virtualService!.metadata!.namespace
-        }/${values.virtualService!.metadata!.name}`
-      });
     }
   };
 
@@ -530,44 +523,44 @@ export const CreateRouteModalC = (props: Props) => {
           <FormContainer>
             <SoloFormTemplate>
               <InputRow>
-                {allUsableVirtualServices.length && (
-                  <React.Fragment>
+                <React.Fragment>
+                  <HalfColumn>
+                    <SoloFormVirtualServiceTypeahead
+                      name='virtualService'
+                      title='Virtual Service'
+                      value={values.virtualService}
+                      placeholder='Virtual Service...'
+                      defaultValue='Virtual Service'
+                      options={allUsableVirtualServices}
+                      disabled={
+                        !allUsableVirtualServices.length ||
+                        (!!values.virtualService && props.lockVirtualService)
+                      }
+                    />
+                  </HalfColumn>
+                  {allUsableUpstreams.length && (
                     <HalfColumn>
-                      <SoloFormVirtualServiceTypeahead
-                        name='virtualService'
-                        title='Virtual Service'
-                        value={values.virtualService}
-                        placeholder='Virtual Service...'
-                        options={allUsableVirtualServices}
-                        disabled={
-                          !!values.virtualService && props.lockVirtualService
-                        }
+                      <SoloFormMetadataBasedDropdown
+                        name='upstream'
+                        title='Upstream'
+                        value={values.upstream}
+                        placeholder='Upstream...'
+                        options={allUsableUpstreams}
+                        onChange={newUpstream => {
+                          if (newUpstream.upstreamSpec.aws) {
+                            setFieldValue('destinationSpec', {
+                              aws: {
+                                logicalName: '',
+                                invocationStyle: 0,
+                                responseTransformation: false
+                              }
+                            });
+                          }
+                        }}
                       />
                     </HalfColumn>
-                    {allUsableUpstreams.length && (
-                      <HalfColumn>
-                        <SoloFormMetadataBasedDropdown
-                          name='upstream'
-                          title='Upstream'
-                          value={values.upstream}
-                          placeholder='Upstream...'
-                          options={allUsableUpstreams}
-                          onChange={newUpstream => {
-                            if (newUpstream.upstreamSpec.aws) {
-                              setFieldValue('destinationSpec', {
-                                aws: {
-                                  logicalName: '',
-                                  invocationStyle: 0,
-                                  responseTransformation: false
-                                }
-                              });
-                            }
-                          }}
-                        />
-                      </HalfColumn>
-                    )}
-                  </React.Fragment>
-                )}
+                  )}
+                </React.Fragment>
               </InputRow>
               {allUsableUpstreams.length && (
                 <InputRow>
