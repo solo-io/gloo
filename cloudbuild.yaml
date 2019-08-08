@@ -210,6 +210,13 @@ steps:
   waitFor: ['build-test-assets', 'get-credentials-regression']
   id: 'regression-tests'
 
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
+  secretEnv: ['QUAY_IO_PASSWORD']
+  waitFor: ['regression-tests']
+  id: 'docker-login-push'
+
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
   args: ['--jobs=4', 'docker-push']
   env:
@@ -218,6 +225,7 @@ steps:
     - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  waitFor: ['docker-login-push']
   id: 'push-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
