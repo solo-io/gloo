@@ -240,23 +240,32 @@ $(OUTPUT_DIR)/.grpcserver-docker: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_
 	docker build -t quay.io/solo-io/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserver
 	touch $@
 
+#----------------------------------------------------------------------------------
+# grpcserver-envoy
+#----------------------------------------------------------------------------------
+CONFIG_YAML=envoy_config_grpcserver.yaml
+
 .PHONY: grpcserver-envoy-docker
 grpcserver-envoy-docker: $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
 	docker build -t quay.io/solo-io/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
 
 $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy: $(GRPCSERVER_DIR)/envoy/Dockerfile
-	cp $(GRPCSERVER_DIR)/envoy/envoy_config_grpcserver.yaml $(OUTPUT_DIR)/envoy_config_grpcserver.yaml
+	cp $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) $(OUTPUT_DIR)/$(CONFIG_YAML)
 	cp $< $@
 
 # helpers for local testing
 
+CONFIG_DIR=/etc/config.yaml
+GRPC_PORT=10101
+GLOO_UI_PORT=20202
+
 .PHONY: run-apiserver
 run-apiserver:
-	NO_AUTH=1 GRPC_PORT=10101 POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
+	NO_AUTH=1 GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
-	envoy -c projects/grpcserver/envoy/envoy_config_grpcserver.yaml -l debug
+	envoy -c $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) -l debug
 
 #----------------------------------------------------------------------------------
 # UI

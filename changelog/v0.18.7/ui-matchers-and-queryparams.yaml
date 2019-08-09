@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Give regex options in UI for matchers and query parameters.
+    issueLink: https://github.com/solo-io/solo-projects/issues/816
+  - type: FIX
+    description: In UI, when the list of virtual services is empty it now looks less goofy.
+    issueLink: https://github.com/solo-io/solo-projects/issues/859

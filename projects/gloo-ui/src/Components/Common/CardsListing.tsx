@@ -16,6 +16,7 @@ const ListContainer = styled.div`
 interface Props {
   cardsData: CardType[];
   title?: string;
+  emptyContent?: React.ReactNode;
 }
 
 const CardsListingTitle = styled.div`
@@ -39,16 +40,20 @@ export const CardsListing = (props: Props) => {
   return (
     <Container>
       {title && <CardsListingTitle>{title}</CardsListingTitle>}
-      <ListContainer>
-        {cardsData.map(cardInfo => {
-          return (
-            <Card
-              key={cardInfo.cardTitle + (cardInfo.cardSubtitle || '')}
-              {...cardInfo}
-            />
-          );
-        })}
-      </ListContainer>
+      {!!cardsData.length || !!props.emptyContent ? (
+        <ListContainer>
+          {cardsData.map(cardInfo => {
+            return (
+              <Card
+                key={cardInfo.cardTitle + (cardInfo.cardSubtitle || '')}
+                {...cardInfo}
+              />
+            );
+          })}
+        </ListContainer>
+      ) : (
+        <React.Fragment>{props.emptyContent}</React.Fragment>
+      )}
     </Container>
   );
 };

@@ -37,6 +37,8 @@ const ModalTrigger = styled.div`
 
 interface Props {
   finishCreation: (succeeded?: { namespace: string; name: string }) => any;
+  withoutDivider?: boolean;
+  promptText?: string;
 }
 
 export const CreateVirtualServiceModal = (props: Props) => {
@@ -53,13 +55,22 @@ export const CreateVirtualServiceModal = (props: Props) => {
 
   return (
     <ModalContainer>
-      <ModalTrigger onClick={() => setShowModal(s => !s)}>
-        <React.Fragment>
-          <StyledGreenPlus />
-          Create Virtual Service
-        </React.Fragment>
-        <Divider type='vertical' style={{ height: '1.5em' }} />
-      </ModalTrigger>
+      {props.withoutDivider ? (
+        <ModalTrigger onClick={() => setShowModal(s => !s)}>
+          <React.Fragment>
+            {props.promptText || 'Create Virtual Service'}
+            <StyledGreenPlus style={{ marginLeft: '7px', width: '18px' }} />
+          </React.Fragment>
+        </ModalTrigger>
+      ) : (
+        <ModalTrigger onClick={() => setShowModal(s => !s)}>
+          <React.Fragment>
+            <StyledGreenPlus />
+            {props.promptText || 'Create Virtual Service'}
+          </React.Fragment>
+          <Divider type='vertical' style={{ height: '1.5em' }} />
+        </ModalTrigger>
+      )}
       <SoloModal
         visible={showModal}
         width={650}

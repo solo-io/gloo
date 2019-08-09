@@ -21,6 +21,7 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
+import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { useListVirtualServices, useDeleteVirtualService } from 'Api';
@@ -156,6 +157,12 @@ const Action = styled.div`
   align-items: baseline;
 `;
 
+const EmptyPrompt = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+`;
+
 interface Props extends RouteComponentProps {}
 
 export const VirtualServicesListing = (props: Props) => {
@@ -217,7 +224,9 @@ export const VirtualServicesListing = (props: Props) => {
       };
     });
 
-    return dataUsed.filter(row => row.cardTitle.includes(nameFilter));
+    return dataUsed.filter(row =>
+      row.cardTitle.toLowerCase().includes(nameFilter.toLowerCase())
+    );
   };
 
   const getUsableTableData = (
@@ -261,13 +270,28 @@ export const VirtualServicesListing = (props: Props) => {
     if (!vsListData || vsLoading) {
       return <div>Loading...</div>;
     }
+
     return (
       <div>
         {catalogNotTable ? (
           <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
-            <CardsListing
-              cardsData={getUsableCatalogData(nameFilterValue, virtualServices)}
-            />
+            {!virtualServices.length ? (
+              <EmptyPrompt>
+                You don't have any virtual services.
+                <CreateVirtualServiceModal
+                  finishCreation={finishCreation}
+                  promptText="Let's create one."
+                  withoutDivider
+                />
+              </EmptyPrompt>
+            ) : (
+              <CardsListing
+                cardsData={getUsableCatalogData(
+                  nameFilterValue,
+                  virtualServices
+                )}
+              />
+            )}
           </SectionCard>
         ) : (
           <SoloTable
@@ -307,19 +331,25 @@ export const VirtualServicesListing = (props: Props) => {
   }
   return (
     <div>
-      <Heading>
-        <Breadcrumb />
-        <Action>
-          <CreateVirtualServiceModal finishCreation={finishCreation} />
-          <CatalogTableToggle
-            listIsSelected={!catalogNotTable}
-            onToggle={() => {
-              setCatalogNotTable(cNt => !cNt);
-            }}
-          />
-        </Action>
-      </Heading>
-      <ListingFilter strings={StringFilters} filterFunction={listDisplay} />
+      {!!virtualServices.length && (
+        <Heading>
+          <Breadcrumb />
+          <Action>
+            <CreateVirtualServiceModal finishCreation={finishCreation} />
+            <CatalogTableToggle
+              listIsSelected={!catalogNotTable}
+              onToggle={() => {
+                setCatalogNotTable(cNt => !cNt);
+              }}
+            />
+          </Action>
+        </Heading>
+      )}
+      <ListingFilter
+        hideFilters={!virtualServices.length}
+        strings={StringFilters}
+        filterFunction={listDisplay}
+      />
       <SoloModal
         visible={!!virtualServiceForRouteCreation}
         width={500}

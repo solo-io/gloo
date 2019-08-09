@@ -11,7 +11,10 @@ import {
   getUpstreamType,
   parseUpstreamId
 } from 'utils/helpers';
-import { MultipartStringCardsList } from '../MultipartStringCardsList';
+import {
+  MultipartStringCardsList,
+  MultipartStringCardsProps
+} from '../MultipartStringCardsList';
 import { SoloCheckbox } from '../SoloCheckbox';
 import { DropdownProps, SoloDropdown, OptionType } from '../SoloDropdown';
 import { SoloInput } from '../SoloInput';
@@ -290,29 +293,36 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
 };
 
 export const SoloFormMultipartStringCardsList: React.FC<
-  { name: string } & any
+  { name: string } & MultipartStringCardsProps
 > = ({ name, ...props }) => {
   const [field, meta] = useField(name);
   const form = useFormikContext<any>();
+
   return (
     <React.Fragment>
       <MultipartStringCardsList
         {...field}
         {...props}
-        error={!!meta.error && meta.touched}
         values={field.value}
         valueDeleted={indexDeleted => {
+          const newArr = [...field.value];
+          newArr.splice(indexDeleted, 1);
+
           form.setFieldValue(
             field.name,
-            [...field.value].splice(indexDeleted, 1)
+            newArr
           );
         }}
         createNew={newPair => {
           let newList = [...field.value];
-          newList.push({
-            value: newPair.newValue,
-            name: newPair.newName
-          });
+          const newObj: any = {};
+          newObj[props.nameSlotTitle || 'name'] = newPair.newName;
+          newObj[props.valueSlotTitle || 'value'] = newPair.newValue;
+          if (newPair.newBool !== undefined) {
+            newObj[props.boolSlotTitle || 'regex'] = newPair.newBool;
+          }
+
+          newList.push(newObj);
           form.setFieldValue(field.name, newList);
         }}
       />

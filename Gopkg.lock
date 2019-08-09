@@ -2814,6 +2814,7 @@
     "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/labels",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/typed/authentication/v1",
     "k8s.io/client-go/kubernetes/typed/core/v1",

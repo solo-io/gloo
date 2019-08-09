@@ -16,19 +16,25 @@ export const Container = styled.div`
   align-items: center;
 `;
 
-export const StringCard = styled<
-  'div',
-  { hasError?: boolean; limitWidth?: boolean }
->('div')`
+export const StringCard = styled<'div', { limitWidth?: boolean }>('div')`
   display: flex;
   justify-content: space-between;
-  border-radius: ${soloConstants.smallRadius}px;
-  padding: 0 10px;
   line-height: 33px;
   font-size: 16px;
   width: ${props => (props.limitWidth ? '175px' : 'auto')};
   margin: 10px;
   white-space: nowrap;
+`;
+export const CardValue = styled<'div', { hasError?: boolean }>('div')`
+  min-width: 100px;
+  max-width: 500px;
+  padding-left: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+  border-radius: ${soloConstants.smallRadius}px 0 0
+    ${soloConstants.smallRadius}px;
 
   ${props =>
     props.hasError
@@ -42,17 +48,24 @@ export const StringCard = styled<
       background: ${colors.marchGrey};
       color: ${colors.novemberGrey};`}
 `;
-export const CardValue = styled.div`
-  min-width: 100px;
-  max-width: 500px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: default;
-`;
-export const DeleteX = styled.div`
+export const DeleteX = styled<'div', { hasError?: boolean }>('div')`
+  padding-right: 10px;
+  padding-left: 5px;
   cursor: pointer;
-  margin-left: 5px;
+  border-radius: 0 ${soloConstants.smallRadius}px ${soloConstants.smallRadius}px
+    0;
+
+  ${props =>
+    props.hasError
+      ? `background: ${colors.tangerineOrange};
+    color: ${colors.pumpkinOrange};
+    
+    .greyX-c {
+      fill: ${colors.pumpkinOrange};
+    }`
+      : `
+    background: ${colors.marchGrey};
+    color: ${colors.novemberGrey};`}
 `;
 
 export const NewStringPrompt = styled.div`
@@ -63,7 +76,10 @@ export const NewStringPrompt = styled.div`
   align-items: center;
   margin: 10px;
 `;
-export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
+export const PlusHolder = styled<
+  'div',
+  { disabled: boolean; withRegex?: boolean }
+>('div')`
   ${props =>
     props.disabled
       ? `opacity: .5;
@@ -71,7 +87,7 @@ export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
       : ''}
 
   position: absolute;
-  right: 7px;
+  right: ${props => (props.withRegex ? '-23px' : '7px')};
   top: 10px;
   cursor: pointer;
   z-index: 5;
@@ -116,11 +132,15 @@ export const StringCardsList = (props: StringCardsListProps) => {
     <Container>
       {values.map((value, ind) => {
         return (
-          <StringCard
-            key={ind}
-            hasError={!!valueIsValid ? !valueIsValid(value) : false}>
-            <CardValue title={value}>{value}</CardValue>
-            <DeleteX onClick={() => valueDeleted(ind)}>
+          <StringCard key={ind}>
+            <CardValue
+              title={value}
+              hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+              {value}
+            </CardValue>
+            <DeleteX
+              onClick={() => valueDeleted(ind)}
+              hasError={!!valueIsValid ? !valueIsValid(value) : false}>
               <GreyX style={{ marginBottom: '-3px' }} />
             </DeleteX>
           </StringCard>

@@ -597,6 +597,8 @@ export const CreateRouteModalC = (props: Props) => {
                   valuesMayBeEmpty={true}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
+                  booleanFieldText={'Regex'}
+                  boolSlotTitle={'regex'}
                 />
               </InputRow>
               <InputRow>
@@ -607,6 +609,8 @@ export const CreateRouteModalC = (props: Props) => {
                   valuesMayBeEmpty={true}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
+                  booleanFieldText={'Regex'}
+                  boolSlotTitle={'regex'}
                 />
               </InputRow>
               <InputRow>
