@@ -256,7 +256,7 @@ run-apiserver:
 
 .PHONY: run-envoy
 run-envoy:
-	envoy -c projects/grpcserver/envoy/envoy.yaml -l debug
+	envoy -c projects/grpcserver/envoy/envoy_config_grpcserver.yaml -l debug
 
 #----------------------------------------------------------------------------------
 # UI
