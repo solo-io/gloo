@@ -2,35 +2,33 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 
-import styled from '@emotion/styled/macro';
-import { colors, TableActions, TableActionCircle } from 'Styles';
+import { TableActions, TableActionCircle } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { SecretForm } from './SecretForm';
-import { DeleteSecretRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { useDeleteSecret } from 'Api';
+import { SecretForm, SecretValuesType } from './SecretForm';
 
 interface Props {
   tlsSecrets?: Secret.AsObject[];
   oAuthSecrets?: Secret.AsObject[];
+  onCreateSecret: (
+    values: SecretValuesType,
+    secretKind: Secret.KindCase
+  ) => void;
+  onDeleteSecret: (
+    name: string,
+    namespace: string,
+    secretKind: Secret.KindCase
+  ) => void;
 }
 
 export const SecurityPage: React.FunctionComponent<Props> = props => {
   const { tlsSecrets, oAuthSecrets } = props;
-  const [tlsSecretsList, setTlsSecretsList] = React.useState<Secret.AsObject[]>(
-    !!tlsSecrets ? tlsSecrets : []
-  );
-  const [oAuthSecretsList, setOAuthSecretsList] = React.useState<
-    Secret.AsObject[]
-  >(!!oAuthSecrets ? oAuthSecrets : []);
-  const { refetch: makeRequest } = useDeleteSecret(null);
 
   let tlsTableData: any[] = [];
-  if (tlsSecretsList) {
-    tlsTableData = tlsSecretsList.map(tlsSecret => {
+  if (tlsSecrets) {
+    tlsTableData = tlsSecrets.map(tlsSecret => {
       return {
         key: `${tlsSecret.metadata!.name}-${tlsSecret.metadata!.namespace}`,
         name: tlsSecret.metadata!.name,
@@ -54,8 +52,8 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
   }
 
   let oAuthTableData: any[] = [];
-  if (oAuthSecretsList) {
-    oAuthTableData = oAuthSecretsList.map(oAuthSecret => {
+  if (oAuthSecrets) {
+    oAuthTableData = oAuthSecrets.map(oAuthSecret => {
       return {
         key: `${oAuthSecret.metadata!.name}-${oAuthSecret.metadata!.namespace}`,
         name: oAuthSecret.metadata!.name,
@@ -104,7 +102,11 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
           <div style={{ marginLeft: '5px' }}>
             <TableActionCircle
               onClick={() =>
-                deleteSecret(record.name, record.namespace, Secret.KindCase.TLS)
+                props.onDeleteSecret(
+                  record.name,
+                  record.namespace,
+                  Secret.KindCase.TLS
+                )
               }>
               x
             </TableActionCircle>
@@ -136,7 +138,7 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
           <div style={{ marginLeft: '5px' }}>
             <TableActionCircle
               onClick={() =>
-                deleteSecret(
+                props.onDeleteSecret(
                   record.name,
                   record.namespace,
                   Secret.KindCase.EXTENSION
@@ -150,25 +152,6 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
     }
   ];
 
-  function deleteSecret(
-    name: string,
-    namespace: string,
-    secretKind: Secret.KindCase
-  ) {
-    if (secretKind === Secret.KindCase.TLS) {
-      setTlsSecretsList(list => list.filter(s => s.metadata!.name !== name));
-    }
-    if (secretKind === Secret.KindCase.EXTENSION) {
-      setOAuthSecretsList(list => list.filter(s => s.metadata!.name !== name));
-    }
-    let req = new DeleteSecretRequest();
-    let ref = new ResourceRef();
-    ref.setName(name);
-    ref.setNamespace(namespace);
-    req.setRef(ref);
-    makeRequest(req);
-  }
-
   return (
     <React.Fragment>
       <SectionCard cardName={'TLS'} logoIcon={<KeyRing />}>
@@ -177,7 +160,10 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
             columns={TLSColumns}
             dataSource={tlsTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.TLS} />
+              <SecretForm
+                secretKind={Secret.KindCase.TLS}
+                onCreateSecret={props.onCreateSecret}
+              />
             )}
           />
         ) : (
@@ -190,7 +176,10 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
             columns={OAuthColumns}
             dataSource={oAuthTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.EXTENSION} />
+              <SecretForm
+                secretKind={Secret.KindCase.EXTENSION}
+                onCreateSecret={props.onCreateSecret}
+              />
             )}
           />
         ) : (

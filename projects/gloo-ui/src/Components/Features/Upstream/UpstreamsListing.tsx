@@ -20,7 +20,7 @@ import {
 } from '../../Common/ListingFilter';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { useGetUpstreamsListV2 } from 'Api/useUpstreamClientV2';
+import { useGetUpstreamsListV2 } from 'Api/v2/useUpstreamClientV2';
 import {
   ListUpstreamsRequest,
   DeleteUpstreamRequest

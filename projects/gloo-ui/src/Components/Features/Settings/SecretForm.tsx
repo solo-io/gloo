@@ -1,6 +1,4 @@
 import React from 'react';
-import { useCreateSecret } from 'Api';
-import { CreateSecretRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   AwsSecret,
@@ -20,7 +18,7 @@ import { NamespacesContext } from 'GlooIApp';
 // TODO: modify for use outside a table
 // TODO: set one source of truth for column names/order
 
-interface SecretValuesType {
+export interface SecretValuesType {
   secretResourceRef: ResourceRef.AsObject;
   awsSecret: AwsSecret.AsObject;
   azureSecret: AzureSecret.AsObject;
@@ -28,68 +26,42 @@ interface SecretValuesType {
   oAuthSecret: { clientSecret: string };
 }
 
-const initialValues: SecretValuesType = {
-  secretResourceRef: {
-    name: '',
-    namespace: ''
-  },
-  awsSecret: {
-    accessKey: '',
-    secretKey: ''
-  },
-  azureSecret: {
-    apiKeysMap: []
-  },
-  tlsSecret: {
-    certChain: '',
-    privateKey: '',
-    rootCa: ''
-  },
-  oAuthSecret: {
-    clientSecret: ''
-  }
-};
-
 interface Props {
   secretKind: Secret.KindCase;
+  onCreateSecret: (
+    values: SecretValuesType,
+    secretKind: Secret.KindCase
+  ) => void;
 }
 
-export const SecretForm: React.FC<Props> = ({ secretKind }) => {
-  const { refetch: makeRequest } = useCreateSecret(null);
+export const SecretForm: React.FC<Props> = props => {
+  const { secretKind, onCreateSecret } = props;
   const namespaces = React.useContext(NamespacesContext);
 
-  const createSecret = (values: typeof initialValues) => {
-    const secretReq = new CreateSecretRequest();
-    switch (secretKind) {
-      case Secret.KindCase.AWS:
-        const awsSecret = new AwsSecret();
-        awsSecret.setAccessKey(values.awsSecret.accessKey);
-        awsSecret.setSecretKey(values.awsSecret.secretKey);
-        secretReq.setAws(awsSecret);
-        break;
-      case Secret.KindCase.AZURE:
-        // TODO: figure out correct way to input api keys map
-        // https://docs.microsoft.com/en-us/azure/search/search-security-api-keys
-        const azureSecret = new AzureSecret();
-        azureSecret.getApiKeysMap().set('keyname', 'key');
-        const apiKeys = new Map<string, string>();
-        break;
-      case Secret.KindCase.TLS:
-        const tlsSecret = new TlsSecret();
-        tlsSecret.setCertChain(values.tlsSecret.certChain);
-        tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
-        tlsSecret.setRootCa(values.tlsSecret.rootCa);
-        secretReq.setTls(tlsSecret);
-        break;
-      default:
-        break;
+  const initialValues: SecretValuesType = {
+    secretResourceRef: {
+      name: '',
+      namespace: namespaces.defaultNamespace
+    },
+    awsSecret: {
+      accessKey: '',
+      secretKey: ''
+    },
+    azureSecret: {
+      apiKeysMap: []
+    },
+    tlsSecret: {
+      certChain: '',
+      privateKey: '',
+      rootCa: ''
+    },
+    oAuthSecret: {
+      clientSecret: ''
     }
-    const resourceRef = new ResourceRef();
-    resourceRef.setName(values.secretResourceRef.name);
-    resourceRef.setNamespace(values.secretResourceRef.namespace);
-    secretReq.setRef(resourceRef);
+  };
 
-    makeRequest(secretReq);
+  const createSecret = (values: SecretValuesType) => {
+    onCreateSecret(values, secretKind);
   };
 
   return (
@@ -141,7 +113,7 @@ const TlsSecretFields: React.FC = () => {
     <TableFormWrapper>
       <SoloFormInput name='tlsSecret.certChain' placeholder='Cert Chain' />
       <SoloFormInput name='tlsSecret.privateKey' placeholder='Private Key' />
-      <SoloFormInput name='rootCa' placeholder='Root Ca' />
+      <SoloFormInput name='tlsSecret.rootCa' placeholder='Root Ca' />
     </TableFormWrapper>
   );
 };

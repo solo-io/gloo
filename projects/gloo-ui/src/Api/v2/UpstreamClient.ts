@@ -10,12 +10,10 @@ import {
   UpdateUpstreamResponse,
   DeleteUpstreamResponse,
   UpstreamInput
-} from '../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
-import {
-  UpstreamSpec as AwsUpstreamSpec,
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { host } from './grpc-web-hooks';
+import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
+import { host } from '../grpc-web-hooks';
 import { grpc } from '@improbable-eng/grpc-web';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';

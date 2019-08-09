@@ -44,11 +44,11 @@ import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { withRouter } from 'react-router-dom';
 import { RouteComponentProps } from 'react-router';
-import { upstreams } from 'Api/UpstreamClient';
+import { upstreams } from 'Api/v2/UpstreamClient';
 import {
   useCreateUpstreamV2,
   useGetUpstreamsListV2
-} from 'Api/useUpstreamClientV2';
+} from 'Api/v2/useUpstreamClientV2';
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -184,8 +184,6 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     }
 
     newUpstreamReq.setInput(usInput);
-    console.log(values);
-    // makeRequest(newUpstreamReq);
     await upstreams.createUpstream({
       name: values.name,
       namespace: values.namespace,

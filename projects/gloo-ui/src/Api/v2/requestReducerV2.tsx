@@ -119,7 +119,7 @@ export function useSendRequest<
   const initialValue = {
     variables: variables,
     prevVariables: variables,
-    isLoading: false,
+    isLoading: true,
     requestId: 1,
     error: null,
     data: null

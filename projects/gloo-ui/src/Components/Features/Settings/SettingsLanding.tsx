@@ -16,10 +16,22 @@ import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { useListSecrets } from 'Api';
-import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+import {
+  Secret,
+  AwsSecret,
+  AzureSecret,
+  TlsSecret
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { useListSecrets, useCreateSecret, useDeleteSecret } from 'Api';
+import {
+  ListSecretsRequest,
+  CreateSecretRequest,
+  DeleteSecretRequest
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { NamespacesContext } from 'GlooIApp';
+import { SuccessModal } from 'Components/Common/SuccessModal';
+import { SecretValuesType } from './SecretForm';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -50,17 +62,51 @@ export const SettingsLanding = (props: Props) => {
   let azureSecrets = [] as Secret.AsObject[];
   let tlsSecrets = [] as Secret.AsObject[];
   let oAuthSecrets = [] as Secret.AsObject[];
+
   const listSecretsReq = React.useRef(new ListSecretsRequest());
   const namespaces = React.useContext(NamespacesContext);
-
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+  const { refetch: makeCreateRequest } = useCreateSecret(null);
+  const { refetch: makeDeleteRequest } = useDeleteSecret(null);
   listSecretsReq.current.setNamespacesList(namespaces.namespacesList);
-  const { data, loading, error } = useListSecrets(listSecretsReq.current);
+  const { data, loading, error, refetch: updateSecretsList } = useListSecrets(
+    listSecretsReq.current
+  );
+  const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
 
-  if (!data || loading) {
+  React.useEffect(() => {
+    if (!!data) {
+      setAllSecrets(data.secretsList);
+    }
+    return () => {
+      setShowSuccessModal(false);
+    };
+  }, [data, showSuccessModal]);
+
+  React.useEffect(() => {
+    if (data && data.secretsList) {
+      data.secretsList.map(secret => {
+        if (!!secret.aws) {
+          awsSecrets.push(secret);
+        }
+        if (!!secret.azure) {
+          azureSecrets.push(secret);
+        }
+        if (!!secret.tls) {
+          tlsSecrets.push(secret);
+        }
+        if (!!secret.extension) {
+          oAuthSecrets.push(secret);
+        }
+      });
+    }
+  }, [allSecrets.length]);
+
+  if (!data || (!data && loading)) {
     return <div>Loading...</div>;
   }
   if (data && data.secretsList.length > 0) {
-    data.secretsList.map(secret => {
+    data.secretsList.forEach(secret => {
       if (!!secret.aws) {
         awsSecrets.push(secret);
       }
@@ -75,7 +121,6 @@ export const SettingsLanding = (props: Props) => {
       }
     });
   }
-
   const locationEnding = props.location.pathname.split('/settings/')[1];
   const startingChoice =
     locationEnding && locationEnding.length
@@ -116,6 +161,8 @@ export const SettingsLanding = (props: Props) => {
               <SecurityPage
                 tlsSecrets={tlsSecrets}
                 oAuthSecrets={oAuthSecrets}
+                onCreateSecret={createSecret}
+                onDeleteSecret={deleteSecret}
               />
             )}
           />
@@ -129,6 +176,8 @@ export const SettingsLanding = (props: Props) => {
               <SecretsPage
                 awsSecrets={awsSecrets}
                 azureSecrets={azureSecrets}
+                onCreateSecret={createSecret}
+                onDeleteSecret={deleteSecret}
               />
             )}
           />
@@ -139,11 +188,82 @@ export const SettingsLanding = (props: Props) => {
     );
   };
 
+  function createSecret(values: SecretValuesType, secretKind: Secret.KindCase) {
+    const secretReq = new CreateSecretRequest();
+    switch (secretKind) {
+      case Secret.KindCase.AWS:
+        const awsSecret = new AwsSecret();
+        awsSecret.setAccessKey(values.awsSecret.accessKey);
+        awsSecret.setSecretKey(values.awsSecret.secretKey);
+        secretReq.setAws(awsSecret);
+        break;
+      case Secret.KindCase.AZURE:
+        // TODO: figure out correct way to input api keys map
+        // https://docs.microsoft.com/en-us/azure/search/search-security-api-keys
+        const azureSecret = new AzureSecret();
+        azureSecret.getApiKeysMap().set('keyname', 'key');
+        const apiKeys = new Map<string, string>();
+        break;
+      case Secret.KindCase.TLS:
+        const tlsSecret = new TlsSecret();
+        tlsSecret.setCertChain(values.tlsSecret.certChain);
+        tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
+        tlsSecret.setRootCa(values.tlsSecret.rootCa);
+        secretReq.setTls(tlsSecret);
+        break;
+      default:
+        break;
+    }
+    const resourceRef = new ResourceRef();
+    resourceRef.setName(values.secretResourceRef.name);
+    resourceRef.setNamespace(values.secretResourceRef.namespace);
+    secretReq.setRef(resourceRef);
+
+    makeCreateRequest(secretReq);
+    setTimeout(() => {
+      updateSecretsList(listSecretsReq.current);
+    }, 500);
+    setShowSuccessModal(true);
+  }
+
+  function deleteSecret(
+    name: string,
+    namespace: string,
+    secretKind: Secret.KindCase
+  ) {
+    if (secretKind === Secret.KindCase.AWS) {
+      awsSecrets.filter(s => s.metadata!.name !== name);
+    }
+    if (secretKind === Secret.KindCase.AZURE) {
+      azureSecrets.filter(s => s.metadata!.name !== name);
+    }
+    if (secretKind === Secret.KindCase.TLS) {
+      tlsSecrets.filter(s => s.metadata!.name !== name);
+    }
+    if (secretKind === Secret.KindCase.EXTENSION) {
+      oAuthSecrets.filter(s => s.metadata!.name !== name);
+    }
+    let req = new DeleteSecretRequest();
+    let ref = new ResourceRef();
+    ref.setName(name);
+    ref.setNamespace(namespace);
+    req.setRef(ref);
+    makeDeleteRequest(req);
+
+    setTimeout(() => {
+      updateSecretsList(listSecretsReq.current);
+    }, 500);
+  }
+
   return (
     <div>
       <Heading>
         <Breadcrumb />
       </Heading>
+      <SuccessModal
+        visible={showSuccessModal}
+        successMessage='Secret added successfully'
+      />
       <ListingFilter
         types={[{ ...PageChoiceFilter, choice: startingChoice }]}
         filterFunction={listDisplay}

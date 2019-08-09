@@ -2,43 +2,41 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 
-import styled from '@emotion/styled/macro';
-import { colors, TableActions, TableActionCircle } from 'Styles';
+import { TableActions, TableActionCircle } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { SecretForm } from './SecretForm';
+import { SecretForm, SecretValuesType } from './SecretForm';
 import { getIcon } from 'utils/helpers';
-import { DeleteSecretRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { useDeleteSecret } from 'Api';
 
 interface Props {
   awsSecrets?: Secret.AsObject[];
   azureSecrets?: Secret.AsObject[];
+  toggleSuccessModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  onCreateSecret: (
+    values: SecretValuesType,
+    secretKind: Secret.KindCase
+  ) => void;
+  onDeleteSecret: (
+    name: string,
+    namespace: string,
+    secretKind: Secret.KindCase
+  ) => void;
 }
 
 export const SecretsPage = (props: Props) => {
   const { awsSecrets, azureSecrets } = props;
-  const [awsSecretList, setAwsSecretList] = React.useState<Secret.AsObject[]>(
-    !!awsSecrets ? awsSecrets : []
-  );
-  const [azureSecretList, setAzureSecretList] = React.useState<
-    Secret.AsObject[]
-  >(!!azureSecrets ? azureSecrets : []);
 
-  const { refetch: makeRequest } = useDeleteSecret(null);
   let awsTableData: any[] = [];
 
-  if (awsSecretList) {
-    awsTableData = awsSecretList.map(awsSecret => {
+  if (awsSecrets) {
+    awsTableData = awsSecrets.map(awsSecret => {
       return {
         key: `${awsSecret.metadata!.name}-${awsSecret.metadata!.namespace}`,
         name: awsSecret.metadata!.name,
         namespace: awsSecret.metadata!.namespace,
-        accessKey: awsSecret.aws!.accessKey,
-        secretKey: awsSecret.aws!.secretKey
+        accessKey: '**************************',
+        secretKey: '**************************'
       };
     });
     // This is to be replaced by the add new row form
@@ -52,8 +50,8 @@ export const SecretsPage = (props: Props) => {
   }
 
   let azureTableData: any[] = [];
-  if (azureSecretList) {
-    azureTableData = azureSecretList.map(azureSecret => {
+  if (azureSecrets) {
+    azureTableData = azureSecrets.map(azureSecret => {
       return {
         key: `${azureSecret.metadata!.name}-${azureSecret.metadata!.namespace}`,
         name: azureSecret.metadata!.name,
@@ -84,11 +82,11 @@ export const SecretsPage = (props: Props) => {
     },
     {
       title: 'AccessKey',
-      dataIndex: 'aws.accessKey'
+      dataIndex: 'accessKey'
     },
     {
       title: 'Secret Key',
-      dataIndex: 'aws.secretKey'
+      dataIndex: 'secretKey'
     },
     {
       title: 'Actions',
@@ -98,7 +96,11 @@ export const SecretsPage = (props: Props) => {
           <div style={{ marginLeft: '5px' }}>
             <TableActionCircle
               onClick={() =>
-                deleteSecret(record.name, record.namespace, Secret.KindCase.AWS)
+                props.onDeleteSecret(
+                  record.name,
+                  record.namespace,
+                  Secret.KindCase.AWS
+                )
               }>
               x
             </TableActionCircle>
@@ -130,7 +132,7 @@ export const SecretsPage = (props: Props) => {
           <div style={{ marginLeft: '5px' }}>
             <TableActionCircle
               onClick={() =>
-                deleteSecret(
+                props.onDeleteSecret(
                   record.name,
                   record.namespace,
                   Secret.KindCase.AZURE
@@ -144,34 +146,18 @@ export const SecretsPage = (props: Props) => {
     }
   ];
 
-  function deleteSecret(
-    name: string,
-    namespace: string,
-    secretKind: Secret.KindCase
-  ) {
-    if (secretKind === Secret.KindCase.AWS) {
-      setAwsSecretList(list => list.filter(s => s.metadata!.name !== name));
-    }
-    if (secretKind === Secret.KindCase.AZURE) {
-      setAzureSecretList(list => list.filter(s => s.metadata!.name !== name));
-    }
-    let req = new DeleteSecretRequest();
-    let ref = new ResourceRef();
-    ref.setName(name);
-    ref.setNamespace(namespace);
-    req.setRef(ref);
-    makeRequest(req);
-  }
-
   return (
     <React.Fragment>
-      <SectionCard cardName={'AWS Secrets'} logoIcon={getIcon('AWS')}>
+      <SectionCard cardName={'AWS Secrets'} logoIcon={getIcon('Aws')}>
         {awsTableData.length ? (
           <SoloTable
             columns={AWSColumns}
             dataSource={awsTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.AWS} />
+              <SecretForm
+                secretKind={Secret.KindCase.AWS}
+                onCreateSecret={props.onCreateSecret}
+              />
             )}
           />
         ) : (
@@ -183,7 +169,10 @@ export const SecretsPage = (props: Props) => {
           columns={AzureColumns}
           dataSource={azureTableData}
           formComponent={() => (
-            <SecretForm secretKind={Secret.KindCase.AZURE} />
+            <SecretForm
+              secretKind={Secret.KindCase.AZURE}
+              onCreateSecret={props.onCreateSecret}
+            />
           )}
         />
       </SectionCard>
