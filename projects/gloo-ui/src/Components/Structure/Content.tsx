@@ -1,4 +1,10 @@
-import { Redirect, Route, Switch } from 'react-router-dom';
+import {
+  Redirect,
+  Route,
+  Switch,
+  RouteComponentProps,
+  RouteProps
+} from 'react-router-dom';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
@@ -7,6 +13,8 @@ import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing'
 import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
 import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
+import { Overview } from 'Components/Features/Overview';
+import { Admin } from 'Components/Features/Admin';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -18,6 +26,7 @@ export const Content = () => {
   return (
     <Container>
       <Switch>
+        <Route path='/overview' render={props => <Overview {...props} />} />
         <Route
           path='/virtualservices/'
           exact
@@ -25,7 +34,6 @@ export const Content = () => {
         />
         <Route
           path='/upstreams/'
-          exact
           render={(props: any) => <UpstreamsListing {...props} />}
         />
         <Route
@@ -33,6 +41,7 @@ export const Content = () => {
           exact
           render={(props: any) => <VirtualServiceDetails {...props} />}
         />
+        <Route path='/admin' exact render={props => <Admin {...props} />} />
         <Route
           path='/stats/'
           exact

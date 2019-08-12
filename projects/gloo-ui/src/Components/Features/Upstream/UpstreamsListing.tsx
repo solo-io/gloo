@@ -3,7 +3,7 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, Route, Switch } from 'react-router-dom';
 import {
   healthConstants,
   TableHealthCircleHolder,
@@ -52,6 +52,8 @@ import _ from 'lodash';
 import { SuccessModal } from 'Components/Common/SuccessModal';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Popconfirm } from 'antd';
+import { upstreams } from 'Api/v2/UpstreamClient';
+import { tsPropertySignature } from '@babel/types';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -175,7 +177,7 @@ interface Props extends RouteComponentProps {
 export const UpstreamsListing = (props: Props) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
-  const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+  const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(false);
   const [
     upstreamForRouteCreation,
     setUpstreamForRouteCreation
@@ -237,59 +239,70 @@ export const UpstreamsListing = (props: Props) => {
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
       <div>
-        {catalogNotTable ? (
-          upstreamsByTypeArr.map(([type, upstreams]) => {
-            // show section according to type filter
-            let groupedByNamespaces = Array.from(
-              groupBy(upstreams, u => u.metadata!.namespace).entries()
-            );
-
-            if (
-              checkboxesNotSet ||
-              checkboxes.find(c => c.displayName === type)!.value!
-            ) {
-              const cardListingsData = groupedByNamespaces
-                .map(([namespace, upstreams]) => {
-                  return {
-                    namespace,
-                    cardsData: getUsableCatalogData(nameFilterValue, upstreams)
-                  };
-                })
-                .filter(data => !!data.cardsData.length);
-
-              if (!cardListingsData.length) {
-                return null;
-              }
-
-              return (
-                <SectionCard
-                  cardName={type}
-                  logoIcon={getIcon(type)}
-                  key={type}>
-                  {cardListingsData.map(data => (
-                    <CardsListing
-                      key={data.namespace}
-                      title={data.namespace}
-                      cardsData={data.cardsData}
-                    />
-                  ))}
-                </SectionCard>
+        <Route
+          path={props.match.path}
+          exact
+          render={() =>
+            upstreamsByTypeArr.map(([type, upstreams]) => {
+              // show section according to type filter
+              let groupedByNamespaces = Array.from(
+                groupBy(upstreams, u => u.metadata!.namespace).entries()
               );
-            }
-          })
-        ) : (
-          <SoloTable
-            dataSource={getUsableTableData(
-              nameFilterValue,
-              data.toObject().upstreamsList,
-              checkboxes
-            )}
-            columns={getTableColumns(
-              setUpstreamForRouteCreation,
-              deleteUpstream
-            )}
-          />
-        )}
+
+              if (
+                checkboxesNotSet ||
+                checkboxes.find(c => c.displayName === type)!.value!
+              ) {
+                const cardListingsData = groupedByNamespaces
+                  .map(([namespace, upstreams]) => {
+                    return {
+                      namespace,
+                      cardsData: getUsableCatalogData(
+                        nameFilterValue,
+                        upstreams
+                      )
+                    };
+                  })
+                  .filter(data => !!data.cardsData.length);
+
+                if (!cardListingsData.length) {
+                  return null;
+                }
+
+                return (
+                  <SectionCard
+                    cardName={type}
+                    logoIcon={getIcon(type)}
+                    key={type}>
+                    {cardListingsData.map(data => (
+                      <CardsListing
+                        key={data.namespace}
+                        title={data.namespace}
+                        cardsData={data.cardsData}
+                      />
+                    ))}
+                  </SectionCard>
+                );
+              }
+            })
+          }
+        />
+        <Route
+          path={`${props.match.path}table`}
+          render={() => (
+            <SoloTable
+              dataSource={getUsableTableData(
+                nameFilterValue,
+                data.toObject().upstreamsList,
+                checkboxes
+              )}
+              columns={getTableColumns(
+                setUpstreamForRouteCreation,
+                deleteUpstream
+              )}
+            />
+          )}
+        />
       </div>
     );
   };
@@ -378,14 +391,9 @@ export const UpstreamsListing = (props: Props) => {
       });
   };
 
-  function deleteUpstream(name: string, namespace: string) {
+  async function deleteUpstream(name: string, namespace: string) {
+    await upstreams.deleteUpstream({ name, namespace });
     setUpstreamsList(usList => usList.filter(us => us.metadata!.name !== name));
-    let deleteRequest = new DeleteUpstreamRequest();
-    let ref = new ResourceRef();
-    ref.setName(name);
-    ref.setNamespace(namespace);
-    deleteRequest.setRef(ref);
-    makeRequest(deleteRequest);
   }
 
   return (
@@ -401,6 +409,9 @@ export const UpstreamsListing = (props: Props) => {
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {
+              props.history.push(
+                `${props.match.path}${catalogNotTable ? '' : 'table'}`
+              );
               setCatalogNotTable(cNt => !cNt);
             }}
           />

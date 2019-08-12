@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72.715" height="26.084" viewBox="0 0 72.715 26.084">
+    <defs>
+        <style>
+            .us-icon-a{fill:none;stroke:#54b7e3;stroke-linecap:round;stroke-miterlimit:10;stroke-width:1.5px;}
+        </style>
+    </defs>
+    <g transform="translate(-52.426 170.066) rotate(180)">
+        <circle cx="5.463" cy="5.463" r="5.463" class="us-icon-a" transform="translate(-120.391 151.365)"/>
+        <line x2="52.29" class="us-icon-a" transform="translate(-105.465 156.829)"/>
+        <path d="M-80,157.6l11.06-12.1h13.914" class="us-icon-a" transform="translate(-13.099 -0.768)"/>
+        <path d="M-80,161.5l11.06,12.1h13.914" class="us-icon-a" transform="translate(-13.099 -4.281)"/>
+        <circle cx="9.463" cy="9.463" r="9.463" class="us-icon-a" transform="translate(-124.391 147.365)"/>
+        <circle cx="1.463" cy="1.463" r="1.463" class="us-icon-a" transform="translate(-116.391 155.365)"/>
+    </g>
+</svg>

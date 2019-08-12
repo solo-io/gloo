@@ -54,7 +54,8 @@ const TitleDiv = styled.div`
 
 const activeStyle = {
   borderBottom: `8px solid ${colors.pondBlue}`,
-  cursor: 'default'
+  cursor: 'default',
+  fontWeight: 500
 };
 const activeSettingsStyle = {
   cursor: 'default'
@@ -108,6 +109,9 @@ export const MainMenu = () => {
         <TitleDiv>
           <GlooE /> Gloo Enterprise
         </TitleDiv>
+        {/* <NavLink style={NavLinkStyles} to='/overview' activeStyle={activeStyle}>
+          Overview
+        </NavLink> */}
         <NavLink
           style={NavLinkStyles}
           to='/virtualservices/'
@@ -120,6 +124,9 @@ export const MainMenu = () => {
           activeStyle={activeStyle}>
           Upstreams
         </NavLink>
+        {/* <NavLink style={NavLinkStyles} to='/admin' activeStyle={activeStyle}>
+          Admin
+        </NavLink> */}
         {/*<NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
           Stats
         </NavLink>*/}

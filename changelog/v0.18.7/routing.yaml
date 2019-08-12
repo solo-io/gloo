@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Show table view in url to keep table view on refresh.
+    issueLink: https://github.com/solo-io/solo-projects/issues/841
