@@ -93,10 +93,6 @@ const validationSchema = yup.object().shape({
 
 const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
   const namespaces = React.useContext(NamespacesContext);
-  const { refetch: makeRequest } = useCreateUpstream(null);
-  const { refresh } = useGetUpstreamsListV2({
-    namespaces: namespaces.namespacesList
-  });
 
   const initialValues = {
     name: '',

@@ -4,7 +4,9 @@ import { grpc } from '@improbable-eng/grpc-web';
 import {
   ListSecretsRequest,
   ListSecretsResponse,
-  CreateSecretRequest
+  CreateSecretRequest,
+  DeleteSecretRequest,
+  GetSecretRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { SecretValuesType } from 'Components/Features/Settings/SecretForm';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
@@ -13,6 +15,7 @@ import {
   AwsSecret,
   TlsSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { getResourceRef } from './helpers';
 
 const client = new SecretApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -30,6 +33,24 @@ function getSecretsList(params: {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!);
+      }
+    });
+  });
+}
+
+function getSecret(params: { name: string; namespace: string }) {
+  const { name, namespace } = params;
+  let request = new GetSecretRequest();
+  let ref = new ResourceRef();
+  ref.setName(name);
+  ref.setNamespace(namespace);
+  request.setRef();
+  return new Promise((resolve, reject) => {
+    client.getSecret(request, (error, data) => {
+      if (error !== null) {
         reject(error);
       } else {
         resolve(data!);
@@ -59,15 +80,9 @@ function setSecretRequest(params: {
       tlsSecret.setRootCa(values.tlsSecret.rootCa);
       newSecret.setTls(tlsSecret);
     default:
-      break;
+      throw new Error('Not supported');
   }
   return newSecret;
-}
-function getResourceRef(name: string, namespace: string): ResourceRef {
-  let ref = new ResourceRef();
-  ref.setName(name);
-  ref.setNamespace(namespace);
-  return ref;
 }
 
 function createSecret(params: {
@@ -82,6 +97,29 @@ function createSecret(params: {
   return new Promise((resolve, reject) => {
     client.createSecret(newSecretReq, (error, data) => {
       if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!);
+      }
+    });
+  });
+}
+
+function deleteSecret(params: { name: string; namespace: string }) {
+  const { name, namespace } = params;
+  let deleteSecretReq = new DeleteSecretRequest();
+  let ref = getResourceRef(name, namespace);
+
+  deleteSecretReq.setRef(ref);
+  return new Promise((resolve, reject) => {
+    client.deleteSecret(deleteSecretReq, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
         reject(error);
       } else {
         resolve(data!);
@@ -91,5 +129,7 @@ function createSecret(params: {
 }
 export const secrets = {
   getSecretsList,
-  createSecret
+  getSecret,
+  createSecret,
+  deleteSecret
 };

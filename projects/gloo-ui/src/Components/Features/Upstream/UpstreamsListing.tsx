@@ -191,15 +191,7 @@ export const UpstreamsListing = (props: Props) => {
     []
   );
 
-  const {
-    data,
-    loading,
-    error,
-    setNewVariables,
-    refresh,
-    update,
-    requestId
-  } = useGetUpstreamsListV2({
+  const { data, loading, error, setNewVariables } = useGetUpstreamsListV2({
     namespaces: namespaces.namespacesList
   });
 
@@ -225,7 +217,7 @@ export const UpstreamsListing = (props: Props) => {
     return () => setShowSuccessModal(false);
   }, [props.location.state && props.location.state.showSuccess]);
 
-  if (!data || (loading && requestId === 1)) {
+  if (!data || loading) {
     return <div>Loading...</div>;
   }
 
@@ -240,9 +232,7 @@ export const UpstreamsListing = (props: Props) => {
     )!.value!;
 
     // group by type
-    let upstreamsByType = groupBy(data.toObject().upstreamsList, u =>
-      getUpstreamType(u)
-    );
+    let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (

@@ -2,11 +2,8 @@ import { upstreams, UpstreamSpecificValues } from './UpstreamClient';
 import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';
 import { useSendRequest } from './requestReducerV2';
 
-export function useGetUpstreamsListV2(
-  variables: { namespaces: string[] },
-  pollInterval: number = 0
-) {
-  return useSendRequest(variables, upstreams.getUpstreamsList, pollInterval);
+export function useGetUpstreamsListV2(variables: { namespaces: string[] }) {
+  return useSendRequest(variables, upstreams.getUpstreamsList);
 }
 
 export function useGetUpstreamV2(variables: {

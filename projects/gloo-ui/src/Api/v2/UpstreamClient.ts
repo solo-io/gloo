@@ -33,12 +33,20 @@ const client = new UpstreamApiClient(host, {
   debug: true
 });
 
+export interface UpstreamSpecificValues
+  extends AwsValuesType,
+    KubeValuesType,
+    StaticValuesType,
+    AzureValuesType,
+    ConsulVauesType {}
+
 function getUpstreamsList(params: {
   namespaces: string[];
 }): Promise<ListUpstreamsResponse> {
   return new Promise((resolve, reject) => {
     let req = new ListUpstreamsRequest();
     req.setNamespacesList(params.namespaces);
+
     client.listUpstreams(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -62,6 +70,7 @@ function getUpstream(params: {
     ref.setName(params.name);
     ref.setNamespace(params.namespace);
     req.setRef(ref);
+
     client.getUpstream(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -75,13 +84,6 @@ function getUpstream(params: {
   });
 }
 
-export interface UpstreamSpecificValues
-  extends AwsValuesType,
-    KubeValuesType,
-    StaticValuesType,
-    AzureValuesType,
-    ConsulVauesType {}
-
 function createUpstream(params: {
   name: string;
   namespace: string;
@@ -91,58 +93,9 @@ function createUpstream(params: {
   const { values, name, namespace, type } = params;
   return new Promise((resolve, reject) => {
     let req = new CreateUpstreamRequest();
-    let newUpstream = new UpstreamInput();
-    // set the resource ref
-    let ref = new ResourceRef();
-    ref.setName(name);
-    ref.setNamespace(namespace);
-    newUpstream.setRef(ref);
-    // upstream specific values
-    switch (type) {
-      case UPSTREAM_SPEC_TYPES.AWS:
-        const awsSpec = new AwsUpstreamSpec();
-        awsSpec.setRegion(values.awsRegion);
-        const awsSecretRef = new ResourceRef();
-        awsSecretRef.setName(values.awsSecretRef.name);
-        awsSecretRef.setNamespace(values.awsSecretRef.namespace);
-        awsSpec.setSecretRef(awsSecretRef);
-        newUpstream.setAws(awsSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.AZURE:
-        const azureSpec = new AzureUpstreamSpec();
-        const azureSecretRef = new ResourceRef();
-        azureSecretRef.setName(values.azureSecretRef.name);
-        azureSecretRef.setNamespace(values.azureSecretRef.namespace);
-        azureSpec.setSecretRef(azureSecretRef);
-        azureSpec.setFunctionAppName(values.azureFunctionAppName);
-        newUpstream.setAzure(azureSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.KUBE:
-        const kubeSpec = new KubeUpstreamSpec();
-        kubeSpec.setServiceName(values.kubeServiceName);
-        kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
-        kubeSpec.setServicePort(values.kubeServicePort);
-        newUpstream.setKube(kubeSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.STATIC:
-        const staticSpec = new StaticUpstreamSpec();
-        staticSpec.setUseTls(values.staticUseTls);
-        newUpstream.setStatic(staticSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.CONSUL:
-        const consulSpec = new ConsulUpstreamSpec();
-        consulSpec.setServiceName(values.consulServiceName);
-        consulSpec.setServiceTagsList(values.consulServiceTagsList);
-        consulSpec.setConnectEnabled(values.consulConnectEnabled);
-        consulSpec.setDataCentersList(values.consulDataCentersList);
-        const consulServiceSpec = new ServiceSpec();
-        consulSpec.setServiceSpec(consulServiceSpec);
-        newUpstream.setConsul(consulSpec);
-      default:
-        break;
-    }
+    let upstreamInput = getUpstreamInput({ name, namespace, type, values });
+    req.setInput(upstreamInput);
 
-    req.setInput(newUpstream);
     client.createUpstream(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -156,8 +109,88 @@ function createUpstream(params: {
   });
 }
 
-// TODO
-function updateUpstream(params: {}) {}
+function getUpstreamInput(params: {
+  name: string;
+  namespace: string;
+  type: string;
+  values: UpstreamSpecificValues;
+}): UpstreamInput {
+  const { name, namespace, type, values } = params;
+  let newUpstream = new UpstreamInput();
+  // set the resource ref
+  let ref = new ResourceRef();
+  ref.setName(name);
+  ref.setNamespace(namespace);
+  newUpstream.setRef(ref);
+  // upstream specific values
+  switch (type) {
+    case UPSTREAM_SPEC_TYPES.AWS:
+      const awsSpec = new AwsUpstreamSpec();
+      awsSpec.setRegion(values.awsRegion);
+      const awsSecretRef = new ResourceRef();
+      awsSecretRef.setName(values.awsSecretRef.name);
+      awsSecretRef.setNamespace(values.awsSecretRef.namespace);
+      awsSpec.setSecretRef(awsSecretRef);
+      newUpstream.setAws(awsSpec);
+      break;
+    case UPSTREAM_SPEC_TYPES.AZURE:
+      const azureSpec = new AzureUpstreamSpec();
+      const azureSecretRef = new ResourceRef();
+      azureSecretRef.setName(values.azureSecretRef.name);
+      azureSecretRef.setNamespace(values.azureSecretRef.namespace);
+      azureSpec.setSecretRef(azureSecretRef);
+      azureSpec.setFunctionAppName(values.azureFunctionAppName);
+      newUpstream.setAzure(azureSpec);
+      break;
+    case UPSTREAM_SPEC_TYPES.KUBE:
+      const kubeSpec = new KubeUpstreamSpec();
+      kubeSpec.setServiceName(values.kubeServiceName);
+      kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
+      kubeSpec.setServicePort(values.kubeServicePort);
+      newUpstream.setKube(kubeSpec);
+      break;
+    case UPSTREAM_SPEC_TYPES.STATIC:
+      const staticSpec = new StaticUpstreamSpec();
+      staticSpec.setUseTls(values.staticUseTls);
+      newUpstream.setStatic(staticSpec);
+      break;
+    case UPSTREAM_SPEC_TYPES.CONSUL:
+      const consulSpec = new ConsulUpstreamSpec();
+      consulSpec.setServiceName(values.consulServiceName);
+      consulSpec.setServiceTagsList(values.consulServiceTagsList);
+      consulSpec.setConnectEnabled(values.consulConnectEnabled);
+      consulSpec.setDataCentersList(values.consulDataCentersList);
+      const consulServiceSpec = new ServiceSpec();
+      consulSpec.setServiceSpec(consulServiceSpec);
+      newUpstream.setConsul(consulSpec);
+    default:
+      break;
+  }
+  return newUpstream;
+}
+
+function updateUpstream(params: {
+  name: string;
+  namespace: string;
+  type: string;
+  values: UpstreamSpecificValues;
+}): Promise<UpdateUpstreamResponse> {
+  const { name, namespace, type, values } = params;
+  let updateReq = new UpdateUpstreamRequest();
+  updateReq.setInput(getUpstreamInput({ name, namespace, type, values }));
+  return new Promise((resolve, reject) => {
+    client.updateUpstream(updateReq, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!);
+      }
+    });
+  });
+}
 
 function deleteUpstream(params: {
   name: string;

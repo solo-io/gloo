@@ -32,6 +32,8 @@ import { NamespacesContext } from 'GlooIApp';
 import { SuccessModal } from 'Components/Common/SuccessModal';
 import { SecretValuesType } from './SecretForm';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { useGetSecretsListV2 } from 'Api/v2/useSecretClientV2';
+import { secrets } from 'Api/v2/SecretClient';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -58,25 +60,20 @@ const Heading = styled.div`
 interface Props extends RouteComponentProps {}
 
 export const SettingsLanding = (props: Props) => {
-  let awsSecrets = [] as Secret.AsObject[];
-  let azureSecrets = [] as Secret.AsObject[];
-  let tlsSecrets = [] as Secret.AsObject[];
-  let oAuthSecrets = [] as Secret.AsObject[];
-
-  const listSecretsReq = React.useRef(new ListSecretsRequest());
+  const [awsSecrets, setAwsSecrets] = React.useState<Secret.AsObject[]>([]);
+  const [azureSecrets, setAzureSecrets] = React.useState<Secret.AsObject[]>([]);
+  const [tlsSecrets, setTlsSecrets] = React.useState<Secret.AsObject[]>([]);
+  const [oAuthSecrets, setOAuthSecrets] = React.useState<Secret.AsObject[]>([]);
   const namespaces = React.useContext(NamespacesContext);
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
-  const { refetch: makeCreateRequest } = useCreateSecret(null);
-  const { refetch: makeDeleteRequest } = useDeleteSecret(null);
-  listSecretsReq.current.setNamespacesList(namespaces.namespacesList);
-  const { data, loading, error, refetch: updateSecretsList } = useListSecrets(
-    listSecretsReq.current
-  );
-  const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
 
+  const { data, loading, error, setNewVariables } = useGetSecretsListV2({
+    namespaces: namespaces.namespacesList
+  });
+  const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
   React.useEffect(() => {
     if (!!data) {
-      setAllSecrets(data.secretsList);
+      setAllSecrets(data.toObject().secretsList);
     }
     return () => {
       setShowSuccessModal(false);
@@ -84,44 +81,19 @@ export const SettingsLanding = (props: Props) => {
   }, [data, showSuccessModal]);
 
   React.useEffect(() => {
-    if (data && data.secretsList) {
-      data.secretsList.map(secret => {
-        if (!!secret.aws) {
-          awsSecrets.push(secret);
-        }
-        if (!!secret.azure) {
-          azureSecrets.push(secret);
-        }
-        if (!!secret.tls) {
-          tlsSecrets.push(secret);
-        }
-        if (!!secret.extension) {
-          oAuthSecrets.push(secret);
-        }
-      });
+    if (data && allSecrets) {
+      setAwsSecrets(allSecrets.filter(s => !!s.aws));
+      setAzureSecrets(allSecrets.filter(s => !!s.azure));
+      setOAuthSecrets(allSecrets.filter(s => !!s.extension));
+      setTlsSecrets(allSecrets.filter(s => !!s.tls));
     }
-  }, [allSecrets.length]);
+  }, [allSecrets.length, showSuccessModal]);
 
   if (!data || (!data && loading)) {
     return <div>Loading...</div>;
   }
-  if (data && data.secretsList.length > 0) {
-    data.secretsList.forEach(secret => {
-      if (!!secret.aws) {
-        awsSecrets.push(secret);
-      }
-      if (!!secret.azure) {
-        azureSecrets.push(secret);
-      }
-      if (!!secret.tls) {
-        tlsSecrets.push(secret);
-      }
-      if (!!secret.extension) {
-        oAuthSecrets.push(secret);
-      }
-    });
-  }
   const locationEnding = props.location.pathname.split('/settings/')[1];
+
   const startingChoice =
     locationEnding && locationEnding.length
       ? locationEnding === 'namespaces'
@@ -188,71 +160,53 @@ export const SettingsLanding = (props: Props) => {
     );
   };
 
-  function createSecret(values: SecretValuesType, secretKind: Secret.KindCase) {
-    const secretReq = new CreateSecretRequest();
-    switch (secretKind) {
-      case Secret.KindCase.AWS:
-        const awsSecret = new AwsSecret();
-        awsSecret.setAccessKey(values.awsSecret.accessKey);
-        awsSecret.setSecretKey(values.awsSecret.secretKey);
-        secretReq.setAws(awsSecret);
-        break;
-      case Secret.KindCase.AZURE:
-        // TODO: figure out correct way to input api keys map
-        // https://docs.microsoft.com/en-us/azure/search/search-security-api-keys
-        const azureSecret = new AzureSecret();
-        azureSecret.getApiKeysMap().set('keyname', 'key');
-        const apiKeys = new Map<string, string>();
-        break;
-      case Secret.KindCase.TLS:
-        const tlsSecret = new TlsSecret();
-        tlsSecret.setCertChain(values.tlsSecret.certChain);
-        tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
-        tlsSecret.setRootCa(values.tlsSecret.rootCa);
-        secretReq.setTls(tlsSecret);
-        break;
-      default:
-        break;
+  async function createSecret(
+    values: SecretValuesType,
+    secretKind: Secret.KindCase
+  ) {
+    const {
+      secretResourceRef: { name, namespace }
+    } = values;
+    try {
+      await secrets.createSecret({ name, namespace, values, secretKind });
+    } catch (error) {
+      // TODO: show error modal
+      console.error('error', error);
     }
-    const resourceRef = new ResourceRef();
-    resourceRef.setName(values.secretResourceRef.name);
-    resourceRef.setNamespace(values.secretResourceRef.namespace);
-    secretReq.setRef(resourceRef);
-
-    makeCreateRequest(secretReq);
-    setTimeout(() => {
-      updateSecretsList(listSecretsReq.current);
-    }, 500);
+    setNewVariables({ namespaces: namespaces.namespacesList });
     setShowSuccessModal(true);
   }
 
-  function deleteSecret(
+  async function deleteSecret(
     name: string,
     namespace: string,
     secretKind: Secret.KindCase
   ) {
     if (secretKind === Secret.KindCase.AWS) {
-      awsSecrets.filter(s => s.metadata!.name !== name);
+      setAwsSecrets(awsSecrets =>
+        awsSecrets.filter(s => s.metadata!.name !== name)
+      );
     }
     if (secretKind === Secret.KindCase.AZURE) {
-      azureSecrets.filter(s => s.metadata!.name !== name);
+      setAzureSecrets(azureSecrets =>
+        azureSecrets.filter(s => s.metadata!.name !== name)
+      );
     }
     if (secretKind === Secret.KindCase.TLS) {
-      tlsSecrets.filter(s => s.metadata!.name !== name);
+      setTlsSecrets(tlsSecrets =>
+        tlsSecrets.filter(s => s.metadata!.name !== name)
+      );
     }
     if (secretKind === Secret.KindCase.EXTENSION) {
-      oAuthSecrets.filter(s => s.metadata!.name !== name);
+      setOAuthSecrets(oAuthSecrets =>
+        oAuthSecrets.filter(s => s.metadata!.name !== name)
+      );
     }
-    let req = new DeleteSecretRequest();
-    let ref = new ResourceRef();
-    ref.setName(name);
-    ref.setNamespace(namespace);
-    req.setRef(ref);
-    makeDeleteRequest(req);
-
-    setTimeout(() => {
-      updateSecretsList(listSecretsReq.current);
-    }, 500);
+    try {
+      await secrets.deleteSecret({ name, namespace });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
