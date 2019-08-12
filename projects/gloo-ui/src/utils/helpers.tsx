@@ -15,7 +15,7 @@ import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
 import { ReactComponent as RESTLogo } from 'assets/rest-logo.svg';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 
-type Resource = VirtualService.AsObject | Upstream.AsObject;
+type Resource = VirtualService.AsObject | Upstream.AsObject | number;
 
 const StyledGRPCLogo = styled.img`
   width: 20px;
@@ -26,7 +26,9 @@ const StyledGRPCLogo = styled.img`
 /* -------------------------------------------------------------------------- */
 
 export function getResourceStatus(resource: Resource) {
-  switch (resource.status!.state) {
+  const status =
+    typeof resource === 'number' ? resource : resource.status!.state;
+  switch (status) {
     case 0:
       return 'Pending';
     case 1:

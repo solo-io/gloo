@@ -1,6 +1,9 @@
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-import { CheckboxFilterProps } from 'Components/Common/ListingFilter';
+import {
+  CheckboxFilterProps,
+  RadioFilterProps
+} from 'Components/Common/ListingFilter';
 import _ from 'lodash';
 import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
@@ -138,6 +141,19 @@ export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
   });
 // .concat({ displayName: 'other', value: false });
 
+export const RadioFilters: RadioFilterProps[] = [
+  {
+    options: [
+      {
+        displayName: 'Accepted'
+      },
+      {
+        displayName: 'Rejected'
+      }
+    ],
+    choice: ''
+  }
+];
 // from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions
 export const AWS_REGIONS = [
   {

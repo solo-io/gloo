@@ -144,6 +144,28 @@ export const ListingFilter = (filterProps: FilterProps) => {
               );
             })}
           </FilterInput>
+
+          {radioFilters.map((filter, ind) => {
+            return (
+              <SoloRadioGroup
+                key={ind}
+                options={filter.options.map(option => {
+                  return {
+                    displayName: option.displayName,
+                    id: option.id || option.displayName
+                  };
+                })}
+                currentSelection={filter.choice}
+                onChange={newValue => {
+                  const newArray = [...radioFilters];
+                  newArray[ind].choice = newValue;
+
+                  setRadioFilters(newArray);
+                }}
+              />
+            );
+          })}
+
           {typesFilters.map((filter, ind) => {
             return (
               <SoloRadioGroup
@@ -178,26 +200,6 @@ export const ListingFilter = (filterProps: FilterProps) => {
                   newArray[ind].value = evt.target.checked;
 
                   setCheckboxFilters(newArray);
-                }}
-              />
-            );
-          })}
-          {radioFilters.map((filter, ind) => {
-            return (
-              <SoloRadioGroup
-                key={ind}
-                options={filter.options.map(option => {
-                  return {
-                    displayName: option.displayName,
-                    id: option.id || option.displayName
-                  };
-                })}
-                currentSelection={filter.choice}
-                onChange={newValue => {
-                  const newArray = [...typesFilters];
-                  newArray[ind].choice = newValue;
-
-                  setTypesFilters(newArray);
                 }}
               />
             );

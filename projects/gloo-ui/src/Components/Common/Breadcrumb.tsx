@@ -53,6 +53,11 @@ function BreadcrumbC({
           {rootNameMap[match.path.split('/')[1]] as string}
         </CrumbLink>
       </AntdBreadcrumb.Item>
+      {!!location.search && (
+        <AntdBreadcrumb.Item>
+          <CrumbLink>{location.search.split('=')[1]}</CrumbLink>
+        </AntdBreadcrumb.Item>
+      )}
       {!!match.params.virtualservicename && (
         <AntdBreadcrumb.Item>
           <CrumbLink>{match.params.virtualservicename}</CrumbLink>

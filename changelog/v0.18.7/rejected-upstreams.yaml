@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Filter upstreams by rejected and accepted and show in the url and breadcrumb.
+    issueLink: https://github.com/solo-io/solo-projects/issues/873
+    resolvesIssue: false

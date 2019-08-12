@@ -37,7 +37,8 @@ import {
   groupBy,
   getIcon,
   getFunctionInfo,
-  CheckboxFilters
+  CheckboxFilters,
+  RadioFilters
 } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
@@ -50,10 +51,9 @@ import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 import _ from 'lodash';
 
 import { SuccessModal } from 'Components/Common/SuccessModal';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Popconfirm } from 'antd';
 import { upstreams } from 'Api/v2/UpstreamClient';
-import { tsPropertySignature } from '@babel/types';
+
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -176,19 +176,15 @@ interface Props extends RouteComponentProps {
 
 export const UpstreamsListing = (props: Props) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+  let params = new URLSearchParams(props.location.search);
 
-  const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(false);
+  const [catalogNotTable, setCatalogNotTable] = React.useState(true);
   const [
     upstreamForRouteCreation,
     setUpstreamForRouteCreation
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
   const namespaces = React.useContext(NamespacesContext);
-  let request = new ListUpstreamsRequest();
 
-  // const { data, loading, error } = useGetUpstreamsList(request);
-  request.setNamespacesList(namespaces.namespacesList);
-  // const { data, loading, error } = useGetUpstreamsList(request);
-  const { refetch: makeRequest } = useDeleteUpstream(null);
   const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
     []
   );
@@ -232,8 +228,10 @@ export const UpstreamsListing = (props: Props) => {
     const nameFilterValue: string = strings.find(
       s => s.displayName === 'Filter By Name...'
     )!.value!;
+    const selectedRadio = params.get('status') || radios[0].choice || '';
 
     // group by type
+
     let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
@@ -259,7 +257,8 @@ export const UpstreamsListing = (props: Props) => {
                       namespace,
                       cardsData: getUsableCatalogData(
                         nameFilterValue,
-                        upstreams
+                        upstreams,
+                        selectedRadio
                       )
                     };
                   })
@@ -293,8 +292,9 @@ export const UpstreamsListing = (props: Props) => {
             <SoloTable
               dataSource={getUsableTableData(
                 nameFilterValue,
-                data.toObject().upstreamsList,
-                checkboxes
+                upstreamsList,
+                checkboxes,
+                selectedRadio
               )}
               columns={getTableColumns(
                 setUpstreamForRouteCreation,
@@ -309,7 +309,8 @@ export const UpstreamsListing = (props: Props) => {
 
   const getUsableCatalogData = (
     nameFilter: string,
-    data: Upstream.AsObject[]
+    data: Upstream.AsObject[],
+    radioFilter: string
   ) => {
     const dataUsed: UpstreamCardData[] = data.map(upstream => {
       return {
@@ -361,13 +362,16 @@ export const UpstreamsListing = (props: Props) => {
       };
     });
 
-    return dataUsed.filter(row => row.cardTitle.includes(nameFilter));
+    return dataUsed
+      .filter(row => row.cardTitle.includes(nameFilter))
+      .filter(row => getResourceStatus(row.healthStatus).includes(radioFilter));
   };
 
   const getUsableTableData = (
     nameFilter: string,
     data: Upstream.AsObject[],
-    checkboxes: CheckboxFilterProps[]
+    checkboxes: CheckboxFilterProps[],
+    radioFilter: string
   ) => {
     const dataUsed = data.map(upstream => {
       return {
@@ -383,6 +387,7 @@ export const UpstreamsListing = (props: Props) => {
 
     return dataUsed
       .filter(row => row.name.includes(nameFilter))
+      .filter(row => getResourceStatus(row).includes(radioFilter))
       .filter(row => {
         return (
           checkboxes.find(c => c.displayName === row.type)!.value! ||
@@ -394,6 +399,17 @@ export const UpstreamsListing = (props: Props) => {
   async function deleteUpstream(name: string, namespace: string) {
     await upstreams.deleteUpstream({ name, namespace });
     setUpstreamsList(usList => usList.filter(us => us.metadata!.name !== name));
+  }
+  function urlFilters(
+    strings: StringFilterProps[],
+    types: TypeFilterProps[],
+    checkboxes: CheckboxFilterProps[],
+    radios: RadioFilterProps[]
+  ) {
+    props.history.push({
+      pathname: `${props.location.pathname}`,
+      search: radios[0].choice ? `?${'status'}=${radios[0].choice}` : ''
+    });
   }
 
   return (
@@ -407,11 +423,15 @@ export const UpstreamsListing = (props: Props) => {
             successMessage='Upstream added successfully'
           />
           <CatalogTableToggle
-            listIsSelected={!catalogNotTable}
+            listIsSelected={catalogNotTable}
             onToggle={() => {
-              props.history.push(
-                `${props.match.path}${catalogNotTable ? '' : 'table'}`
-              );
+              const { location, match, history } = props;
+
+              history.push({
+                pathname: `${match.path}${
+                  location.pathname.includes('table') ? '' : 'table'
+                }`
+              });
               setCatalogNotTable(cNt => !cNt);
             }}
           />
@@ -420,6 +440,8 @@ export const UpstreamsListing = (props: Props) => {
       <ListingFilter
         strings={StringFilters}
         checkboxes={CheckboxFilters}
+        radios={RadioFilters}
+        onChange={urlFilters}
         filterFunction={listDisplay}
       />
       <SoloModal
