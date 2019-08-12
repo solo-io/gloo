@@ -121,7 +121,7 @@ const getTableColumns = (
               onConfirm={() =>
                 deleteVirtualService(vs.metadata!.name, vs.metadata!.namespace)
               }
-              title={'Are you sure you want to delete this upstream? '}
+              title={'Are you sure you want to delete this virtual service? '}
               okText='Yes'
               cancelText='No'>
               <TableActionCircle>x</TableActionCircle>
@@ -329,6 +329,7 @@ export const VirtualServicesListing = (props: Props) => {
     deleteReq.setRef(ref);
     makeRequest(deleteReq);
   }
+
   return (
     <div>
       {!!virtualServices.length && (

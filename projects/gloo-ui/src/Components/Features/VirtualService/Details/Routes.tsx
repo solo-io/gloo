@@ -16,6 +16,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
+import { Popconfirm } from 'antd';
 
 const RouteMatch = styled.div`
   max-width: 200px;
@@ -90,9 +91,15 @@ const getRouteColumns = (
             </TableActionCircle>
 
             <div style={{ marginLeft: '5px' }}>
-              <TableActionCircle onClick={() => deleteRoute(matcher)}>
-                x
-              </TableActionCircle>
+              <Popconfirm
+                onConfirm={() =>
+                  deleteRoute(matcher)
+                }
+                title={'Are you sure you want to delete this route? '}
+                okText='Yes'
+                cancelText='No'>
+                <TableActionCircle>x</TableActionCircle>
+              </Popconfirm>
             </div>
           </TableActions>
         );

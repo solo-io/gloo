@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: The UI now confirms before deleting a route.
+    issueLink: https://github.com/solo-io/solo-projects/issues/843
