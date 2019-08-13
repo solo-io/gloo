@@ -228,8 +228,8 @@ export const UpstreamsListing = (props: Props) => {
     const nameFilterValue: string = strings.find(
       s => s.displayName === 'Filter By Name...'
     )!.value!;
-    const selectedRadio = params.get('status') || radios[0].choice || '';
-
+    const selectedRadio = radios[0].choice || params.get('status') || '';
+    params.set('status', selectedRadio);
     // group by type
 
     let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
@@ -400,7 +400,7 @@ export const UpstreamsListing = (props: Props) => {
     await upstreams.deleteUpstream({ name, namespace });
     setUpstreamsList(usList => usList.filter(us => us.metadata!.name !== name));
   }
-  function urlFilters(
+  function handleFilterChange(
     strings: StringFilterProps[],
     types: TypeFilterProps[],
     checkboxes: CheckboxFilterProps[],
@@ -408,8 +408,11 @@ export const UpstreamsListing = (props: Props) => {
   ) {
     props.history.push({
       pathname: `${props.location.pathname}`,
-      search: radios[0].choice ? `?${'status'}=${radios[0].choice}` : ''
+      search: radios[0].choice
+        ? `?${'status'}=${radios[0].choice}`
+        : props.location.search
     });
+    radios[0].choice = params.get('status') || '';
   }
 
   return (
@@ -430,7 +433,8 @@ export const UpstreamsListing = (props: Props) => {
               history.push({
                 pathname: `${match.path}${
                   location.pathname.includes('table') ? '' : 'table'
-                }`
+                }`,
+                search: location.search
               });
               setCatalogNotTable(cNt => !cNt);
             }}
@@ -441,7 +445,7 @@ export const UpstreamsListing = (props: Props) => {
         strings={StringFilters}
         checkboxes={CheckboxFilters}
         radios={RadioFilters}
-        onChange={urlFilters}
+        onChange={handleFilterChange}
         filterFunction={listDisplay}
       />
       <SoloModal

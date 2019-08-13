@@ -3,7 +3,7 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, Route, Switch } from 'react-router';
 import { colors, healthConstants } from 'Styles';
 import {
   TableActionCircle,
@@ -32,7 +32,7 @@ import {
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { NamespacesContext } from 'GlooIApp';
-import { getResourceStatus, getVSDomains } from 'utils/helpers';
+import { getResourceStatus, getVSDomains, RadioFilters } from 'utils/helpers';
 import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
@@ -169,6 +169,7 @@ export const VirtualServicesListing = (props: Props) => {
   const { history, match } = props;
   let listVsRequest = React.useRef(new ListVirtualServicesRequest());
   const namespaces = React.useContext(NamespacesContext);
+  let params = new URLSearchParams(props.location.search);
 
   listVsRequest.current.setNamespacesList(namespaces.namespacesList);
   const {
@@ -195,7 +196,8 @@ export const VirtualServicesListing = (props: Props) => {
 
   const getUsableCatalogData = (
     nameFilter: string,
-    data: VirtualService.AsObject[]
+    data: VirtualService.AsObject[],
+    radioFilter: string
   ) => {
     const dataUsed = data.map(virtualService => {
       return {
@@ -214,24 +216,28 @@ export const VirtualServicesListing = (props: Props) => {
           'Are you sure you want to delete this virtual service?',
         onExpanded: () => {},
         onClick: () => {
-          history.push(
-            `${match.path}${virtualService.metadata!.namespace}/${
+          history.push({
+            pathname: `${match.path}${virtualService.metadata!.namespace}/${
               virtualService.metadata!.name
-            }`
-          );
+            }`,
+            search: props.location.search
+          });
         },
         onCreate: () => setVirtualServiceForRouteCreation(virtualService)
       };
     });
 
-    return dataUsed.filter(row =>
-      row.cardTitle.toLowerCase().includes(nameFilter.toLowerCase())
-    );
+    return dataUsed
+      .filter(row =>
+        row.cardTitle.toLowerCase().includes(nameFilter.toLowerCase())
+      )
+      .filter(row => getResourceStatus(row).includes(radioFilter));
   };
 
   const getUsableTableData = (
     nameFilter: string,
-    data: VirtualService.AsObject[]
+    data: VirtualService.AsObject[],
+    radioFilter: string
   ) => {
     const dataUsed = data.map(virtualService => {
       return {
@@ -239,11 +245,12 @@ export const VirtualServicesListing = (props: Props) => {
         name: {
           displayName: virtualService.metadata!.name,
           goToVirtualService: () => {
-            history.push(
-              `${match.path}${virtualService.metadata!.namespace}/${
+            history.push({
+              pathname: `${match.path}${virtualService.metadata!.namespace}/${
                 virtualService.metadata!.name
-              }`
-            );
+              }`,
+              search: props.location.search
+            });
           }
         },
         domains: getVSDomains(virtualService),
@@ -254,7 +261,9 @@ export const VirtualServicesListing = (props: Props) => {
       };
     });
 
-    return dataUsed.filter(row => row.name.displayName.includes(nameFilter));
+    return dataUsed
+      .filter(row => row.name.displayName.includes(nameFilter))
+      .filter(row => getResourceStatus(row).includes(radioFilter));
   };
 
   const listDisplay = (
@@ -266,6 +275,8 @@ export const VirtualServicesListing = (props: Props) => {
     const nameFilterValue: string = strings.find(
       s => s.displayName === 'Filter By Name...'
     )!.value!;
+    const radioFilter = radios[0].choice || params.get('status') || '';
+    params.set('status', radioFilter);
 
     if (!vsListData || vsLoading) {
       return <div>Loading...</div>;
@@ -273,35 +284,49 @@ export const VirtualServicesListing = (props: Props) => {
 
     return (
       <div>
-        {catalogNotTable ? (
-          <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
-            {!virtualServices.length ? (
-              <EmptyPrompt>
-                You don't have any virtual services.
-                <CreateVirtualServiceModal
-                  finishCreation={finishCreation}
-                  promptText="Let's create one."
-                  withoutDivider
+        <Switch />
+        <Route
+          path={`${props.match.path}`}
+          exact
+          render={() => (
+            <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
+              {!virtualServices.length ? (
+                <EmptyPrompt>
+                  You don't have any virtual services.
+                  <CreateVirtualServiceModal
+                    finishCreation={finishCreation}
+                    promptText="Let's create one."
+                    withoutDivider
+                  />
+                </EmptyPrompt>
+              ) : (
+                <CardsListing
+                  cardsData={getUsableCatalogData(
+                    nameFilterValue,
+                    virtualServices,
+                    radioFilter
+                  )}
                 />
-              </EmptyPrompt>
-            ) : (
-              <CardsListing
-                cardsData={getUsableCatalogData(
-                  nameFilterValue,
-                  virtualServices
-                )}
-              />
-            )}
-          </SectionCard>
-        ) : (
-          <SoloTable
-            dataSource={getUsableTableData(nameFilterValue, virtualServices)}
-            columns={getTableColumns(
-              setVirtualServiceForRouteCreation,
-              deleteVS
-            )}
-          />
-        )}
+              )}
+            </SectionCard>
+          )}
+        />
+        <Route
+          path={`${props.match.path}table`}
+          render={() => (
+            <SoloTable
+              dataSource={getUsableTableData(
+                nameFilterValue,
+                virtualServices,
+                radioFilter
+              )}
+              columns={getTableColumns(
+                setVirtualServiceForRouteCreation,
+                deleteVS
+              )}
+            />
+          )}
+        />
       </div>
     );
   };
@@ -314,7 +339,10 @@ export const VirtualServicesListing = (props: Props) => {
 
     if (succeeded) {
       setTimeout(() => {
-        history.push(`${match.path}${succeeded.namespace}/${succeeded.name}`);
+        history.push({
+          pathname: `${match.path}${succeeded.namespace}/${succeeded.name}`,
+          search: props.location.search
+        });
       }, 500);
     }
   };
@@ -330,6 +358,20 @@ export const VirtualServicesListing = (props: Props) => {
     makeRequest(deleteReq);
   }
 
+  function handleFilterChange(
+    strings: StringFilterProps[],
+    types: TypeFilterProps[],
+    checkboxes: CheckboxFilterProps[],
+    radios: RadioFilterProps[]
+  ) {
+    props.history.push({
+      pathname: `${props.location.pathname}`,
+      search: radios[0].choice
+        ? `?${'status'}=${radios[0].choice}`
+        : props.location.search
+    });
+    radios[0].choice = params.get('status') || '';
+  }
   return (
     <div>
       {!!virtualServices.length && (
@@ -340,6 +382,11 @@ export const VirtualServicesListing = (props: Props) => {
             <CatalogTableToggle
               listIsSelected={!catalogNotTable}
               onToggle={() => {
+                props.history.push({
+                  pathname: `${props.match.path}${
+                    props.location.pathname.includes('table') ? '' : 'table'
+                  }`
+                });
                 setCatalogNotTable(cNt => !cNt);
               }}
             />
@@ -349,6 +396,8 @@ export const VirtualServicesListing = (props: Props) => {
       <ListingFilter
         hideFilters={!virtualServices.length}
         strings={StringFilters}
+        radios={RadioFilters}
+        onChange={handleFilterChange}
         filterFunction={listDisplay}
       />
       <SoloModal

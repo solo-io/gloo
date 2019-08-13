@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Sort upstreams and virtual services by status and reflect it on url.
+    issueLink: https://github.com/solo-io/solo-projects/issues/873
