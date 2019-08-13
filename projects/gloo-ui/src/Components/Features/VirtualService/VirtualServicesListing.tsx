@@ -217,10 +217,9 @@ export const VirtualServicesListing = (props: Props) => {
         onExpanded: () => {},
         onClick: () => {
           history.push({
-            pathname: `${match.path}${virtualService.metadata!.namespace}/${
+            pathname: `${match.url}${virtualService.metadata!.namespace}/${
               virtualService.metadata!.name
-            }`,
-            search: props.location.search
+            }`
           });
         },
         onCreate: () => setVirtualServiceForRouteCreation(virtualService)
@@ -284,7 +283,6 @@ export const VirtualServicesListing = (props: Props) => {
 
     return (
       <div>
-        <Switch />
         <Route
           path={`${props.match.path}`}
           exact
@@ -313,6 +311,7 @@ export const VirtualServicesListing = (props: Props) => {
         />
         <Route
           path={`${props.match.path}table`}
+          exact
           render={() => (
             <SoloTable
               dataSource={getUsableTableData(
@@ -340,8 +339,7 @@ export const VirtualServicesListing = (props: Props) => {
     if (succeeded) {
       setTimeout(() => {
         history.push({
-          pathname: `${match.path}${succeeded.namespace}/${succeeded.name}`,
-          search: props.location.search
+          pathname: `${match.path}${succeeded.namespace}/${succeeded.name}`
         });
       }, 500);
     }
@@ -364,13 +362,13 @@ export const VirtualServicesListing = (props: Props) => {
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) {
-    props.history.push({
+    params.set('status', radios[0].choice || '');
+    props.history.replace({
       pathname: `${props.location.pathname}`,
       search: radios[0].choice
         ? `?${'status'}=${radios[0].choice}`
-        : props.location.search
+        : params.get('status') || ''
     });
-    radios[0].choice = params.get('status') || '';
   }
   return (
     <div>

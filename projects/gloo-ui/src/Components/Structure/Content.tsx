@@ -28,17 +28,17 @@ export const Content = () => {
       <Switch>
         <Route path='/overview' render={props => <Overview {...props} />} />
         <Route
+          path='/virtualservices/:virtualservicenamespace/:virtualservicename'
+          exact
+          render={(props: any) => <VirtualServiceDetails {...props} />}
+        />
+        <Route
           path='/virtualservices/'
           render={(props: any) => <VirtualServicesListing {...props} />}
         />
         <Route
           path='/upstreams/'
           render={(props: any) => <UpstreamsListing {...props} />}
-        />
-        <Route
-          path='/virtualservices/:virtualservicenamespace/:virtualservicename'
-          exact
-          render={(props: any) => <VirtualServiceDetails {...props} />}
         />
         <Route path='/admin' exact render={props => <Admin {...props} />} />
         <Route

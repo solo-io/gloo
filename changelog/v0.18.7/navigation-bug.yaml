@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow deselecting status filters and navigating to vs details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/873

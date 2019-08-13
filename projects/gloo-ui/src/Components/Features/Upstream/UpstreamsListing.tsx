@@ -406,13 +406,13 @@ export const UpstreamsListing = (props: Props) => {
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) {
-    props.history.push({
+    params.set('status', radios[0].choice || '');
+    props.history.replace({
       pathname: `${props.location.pathname}`,
       search: radios[0].choice
         ? `?${'status'}=${radios[0].choice}`
-        : props.location.search
+        : params.get('status') || ''
     });
-    radios[0].choice = params.get('status') || '';
   }
 
   return (

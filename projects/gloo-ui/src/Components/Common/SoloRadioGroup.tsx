@@ -40,8 +40,8 @@ const CheckboxStyling = css`
           border-radius: 4px;
           border-color: ${colors.seaBlue};
           border-width: 1px;
-          left: 6px;
-          top: 6px;
+          left: 5px;
+          top: 9px;
 
           transform: rotate(45deg) scale(1) translate(-37%, -66%);
         }
