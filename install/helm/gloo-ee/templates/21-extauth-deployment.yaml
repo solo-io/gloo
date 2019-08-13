@@ -1,3 +1,7 @@
+{{- $image := .Values.extAuth.deployment.image }}
+{{- if .Values.global  }}
+{{- $image = merge .Values.extAuth.deployment.image .Values.global.image }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,8 +27,8 @@ spec:
       {{- end}}
     spec:
       containers:
-        - image: "{{ .Values.extAuth.deployment.image.repository }}:{{ .Values.extAuth.deployment.image.tag }}"
-          imagePullPolicy: {{ .Values.extAuth.deployment.image.pullPolicy }}
+        - image: {{template "gloo.image" $image}}
+          imagePullPolicy: {{ $image.pullPolicy }}
           name: {{ .Values.extAuth.deployment.name }}
           env:
             - name: POD_NAMESPACE
@@ -58,7 +62,7 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
-      {{- if .Values.extAuth.deployment.image.pullSecret }}
+      {{- if $image.pullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.extAuth.deployment.image.pullSecret }}
+        - name: {{ $image.pullSecret }}
       {{- end }}

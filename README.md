@@ -1,7 +1,7 @@
-
-
 # Usage
+
 ## Install a new glooe distribution from scratch on Kubernetes
+
 ```bash
 # Setup your repo
 make init
@@ -26,18 +26,12 @@ make docker -B # creates all your images locally and tags them as "dev" by defau
 ## Updated instructions for the grpcserver
 
 ### prep
+
 - get the right version of protoc (3.6.1)
   - the make target below will warn you if you need to update
-- on mac, you need to update your `sed`
-```bash
-brew install gnu-sed
-```
-- then add it to your path as `sed`
-```bash
-PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
-```
 
 ### build
+
 ```bash
 make update-ui-deps
 make generated-ui
@@ -52,5 +46,6 @@ make run-apiserver
   - when running locally, should set `LOCAL_BUILD=1` in order to build the ui resources
 
 # Additional Notes
+
 - Shared projects across Solo.io.
-- This repo contains the git history for Gloo and Solo-Kit. 
+- This repo contains the git history for Gloo and Solo-Kit.

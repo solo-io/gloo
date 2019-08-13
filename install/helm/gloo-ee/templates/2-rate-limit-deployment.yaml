@@ -1,4 +1,8 @@
 {{- if .Values.rateLimit.enabled }}
+{{- $image := .Values.rateLimit.deployment.image }}
+{{- if .Values.global  }}
+{{- $image = merge .Values.rateLimit.deployment.image .Values.global.image }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,8 +28,8 @@ spec:
       {{- end}}
     spec:
       containers:
-        - image: "{{ .Values.rateLimit.deployment.image.repository }}:{{ .Values.rateLimit.deployment.image.tag }}"
-          imagePullPolicy: {{ .Values.rateLimit.deployment.image.pullPolicy }}
+        - image: {{template "gloo.image" $image}}
+          imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
           env:
             - name: POD_NAMESPACE
@@ -42,8 +46,8 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
-      {{- if .Values.rateLimit.deployment.image.pullSecret }}
+      {{- if $image.pullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.rateLimit.deployment.image.pullSecret }}
+        - name: {{ $image.pullSecret }}
       {{- end }}
 {{- end }}

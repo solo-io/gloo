@@ -29,6 +29,8 @@ goog.exportSymbol('proto.gloo.solo.io.Settings.DiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.DiscoveryOptions.FdsMode', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.KnativeOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.KubernetesConfigmaps', null, global);
+goog.exportSymbol('proto.gloo.solo.io.Settings.KubernetesConfiguration', null, global);
+goog.exportSymbol('proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.KubernetesCrds', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.KubernetesSecrets', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.VaultSecrets', null, global);
@@ -164,6 +166,7 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     knative: (f = msg.getKnative()) && proto.gloo.solo.io.Settings.KnativeOptions.toObject(includeInstance, f),
     discovery: (f = msg.getDiscovery()) && proto.gloo.solo.io.Settings.DiscoveryOptions.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.Settings.ConsulConfiguration.toObject(includeInstance, f),
+    kubernetes: (f = msg.getKubernetes()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f)
@@ -287,6 +290,11 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new proto.gloo.solo.io.Settings.ConsulConfiguration;
       reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader);
       msg.setConsul(value);
+      break;
+    case 22:
+      var value = new proto.gloo.solo.io.Settings.KubernetesConfiguration;
+      reader.readMessage(value,proto.gloo.solo.io.Settings.KubernetesConfiguration.deserializeBinaryFromReader);
+      msg.setKubernetes(value);
       break;
     case 16:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
@@ -469,6 +477,14 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       20,
       f,
       proto.gloo.solo.io.Settings.ConsulConfiguration.serializeBinaryToWriter
+    );
+  }
+  f = message.getKubernetes();
+  if (f != null) {
+    writer.writeMessage(
+      22,
+      f,
+      proto.gloo.solo.io.Settings.KubernetesConfiguration.serializeBinaryToWriter
     );
   }
   f = message.getExtensions();
@@ -1553,7 +1569,8 @@ proto.gloo.solo.io.Settings.KnativeOptions.prototype.toObject = function(opt_inc
 proto.gloo.solo.io.Settings.KnativeOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     clusterIngressProxyAddress: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    knativeProxyAddress: jspb.Message.getFieldWithDefault(msg, 2, "")
+    knativeExternalProxyAddress: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    knativeInternalProxyAddress: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1596,7 +1613,11 @@ proto.gloo.solo.io.Settings.KnativeOptions.deserializeBinaryFromReader = functio
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setKnativeProxyAddress(value);
+      msg.setKnativeExternalProxyAddress(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKnativeInternalProxyAddress(value);
       break;
     default:
       reader.skipField();
@@ -1634,10 +1655,17 @@ proto.gloo.solo.io.Settings.KnativeOptions.serializeBinaryToWriter = function(me
       f
     );
   }
-  f = message.getKnativeProxyAddress();
+  f = message.getKnativeExternalProxyAddress();
   if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = message.getKnativeInternalProxyAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -1660,17 +1688,32 @@ proto.gloo.solo.io.Settings.KnativeOptions.prototype.setClusterIngressProxyAddre
 
 
 /**
- * optional string knative_proxy_address = 2;
+ * optional string knative_external_proxy_address = 2;
  * @return {string}
  */
-proto.gloo.solo.io.Settings.KnativeOptions.prototype.getKnativeProxyAddress = function() {
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.getKnativeExternalProxyAddress = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.gloo.solo.io.Settings.KnativeOptions.prototype.setKnativeProxyAddress = function(value) {
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.setKnativeExternalProxyAddress = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string knative_internal_proxy_address = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.getKnativeInternalProxyAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.setKnativeInternalProxyAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -2478,6 +2521,334 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.hasServiceDiscovery = 
 };
 
 
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.Settings.KubernetesConfiguration, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.Settings.KubernetesConfiguration.displayName = 'proto.gloo.solo.io.Settings.KubernetesConfiguration';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    rateLimits: (f = msg.getRateLimits()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.Settings.KubernetesConfiguration}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.Settings.KubernetesConfiguration;
+  return proto.gloo.solo.io.Settings.KubernetesConfiguration.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.Settings.KubernetesConfiguration}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits;
+      reader.readMessage(value,proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.deserializeBinaryFromReader);
+      msg.setRateLimits(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.Settings.KubernetesConfiguration.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRateLimits();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.displayName = 'proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    qps: +jspb.Message.getFieldWithDefault(msg, 1, 0.0),
+    burst: jspb.Message.getFieldWithDefault(msg, 2, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits;
+  return proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readFloat());
+      msg.setQps(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setBurst(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getQps();
+  if (f !== 0.0) {
+    writer.writeFloat(
+      1,
+      f
+    );
+  }
+  f = message.getBurst();
+  if (f !== 0) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional float QPS = 1;
+ * @return {number}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.getQps = function() {
+  return /** @type {number} */ (+jspb.Message.getFieldWithDefault(this, 1, 0.0));
+};
+
+
+/** @param {number} value */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.setQps = function(value) {
+  jspb.Message.setProto3FloatField(this, 1, value);
+};
+
+
+/**
+ * optional uint32 burst = 2;
+ * @return {number}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.getBurst = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits.prototype.setBurst = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional RateLimits rate_limits = 1;
+ * @return {?proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.getRateLimits = function() {
+  return /** @type{?proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits, 1));
+};
+
+
+/** @param {?proto.gloo.solo.io.Settings.KubernetesConfiguration.RateLimits|undefined} value */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.setRateLimits = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.clearRateLimits = function() {
+  this.setRateLimits(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.KubernetesConfiguration.prototype.hasRateLimits = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
 /**
  * optional string discovery_namespace = 1;
  * @return {string}
@@ -2958,6 +3329,36 @@ proto.gloo.solo.io.Settings.prototype.clearConsul = function() {
  */
 proto.gloo.solo.io.Settings.prototype.hasConsul = function() {
   return jspb.Message.getField(this, 20) != null;
+};
+
+
+/**
+ * optional KubernetesConfiguration kubernetes = 22;
+ * @return {?proto.gloo.solo.io.Settings.KubernetesConfiguration}
+ */
+proto.gloo.solo.io.Settings.prototype.getKubernetes = function() {
+  return /** @type{?proto.gloo.solo.io.Settings.KubernetesConfiguration} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Settings.KubernetesConfiguration, 22));
+};
+
+
+/** @param {?proto.gloo.solo.io.Settings.KubernetesConfiguration|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setKubernetes = function(value) {
+  jspb.Message.setWrapperField(this, 22, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearKubernetes = function() {
+  this.setKubernetes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasKubernetes = function() {
+  return jspb.Message.getField(this, 22) != null;
 };
 
 

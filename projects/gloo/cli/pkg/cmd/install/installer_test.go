@@ -1,7 +1,7 @@
 package install_test
 
 import (
-	"time"
+	"context"
 
 	install3 "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/install"
 	options2 "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
@@ -33,7 +33,7 @@ func (i *MockInstallClient) KubectlApply(manifest []byte) error {
 	return nil
 }
 
-func (i *MockInstallClient) WaitForCrdsToBeRegistered(crds []string, timeout, interval time.Duration) error {
+func (i *MockInstallClient) WaitForCrdsToBeRegistered(ctx context.Context, crds []string) error {
 	Expect(i.waited).To(BeFalse())
 	i.waited = true
 	Expect(crds).To(ConsistOf(i.expectedCrds))
@@ -120,9 +120,10 @@ var _ = Describe("Install", func() {
 			expectNames(validator.resources, install.GlooCrdNames)
 		})
 
-		It("does nothing on preinstall", func() {
+		It("only prepares the namespace CRD preinstall", func() {
 			err := installer.DoPreInstall()
 			Expect(err).NotTo(HaveOccurred())
+			// the namespace CRD triggers the "applied" property
 			Expect(validator.applied).To(BeTrue())
 			Expect(validator.waited).To(BeFalse())
 			expectKinds(validator.resources, install.GlooPreInstallKinds)

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/pelletier/go-toml"
@@ -71,8 +69,8 @@ func main() {
 	}
 }
 
-func readConfig() (generate.Config, error) {
-	var config generate.Config
+func readConfig() (generate.HelmConfig, error) {
+	var config generate.HelmConfig
 	if err := readYaml(valuesTemplate, &config); err != nil {
 		return config, err
 	}
@@ -105,7 +103,7 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride string) error {
+func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string) error {
 	config, err := readConfig()
 	if err != nil {
 		return err
@@ -145,20 +143,8 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 
-	if repoPrefixOverride != "" {
-		config.Gloo.Gloo.Deployment.Image.Repository = replacePrefix(config.Gloo.Gloo.Deployment.Image.Repository, repoPrefixOverride)
-		for _, v := range config.Gloo.GatewayProxies {
-			v.PodTemplate.Image.Repository = replacePrefix(v.PodTemplate.Image.Repository, repoPrefixOverride)
-		}
-		if config.Gloo.IngressProxy != nil {
-			config.Gloo.IngressProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.IngressProxy.Deployment.Image.Repository, repoPrefixOverride)
-		}
-		config.RateLimit.Deployment.Image.Repository = replacePrefix(config.RateLimit.Deployment.Image.Repository, repoPrefixOverride)
-		config.Observability.Deployment.Image.Repository = replacePrefix(config.Observability.Deployment.Image.Repository, repoPrefixOverride)
-		config.ApiServer.Deployment.Ui.Image.Repository = replacePrefix(config.ApiServer.Deployment.Ui.Image.Repository, repoPrefixOverride)
-		config.ApiServer.Deployment.Server.Image.Repository = replacePrefix(config.ApiServer.Deployment.Server.Image.Repository, repoPrefixOverride)
-		config.ApiServer.Deployment.Envoy.Image.Repository = replacePrefix(config.ApiServer.Deployment.Envoy.Image.Repository, repoPrefixOverride)
-		config.ExtAuth.Deployment.Image.Repository = replacePrefix(config.ExtAuth.Deployment.Image.Repository, repoPrefixOverride)
+	if repositoryPrefix != "" {
+		config.Global.Image.Registry = repositoryPrefix
 	}
 
 	return writeYaml(&config, outputFile)
@@ -231,11 +217,4 @@ func GetVersionFromToml(filename, pkg string) (string, error) {
 	}
 
 	return version, nil
-}
-
-// We want to turn "quay.io/solo-io/gloo-ee" into "<newPrefix>/gloo-ee".
-func replacePrefix(repository, newPrefix string) string {
-	// Remove trailing slash, if present
-	newPrefix = strings.TrimSuffix(newPrefix, "/")
-	return strings.Join([]string{newPrefix, path.Base(repository)}, "/")
 }

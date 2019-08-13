@@ -1,4 +1,8 @@
 {{- if .Values.rateLimit.enabled }}
+{{- $image := .Values.redis.deployment.image }}
+{{- if .Values.global  }}
+{{- $image = merge .Values.redis.deployment.image .Values.global.image }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,8 +22,8 @@ spec:
         gloo: redis
     spec:
       containers:
-        - image: "{{ .Values.redis.deployment.image.repository }}:{{ .Values.redis.deployment.image.tag }}"
-          imagePullPolicy:  {{ .Values.redis.deployment.image.pullPolicy }}
+        - image: {{template  "gloo.image" $image}}
+          imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
           ports:
             - containerPort: {{ .Values.redis.deployment.staticPort }}
@@ -29,9 +33,6 @@ spec:
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
-      {{- if  .Values.redis.deployment.image.pullSecret }}
-      imagePullSecrets:
-        - name: {{ .Values.redis.deployment.image.pullSecret }}{{end}}
       volumes:
         - name: data
           emptyDir: {}

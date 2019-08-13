@@ -24,9 +24,7 @@ gloo:
     deployment:
       stats: true
       image:
-        pullPolicy: Always
-        pullSecret: solo-io-readerbot-pull-secret
-        repository: quay.io/solo-io/gloo-ee
+        repository: gloo-ee
       replicas: 1
   gatewayProxies:
     gatewayProxyV2:
@@ -38,9 +36,7 @@ gloo:
         httpPort: 8080
         httpsPort: 8443
         image:
-          pullPolicy: Always
-          pullSecret: solo-io-readerbot-pull-secret
-          repository: quay.io/solo-io/gloo-ee-envoy-wrapper
+          repository: gloo-ee-envoy-wrapper
       service:
         type: LoadBalancer
         # clusterIP: None
@@ -57,13 +53,13 @@ gloo:
   discovery:
     deployment:
       image:
-        pullPolicy: Always
-        repository: quay.io/solo-io/discovery
+        repository: discovery
+        registry: quay.io/solo-io
   gateway:
     deployment:
       image:
-        pullPolicy: Always
-        repository: quay.io/solo-io/gateway
+        repository: gateway
+        registry: quay.io/solo-io
     enabled: true
 ########################################################################
 ###                                                                  ###
@@ -76,17 +72,14 @@ rateLimit:
   enabled: true
   deployment:
     stats: true
-    name: 'rate-limit'
+    name: "rate-limit"
     image:
-      pullPolicy: Always
-      repository: quay.io/solo-io/rate-limit-ee
-      pullSecret: solo-io-readerbot-pull-secret
+      repository: rate-limit-ee
     glooAddress: gloo:9977
     redisUrl: redis:6379
   service:
     port: 18081
     name: rate-limit
-
 
 redis:
   deployment:
@@ -94,12 +87,11 @@ redis:
     image:
       tag: "5"
       repository: redis
-      pullPolicy: Always
+      registry: docker.io
     staticPort: 6379
   service:
     port: 6379
     name: redis
-
 
 ########################################################################
 ###                                                                  ###
@@ -111,11 +103,9 @@ extAuth:
   userIdHeader: x-user-id
   deployment:
     stats: true
-    name: 'extauth'
+    name: "extauth"
     image:
-      pullPolicy: Always
-      repository: quay.io/solo-io/extauth-ee
-      pullSecret: solo-io-readerbot-pull-secret
+      repository: extauth-ee
     port: 8080
   service:
     port: 8080
@@ -134,31 +124,24 @@ apiServer:
   enableBeta: true
   deployment:
     stats: true
-    name: 'grpcserver-ui'
+    name: "grpcserver-ui"
     server:
       image:
         name: apiserver
-        pullPolicy: Always
-        repository: quay.io/solo-io/grpcserver-ee
-        pullSecret: solo-io-readerbot-pull-secret
-      grpcPort: "10101"
+        repository: grpcserver-ee
+      grpcPort: 10101
       oauth: {}
     ui:
       image:
-        name: 'gloo-ui'
-        pullPolicy: Always
-        repository: quay.io/solo-io/grpcserver-ui
-        pullSecret: solo-io-readerbot-pull-secret
+        name: "gloo-ui"
+        repository: grpcserver-ui
       staticPort: 8080
     envoy:
       image:
-        name: 'grpcserver-envoy'
-        pullPolicy: Always
-        repository: quay.io/solo-io/grpcserver-envoy
-        pullSecret: solo-io-readerbot-pull-secret
+        name: "grpcserver-envoy"
+        repository: grpcserver-envoy
   service:
-    name: 'apiserver-ui'
-
+    name: "apiserver-ui"
 
 ########################################################################
 ###                                                                  ###
@@ -171,11 +154,19 @@ observability:
     stats: true
     name: observability
     image:
-      repository: quay.io/solo-io/observability-ee
-      pullPolicy: IfNotPresent
-      pullSecret: solo-io-readerbot-pull-secret
+      repository: observability-ee
 
+########################################################################
+###                                                                  ###
+###                        GLOBAL                                    ###
+###                                                                  ###
+########################################################################
 
+global:
+  image:
+    registry: quay.io/solo-io
+    pullPolicy: IfNotPresent
+    pullSecret: solo-io-readerbot-pull-secret
 
 ########################################################################
 ###                                                                  ###
@@ -192,7 +183,6 @@ rbac:
 ###                                                                  ###
 ########################################################################
 
-
 prometheus:
   # setting to false will disable prometheus, removing it from gloo's chart dependencies
   enabled: true
@@ -208,7 +198,6 @@ prometheus:
     global:
       scrape_interval: 10s
       evaluation_interval: 10s
-
 
 ########################################################################
 ###                                                                  ###
@@ -244,9 +233,9 @@ grafana:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-        - name: 'gloo'
+        - name: "gloo"
           orgId: 1
-          folder: 'gloo'
+          folder: "gloo"
           type: file
           disableDeletion: false
           editable: true

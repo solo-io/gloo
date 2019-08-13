@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 
+	"github.com/solo-io/go-utils/cliutils"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove"
@@ -23,7 +25,12 @@ var versionTemplate = `{{with .Name}}{{printf "%s enterprise edition " .}}{{end}
 `
 
 func App(version string) *cobra.Command {
-	app := cmd.App(version, optionsFunc)
+	opts := &options.Options{
+		Top: options.Top{
+			Ctx: context.Background(),
+		},
+	}
+	app := cmd.App(version, opts, getPreRunFuncs(), getOptionsFunc(opts))
 	app.SetVersionTemplate(versionTemplate)
 	return app
 }
@@ -35,27 +42,30 @@ as an argument. This optionsFunc overwrites the underlying OS gloo CLI functiona
 with some glooe logic
 */
 
-func optionsFunc(app *cobra.Command) {
-	opts := &options.Options{
-		Top: options.Top{
-			Ctx: context.Background(),
-		},
+func getOptionsFunc(opts *options.Options) cliutils.OptionsFunc {
+	return func(app *cobra.Command) {
+
+		pflags := app.PersistentFlags()
+		pflags.BoolVarP(&opts.Top.Interactive, "interactive", "i", false, "use interactive mode")
+
+		app.SuggestionsMinimumDistance = 1
+		app.AddCommand(
+			get.RootCmd(opts),
+			del.RootCmd(opts),
+			install.RootCmd(opts),
+			install.UninstallCmd(opts),
+			add.RootCmd(opts),
+			remove.RootCmd(opts),
+			route.RootCmd(opts),
+			create.RootCmd(opts),
+			gateway.RootCmd(opts),
+			edit.RootCmd(opts),
+		)
 	}
+}
 
-	pflags := app.PersistentFlags()
-	pflags.BoolVarP(&opts.Top.Interactive, "interactive", "i", false, "use interactive mode")
-
-	app.SuggestionsMinimumDistance = 1
-	app.AddCommand(
-		get.RootCmd(opts),
-		del.RootCmd(opts),
-		install.RootCmd(opts),
-		install.UninstallCmd(opts),
-		add.RootCmd(opts),
-		remove.RootCmd(opts),
-		route.RootCmd(opts),
-		create.RootCmd(opts),
-		gateway.RootCmd(opts),
-		edit.RootCmd(opts),
-	)
+// pre-run functions provide you the opportunity to modify the options.Options object before commands are executed
+// this is useful for applying constraints that are input-specific and apply to multiple subcommands
+func getPreRunFuncs() []cmd.PreRunFunc {
+	return []cmd.PreRunFunc{cmd.HarmonizeDryRunAndOutputFormat}
 }

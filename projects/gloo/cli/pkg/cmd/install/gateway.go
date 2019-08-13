@@ -67,14 +67,22 @@ func GetInstallSpec(opts *options.Options, optsExt *optionsExt.ExtraOptions) (*g
 		helmChartArchiveUri = helmChartOverride
 	}
 
-	extraValues := map[string]string{
+	extraValues := map[string]interface{}{
 		"license_key": optsExt.Install.LicenseKey,
 	}
 
 	if opts.Install.Upgrade {
-		extraValues["gloo:\n  gateway:\n    upgrade"] = "true"
+		extraValues["gloo"] = map[string]interface{}{
+			"gateway": map[string]interface{}{
+				"upgrade": "true",
+			},
+		}
 	} else {
-		extraValues["gloo:\n  namespace:\n    create"] = "true"
+		extraValues["gloo"] = map[string]interface{}{
+			"namespace": map[string]interface{}{
+				"create": "true",
+			},
+		}
 	}
 
 	return &glooInstall.GlooInstallSpec{

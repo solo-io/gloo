@@ -1,3 +1,11 @@
+{{- $apiServerImage := .Values.apiServer.deployment.server.image }}
+{{- $uiImage := .Values.apiServer.deployment.ui.image }}
+{{- $envoyImage := .Values.apiServer.deployment.envoy.image }}
+{{- if .Values.global  }}
+{{- $apiServerImage = merge .Values.apiServer.deployment.server.image .Values.global.image }}
+{{- $uiImage = merge .Values.apiServer.deployment.ui.image .Values.global.image }}
+{{- $envoyImage = merge .Values.apiServer.deployment.envoy.image .Values.global.image }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,8 +32,8 @@ spec:
     spec:
       containers:
         - name: apiserver-ui
-          image: '{{.Values.apiServer.deployment.ui.image.repository}}:{{.Values.apiServer.deployment.ui.image.tag}}'
-          imagePullPolicy: {{.Values.apiServer.deployment.ui.image.pullPolicy}}
+          image: {{template "gloo.image" $uiImage}}
+          imagePullPolicy: {{$uiImage.pullPolicy}}
           volumeMounts:
             - name: empty-cache
               mountPath: /var/cache/nginx
@@ -35,9 +43,9 @@ spec:
             - name: static
               containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
               protocol: TCP
-        - name: grpcserver
-          image: '{{.Values.apiServer.deployment.server.image.repository}}:{{.Values.apiServer.deployment.server.image.tag}}'
-          imagePullPolicy: {{.Values.apiServer.deployment.server.image.pullPolicy}}
+        - name: apiserver
+          image: {{template  "gloo.image" $apiServerImage}}
+          imagePullPolicy: {{$apiServerImage.pullPolicy}}
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -61,8 +69,8 @@ spec:
               containerPort: {{.Values.apiServer.deployment.server.grpcPort}}
               protocol: TCP
         - name: gloo-grpcserver-envoy
-          image: '{{.Values.apiServer.deployment.envoy.image.repository}}:{{.Values.apiServer.deployment.envoy.image.tag}}'
-          imagePullPolicy: {{.Values.apiServer.deployment.envoy.image.pullPolicy}}
+          image: {{template "gloo.image" $envoyImage}}
+          imagePullPolicy: {{ $envoyImage.pullPolicy }}
           readinessProbe:
             httpGet:
               path: /
@@ -74,7 +82,7 @@ spec:
           emptyDir: {}
         - name: empty-run
           emptyDir: {}
-      {{- if .Values.extAuth.deployment.image.pullSecret }}
+      {{- if $apiServerImage.pullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.extAuth.deployment.image.pullSecret }}
+        - name: {{ $apiServerImage.pullSecret }}
       {{- end }}

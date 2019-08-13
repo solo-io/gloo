@@ -1,4 +1,8 @@
 {{- if .Values.grafana.enabled }}
+{{- $image := .Values.observability.deployment.image }}
+{{- if .Values.global  }}
+{{- $image = merge .Values.observability.deployment.image .Values.global.image }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,8 +28,8 @@ spec:
       {{- end}}
     spec:
       containers:
-        - image: "{{.Values.observability.deployment.image.repository}}:{{.Values.observability.deployment.image.tag}}"
-          imagePullPolicy: {{.Values.observability.deployment.image.pullPolicy}}
+        - image: {{template "gloo.image" $image}}
+          imagePullPolicy: {{$image.pullPolicy}}
           name: observability
           env:
             - name: POD_NAMESPACE
@@ -46,8 +50,8 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
-      {{- if .Values.observability.deployment.image.pullSecret }}
+      {{- if $image.pullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.observability.deployment.image.pullSecret }}
+        - name: {{ $image.pullSecret }}
       {{- end }}
 {{- end }}

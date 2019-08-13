@@ -29,6 +29,7 @@ glooctl install ingress [flags]
       --license-key string   License key to activate GlooE features
   -n, --namespace string     namespace to install gloo into (default "gloo-system")
   -u, --upgrade              Upgrade an existing v1 gateway installation to use v2 CRDs. Set this when upgrading from v0.17.x or earlier versions of gloo
+      --values string        Values for the Gloo Helm chart
 ```
 
 ### SEE ALSO

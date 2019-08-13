@@ -2,6 +2,10 @@ package generate
 
 import "github.com/solo-io/gloo/install/helm/gloo/generate"
 
+type HelmConfig struct {
+	Config
+	Global *generate.Global `json:"global,omitempty"`
+}
 type Config struct {
 	Settings      *generate.Settings `json:"settings,omitempty"`
 	LicenseKey    string             `json:"license_key,omitempty"`
@@ -44,7 +48,7 @@ type RateLimitDeployment struct {
 }
 
 type RateLimitService struct {
-	Port string `json:"port"`
+	Port uint   `json:"port"`
 	Name string `json:"name"`
 }
 
@@ -55,12 +59,12 @@ type Redis struct {
 
 type RedisDeployment struct {
 	Image      *generate.Image `json:"image,omitempty"`
-	StaticPort string          `json:"staticPort"`
+	StaticPort uint            `json:"staticPort"`
 	*generate.DeploymentSpec
 }
 
 type RedisService struct {
-	Port string `json:"port"`
+	Port uint   `json:"port"`
 	Name string `json:"name"`
 }
 
@@ -80,7 +84,7 @@ type ApiServerDeployment struct {
 }
 
 type ApiServerServerDeployment struct {
-	GrpcPort string          `json:"grpcPort"`
+	GrpcPort uint            `json:"grpcPort"`
 	OAuth    *OAuth          `json:"oauth,omitempty"`
 	Image    *generate.Image `json:"image"`
 	*generate.DeploymentSpec
@@ -92,8 +96,8 @@ type ApiServerEnvoyDeployment struct {
 }
 
 type ApiServerUiDeployment struct {
-	StaticPort       string          `json:"staticPort"`
-	StaticPortNoAuth string          `json:"staticPortNoAuth"`
+	StaticPort       uint            `json:"staticPort"`
+	StaticPortNoAuth uint            `json:"staticPortNoAuth"`
 	Image            *generate.Image `json:"image,omitempty"`
 	*generate.DeploymentSpec
 }
@@ -125,13 +129,13 @@ type ExtAuth struct {
 type ExtAuthDeployment struct {
 	Name        string          `json:"name"`
 	GlooAddress string          `json:"glooAddress"`
-	Port        string          `json:"port"`
+	Port        uint            `json:"port"`
 	Image       *generate.Image `json:"image,omitempty"`
 	*generate.DeploymentSpec
 }
 
 type ExtAuthService struct {
-	Port string `json:"port"`
+	Port uint   `json:"port"`
 	Name string `json:"name"`
 }
 

@@ -94,6 +94,11 @@ export class Settings extends jspb.Message {
   getConsul(): Settings.ConsulConfiguration | undefined;
   setConsul(value?: Settings.ConsulConfiguration): void;
 
+  hasKubernetes(): boolean;
+  clearKubernetes(): void;
+  getKubernetes(): Settings.KubernetesConfiguration | undefined;
+  setKubernetes(value?: Settings.KubernetesConfiguration): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
@@ -142,6 +147,7 @@ export namespace Settings {
     knative?: Settings.KnativeOptions.AsObject,
     discovery?: Settings.DiscoveryOptions.AsObject,
     consul?: Settings.ConsulConfiguration.AsObject,
+    kubernetes?: Settings.KubernetesConfiguration.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
@@ -293,8 +299,11 @@ export namespace Settings {
     getClusterIngressProxyAddress(): string;
     setClusterIngressProxyAddress(value: string): void;
 
-    getKnativeProxyAddress(): string;
-    setKnativeProxyAddress(value: string): void;
+    getKnativeExternalProxyAddress(): string;
+    setKnativeExternalProxyAddress(value: string): void;
+
+    getKnativeInternalProxyAddress(): string;
+    setKnativeInternalProxyAddress(value: string): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): KnativeOptions.AsObject;
@@ -309,7 +318,8 @@ export namespace Settings {
   export namespace KnativeOptions {
     export type AsObject = {
       clusterIngressProxyAddress: string,
-      knativeProxyAddress: string,
+      knativeExternalProxyAddress: string,
+      knativeInternalProxyAddress: string,
     }
   }
 
@@ -427,6 +437,52 @@ export namespace Settings {
     export namespace ServiceDiscoveryOptions {
       export type AsObject = {
         dataCentersList: Array<string>,
+      }
+    }
+  }
+
+  export class KubernetesConfiguration extends jspb.Message {
+    hasRateLimits(): boolean;
+    clearRateLimits(): void;
+    getRateLimits(): Settings.KubernetesConfiguration.RateLimits | undefined;
+    setRateLimits(value?: Settings.KubernetesConfiguration.RateLimits): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): KubernetesConfiguration.AsObject;
+    static toObject(includeInstance: boolean, msg: KubernetesConfiguration): KubernetesConfiguration.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: KubernetesConfiguration, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): KubernetesConfiguration;
+    static deserializeBinaryFromReader(message: KubernetesConfiguration, reader: jspb.BinaryReader): KubernetesConfiguration;
+  }
+
+  export namespace KubernetesConfiguration {
+    export type AsObject = {
+      rateLimits?: Settings.KubernetesConfiguration.RateLimits.AsObject,
+    }
+
+    export class RateLimits extends jspb.Message {
+      getQps(): number;
+      setQps(value: number): void;
+
+      getBurst(): number;
+      setBurst(value: number): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): RateLimits.AsObject;
+      static toObject(includeInstance: boolean, msg: RateLimits): RateLimits.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: RateLimits, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): RateLimits;
+      static deserializeBinaryFromReader(message: RateLimits, reader: jspb.BinaryReader): RateLimits;
+    }
+
+    export namespace RateLimits {
+      export type AsObject = {
+        qps: number,
+        burst: number,
       }
     }
   }

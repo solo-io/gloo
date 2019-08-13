@@ -1,0 +1,14 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support global image variables in helm chart
+    issueLink: https://github.com/solo-io/gloo/issues/892
+  - dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.18.15
+    description: Update Gloo to version 0.18.15.
+    type: DEPENDENCY_BUMP
+  - dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.9.17
+    description: Update go utils to version 0.9.17.
+    type: DEPENDENCY_BUMP

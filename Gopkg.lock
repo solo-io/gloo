@@ -1325,14 +1325,17 @@
   version = "v0.2.7"
 
 [[projects]]
-  digest = "1:7b340eb324d83602fdd1593c19b0e3af6a73716b2988ebdfed0a9103a4d1477c"
+  digest = "1:cdfcc1f92f63b206be54f457541ff11f3830eff73d4f006a0fcc6ee26f87081a"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
     "pkg/cliutil",
     "pkg/cliutil/install",
     "pkg/cliutil/testutil",
+    "pkg/listers",
     "pkg/utils",
+    "pkg/utils/selectionutils",
+    "pkg/utils/settings",
     "pkg/utils/setuputils",
     "pkg/version",
     "projects/discovery/pkg/fds",
@@ -1445,8 +1448,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "683045a6ec32cac76e98792dfdcccc958510fef4"
-  version = "v0.18.10"
+  revision = "523d8c54473de48660619863523976d344aef06e"
+  version = "v0.18.15"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1457,7 +1460,7 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:fbb4b06fec065e657f99c8763bfb5351162440fb353efb1d570a51cf241b1fdc"
+  digest = "1:94f50cbb3896259c1dc16bfd9d22c8118697e2af603b04511aee4fdca1836e6b"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1489,8 +1492,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "befe24a5a31cc9902941c560ce9e49538bab6c62"
-  version = "v0.9.13"
+  revision = "71704af17a52b1dce01b6bb8bcab447f59e59f07"
+  version = "v0.9.17"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1523,7 +1526,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:90fb29cf69804b43ea17282f8437604157d75bb407ed7ca90e12d198e71bb078"
+  digest = "1:346d6cdd4d3a5b53120c198576d7f10355b65326014fb88e7f5c2744a440ee37"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1583,8 +1586,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "235c090eeac040b276a40ef2a01fdbc98785f2b5"
-  version = "v0.10.7"
+  revision = "4ef904331926cde8633da4b108ecdc8447e59b70"
+  version = "v0.10.9"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"

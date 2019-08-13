@@ -3,7 +3,6 @@ package install
 import (
 	"bytes"
 	"context"
-	"time"
 
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	install2 "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install"
@@ -79,6 +78,6 @@ func (i *NamespacedGlooKubeInstallClient) KubectlApply(manifest []byte) error {
 	return install.Kubectl(bytes.NewBuffer(manifest), "apply", "-n", i.namespace, "-f", "-")
 }
 
-func (i *NamespacedGlooKubeInstallClient) WaitForCrdsToBeRegistered(crds []string, timeout, interval time.Duration) error {
-	return i.delegate.WaitForCrdsToBeRegistered(crds, timeout, interval)
+func (i *NamespacedGlooKubeInstallClient) WaitForCrdsToBeRegistered(ctx context.Context, crds []string) error {
+	return i.delegate.WaitForCrdsToBeRegistered(ctx, crds)
 }
