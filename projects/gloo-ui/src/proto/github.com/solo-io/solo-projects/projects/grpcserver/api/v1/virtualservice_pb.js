@@ -18,6 +18,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../..
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb.js');
 var github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.glooeeapi.solo.io.CreateRouteRequest', null, global);
@@ -102,7 +103,8 @@ proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.toObject = function(opt_
 proto.glooeeapi.solo.io.VirtualServiceDetails.toObject = function(includeInstance, msg) {
   var f, obj = {
     virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
-    plugins: (f = msg.getPlugins()) && proto.glooeeapi.solo.io.Plugins.toObject(includeInstance, f)
+    plugins: (f = msg.getPlugins()) && proto.glooeeapi.solo.io.Plugins.toObject(includeInstance, f),
+    raw: (f = msg.getRaw()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -149,6 +151,11 @@ proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader = func
       reader.readMessage(value,proto.glooeeapi.solo.io.Plugins.deserializeBinaryFromReader);
       msg.setPlugins(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.deserializeBinaryFromReader);
+      msg.setRaw(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -192,6 +199,14 @@ proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter = function
       2,
       f,
       proto.glooeeapi.solo.io.Plugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getRaw();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.serializeBinaryToWriter
     );
   }
 };
@@ -254,6 +269,36 @@ proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.clearPlugins = function(
  */
 proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.hasPlugins = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Raw raw = 3;
+ * @return {?proto.glooeeapi.solo.io.Raw}
+ */
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.getRaw = function() {
+  return /** @type{?proto.glooeeapi.solo.io.Raw} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw, 3));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.Raw|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.setRaw = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.clearRaw = function() {
+  this.setRaw(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.hasRaw = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

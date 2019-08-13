@@ -48,7 +48,7 @@ func (m *mutator) mutateAndWrite(vs *gatewayv1.VirtualService, f Mutation, overw
 	return m.client.Write(vs, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: overwrite})
 }
 
-func NewMutator(ctx context.Context, client gatewayv1.VirtualServiceClient) *mutator {
+func NewMutator(ctx context.Context, client gatewayv1.VirtualServiceClient) Mutator {
 	return &mutator{
 		ctx:    ctx,
 		client: client,

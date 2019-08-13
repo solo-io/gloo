@@ -16,13 +16,15 @@ import (
 	"go.uber.org/zap"
 )
 
+type BuildVersion string
+
 type configGrpcService struct {
 	ctx             context.Context
 	settingsClient  gloov1.SettingsClient
 	licenseClient   license.Client
 	namespaceClient kube.NamespaceClient
 	oAuthEndpoint   v1.OAuthEndpoint
-	version         string
+	version         BuildVersion
 	podNamespace    string
 }
 
@@ -32,7 +34,8 @@ func NewConfigGrpcService(
 	licenseClient license.Client,
 	namespaceClient kube.NamespaceClient,
 	oAuthEndpoint v1.OAuthEndpoint,
-	version, podNamespace string) v1.ConfigApiServer {
+	version BuildVersion,
+	podNamespace string) v1.ConfigApiServer {
 
 	return &configGrpcService{
 		ctx:             ctx,
@@ -46,7 +49,7 @@ func NewConfigGrpcService(
 }
 
 func (s *configGrpcService) GetVersion(context.Context, *v1.GetVersionRequest) (*v1.GetVersionResponse, error) {
-	return &v1.GetVersionResponse{Version: s.version}, nil
+	return &v1.GetVersionResponse{Version: string(s.version)}, nil
 }
 
 func (s *configGrpcService) GetOAuthEndpoint(context.Context, *v1.GetOAuthEndpointRequest) (*v1.GetOAuthEndpointResponse, error) {

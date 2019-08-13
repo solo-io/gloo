@@ -7,10 +7,8 @@ import (
 	"os"
 
 	"github.com/solo-io/go-utils/stats"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-
 	"github.com/solo-io/solo-projects/pkg/version"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server"
 
 	"github.com/solo-io/go-utils/envutils"
 
@@ -33,15 +31,13 @@ func main() {
 			zap.Any("listener", lis),
 			zap.Error(err))
 	}
-	glooGrpcService := mustGetGlooGrpcService(ctx, lis)
+	glooGrpcService, err := server.InitializeServer(ctx, lis)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Fatalw("Failed while initializing gloo grpc service", zap.Error(err))
+	}
 	if err := glooGrpcService.Run(ctx); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Failed while running gloo grpc service", zap.Error(err))
 	}
-}
-
-func mustGetGlooGrpcService(ctx context.Context, listener net.Listener) *server.GlooGrpcService {
-	serviceSet := setup.MustGetServiceSet(ctx)
-	return server.NewGlooGrpcService(listener, serviceSet)
 }
 
 func startStatsIfConfigured() {

@@ -34,7 +34,7 @@ var (
 	licenseClient     *mock_license.MockClient
 	namespaceClient   *mock_namespace.MockNamespaceClient
 	podNamespace      = "pod-ns"
-	testVersion       = "test-version"
+	testVersion       = configsvc.BuildVersion("test-version")
 	testOAuthEndpoint = v1.OAuthEndpoint{Url: "test", ClientName: "name"}
 	testErr           = errors.Errorf("test-err")
 )
@@ -60,7 +60,7 @@ var _ = Describe("ServiceTest", func() {
 		It("works", func() {
 			actual, err := client.GetVersion(context.TODO(), &v1.GetVersionRequest{})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetVersionResponse{Version: testVersion}
+			expected := &v1.GetVersionResponse{Version: string(testVersion)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 	})

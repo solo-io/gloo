@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: API for reading and listing gateways and proxies.
+    issueLink: https://github.com/solo-io/solo-projects/issues/856
+  - type: NON_USER_FACING
+    description: Delete the old apiserver.

@@ -1,0 +1,36 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+
+message ProxyDetails {
+    gloo.solo.io.Proxy proxy = 1;
+    Raw raw = 2;
+}
+
+message GetProxyRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetProxyResponse {
+    ProxyDetails proxy_details = 1;
+}
+
+message ListProxiesRequest {
+    repeated string namespaces = 1;
+}
+
+message ListProxiesResponse {
+    repeated ProxyDetails proxy_details = 1;
+}
+
+service ProxyApi {
+    rpc GetProxy(GetProxyRequest) returns (GetProxyResponse) {}
+    rpc ListProxies(ListProxiesRequest) returns (ListProxiesResponse) {}
+}

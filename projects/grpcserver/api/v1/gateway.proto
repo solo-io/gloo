@@ -1,0 +1,36 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+
+message GatewayDetails {
+    gateway.solo.io.v2.Gateway gateway = 1;
+    Raw raw = 2;
+}
+
+message GetGatewayRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetGatewayResponse {
+    GatewayDetails gateway_details = 1;
+}
+
+message ListGatewaysRequest {
+    repeated string namespaces = 1;
+}
+
+message ListGatewaysResponse {
+    repeated GatewayDetails gateway_details = 1;
+}
+
+service GatewayApi {
+    rpc GetGateway(GetGatewayRequest) returns (GetGatewayResponse) {}
+    rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
+}

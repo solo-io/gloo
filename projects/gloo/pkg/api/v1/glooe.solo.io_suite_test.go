@@ -38,6 +38,8 @@ var (
 		Expect(err).NotTo(HaveOccurred())
 		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("artifacts.gloo.solo.io", &metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("gateways.gateway.solo.io.v2", &metav1.DeleteOptions{})
+		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("proxies.gloo.solo.io", &metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("secrets.gloo.solo.io", &metav1.DeleteOptions{})

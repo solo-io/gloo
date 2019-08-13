@@ -1,4 +1,0 @@
-type OAuthEndpoint {
-  url: String!
-  clientName: String!
-}

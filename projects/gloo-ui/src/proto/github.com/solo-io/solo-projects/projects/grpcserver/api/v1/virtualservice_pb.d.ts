@@ -8,6 +8,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb from "../../..
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -21,6 +22,11 @@ export class VirtualServiceDetails extends jspb.Message {
   clearPlugins(): void;
   getPlugins(): Plugins | undefined;
   setPlugins(value?: Plugins): void;
+
+  hasRaw(): boolean;
+  clearRaw(): void;
+  getRaw(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw | undefined;
+  setRaw(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualServiceDetails.AsObject;
@@ -36,6 +42,7 @@ export namespace VirtualServiceDetails {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
     plugins?: Plugins.AsObject,
+    raw?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
   }
 }
 

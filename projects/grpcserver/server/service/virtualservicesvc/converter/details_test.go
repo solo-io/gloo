@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -15,10 +16,15 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
 )
 
-var virtualServiceConverter converter.VirtualServiceDetailsConverter
+var (
+	virtualServiceConverter converter.VirtualServiceDetailsConverter
+	mockCtrl                *gomock.Controller
+	rawGetter               *mocks.MockRawGetter
+)
 
 var _ = Describe("VirtualServiceDetailsConverter", func() {
 	getVirtualService := func(pluginConfigs map[string]*types.Struct) *gatewayv1.VirtualService {
@@ -66,8 +72,18 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 	}
 
 	Describe("GetDetails", func() {
+		getExpectedRaw := func() *v1.Raw {
+			return &v1.Raw{FileName: "fn", Content: "ct"}
+		}
+
 		BeforeEach(func() {
-			virtualServiceConverter = converter.NewVirtualServiceDetailsConverter()
+			mockCtrl = gomock.NewController(GinkgoT())
+			rawGetter = mocks.NewMockRawGetter(mockCtrl)
+			virtualServiceConverter = converter.NewVirtualServiceDetailsConverter(rawGetter)
+		})
+
+		AfterEach(func() {
+			mockCtrl.Finish()
 		})
 
 		It("works", func() {
@@ -82,11 +98,13 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 				desc            string
 				configs         map[string]*types.Struct
 				expectedPlugins *v1.Plugins
+				expectedRaw     *v1.Raw
 			}{
 				{
 					desc:            "for a nil config",
 					configs:         nil,
 					expectedPlugins: nil,
+					expectedRaw:     nil,
 				},
 				{
 					desc: "for a valid extauth plugin",
@@ -98,6 +116,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 							Value: extAuthConfig,
 						},
 					},
+					expectedRaw: getExpectedRaw(),
 				},
 				{
 					desc: "for a valid rate limit plugin",
@@ -109,6 +128,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 							Value: rateLimit,
 						},
 					},
+					expectedRaw: getExpectedRaw(),
 				},
 				{
 					desc: "for an invalid extauth plugin",
@@ -120,6 +140,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 							Error: converter.FailedToParseExtAuthConfig,
 						},
 					},
+					expectedRaw: getExpectedRaw(),
 				},
 				{
 					desc: "for an invalid rate limit plugin",
@@ -131,13 +152,20 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 							Error: converter.FailedToParseRateLimitConfig,
 						},
 					},
+					expectedRaw: getExpectedRaw(),
 				},
 			} {
 				virtualService := getVirtualService(testCase.configs)
+				if testCase.expectedRaw != nil {
+					rawGetter.EXPECT().
+						GetRaw(virtualService, gatewayv1.VirtualServiceCrd).
+						Return(testCase.expectedRaw, nil)
+				}
 				actual := virtualServiceConverter.GetDetails(context.Background(), virtualService)
 				expected := &v1.VirtualServiceDetails{
 					VirtualService: virtualService,
 					Plugins:        testCase.expectedPlugins,
+					Raw:            testCase.expectedRaw,
 				}
 				ExpectEqualProtoMessages(actual, expected, testCase.desc)
 			}

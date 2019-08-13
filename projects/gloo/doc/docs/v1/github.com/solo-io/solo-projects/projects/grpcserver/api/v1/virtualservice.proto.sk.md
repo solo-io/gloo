@@ -63,6 +63,7 @@ weight: 5
 ```yaml
 "virtualService": .gateway.solo.io.VirtualService
 "plugins": .glooeeapi.solo.io.Plugins
+"raw": .glooeeapi.solo.io.Raw
 
 ```
 
@@ -70,6 +71,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `virtualService` | [.gateway.solo.io.VirtualService](../../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice) |  |  |
 | `plugins` | [.glooeeapi.solo.io.Plugins](../virtualservice.proto.sk#plugins) |  |  |
+| `raw` | [.glooeeapi.solo.io.Raw](../types.proto.sk#raw) |  |  |
 
 
 

@@ -10,12 +10,14 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
 
 message VirtualServiceDetails {
     gateway.solo.io.VirtualService virtual_service = 1;
     Plugins plugins = 2;
+    Raw raw = 3;
 }
 
 message Plugins {

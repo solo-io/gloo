@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"go.uber.org/zap"
 )
 
@@ -20,21 +21,24 @@ import (
 const (
 	FailedToParseExtAuthConfig   = "Failed to parse extauth config"
 	FailedToParseRateLimitConfig = "Failed to parse rate limit config"
+	FailedToGenerateRawFile      = "Failed to generate raw source file"
 )
 
 type VirtualServiceDetailsConverter interface {
 	GetDetails(ctx context.Context, vs *gatewayv1.VirtualService) *v1.VirtualServiceDetails
 }
 
-type virtualServiceDetailsConverter struct{}
+type virtualServiceDetailsConverter struct {
+	rawGetter rawgetter.RawGetter
+}
 
 var _ VirtualServiceDetailsConverter = virtualServiceDetailsConverter{}
 
-func NewVirtualServiceDetailsConverter() virtualServiceDetailsConverter {
-	return virtualServiceDetailsConverter{}
+func NewVirtualServiceDetailsConverter(r rawgetter.RawGetter) VirtualServiceDetailsConverter {
+	return virtualServiceDetailsConverter{rawGetter: r}
 }
 
-func (virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gatewayv1.VirtualService) *v1.VirtualServiceDetails {
+func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gatewayv1.VirtualService) *v1.VirtualServiceDetails {
 	details := &v1.VirtualServiceDetails{VirtualService: vs}
 
 	var configs map[string]*types.Struct
@@ -67,6 +71,12 @@ func (virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gatewa
 			details.Plugins.RateLimit.Value = rateLimit
 		}
 	}
+
+	raw, err := c.rawGetter.GetRaw(vs, gatewayv1.VirtualServiceCrd)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Errorw(FailedToGenerateRawFile, zap.Error(err), zap.Any("virtualService", vs))
+	}
+	details.Raw = raw
 
 	return details
 }

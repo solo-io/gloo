@@ -1,0 +1,14 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+// "Raw" representation of a resource, e.g. yaml representation of a kube custom resource
+message Raw {
+    // e.g. resource-name.yaml
+    string file_name = 1;
+    // Content of the file
+    string content = 2;
+}

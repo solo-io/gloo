@@ -23,7 +23,7 @@ type mutator struct {
 
 var _ Mutator = &mutator{}
 
-func NewMutator(client gloov1.UpstreamClient) *mutator {
+func NewMutator(client gloov1.UpstreamClient) Mutator {
 	return &mutator{client: client}
 }
 

@@ -23,7 +23,7 @@ type factory struct{}
 
 var _ Factory = factory{}
 
-func NewFactory() factory {
+func NewFactory() Factory {
 	return factory{}
 }
 

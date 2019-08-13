@@ -27,7 +27,7 @@ type virtualServiceSelector struct {
 
 var _ VirtualServiceSelector = &virtualServiceSelector{}
 
-func NewVirtualServiceSelector(virtualServiceClient gatewayv1.VirtualServiceClient, namespaceClient kube.NamespaceClient, podNamespace string) *virtualServiceSelector {
+func NewVirtualServiceSelector(virtualServiceClient gatewayv1.VirtualServiceClient, namespaceClient kube.NamespaceClient, podNamespace string) VirtualServiceSelector {
 	return &virtualServiceSelector{
 		virtualServiceClient: virtualServiceClient,
 		namespaceClient:      namespaceClient,
