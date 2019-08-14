@@ -499,9 +499,12 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -1644,7 +1647,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:d9a420eae5f76973feeb733fbf58f6a89173255b63b27a7ae4b2124a73dc6c5b"
+  digest = "1:676160e6a4722b08e0e26b11521d575c2cb2b6f0c679e1ee6178c5d8dee51e5e"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -1655,8 +1658,8 @@
     "zapcore",
   ]
   pruneopts = "UT"
-  revision = "4d45f9617f7d90f7a663ff21c7a4321dbe78098b"
-  version = "v1.9.0"
+  revision = "27376062155ad36be76b0f12cf1572a221d3a48c"
+  version = "v1.10.0"
 
 [[projects]]
   digest = "1:a398c50c1c1bcc6a733b1cecda0ed9757d271cdadc750ce22df76185e2a615d9"
@@ -2358,12 +2361,12 @@
   version = "v2.13.1"
 
 [[projects]]
-  digest = "1:e2999bf1bb6eddc2a6aa03fe5e6629120a53088926520ca3b4765f77d7ff7eab"
+  digest = "1:16a43d0b78057f165fbf32077f8a1f6bd6993d9cf6ef97fb669dc152e70626cd"
   name = "k8s.io/klog"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a5bc97fbc634d635061f3146511332c7e313a55a"
-  version = "v0.1.0"
+  revision = "9cbb78b20423182f9e5b2a214dd255f5e117d2d1"
+  source = "github.com/stefanprodan/klog"
 
 [[projects]]
   branch = "master"
@@ -2560,6 +2563,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",

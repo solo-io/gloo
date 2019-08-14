@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Make klog not restart gloo when ewatches end
+    issueLink: https://github.com/solo-io/gloo/issues/1021
