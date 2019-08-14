@@ -80,6 +80,11 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings) (*ClientSet, e
 		return nil, err
 	}
 
+	proxyClient, err := gloov1.NewProxyClientWithToken(factoryFor(gloov1.ProxyCrd, *cfg, cache), token)
+	if err != nil {
+		return nil, err
+	}
+
 	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
@@ -87,7 +92,7 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings) (*ClientSet, e
 
 	// Needed only for the clients backed by the KubeResourceClientFactory
 	// so that they register with the cache they share
-	if err = registerAll(upstreamClient, vsClient, settingsClient); err != nil {
+	if err = registerAll(upstreamClient, vsClient, settingsClient, gatewayClient, proxyClient); err != nil {
 		return nil, err
 	}
 
@@ -98,11 +103,6 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings) (*ClientSet, e
 	}
 
 	artifactClient, err := gloov1.NewArtifactClientWithToken(opts.Artifacts, token)
-	if err != nil {
-		return nil, err
-	}
-
-	proxyClient, err := gloov1.NewProxyClientWithToken(factoryFor(gloov1.ProxyCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
 	}

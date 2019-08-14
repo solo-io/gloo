@@ -136,7 +136,6 @@ export const RateLimitForm = (props: Props) => {
       initialValues.anonLimitTimeUnit = props.rates.anonymousLimits.unit;
     }
   }
-  console.log(initialValues);
 
   const invalid = (values: ValuesType, errors: FormikErrors<ValuesType>) => {
     let isInvalid = false;

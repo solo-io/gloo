@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Gateway configurations can now be viewed in the UI (http only currently).
+    issueLink: https://github.com/solo-io/solo-projects/issues/875
+    resolvesIssue: false

@@ -28,24 +28,6 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:e8f6639eaa399c8595b9a2dee175514a9f3842888dc080e2776360dc604150dc"
-  name = "github.com/99designs/gqlgen"
-  packages = [
-    "cmd",
-    "codegen",
-    "codegen/templates",
-    "complexity",
-    "graphql",
-    "graphql/introspection",
-    "handler",
-    "internal/gopath",
-    "internal/imports",
-  ]
-  pruneopts = "UT"
-  revision = "da1e07f5876c0fb79cbad19006f7135be08590d6"
-  version = "v0.7.2"
-
-[[projects]]
   branch = "master"
   digest = "1:6da51e5ec493ad2b44cb04129e2d0a068c8fb9bd6cb5739d199573558696bb94"
   name = "github.com/Azure/go-ansiterm"
@@ -142,14 +124,6 @@
   pruneopts = "UT"
   revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
   version = "v1.3.0"
-
-[[projects]]
-  digest = "1:897d91c431ce469d35a5e6030e60e617dccd9a0e95bdffa6a80594f5c5800d29"
-  name = "github.com/agnivade/levenshtein"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3d21ba515fe27b856f230847e856431ae1724adc"
-  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -661,14 +635,6 @@
   pruneopts = "UT"
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
-
-[[projects]]
-  digest = "1:cee8e8ac80df6373e7daa11baf1f98c1b6f7242c49ccae7e1ec34a971dc408d9"
-  name = "github.com/gorilla/websocket"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3ff3320c2a1756a3691521efc290b4701575147c"
-  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -1278,14 +1244,6 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:0b8dd7447e420afff0260179dc892711e837edd1d446bc78dab924624a3c3c81"
-  name = "github.com/rs/cors"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3fb1b69b103a84de38a19c3c6ec073dd6caa4d3f"
-  version = "v1.5.0"
-
-[[projects]]
   digest = "1:b36a0ede02c4c2aef7df7f91cbbb7bb88a98b5d253509d4f997dda526e50c88c"
   name = "github.com/russross/blackfriday"
   packages = ["."]
@@ -1641,30 +1599,6 @@
   revision = "7d3ee1afa71c90fd1514c8f557ae6c5f414208eb"
 
 [[projects]]
-  digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
-  name = "github.com/urfave/cli"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
-  version = "v1.20.0"
-
-[[projects]]
-  digest = "1:ed6a41de3eedd8d4868eea057837860453ebbe08c5e385fd50d4c24e5642ec18"
-  name = "github.com/vektah/gqlparser"
-  packages = [
-    ".",
-    "ast",
-    "gqlerror",
-    "lexer",
-    "parser",
-    "validator",
-    "validator/rules",
-  ]
-  pruneopts = "UT"
-  revision = "e805d08bb209b1accdea76bd2327811858d81985"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:0133b905eb1f5f0249f5a209df2c38b2f8f5be59e10261b96e9216535ccdbd89"
   name = "go.opencensus.io"
   packages = [
@@ -1865,29 +1799,6 @@
   packages = ["rate"]
   pruneopts = "UT"
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
-
-[[projects]]
-  branch = "master"
-  digest = "1:bcc7ca488b127d6dfd829f57a5091c88cc68c81bf249fd342144ce2076706823"
-  name = "golang.org/x/tools"
-  packages = [
-    "go/ast/astutil",
-    "go/buildutil",
-    "go/gcexportdata",
-    "go/internal/cgo",
-    "go/internal/gcimporter",
-    "go/internal/packagesdriver",
-    "go/loader",
-    "go/packages",
-    "go/types/typeutil",
-    "imports",
-    "internal/fastwalk",
-    "internal/gopathwalk",
-    "internal/module",
-    "internal/semver",
-  ]
-  pruneopts = "UT"
-  revision = "0e05534988fece6d00407fef91bec542a7859d8e"
 
 [[projects]]
   branch = "master"
@@ -2623,10 +2534,6 @@
   analyzer-version = 1
   input-imports = [
     "cloud.google.com/go/storage",
-    "github.com/99designs/gqlgen/cmd",
-    "github.com/99designs/gqlgen/graphql",
-    "github.com/99designs/gqlgen/graphql/introspection",
-    "github.com/99designs/gqlgen/handler",
     "github.com/avast/retry-go",
     "github.com/dgrijalva/jwt-go",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
@@ -2654,7 +2561,7 @@
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
     "github.com/google/uuid",
-    "github.com/gorilla/websocket",
+    "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
@@ -2677,7 +2584,6 @@
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/prometheus/discovery/targetgroup",
-    "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
     "github.com/solo-io/ext-auth-service/pkg/config",
     "github.com/solo-io/ext-auth-service/pkg/config/apikeys",
@@ -2724,15 +2630,12 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws/ec2",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/azure",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/consul",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/faultinjection",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/grpc",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation",
     "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap",
@@ -2792,9 +2695,6 @@
     "github.com/spf13/cobra",
     "github.com/spf13/cobra/doc",
     "github.com/spf13/pflag",
-    "github.com/vektah/gqlparser",
-    "github.com/vektah/gqlparser/ast",
-    "github.com/vektah/gqlparser/gqlerror",
     "go.opencensus.io/stats",
     "go.opencensus.io/stats/view",
     "go.opencensus.io/tag",
@@ -2810,16 +2710,13 @@
     "google.golang.org/grpc/status",
     "google.golang.org/grpc/test/bufconn",
     "gopkg.in/square/go-jose.v2",
-    "gopkg.in/yaml.v2",
     "k8s.io/api/apps/v1",
-    "k8s.io/api/authentication/v1",
     "k8s.io/api/core/v1",
     "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/labels",
     "k8s.io/client-go/kubernetes",
-    "k8s.io/client-go/kubernetes/typed/authentication/v1",
     "k8s.io/client-go/kubernetes/typed/core/v1",
     "k8s.io/client-go/plugin/pkg/client/auth",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",

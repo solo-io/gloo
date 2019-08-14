@@ -14,7 +14,8 @@ import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
 import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 import { Overview } from 'Components/Features/Overview';
-import { Admin } from 'Components/Features/Admin/Admin';
+import { AdminLanding } from 'Components/Features/Admin/AdminLanding';
+import { AdminHub } from 'Components/Features/Admin/AdminHub';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -40,7 +41,15 @@ export const Content = () => {
           path='/upstreams/'
           render={(props: any) => <UpstreamsListing {...props} />}
         />
-        <Route path='/admin' exact render={props => <Admin {...props} />} />
+        <Route
+          path='/admin'
+          exact
+          render={props => <AdminLanding {...props} />}
+        />
+        <Route
+          path='/admin/:sublocation'
+          render={props => <AdminHub {...props} />}
+        />
         <Route
           path='/stats/'
           exact

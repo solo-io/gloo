@@ -41,6 +41,8 @@ export const SoloButtonCSS = css`
     opacity: 0.3;
     pointer-events: none;
     cursor: default;
+    background: ${colors.seaBlue};
+    color: white;
   }
 
   > span {
@@ -94,6 +96,10 @@ export const SoloCancelButton = styled.button`
   &:active {
     background: ${colors.juneGrey};
   }
+
+  &:disabled {
+    background: ${colors.juneGrey};
+  }
 `;
 
 export const ButtonNegativeProgress = styled.div`
@@ -110,6 +116,10 @@ export const SoloNegativeButton = styled.button`
   }
 
   &:active {
+    background: ${colors.grapefruitOrange};
+  }
+
+  &:disabled {
     background: ${colors.grapefruitOrange};
   }
 

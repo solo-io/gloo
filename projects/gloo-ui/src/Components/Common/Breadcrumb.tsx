@@ -23,16 +23,22 @@ const CrumbLink = styled<'span', { clickable?: boolean }>('span')`
       color: ${colors.septemberGrey};`};
 `;
 
+const CapitalizedCrumbLink = styled(CrumbLink)`
+  text-transform: capitalize;
+`;
+
 const rootNameMap: { [key: string]: string } = {
   virtualservices: 'Virtual Services',
   upstreams: 'Upstreams',
   stats: 'Stats',
-  settings: 'Settings'
+  settings: 'Settings',
+  admin: 'Administration'
 };
 
 export interface RouteParams {
   virtualservicename?: string;
   settingsublocation?: string; // This is currently unused as Settings doesn't  have the same flow.
+  sublocation?: string;
 }
 
 function BreadcrumbC({
@@ -61,6 +67,13 @@ function BreadcrumbC({
       {!!match.params.virtualservicename && (
         <AntdBreadcrumb.Item>
           <CrumbLink>{match.params.virtualservicename}</CrumbLink>
+        </AntdBreadcrumb.Item>
+      )}
+      {!!match.params.sublocation && (
+        <AntdBreadcrumb.Item>
+          <CapitalizedCrumbLink>
+            {match.params.sublocation}
+          </CapitalizedCrumbLink>
         </AntdBreadcrumb.Item>
       )}
     </BreadcrumbContainer>
