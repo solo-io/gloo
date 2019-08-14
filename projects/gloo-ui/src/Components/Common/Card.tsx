@@ -11,7 +11,7 @@ import {
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { hslToHSLA } from 'Styles/colors';
 import { HealthIndicator } from './HealthIndicator';
-import { Popconfirm } from 'antd';
+import { Popconfirm, Tooltip } from 'antd';
 
 const Container = styled.div`
   ${CardCSS};
@@ -43,7 +43,9 @@ const CardTitleText = styled.div`
   max-width: 175px;
   display: block;
   word-break: break-all;
-  white-space: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const CardSubtitle = styled.div`
@@ -197,7 +199,9 @@ export const Card = (props: CardType) => {
     <Container>
       <MainSection>
         <CardTitle>
-          <CardTitleText>{cardTitle}</CardTitleText>
+          <Tooltip placement='top' title={cardTitle}>
+            <CardTitleText>{cardTitle}</CardTitleText>
+          </Tooltip>
           <div>
             {!!onRemoveCard && (
               <Popconfirm

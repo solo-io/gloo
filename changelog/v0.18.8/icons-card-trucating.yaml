@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Switch table/cataglog icons to correct ones, truncate card names to avoid awkward spacing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/888

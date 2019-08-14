@@ -49,7 +49,7 @@ function BreadcrumbC({
   return (
     <BreadcrumbContainer separator='>'>
       <AntdBreadcrumb.Item onClick={goToRoot}>
-        <CrumbLink clickable={!!Object.keys(match.params).length}>
+        <CrumbLink clickable={true}>
           {rootNameMap[match.path.split('/')[1]] as string}
         </CrumbLink>
       </AntdBreadcrumb.Item>

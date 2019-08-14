@@ -178,7 +178,7 @@ export const UpstreamsListing = (props: Props) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   let params = new URLSearchParams(props.location.search);
 
-  const [catalogNotTable, setCatalogNotTable] = React.useState(true);
+  const [catalogNotTable, setCatalogNotTable] = React.useState(false);
   const [
     upstreamForRouteCreation,
     setUpstreamForRouteCreation
