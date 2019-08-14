@@ -48,7 +48,7 @@ import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-i
 import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
 import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
 import { ListUpstreamsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { Loading } from 'Components/Common/Loading';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ErrorText } from '../VirtualService/Details/ExtAuthForm';
 import { NamespacesContext } from 'GlooIApp';
 import {

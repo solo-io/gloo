@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: The UI has a new overview page which shows the status of various configurations.
+    issueLink: https://github.com/solo-io/solo-projects/issues/872
+    resolvesIssue: false

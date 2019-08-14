@@ -8,7 +8,7 @@ import { Divider } from 'antd';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateUpstreamForm } from './CreateUpstreamForm';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { SuccessModal } from 'Components/Common/SuccessModal';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 
 interface Props {
   toggleSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;

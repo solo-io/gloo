@@ -29,7 +29,7 @@ import {
   DeleteSecretRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { NamespacesContext } from 'GlooIApp';
-import { SuccessModal } from 'Components/Common/SuccessModal';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { SecretValuesType } from './SecretForm';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { useGetSecretsListV2 } from 'Api/v2/useSecretClientV2';
@@ -113,8 +113,8 @@ export const SettingsLanding = (props: Props) => {
         ? 'namespaces'
         : newChoice.toLowerCase();
 
-    props.history.push({
-      pathname: `/settings/${newPageLocation}`
+    props.history.replace({
+      pathname: `/settings/${newPageLocation}/`
     });
   };
 

@@ -50,7 +50,7 @@ import { CreateRouteModal } from '../Route/CreateRouteModal';
 import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 import _ from 'lodash';
 
-import { SuccessModal } from 'Components/Common/SuccessModal';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { Popconfirm } from 'antd';
 import { upstreams } from 'Api/v2/UpstreamClient';
 
@@ -364,7 +364,11 @@ export const UpstreamsListing = (props: Props) => {
 
     return dataUsed
       .filter(row => row.cardTitle.includes(nameFilter))
-      .filter(row => getResourceStatus(row.healthStatus).includes(radioFilter));
+      .filter(row =>
+        getResourceStatus(row.healthStatus)
+          .toLowerCase()
+          .includes(radioFilter.toLowerCase())
+      );
   };
 
   const getUsableTableData = (
@@ -387,7 +391,11 @@ export const UpstreamsListing = (props: Props) => {
 
     return dataUsed
       .filter(row => row.name.includes(nameFilter))
-      .filter(row => getResourceStatus(row).includes(radioFilter))
+      .filter(row =>
+        getResourceStatus(row)
+          .toLowerCase()
+          .includes(radioFilter.toLowerCase())
+      )
       .filter(row => {
         return (
           checkboxes.find(c => c.displayName === row.type)!.value! ||

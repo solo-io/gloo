@@ -11,6 +11,7 @@ const colorsList = {
   forestGreen: 'hsl(161, 88%, 42%)', //#0dc98e
 
   dropBlue: 'hsl(202, 100%, 98%)', //#F7FCFF
+  splashBlue: 'hsla(198, 100%, 93%, 1)', //#DEF5FF
   puddleBlue: 'hsl(198, 100%, 84%)', //#B1E7FF
   pondBlue: 'hsl(198, 81%, 67%)', // #6AC7F0
   lakeBlue: 'hsl(198, 71%, 60%)', //#54B7E3

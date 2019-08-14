@@ -14,7 +14,7 @@ import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
 import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 import { Overview } from 'Components/Features/Overview';
-import { Admin } from 'Components/Features/Admin';
+import { Admin } from 'Components/Features/Admin/Admin';
 
 const Container = styled.div`
   padding: 35px 0 20px;
