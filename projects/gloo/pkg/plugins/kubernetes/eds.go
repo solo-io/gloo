@@ -3,10 +3,10 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"sort"
 	"strings"
 
-	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes"
@@ -262,8 +262,8 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 
 		// sort refs for idempotency
 		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
-
-		hash, _ := hashstructure.Hash(addr, nil)
+		hasher := fnv.New64()
+		hasher.Write([]byte(fmt.Sprintf("%+v", addr)))
 		dnsname := strings.Map(func(r rune) rune {
 			if '0' <= r && r <= '9' {
 				return r
@@ -273,7 +273,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 			}
 			return '-'
 		}, addr.Address)
-		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.Port, hash)
+		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.Port, hasher.Sum(nil))
 		pod, _ := getPodForIp(addr.Address, addr.PodName, addr.PodNamespace, pods)
 		ep := createEndpoint(writeNamespace, endpointName, refs, addr.Address, addr.Port, pod)
 		endpoints = append(endpoints, ep)
