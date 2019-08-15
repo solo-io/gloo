@@ -4,11 +4,6 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
   go-tests = true
   unused-packages = true
 
-# this must match the version of the gqlgen binary we depend on
-[[constraint]]
-  version = "0.7.2"
-  name = "github.com/99designs/gqlgen"
-
 [[constraint]]
   version = "1.1.1"
   name = "github.com/gogo/protobuf"

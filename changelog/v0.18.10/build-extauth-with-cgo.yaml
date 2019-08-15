@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: |
+    Enable Go plugin loading in the extauth server by compiling it with CGO_ENABLED=1. We run the build in a dedicated
+    linux container to have a reproducible build environment and allow easy builds on any architecture.

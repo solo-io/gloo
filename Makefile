@@ -17,7 +17,7 @@ ifeq ($(TAGGED_VERSION),)
 endif
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
-GCFLAGS := all="-N -l"
+GCFLAGS := 'all=-N -l'
 
 # Passed by cloudbuild
 GCLOUD_PROJECT_ID := $(GCLOUD_PROJECT_ID)
@@ -318,15 +318,29 @@ $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+EXTAUTH_GO_BUILD_IMAGE=golang:1.12.7-alpine
 
-$(OUTPUT_DIR)/extauth-linux-amd64: $(EXTAUTH_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(EXTAUTH_DIR)/cmd/main.go
+$(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
+	cp $< $@
+
+$(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
+	cp $< $@
+
 
 .PHONY: extauth
 extauth: $(OUTPUT_DIR)/extauth-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
-	cp $< $@
+# Build inside container as we need to target linux and must compile with CGO_ENABLED=1
+$(OUTPUT_DIR)/extauth-linux-amd64: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
+	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
+		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		.
+	docker run -v "$(OUTPUT_DIR):/opt/mount" --rm --entrypoint cp \
+		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
+		/extauth-linux-amd64 /opt/mount/extauth-linux-amd64
+
 
 .PHONY: extauth-docker
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
@@ -480,10 +494,19 @@ DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPENDENCIES_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
-publish-dependencies:
-	mkdir -p $(DEPENDENCIES_DIR)
-	cp Gopkg.lock $(DEPENDENCIES_DIR)
+publish-dependencies: $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env
 	gsutil cp -r $(DEPENDENCIES_DIR) gs://$(DEPENDENCIES_BUCKET)
+
+$(DEPENDENCIES_DIR):
+	mkdir -p $(DEPENDENCIES_DIR)
+
+$(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR)
+	cp Gopkg.lock $(DEPENDENCIES_DIR)
+
+$(DEPENDENCIES_DIR)/build_env: $(DEPENDENCIES_DIR)
+	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
+	echo "GC_FLAGS=$(GC_FLAGS)" >> $@
+
 
 #----------------------------------------------------------------------------------
 # Docker push
