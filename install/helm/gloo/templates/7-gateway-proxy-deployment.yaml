@@ -51,6 +51,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end}}
     spec:
+      serviceAccountName: gateway-proxy
       containers:
       - args: ["--disable-hot-restart"]
         env:

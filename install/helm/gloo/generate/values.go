@@ -106,6 +106,7 @@ type Gloo struct {
 type GlooDeployment struct {
 	Image   *Image `json:"image,omitempty"`
 	XdsPort int    `json:"xdsPort,omitempty" desc:"port where gloo serves xDS API to Envoy"`
+	Stats   bool   `json:"stats" desc:"enable prometheus stats"`
 	*DeploymentSpec
 }
 
@@ -116,6 +117,7 @@ type Discovery struct {
 
 type DiscoveryDeployment struct {
 	Image *Image `json:"image,omitempty"`
+	Stats bool   `json:"stats" desc:"enable prometheus stats"`
 	*DeploymentSpec
 }
 
@@ -128,6 +130,7 @@ type Gateway struct {
 
 type GatewayDeployment struct {
 	Image *Image `json:"image,omitempty"`
+	Stats bool   `json:"stats" desc:"enable prometheus stats"`
 	*DeploymentSpec
 }
 
