@@ -1,0 +1,15 @@
+changelog:
+  - type: NEW_FEATURE
+    description: External Auth and Rate Limiting links in the UI have been updated for the new documentation. The link to Join the Community within the UI now invites them to join our slack channel.
+    issueLink: https://github.com/solo-io/solo-projects/issues/891
+  - type: NEW_FEATURE
+    description: The Admin Summary page is now available in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/872
+    resolvesIssue: false
+  - type: NEW_FEATURE
+    description: The Admin Summary page is now available in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/877
+    resolvesIssue: false
+  - type: FIX
+    description: The route creation and editing modal is now, hopefully, more easily digested.
+    issueLink: https://github.com/solo-io/solo-projects/issues/892

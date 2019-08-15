@@ -153,7 +153,7 @@ export const MainMenu = () => {
             content={
               <div>
                 <DocumentationLink
-                  href='https://gloo.solo.io/enterprise/'
+                  href='https://slack.solo.io/'
                   target='_blank'>
                   Join the Community
                 </DocumentationLink>

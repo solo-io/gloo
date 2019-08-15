@@ -1,23 +1,23 @@
-import { GatewayApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
+import { ProxyApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb_service';
 import { host } from '../grpc-web-hooks';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
-  ListGatewaysResponse,
-  ListGatewaysRequest
-} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+  ListProxiesResponse,
+  ListProxiesRequest
+} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 
-const client = new GatewayApiClient(host, {
+const client = new ProxyApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });
 
-function getGatewaysList(params: {
+function getProxiesList(params: {
   namespaces: string[];
-}): Promise<ListGatewaysResponse> {
+}): Promise<ListProxiesResponse> {
   return new Promise((resolve, reject) => {
-    let req = new ListGatewaysRequest();
+    let req = new ListProxiesRequest();
     req.setNamespacesList(params.namespaces);
-    client.listGateways(req, (error, data) => {
+    client.listProxies(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -30,6 +30,6 @@ function getGatewaysList(params: {
   });
 }
 
-export const gateways = {
-  getGatewaysList
+export const proxy = {
+  getProxiesList
 };

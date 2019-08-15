@@ -63,6 +63,7 @@ import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { DestinationForm } from './DestinationForm';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { METHODS } from 'http';
+import { colors, soloConstants } from 'Styles';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -197,6 +198,26 @@ const validationSchema = yup.object().shape({
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
+`;
+
+const InnerSectionTitle = styled.div`
+  color: ${colors.novemberGrey};
+  font-size: 18px;
+  line-height: 22px;
+  margin: 13px 0;
+`;
+
+const InnerFormSectionContent = styled.div`
+  background: white;
+  border: 1px solid ${colors.marchGrey};
+  border-radius: ${soloConstants.smallRadius}px;
+  padding: 13px 8px;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    padding-top: ;
+  }
 `;
 
 export const HalfColumn = styled.div`
@@ -589,45 +610,51 @@ export const CreateRouteModalC = (props: Props) => {
                   />
                 </HalfColumn>
               </InputRow>
-              <InputRow>
-                <SoloFormMultipartStringCardsList
-                  name='headers'
-                  title='Headers'
-                  values={values.headers}
-                  valuesMayBeEmpty={true}
-                  createNewNamePromptText={'Name...'}
-                  createNewValuePromptText={'Value...'}
-                  booleanFieldText={'Regex'}
-                  boolSlotTitle={'regex'}
-                />
-              </InputRow>
-              <InputRow>
-                <SoloFormMultipartStringCardsList
-                  name='queryParameters'
-                  title='Query Parameters'
-                  values={values.queryParameters}
-                  valuesMayBeEmpty={true}
-                  createNewNamePromptText={'Name...'}
-                  createNewValuePromptText={'Value...'}
-                  booleanFieldText={'Regex'}
-                  boolSlotTitle={'regex'}
-                />
-              </InputRow>
-              <InputRow>
-                <SoloFormMultiselect
-                  name='methods'
-                  title='Methods'
-                  placeholder='Methods...'
-                  options={Object.keys(createRouteDefaultValues.methods).map(
-                    key => {
-                      return {
-                        key: key,
-                        value: key
-                      };
-                    }
-                  )}
-                />
-              </InputRow>
+
+              <InnerSectionTitle>
+                <div>Match Options</div>
+              </InnerSectionTitle>
+              <InnerFormSectionContent>
+                <InputRow>
+                  <SoloFormMultipartStringCardsList
+                    name='headers'
+                    title='Headers'
+                    values={values.headers}
+                    valuesMayBeEmpty={true}
+                    createNewNamePromptText={'Name...'}
+                    createNewValuePromptText={'Value...'}
+                    booleanFieldText={'Regex'}
+                    boolSlotTitle={'regex'}
+                  />
+                </InputRow>
+                <InputRow>
+                  <SoloFormMultipartStringCardsList
+                    name='queryParameters'
+                    title='Query Parameters'
+                    values={values.queryParameters}
+                    valuesMayBeEmpty={true}
+                    createNewNamePromptText={'Name...'}
+                    createNewValuePromptText={'Value...'}
+                    booleanFieldText={'Regex'}
+                    boolSlotTitle={'regex'}
+                  />
+                </InputRow>
+                <InputRow>
+                  <SoloFormMultiselect
+                    name='methods'
+                    title='Methods'
+                    placeholder='Methods...'
+                    options={Object.keys(createRouteDefaultValues.methods).map(
+                      key => {
+                        return {
+                          key: key,
+                          value: key
+                        };
+                      }
+                    )}
+                  />
+                </InputRow>
+              </InnerFormSectionContent>
             </SoloFormTemplate>
             <Footer>
               <SoloButton

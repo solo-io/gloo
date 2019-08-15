@@ -3,6 +3,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 
 import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
+import { HealthIndicator } from '../HealthIndicator';
 
 const StatusTileContainer = styled.div`
   border-radius: 8px;
@@ -21,6 +22,7 @@ const StatusTileInformation = styled<'div', { horizontal?: boolean }>('div')`
 const Title = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   font-size: 20px;
   line-height: 24px;
   color: ${colors.novemberGrey};
@@ -89,6 +91,7 @@ interface Props extends RouteComponentProps {
     link: string;
   };
   horizontal?: boolean;
+  healthStatus?: number;
 }
 
 const StatusTileC = (props: Props) => {
@@ -102,8 +105,14 @@ const StatusTileC = (props: Props) => {
         {!props.horizontal ? (
           <React.Fragment>
             <Title>
-              {props.titleText}
-              {props.titleIcon}
+              <div>
+                {props.titleText}
+                {props.titleIcon}
+              </div>
+
+              {props.healthStatus !== undefined && (
+                <HealthIndicator healthStatus={props.healthStatus} />
+              )}
             </Title>
             <Description>{props.description}</Description>
             <Content>{props.children}</Content>
