@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Style filter headers to match design.
+    issueLink: https://github.com/solo-io/solo-projects/issues/873

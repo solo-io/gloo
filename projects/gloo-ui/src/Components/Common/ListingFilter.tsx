@@ -18,6 +18,31 @@ const Content = styled.div`
   flex: 1;
 `;
 
+const StyledHeader = styled.div`
+  overflow: hidden;
+  text-align: center;
+  padding: 15px;
+  color: ${colors.septemberGrey};
+  &:before,
+  &:after {
+    background-color: ${colors.aprilGrey};
+    content: '';
+    display: inline-block;
+    height: 1px;
+    position: relative;
+    vertical-align: middle;
+    width: 50%;
+  }
+  &:before {
+    right: 0.5em;
+    margin-left: -50%;
+  }
+  &:after {
+    left: 0.5em;
+    margin-right: -50%;
+  }
+`;
+
 const FilterInput = styled.div`
   margin-bottom: 15px;
 `;
@@ -68,6 +93,7 @@ interface FilterProps {
     radios: RadioFilterProps[]
   ) => any;
   hideFilters?: boolean;
+  showLabels?: boolean;
 }
 
 export const ListingFilter = (filterProps: FilterProps) => {
@@ -144,7 +170,9 @@ export const ListingFilter = (filterProps: FilterProps) => {
               );
             })}
           </FilterInput>
-
+          {radioFilters.length > 0 && filterProps.showLabels && (
+            <StyledHeader>Status Filter</StyledHeader>
+          )}
           {radioFilters.map((filter, ind) => {
             return (
               <SoloRadioGroup
@@ -165,7 +193,6 @@ export const ListingFilter = (filterProps: FilterProps) => {
               />
             );
           })}
-
           {typesFilters.map((filter, ind) => {
             return (
               <SoloRadioGroup
@@ -188,6 +215,9 @@ export const ListingFilter = (filterProps: FilterProps) => {
               />
             );
           })}
+          {checkboxFilters.length > 0 && filterProps.showLabels && (
+            <StyledHeader>Types Filter</StyledHeader>
+          )}
           {checkboxFilters.map((filter, ind) => {
             return (
               <SoloCheckbox

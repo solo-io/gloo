@@ -392,6 +392,7 @@ export const VirtualServicesListing = (props: Props) => {
         </Heading>
       )}
       <ListingFilter
+        showLabels
         hideFilters={!virtualServices.length}
         strings={StringFilters}
         radios={RadioFilters}

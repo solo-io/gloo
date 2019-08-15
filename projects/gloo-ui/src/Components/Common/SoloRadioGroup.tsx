@@ -77,6 +77,10 @@ const CheckboxWrapper = styled<
           }
         }`
       : CheckboxStyling}
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 interface Props {

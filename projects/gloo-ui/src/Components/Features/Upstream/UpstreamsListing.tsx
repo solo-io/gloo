@@ -450,6 +450,7 @@ export const UpstreamsListing = (props: Props) => {
         </Action>
       </Heading>
       <ListingFilter
+        showLabels
         strings={StringFilters}
         checkboxes={CheckboxFilters}
         radios={RadioFilters}
