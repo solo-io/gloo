@@ -7,6 +7,7 @@ import (
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"go.uber.org/zap"
@@ -53,6 +54,28 @@ func (s *gatewayGrpcService) ListGateways(ctx context.Context, request *v1.ListG
 		}
 	}
 	return &v1.ListGatewaysResponse{GatewayDetails: gatewayDetailsList}, nil
+}
+
+func (s *gatewayGrpcService) UpdateGateway(ctx context.Context, request *v1.UpdateGatewayRequest) (*v1.UpdateGatewayResponse, error) {
+	gateway := request.GetGateway()
+	ref := gateway.GetMetadata().Ref()
+	read, err := s.gatewayClient.Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: s.ctx})
+	if err != nil {
+		wrapped := FailedToUpdateGatewayError(err, &ref)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	gateway.Metadata.ResourceVersion = read.Metadata.ResourceVersion
+	gateway.Status = core.Status{}
+	written, err := s.gatewayClient.Write(gateway, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	if err != nil {
+		wrapped := FailedToUpdateGatewayError(err, &ref)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	return &v1.UpdateGatewayResponse{GatewayDetails: s.getDetails(written)}, nil
 }
 
 func (s *gatewayGrpcService) getDetails(gateway *v2.Gateway) *v1.GatewayDetails {

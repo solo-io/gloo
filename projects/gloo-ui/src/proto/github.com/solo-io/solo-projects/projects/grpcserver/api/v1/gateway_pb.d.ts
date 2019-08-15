@@ -123,3 +123,47 @@ export namespace ListGatewaysResponse {
   }
 }
 
+export class UpdateGatewayRequest extends jspb.Message {
+  hasGateway(): boolean;
+  clearGateway(): void;
+  getGateway(): github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway | undefined;
+  setGateway(value?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateGatewayRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGatewayRequest): UpdateGatewayRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateGatewayRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGatewayRequest;
+  static deserializeBinaryFromReader(message: UpdateGatewayRequest, reader: jspb.BinaryReader): UpdateGatewayRequest;
+}
+
+export namespace UpdateGatewayRequest {
+  export type AsObject = {
+    gateway?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.AsObject,
+  }
+}
+
+export class UpdateGatewayResponse extends jspb.Message {
+  hasGatewayDetails(): boolean;
+  clearGatewayDetails(): void;
+  getGatewayDetails(): GatewayDetails | undefined;
+  setGatewayDetails(value?: GatewayDetails): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateGatewayResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGatewayResponse): UpdateGatewayResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateGatewayResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGatewayResponse;
+  static deserializeBinaryFromReader(message: UpdateGatewayResponse, reader: jspb.BinaryReader): UpdateGatewayResponse;
+}
+
+export namespace UpdateGatewayResponse {
+  export type AsObject = {
+    gatewayDetails?: GatewayDetails.AsObject,
+  }
+}
+

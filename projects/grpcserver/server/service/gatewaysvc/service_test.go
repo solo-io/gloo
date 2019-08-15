@@ -157,4 +157,85 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
+
+	Describe("UpdateGateway", func() {
+		var metadata core.Metadata
+		var ref core.ResourceRef
+		var existing, input, toWrite *gatewayv2.Gateway
+
+		BeforeEach(func() {
+			metadata = core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref = metadata.Ref()
+			existing = &gatewayv2.Gateway{
+				Metadata: core.Metadata{
+					Namespace:       "ns",
+					Name:            "name",
+					ResourceVersion: "10",
+				},
+				BindAddress: "test-old-value",
+			}
+			input = &gatewayv2.Gateway{
+				Metadata:    metadata,
+				BindAddress: "test-new-value",
+				Status:      core.Status{State: 1},
+			}
+			toWrite = &gatewayv2.Gateway{
+				Metadata: core.Metadata{
+					Namespace:       "ns",
+					Name:            "name",
+					ResourceVersion: "10",
+				},
+				Status:      core.Status{},
+				BindAddress: "test-new-value",
+			}
+		})
+
+		It("works when the gateway client works", func() {
+			gatewayClient.EXPECT().
+				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+				Return(existing, nil)
+			gatewayClient.EXPECT().
+				Write(toWrite, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(toWrite, nil)
+			rawGetter.EXPECT().
+				GetRaw(toWrite, gatewayv2.GatewayCrd).
+				Return(getRaw(toWrite), nil)
+
+			request := &v1.UpdateGatewayRequest{Gateway: input}
+			actual, err := client.UpdateGateway(context.TODO(), request)
+			Expect(err).NotTo(HaveOccurred())
+			expected := &v1.UpdateGatewayResponse{GatewayDetails: getGatewayDetails(toWrite)}
+			ExpectEqualProtoMessages(actual, expected)
+		})
+
+		It("errors when the gateway client errors on read", func() {
+			gatewayClient.EXPECT().
+				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+				Return(nil, testErr)
+
+			request := &v1.UpdateGatewayRequest{Gateway: input}
+			_, err := client.UpdateGateway(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		It("errors when the gateway client errors on write", func() {
+			gatewayClient.EXPECT().
+				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+				Return(existing, nil)
+			gatewayClient.EXPECT().
+				Write(toWrite, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(nil, testErr)
+
+			request := &v1.UpdateGatewayRequest{Gateway: input}
+			_, err := client.UpdateGateway(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
 })

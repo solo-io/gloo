@@ -13,4 +13,8 @@ var (
 	FailedToListGatewaysError = func(err error, namespace string) error {
 		return errors.Wrapf(err, "Failed to list gateways in %v", namespace)
 	}
+
+	FailedToUpdateGatewayError = func(err error, ref *core.ResourceRef) error {
+		return errors.Wrapf(err, "Failed to update gateway %v.%v", ref.GetNamespace(), ref.GetName())
+	}
 )

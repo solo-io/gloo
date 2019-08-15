@@ -22,10 +22,20 @@ type GatewayApiListGateways = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.ListGatewaysResponse;
 };
 
+type GatewayApiUpdateGateway = {
+  readonly methodName: string;
+  readonly service: typeof GatewayApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse;
+};
+
 export class GatewayApi {
   static readonly serviceName: string;
   static readonly GetGateway: GatewayApiGetGateway;
   static readonly ListGateways: GatewayApiListGateways;
+  static readonly UpdateGateway: GatewayApiUpdateGateway;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -77,6 +87,15 @@ export class GatewayApiClient {
   listGateways(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.ListGatewaysRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.ListGatewaysResponse|null) => void
+  ): UnaryResponse;
+  updateGateway(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse|null) => void
+  ): UnaryResponse;
+  updateGateway(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse|null) => void
   ): UnaryResponse;
 }
 

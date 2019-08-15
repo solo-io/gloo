@@ -16,6 +16,8 @@ weight: 5
 - [GetGatewayResponse](#getgatewayresponse)
 - [ListGatewaysRequest](#listgatewaysrequest)
 - [ListGatewaysResponse](#listgatewaysresponse)
+- [UpdateGatewayRequest](#updategatewayrequest)
+- [UpdateGatewayResponse](#updategatewayresponse)
   
 
 
@@ -109,6 +111,40 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `gatewayDetails` | [[]glooeeapi.solo.io.GatewayDetails](../gateway.proto.sk#gatewaydetails) |  |  |
+
+
+
+
+---
+### UpdateGatewayRequest
+
+
+
+```yaml
+"gateway": .gateway.solo.io.v2.Gateway
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `gateway` | [.gateway.solo.io.v2.Gateway](../../../../../../gloo/projects/gateway/api/v2/gateway.proto.sk#gateway) |  |  |
+
+
+
+
+---
+### UpdateGatewayResponse
+
+
+
+```yaml
+"gatewayDetails": .glooeeapi.solo.io.GatewayDetails
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `gatewayDetails` | [.glooeeapi.solo.io.GatewayDetails](../gateway.proto.sk#gatewaydetails) |  |  |
 
 
 

@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add upate api for gateways
+    issueLink: https://github.com/solo-io/solo-projects/issues/857
