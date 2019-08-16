@@ -107,7 +107,7 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 	role := "ratelimit"
 	nodeinfo.Metadata = &types.Struct{
 		Fields: map[string]*types.Value{
-			"role": &types.Value{
+			"role": {
 				Kind: &types.Value_StringValue{
 					StringValue: role,
 				},

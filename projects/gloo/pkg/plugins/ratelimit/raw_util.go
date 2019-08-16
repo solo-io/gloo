@@ -47,16 +47,16 @@ func convertAction(action *gloorl.Action) *envoyvhostratelimit.RateLimit_Action 
 	var retAction envoyvhostratelimit.RateLimit_Action
 
 	switch specificAction := action.ActionSpecifier.(type) {
-	case (*gloorl.Action_SourceCluster_):
+	case *gloorl.Action_SourceCluster_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_SourceCluster_{
 			SourceCluster: &envoyvhostratelimit.RateLimit_Action_SourceCluster{},
 		}
-	case (*gloorl.Action_DestinationCluster_):
+	case *gloorl.Action_DestinationCluster_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_DestinationCluster_{
 			DestinationCluster: &envoyvhostratelimit.RateLimit_Action_DestinationCluster{},
 		}
 
-	case (*gloorl.Action_RequestHeaders_):
+	case *gloorl.Action_RequestHeaders_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_RequestHeaders_{
 			RequestHeaders: &envoyvhostratelimit.RateLimit_Action_RequestHeaders{
 				HeaderName:    specificAction.RequestHeaders.HeaderName,
@@ -64,19 +64,19 @@ func convertAction(action *gloorl.Action) *envoyvhostratelimit.RateLimit_Action 
 			},
 		}
 
-	case (*gloorl.Action_RemoteAddress_):
+	case *gloorl.Action_RemoteAddress_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_RemoteAddress_{
 			RemoteAddress: &envoyvhostratelimit.RateLimit_Action_RemoteAddress{},
 		}
 
-	case (*gloorl.Action_GenericKey_):
+	case *gloorl.Action_GenericKey_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_GenericKey_{
 			GenericKey: &envoyvhostratelimit.RateLimit_Action_GenericKey{
 				DescriptorValue: specificAction.GenericKey.DescriptorValue,
 			},
 		}
 
-	case (*gloorl.Action_HeaderValueMatch_):
+	case *gloorl.Action_HeaderValueMatch_:
 		retAction.ActionSpecifier = &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
 			HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
 				ExpectMatch:     specificAction.HeaderValueMatch.ExpectMatch,
@@ -104,30 +104,30 @@ func convertHeader(header *gloorl.HeaderMatcher) *envoyvhostratelimit.HeaderMatc
 		Name:        header.Name,
 	}
 	switch specificHeaderSpecifier := header.HeaderMatchSpecifier.(type) {
-	case (*gloorl.HeaderMatcher_ExactMatch):
+	case *gloorl.HeaderMatcher_ExactMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_ExactMatch{
 			ExactMatch: specificHeaderSpecifier.ExactMatch,
 		}
-	case (*gloorl.HeaderMatcher_RegexMatch):
+	case *gloorl.HeaderMatcher_RegexMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_RegexMatch{
 			RegexMatch: specificHeaderSpecifier.RegexMatch,
 		}
-	case (*gloorl.HeaderMatcher_RangeMatch):
+	case *gloorl.HeaderMatcher_RangeMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_RangeMatch{
 			RangeMatch: &envoytype.Int64Range{
 				Start: specificHeaderSpecifier.RangeMatch.Start,
 				End:   specificHeaderSpecifier.RangeMatch.End,
 			},
 		}
-	case (*gloorl.HeaderMatcher_PresentMatch):
+	case *gloorl.HeaderMatcher_PresentMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_PresentMatch{
 			PresentMatch: specificHeaderSpecifier.PresentMatch,
 		}
-	case (*gloorl.HeaderMatcher_PrefixMatch):
+	case *gloorl.HeaderMatcher_PrefixMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_PrefixMatch{
 			PrefixMatch: specificHeaderSpecifier.PrefixMatch,
 		}
-	case (*gloorl.HeaderMatcher_SuffixMatch):
+	case *gloorl.HeaderMatcher_SuffixMatch:
 		ret.HeaderMatchSpecifier = &envoyvhostratelimit.HeaderMatcher_SuffixMatch{
 			SuffixMatch: specificHeaderSpecifier.SuffixMatch,
 		}

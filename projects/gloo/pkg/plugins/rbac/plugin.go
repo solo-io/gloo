@@ -88,11 +88,11 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	var perRouteRbac *envoyauthz.RBACPerRoute
 
 	switch route := rbacConfig.Route.(type) {
-	case (*rbac.RouteExtension_Disable):
+	case *rbac.RouteExtension_Disable:
 		if route.Disable == true {
 			perRouteRbac = &envoyauthz.RBACPerRoute{}
 		}
-	case (*rbac.RouteExtension_Config):
+	case *rbac.RouteExtension_Config:
 		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, route.Config)
 		if err != nil {
 			return err

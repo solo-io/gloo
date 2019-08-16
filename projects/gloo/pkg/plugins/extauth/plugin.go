@@ -98,8 +98,8 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	var extauth extauth.RouteExtension
-	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &extauth)
+	var extAuth extauth.RouteExtension
+	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &extAuth)
 	if err != nil {
 		if err == utils.NotFoundError {
 			return nil
@@ -107,15 +107,15 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
 
-	if extauth.Disable {
+	if extAuth.Disable {
 		return markRouteNoAuth(out)
 	}
 	return nil
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	var extauth extauth.VhostExtension
-	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &extauth)
+	var extAuth extauth.VhostExtension
+	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &extAuth)
 	if err != nil {
 		if err == utils.NotFoundError {
 
@@ -139,7 +139,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	if err != nil {
 		return err
 	}
-	_, err = TranslateUserConfigToExtAuthServerConfig(proxy, listener, in, params.Snapshot, extauth)
+	_, err = TranslateUserConfigToExtAuthServerConfig(proxy, listener, in, params.Snapshot, extAuth)
 	if err != nil {
 		return err
 	}
@@ -227,9 +227,12 @@ func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.List
 				ValidApiKeyAndUser: validApiKeyAndUser,
 			},
 		}
+	case *extauth.VhostExtension_PluginAuth:
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_PluginAuth{
+			PluginAuth: config.PluginAuth,
+		}
 	default:
 		return nil, fmt.Errorf("unknown ext auth configuration")
-
 	}
 
 	return extAuthConfig, nil
@@ -271,7 +274,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	if p.userIdHeader != "" {
 		headersToRemove = []string{p.userIdHeader}
 	}
-	filters := []plugins.StagedHttpFilter{}
+	var filters []plugins.StagedHttpFilter
 
 	if len(headersToRemove) != 0 {
 		sanitizeConf := &Sanitize{

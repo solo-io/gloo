@@ -120,10 +120,11 @@ type ObservabilityDeployment struct {
 }
 
 type ExtAuth struct {
-	UserIdHeader string             `json:"userIdHeader,omitempty"`
-	Deployment   *ExtAuthDeployment `json:"deployment,omitempty"`
-	Service      *ExtAuthService    `json:"service,omitempty"`
-	SigningKey   *ExtAuthSigningKey `json:"signingKey,omitempty"`
+	UserIdHeader string                    `json:"userIdHeader,omitempty"`
+	Deployment   *ExtAuthDeployment        `json:"deployment,omitempty"`
+	Service      *ExtAuthService           `json:"service,omitempty"`
+	SigningKey   *ExtAuthSigningKey        `json:"signingKey,omitempty"`
+	Plugins      map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
 }
 
 type ExtAuthDeployment struct {
@@ -142,4 +143,8 @@ type ExtAuthService struct {
 type ExtAuthSigningKey struct {
 	Name       string `json:"name"`
 	SigningKey string `json:"signing-key"`
+}
+
+type ExtAuthPlugin struct {
+	Image *generate.Image `json:"image,omitempty"`
 }

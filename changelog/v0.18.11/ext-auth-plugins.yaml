@@ -1,0 +1,15 @@
+changelog:
+- type: NEW_FEATURE
+  description: |
+    Implement external auth via dynamically loaded Go plugins. The next steps are 1) publishing a script that can be used
+    by plugin developers to verify that their plugins are compatible with a particulare version of GlooE and 2) add docs.
+  issueLink: https://github.com/solo-io/solo-projects/issues/720
+  resolvesIssue: false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.3.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-plugins
+  dependencyTag: v0.0.1

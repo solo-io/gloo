@@ -11,7 +11,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
 
@@ -210,7 +210,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			providerName := ProviderName(virtualHost.Name, "default")
 			expectedCfg := envoyauth.JwtAuthentication{
 				Providers: map[string]*envoyauth.JwtProvider{
-					providerName: &envoyauth.JwtProvider{
+					providerName: {
 						Issuer:            jwtVhost.Issuer,
 						Audiences:         jwtVhost.Audiences,
 						PayloadInMetadata: PayloadInMetadata,
@@ -229,7 +229,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				FilterStateRules: &envoyauth.FilterStateRule{
 					Name: StateName,
 					Requires: map[string]*envoyauth.JwtRequirement{
-						virtualHost.Name: &envoyauth.JwtRequirement{
+						virtualHost.Name: {
 							RequiresType: &envoyauth.JwtRequirement_ProviderName{
 								ProviderName: providerName,
 							},
@@ -261,7 +261,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				providerName := ProviderName(virtualHost.Name, "default")
 				expectedCfg := envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
-						providerName: &envoyauth.JwtProvider{
+						providerName: {
 							Issuer:            jwtVhost.Issuer,
 							Audiences:         jwtVhost.Audiences,
 							PayloadInMetadata: PayloadInMetadata,
@@ -277,7 +277,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					FilterStateRules: &envoyauth.FilterStateRule{
 						Name: StateName,
 						Requires: map[string]*envoyauth.JwtRequirement{
-							virtualHost.Name: &envoyauth.JwtRequirement{
+							virtualHost.Name: {
 								RequiresType: &envoyauth.JwtRequirement_ProviderName{
 									ProviderName: providerName,
 								},
@@ -301,7 +301,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				}
 				jwtVhost = &jwt.VhostExtension{
 					Providers: map[string]*jwt.Provider{
-						"provider1": &jwt.Provider{
+						"provider1": {
 							Jwks:      jwks,
 							Audiences: []string{"testaud1"},
 							Issuer:    "testiss1",
@@ -355,7 +355,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				}
 				jwtVhost = &jwt.VhostExtension{
 					Providers: map[string]*jwt.Provider{
-						"provider1": &jwt.Provider{
+						"provider1": {
 							Jwks:      jwks,
 							Audiences: []string{"testaud1"},
 							Issuer:    "testiss1",
@@ -375,7 +375,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				provider1Name := ProviderName(virtualHost.Name, "provider1")
 				expectedCfg := envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
-						provider1Name: &envoyauth.JwtProvider{
+						provider1Name: {
 							Issuer:            "testiss1",
 							Audiences:         []string{"testaud1"},
 							PayloadInMetadata: provider1Name,
@@ -396,7 +396,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					FilterStateRules: &envoyauth.FilterStateRule{
 						Name: StateName,
 						Requires: map[string]*envoyauth.JwtRequirement{
-							virtualHost.Name: &envoyauth.JwtRequirement{
+							virtualHost.Name: {
 								RequiresType: &envoyauth.JwtRequirement_ProviderName{
 									ProviderName: provider1Name,
 								},
@@ -419,12 +419,12 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				}
 				jwtVhost = &jwt.VhostExtension{
 					Providers: map[string]*jwt.Provider{
-						"provider1": &jwt.Provider{
+						"provider1": {
 							Jwks:      jwks,
 							Audiences: []string{"testaud1"},
 							Issuer:    "testiss1",
 						},
-						"provider2": &jwt.Provider{
+						"provider2": {
 							Jwks:      jwks,
 							Audiences: []string{"testaud2"},
 							Issuer:    "testiss2",
@@ -439,7 +439,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				provider2Name := ProviderName(virtualHost.Name, "provider2")
 				expectedCfg := envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
-						provider1Name: &envoyauth.JwtProvider{
+						provider1Name: {
 							Issuer:            "testiss1",
 							Audiences:         []string{"testaud1"},
 							PayloadInMetadata: provider1Name,
@@ -451,7 +451,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 								},
 							},
 						},
-						provider2Name: &envoyauth.JwtProvider{
+						provider2Name: {
 							Issuer:            "testiss2",
 							Audiences:         []string{"testaud2"},
 							PayloadInMetadata: provider2Name,
@@ -467,7 +467,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					FilterStateRules: &envoyauth.FilterStateRule{
 						Name: StateName,
 						Requires: map[string]*envoyauth.JwtRequirement{
-							virtualHost.Name: &envoyauth.JwtRequirement{
+							virtualHost.Name: {
 								RequiresType: &envoyauth.JwtRequirement_RequiresAny{
 									RequiresAny: &envoyauth.JwtRequirementOrList{
 										Requirements: []*envoyauth.JwtRequirement{

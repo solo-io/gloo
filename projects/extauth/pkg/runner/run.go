@@ -6,6 +6,10 @@ import (
 	"net"
 	"os"
 
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
+
+	"go.uber.org/zap"
+
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -48,10 +52,11 @@ func Run() {
 		}
 	}
 }
+
 func RunWithSettings(ctx context.Context, clientSettings Settings) error {
 
 	service := extauth.NewServer()
-	service.VhostContextExtension = plugin.ContextExtensionVhost
+	service.VHostContextExtension = plugin.ContextExtensionVhost
 
 	ctx = contextutils.WithLogger(ctx, "extauth")
 
@@ -70,10 +75,11 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	reflection.Register(srv)
 
 	logger := contextutils.LoggerFrom(ctx)
+	logger.Infow("Starting ext-auth server")
 
 	err := StartExtAuthWithGrpcServer(ctx, clientSettings, service)
 	if err != nil {
-		logger.Error("Failed to start extauth server: %v", err)
+		logger.Error("Failed to start ext-auth server: %v", err)
 		return err
 	}
 
@@ -86,7 +92,7 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	go func() {
 		<-ctx.Done()
 		srv.Stop()
-		lis.Close()
+		_ = lis.Close()
 	}()
 
 	return srv.Serve(lis)
@@ -117,27 +123,47 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 }
 
 func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node, service extauthconfig.ConfigMutator) {
-	generator := configproto.NewConfigGenerator(ctx, []byte(clientSettings.SigningKey), clientSettings.UserIdHeader)
 
-	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
-		client := xdsproto.NewExtAuthConfigClient(&nodeInfo, func(version string, resources []*xdsproto.ExtAuthConfig) error {
-			config, err := generator.GenerateConfig(resources)
-			if err != nil {
-				return err
-			}
-			service.UpdateConfig(config)
-			return nil
-		})
+	generator := configproto.NewConfigGenerator(
+		ctx,
+		[]byte(clientSettings.SigningKey),
+		clientSettings.UserIdHeader,
+		plugins.NewPluginLoader(clientSettings.PluginDirectory),
+	)
 
-		// We are using non secure grpc to gloo with the assumption that it will be
+	_ = contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
+
+		client := xdsproto.NewExtAuthConfigClient(
+			&nodeInfo,
+			func(version string, resources []*xdsproto.ExtAuthConfig) error {
+
+				logger := contextutils.LoggerFrom(ctx)
+				logger.Infow("got new config", zap.Any("config", resources))
+
+				config, err := generator.GenerateConfig(resources)
+				if err != nil {
+					logger.Errorw("failed to generate config", zap.Any("err", err))
+					return err
+				}
+				service.UpdateConfig(config)
+				return nil
+			},
+		)
+
+		// We are using non secure gRPC to Gloo with the assumption that it will be
 		// secured by envoy. if this assumption is not correct this needs to change.
 		conn, err := grpc.DialContext(ctx, clientSettings.GlooAddress, grpc.WithInsecure())
 		if err != nil {
+			contextutils.LoggerFrom(ctx).Errorw("failed to create gRPC client connection to Gloo", zap.Any("error", err))
 			return err
 		}
 		// TODO(yuval-k): a stat that indicates we are connected, with the reverse one deferred.
 		// TODO(yuval-k): write a warning log
-		return client.Start(ctx, conn)
+		err = client.Start(ctx, conn)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Errorw("failed to start xDS client", zap.Any("error", err))
+		}
+		return err
 	})
 }
 

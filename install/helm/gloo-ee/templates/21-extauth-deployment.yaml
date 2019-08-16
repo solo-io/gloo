@@ -26,10 +26,32 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
+      {{- if .Values.extAuth.plugins }}
+      volumes:
+      - emptyDir: {}
+        name: auth-plugins
+      initContainers:
+      {{- range $name, $plugin := .Values.extAuth.plugins }}
+      {{- $pluginImage := merge $plugin.image .Values.global.image }}
+      - image: {{template "gloo.image" $pluginImage}}
+        {{- if $pluginImage.pullPolicy }}
+        imagePullPolicy: {{ $pluginImage.pullPolicy }}
+        {{- end}}
+        name: plugin-{{ $name }}
+        volumeMounts:
+          - name: auth-plugins
+            mountPath: /auth-plugins
+      {{- end}}
+      {{- end}}
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: {{ .Values.extAuth.deployment.name }}
+          {{- if .Values.extAuth.plugins }}
+          volumeMounts:
+            - name: auth-plugins
+              mountPath: /auth-plugins
+          {{- end}}
           env:
             - name: POD_NAMESPACE
               valueFrom:

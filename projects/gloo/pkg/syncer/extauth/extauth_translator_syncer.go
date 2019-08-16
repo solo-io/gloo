@@ -76,7 +76,7 @@ func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap 
 		}
 	}
 
-	resources := []envoycache.Resource{}
+	var resources []envoycache.Resource
 	for _, cfg := range cfgs {
 		resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
 		resources = append(resources, resource)
@@ -86,8 +86,8 @@ func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap 
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
 		return err
 	}
-	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-	xdsCache.SetSnapshot("extauth", rlsnap)
+	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
+	_ = xdsCache.SetSnapshot("extauth", extAuthSnapshot)
 	// find our plugin
 	return nil
 }

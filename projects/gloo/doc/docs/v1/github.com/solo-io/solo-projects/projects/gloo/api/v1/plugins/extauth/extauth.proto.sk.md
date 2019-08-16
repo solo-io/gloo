@@ -17,6 +17,8 @@ weight: 5
 - [Response](#response)
 - [BufferSettings](#buffersettings)
 - [CustomAuth](#customauth)
+- [PluginAuth](#pluginauth)
+- [AuthPlugin](#authplugin)
 - [BasicAuth](#basicauth)
 - [Apr](#apr)
 - [SaltedHashedPassword](#saltedhashedpassword)
@@ -158,6 +160,47 @@ This is used with custom auth servers.
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
+
+
+
+
+---
+### PluginAuth
+
+ 
+Configures auth via dynamically loaded Go plugins.
+
+```yaml
+"plugins": []extauth.plugins.gloo.solo.io.AuthPlugin
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `plugins` | [[]extauth.plugins.gloo.solo.io.AuthPlugin](../extauth.proto.sk#authplugin) | A chain of plugins which will be executed in the order they are specified. The first plugin to deny a request will cause a 403 response to be returned; any subsequent plugin in the chain will not be executed. The headers on the OkHttpResponse returned from a plugin in the chain will be added to the request that will be sent to the next one(s) according to the rules described here: https://www.envoyproxy.io/docs/envoy/latest/api-v2/service/auth/v2/external_auth.proto#service-auth-v2-okhttpresponse |  |
+
+
+
+
+---
+### AuthPlugin
+
+
+
+```yaml
+"name": string
+"pluginFileName": string
+"exportedSymbolName": string
+"config": .google.protobuf.Struct
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `name` | `string` | Name of the plugin |  |
+| `pluginFileName` | `string` | Name of the compiled plugin file. If not specified, GlooE will look for an ".so" file with same name as the plugin. |  |
+| `exportedSymbolName` | `string` | Name of the exported symbol that implements the plugin interface in the plugin. If not specified, defaults to the name of the plugin |  |
+| `config` | [.google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  |  |
 
 
 
@@ -309,6 +352,7 @@ This is used with custom auth servers.
 "oauth": .extauth.plugins.gloo.solo.io.OAuth
 "customAuth": .extauth.plugins.gloo.solo.io.CustomAuth
 "apiKeyAuth": .extauth.plugins.gloo.solo.io.ApiKeyAuth
+"pluginAuth": .extauth.plugins.gloo.solo.io.PluginAuth
 
 ```
 
@@ -318,6 +362,7 @@ This is used with custom auth servers.
 | `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#oauth) |  |  |
 | `customAuth` | [.extauth.plugins.gloo.solo.io.CustomAuth](../extauth.proto.sk#customauth) |  |  |
 | `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ApiKeyAuth](../extauth.proto.sk#apikeyauth) |  |  |
+| `pluginAuth` | [.extauth.plugins.gloo.solo.io.PluginAuth](../extauth.proto.sk#pluginauth) |  |  |
 
 
 
@@ -350,6 +395,7 @@ This is used with custom auth servers.
 "oauth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig
 "basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
 "apiKeyAuth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig
+"pluginAuth": .extauth.plugins.gloo.solo.io.PluginAuth
 
 ```
 
@@ -359,6 +405,7 @@ This is used with custom auth servers.
 | `oauth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth.proto.sk#oauthconfig) |  |  |
 | `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
 | `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig](../extauth.proto.sk#apikeyauthconfig) |  |  |
+| `pluginAuth` | [.extauth.plugins.gloo.solo.io.PluginAuth](../extauth.proto.sk#pluginauth) |  |  |
 
 
 

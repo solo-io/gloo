@@ -7,6 +7,7 @@ import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb
 import * as envoy_api_v2_discovery_pb from "../../../../../../../../../envoy/api/v2/discovery_pb";
 import * as google_api_annotations_pb from "../../../../../../../../../google/api/annotations_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 
 export class Settings extends jspb.Message {
   hasExtauthzServerRef(): boolean;
@@ -178,6 +179,62 @@ export class CustomAuth extends jspb.Message {
 
 export namespace CustomAuth {
   export type AsObject = {
+  }
+}
+
+export class PluginAuth extends jspb.Message {
+  clearPluginsList(): void;
+  getPluginsList(): Array<AuthPlugin>;
+  setPluginsList(value: Array<AuthPlugin>): void;
+  addPlugins(value?: AuthPlugin, index?: number): AuthPlugin;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PluginAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: PluginAuth): PluginAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PluginAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PluginAuth;
+  static deserializeBinaryFromReader(message: PluginAuth, reader: jspb.BinaryReader): PluginAuth;
+}
+
+export namespace PluginAuth {
+  export type AsObject = {
+    pluginsList: Array<AuthPlugin.AsObject>,
+  }
+}
+
+export class AuthPlugin extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getPluginFileName(): string;
+  setPluginFileName(value: string): void;
+
+  getExportedSymbolName(): string;
+  setExportedSymbolName(value: string): void;
+
+  hasConfig(): boolean;
+  clearConfig(): void;
+  getConfig(): google_protobuf_struct_pb.Struct | undefined;
+  setConfig(value?: google_protobuf_struct_pb.Struct): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthPlugin.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthPlugin): AuthPlugin.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthPlugin, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthPlugin;
+  static deserializeBinaryFromReader(message: AuthPlugin, reader: jspb.BinaryReader): AuthPlugin;
+}
+
+export namespace AuthPlugin {
+  export type AsObject = {
+    name: string,
+    pluginFileName: string,
+    exportedSymbolName: string,
+    config?: google_protobuf_struct_pb.Struct.AsObject,
   }
 }
 
@@ -384,6 +441,11 @@ export class VhostExtension extends jspb.Message {
   getApiKeyAuth(): ApiKeyAuth | undefined;
   setApiKeyAuth(value?: ApiKeyAuth): void;
 
+  hasPluginAuth(): boolean;
+  clearPluginAuth(): void;
+  getPluginAuth(): PluginAuth | undefined;
+  setPluginAuth(value?: PluginAuth): void;
+
   getAuthConfigCase(): VhostExtension.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VhostExtension.AsObject;
@@ -401,6 +463,7 @@ export namespace VhostExtension {
     oauth?: OAuth.AsObject,
     customAuth?: CustomAuth.AsObject,
     apiKeyAuth?: ApiKeyAuth.AsObject,
+    pluginAuth?: PluginAuth.AsObject,
   }
 
   export enum AuthConfigCase {
@@ -409,6 +472,7 @@ export namespace VhostExtension {
     OAUTH = 2,
     CUSTOM_AUTH = 3,
     API_KEY_AUTH = 4,
+    PLUGIN_AUTH = 5,
   }
 }
 
@@ -451,6 +515,11 @@ export class ExtAuthConfig extends jspb.Message {
   getApiKeyAuth(): ExtAuthConfig.ApiKeyAuthConfig | undefined;
   setApiKeyAuth(value?: ExtAuthConfig.ApiKeyAuthConfig): void;
 
+  hasPluginAuth(): boolean;
+  clearPluginAuth(): void;
+  getPluginAuth(): PluginAuth | undefined;
+  setPluginAuth(value?: PluginAuth): void;
+
   getAuthConfigCase(): ExtAuthConfig.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
@@ -468,6 +537,7 @@ export namespace ExtAuthConfig {
     oauth?: ExtAuthConfig.OAuthConfig.AsObject,
     basicAuth?: BasicAuth.AsObject,
     apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
+    pluginAuth?: PluginAuth.AsObject,
   }
 
   export class OAuthConfig extends jspb.Message {
@@ -530,6 +600,7 @@ export namespace ExtAuthConfig {
     OAUTH = 3,
     BASIC_AUTH = 4,
     API_KEY_AUTH = 5,
+    PLUGIN_AUTH = 6,
   }
 }
 

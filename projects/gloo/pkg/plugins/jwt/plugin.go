@@ -16,7 +16,7 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
 	"github.com/hashicorp/go-multierror"
-	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -283,7 +283,7 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 				},
 			},
 		}
-	case (*jwt.Jwks_Local):
+	case *jwt.Jwks_Local:
 
 		keyset, err := TranslateKey(jwks.Local.Key)
 		if err != nil {

@@ -137,7 +137,7 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 		}
 
 		var rateLimit *config.RateLimit = nil
-		var rateLimitDebugString string = ""
+		var rateLimitDebugString = ""
 		if descriptorConfig.RateLimit != nil {
 			value, present :=
 				pb_rls.RateLimitResponse_RateLimit_Unit_value[solorl.RateLimit_Unit_name[int32(descriptorConfig.RateLimit.Unit)]]

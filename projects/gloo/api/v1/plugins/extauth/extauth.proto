@@ -11,6 +11,7 @@ option (gogoproto.equal_all) = true;
 import "envoy/api/v2/discovery.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
 
 
 message Settings {
@@ -18,8 +19,8 @@ message Settings {
   core.solo.io.ResourceRef extauthz_server_ref = 1;
   // If this is set, communication to the upstream will be with HTTP and not GRPC.
   HttpService http_service = 2;
-  
-  // If the auth server trusted id of the user, it will be set in this header. 
+
+  // If the auth server trusted id of the user, it will be set in this header.
   // Specifically this means that this header will be sanitized form the incoming request.
   string user_id_header = 3;
 
@@ -88,6 +89,28 @@ message BufferSettings {
 message CustomAuth {
 }
 
+// Configures auth via dynamically loaded Go plugins.
+message PluginAuth {
+  // A chain of plugins which will be executed in the order they are specified. The first plugin to deny a request will
+  // cause a 403 response to be returned; any subsequent plugin in the chain will not be executed.
+  // The headers on the OkHttpResponse returned from a plugin in the chain will be added to the request that will be sent
+  // to the next one(s) according to the rules described here:
+  // https://www.envoyproxy.io/docs/envoy/latest/api-v2/service/auth/v2/external_auth.proto#service-auth-v2-okhttpresponse
+  repeated AuthPlugin plugins = 1;
+}
+
+message AuthPlugin {
+    // Name of the plugin
+    string name = 1;
+    // Name of the compiled plugin file. If not specified, GlooE will look for an ".so" file with same name as the plugin.
+    string plugin_file_name = 2;
+    // Name of the exported symbol that implements the plugin interface in the plugin.
+    // If not specified, defaults to the name of the plugin
+    string exported_symbol_name = 3;
+
+    google.protobuf.Struct config = 4;
+}
+
 message BasicAuth {
   string realm = 1;
 
@@ -147,6 +170,7 @@ message VhostExtension {
     OAuth oauth = 2;
     CustomAuth custom_auth = 3;
     ApiKeyAuth api_key_auth = 4;
+    PluginAuth plugin_auth = 5;
   }
 }
 
@@ -191,6 +215,7 @@ message ExtAuthConfig {
     OAuthConfig oauth = 3;
     BasicAuth basic_auth = 4;
     ApiKeyAuthConfig api_key_auth = 5;
+    PluginAuth plugin_auth = 6;
   }
 }
 

@@ -130,8 +130,15 @@ steps:
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
+# This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
 - name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
   dir: './gopath/src/github.com/solo-io/solo-projects'
+  entrypoint: 'bash'
+  args:
+  - '-ce'
+  - |
+    go generate ./test/extauth/plugins/...
+    /builder/bin/ginkgo.bash -r
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'ENVOY_BINARY=/workspace/envoy'
@@ -142,8 +149,7 @@ steps:
   - 'CLOUD_BUILD=1'
   - 'GOPATH=/workspace/gopath'
   - 'HELM_HOME=/root/.helm'
-  args: ['-r']
-  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'fetch-helm']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'fetch-helm', 'check-code-and-docs-gen']
   id: 'test'
 
 - name: 'gcr.io/cloud-builders/docker'

@@ -64,7 +64,7 @@ func GetTestSettings() *gloov1.Settings {
 		WatchNamespaces: []string{"default"},
 		Extensions: &gloov1.Extensions{
 			Configs: map[string]*types.Struct{
-				"someotherextension": &types.Struct{},
+				"someotherextension": {},
 			},
 		},
 	}
