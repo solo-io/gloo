@@ -137,7 +137,7 @@ var _ = Describe("Install", func() {
 			Expect(validator.applied).To(BeTrue())
 			Expect(validator.waited).To(BeFalse())
 			glooeInstallKinds := append(install.GlooInstallKinds,
-				"PodSecurityPolicy", "Secret", "ServiceAccount", "Role", "RoleBinding", "Upstream", "PersistentVolumeClaim", "Settings")
+				"PodSecurityPolicy", "Secret", "ServiceAccount", "ClusterRole", "ClusterRoleBinding", "Role", "RoleBinding", "Upstream", "PersistentVolumeClaim", "Settings")
 			expectKinds(validator.resources, glooeInstallKinds)
 			expectLabels(validator.resources, install.ExpectedLabels)
 		})

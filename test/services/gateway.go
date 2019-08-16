@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gatewaysyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 
 	"context"
@@ -115,16 +116,20 @@ func AllocateGlooPort() int32 {
 
 func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResourceCache, localglooPort int32, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) {
 
-	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
-	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	// no gateway for now
+	opts := DefaultTestConstructOpts(ctx, cache, ns)
 	if !what.DisableGateway {
-		opts := DefaultTestConstructOpts(ctx, cache, ns)
 		go gatewaysyncer.RunGateway(opts)
 	}
 	settings := v1.Settings{
-		Extensions: extensions,
+		Extensions:         extensions,
+		WatchNamespaces:    opts.WatchNamespaces,
+		DiscoveryNamespace: opts.WriteNamespace,
 	}
+	ctx = settingsutil.WithSettings(ctx, &settings)
+
+	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
+	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooopts.Settings = &settings
 	glooopts.ControlPlane.StartGrpcServer = true
 	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())

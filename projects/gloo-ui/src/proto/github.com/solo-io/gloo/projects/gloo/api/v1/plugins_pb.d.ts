@@ -11,6 +11,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_load_balancer_pb from "
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/connection_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/cors/cors_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_rest_rest_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb";
@@ -126,6 +127,11 @@ export class VirtualHostPlugins extends jspb.Message {
   getHeaderManipulation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation | undefined;
   setHeaderManipulation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation): void;
 
+  hasCors(): boolean;
+  clearCors(): void;
+  getCors(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy | undefined;
+  setCors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -142,6 +148,7 @@ export namespace VirtualHostPlugins {
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     stats?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats.AsObject,
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
+    cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
   }
 }
 
@@ -196,6 +203,11 @@ export class RoutePlugins extends jspb.Message {
   getHostRewrite(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite | undefined;
   setHostRewrite(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite): void;
 
+  hasCors(): boolean;
+  clearCors(): void;
+  getCors(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy | undefined;
+  setCors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -218,6 +230,7 @@ export namespace RoutePlugins {
     shadowing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.AsObject,
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
     hostRewrite?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.AsObject,
+    cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
   }
 }
 

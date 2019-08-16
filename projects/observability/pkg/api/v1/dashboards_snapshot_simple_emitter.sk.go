@@ -47,16 +47,18 @@ func (c *dashboardsSimpleEmitter) Snapshots(ctx context.Context) (<-chan *Dashbo
 	go errutils.AggregateErrs(ctx, errs, watchErrs, "dashboards-emitter")
 
 	go func() {
-		originalSnapshot := DashboardsSnapshot{}
-		currentSnapshot := originalSnapshot.Clone()
+		currentSnapshot := DashboardsSnapshot{}
 		timer := time.NewTicker(time.Second * 1)
+		var previousHash uint64
 		sync := func() {
-			if originalSnapshot.Hash() == currentSnapshot.Hash() {
+			currentHash := currentSnapshot.Hash()
+			if previousHash == currentHash {
 				return
 			}
 
+			previousHash = currentHash
+
 			stats.Record(ctx, mDashboardsSnapshotOut.M(1))
-			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot
 		}

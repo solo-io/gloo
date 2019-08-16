@@ -499,9 +499,12 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -1283,7 +1286,7 @@
   version = "v0.2.7"
 
 [[projects]]
-  digest = "1:cdfcc1f92f63b206be54f457541ff11f3830eff73d4f006a0fcc6ee26f87081a"
+  digest = "1:f03b85cc8804ff907a6a31750015d648660a739a1430f67a1db44f6d49babb76"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1293,7 +1296,7 @@
     "pkg/listers",
     "pkg/utils",
     "pkg/utils/selectionutils",
-    "pkg/utils/settings",
+    "pkg/utils/settingsutil",
     "pkg/utils/setuputils",
     "pkg/version",
     "projects/discovery/pkg/fds",
@@ -1336,6 +1339,7 @@
     "projects/gloo/cli/pkg/printers",
     "projects/gloo/cli/pkg/surveyutils",
     "projects/gloo/cli/pkg/testutils",
+    "projects/gloo/cli/pkg/xdsinspection",
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/v1",
@@ -1345,6 +1349,7 @@
     "projects/gloo/pkg/api/v1/plugins/aws/ec2",
     "projects/gloo/pkg/api/v1/plugins/azure",
     "projects/gloo/pkg/api/v1/plugins/consul",
+    "projects/gloo/pkg/api/v1/plugins/cors",
     "projects/gloo/pkg/api/v1/plugins/faultinjection",
     "projects/gloo/pkg/api/v1/plugins/grpc",
     "projects/gloo/pkg/api/v1/plugins/grpc_web",
@@ -1406,8 +1411,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "523d8c54473de48660619863523976d344aef06e"
-  version = "v0.18.15"
+  revision = "413608ca26f5a4f17777aae75178527055542928"
+  version = "v0.18.17"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1484,7 +1489,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:346d6cdd4d3a5b53120c198576d7f10355b65326014fb88e7f5c2744a440ee37"
+  digest = "1:be46669c65ae98b7d7a37a1af78cd1310d8cf67cc3815d38fdb07f9a1ce3aabf"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1544,8 +1549,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "4ef904331926cde8633da4b108ecdc8447e59b70"
-  version = "v0.10.9"
+  revision = "6172b86a18792f91c5323a624db93b8d8efbccb9"
+  version = "v0.10.10"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2560,6 +2565,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",
