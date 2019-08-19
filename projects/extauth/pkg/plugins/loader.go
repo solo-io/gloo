@@ -19,9 +19,17 @@ import (
 
 //go:generate mockgen -destination mocks/loader_mock.go -package mocks github.com/solo-io/solo-projects/projects/extauth/pkg/plugins Loader
 
-var PluginChainBuildError = func(err error) error {
-	return errors.Wrapf(err, "failed to add plugin to plugin chain")
-}
+var (
+	PluginChainBuildError = func(err error) error {
+		return errors.Wrapf(err, "failed to add plugin to plugin chain")
+	}
+	PluginFileOpenError = func(err error) error {
+		return errors.Wrapf(err, "failed to open plugin file")
+	}
+	InvalidExportedSymbolError = func(err error) error {
+		return errors.Wrapf(err, "failed to find exported plugin symbol")
+	}
+)
 
 func NewPluginLoader(pluginDir string) Loader {
 	return &loader{
@@ -64,7 +72,8 @@ func (l *loader) Load(ctx context.Context, pluginConfigs *extauth.PluginAuth) (a
 			zap.Any("configurationObject", pluginCfg),
 		)
 		if err = parsePluginConfig(cfg.Config, pluginCfg); err != nil {
-			return nil, errors.Wrapf(err, "failed to parse plugin config")
+			return nil, errors.Wrapf(err, "failed to parse config for plugin [%s]. "+
+				"Could not deserialize config: %v into configuration object %v", cfg.Name, cfg.Config, pluginCfg)
 		}
 
 		logger.Debugw("Getting AuthService instance from plugin", zap.Any("pluginConfig", pluginCfg))
@@ -106,13 +115,13 @@ func (l *loader) loadPlugin(ctx context.Context, authPlugin *extauth.AuthPlugin)
 	logger.Debugw("Loading plugin", zap.Any("name", pluginName), zap.Any("path", pluginFilePath))
 	goPlugin, err := plugin.Open(pluginFilePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to open plugin file")
+		return nil, PluginFileOpenError(err)
 	}
 
 	logger.Debugw("Looking up exported plugin symbol", zap.Any("symbolName", symbolName))
 	exportedSymbol, err := goPlugin.Lookup(symbolName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find exported plugin symbol")
+		return nil, InvalidExportedSymbolError(err)
 	}
 
 	// A Symbol is a pointer to a variable or function.

@@ -32,7 +32,7 @@ spec:
         name: auth-plugins
       initContainers:
       {{- range $name, $plugin := .Values.extAuth.plugins }}
-      {{- $pluginImage := merge $plugin.image .Values.global.image }}
+      {{- $pluginImage := merge $plugin.image $.Values.global.image }}
       - image: {{template "gloo.image" $pluginImage}}
         {{- if $pluginImage.pullPolicy }}
         imagePullPolicy: {{ $pluginImage.pullPolicy }}

@@ -1,0 +1,7 @@
+changelog:
+- type: NEW_FEATURE
+  description: |
+    Publish a script that can be used during ext-auth plugin development to verify whether a plugin can be loaded by
+    a specific version of GlooE. The next steps are 1) wiring script up in `ext-auth-plugins` repo and 2) add docs.
+  issueLink: https://github.com/solo-io/solo-projects/issues/720
+  resolvesIssue: false

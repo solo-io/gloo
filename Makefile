@@ -328,24 +328,31 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 
 
 .PHONY: extauth
-extauth: $(OUTPUT_DIR)/extauth-linux-amd64
+extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
-$(OUTPUT_DIR)/extauth-linux-amd64: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
-	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
-		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
-		--build-arg VERSION=$(VERSION) \
-		--build-arg GCFLAGS=$(GCFLAGS) \
-		.
+$(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
 	docker run -v "$(OUTPUT_DIR):/opt/mount" --rm --entrypoint cp \
 		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
 		/extauth-linux-amd64 /opt/mount/extauth-linux-amd64
 
+$(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
+	docker run -v "$(OUTPUT_DIR):/opt/mount" --rm --entrypoint cp \
+		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
+		/verify-plugins-linux-amd64 /opt/mount/verify-plugins-linux-amd64
+
+$(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
+	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
+    	--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+    	--build-arg VERSION=$(VERSION) \
+    	--build-arg GCFLAGS=$(GCFLAGS) \
+    	.
+	touch $@
 
 .PHONY: extauth-docker
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
-$(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+$(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
 	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 	touch $@
 
@@ -494,19 +501,21 @@ DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPENDENCIES_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
-publish-dependencies: $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env
+publish-dependencies: $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env $(DEPENDENCIES_DIR)/verify-plugins-linux-amd64
 	gsutil cp -r $(DEPENDENCIES_DIR) gs://$(DEPENDENCIES_BUCKET)
 
 $(DEPENDENCIES_DIR):
 	mkdir -p $(DEPENDENCIES_DIR)
 
-$(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR)
+$(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR) Gopkg.lock
 	cp Gopkg.lock $(DEPENDENCIES_DIR)
 
 $(DEPENDENCIES_DIR)/build_env: $(DEPENDENCIES_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
 	echo "GC_FLAGS=$(GC_FLAGS)" >> $@
 
+$(DEPENDENCIES_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
+	cp $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
 
 #----------------------------------------------------------------------------------
 # Docker push

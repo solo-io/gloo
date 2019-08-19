@@ -1,0 +1,8 @@
+plugins:
+- name: RequiredHeader
+  pluginFileName: RequiredHeader.so
+  exportedSymbolName: RequiredHeader
+  config: {}
+- name: HeaderValue
+  plugin_file_name: CheckHeaderValue.so
+  exported_symbol_name: Plugin
