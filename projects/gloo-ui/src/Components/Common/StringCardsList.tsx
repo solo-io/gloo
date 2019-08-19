@@ -122,10 +122,8 @@ export const StringCardsList = (props: StringCardsListProps) => {
   };
 
   const sendCreateNew = () => {
-    if (newValue.length > 0) {
-      createNew!(newValue);
-      setNewValue('');
-    }
+    createNew!(newValue);
+    setNewValue('');
   };
 
   return (
@@ -155,6 +153,7 @@ export const StringCardsList = (props: StringCardsListProps) => {
               presetOptions={presetOptions!.map(pO => {
                 return { value: pO };
               })}
+              hideArrow
             />
           ) : (
             <SoloInput

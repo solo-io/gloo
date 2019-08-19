@@ -1,0 +1,14 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Gateways are now editable from the UI, though HTTP only.
+    issueLink: https://github.com/solo-io/solo-projects/issues/875
+    resolvesIssue: false
+  - type: NEW_FEATURE
+    description: The Admin Summary page setup is complete.
+    issueLink: https://github.com/solo-io/solo-projects/issues/877
+  - type: FIX
+    description: Watched namespaces editing again works as intended.
+    issueLink: https://github.com/solo-io/solo-projects/issues/890
+  - type: FIX
+    description: Empty function lists are not shown during route creation.
+    issueLink: https://github.com/solo-io/solo-projects/issues/895

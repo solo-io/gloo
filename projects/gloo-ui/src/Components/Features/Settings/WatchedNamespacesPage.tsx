@@ -87,7 +87,7 @@ export const WatchedNamespacesPage = (props: Props) => {
   );
 
   let req = new GetSettingsRequest();
-  const { data, loading, error } = useGetSettings(req);
+  const { data, loading, error, refetch: getNewList } = useGetSettings(req);
 
   const [refreshRateSeconds, setRefreshRateSeconds] = React.useState(() =>
     data ? data.settings!.refreshRate!.seconds : 1
@@ -104,6 +104,7 @@ export const WatchedNamespacesPage = (props: Props) => {
   >([]);
 
   React.useEffect(() => {
+    console.log(data);
     if (data && data.settings) {
       setWatchedNamespacesList(data.settings.watchNamespacesList);
       setRefreshRateSeconds(data.settings!.refreshRate!.seconds);
@@ -124,7 +125,7 @@ export const WatchedNamespacesPage = (props: Props) => {
     );
   }, [watchedNamespacesList]);
 
-  if (!data || loading) {
+  if (!watchedNamespacesList && loading) {
     return <div>Loading...</div>;
   }
 
@@ -138,12 +139,21 @@ export const WatchedNamespacesPage = (props: Props) => {
   };
 
   const removeNamespace = (removeIndex: number) => {
-    let newList = [...watchedNamespacesList];
-    newList.splice(removeIndex, 1);
-    setWatchedNamespacesList(newList);
+    if (watchedNamespacesList.length > 1) {
+      let newList = [...watchedNamespacesList];
+      newList.splice(removeIndex, 1);
+      // setWatchedNamespacesList(newList);
 
-    updateRequest.current.setWatchNamespacesList(newList);
+      updateRequest.current.setWatchNamespacesList(newList);
+    } else {
+      updateRequest.current.clearWatchNamespacesList();
+    }
+    console.log({
+      watchedNamespacesList,
+      updateRequest: updateRequest.current.toObject()
+    });
     makeRequest(updateRequest.current);
+    setTimeout(() => getNewList(new UpdateSettingsRequest()), 300);
   };
 
   const updateRefreshRate = () => {
@@ -172,7 +182,7 @@ export const WatchedNamespacesPage = (props: Props) => {
         values={watchedNamespacesList}
         valueDeleted={removeNamespace}
         createNew={addNamespace}
-        createNewPromptText={'watch new namespace'}
+        createNewPromptText={'watch namespace'}
         asTypeahead
         presetOptions={availableNS}
       />

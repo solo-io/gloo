@@ -17,6 +17,7 @@ import { useGetGatewayList } from 'Api/v2/useGatewayClientV2';
 import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import { getResourceStatus } from 'utils/helpers';
 
 const Container = styled.div`
   ${CardCSS};
@@ -158,11 +159,7 @@ const GatewayOverview = () => {
   }
 
   const gatewayErrorCount = allGateways.reduce((total, gateway) => {
-    if (
-      gateway.gateway &&
-      gateway.gateway.status &&
-      gateway.gateway.status.state !== healthConstants.Error.value
-    ) {
+    if (getResourceStatus(gateway.gateway!) !== 'Rejected') {
       return total;
     }
 
@@ -238,11 +235,7 @@ const ProxyOverview = () => {
   }
 
   const proxyErrorCount = allProxies.reduce((total, proxy) => {
-    if (
-      proxy.proxy &&
-      proxy.proxy.status &&
-      proxy.proxy.status.state !== healthConstants.Error.value
-    ) {
+    if (getResourceStatus(proxy.proxy!) !== 'Rejected') {
       return total;
     }
 

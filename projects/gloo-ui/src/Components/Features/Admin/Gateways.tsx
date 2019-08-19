@@ -5,7 +5,7 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { Formik, FormikErrors } from 'formik';
 import * as yup from 'yup';
-import { useGetGatewayList } from 'Api/v2/useGatewayClientV2';
+import { useGetGatewayList, useUpdateGateway } from 'Api/v2/useGatewayClientV2';
 import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
 import { colors, soloConstants } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -13,11 +13,15 @@ import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
 import { NamespacesContext } from 'GlooIApp';
-import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import {
+  GatewayDetails,
+  UpdateGatewayRequest
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import {
   HttpGateway,
   Gateway
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
+import { UpdateGatewayHttpData } from 'Api/v2/GatewayClient';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -45,12 +49,34 @@ export const Gateways = (props: Props) => {
   const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
 
   const namespaces = React.useContext(NamespacesContext);
-  const { data, loading, error, setNewVariables } = useGetGatewayList({
+
+  const {
+    data: updateData,
+    loading: updateLoading,
+    error: updateError,
+    setNewVariables: setNewUpdateVariables,
+    dataObj: updateGatewayObj
+  } = useUpdateGateway(null);
+  const {
+    data,
+    loading,
+    error,
+    setNewVariables,
+    dataObj: gatewayObj
+  } = useGetGatewayList({
     namespaces: namespaces.namespacesList
   });
   const [allGateways, setAllGateways] = React.useState<
     GatewayDetails.AsObject[]
   >([]);
+
+  React.useEffect(() => {
+    if (!!updateData) {
+      setNewVariables({
+        namespaces: namespaces.namespacesList
+      });
+    }
+  }, [updateLoading]);
   React.useEffect(() => {
     if (!!data) {
       const newGateways = data
@@ -77,7 +103,65 @@ export const Gateways = (props: Props) => {
     );
   };
 
-  const updateGateway = (values: HttpValuesType) => {};
+  const updateGateway = (values: HttpValuesType, gatewayIndex: number) => {
+    let updateGatewayData: UpdateGatewayHttpData = {
+      acceptHttp10: values.acceptHttp10.toLowerCase() === 'true',
+      defaultHostForHttp10: values.defaultHostForHttp10,
+      delayedCloseTimeout: {
+        seconds: 0,
+        nanos: values.delayedCloseTimeout.length
+          ? parseInt(values.delayedCloseTimeout)
+          : 0
+      },
+      drainTimeout: {
+        seconds: 0,
+        nanos: values.drainTimeout.length ? parseInt(values.drainTimeout) : 0
+      },
+      generateRequestId: {
+        value: values.generateRequestId.toLowerCase() === 'true'
+      },
+      idleTimeout: {
+        seconds: 0,
+        nanos: values.idleTimeout.length ? parseInt(values.idleTimeout) : 0
+      },
+      maxRequestHeadersKb: {
+        value: values.maxRequestHeadersKb.length
+          ? parseInt(values.maxRequestHeadersKb)
+          : 0
+      },
+      proxy100Continue: values.proxy100Continue.toLowerCase() === 'true',
+      requestTimeout: {
+        seconds: 0,
+        nanos: values.requestTimeout.length
+          ? parseInt(values.requestTimeout)
+          : 0
+      },
+      serverName: values.serverName,
+      skipXffAppend: values.skipXffAppend.toLowerCase() === 'true',
+      streamIdleTimeout: {
+        seconds: 0,
+        nanos: values.streamIdleTimeout.length
+          ? parseInt(values.streamIdleTimeout)
+          : 0
+      },
+      requestHeadersForTagsList: values.requestHeadersForTags.split(','),
+      verbose: values.verbose.toLowerCase() === 'true',
+      useRemoteAddress: {
+        value: values.useRemoteAddress.toLowerCase() === 'true'
+      },
+      via: values.via,
+      xffNumTrustedHops: values.xffNumTrustedHops.length
+        ? parseInt(values.xffNumTrustedHops)
+        : 0
+    };
+
+    console.log(updateGatewayData);
+
+    setNewUpdateVariables({
+      originalGateway: data.getGatewayDetailsList()[gatewayIndex].getGateway()!,
+      updates: updateGatewayData
+    });
+  };
 
   //console.log(allGateways);
 
@@ -86,6 +170,7 @@ export const Gateways = (props: Props) => {
       {allGateways.map((gateway, ind) => {
         return (
           <SectionCard
+            key={gateway.gateway!.gatewayProxyName + ind}
             cardName={gateway.gateway!.gatewayProxyName}
             logoIcon={<GatewayLogoFullSize />}
             headerSecondaryInformation={[
@@ -103,7 +188,7 @@ export const Gateways = (props: Props) => {
               <div>Configuration Settings</div> <div>gateway-ssl.yaml</div>
             </InsideHeader>
             <GatewayForm
-              doUpdate={updateGateway}
+              doUpdate={(values: HttpValuesType) => updateGateway(values, ind)}
               gatewayValues={gateway.gateway!}
               isExpanded={gatewaysOpen[ind]}
             />
@@ -131,6 +216,7 @@ const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
   max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
   overflow: hidden;
   transition: max-height ${soloConstants.transitionTime};
+  color: ${colors.septemberGrey};
 `;
 
 const InnerSectionTitle = styled.div`
@@ -163,7 +249,7 @@ const FormFooter = styled.div`
 `;
 
 interface HttpValuesType {
-  kipXffAppend: string;
+  skipXffAppend: string;
   maxRequestHeadersKb: string;
   streamIdleTimeout: string;
   via: string;
@@ -183,7 +269,7 @@ interface HttpValuesType {
 }
 
 let defaultHttpValues: HttpValuesType = {
-  kipXffAppend: '',
+  skipXffAppend: '',
   maxRequestHeadersKb: '',
   streamIdleTimeout: '',
   via: '',
@@ -206,7 +292,23 @@ const connectionManagerList = Object.keys(defaultHttpValues).slice(0, -2);
 const tracingList = Object.keys(defaultHttpValues).slice(-2);
 
 const validationSchema = yup.object().shape({
-  authLimitNumber: yup.string()
+  skipXffAppend: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  maxRequestHeadersKb: yup.number(),
+  streamIdleTimeout: yup.number(),
+  via: yup.string(),
+  requestTimeout: yup.number(),
+  idleTimeout: yup.number(),
+  xffNumTrustedHops: yup.number(),
+  drainTimeout: yup.number(),
+  defaultHostForHttp10: yup.string(),
+  useRemoteAddress: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  delayedCloseTimeout: yup.number(),
+  acceptHttp10: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  generateRequestId: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  serverName: yup.string(),
+  proxy100Continue: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  requestHeadersForTags: yup.string(),
+  verbose: yup.string().oneOf(['true', 'True', 'false', 'False'])
 });
 
 interface FormProps {
@@ -247,8 +349,9 @@ const GatewayForm = (props: FormProps) => {
         <a
           href='https://gloo.solo.io/v1/github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto.sk/'
           target='_blank'>
-          hcm plugin documentation>.
+          hcm plugin documentation
         </a>
+        .
       </div>
       <ExpandableSection isExpanded={props.isExpanded}>
         <Formik
@@ -263,7 +366,7 @@ const GatewayForm = (props: FormProps) => {
                 </InnerSectionTitle>
                 <InnerFormSectionContent>
                   {connectionManagerList.map(fieldName => (
-                    <FormItem>
+                    <FormItem key={fieldName}>
                       <SoloFormInput
                         key={fieldName}
                         name={fieldName}
@@ -275,7 +378,7 @@ const GatewayForm = (props: FormProps) => {
                 <InnerSectionTitle>Tracing Settings</InnerSectionTitle>
                 <InnerFormSectionContent>
                   {tracingList.map(fieldName => (
-                    <FormItem>
+                    <FormItem key={fieldName}>
                       <SoloFormInput
                         key={fieldName}
                         name={fieldName}

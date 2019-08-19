@@ -60,7 +60,9 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
     }
 
     .ant-select-arrow {
-      display: block;
+      display: ${props =>
+        // @ts-ignore
+        props.hideArrow ? 'none' : 'block'};
     }
   }
 `;
@@ -80,6 +82,7 @@ export interface TypeaheadProps {
   defaultValue?: string | number;
   onBlur?: (newValue: string | number) => any;
   disabled?: boolean;
+  hideArrow?: boolean;
 }
 
 export const SoloTypeahead = (props: TypeaheadProps) => {
@@ -92,7 +95,8 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
     placeholder,
     presetOptions,
     onChange,
-    defaultValue
+    defaultValue,
+    hideArrow
   } = props;
 
   const handleChange = (value: SelectValue): void => {
@@ -119,7 +123,10 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
   return (
     <React.Fragment>
       {title && <Label>{title}</Label>}
+      {/*
+       // @ts-ignore */}
       <SoloAutocompleteBlock
+        hideArrow={hideArrow}
         disabled={disabled}
         onChange={handleChange}
         defaultValue={

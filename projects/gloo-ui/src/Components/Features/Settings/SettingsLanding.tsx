@@ -92,7 +92,11 @@ export const SettingsLanding = (props: Props) => {
   if (!data || (!data && loading)) {
     return <div>Loading...</div>;
   }
-  const locationEnding = props.location.pathname.split('/settings/')[1];
+
+  // Get subpage without the / at the end
+  const locationEnding = props.location.pathname
+    .split('/settings/')[1]
+    .slice(0, -1);
 
   const startingChoice =
     locationEnding && locationEnding.length

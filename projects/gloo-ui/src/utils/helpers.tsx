@@ -27,7 +27,11 @@ const StyledGRPCLogo = styled.img`
 
 export function getResourceStatus(resource: Resource) {
   const status =
-    typeof resource === 'number' ? resource : resource.status!.state;
+    typeof resource === 'number'
+      ? resource
+      : !resource.status
+      ? 'Pending'
+      : resource.status!.state;
   switch (status) {
     case 0:
       return 'Pending';

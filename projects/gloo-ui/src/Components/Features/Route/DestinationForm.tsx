@@ -20,6 +20,10 @@ export function DestinationForm(props: DestiantionFormProps) {
   // TODO: process upstream spec to support all types
   const functionsList = getFunctionList(props.upstreamSpec);
 
+  if (functionsList.length === 0) {
+    return null;
+  }
+
   return (
     <React.Fragment>
       {!!upstreamSpec && upstreamSpec.aws && (
@@ -28,7 +32,6 @@ export function DestinationForm(props: DestiantionFormProps) {
             <SoloFormDropdown
               name={`${field.name}.aws.logicalName`}
               title='Lambda Function'
-              disabled={functionsList.length === 0}
               options={functionsList}
             />
           </HalfColumn>
