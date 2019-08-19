@@ -27,6 +27,7 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
+      serviceAccountName: observability
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{$image.pullPolicy}}

@@ -1,0 +1,23 @@
+{{- if .Values.grafana.enabled }}
+kind: {{ include "gloo.roleKind" . }}Binding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: glooe-settings-user-role-binding{{ include "gloo.rolebindingsuffix" . }}
+{{- if .Values.gloo.rbac.namespaced }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+  labels:
+    app: gloo
+    gloo: rbac
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "15"
+subjects:
+  - kind: ServiceAccount
+    name: observability
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: {{ include "gloo.roleKind" . }}
+  name: settings-user
+  apiGroup: rbac.authorization.k8s.io
+{{- end}}

@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: |
+      - Observability service account and settings-user role.
+      - Apiserver service account and custom role.
+      - Apiserver will not register settings CRD unless an env var is set.
+    issueLink: https://github.com/solo-io/solo-projects/issues/915

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -39,9 +40,10 @@ func kubeSettingsClient(ctx context.Context) (gloov1.SettingsClient, error) {
 		return nil, err
 	}
 	return gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
-		Crd:         gloov1.SettingsCrd,
-		Cfg:         cfg,
-		SharedCache: kube2.NewKubeCache(ctx),
+		Crd:             gloov1.SettingsCrd,
+		Cfg:             cfg,
+		SharedCache:     kube2.NewKubeCache(ctx),
+		SkipCrdCreation: settingsutil.GetSkipCrdCreation(),
 	})
 }
 

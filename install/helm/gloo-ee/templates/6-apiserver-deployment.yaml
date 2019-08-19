@@ -30,6 +30,7 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
+      serviceAccountName: {{ .Values.apiServer.service.name }}
       containers:
         - name: apiserver-ui
           image: {{template "gloo.image" $uiImage}}

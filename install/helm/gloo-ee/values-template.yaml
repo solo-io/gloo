@@ -16,6 +16,8 @@ settings:
 
 license_key: ""
 gloo:
+  rbac:
+    create: true
   settings:
     # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
     # which is hard. We will provide out own settings template as part of the GlooE chart.
