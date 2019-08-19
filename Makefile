@@ -438,8 +438,6 @@ $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
-
-
 HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
 HELM_DIR := install/helm
 MANIFEST_DIR := install/manifest
@@ -459,6 +457,7 @@ install/glooe-gateway.yaml: init-helm
 
 .PHONY: init-helm
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
+
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
@@ -518,7 +517,7 @@ $(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR) Gopkg.lock
 
 $(DEPENDENCIES_DIR)/build_env: $(DEPENDENCIES_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
-	echo "GC_FLAGS=$(GC_FLAGS)" >> $@
+	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
 $(DEPENDENCIES_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
 	cp $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
