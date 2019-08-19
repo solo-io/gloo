@@ -1,16 +1,23 @@
+{{- $extAuth := .Values.global.extensions.extAuth }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.extAuth.service.name }}
-  name: {{ .Values.extAuth.service.name }}
+    gloo: {{ $extAuth.service.name }}
+  name: {{ $extAuth.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   upstreamSpec:
+    use_http2: true
+    {{- if $extAuth.envoySidecar }}
+    pipe:
+      path: "/usr/share/shared-data/.sock"
+    {{- else }}
     kube:
-      serviceName: {{ .Values.extAuth.service.name }}
+      serviceName: {{ $extAuth.service.name }}
       serviceNamespace: {{ .Release.Namespace }}
-      servicePort:  {{ .Values.extAuth.service.port }}
+      servicePort:  {{ $extAuth.service.port }}
       serviceSpec:
         grpc: {}
+    {{- end }}

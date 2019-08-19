@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allows extauth to run as an envoy sidecar and communicate over unix domain sockets.
+    issueLink: https://github.com/solo-io/gloo/issues/871

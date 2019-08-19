@@ -18,7 +18,6 @@ type Config struct {
 	Grafana       interface{}        `json:"grafana,omitempty"`
 	Prometheus    interface{}        `json:"prometheus,omitempty"`
 	Tags          map[string]string  `json:"tags,omitempty"`
-	ExtAuth       *ExtAuth           `json:"extAuth,omitempty"`
 }
 
 // Common
@@ -33,6 +32,10 @@ type Rbac struct {
 }
 
 // Gloo-ee
+
+type GlooEeExtensions struct {
+	ExtAuth *ExtAuth `json:"extAuth,omitempty"`
+}
 
 type RateLimit struct {
 	Enabled    bool                 `json:"enabled"`
@@ -125,13 +128,15 @@ type ExtAuth struct {
 	Service      *ExtAuthService           `json:"service,omitempty"`
 	SigningKey   *ExtAuthSigningKey        `json:"signingKey,omitempty"`
 	Plugins      map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
+	EnvoySidecar bool                      `json:"envoySidecar"`
 }
 
 type ExtAuthDeployment struct {
 	Name        string          `json:"name"`
-	GlooAddress string          `json:"glooAddress"`
+	GlooAddress string          `json:"glooAddress,omitempty"`
 	Port        uint            `json:"port"`
 	Image       *generate.Image `json:"image,omitempty"`
+	Stats       bool            `json:"stats" desc:"enable prometheus stats"`
 	*generate.DeploymentSpec
 }
 

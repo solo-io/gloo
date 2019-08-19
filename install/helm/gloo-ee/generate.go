@@ -29,8 +29,8 @@ const (
 	glooiPkg     = "github.com/solo-io/gloo-i"
 	nameConst    = "name"
 	versionConst = "version"
-	neverPull    = "Never"
-	alwaysPull   = "Always"
+
+	always       = "Always"
 	ifNotPresent = "IfNotPresent"
 )
 
@@ -121,7 +121,6 @@ func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string
 	config.Gloo.Gateway.Deployment.Image.Tag = osGlooVersion
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
-	config.ExtAuth.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ApiServer.Deployment.Envoy.Image.Tag = version
 	config.ApiServer.Deployment.Ui.Image.Tag = version
@@ -137,11 +136,24 @@ func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
-	config.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
+
+	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
+		return err
+	}
+
+	if version == "dev" {
+		config.Gloo.Gloo.Deployment.Image.PullPolicy = always
+		config.Gloo.Discovery.Deployment.Image.PullPolicy = always
+		config.Gloo.Gateway.Deployment.Image.PullPolicy = always
+		config.Gloo.Gateway.ConversionJob.Image.PullPolicy = always
+		for _, v := range config.Gloo.GatewayProxies {
+			v.PodTemplate.Image.PullPolicy = always
+		}
+	}
 
 	if repositoryPrefix != "" {
 		config.Global.Image.Registry = repositoryPrefix
@@ -150,9 +162,25 @@ func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string
 	return writeYaml(&config, outputFile)
 }
 
+func updateExtensionsImageVersionAndPullPolicy(config generate.HelmConfig, version, pullPolicy string) (err error) {
+	bytes, err := yaml.Marshal(config.Global.Extensions)
+	if err != nil {
+		return err
+	}
+	var glooEeExtensions generate.GlooEeExtensions
+	err = yaml.Unmarshal(bytes, &glooEeExtensions)
+	if err != nil {
+		return err
+	}
+	glooEeExtensions.ExtAuth.Deployment.Image.Tag = version
+	glooEeExtensions.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
+	config.Global.Extensions = glooEeExtensions
+	return nil
+}
+
 func generateValuesYamls(version, repositoryPrefix string) error {
 	// Generate values for standard manifest
-	standardPullPolicy := alwaysPull
+	standardPullPolicy := always
 	if version == "dev" {
 		standardPullPolicy = ifNotPresent
 	}

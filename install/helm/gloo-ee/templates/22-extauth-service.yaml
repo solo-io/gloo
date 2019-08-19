@@ -1,15 +1,18 @@
+{{- $extAuth := .Values.global.extensions.extAuth }}
+{{- if not $extAuth.envoySidecar }}
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.extAuth.service.name }}
-  name: {{ .Values.extAuth.service.name }}
+    gloo: {{ $extAuth.service.name }}
+  name: {{ $extAuth.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
   - name: grpc
-    port: {{ .Values.extAuth.service.port }}
+    port: {{ $extAuth.service.port }}
     protocol: TCP
   selector:
-    gloo: {{ .Values.extAuth.service.name }}
+    gloo: {{ $extAuth.service.name }}
+{{- end }}

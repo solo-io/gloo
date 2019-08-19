@@ -605,6 +605,14 @@
   version = "v0.2.0"
 
 [[projects]]
+  digest = "1:d8b04ac65ed598214a3fa5069577aedb5ff6a92cbc3d6650bd14e42e13e685ba"
+  name = "github.com/goph/emperror"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9727b49dc9d66225368645198434124e02b7e355"
+  version = "v0.17.2"
+
+[[projects]]
   branch = "master"
   digest = "1:0f81ad0b38cbd916ca43a8701dc2507c3f3fce9955fc787318fcc440fef9db56"
   name = "github.com/gophercloud/gophercloud"
@@ -1291,7 +1299,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:f03b85cc8804ff907a6a31750015d648660a739a1430f67a1db44f6d49babb76"
+  digest = "1:0ec0efd037badeef1c37a15a94de9c9a44c2930477ff25b99414991242bd42ad"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1416,8 +1424,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "413608ca26f5a4f17777aae75178527055542928"
-  version = "v0.18.17"
+  revision = "de142be2264649a1d0f1bd28fbe924cb6f3d5431"
+  version = "v0.18.19"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1428,7 +1436,7 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:94f50cbb3896259c1dc16bfd9d22c8118697e2af603b04511aee4fdca1836e6b"
+  digest = "1:4dc66f4e4d72925b7372695d8959852203064d55f8aa21aaf0258571cf3d7b51"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1442,9 +1450,12 @@
     "errutils",
     "githubutils",
     "hashutils",
+    "installutils/helmchart",
+    "installutils/kuberesource",
     "kubeinstallutils",
     "kubeutils",
     "log",
+    "manifesttestutils",
     "protoutils",
     "randutils",
     "stats",
@@ -2673,6 +2684,7 @@
     "github.com/solo-io/go-utils/hashutils",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/log",
+    "github.com/solo-io/go-utils/manifesttestutils",
     "github.com/solo-io/go-utils/protoutils",
     "github.com/solo-io/go-utils/stats",
     "github.com/solo-io/go-utils/testutils",

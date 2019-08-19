@@ -84,9 +84,18 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	}
 
 	addr := fmt.Sprintf(":%d", clientSettings.ServerPort)
-	lis, err := net.Listen("tcp", addr)
+	var lis net.Listener
+	if clientSettings.ServerUDSAddr != "" {
+		addr = clientSettings.ServerUDSAddr
+		logger.Info("extauth server running in unix domain socket mode, listening at ", addr)
+		lis, err = net.Listen("unix", addr)
+	} else {
+		logger.Info("extauth server running in grpc mode, listening at ", addr)
+		lis, err = net.Listen("tcp", addr)
+	}
+
 	if err != nil {
-		logger.Error("Failed to listen for gRPC: %v", err)
+		logger.Error("Failed to listen for gRPC at %v: %v", addr, err)
 		return err
 	}
 	go func() {

@@ -105,7 +105,8 @@ install/distribution:
 # Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
 .PHONY: clean
 clean:
-	rm -rf _output
+	rm -rf $(OUTPUT_DIR)
+	rm -rf $(TEST_ASSET_DIR)
 	git clean -xdf install
 
 #----------------------------------------------------------------------------------
@@ -453,16 +454,21 @@ helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 
+install/glooe-gateway.yaml: init-helm
+	helm template install/helm/gloo-ee $(HELMFLAGS) | tee $@ $(OUTPUT_YAML)
+
 .PHONY: init-helm
-init-helm:
+init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
+$(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
+	touch $@
 
-install/manifest/glooe-release.yaml: helm-template
+install/manifest/glooe-release.yaml: init-helm
 	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
 
-install/manifest/glooe-distribution.yaml: helm-template
+install/manifest/glooe-distribution.yaml: init-helm
 	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
 
 update-helm-chart:

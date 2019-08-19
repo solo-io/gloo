@@ -1,37 +1,39 @@
-{{- $image := .Values.extAuth.deployment.image }}
+{{- $extAuth := .Values.global.extensions.extAuth }}
+{{- if not $extAuth.envoySidecar }}
+{{- $image := $extAuth.deployment.image }}
 {{- if .Values.global  }}
-{{- $image = merge .Values.extAuth.deployment.image .Values.global.image }}
+{{- $image = merge $extAuth.deployment.image .Values.global.image }}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.extAuth.deployment.name }}
-  name: {{ .Values.extAuth.deployment.name }}
+    gloo: {{ $extAuth.deployment.name }}
+  name: {{ $extAuth.deployment.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      gloo: {{ .Values.extAuth.deployment.name }}
+      gloo: {{ $extAuth.deployment.name }}
   template:
     metadata:
       labels:
-        gloo: {{ .Values.extAuth.deployment.name }}
-      {{- if .Values.extAuth.deployment.stats }}
+        gloo: {{ $extAuth.deployment.name }}
+      {{- if $extAuth.deployment.stats }}
       annotations:
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
-      {{- if .Values.extAuth.plugins }}
+      {{- if $extAuth.plugins }}
       volumes:
       - emptyDir: {}
         name: auth-plugins
       initContainers:
-      {{- range $name, $plugin := .Values.extAuth.plugins }}
+      {{- range $name, $plugin := $extAuth.plugins }}
       {{- $pluginImage := merge $plugin.image $.Values.global.image }}
       - image: {{template "gloo.image" $pluginImage}}
         {{- if $pluginImage.pullPolicy }}
@@ -44,47 +46,16 @@ spec:
       {{- end}}
       {{- end}}
       containers:
-        - image: {{template "gloo.image" $image}}
-          imagePullPolicy: {{ $image.pullPolicy }}
-          name: {{ .Values.extAuth.deployment.name }}
-          {{- if .Values.extAuth.plugins }}
-          volumeMounts:
-            - name: auth-plugins
-              mountPath: /auth-plugins
-          {{- end}}
-          env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: GLOO_ADDRESS
-  {{- if .Values.extAuth.deployment.glooAddress }}
-              value: {{ .Values.extAuth.deployment.glooAddress }}
-  {{- else }}
-              value: gloo:{{ .Values.gloo.gloo.deployment.xdsPort }}
-  {{- end }}
-            - name: SIGNING_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.extAuth.signingKey.name }}
-                  key: signing-key
-            {{- if .Values.extAuth.deployment.debugPort }}
-            - name: DEBUG_PORT
-              value: {{ .Values.extAuth.deployment.debugPort  | quote }}
-            {{- end }}
-            {{- if .Values.extAuth.deployment.port }}
-            - name: SERVER_PORT
-              value: {{ .Values.extAuth.deployment.port  | quote }}
-            {{- end }}
-            {{- if .Values.extAuth.userIdHeader }}
-            - name: USER_ID_HEADER
-              value: {{ .Values.extAuth.userIdHeader  | quote }}
-            {{- end }}
-            {{- if .Values.extAuth.deployment.stats }}
-            - name: START_STATS_SERVER
-              value: "true"
-            {{- end}}
-      {{- if $image.pullSecret }}
+      {{- include "gloo.extauthcontainer" . | nindent 6 }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
-      {{- end }}
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    gloo: gateway-proxy
+                topologyKey: kubernetes.io/hostname
+  {{- end}}

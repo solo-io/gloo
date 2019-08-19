@@ -63,6 +63,12 @@ gloo:
         repository: gateway
         registry: quay.io/solo-io
     enabled: true
+    updateValues: true
+    conversionJob:
+      image:
+        repository: gateway-conversion
+      restartPolicy: Never
+
 ########################################################################
 ###                                                                  ###
 ###                        Rate Limit                                ###
@@ -94,27 +100,6 @@ redis:
   service:
     port: 6379
     name: redis
-
-########################################################################
-###                                                                  ###
-###                         Ext Auth                                 ###
-###                                                                  ###
-########################################################################
-
-extAuth:
-  userIdHeader: x-user-id
-  deployment:
-    stats: true
-    name: "extauth"
-    image:
-      repository: extauth-ee
-    port: 8080
-  service:
-    port: 8080
-    name: extauth
-  signingKey:
-    name: extauth-signing-key
-    signing-key: ""
 
 ########################################################################
 ###                                                                  ###
@@ -169,6 +154,22 @@ global:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
     pullSecret: solo-io-readerbot-pull-secret
+  extensions:
+    extAuth:
+      envoySidecar: false
+      userIdHeader: x-user-id
+      deployment:
+        stats: true
+        name: "extauth"
+        image:
+          repository: extauth-ee
+        port: 8083
+      service:
+        port: 8083
+        name: extauth
+      signingKey:
+        name: extauth-signing-key
+        signing-key: ""
 
 ########################################################################
 ###                                                                  ###
