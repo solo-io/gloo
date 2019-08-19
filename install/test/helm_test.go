@@ -170,6 +170,25 @@ var _ = Describe("Helm Test", func() {
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 				})
 
+				It("enables anti affinity ", func() {
+					helmFlags := "--namespace " + namespace + " --set gatewayProxies.gatewayProxyV2.kind.deployment.antiAffinity=true"
+					prepareMakefile(helmFlags)
+					gatewayProxyDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						PodAntiAffinity: &v1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									TopologyKey: "kubernetes.io/hostname",
+									LabelSelector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{"gloo": "gateway-proxy"},
+									},
+								},
+							}},
+						},
+					}
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
 				It("enables probes", func() {
 					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set gatewayProxies.gatewayProxyV2.podTemplate.probes=true"
 

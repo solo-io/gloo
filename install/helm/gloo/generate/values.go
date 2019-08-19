@@ -152,8 +152,12 @@ type GatewayProxy struct {
 }
 
 type GatewayProxyKind struct {
-	Deployment *DeploymentSpec `json:"deployment,omitempty"`
-	DaemonSet  *DaemonSetSpec  `json:"daemonSet,omitempty"`
+	Deployment *GatewayProxyDeployment `json:"deployment,omitempty"`
+	DaemonSet  *DaemonSetSpec          `json:"daemonSet,omitempty"`
+}
+type GatewayProxyDeployment struct {
+	AntiAffinity bool `json:"antiAffinity" desc:"configure anti affinity such that pods are prefferably not co-located"`
+	*DeploymentSpec
 }
 
 type DaemonSetSpec struct {
