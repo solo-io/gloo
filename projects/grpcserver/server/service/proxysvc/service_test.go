@@ -84,8 +84,8 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(proxy, nil)
 			rawGetter.EXPECT().
-				GetRaw(proxy, gloov1.ProxyCrd).
-				Return(getRaw(proxy), nil)
+				GetRaw(context.Background(), proxy, gloov1.ProxyCrd).
+				Return(getRaw(proxy))
 
 			request := &v1.GetProxyRequest{Ref: &ref}
 			actual, err := client.GetProxy(context.TODO(), request)
@@ -127,14 +127,14 @@ var _ = Describe("ServiceTest", func() {
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Proxy{proxy1}, nil)
 			rawGetter.EXPECT().
-				GetRaw(proxy1, gloov1.ProxyCrd).
-				Return(getRaw(proxy1), nil)
+				GetRaw(context.Background(), proxy1, gloov1.ProxyCrd).
+				Return(getRaw(proxy1))
 			proxyClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Proxy{proxy2}, nil)
 			rawGetter.EXPECT().
-				GetRaw(proxy2, gloov1.ProxyCrd).
-				Return(getRaw(proxy2), nil)
+				GetRaw(context.Background(), proxy2, gloov1.ProxyCrd).
+				Return(getRaw(proxy2))
 
 			request := &v1.ListProxiesRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListProxies(context.TODO(), request)

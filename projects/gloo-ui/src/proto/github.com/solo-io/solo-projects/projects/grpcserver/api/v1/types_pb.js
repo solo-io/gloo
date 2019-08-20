@@ -62,7 +62,8 @@ proto.glooeeapi.solo.io.Raw.prototype.toObject = function(opt_includeInstance) {
 proto.glooeeapi.solo.io.Raw.toObject = function(includeInstance, msg) {
   var f, obj = {
     fileName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    content: jspb.Message.getFieldWithDefault(msg, 2, "")
+    content: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    contentRenderError: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -107,6 +108,10 @@ proto.glooeeapi.solo.io.Raw.deserializeBinaryFromReader = function(msg, reader) 
       var value = /** @type {string} */ (reader.readString());
       msg.setContent(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setContentRenderError(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -150,6 +155,13 @@ proto.glooeeapi.solo.io.Raw.serializeBinaryToWriter = function(message, writer) 
       f
     );
   }
+  f = message.getContentRenderError();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -180,6 +192,21 @@ proto.glooeeapi.solo.io.Raw.prototype.getContent = function() {
 /** @param {string} value */
 proto.glooeeapi.solo.io.Raw.prototype.setContent = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string content_render_error = 3;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.Raw.prototype.getContentRenderError = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.Raw.prototype.setContentRenderError = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

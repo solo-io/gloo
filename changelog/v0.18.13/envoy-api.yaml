@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add list envoy details to the apiserver.
+    issueLink: https://github.com/solo-io/solo-projects/issues/894
+  - type: NON_USER_FACING
+    description: Allow removing all watch namespaces in the apiserver.

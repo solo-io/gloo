@@ -39,6 +39,7 @@ func kubeSettingsClient(ctx context.Context) (gloov1.SettingsClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
 		Crd:             gloov1.SettingsCrd,
 		Cfg:             cfg,

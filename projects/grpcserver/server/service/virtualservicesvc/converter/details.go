@@ -21,7 +21,6 @@ import (
 const (
 	FailedToParseExtAuthConfig   = "Failed to parse extauth config"
 	FailedToParseRateLimitConfig = "Failed to parse rate limit config"
-	FailedToGenerateRawFile      = "Failed to generate raw source file"
 )
 
 type VirtualServiceDetailsConverter interface {
@@ -72,11 +71,6 @@ func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gate
 		}
 	}
 
-	raw, err := c.rawGetter.GetRaw(vs, gatewayv1.VirtualServiceCrd)
-	if err != nil {
-		contextutils.LoggerFrom(ctx).Errorw(FailedToGenerateRawFile, zap.Error(err), zap.Any("virtualService", vs))
-	}
-	details.Raw = raw
-
+	details.Raw = c.rawGetter.GetRaw(ctx, vs, gatewayv1.VirtualServiceCrd)
 	return details
 }

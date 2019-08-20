@@ -163,7 +163,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("is a no-op when only ref is provided", func() {
+		It("clears watch namespaces but not refresh rate when a request contains only a ref", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
 				Name:      "name",
@@ -177,17 +177,24 @@ var _ = Describe("ServiceTest", func() {
 				RefreshRate:     &types.Duration{Seconds: 50},
 				WatchNamespaces: []string{"x", "y"},
 			}
+			writtenSettings := &gloov1.Settings{
+				Metadata: core.Metadata{
+					Namespace: ref.Namespace,
+					Name:      ref.Name,
+				},
+				RefreshRate: &types.Duration{Seconds: 50},
+			}
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(settings, nil)
 			settingsClient.EXPECT().
-				Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(settings, nil)
+				Write(writtenSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(writtenSettings, nil)
 
 			actual, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateSettingsResponse{Settings: settings}
+			expected := &v1.UpdateSettingsResponse{Settings: writtenSettings}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 

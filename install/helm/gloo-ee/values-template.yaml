@@ -30,11 +30,12 @@ gloo:
       replicas: 1
   gatewayProxies:
     gatewayProxyV2:
+      stats: true
+      readConfig: true
       kind:
         deployment:
           replicas: 1
       podTemplate:
-        stats: true
         httpPort: 8080
         httpsPort: 8443
         image:

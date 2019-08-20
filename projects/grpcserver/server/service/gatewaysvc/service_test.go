@@ -84,8 +84,8 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(gateway, nil)
 			rawGetter.EXPECT().
-				GetRaw(gateway, gatewayv2.GatewayCrd).
-				Return(getRaw(gateway), nil)
+				GetRaw(context.Background(), gateway, gatewayv2.GatewayCrd).
+				Return(getRaw(gateway))
 
 			request := &v1.GetGatewayRequest{Ref: &ref}
 			actual, err := client.GetGateway(context.TODO(), request)
@@ -127,14 +127,14 @@ var _ = Describe("ServiceTest", func() {
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gatewayv2.Gateway{gateway1}, nil)
 			rawGetter.EXPECT().
-				GetRaw(gateway1, gatewayv2.GatewayCrd).
-				Return(getRaw(gateway1), nil)
+				GetRaw(context.Background(), gateway1, gatewayv2.GatewayCrd).
+				Return(getRaw(gateway1))
 			gatewayClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gatewayv2.Gateway{gateway2}, nil)
 			rawGetter.EXPECT().
-				GetRaw(gateway2, gatewayv2.GatewayCrd).
-				Return(getRaw(gateway2), nil)
+				GetRaw(context.Background(), gateway2, gatewayv2.GatewayCrd).
+				Return(getRaw(gateway2))
 
 			request := &v1.ListGatewaysRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListGateways(context.TODO(), request)
@@ -201,8 +201,8 @@ var _ = Describe("ServiceTest", func() {
 				Write(toWrite, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 				Return(toWrite, nil)
 			rawGetter.EXPECT().
-				GetRaw(toWrite, gatewayv2.GatewayCrd).
-				Return(getRaw(toWrite), nil)
+				GetRaw(context.Background(), toWrite, gatewayv2.GatewayCrd).
+				Return(getRaw(toWrite))
 
 			request := &v1.UpdateGatewayRequest{Gateway: input}
 			actual, err := client.UpdateGateway(context.TODO(), request)

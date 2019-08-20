@@ -16,6 +16,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
@@ -45,8 +47,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	artifactClient := setup.NewArtifactClient(clientSet)
 	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, artifactClient)
 	client := license.NewClient(ctx)
-	coreV1Interface := setup.NewCoreV1Interface(clientSet)
-	namespaceClient := kube.NewNamespaceClient(coreV1Interface)
+	namespacesGetter := setup.NewNamespacesGetter(clientSet)
+	namespaceClient := kube.NewNamespaceClient(namespacesGetter)
 	oAuthEndpoint := setup.NewOAuthEndpoint()
 	buildVersion := setup.GetBuildVersion()
 	string2 := envutils.MustGetPodNamespace(ctx)
@@ -64,6 +66,10 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, gatewayClient, rawGetter)
 	proxyClient := setup.NewProxyClient(clientSet)
 	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, proxyClient, rawGetter)
-	glooGrpcService := NewGlooGrpcService(listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer)
+	podsGetter := setup.NewPodsGetter(clientSet)
+	httpGetter := envoydetails.NewHttpGetter()
+	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter)
+	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
+	glooGrpcService := NewGlooGrpcService(listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer)
 	return glooGrpcService, nil
 }

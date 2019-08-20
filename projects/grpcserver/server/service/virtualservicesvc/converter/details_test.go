@@ -71,7 +71,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 		}
 	}
 
-	Describe("GetDetails", func() {
+	Describe("List", func() {
 		getExpectedRaw := func() *v1.Raw {
 			return &v1.Raw{FileName: "fn", Content: "ct"}
 		}
@@ -158,8 +158,8 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 				virtualService := getVirtualService(testCase.configs)
 				if testCase.expectedRaw != nil {
 					rawGetter.EXPECT().
-						GetRaw(virtualService, gatewayv1.VirtualServiceCrd).
-						Return(testCase.expectedRaw, nil)
+						GetRaw(context.Background(), virtualService, gatewayv1.VirtualServiceCrd).
+						Return(testCase.expectedRaw)
 				}
 				actual := virtualServiceConverter.GetDetails(context.Background(), virtualService)
 				expected := &v1.VirtualServiceDetails{

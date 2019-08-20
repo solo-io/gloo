@@ -95,9 +95,7 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 		}
 		existing.RefreshRate = request.GetRefreshRate()
 	}
-	if request.GetWatchNamespaces() != nil {
-		existing.WatchNamespaces = request.GetWatchNamespaces()
-	}
+	existing.WatchNamespaces = request.GetWatchNamespaces()
 
 	existing.Status = core.Status{}
 	written, err := s.settingsClient.Write(existing, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})

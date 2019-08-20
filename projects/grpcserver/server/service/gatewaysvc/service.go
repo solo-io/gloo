@@ -79,14 +79,8 @@ func (s *gatewayGrpcService) UpdateGateway(ctx context.Context, request *v1.Upda
 }
 
 func (s *gatewayGrpcService) getDetails(gateway *v2.Gateway) *v1.GatewayDetails {
-	raw, err := s.rawGetter.GetRaw(gateway, gatewayv2.GatewayCrd)
-	if err != nil {
-		// Failed to generate yaml for resource -- not worth propagating
-		contextutils.LoggerFrom(s.ctx).Errorw(err.Error(), zap.Error(err), zap.Any("gateway", gateway))
-	}
-
 	return &v1.GatewayDetails{
 		Gateway: gateway,
-		Raw:     raw,
+		Raw:     s.rawGetter.GetRaw(s.ctx, gateway, gatewayv2.GatewayCrd),
 	}
 }

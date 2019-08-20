@@ -11,4 +11,6 @@ message Raw {
     string file_name = 1;
     // Content of the file
     string content = 2;
+    // Error encountered while rendering content
+    string content_render_error = 3;
 }

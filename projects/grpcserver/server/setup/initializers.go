@@ -21,7 +21,11 @@ func NewOAuthEndpoint() v1.OAuthEndpoint {
 	return v1.OAuthEndpoint{Url: os.Getenv("OAUTH_SERVER"), ClientName: os.Getenv("OAUTH_CLIENT")}
 }
 
-func NewCoreV1Interface(set *ClientSet) corev1.CoreV1Interface {
+func NewNamespacesGetter(set *ClientSet) corev1.NamespacesGetter {
+	return set.CoreV1Interface
+}
+
+func NewPodsGetter(set *ClientSet) corev1.PodsGetter {
 	return set.CoreV1Interface
 }
 

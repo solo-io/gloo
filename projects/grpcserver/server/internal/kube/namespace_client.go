@@ -10,12 +10,12 @@ type NamespaceClient interface {
 }
 
 type namespaceClient struct {
-	client corev1.CoreV1Interface
+	namespacesGetter corev1.NamespacesGetter
 }
 
 func (n *namespaceClient) ListNamespaces() ([]string, error) {
 	var namespaces []string
-	nsList, err := n.client.Namespaces().List(metav1.ListOptions{})
+	nsList, err := n.namespacesGetter.Namespaces().List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -25,8 +25,8 @@ func (n *namespaceClient) ListNamespaces() ([]string, error) {
 	return namespaces, nil
 }
 
-func NewNamespaceClient(client corev1.CoreV1Interface) NamespaceClient {
+func NewNamespaceClient(namespacesGetter corev1.NamespacesGetter) NamespaceClient {
 	return &namespaceClient{
-		client: client,
+		namespacesGetter: namespacesGetter,
 	}
 }

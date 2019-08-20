@@ -1,8 +1,9 @@
 package rawgetter_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -33,8 +34,7 @@ var _ = Describe("Kube Yaml RawGetter", func() {
 				Content:  "apiVersion: gloo.solo.io/v1\nkind: Proxy\nmetadata:\n  creationTimestamp: null\n  name: name\n  namespace: namespace\nspec: {}\nstatus: {}\n",
 			}
 
-			actual, err := getter.GetRaw(resource, gloov1.ProxyCrd)
-			Expect(err).NotTo(HaveOccurred())
+			actual := getter.GetRaw(context.Background(), resource, gloov1.ProxyCrd)
 			ExpectEqualProtoMessages(actual, expected)
 		})
 	})

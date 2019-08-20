@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -37,16 +38,15 @@ func (m *MockRawGetter) EXPECT() *MockRawGetterMockRecorder {
 }
 
 // GetRaw mocks base method
-func (m *MockRawGetter) GetRaw(arg0 resources.InputResource, arg1 crd.Crd) (*v1.Raw, error) {
+func (m *MockRawGetter) GetRaw(arg0 context.Context, arg1 resources.InputResource, arg2 crd.Crd) *v1.Raw {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRaw", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetRaw", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*v1.Raw)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // GetRaw indicates an expected call of GetRaw
-func (mr *MockRawGetterMockRecorder) GetRaw(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRawGetterMockRecorder) GetRaw(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockRawGetter)(nil).GetRaw), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockRawGetter)(nil).GetRaw), arg0, arg1, arg2)
 }

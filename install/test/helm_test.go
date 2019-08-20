@@ -83,6 +83,15 @@ var _ = Describe("Helm Test", func() {
 						"gateway-proxy-id": translator.GatewayProxyName,
 						"gateway-proxy":    "live",
 					}
+					podAnnotations := map[string]string{
+						"prometheus.io/path":     "/metrics",
+						"prometheus.io/port":     "8081",
+						"prometheus.io/scrape":   "true",
+						"readconfig-stats":       "/stats",
+						"readconfig-ready":       "/ready",
+						"readconfig-config_dump": "/config_dump",
+						"readconfig-port":        "8082",
+					}
 					podname := v1.EnvVar{
 						Name: "POD_NAME",
 						ValueFrom: &v1.EnvVarSource{
@@ -106,6 +115,7 @@ var _ = Describe("Helm Test", func() {
 						MatchLabels: selector,
 					}
 					deploy.Spec.Template.ObjectMeta.Labels = podLabels
+					deploy.Spec.Template.ObjectMeta.Annotations = podAnnotations
 					deploy.Spec.Template.Spec.Volumes = []v1.Volume{{
 						Name: "envoy-config",
 						VolumeSource: v1.VolumeSource{

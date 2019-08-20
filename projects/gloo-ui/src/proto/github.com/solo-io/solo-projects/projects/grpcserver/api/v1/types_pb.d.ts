@@ -11,6 +11,9 @@ export class Raw extends jspb.Message {
   getContent(): string;
   setContent(value: string): void;
 
+  getContentRenderError(): string;
+  setContentRenderError(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Raw.AsObject;
   static toObject(includeInstance: boolean, msg: Raw): Raw.AsObject;
@@ -25,6 +28,7 @@ export namespace Raw {
   export type AsObject = {
     fileName: string,
     content: string,
+    contentRenderError: string,
   }
 }
 

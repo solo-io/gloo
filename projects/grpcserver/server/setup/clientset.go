@@ -5,6 +5,7 @@ import (
 
 	consulapi "github.com/hashicorp/consul/api"
 	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -138,7 +139,7 @@ func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.Re
 		Cfg:                &cfg,
 		SharedCache:        cache,
 		NamespaceWhitelist: []string{v1.NamespaceAll},
-		SkipCrdCreation:    true,
+		SkipCrdCreation:    settingsutil.GetSkipCrdCreation(),
 	}
 }
 

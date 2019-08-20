@@ -14,6 +14,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
@@ -36,7 +38,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 
 		// Resource clients.
 		setup.NewClientSet,
-		setup.NewCoreV1Interface,
+		setup.NewNamespacesGetter,
+		setup.NewPodsGetter,
 		setup.NewSettingsClient,
 		setup.NewVirtualServiceClient,
 		setup.NewUpstreamClient,
@@ -56,6 +59,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		selection.NewVirtualServiceSelector,
 		us_mutation.NewMutator,
 		us_mutation.NewFactory,
+		envoydetails.NewClient,
+		envoydetails.NewHttpGetter,
 
 		// Services
 		upstreamsvc.NewUpstreamGrpcService,
@@ -65,6 +70,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		virtualservicesvc.NewVirtualServiceGrpcService,
 		gatewaysvc.NewGatewayGrpcService,
 		proxysvc.NewProxyGrpcService,
+		envoysvc.NewEnvoyGrpcService,
 		NewGlooGrpcService,
 	)
 	return &GlooGrpcService{}, nil

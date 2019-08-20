@@ -52,14 +52,8 @@ func (s *proxyGrpcService) ListProxies(ctx context.Context, request *v1.ListProx
 }
 
 func (s *proxyGrpcService) getDetails(proxy *gloov1.Proxy) *v1.ProxyDetails {
-	raw, err := s.rawGetter.GetRaw(proxy, gloov1.ProxyCrd)
-	if err != nil {
-		// Failed to generate yaml for resource -- not worth propagating
-		contextutils.LoggerFrom(s.ctx).Errorw(err.Error(), zap.Error(err), zap.Any("proxy", proxy))
-	}
-
 	return &v1.ProxyDetails{
 		Proxy: proxy,
-		Raw:   raw,
+		Raw:   s.rawGetter.GetRaw(s.ctx, proxy, gloov1.ProxyCrd),
 	}
 }

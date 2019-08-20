@@ -31,6 +31,7 @@ weight: 5
 ```yaml
 "fileName": string
 "content": string
+"contentRenderError": string
 
 ```
 
@@ -38,6 +39,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `fileName` | `string` | e.g. resource-name.yaml |  |
 | `content` | `string` | Content of the file |  |
+| `contentRenderError` | `string` | Error encountered while rendering content |  |
 
 
 
