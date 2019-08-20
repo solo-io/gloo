@@ -180,9 +180,9 @@ func updateExtensionsImageVersionAndPullPolicy(config generate.HelmConfig, versi
 
 func generateValuesYamls(version, repositoryPrefix string) error {
 	// Generate values for standard manifest
-	standardPullPolicy := always
+	standardPullPolicy := ifNotPresent
 	if version == "dev" {
-		standardPullPolicy = ifNotPresent
+		standardPullPolicy = always
 	}
 	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput, repositoryPrefix); err != nil {
 		return err

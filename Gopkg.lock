@@ -1276,12 +1276,12 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:02bd6d343be7d553a548b791e6fdd4189be86d696fcc0e10a775f1b6e7261dd1"
+  digest = "1:606b590efc9386016fe24c4f7b04b70822abbcc8f7da2859b4855b257f4355e0"
   name = "github.com/solo-io/ext-auth-plugins"
   packages = ["api"]
   pruneopts = "UT"
-  revision = "2301b8f44fbf91f805948d1ac373e33dd464fabb"
-  version = "v0.0.1"
+  revision = "5c8b4bca0668aef16f81972d3918448fc832ef72"
+  version = "v0.0.3"
 
 [[projects]]
   digest = "1:f9af9d5064be9b7fa6a190f22a7ccf0017858b836242d40a06ece28e48d612f9"

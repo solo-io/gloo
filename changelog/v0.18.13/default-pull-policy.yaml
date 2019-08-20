@@ -1,0 +1,9 @@
+changelog:
+- type: FIX
+  description: |
+    Set default Helm value for `imagePullPolicy` to `IfNotPresent`.
+  issueLink: https://github.com/solo-io/solo-projects/issues/930
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-plugins
+  dependencyTag: v0.0.3

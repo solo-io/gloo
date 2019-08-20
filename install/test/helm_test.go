@@ -190,7 +190,7 @@ var _ = Describe("Helm Test", func() {
 						v1.Container{
 							Name:            "extauth",
 							Image:           "quay.io/solo-io/extauth-ee:dev",
-							ImagePullPolicy: v1.PullIfNotPresent,
+							ImagePullPolicy: getPullPolicy(),
 							Env: []v1.EnvVar{
 								{
 									Name: "POD_NAMESPACE",
