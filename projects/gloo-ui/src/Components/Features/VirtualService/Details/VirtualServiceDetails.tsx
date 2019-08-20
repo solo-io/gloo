@@ -39,11 +39,20 @@ import {
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
 import { Struct } from 'google-protobuf/google/protobuf/struct_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 
 const DetailsContent = styled.div`
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr 1fr;
   grid-column-gap: 30px;
+`;
+
+const YamlLink = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 0;
 `;
 
 const DetailsSection = styled.div`
@@ -70,6 +79,7 @@ export const VirtualServiceDetails = (props: Props) => {
   const [virtualService, setVirtualService] = React.useState<
     VirtualService.AsObject | undefined
   >(undefined);
+  const [rawVS, setRawVS] = React.useState<Raw.AsObject | undefined>(undefined);
 
   let resourceRef = new ResourceRef();
   resourceRef.setName(virtualservicename);
@@ -88,13 +98,23 @@ export const VirtualServiceDetails = (props: Props) => {
 
   React.useEffect(() => {
     if (!!data) {
-      setVirtualService(data.virtualService);
+      if (data.virtualServiceDetails) {
+        setVirtualService(data.virtualServiceDetails.virtualService);
+        setRawVS(data.virtualServiceDetails.raw);
+      } else {
+        setVirtualService(data.virtualService);
+      }
     }
   }, [loading]);
 
   React.useEffect(() => {
     if (!!updateData) {
-      setVirtualService(updateData.virtualService);
+      if (updateData.virtualServiceDetails) {
+        setVirtualService(updateData.virtualServiceDetails.virtualService);
+        setRawVS(updateData.virtualServiceDetails.raw);
+      } else {
+        setVirtualService(updateData.virtualService);
+      }
     }
   }, [updateLoading]);
 
@@ -464,6 +484,14 @@ export const VirtualServiceDetails = (props: Props) => {
         }
         onClose={() => history.push(`/virtualservices/`)}>
         <DetailsContent>
+          {!!rawVS && (
+            <YamlLink>
+              <FileDownloadLink
+                fileContent={rawVS.content}
+                fileName={rawVS.fileName}
+              />
+            </YamlLink>
+          )}
           <DetailsSection>
             <Domains domains={domains} domainsChanged={domainsChanged} />
           </DetailsSection>

@@ -12,6 +12,8 @@ import { CardCSS } from 'Styles/CommonEmotions/card';
 import { hslToHSLA } from 'Styles/colors';
 import { HealthIndicator } from './HealthIndicator';
 import { Popconfirm, Tooltip } from 'antd';
+import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { FileDownloadActionCircle } from './FileDownloadLink';
 
 const Container = styled.div`
   ${CardCSS};
@@ -109,9 +111,16 @@ const DetailContent = styled.div`
   word-break: break-all;
 `;
 
+const Actions = styled.div`
+  display: grid;
+  grid-template-areas: 'delete expand' 'other download';
+  grid-template-columns: 18px 18px;
+  grid-template-rows: 18px 18px;
+  grid-gap: 5px;
+`;
+
 const ActionCircle = styled(TableActionCircle)`
   display: inline-block;
-  margin: 1px;
   color: ${colors.septemberGrey};
 `;
 
@@ -160,6 +169,7 @@ export interface CardType {
   healthStatus?: number;
   onCreate?: () => any;
   extraInfoComponent?: React.FC;
+  downloadableContent?: Raw.AsObject;
 }
 
 export const Card = (props: CardType) => {
@@ -175,7 +185,8 @@ export const Card = (props: CardType) => {
     healthStatus,
     onCreate,
     extraInfoComponent,
-    removeConfirmText
+    removeConfirmText,
+    downloadableContent
   } = props;
 
   const handleFooterClick = () => {
@@ -202,18 +213,29 @@ export const Card = (props: CardType) => {
           <Tooltip placement='top' title={cardTitle}>
             <CardTitleText>{cardTitle}</CardTitleText>
           </Tooltip>
-          <div>
+          <Actions>
             {!!onRemoveCard && (
               <Popconfirm
                 onConfirm={onRemoveCard}
                 title={removeConfirmText}
                 okText='Yes'
                 cancelText='No'>
-                <ActionCircle>x</ActionCircle>
+                <ActionCircle style={{ gridArea: 'delete' }}>x</ActionCircle>
               </Popconfirm>
             )}
-            {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
-          </div>
+            {!!onCreate && (
+              <ActionCircle style={{ gridArea: 'expand' }} onClick={onCreate}>
+                +
+              </ActionCircle>
+            )}
+            {!!downloadableContent && (
+              <FileDownloadActionCircle
+                fileContent={downloadableContent.content}
+                fileName={downloadableContent.fileName}
+                gridArea={'download'}
+              />
+            )}
+          </Actions>
         </CardTitle>
         <CardSubtitle>
           {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}

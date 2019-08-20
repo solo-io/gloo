@@ -1,16 +1,16 @@
 import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
-
 import styled from '@emotion/styled/macro';
 import { Formik, FormikErrors } from 'formik';
 import * as yup from 'yup';
 import { useGetGatewayList, useUpdateGateway } from 'Api/v2/useGatewayClientV2';
 import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
-import { colors, soloConstants } from 'Styles';
+import { colors, soloConstants, healthConstants } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
+import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
+import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
 import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
 import { NamespacesContext } from 'GlooIApp';
 import {
@@ -155,15 +155,11 @@ export const Gateways = (props: Props) => {
         : 0
     };
 
-    console.log(updateGatewayData);
-
     setNewUpdateVariables({
       originalGateway: data.getGatewayDetailsList()[gatewayIndex].getGateway()!,
       updates: updateGatewayData
     });
   };
-
-  //console.log(allGateways);
 
   return (
     <React.Fragment>
@@ -183,9 +179,21 @@ export const Gateways = (props: Props) => {
                 value: gateway.gateway!.metadata!.namespace
               },
               { title: 'SSL', value: gateway.gateway!.ssl ? 'True' : 'False' }
-            ]}>
+            ]}
+            health={
+              gateway.gateway!.status
+                ? gateway.gateway!.status!.state
+                : healthConstants.Pending.value
+            }
+            healthMessage={'Gateway Status'}>
             <InsideHeader>
-              <div>Configuration Settings</div> <div>gateway-ssl.yaml</div>
+              <div>Configuration Settings</div>{' '}
+              {!!gateway.raw && (
+                <FileDownloadLink
+                  fileName={gateway.raw.fileName}
+                  fileContent={gateway.raw.content}
+                />
+              )}
             </InsideHeader>
             <GatewayForm
               doUpdate={(values: HttpValuesType) => updateGateway(values, ind)}

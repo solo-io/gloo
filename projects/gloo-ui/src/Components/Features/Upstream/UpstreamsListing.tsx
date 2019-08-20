@@ -23,7 +23,8 @@ import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { useGetUpstreamsListV2 } from 'Api/v2/useUpstreamClientV2';
 import {
   ListUpstreamsRequest,
-  DeleteUpstreamRequest
+  DeleteUpstreamRequest,
+  UpstreamDetails
 } from '../../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { useGetUpstreamsList, useDeleteUpstream } from 'Api';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -53,6 +54,8 @@ import _ from 'lodash';
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { Popconfirm } from 'antd';
 import { upstreams } from 'Api/v2/UpstreamClient';
+import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
 
 const TypeHolder = styled.div`
   display: flex;
@@ -124,7 +127,9 @@ const getTableColumns = (
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (us: Upstream.AsObject) => {
+      render: (upstreamDetails: UpstreamDetails.AsObject) => {
+        const us = upstreamDetails.upstream!;
+
         return (
           <TableActions>
             <Popconfirm
@@ -136,6 +141,12 @@ const getTableColumns = (
               cancelText='No'>
               <TableActionCircle>x</TableActionCircle>
             </Popconfirm>
+            {!!upstreamDetails.raw && (
+              <FileDownloadActionCircle
+                fileContent={upstreamDetails.raw.content}
+                fileName={upstreamDetails.raw.fileName}
+              />
+            )}
             <TableActionCircle onClick={() => startCreatingRoute(us)}>
               +
             </TableActionCircle>
@@ -178,16 +189,18 @@ export const UpstreamsListing = (props: Props) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   let params = new URLSearchParams(props.location.search);
 
-  const [catalogNotTable, setCatalogNotTable] = React.useState(false);
+  const [catalogNotTable, setCatalogNotTable] = React.useState(
+    !props.location.pathname.includes('table')
+  );
   const [
     upstreamForRouteCreation,
     setUpstreamForRouteCreation
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
   const namespaces = React.useContext(NamespacesContext);
 
-  const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
-    []
-  );
+  const [upstreamsList, setUpstreamsList] = React.useState<
+    UpstreamDetails.AsObject[]
+  >([]);
 
   const { data, loading, error, setNewVariables } = useGetUpstreamsListV2({
     namespaces: namespaces.namespacesList
@@ -195,7 +208,7 @@ export const UpstreamsListing = (props: Props) => {
 
   React.useEffect(() => {
     if (data && data.toObject().upstreamsList) {
-      setUpstreamsList(data.toObject().upstreamsList);
+      setUpstreamsList(data.toObject().upstreamDetailsList);
     }
   }, [loading]);
 
@@ -232,7 +245,9 @@ export const UpstreamsListing = (props: Props) => {
     params.set('status', selectedRadio);
     // group by type
 
-    let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
+    let upstreamsByType = groupBy(upstreamsList, u =>
+      getUpstreamType(u.upstream!)
+    );
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
@@ -244,7 +259,10 @@ export const UpstreamsListing = (props: Props) => {
             upstreamsByTypeArr.map(([type, upstreams]) => {
               // show section according to type filter
               let groupedByNamespaces = Array.from(
-                groupBy(upstreams, u => u.metadata!.namespace).entries()
+                groupBy(
+                  upstreams,
+                  u => u.upstream!.metadata!.namespace
+                ).entries()
               );
 
               if (
@@ -309,10 +327,12 @@ export const UpstreamsListing = (props: Props) => {
 
   const getUsableCatalogData = (
     nameFilter: string,
-    data: Upstream.AsObject[],
+    data: UpstreamDetails.AsObject[],
     radioFilter: string
   ) => {
-    const dataUsed: UpstreamCardData[] = data.map(upstream => {
+    const dataUsed: UpstreamCardData[] = data.map(upstreamDet => {
+      const upstream = upstreamDet.upstream!;
+
       return {
         healthStatus: upstream.status
           ? upstream.status.state
@@ -358,7 +378,8 @@ export const UpstreamsListing = (props: Props) => {
         ...(!!getFunctionInfo(upstream) && {
           extraInfoComponent: () => <ExtraInfo upstream={upstream} />
         }),
-        onCreate: () => setUpstreamForRouteCreation(upstream)
+        onCreate: () => setUpstreamForRouteCreation(upstream),
+        downloadableContent: upstreamDet.raw
       };
     });
 
@@ -373,18 +394,20 @@ export const UpstreamsListing = (props: Props) => {
 
   const getUsableTableData = (
     nameFilter: string,
-    data: Upstream.AsObject[],
+    data: UpstreamDetails.AsObject[],
     checkboxes: CheckboxFilterProps[],
     radioFilter: string
   ) => {
-    const dataUsed = data.map(upstream => {
+    const dataUsed = data.map(upstreamDet => {
+      const upstream = upstreamDet.upstream!;
+
       return {
         ...upstream,
         status: upstream.status,
         type: getUpstreamType(upstream),
         name: upstream.metadata!.name,
         key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`,
-        actions: upstream
+        actions: upstreamDet
       };
     });
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
@@ -406,7 +429,9 @@ export const UpstreamsListing = (props: Props) => {
 
   async function deleteUpstream(name: string, namespace: string) {
     await upstreams.deleteUpstream({ name, namespace });
-    setUpstreamsList(usList => usList.filter(us => us.metadata!.name !== name));
+    setUpstreamsList(usList =>
+      usList.filter(us => us.upstream!.metadata!.name !== name)
+    );
   }
   function handleFilterChange(
     strings: StringFilterProps[],
@@ -434,7 +459,7 @@ export const UpstreamsListing = (props: Props) => {
             successMessage='Upstream added successfully'
           />
           <CatalogTableToggle
-            listIsSelected={catalogNotTable}
+            listIsSelected={!catalogNotTable}
             onToggle={() => {
               const { location, match, history } = props;
 

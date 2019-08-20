@@ -27,7 +27,8 @@ import { CardsListing } from 'Components/Common/CardsListing';
 import { useListVirtualServices, useDeleteVirtualService } from 'Api';
 import {
   ListVirtualServicesRequest,
-  DeleteVirtualServiceRequest
+  DeleteVirtualServiceRequest,
+  VirtualServiceDetails
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
@@ -40,6 +41,8 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Popconfirm } from 'antd';
+import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
+import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 const TableLink = styled.div`
   cursor: pointer;
@@ -114,19 +117,30 @@ const getTableColumns = (
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (vs: VirtualService.AsObject) => {
+      render: (virtualServiceDetails: VirtualServiceDetails.AsObject) => {
+        const virtualService = virtualServiceDetails.virtualService!;
         return (
           <TableActions>
             <Popconfirm
               onConfirm={() =>
-                deleteVirtualService(vs.metadata!.name, vs.metadata!.namespace)
+                deleteVirtualService(
+                  virtualService.metadata!.name,
+                  virtualService.metadata!.namespace
+                )
               }
               title={'Are you sure you want to delete this virtual service? '}
               okText='Yes'
               cancelText='No'>
               <TableActionCircle>x</TableActionCircle>
             </Popconfirm>
-            <TableActionCircle onClick={() => startCreatingRoute(vs)}>
+            {!!virtualServiceDetails.raw && (
+              <FileDownloadActionCircle
+                fileContent={virtualServiceDetails.raw.content}
+                fileName={virtualServiceDetails.raw.fileName}
+              />
+            )}
+            <TableActionCircle
+              onClick={() => startCreatingRoute(virtualService)}>
               +
             </TableActionCircle>
           </TableActions>
@@ -179,9 +193,11 @@ export const VirtualServicesListing = (props: Props) => {
     refetch
   } = useListVirtualServices(listVsRequest.current);
   const { refetch: makeRequest } = useDeleteVirtualService(null);
-  const [catalogNotTable, setCatalogNotTable] = React.useState(true);
-  const [virtualServices, setVirtualServices] = React.useState<
-    VirtualService.AsObject[]
+  const [catalogNotTable, setCatalogNotTable] = React.useState(
+    !props.location.pathname.includes('table')
+  );
+  const [virtualServiceDetails, setVirtualServiceDetails] = React.useState<
+    VirtualServiceDetails.AsObject[]
   >([]);
 
   const [
@@ -190,16 +206,26 @@ export const VirtualServicesListing = (props: Props) => {
   ] = React.useState<VirtualService.AsObject | undefined>(undefined);
   React.useEffect(() => {
     if (vsListData) {
-      setVirtualServices(vsListData.virtualServicesList);
+      if (vsListData.virtualServiceDetailsList.length) {
+        setVirtualServiceDetails(vsListData.virtualServiceDetailsList);
+      } else {
+        setVirtualServiceDetails(
+          vsListData.virtualServicesList.map(vs => {
+            return { virtualService: vs };
+          })
+        );
+      }
     }
   }, [vsLoading]);
 
   const getUsableCatalogData = (
     nameFilter: string,
-    data: VirtualService.AsObject[],
+    data: VirtualServiceDetails.AsObject[],
     radioFilter: string
   ) => {
-    const dataUsed = data.map(virtualService => {
+    const dataUsed = data.map(virtualServiceDetails => {
+      const virtualService = virtualServiceDetails.virtualService!;
+
       return {
         ...virtualService,
         healthStatus: virtualService.status
@@ -222,7 +248,8 @@ export const VirtualServicesListing = (props: Props) => {
             }`
           });
         },
-        onCreate: () => setVirtualServiceForRouteCreation(virtualService)
+        onCreate: () => setVirtualServiceForRouteCreation(virtualService),
+        downloadableContent: virtualServiceDetails.raw
       };
     });
 
@@ -235,10 +262,12 @@ export const VirtualServicesListing = (props: Props) => {
 
   const getUsableTableData = (
     nameFilter: string,
-    data: VirtualService.AsObject[],
+    data: VirtualServiceDetails.AsObject[],
     radioFilter: string
   ) => {
-    const dataUsed = data.map(virtualService => {
+    const dataUsed = data.map(vsDetails => {
+      const virtualService = vsDetails.virtualService!;
+
       return {
         ...virtualService,
         name: {
@@ -256,7 +285,7 @@ export const VirtualServicesListing = (props: Props) => {
         routes: virtualService.virtualHost!.routesList.length,
         status: virtualService.status,
         key: `${virtualService.metadata!.name}`,
-        actions: virtualService
+        actions: vsDetails
       };
     });
 
@@ -288,7 +317,7 @@ export const VirtualServicesListing = (props: Props) => {
           exact
           render={() => (
             <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
-              {!virtualServices.length ? (
+              {!virtualServiceDetails.length ? (
                 <EmptyPrompt>
                   You don't have any virtual services.
                   <CreateVirtualServiceModal
@@ -301,7 +330,7 @@ export const VirtualServicesListing = (props: Props) => {
                 <CardsListing
                   cardsData={getUsableCatalogData(
                     nameFilterValue,
-                    virtualServices,
+                    virtualServiceDetails,
                     radioFilter
                   )}
                 />
@@ -316,7 +345,7 @@ export const VirtualServicesListing = (props: Props) => {
             <SoloTable
               dataSource={getUsableTableData(
                 nameFilterValue,
-                virtualServices,
+                virtualServiceDetails,
                 radioFilter
               )}
               columns={getTableColumns(
@@ -345,8 +374,8 @@ export const VirtualServicesListing = (props: Props) => {
     }
   };
   function deleteVS(name: string, namespace: string) {
-    setVirtualServices(vsList =>
-      vsList.filter(vs => vs.metadata!.name !== name)
+    setVirtualServiceDetails(vsList =>
+      vsList.filter(vs => vs.virtualService!.metadata!.name !== name)
     );
     let deleteReq = new DeleteVirtualServiceRequest();
     let ref = new ResourceRef();
@@ -372,7 +401,7 @@ export const VirtualServicesListing = (props: Props) => {
   }
   return (
     <div>
-      {!!virtualServices.length && (
+      {!!virtualServiceDetails.length && (
         <Heading>
           <Breadcrumb />
           <Action>
@@ -393,7 +422,7 @@ export const VirtualServicesListing = (props: Props) => {
       )}
       <ListingFilter
         showLabels
-        hideFilters={!virtualServices.length}
+        hideFilters={!virtualServiceDetails.length}
         strings={StringFilters}
         radios={RadioFilters}
         onChange={handleFilterChange}

@@ -13,7 +13,7 @@ import {
   RadioFilterProps
 } from 'Components/Common/ListingFilter';
 import { Envoy } from './Envoy';
-import { Proxy } from './Proxy';
+import { Proxys } from './Proxy';
 import { Gateways } from './Gateways';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { NamespacesContext } from 'GlooIApp';
@@ -73,7 +73,7 @@ export const AdminHub = (props: Props) => {
       <React.Fragment>
         <Switch>
           <Route path='/admin/gateways/' render={() => <Gateways />} />
-          <Route path='/admin/proxy/' render={() => <Proxy />} />
+          <Route path='/admin/proxy/' render={() => <Proxys />} />
           <Route path='/admin/envoy/' render={() => <Envoy />} />
         </Switch>
       </React.Fragment>

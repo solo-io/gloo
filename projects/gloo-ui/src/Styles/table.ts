@@ -2,7 +2,9 @@ import styled from '@emotion/styled/macro';
 import { colors } from 'Styles/colors';
 
 export const TableActions = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 18px 18px 18px;
+  grid-gap: 5px;
 `;
 
 export const TableActionCircle = styled.div`
