@@ -171,7 +171,7 @@ const GatewayOverview = () => {
       <StatusTile
         titleText={'Gateway Configuration'}
         titleIcon={<GatewayConfigLogo />}
-        description={'Lorem IPSUUM delicious.'}
+        description={'Gateways are used to configure the protocols and ports for Envoy. Optionally, gateways can be associated with a specific set of virtual services.'}
         exploreMoreLink={{
           prompt: 'View Gateways',
           link: '/admin/gateways/'
@@ -199,7 +199,7 @@ const GatewayOverview = () => {
             <TallyInformationDisplay
               tallyCount={allGateways.length}
               tallyDescription={
-                'gateway configurations currently deployed and configured'
+                'gateway configurations currently deployed'
               }
               color='blue'
             />
@@ -247,7 +247,7 @@ const ProxyOverview = () => {
       <StatusTile
         titleText={'Proxy Configuration'}
         titleIcon={<ProxyConfigLogo />}
-        description={'Lorem IPSUUM delicious.'}
+        description={'Gloo generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'}
         exploreMoreLink={{
           prompt: 'View Proxy',
           link: '/admin/proxy/'
@@ -262,7 +262,7 @@ const ProxyOverview = () => {
             {!!proxyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={proxyErrorCount}
-                tallyDescription={'proxy configurations need your attention'}
+                tallyDescription={'proxy configurations have errors'}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View proxy issues',
@@ -275,7 +275,7 @@ const ProxyOverview = () => {
             <TallyInformationDisplay
               tallyCount={allProxies.length}
               tallyDescription={
-                'proxy configurations currently deployed and configured'
+                'proxy configurations produced by Gloo'
               }
               color='blue'
             />
@@ -319,7 +319,7 @@ const EnvoyOverview = () => {
       <StatusTile
         titleText={'Envoy Configuration'}
         titleIcon={<EnvoyLogo />}
-        description={'Lorem IPSUUM delicious.'}
+        description={'This is the live config dump from Envoy. This is translated directly from the proxy config and should be updated any time the proxy configuration changes.'}
         exploreMoreLink={{
           prompt: 'View Envoy',
           link: '/admin/envoy/'
@@ -329,7 +329,7 @@ const EnvoyOverview = () => {
           <React.Fragment>
             {!!3 ? (
               <TallyInformationDisplay
-                tallyCount={3}
+                tallyCount={1}
                 tallyDescription={'envoy need your attention'}
                 color='orange'
                 moreInfoLink={{
@@ -341,9 +341,9 @@ const EnvoyOverview = () => {
               <GoodStateCongratulations typeOfItem={'envoy configurations'} />
             )}
             <TallyInformationDisplay
-              tallyCount={5}
+              tallyCount={1}
               tallyDescription={
-                'envoy configurations currently deployed and configured'
+                'envoy configurations currently deployed'
               }
               color='blue'
             />

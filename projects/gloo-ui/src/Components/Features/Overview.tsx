@@ -174,7 +174,8 @@ const HealthStatus = (props: Props) => {
                 Envoy Health Status
               </EnvoyHealthTitle>
               <EnvoyHealthSubtitle>
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr
+                Gloo is responsible for configuring Envoy. Whenever Virtual Services or other configs change that affect the proxy,
+                Gloo will immediately detect that change and update Envoy's configuration. 
               </EnvoyHealthSubtitle>
             </div>
             <Link onClick={goToEnvoys}>View Envoy Configuration</Link>
@@ -237,7 +238,7 @@ const VirtualServicesOverview = () => {
         titleText={'Virtual Services'}
         titleIcon={<VSIcon />}
         description={
-          'Virtual Services define a set of route rules with an optional SNI confirguration for a given domain or set of domains.'
+          'Virtual Services define a set of route rules for a given set of domains.'
         }
         exploreMoreLink={{
           prompt: 'View Virtual Services',
@@ -247,19 +248,19 @@ const VirtualServicesOverview = () => {
           <React.Fragment>
             {!!virtualServiceErrorCount ? (
               <TallyInformationDisplay
-                tallyCount={5}
+                tallyCount={virtualServiceErrorCount}
                 tallyDescription={'virtual services need your attention'}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View virtual service issues',
-                  link: '/virtualservices/?status=Rejected'
+                  link: '/virtualservices/table?status=Rejected'
                 }}
               />
             ) : (
               <GoodStateCongratulations typeOfItem={'virtual services'} />
             )}
             <TallyInformationDisplay
-              tallyCount={10}
+              tallyCount={virtualServicesList.length}
               tallyDescription={
                 'virtual services currently installed and configured'
               }
@@ -306,7 +307,7 @@ const UpstreamsOverview = () => {
         titleText={'Upstreams'}
         titleIcon={<USIcon />}
         description={
-          'Upstreams define destinations for routes. Upstreams tell Gloo what to route to and how to route to them.'
+          'Upstreams define destinations for routes.'
         }
         exploreMoreLink={{
           prompt: 'View Upstreams',
@@ -321,7 +322,7 @@ const UpstreamsOverview = () => {
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View upstream issues',
-                  link: '/upstreams/?status=Rejected'
+                  link: '/upstreams/table?status=Rejected'
                 }}
               />
             ) : (
