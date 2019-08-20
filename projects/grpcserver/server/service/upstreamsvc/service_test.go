@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
@@ -31,10 +32,24 @@ var (
 	mutator        *mock_mutator.MockMutator
 	factory        *mock_mutator.MockFactory
 	settingsValues *mock_settings.MockValuesClient
+	rawGetter      *mock_rawgetter.MockRawGetter
 	testErr        = errors.Errorf("test-err")
 )
 
 var _ = Describe("ServiceTest", func() {
+
+	getDetails := func(upstream *gloov1.Upstream, raw *v1.Raw) *v1.UpstreamDetails {
+		return &v1.UpstreamDetails{
+			Upstream: upstream,
+			Raw:      raw,
+		}
+	}
+
+	getRaw := func(name string) *v1.Raw {
+		return &v1.Raw{
+			FileName: name + ".yaml",
+		}
+	}
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
@@ -42,7 +57,8 @@ var _ = Describe("ServiceTest", func() {
 		mutator = mock_mutator.NewMockMutator(mockCtrl)
 		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, settingsValues, mutator, factory)
+		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, settingsValues, mutator, factory, rawGetter)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterUpstreamApiServer(s, apiserver) })
 		client = v1.NewUpstreamApiClient(conn)
@@ -60,19 +76,23 @@ var _ = Describe("ServiceTest", func() {
 				Name:      "name",
 			}
 			ref := metadata.Ref()
-			upstream := gloov1.Upstream{
+			upstream := &gloov1.Upstream{
 				Status:   core.Status{State: core.Status_Accepted},
 				Metadata: metadata,
 			}
+			raw := getRaw(metadata.Name)
 
 			upstreamClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&upstream, nil)
+				Return(upstream, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
+				Return(raw)
 
 			request := &v1.GetUpstreamRequest{Ref: &ref}
 			actual, err := client.GetUpstream(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetUpstreamResponse{Upstream: &upstream}
+			expected := &v1.GetUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -98,26 +118,37 @@ var _ = Describe("ServiceTest", func() {
 	Describe("ListUpstreams", func() {
 		It("works when the upstream client works", func() {
 			ns1, ns2 := "one", "two"
-			upstream1 := gloov1.Upstream{
+			n1, n2 := "n1", "n2"
+			upstream1 := &gloov1.Upstream{
 				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns1},
+				Metadata: core.Metadata{Namespace: ns1, Name: n1},
 			}
-			upstream2 := gloov1.Upstream{
+			upstream2 := &gloov1.Upstream{
 				Status:   core.Status{State: core.Status_Pending},
-				Metadata: core.Metadata{Namespace: ns2},
+				Metadata: core.Metadata{Namespace: ns2, Name: n2},
 			}
+			raw1, raw2 := getRaw(n1), getRaw(n2)
 
 			upstreamClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Upstream{&upstream1}, nil)
+				Return([]*gloov1.Upstream{upstream1}, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream1, gloov1.UpstreamCrd).
+				Return(raw1)
 			upstreamClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Upstream{&upstream2}, nil)
+				Return([]*gloov1.Upstream{upstream2}, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream2, gloov1.UpstreamCrd).
+				Return(raw2)
 
 			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListUpstreams(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListUpstreamsResponse{Upstreams: []*gloov1.Upstream{&upstream1, &upstream2}}
+			expected := &v1.ListUpstreamsResponse{
+				Upstreams:       []*gloov1.Upstream{upstream1, upstream2},
+				UpstreamDetails: []*v1.UpstreamDetails{getDetails(upstream1, raw1), getDetails(upstream2, raw2)},
+			}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -161,15 +192,19 @@ var _ = Describe("ServiceTest", func() {
 					},
 				},
 			}
+			raw := getRaw("name")
 
 			factory.EXPECT().ConfigureUpstream(getInput(&ref))
 			mutator.EXPECT().
 				Create(context.TODO(), &ref, gomock.Any()).
 				Return(upstream, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
+				Return(raw)
 
 			actual, err := client.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateUpstreamResponse{Upstream: upstream}
+			expected := &v1.CreateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -220,15 +255,19 @@ var _ = Describe("ServiceTest", func() {
 					},
 				},
 			}
+			raw := getRaw("name")
 
 			factory.EXPECT().ConfigureUpstream(getInput(&ref))
 			mutator.EXPECT().
 				Update(context.TODO(), &ref, gomock.Any()).
 				Return(upstream, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
+				Return(raw)
 
 			actual, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateUpstreamResponse{Upstream: upstream}
+			expected := &v1.UpdateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 

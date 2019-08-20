@@ -13,13 +13,21 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernet
 import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+
+message UpstreamDetails {
+    gloo.solo.io.Upstream upstream = 1;
+    Raw raw = 2;
+}
 
 message GetUpstreamRequest {
     core.solo.io.ResourceRef ref = 1;
 }
 
 message GetUpstreamResponse {
+    // Deprecated, use upstream_details
     gloo.solo.io.Upstream upstream = 1;
+    UpstreamDetails upstream_details = 2;
 }
 
 message ListUpstreamsRequest {
@@ -27,7 +35,9 @@ message ListUpstreamsRequest {
 }
 
 message ListUpstreamsResponse {
+    // Deprecated, use upstream_details
     repeated gloo.solo.io.Upstream upstreams = 1;
+    repeated UpstreamDetails upstream_details = 2;
 }
 
 message UpstreamInput {
@@ -47,15 +57,18 @@ message CreateUpstreamRequest {
 }
 
 message CreateUpstreamResponse {
+    // Deprecated, use upstream_details
     gloo.solo.io.Upstream upstream = 1;
-}
+    UpstreamDetails upstream_details = 2;}
 
 message UpdateUpstreamRequest {
     UpstreamInput input = 1;
 }
 
 message UpdateUpstreamResponse {
+    // Deprecated, use upstream_details
     gloo.solo.io.Upstream upstream = 1;
+    UpstreamDetails upstream_details = 2;
 }
 
 message DeleteUpstreamRequest {

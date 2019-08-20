@@ -11,6 +11,7 @@ weight: 5
 #### Types:
 
 
+- [UpstreamDetails](#upstreamdetails)
 - [GetUpstreamRequest](#getupstreamrequest)
 - [GetUpstreamResponse](#getupstreamresponse)
 - [ListUpstreamsRequest](#listupstreamsrequest)
@@ -28,6 +29,25 @@ weight: 5
 
 ##### Source File: [github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream.proto](https://github.com/solo-io/solo-projects/blob/master/projects/grpcserver/api/v1/upstream.proto)
 
+
+
+
+
+---
+### UpstreamDetails
+
+
+
+```yaml
+"upstream": .gloo.solo.io.Upstream
+"raw": .glooeeapi.solo.io.Raw
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `raw` | [.glooeeapi.solo.io.Raw](../types.proto.sk#raw) |  |  |
 
 
 
@@ -56,12 +76,14 @@ weight: 5
 
 ```yaml
 "upstream": .gloo.solo.io.Upstream
+"upstreamDetails": .glooeeapi.solo.io.UpstreamDetails
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) | Deprecated, use upstream_details |  |
+| `upstreamDetails` | [.glooeeapi.solo.io.UpstreamDetails](../upstream.proto.sk#upstreamdetails) |  |  |
 
 
 
@@ -90,12 +112,14 @@ weight: 5
 
 ```yaml
 "upstreams": []gloo.solo.io.Upstream
+"upstreamDetails": []glooeeapi.solo.io.UpstreamDetails
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstreams` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstreams` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) | Deprecated, use upstream_details |  |
+| `upstreamDetails` | [[]glooeeapi.solo.io.UpstreamDetails](../upstream.proto.sk#upstreamdetails) |  |  |
 
 
 
@@ -153,12 +177,14 @@ weight: 5
 
 ```yaml
 "upstream": .gloo.solo.io.Upstream
+"upstreamDetails": .glooeeapi.solo.io.UpstreamDetails
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) | Deprecated, use upstream_details |  |
+| `upstreamDetails` | [.glooeeapi.solo.io.UpstreamDetails](../upstream.proto.sk#upstreamdetails) |  |  |
 
 
 
@@ -187,12 +213,14 @@ weight: 5
 
 ```yaml
 "upstream": .gloo.solo.io.Upstream
+"upstreamDetails": .glooeeapi.solo.io.UpstreamDetails
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) | Deprecated, use upstream_details |  |
+| `upstreamDetails` | [.glooeeapi.solo.io.UpstreamDetails](../upstream.proto.sk#upstreamdetails) |  |  |
 
 
 

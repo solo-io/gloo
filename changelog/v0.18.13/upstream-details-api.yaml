@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add raw yaml to upstream API on the new upstream details object.
+    issueLink: https://github.com/solo-io/solo-projects/issues/928
