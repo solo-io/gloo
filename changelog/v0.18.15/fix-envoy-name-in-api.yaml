@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Update envoy API to choose gateway proxy ID for filename if present instead of always the pod name.

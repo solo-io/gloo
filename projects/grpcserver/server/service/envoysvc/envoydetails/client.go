@@ -84,10 +84,11 @@ func (c *client) List(ctx context.Context, namespace string) ([]*v1.EnvoyDetails
 				zap.String("name", pod.Name))
 		}
 
+		envoyName := getName(pod)
 		details := &v1.EnvoyDetails{
-			Name: getName(pod),
+			Name: envoyName,
 			Raw: &v1.Raw{
-				FileName:           pod.Name + ".json",
+				FileName:           envoyName + ".json",
 				Content:            dumpString,
 				ContentRenderError: contentRenderError,
 			},

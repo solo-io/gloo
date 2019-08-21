@@ -26,7 +26,7 @@ var (
 
 var _ = Describe("Envoy Details Client Test", func() {
 
-	getPod := func(name, ip, port, dump string) kubev1.Pod {
+	getPod := func(name, ip, port, dump, id string) kubev1.Pod {
 		annotations := make(map[string]string, 2)
 		if port != "" {
 			annotations[envoydetails.ReadConfigPortAnnotationKey] = port
@@ -34,13 +34,18 @@ var _ = Describe("Envoy Details Client Test", func() {
 		if dump != "" {
 			annotations[envoydetails.ReadConfigConfigDumpAnnotationKey] = dump
 		}
+		labels := make(map[string]string, 2)
+		if id != "" {
+			labels[envoydetails.GatewayProxyIdLabel] = id
+		}
+		labels["gloo"] = "gateway-proxy"
 
 		return kubev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   podNamespace,
 				Name:        name,
 				Annotations: annotations,
-				Labels:      map[string]string{"gloo": "gateway-proxy"},
+				Labels:      labels,
 			},
 			Status: kubev1.PodStatus{
 				PodIP: ip,
@@ -48,11 +53,11 @@ var _ = Describe("Envoy Details Client Test", func() {
 		}
 	}
 
-	getDetails := func(name, fileContent, fileError string) *v1.EnvoyDetails {
+	getDetails := func(envoyName, fileContent, fileError string) *v1.EnvoyDetails {
 		return &v1.EnvoyDetails{
-			Name: name,
+			Name: envoyName,
 			Raw: &v1.Raw{
-				FileName:           name + ".json",
+				FileName:           envoyName + ".json",
 				Content:            fileContent,
 				ContentRenderError: fileError,
 			},
@@ -72,9 +77,9 @@ var _ = Describe("Envoy Details Client Test", func() {
 
 	Describe("List", func() {
 		Context("works", func() {
-			It("when all pods have port and path annotations", func() {
-				podA := getPod("a", "ipa", "porta", "config-dump-a")
-				podB := getPod("b", "ipb", "portb", "config-dump-b")
+			It("uses gateway proxy ID for envoy name when present, else falls back to pod name", func() {
+				podA := getPod("a", "ipa", "porta", "config-dump-a", "proxy-a")
+				podB := getPod("b", "ipb", "portb", "config-dump-b", "")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{podA, podB}}
 
 				dumpA := "a config dump"
@@ -89,15 +94,15 @@ var _ = Describe("Envoy Details Client Test", func() {
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
-					getDetails("a", dumpA, ""),
+					getDetails("proxy-a", dumpA, ""),
 					getDetails("b", dumpB, ""),
 				}
 				Expect(actual).To(Equal(expected))
 			})
 
 			It("skips pods that don't have a port annotation", func() {
-				podA := getPod("a", "ipa", "porta", "config-dump-a")
-				podB := getPod("b", "ipb", "", "config-dump-b")
+				podA := getPod("a", "ipa", "porta", "config-dump-a", "proxy-a")
+				podB := getPod("b", "ipb", "", "config-dump-b", "proxy-b")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{podA, podB}}
 
 				dumpA := "a config dump"
@@ -110,14 +115,14 @@ var _ = Describe("Envoy Details Client Test", func() {
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
-					getDetails("a", dumpA, ""),
+					getDetails("proxy-a", dumpA, ""),
 				}
 				Expect(actual).To(Equal(expected))
 			})
 
 			It("skips pods that don't have a config dump path annotation", func() {
-				podA := getPod("a", "ipa", "porta", "")
-				podB := getPod("b", "ipb", "portb", "config-dump-b")
+				podA := getPod("a", "ipa", "porta", "", "proxy-a")
+				podB := getPod("b", "ipb", "portb", "config-dump-b", "proxy-b")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{podA, podB}}
 
 				dumpB := "b config dump"
@@ -130,13 +135,13 @@ var _ = Describe("Envoy Details Client Test", func() {
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
-					getDetails("b", dumpB, ""),
+					getDetails("proxy-b", dumpB, ""),
 				}
 				Expect(actual).To(Equal(expected))
 			})
 
 			It("displays a ContentRenderError on the raw object when the http getter errors", func() {
-				pod := getPod("a", "ipa", "porta", "config-dump-a")
+				pod := getPod("a", "ipa", "porta", "config-dump-a", "proxy-a")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{pod}}
 
 				podNamespacePodInterface.EXPECT().
@@ -147,7 +152,7 @@ var _ = Describe("Envoy Details Client Test", func() {
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
-					getDetails("a", "", envoydetails.FailedToGetEnvoyConfig(podNamespace, "a")),
+					getDetails("proxy-a", "", envoydetails.FailedToGetEnvoyConfig(podNamespace, "a")),
 				}
 				Expect(actual).To(Equal(expected))
 			})
