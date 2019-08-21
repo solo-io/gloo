@@ -14,8 +14,9 @@ import {
   CreateVirtualServiceRequest,
   VirtualServiceInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { NamespacesContext } from 'GlooIApp';
 import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const Footer = styled.div`
   display: flex;
@@ -64,9 +65,11 @@ interface Props {
 }
 
 export const CreateVirtualServiceForm = (props: Props) => {
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespacesList, namespace: podNamespace }
+  } = useSelector((state: AppState) => state);
   // this is to match the value displayed by the typeahead
-  initialValues.namespace = namespaces.defaultNamespace;
+  initialValues.namespace = podNamespace;
   const {
     handleSubmit,
     handleChange,
@@ -135,7 +138,7 @@ export const CreateVirtualServiceForm = (props: Props) => {
             title='Virtual Service Namespace'
             defaultValue={values.namespace}
             onChange={e => handleChange(e, 'namespace')}
-            presetOptions={namespaces.namespacesList.map(ns => {
+            presetOptions={namespacesList.map(ns => {
               return { value: ns };
             })}
           />

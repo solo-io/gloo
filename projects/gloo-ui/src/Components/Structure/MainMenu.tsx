@@ -10,6 +10,8 @@ import styled from '@emotion/styled/macro';
 import { Popover } from 'antd';
 import { GetVirtualServiceRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { useGetVersion } from 'Api';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const NavLinkStyles = {
   display: 'inline-block',
@@ -97,12 +99,7 @@ const VersionDisplay = styled.div`
 `;
 
 export const MainMenu = () => {
-  const {
-    data: versionData,
-    loading: versionLoading,
-    error: versionError
-  } = useGetVersion(new GetVirtualServiceRequest());
-
+  const version = useSelector((state: AppState) => state.config.version);
   return (
     <Container>
       <InnerContainer>
@@ -160,11 +157,11 @@ export const MainMenu = () => {
 
                 <VersionDisplay>
                   Version:{' '}
-                  {versionData
-                    ? versionData.version
-                    : versionLoading
-                    ? 'loading...'
-                    : 'unknown'}
+                  {version
+                    ? version
+                    : // : versionLoading
+                      // ? 'loading...'
+                      'unknown'}
                 </VersionDisplay>
               </div>
             }>

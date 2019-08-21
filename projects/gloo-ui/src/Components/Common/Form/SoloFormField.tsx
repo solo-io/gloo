@@ -1,7 +1,6 @@
 import styled from '@emotion/styled/macro';
 import { useListSecrets } from 'Api';
 import { useField, useFormikContext } from 'formik';
-import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import React from 'react';
 import { colors } from 'Styles';
@@ -22,6 +21,8 @@ import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
@@ -224,7 +225,9 @@ interface VirtualServiceTypeaheadProps extends TypeaheadProps {
 export const SoloFormVirtualServiceTypeahead: React.FC<
   VirtualServiceTypeaheadProps
 > = ({ ...props }) => {
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespace: podNamespace }
+  } = useSelector((state: AppState) => state);
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   const usedOptions = props.options
@@ -265,7 +268,7 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
       // @ts-ignore
       tempVirtualService.metadata = {
         name: newValueId,
-        namespace: namespaces.defaultNamespace
+        namespace: podNamespace
       };
     }
 
@@ -308,10 +311,7 @@ export const SoloFormMultipartStringCardsList: React.FC<
           const newArr = [...field.value];
           newArr.splice(indexDeleted, 1);
 
-          form.setFieldValue(
-            field.name,
-            newArr
-          );
+          form.setFieldValue(field.name, newArr);
         }}
         createNew={newPair => {
           let newList = [...field.value];
@@ -338,6 +338,9 @@ export const SoloFormSecretRefInput: React.FC<{
   asColumn?: boolean;
   name: string;
 }> = props => {
+  const {
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
   const { name, type } = props;
   const [field, meta] = useField(name);
   const form = useFormikContext<any>();
@@ -345,13 +348,12 @@ export const SoloFormSecretRefInput: React.FC<{
   const [namespaceField, namespaceMeta] = useField(`${field.name}.namespace`);
   const [nameField, nameMeta] = useField(`${field.name}.name`);
 
-  const namespaces = React.useContext(NamespacesContext);
   const [selectedNS, setSelectedNS] = React.useState(namespaceField.value);
   const listSecretsRequest = new ListSecretsRequest();
   const [noSecrets, setNoSecrets] = React.useState(false);
   React.useEffect(() => {
-    listSecretsRequest.setNamespacesList(namespaces.namespacesList);
-  }, [namespaces]);
+    listSecretsRequest.setNamespacesList(namespacesList);
+  }, [namespacesList]);
 
   const { data: secretsListData } = useListSecrets(listSecretsRequest);
 
@@ -392,7 +394,7 @@ export const SoloFormSecretRefInput: React.FC<{
         <SoloTypeahead
           {...namespaceField}
           title='Secret Ref Namespace'
-          presetOptions={namespaces.namespacesList.map(ns => {
+          presetOptions={namespacesList.map(ns => {
             return { value: ns };
           })}
           onChange={value => {

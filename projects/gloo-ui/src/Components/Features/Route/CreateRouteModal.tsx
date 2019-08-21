@@ -22,14 +22,10 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import {
   CreateRouteRequest,
   RouteInput,
-  ListVirtualServicesRequest
+  ListVirtualServicesRequest,
+  VirtualServiceDetails
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import {
-  useCreateRoute,
-  useGetUpstreamsList,
-  useListVirtualServices,
-  useUpdateRoute
-} from 'Api';
+import { useCreateRoute, useUpdateRoute } from 'Api';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   Route,
@@ -50,7 +46,6 @@ import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io
 import { ListUpstreamsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ErrorText } from '../VirtualService/Details/ExtAuthForm';
-import { NamespacesContext } from 'GlooIApp';
 import {
   createUpstreamId,
   parseUpstreamId,
@@ -62,8 +57,9 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { DestinationForm } from './DestinationForm';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { METHODS } from 'http';
 import { colors, soloConstants } from 'Styles';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -216,7 +212,6 @@ const InnerFormSectionContent = styled.div`
   flex-direction: column;
 
   > div {
-    padding-top: ;
   }
 `;
 
@@ -239,10 +234,22 @@ interface Props extends RouteComponentProps {
 }
 
 export const CreateRouteModalC = (props: Props) => {
+  const namespacesList = useSelector(
+    (state: AppState) => state.config.namespacesList
+  );
+
+  const virtualServicesList = useSelector(
+    (state: AppState) => state.virtualServices.virtualServicesList
+  );
+
+  const upstreamsList = useSelector((state: AppState) =>
+    state.upstreams.upstreamsList.map(u => u.upstream!)
+  );
+
   const [
     allUsableVirtualServices,
     setAllUsableVirtualServices
-  ] = React.useState<VirtualService.AsObject[]>([]);
+  ] = React.useState<VirtualServiceDetails.AsObject[]>([]);
   const [allUsableUpstreams, setAllUsableUpstreams] = React.useState<
     Upstream.AsObject[]
   >([]);
@@ -255,16 +262,6 @@ export const CreateRouteModalC = (props: Props) => {
     data: updatedVirtualServiceData,
     refetch: makeUpdateRequest
   } = useUpdateRoute(null);
-
-  let listVirtualServicesRequest = React.useRef(
-    new ListVirtualServicesRequest()
-  );
-  let listUpstreamsRequest = React.useRef(new ListUpstreamsRequest());
-  const namespaces = React.useContext(NamespacesContext);
-  listVirtualServicesRequest.current.setNamespacesList(
-    namespaces.namespacesList
-  );
-  listUpstreamsRequest.current.setNamespacesList(namespaces.namespacesList);
 
   React.useEffect(() => {
     if (!!createdVirtualServiceData) {
@@ -290,39 +287,29 @@ export const CreateRouteModalC = (props: Props) => {
     }
   }, [createdVirtualServiceData, updatedVirtualServiceData]);
 
-  const {
-    data: upstreamsData,
-    error: upstreamsError,
-    loading: upstreamsLoading
-  } = useGetUpstreamsList(listUpstreamsRequest.current);
-  const {
-    data: virtualServicesData,
-    error: virtualServicesError,
-    loading: virtualServicesLoading
-  } = useListVirtualServices(listVirtualServicesRequest.current);
-
   React.useEffect(() => {
     setAllUsableVirtualServices(
-      !!virtualServicesData
-        ? virtualServicesData.virtualServicesList.filter(vs => !!vs.metadata)
+      !!virtualServicesList
+        ? virtualServicesList.filter(vs => !!vs.virtualService!.metadata)
         : []
     );
-  }, [virtualServicesData]);
+  }, [virtualServicesList.length]);
+
   React.useEffect(() => {
     setAllUsableUpstreams(
-      !!upstreamsData
-        ? upstreamsData.upstreamsList.filter(upstream => !!upstream.metadata)
+      !!upstreamsList
+        ? upstreamsList.filter(upstream => !!upstream.metadata)
         : []
     );
-  }, [upstreamsData]);
+  }, [upstreamsList.length]);
 
-  if (upstreamsLoading || virtualServicesLoading) {
+  if (!upstreamsList.length || !virtualServicesList.length) {
     return <Loading />;
   }
-  if (!!upstreamsError || !!virtualServicesError) {
-    // @ts-ignore
-    return <ErrorText>{upstreamsError || virtualServicesError}</ErrorText>;
-  }
+  // if (!!upstreamsError || !!virtualServicesError) {
+  //   // @ts-ignore
+  //   return <ErrorText>{upstreamsError || virtualServicesError}</ErrorText>;
+  // }
 
   const { defaultUpstream, defaultVirtualService } = props;
 
@@ -552,7 +539,9 @@ export const CreateRouteModalC = (props: Props) => {
                       value={values.virtualService}
                       placeholder='Virtual Service...'
                       defaultValue='Virtual Service'
-                      options={allUsableVirtualServices}
+                      options={allUsableVirtualServices.map(
+                        vs => vs.virtualService!
+                      )}
                       disabled={
                         !allUsableVirtualServices.length ||
                         (!!values.virtualService && props.lockVirtualService)

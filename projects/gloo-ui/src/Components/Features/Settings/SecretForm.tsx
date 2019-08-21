@@ -13,7 +13,8 @@ import {
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { NamespacesContext } from 'GlooIApp';
+import { AppState } from 'store';
+import { useSelector } from 'react-redux';
 
 // TODO: modify for use outside a table
 // TODO: set one source of truth for column names/order
@@ -36,12 +37,13 @@ interface Props {
 
 export const SecretForm: React.FC<Props> = props => {
   const { secretKind, onCreateSecret } = props;
-  const namespaces = React.useContext(NamespacesContext);
-
+  const {
+    config: { namespace: podNamespace, namespacesList }
+  } = useSelector((state: AppState) => state);
   const initialValues: SecretValuesType = {
     secretResourceRef: {
       name: '',
-      namespace: namespaces.defaultNamespace
+      namespace: podNamespace
     },
     awsSecret: {
       accessKey: '',
@@ -76,8 +78,8 @@ export const SecretForm: React.FC<Props> = props => {
               <SoloFormTypeahead
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
-                defaultValue={namespaces.defaultNamespace}
-                presetOptions={namespaces.namespacesList.map(ns => {
+                defaultValue={podNamespace}
+                presetOptions={namespacesList.map(ns => {
                   return { value: ns };
                 })}
               />

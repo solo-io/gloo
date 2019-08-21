@@ -170,9 +170,11 @@ export const ListingFilter = (filterProps: FilterProps) => {
               );
             })}
           </FilterInput>
-          {radioFilters.length > 0 && filterProps.showLabels && (
-            <StyledHeader>Status Filter</StyledHeader>
-          )}
+          <React.Fragment>
+            {radioFilters.length > 0 && filterProps.showLabels && (
+              <StyledHeader>Status Filter</StyledHeader>
+            )}
+          </React.Fragment>
           {radioFilters.map((filter, ind) => {
             return (
               <SoloRadioGroup

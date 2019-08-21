@@ -14,12 +14,11 @@ import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { soloConstants, healthConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { useGetUpstreamsListV2 } from 'Api/v2/useUpstreamClientV2';
-import { NamespacesContext } from 'GlooIApp';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { useListVirtualServices } from 'Api';
-import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppState } from 'store';
+import { listUpstreams } from 'store/upstreams/actions';
+import { listVirtualServices } from 'store/virtualServices/actions';
 
 const Container = styled.div`
   ${CardCSS};
@@ -207,28 +206,30 @@ const HealthStatus = (props: Props) => {
 };
 
 const VirtualServicesOverview = () => {
-  const namespaces = React.useContext(NamespacesContext);
-  const request = new ListVirtualServicesRequest();
-  request.setNamespacesList(namespaces.namespacesList);
-  const { data, loading } = useListVirtualServices(request);
-  const [virtualServicesList, setVirtualServicesList] = React.useState<
-    VirtualService.AsObject[]
-  >([]);
-
+  const dispatch = useDispatch();
+  const {
+    config: { namespacesList },
+    virtualServices: { virtualServicesList }
+  } = useSelector((state: AppState) => state);
   const [
     virtualServiceForRouteCreation,
     setVirtualServiceForRouteCreation
   ] = React.useState<VirtualService.AsObject | undefined>(undefined);
   React.useEffect(() => {
-    if (data) {
-      setVirtualServicesList(data.virtualServicesList);
+    if (!virtualServicesList.length) {
+      dispatch(listVirtualServices({ namespacesList }));
     }
-  }, [loading]);
+  }, [virtualServicesList.length]);
 
   const virtualServiceErrorCount = virtualServicesList.reduce(
     (total, vs) =>
       total +
-      (!(vs.status && vs.status.state !== healthConstants.Error.value) ? 1 : 0),
+      (!(
+        vs.virtualService!.status &&
+        vs.virtualService!.status.state !== healthConstants.Error.value
+      )
+        ? 1
+        : 0),
     0
   );
 
@@ -276,20 +277,26 @@ const VirtualServicesOverview = () => {
 };
 
 const UpstreamsOverview = () => {
-  const namespaces = React.useContext(NamespacesContext);
+  // const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
+  //   []
+  // );
 
-  const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
-    []
+  const [isLoading, setIsLoading] = React.useState(false);
+  const dispatch = useDispatch();
+  const namespacesList = useSelector(
+    (state: AppState) => state.config.namespacesList
   );
-  const { data, loading, error } = useGetUpstreamsListV2({
-    namespaces: namespaces.namespacesList
-  });
 
+  const upstreamsList = useSelector((state: AppState) =>
+    state.upstreams.upstreamsList.map(u => u.upstream!)
+  );
   React.useEffect(() => {
-    if (data && data.toObject().upstreamsList) {
-      setUpstreamsList(data.toObject().upstreamsList);
+    if (upstreamsList.length) {
+      setIsLoading(false);
+    } else {
+      dispatch(listUpstreams({ namespacesList }));
     }
-  }, [loading]);
+  }, [upstreamsList.length]);
 
   const upstreamErrorCount = upstreamsList.reduce(
     (total, upstream) =>

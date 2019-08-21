@@ -1,5 +1,4 @@
 import styled from '@emotion/styled/macro';
-import { useCreateUpstream } from 'Api';
 import {
   SoloFormDropdown,
   SoloFormInput,
@@ -10,25 +9,8 @@ import {
   InputRow,
   Footer
 } from 'Components/Common/Form/SoloFormTemplate';
-import { Field, Formik } from 'formik';
-import { NamespacesContext } from 'GlooIApp';
-import {
-  UpstreamSpec as AwsUpstreamSpec,
-  LambdaFunctionSpec
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
-import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
-import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb';
-import {
-  UpstreamSpec as StaticUpstreamSpec,
-  Host
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import {
-  CreateUpstreamRequest,
-  UpstreamInput
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { Formik } from 'formik';
+
 import * as React from 'react';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
@@ -44,11 +26,10 @@ import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { withRouter } from 'react-router-dom';
 import { RouteComponentProps } from 'react-router';
-import { upstreams } from 'Api/v2/UpstreamClient';
-import {
-  useCreateUpstreamV2,
-  useGetUpstreamsListV2
-} from 'Api/v2/useUpstreamClientV2';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { createUpstream } from 'store/upstreams/actions';
+import { AppState } from 'store';
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -92,12 +73,14 @@ const validationSchema = yup.object().shape({
 });
 
 const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
-  const namespaces = React.useContext(NamespacesContext);
-
+  const {
+    config: { namespace, namespacesList }
+  } = useSelector((state: AppState) => state);
+  const dispatch = useDispatch();
   const initialValues = {
     name: '',
     type: '',
-    namespace: namespaces.defaultNamespace,
+    namespace,
     ...awsInitialValues,
     ...kubeInitialValues,
     ...staticInitialValues,
@@ -105,87 +88,83 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     ...consulInitialValues,
     awsSecretRef: {
       ...awsInitialValues.awsSecretRef,
-      namespace: namespaces.defaultNamespace
+      namespace
     },
     azureSecretRef: {
       ...azureInitialValues.azureSecretRef,
-      namespace: namespaces.defaultNamespace
+      namespace
     },
-    kubeServiceNamespace: namespaces.defaultNamespace
+    kubeServiceNamespace: namespace
   };
 
   // grpc request
-  async function createUpstream(values: typeof initialValues) {
-    const newUpstreamReq = new CreateUpstreamRequest();
-    const usInput = new UpstreamInput();
+  async function handleCreateUpstream(values: typeof initialValues) {
+    const { name, namespace } = values;
+    const ref = { name, namespace };
+    if (values.type === UPSTREAM_SPEC_TYPES.AWS) {
+      const { awsRegion: region, awsSecretRef: secretRef } = values;
 
-    const usResourceRef = new ResourceRef();
+      const aws = {
+        region,
+        secretRef,
+        lambdaFunctionsList: []
+      };
 
-    usResourceRef.setName(values.name);
-    usResourceRef.setNamespace(values.namespace);
-
-    usInput.setRef(usResourceRef);
-
-    //TODO: set up correct upstream spec
-    // TODO: validation for specific fields
-    switch (values.type) {
-      case UPSTREAM_SPEC_TYPES.AWS:
-        const awsSpec = new AwsUpstreamSpec();
-        awsSpec.setRegion(values.awsRegion);
-        const awsSecretRef = new ResourceRef();
-        awsSecretRef.setName(values.awsSecretRef.name);
-        awsSecretRef.setNamespace(values.awsSecretRef.namespace);
-        awsSpec.setSecretRef(awsSecretRef);
-        usInput.setAws(awsSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.AZURE:
-        const azureSpec = new AzureUpstreamSpec();
-        const azureSecretRef = new ResourceRef();
-        azureSecretRef.setName(values.azureSecretRef.name);
-        azureSecretRef.setNamespace(values.azureSecretRef.namespace);
-        azureSpec.setSecretRef(azureSecretRef);
-        azureSpec.setFunctionAppName(values.azureFunctionAppName);
-        usInput.setAzure(azureSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.KUBE:
-        const kubeSpec = new KubeUpstreamSpec();
-        kubeSpec.setServiceName(values.kubeServiceName);
-        kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
-        kubeSpec.setServicePort(values.kubeServicePort);
-        usInput.setKube(kubeSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.STATIC:
-        const staticSpec = new StaticUpstreamSpec();
-        staticSpec.setUseTls(values.staticUseTls);
-        let hostList = values.staticHostList.map(host => {
-          let hostAdded = new Host();
-          hostAdded.setAddr(host.name);
-          hostAdded.setPort(+host.value);
-          return hostAdded;
-        });
-        staticSpec.setHostsList(hostList);
-        usInput.setStatic(staticSpec);
-        break;
-      case UPSTREAM_SPEC_TYPES.CONSUL:
-        const consulSpec = new ConsulUpstreamSpec();
-        consulSpec.setServiceName(values.consulServiceName);
-        consulSpec.setServiceTagsList(values.consulServiceTagsList);
-        consulSpec.setConnectEnabled(values.consulConnectEnabled);
-        consulSpec.setDataCentersList(values.consulDataCentersList);
-        const consulServiceSpec = new ServiceSpec();
-        consulSpec.setServiceSpec(consulServiceSpec);
-        usInput.setConsul(consulSpec);
-      default:
-        break;
+      dispatch(createUpstream({ input: { ref, aws } }));
+    } else if (values.type === UPSTREAM_SPEC_TYPES.AZURE) {
+      const {
+        azureFunctionAppName: functionAppName,
+        azureSecretRef: secretRef
+      } = values;
+      const azure = {
+        ref,
+        functionAppName,
+        secretRef,
+        functionsList: []
+      };
+      dispatch(createUpstream({ input: { ref, azure } }));
+    } else if (values.type === UPSTREAM_SPEC_TYPES.KUBE) {
+      const {
+        kubeServiceName: serviceName,
+        kubeServiceNamespace: serviceNamespace,
+        kubeServicePort: servicePort
+      } = values;
+      const kube = {
+        serviceName,
+        serviceNamespace,
+        servicePort,
+        selectorMap: []
+      };
+      dispatch(createUpstream({ input: { ref, kube } }));
+    } else if (values.type === UPSTREAM_SPEC_TYPES.STATIC) {
+      const { staticUseTls: useTls } = values;
+      let hostsList = values.staticHostList.map(h => {
+        return {
+          addr: h.name,
+          port: +h.value
+        };
+      });
+      const pb_static = {
+        useTls,
+        hostsList
+      };
+      dispatch(createUpstream({ input: { ref, pb_static } }));
+    } else if (values.type === UPSTREAM_SPEC_TYPES.CONSUL) {
+      const {
+        consulConnectEnabled,
+        consulDataCentersList,
+        consulServiceName,
+        consulServiceTagsList
+      } = values;
+      let consul = {
+        connectEnabled: consulConnectEnabled,
+        dataCentersList: consulDataCentersList,
+        serviceName: consulServiceName,
+        serviceTagsList: consulServiceTagsList
+      };
+      dispatch(createUpstream({ input: { ref, consul } }));
     }
 
-    newUpstreamReq.setInput(usInput);
-    await upstreams.createUpstream({
-      name: values.name,
-      namespace: values.namespace,
-      type: values.type,
-      values
-    });
     props.toggleModal(s => !s);
     props.history.push('/upstreams', { showSuccess: true });
   }
@@ -194,7 +173,7 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={createUpstream}>
+      onSubmit={handleCreateUpstream}>
       {formik => (
         <FormContainer>
           <SoloFormTemplate>
@@ -218,8 +197,8 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
                 <SoloFormTypeahead
                   name='namespace'
                   title='Upstream Namespace'
-                  defaultValue={namespaces.defaultNamespace}
-                  presetOptions={namespaces.namespacesList.map(ns => {
+                  defaultValue={namespace}
+                  presetOptions={namespacesList.map(ns => {
                     return { value: ns };
                   })}
                 />

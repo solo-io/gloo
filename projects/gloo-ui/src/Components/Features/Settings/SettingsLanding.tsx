@@ -16,24 +16,14 @@ import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import {
-  Secret,
-  AwsSecret,
-  AzureSecret,
-  TlsSecret
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { useListSecrets, useCreateSecret, useDeleteSecret } from 'Api';
-import {
-  ListSecretsRequest,
-  CreateSecretRequest,
-  DeleteSecretRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
-import { NamespacesContext } from 'GlooIApp';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { SecretValuesType } from './SecretForm';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { useGetSecretsListV2 } from 'Api/v2/useSecretClientV2';
-import { secrets } from 'Api/v2/SecretClient';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { AppState } from 'store';
+import { listSecrets, createSecret, deleteSecret } from 'store/secrets/actions';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -64,24 +54,33 @@ export const SettingsLanding = (props: Props) => {
   const [azureSecrets, setAzureSecrets] = React.useState<Secret.AsObject[]>([]);
   const [tlsSecrets, setTlsSecrets] = React.useState<Secret.AsObject[]>([]);
   const [oAuthSecrets, setOAuthSecrets] = React.useState<Secret.AsObject[]>([]);
-  const namespaces = React.useContext(NamespacesContext);
+
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
-  const { data, loading, error, setNewVariables } = useGetSecretsListV2({
-    namespaces: namespaces.namespacesList
-  });
+  // Redux
+  const dispatch = useDispatch();
+  const {
+    secrets: { secretsList },
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
+
   React.useEffect(() => {
-    if (!!data) {
-      setAllSecrets(data.toObject().secretsList);
+    if (secretsList.length) {
+      setIsLoading(false);
+      setAllSecrets(secretsList);
+    } else {
+      dispatch(listSecrets({ namespacesList }));
+      setIsLoading(true);
     }
     return () => {
       setShowSuccessModal(false);
     };
-  }, [data, showSuccessModal]);
+  }, [secretsList.length, showSuccessModal]);
 
   React.useEffect(() => {
-    if (data && allSecrets) {
+    if (secretsList && allSecrets) {
       setAwsSecrets(allSecrets.filter(s => !!s.aws));
       setAzureSecrets(allSecrets.filter(s => !!s.azure));
       setOAuthSecrets(allSecrets.filter(s => !!s.extension));
@@ -89,7 +88,7 @@ export const SettingsLanding = (props: Props) => {
     }
   }, [allSecrets.length, showSuccessModal]);
 
-  if (!data || (!data && loading)) {
+  if (!secretsList || (!secretsList && isLoading)) {
     return <div>Loading...</div>;
   }
 
@@ -137,8 +136,8 @@ export const SettingsLanding = (props: Props) => {
               <SecurityPage
                 tlsSecrets={tlsSecrets}
                 oAuthSecrets={oAuthSecrets}
-                onCreateSecret={createSecret}
-                onDeleteSecret={deleteSecret}
+                onCreateSecret={handleCreateSecret}
+                onDeleteSecret={handleDeleteSecret}
               />
             )}
           />
@@ -152,8 +151,8 @@ export const SettingsLanding = (props: Props) => {
               <SecretsPage
                 awsSecrets={awsSecrets}
                 azureSecrets={azureSecrets}
-                onCreateSecret={createSecret}
-                onDeleteSecret={deleteSecret}
+                onCreateSecret={handleCreateSecret}
+                onDeleteSecret={handleDeleteSecret}
               />
             )}
           />
@@ -164,24 +163,29 @@ export const SettingsLanding = (props: Props) => {
     );
   };
 
-  async function createSecret(
+  async function handleCreateSecret(
     values: SecretValuesType,
     secretKind: Secret.KindCase
   ) {
     const {
       secretResourceRef: { name, namespace }
     } = values;
-    try {
-      await secrets.createSecret({ name, namespace, values, secretKind });
-    } catch (error) {
-      // TODO: show error modal
-      console.error('error', error);
-    }
-    setNewVariables({ namespaces: namespaces.namespacesList });
-    setShowSuccessModal(true);
+    const { secretKey, accessKey } = values.awsSecret;
+    dispatch(
+      createSecret({ ref: { name, namespace }, aws: { accessKey, secretKey } })
+    );
+    // try {
+    //   await secrets.createSecret({ name, namespace, values, secretKind });
+    // } catch (error) {
+    //   //   // TODO: show error modal
+    //   //   console.error('error', error);
+    //   // }
+    //   // setNewVariables({ namespaces: namespaces.namespacesList });
+    //   // setShowSuccessModal(true);
+    // }
   }
 
-  async function deleteSecret(
+  async function handleDeleteSecret(
     name: string,
     namespace: string,
     secretKind: Secret.KindCase
@@ -207,7 +211,7 @@ export const SettingsLanding = (props: Props) => {
       );
     }
     try {
-      await secrets.deleteSecret({ name, namespace });
+      dispatch(deleteSecret({ ref: { name, namespace } }));
     } catch (error) {
       console.error(error);
     }

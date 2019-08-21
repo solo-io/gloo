@@ -7,9 +7,10 @@ import {
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
-import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
 import * as yup from 'yup';
+import { AppState } from 'store';
+import { useSelector } from 'react-redux';
 
 // TODO: handle servicespec and subset spec
 export interface KubeValuesType {
@@ -34,8 +35,9 @@ export const kubeValidationSchema = yup.object().shape({
 });
 
 export const KubeUpstreamForm: React.FC<Props> = () => {
-  const namespaces = React.useContext(NamespacesContext);
-
+  const {
+    config: { namespacesList, namespace: podNamespace }
+  } = useSelector((state: AppState) => state);
   return (
     <SoloFormTemplate formHeader='Kubernetes Upstream Settings'>
       <InputRow>
@@ -50,8 +52,8 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
           <SoloFormTypeahead
             name='kubeServiceNamespace'
             title='Service Namespace'
-            defaultValue={namespaces.defaultNamespace}
-            presetOptions={namespaces.namespacesList.map(ns => {
+            defaultValue={podNamespace}
+            presetOptions={namespacesList.map(ns => {
               return { value: ns };
             })}
           />

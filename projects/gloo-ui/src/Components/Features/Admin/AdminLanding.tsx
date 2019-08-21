@@ -9,7 +9,6 @@ import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg'
 import { ReactComponent as GatewayConfigLogo } from 'assets/gateway-config-icon.svg';
 import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
 import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg';
-import { NamespacesContext } from 'GlooIApp';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
@@ -18,6 +17,8 @@ import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/
 import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { getResourceStatus } from 'utils/helpers';
+import { AppState } from 'store';
+import { useSelector } from 'react-redux';
 
 const Container = styled.div`
   ${CardCSS};
@@ -137,9 +138,11 @@ const Envoy = styled.div`
 `;
 
 const GatewayOverview = () => {
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
   const { data, loading, error, setNewVariables } = useGetGatewayList({
-    namespaces: namespaces.namespacesList
+    namespaces: namespacesList
   });
   const [allGateways, setAllGateways] = React.useState<
     GatewayDetails.AsObject[]
@@ -213,9 +216,11 @@ const GatewayOverview = () => {
 };
 
 const ProxyOverview = () => {
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
   const { data, loading, error, setNewVariables } = useGetProxiesList({
-    namespaces: namespaces.namespacesList
+    namespaces: namespacesList
   });
   const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
     []
@@ -289,7 +294,6 @@ const ProxyOverview = () => {
 };
 
 const EnvoyOverview = () => {
-  const namespaces = React.useContext(NamespacesContext);
   /*
     const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
       []

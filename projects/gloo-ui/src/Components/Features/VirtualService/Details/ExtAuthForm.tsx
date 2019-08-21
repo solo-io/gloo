@@ -5,12 +5,13 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
-import { NamespacesContext } from 'GlooIApp';
 import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const FormContainer = styled.div`
   display: grid;
@@ -76,8 +77,9 @@ interface Props {
 
 export const ExtAuthForm = (props: Props) => {
   const { externalAuth, externalAuthChanged } = props;
-
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespacesList, namespace: podNamespace }
+  } = useSelector((state: AppState) => state);
 
   const initialValues: ValuesType = { ...defaultValues, ...externalAuth };
 
@@ -173,8 +175,8 @@ export const ExtAuthForm = (props: Props) => {
               <SoloFormTypeahead
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
-                defaultValue={namespaces.defaultNamespace}
-                presetOptions={namespaces.namespacesList.map(ns => {
+                defaultValue={podNamespace}
+                presetOptions={namespacesList.map(ns => {
                   return { value: ns };
                 })}
               />

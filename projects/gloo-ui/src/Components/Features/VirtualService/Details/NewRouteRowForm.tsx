@@ -18,7 +18,6 @@ import {
   PATH_SPECIFIERS
 } from 'Components/Features/Route/CreateRouteModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { NamespacesContext } from 'GlooIApp';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
@@ -39,6 +38,8 @@ import {
   Destination,
   QueryParameterMatcher
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 interface Props {
   virtualService?: VirtualService.AsObject;
@@ -58,9 +59,12 @@ export const NewRouteRowForm: React.FC<Props> = ({
     Upstream.AsObject[]
   >([]);
 
-  const namespaces = React.useContext(NamespacesContext);
+  const {
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
+
   let listUpstreamsRequest = React.useRef(new ListUpstreamsRequest());
-  listUpstreamsRequest.current.setNamespacesList(namespaces.namespacesList);
+  listUpstreamsRequest.current.setNamespacesList(namespacesList);
 
   const {
     data: upstreamsData,

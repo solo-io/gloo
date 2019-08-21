@@ -26,9 +26,12 @@ import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo
 import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
 import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
 import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb';
-import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
+import {
+  UpstreamSpec as StaticUpstreamSpec,
+  Host
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
 
-const client = new UpstreamApiClient(host, {
+export const client = new UpstreamApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });
@@ -40,12 +43,12 @@ export interface UpstreamSpecificValues
     AzureValuesType,
     ConsulVauesType {}
 
-function getUpstreamsList(params: {
-  namespaces: string[];
-}): Promise<ListUpstreamsResponse> {
+function getUpstreamsList(
+  listUpstreamsRequest: ListUpstreamsRequest.AsObject
+): Promise<ListUpstreamsResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let req = new ListUpstreamsRequest();
-    req.setNamespacesList(params.namespaces);
+    req.setNamespacesList(listUpstreamsRequest.namespacesList);
 
     client.listUpstreams(req, (error, data) => {
       if (error !== null) {
@@ -54,21 +57,20 @@ function getUpstreamsList(params: {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!);
+        resolve(data!.toObject());
       }
     });
   });
 }
 
-function getUpstream(params: {
-  name: string;
-  namespace: string;
-}): Promise<GetUpstreamResponse> {
+function getUpstream(
+  getUpstreamRequest: GetUpstreamRequest.AsObject
+): Promise<GetUpstreamResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let req = new GetUpstreamRequest();
     let ref = new ResourceRef();
-    ref.setName(params.name);
-    ref.setNamespace(params.namespace);
+    ref.setName(getUpstreamRequest.ref!.name);
+    ref.setNamespace(getUpstreamRequest.ref!.namespace);
     req.setRef(ref);
 
     client.getUpstream(req, (error, data) => {
@@ -78,7 +80,7 @@ function getUpstream(params: {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!);
+        resolve(data!.toObject());
       }
     });
   });
@@ -192,15 +194,14 @@ function updateUpstream(params: {
   });
 }
 
-function deleteUpstream(params: {
-  name: string;
-  namespace: string;
-}): Promise<DeleteUpstreamResponse> {
+function deleteUpstream(
+  deleteUpstreamRequest: DeleteUpstreamRequest.AsObject
+): Promise<DeleteUpstreamResponse> {
   return new Promise((resolve, reject) => {
     let request = new DeleteUpstreamRequest();
     let ref = new ResourceRef();
-    ref.setName(params.name);
-    ref.setNamespace(params.namespace);
+    ref.setName(deleteUpstreamRequest.ref!.name);
+    ref.setNamespace(deleteUpstreamRequest.ref!.namespace);
     request.setRef(ref);
     client.deleteUpstream(request, (error, data) => {
       if (error !== null) {
@@ -215,9 +216,93 @@ function deleteUpstream(params: {
   });
 }
 
+export function getCreateUpstream(
+  createUpstreamRequest: CreateUpstreamRequest.AsObject
+): Promise<CreateUpstreamResponse.AsObject> {
+  return new Promise((resolve, reject) => {
+    const { input } = createUpstreamRequest;
+    let ref = new ResourceRef();
+    let request = new CreateUpstreamRequest();
+    let usInput = new UpstreamInput();
+
+    request.setInput();
+    ref.setName(input!.ref!.name);
+    ref.setNamespace(input!.ref!.namespace);
+
+    usInput.setRef(ref);
+    let awsSpec = new AwsUpstreamSpec();
+    let azureSpec = new AzureUpstreamSpec();
+    let staticSpec = new StaticUpstreamSpec();
+    let kubeSpec = new KubeUpstreamSpec();
+    let consulSpec = new ConsulUpstreamSpec();
+
+    if (input!.aws) {
+      const { region, secretRef } = input!.aws;
+      let awsSecretRef = new ResourceRef();
+      awsSecretRef.setName(secretRef!.name);
+      awsSecretRef.setNamespace(secretRef!.namespace);
+      awsSpec.setRegion(region);
+      awsSpec.setSecretRef(awsSecretRef);
+      usInput.setAws(awsSpec);
+    } else if (input!.pb_static) {
+      const { useTls, hostsList, serviceSpec } = input!.pb_static!;
+      staticSpec.setUseTls(useTls);
+      let hosts = hostsList.map(host => {
+        let hostAdded = new Host();
+        hostAdded.setAddr(host.addr);
+        hostAdded.setPort(host.port);
+        return hostAdded;
+      });
+      staticSpec.setHostsList(hosts);
+      usInput.setStatic(staticSpec);
+    } else if (input!.kube) {
+      const { serviceName, serviceNamespace, servicePort } = input!.kube!;
+      kubeSpec.setServiceName(serviceName);
+      kubeSpec.setServiceNamespace(serviceNamespace);
+      kubeSpec.setServicePort(servicePort);
+      usInput.setKube(kubeSpec);
+    } else if (input!.azure) {
+      const { functionAppName, secretRef } = input!.azure!;
+      const azureSecretRef = new ResourceRef();
+      azureSecretRef.setName(secretRef!.name);
+      azureSecretRef.setNamespace(secretRef!.namespace);
+      azureSpec.setSecretRef(azureSecretRef);
+      azureSpec.setFunctionAppName(functionAppName);
+      usInput.setAzure(azureSpec);
+    } else if (input!.consul) {
+      const {
+        connectEnabled,
+        dataCentersList,
+        serviceName,
+        serviceSpec,
+        serviceTagsList
+      } = input!.consul!;
+      consulSpec.setServiceName(serviceName);
+      consulSpec.setServiceTagsList(serviceTagsList);
+      consulSpec.setConnectEnabled(connectEnabled);
+      consulSpec.setDataCentersList(dataCentersList);
+      const consulServiceSpec = new ServiceSpec();
+      consulSpec.setServiceSpec(consulServiceSpec);
+      usInput.setConsul(consulSpec);
+    }
+    request.setInput(usInput);
+    client.createUpstream(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
 export const upstreams = {
   getUpstream,
   getUpstreamsList,
+  getCreateUpstream,
   createUpstream,
   updateUpstream,
   deleteUpstream

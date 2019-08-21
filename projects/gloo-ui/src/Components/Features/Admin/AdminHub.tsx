@@ -16,8 +16,6 @@ import { Envoy } from './Envoy';
 import { Proxys } from './Proxy';
 import { Gateways } from './Gateways';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { NamespacesContext } from 'GlooIApp';
-import { useGetSecretsListV2 } from 'Api/v2/useSecretClientV2';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -44,7 +42,6 @@ const Heading = styled.div`
 interface Props extends RouteComponentProps<{ sublocation: string }> {}
 
 export const AdminHub = (props: Props) => {
-  const namespaces = React.useContext(NamespacesContext);
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
   const locationChoice =

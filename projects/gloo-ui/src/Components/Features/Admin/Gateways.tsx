@@ -12,7 +12,6 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
 import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
-import { NamespacesContext } from 'GlooIApp';
 import {
   GatewayDetails,
   UpdateGatewayRequest
@@ -22,6 +21,8 @@ import {
   Gateway
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
 import { UpdateGatewayHttpData } from 'Api/v2/GatewayClient';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -48,8 +49,9 @@ interface Props {}
 export const Gateways = (props: Props) => {
   const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
 
-  const namespaces = React.useContext(NamespacesContext);
-
+  const {
+    config: { namespacesList }
+  } = useSelector((state: AppState) => state);
   const {
     data: updateData,
     loading: updateLoading,
@@ -64,7 +66,7 @@ export const Gateways = (props: Props) => {
     setNewVariables,
     dataObj: gatewayObj
   } = useGetGatewayList({
-    namespaces: namespaces.namespacesList
+    namespaces: namespacesList
   });
   const [allGateways, setAllGateways] = React.useState<
     GatewayDetails.AsObject[]
@@ -73,7 +75,7 @@ export const Gateways = (props: Props) => {
   React.useEffect(() => {
     if (!!updateData) {
       setNewVariables({
-        namespaces: namespaces.namespacesList
+        namespaces: namespacesList
       });
     }
   }, [updateLoading]);

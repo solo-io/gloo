@@ -20,13 +20,6 @@ import {
 } from '../../Common/ListingFilter';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { useGetUpstreamsListV2 } from 'Api/v2/useUpstreamClientV2';
-import {
-  ListUpstreamsRequest,
-  DeleteUpstreamRequest,
-  UpstreamDetails
-} from '../../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { useGetUpstreamsList, useDeleteUpstream } from 'Api';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { SoloTable } from 'Components/Common/SoloTable';
@@ -41,7 +34,6 @@ import {
   CheckboxFilters,
   RadioFilters
 } from 'utils/helpers';
-import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
@@ -53,9 +45,14 @@ import _ from 'lodash';
 
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { Popconfirm } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppState } from 'store';
+import { listUpstreams, deleteUpstream } from 'store/upstreams/actions';
+import { LoadingBar } from 'react-redux-loading-bar';
 import { upstreams } from 'Api/v2/UpstreamClient';
 import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
+import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 const TypeHolder = styled.div`
   display: flex;
@@ -76,8 +73,7 @@ const StringFilters: StringFilterProps[] = [
 ];
 
 const getTableColumns = (
-  startCreatingRoute: (upstream: Upstream.AsObject) => any,
-  deleteUpstream: (name: string, namespace: string) => void
+  startCreatingRoute: (upstream: Upstream.AsObject) => any
 ) => {
   return [
     {
@@ -127,36 +123,54 @@ const getTableColumns = (
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (upstreamDetails: UpstreamDetails.AsObject) => {
-        const us = upstreamDetails.upstream!;
-
-        return (
-          <TableActions>
-            <Popconfirm
-              onConfirm={() =>
-                deleteUpstream(us.metadata!.name, us.metadata!.namespace)
-              }
-              title={'Are you sure you want to delete this upstream? '}
-              okText='Yes'
-              cancelText='No'>
-              <TableActionCircle>x</TableActionCircle>
-            </Popconfirm>
-            {!!upstreamDetails.raw && (
-              <FileDownloadActionCircle
-                fileContent={upstreamDetails.raw.content}
-                fileName={upstreamDetails.raw.fileName}
-              />
-            )}
-            <TableActionCircle onClick={() => startCreatingRoute(us)}>
-              +
-            </TableActionCircle>
-          </TableActions>
-        );
-      }
+      render: (upstreamDetails: UpstreamDetails.AsObject) => (
+        <TableAction
+          upstreamDetails={upstreamDetails}
+          startCreatingRoute={startCreatingRoute}
+        />
+      )
     }
   ];
 };
 
+type TableActionProps = {
+  upstreamDetails: UpstreamDetails.AsObject;
+  startCreatingRoute: any;
+};
+const TableAction: React.FC<TableActionProps> = props => {
+  const { upstreamDetails, startCreatingRoute } = props;
+  const dispatch = useDispatch();
+  return (
+    <TableActions>
+      <Popconfirm
+        onConfirm={() =>
+          dispatch(
+            deleteUpstream({
+              ref: {
+                name: upstreamDetails.upstream!.metadata!.name,
+                namespace: upstreamDetails.upstream!.metadata!.namespace
+              }
+            })
+          )
+        }
+        title={'Are you sure you want to delete this upstream? '}
+        okText='Yes'
+        cancelText='No'>
+        <TableActionCircle>x</TableActionCircle>
+      </Popconfirm>
+      {!!upstreamDetails.raw && (
+        <FileDownloadActionCircle
+          fileContent={upstreamDetails.raw.content}
+          fileName={upstreamDetails.raw.fileName}
+        />
+      )}
+      <TableActionCircle
+        onClick={() => startCreatingRoute(upstreamDetails.upstream)}>
+        +
+      </TableActionCircle>
+    </TableActions>
+  );
+};
 const Heading = styled.div`
   display: flex;
   justify-content: space-between;
@@ -186,6 +200,25 @@ interface Props extends RouteComponentProps {
 }
 
 export const UpstreamsListing = (props: Props) => {
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const namespacesList = useSelector(
+    (state: AppState) => state.config.namespacesList
+  );
+
+  const upstreamsList = useSelector(
+    (state: AppState) => state.upstreams.upstreamsList
+  );
+
+  React.useEffect(() => {
+    if (upstreamsList.length) {
+      setIsLoading(false);
+    } else {
+      dispatch(listUpstreams({ namespacesList }));
+    }
+  }, [upstreamsList.length]);
+
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   let params = new URLSearchParams(props.location.search);
 
@@ -196,21 +229,6 @@ export const UpstreamsListing = (props: Props) => {
     upstreamForRouteCreation,
     setUpstreamForRouteCreation
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
-  const namespaces = React.useContext(NamespacesContext);
-
-  const [upstreamsList, setUpstreamsList] = React.useState<
-    UpstreamDetails.AsObject[]
-  >([]);
-
-  const { data, loading, error, setNewVariables } = useGetUpstreamsListV2({
-    namespaces: namespaces.namespacesList
-  });
-
-  React.useEffect(() => {
-    if (data && data.toObject().upstreamsList) {
-      setUpstreamsList(data.toObject().upstreamDetailsList);
-    }
-  }, [loading]);
 
   React.useEffect(() => {
     if (props.location.state && props.location.state.showSuccess) {
@@ -221,14 +239,11 @@ export const UpstreamsListing = (props: Props) => {
   React.useEffect(() => {
     if (props.location.state && props.location.state.showSuccess) {
       setShowSuccessModal(true);
-      setTimeout(() => {
-        setNewVariables({ namespaces: namespaces.namespacesList });
-      }, 1000);
     }
     return () => setShowSuccessModal(false);
   }, [props.location.state && props.location.state.showSuccess]);
 
-  if (!data || loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -314,10 +329,7 @@ export const UpstreamsListing = (props: Props) => {
                 checkboxes,
                 selectedRadio
               )}
-              columns={getTableColumns(
-                setUpstreamForRouteCreation,
-                deleteUpstream
-              )}
+              columns={getTableColumns(setUpstreamForRouteCreation)}
             />
           )}
         />
@@ -340,7 +352,14 @@ export const UpstreamsListing = (props: Props) => {
         cardTitle: upstream.metadata!.name,
         cardSubtitle: upstream.metadata!.namespace,
         onRemoveCard: () =>
-          deleteUpstream(upstream.metadata!.name, upstream.metadata!.namespace),
+          dispatch(
+            deleteUpstream({
+              ref: {
+                name: upstream.metadata!.name,
+                namespace: upstream.metadata!.namespace
+              }
+            })
+          ),
         removeConfirmText: 'Are you sure you want to delete this upstream?',
         onExpand: () => {},
         details: [
@@ -427,12 +446,6 @@ export const UpstreamsListing = (props: Props) => {
       });
   };
 
-  async function deleteUpstream(name: string, namespace: string) {
-    await upstreams.deleteUpstream({ name, namespace });
-    setUpstreamsList(usList =>
-      usList.filter(us => us.upstream!.metadata!.name !== name)
-    );
-  }
   function handleFilterChange(
     strings: StringFilterProps[],
     types: TypeFilterProps[],
@@ -450,6 +463,7 @@ export const UpstreamsListing = (props: Props) => {
 
   return (
     <div>
+      <LoadingBar />
       <Heading>
         <Breadcrumb />
         <Action>

@@ -1,0 +1,59 @@
+import {
+  GetSettingsRequest,
+  OAuthEndpoint
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
+
+export enum ConfigAction {
+  GET_VERSION = 'GET_VERSION',
+  GET_OAUTH_ENDPOINT = 'GET_OAUTH_ENDPOINT',
+  GET_IS_LICENSE_VALID = 'GET_IS_LICENSE_VALID',
+  GET_SETTINGS = 'GET_SETTINGS',
+  UPDATE_SETTINGS = 'UPDATE_SETTINGS',
+  LIST_NAMESPACES = 'LIST_NAMESPACES',
+  GET_POD_NAMESPACE = 'GET_POD_NAMESPACE'
+}
+
+export interface GetSettingsAction {
+  type: typeof ConfigAction.GET_SETTINGS;
+  payload: Settings.AsObject;
+}
+
+export interface ListNamespacesAction {
+  type: typeof ConfigAction.LIST_NAMESPACES;
+  payload: string[];
+}
+
+export interface GetOAuthEndpointAction {
+  type: typeof ConfigAction.GET_OAUTH_ENDPOINT;
+  payload: OAuthEndpoint.AsObject;
+}
+
+export interface GetIsLicenseValidAction {
+  type: typeof ConfigAction.GET_IS_LICENSE_VALID;
+  payload: boolean;
+}
+
+export interface GetVersionAction {
+  type: typeof ConfigAction.GET_VERSION;
+  payload: string;
+}
+
+export interface UpdateSettingsAction {
+  type: typeof ConfigAction.UPDATE_SETTINGS;
+  payload: Settings.AsObject;
+}
+
+export interface GetPodNamespaceAction {
+  type: typeof ConfigAction.GET_POD_NAMESPACE;
+  payload: string;
+}
+
+export type ConfigActionTypes =
+  | GetSettingsAction
+  | ListNamespacesAction
+  | GetOAuthEndpointAction
+  | GetIsLicenseValidAction
+  | GetVersionAction
+  | UpdateSettingsAction
+  | GetPodNamespaceAction;

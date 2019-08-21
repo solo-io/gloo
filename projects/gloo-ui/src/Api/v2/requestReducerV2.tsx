@@ -3,7 +3,7 @@ import * as jspb from 'google-protobuf';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
 import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { VirtualServiceInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { isEqual } from 'lodash';
+
 /* -------------------------------------------------------------------------- */
 /*                                   Reducer                                  */
 /* -------------------------------------------------------------------------- */
@@ -17,7 +17,6 @@ type VarType =
   | void;
 
 type State<T> = {
-  variables: VarType | null;
   data: T | null;
   dataObj: any;
   isLoading: boolean;

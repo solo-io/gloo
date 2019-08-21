@@ -7,7 +7,6 @@ import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
 import Select, { SelectValue } from 'antd/lib/select';
 import { DataSourceItemType } from 'antd/lib/auto-complete';
-import { NamespacesContext } from 'GlooIApp';
 
 const { Option } = AutoComplete;
 
@@ -86,7 +85,6 @@ export interface TypeaheadProps {
 }
 
 export const SoloTypeahead = (props: TypeaheadProps) => {
-  const namespaces = React.useContext(NamespacesContext);
   const [typeInText, setTypeInText] = React.useState<string>('');
 
   const {

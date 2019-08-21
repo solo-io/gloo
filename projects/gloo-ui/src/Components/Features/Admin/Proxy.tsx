@@ -6,12 +6,13 @@ import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { colors, healthConstants } from 'Styles';
 import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
-import { NamespacesContext } from 'GlooIApp';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -32,7 +33,9 @@ interface Props {}
 export const Proxys = (props: Props) => {
   const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
 
-  const namespaces = React.useContext(NamespacesContext);
+  const namespacesList = useSelector(
+    (state: AppState) => state.config.namespacesList
+  );
   const {
     data,
     loading,
@@ -40,7 +43,7 @@ export const Proxys = (props: Props) => {
     setNewVariables,
     dataObj: proxyObj
   } = useGetProxiesList({
-    namespaces: namespaces.namespacesList
+    namespaces: namespacesList
   });
   const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
     []

@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Switch state management to a Redux store
+    issueLink: https://github.com/solo-io/solo-projects/issues/833
+    resolvesIssure: false

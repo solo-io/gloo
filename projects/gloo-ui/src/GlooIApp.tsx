@@ -8,39 +8,21 @@ import { Content } from './Components/Structure/Content';
 import { Global } from '@emotion/core';
 import { globalStyles } from './Styles';
 import { Footer } from './Components/Structure/Footer';
-import {
-  GlooEContext,
-  initialGlooEContext,
-  useListNamespaces,
-  useGetDefaultNamespace
-} from 'Api';
+import { GlooEContext, initialGlooEContext } from 'Api';
 import './Styles/styles.css';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { listUpstreams } from 'store/upstreams/actions';
+import { listVirtualServices } from 'store/virtualServices/actions';
 import {
-  ListNamespacesRequest,
-  GetPodNamespaceRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-
-type Action = {
-  type: string;
-  payload: {};
-};
-
-type State = {};
-const initialState: State = {};
-export const StoreContext = React.createContext({
-  state: initialState,
-  dispatch: {} as React.Dispatch<Action>
-});
-
-//@ts-ignore
-export const useStore = () => React.useContext(StoreContext);
-
-const reducer: React.Reducer<State, Action> = (state, action) => {
-  switch (action.type) {
-    default:
-      return state;
-  }
-};
+  listNamespaces,
+  getSettings,
+  getPodNamespace,
+  getIsLicenseValid,
+  getVersion
+} from 'store/config/actions';
+import { AppState } from 'store';
+import { listSecrets } from 'store/secrets/actions';
 
 const AppContainer = styled.div`
   display: grid;
@@ -48,38 +30,38 @@ const AppContainer = styled.div`
   grid-template-rows: 55px 1fr 62px;
 `;
 
-export const NamespacesContext = React.createContext({
-  namespacesList: [''],
-  defaultNamespace: 'gloo-system'
-});
-
 export const GlooIApp = () => {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
-  let listNsRequest = new ListNamespacesRequest();
-  const { data, loading, error } = useListNamespaces(listNsRequest);
-  const getDefaultNsRequest = new GetPodNamespaceRequest();
-  const { data: defaultNsData } = useGetDefaultNamespace(getDefaultNsRequest);
+  const dispatch = useDispatch();
+
+  // TODO: make a generalized action in reducer
+  React.useEffect(() => {
+    dispatch(listNamespaces());
+    dispatch(getSettings());
+    dispatch(getPodNamespace());
+    dispatch(getIsLicenseValid());
+    dispatch(getVersion());
+  }, []);
+
+  const { namespacesList } = useSelector((store: AppState) => store.config);
+
+  React.useEffect(() => {
+    if (namespacesList) {
+      dispatch(listUpstreams({ namespacesList }));
+      dispatch(listVirtualServices({ namespacesList }));
+      dispatch(listSecrets({ namespacesList }));
+    }
+  }, [namespacesList.length]);
 
   return (
     <GlooEContext.Provider value={initialGlooEContext}>
-      <NamespacesContext.Provider
-        value={{
-          namespacesList: data ? data.namespacesList : [''],
-          defaultNamespace: defaultNsData
-            ? defaultNsData.namespace
-            : 'gloo-system'
-        }}>
-        <StoreContext.Provider value={{ state, dispatch }}>
-          <BrowserRouter>
-            <Global styles={globalStyles} />
-            <AppContainer>
-              <MainMenu />
-              <Content />
-              <Footer />
-            </AppContainer>
-          </BrowserRouter>
-        </StoreContext.Provider>
-      </NamespacesContext.Provider>
+      <BrowserRouter>
+        <Global styles={globalStyles} />
+        <AppContainer>
+          <MainMenu />
+          <Content />
+          <Footer />
+        </AppContainer>
+      </BrowserRouter>
     </GlooEContext.Provider>
   );
 };
