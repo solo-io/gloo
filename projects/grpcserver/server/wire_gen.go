@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
@@ -55,7 +56,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	string2 := envutils.MustGetPodNamespace(ctx)
 	configApiServer := configsvc.NewConfigGrpcService(ctx, settingsClient, client, namespaceClient, oAuthEndpoint, buildVersion, string2)
 	secretClient := setup.NewSecretClient(clientSet)
-	secretApiServer := secretsvc.NewSecretGrpcService(ctx, secretClient)
+	scrubber := scrub.NewScrubber()
+	secretApiServer := secretsvc.NewSecretGrpcService(ctx, secretClient, scrubber)
 	virtualServiceClient := setup.NewVirtualServiceClient(clientSet)
 	mutationMutator := mutation2.NewMutator(ctx, virtualServiceClient)
 	mutationFactory := mutation2.NewMutationFactory()

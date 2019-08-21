@@ -8,18 +8,21 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
 	"go.uber.org/zap"
 )
 
 type secretGrpcService struct {
-	ctx          context.Context
-	secretClient gloov1.SecretClient
+	ctx            context.Context
+	secretClient   gloov1.SecretClient
+	secretScrubber scrub.Scrubber
 }
 
-func NewSecretGrpcService(ctx context.Context, secretClient gloov1.SecretClient) v1.SecretApiServer {
+func NewSecretGrpcService(ctx context.Context, secretClient gloov1.SecretClient, secretScrubber scrub.Scrubber) v1.SecretApiServer {
 	return &secretGrpcService{
-		ctx:          ctx,
-		secretClient: secretClient,
+		ctx:            ctx,
+		secretClient:   secretClient,
+		secretScrubber: secretScrubber,
 	}
 }
 
@@ -31,6 +34,7 @@ func (s *secretGrpcService) GetSecret(ctx context.Context, request *v1.GetSecret
 		return nil, wrapped
 	}
 
+	s.secretScrubber.Secret(s.ctx, secret)
 	return &v1.GetSecretResponse{Secret: secret}, nil
 }
 
@@ -45,6 +49,11 @@ func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSec
 		}
 		secretList = append(secretList, secrets...)
 	}
+
+	for _, secret := range secretList {
+		s.secretScrubber.Secret(s.ctx, secret)
+	}
+
 	return &v1.ListSecretsResponse{Secrets: secretList}, nil
 }
 
@@ -73,6 +82,7 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
+	s.secretScrubber.Secret(s.ctx, written)
 	return &v1.CreateSecretResponse{Secret: written}, nil
 }
 
@@ -102,6 +112,7 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 		return nil, wrapped
 	}
 
+	s.secretScrubber.Secret(s.ctx, written)
 	return &v1.UpdateSecretResponse{Secret: written}, nil
 }
 

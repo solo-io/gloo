@@ -15,6 +15,7 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
+	mock_scrub "github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub/mocks"
 	"google.golang.org/grpc"
 )
 
@@ -25,6 +26,7 @@ var (
 	client       v1.SecretApiClient
 	mockCtrl     *gomock.Controller
 	secretClient *mock_gloo.MockSecretClient
+	scrubber     *mock_scrub.MockScrubber
 	testErr      = errors.Errorf("test-err")
 )
 
@@ -33,7 +35,8 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		secretClient = mock_gloo.NewMockSecretClient(mockCtrl)
-		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient)
+		scrubber = mock_scrub.NewMockScrubber(mockCtrl)
+		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient, scrubber)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterSecretApiServer(s, apiserver) })
 		client = v1.NewSecretApiClient(conn)
@@ -59,6 +62,7 @@ var _ = Describe("ServiceTest", func() {
 			secretClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(&secret, nil)
+			scrubber.EXPECT().Secret(context.Background(), &secret)
 
 			request := &v1.GetSecretRequest{Ref: &ref}
 			actual, err := client.GetSecret(context.TODO(), request)
@@ -101,10 +105,11 @@ var _ = Describe("ServiceTest", func() {
 			secretClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Secret{&secret1}, nil)
-
 			secretClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Secret{&secret2}, nil)
+			scrubber.EXPECT().Secret(context.Background(), &secret1)
+			scrubber.EXPECT().Secret(context.Background(), &secret2)
 
 			request := &v1.ListSecretsRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListSecrets(context.TODO(), request)
@@ -186,6 +191,7 @@ var _ = Describe("ServiceTest", func() {
 				secretClient.EXPECT().
 					Write(&tc.secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 					Return(&tc.secret, nil)
+				scrubber.EXPECT().Secret(context.Background(), &tc.secret)
 
 				actual, err := client.CreateSecret(context.TODO(), &tc.request)
 				Expect(err).NotTo(HaveOccurred())
@@ -282,6 +288,7 @@ var _ = Describe("ServiceTest", func() {
 				secretClient.EXPECT().
 					Write(&tc.newSecret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(&tc.newSecret, nil)
+				scrubber.EXPECT().Secret(context.Background(), &tc.newSecret)
 
 				actual, err := client.UpdateSecret(context.TODO(), &tc.request)
 				Expect(err).NotTo(HaveOccurred())
