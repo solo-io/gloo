@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Envoy information is now displayed in UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/876

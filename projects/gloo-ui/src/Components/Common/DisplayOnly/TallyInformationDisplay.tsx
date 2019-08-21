@@ -56,14 +56,14 @@ const TallyInformationDisplayC = (props: Props) => {
   const countDisplay = (): string | number => {
     const count = props.tallyCount;
 
-    if (count) {
+    if (count !== null) {
       if (count < 10) {
         return `0${count}`;
       } else {
         return count;
       }
     } else {
-      return '~';
+      return '?';
     }
   };
 

@@ -6,15 +6,18 @@ import { colors, soloConstants } from 'Styles';
 import { HealthIndicator } from '../HealthIndicator';
 
 const StatusTileContainer = styled.div`
+  height: 100%;
   border-radius: 8px;
   background: ${colors.januaryGrey};
   padding: 17px;
 `;
 
 const StatusTileInformation = styled<'div', { horizontal?: boolean }>('div')`
+  position: relative;
   border-radius: 8px;
   background: white;
-  padding: 15px 18px 18px 15px;
+  padding: 15px 18px 39px 15px;
+  height: 100%;
 
   ${props => (props.horizontal ? `display: flex;` : '')}
 `;
@@ -51,6 +54,7 @@ const Description = styled.div`
   font-size: 16px;
   line-height: 19px;
   margin-bottom: 23px;
+  min-height: 95px;
 `;
 
 const Content = styled.div``;
@@ -76,6 +80,8 @@ const HorizontalContent = styled.div`
 `;
 
 const Link = styled.div`
+  position: absolute;
+  bottom: 15px;
   cursor: pointer;
   color: ${colors.seaBlue};
   font-size: 14px;

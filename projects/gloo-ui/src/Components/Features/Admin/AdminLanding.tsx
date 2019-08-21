@@ -16,7 +16,9 @@ import { useGetGatewayList } from 'Api/v2/useGatewayClientV2';
 import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import { useGetEnvoyList } from 'Api/v2/useEnvoyClientV2';
 import { getResourceStatus } from 'utils/helpers';
+import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { AppState } from 'store';
 import { useSelector } from 'react-redux';
 
@@ -174,7 +176,9 @@ const GatewayOverview = () => {
       <StatusTile
         titleText={'Gateway Configuration'}
         titleIcon={<GatewayConfigLogo />}
-        description={'Gateways are used to configure the protocols and ports for Envoy. Optionally, gateways can be associated with a specific set of virtual services.'}
+        description={
+          'Gateways are used to configure the protocols and ports for Envoy. Optionally, gateways can be associated with a specific set of virtual services.'
+        }
         exploreMoreLink={{
           prompt: 'View Gateways',
           link: '/admin/gateways/'
@@ -201,9 +205,7 @@ const GatewayOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={allGateways.length}
-              tallyDescription={
-                'gateway configurations currently deployed'
-              }
+              tallyDescription={'gateway configurations currently deployed'}
               color='blue'
             />
           </React.Fragment>
@@ -252,7 +254,9 @@ const ProxyOverview = () => {
       <StatusTile
         titleText={'Proxy Configuration'}
         titleIcon={<ProxyConfigLogo />}
-        description={'Gloo generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'}
+        description={
+          'Gloo generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'
+        }
         exploreMoreLink={{
           prompt: 'View Proxy',
           link: '/admin/proxy/'
@@ -279,9 +283,7 @@ const ProxyOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={allProxies.length}
-              tallyDescription={
-                'proxy configurations produced by Gloo'
-              }
+              tallyDescription={'proxy configurations produced by Gloo'}
               color='blue'
             />
           </React.Fragment>
@@ -294,46 +296,44 @@ const ProxyOverview = () => {
 };
 
 const EnvoyOverview = () => {
-  /*
-    const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
-      []
-    );
-    const { data, loading, error } = useGetUpstreamsListV2({
-      namespaces: namespaces.namespacesList
-    });
-  
-    React.useEffect(() => {
-      if (data && data.toObject().upstreamsList) {
-        setUpstreamsList(data.toObject().upstreamsList);
-      }
-    }, [loading]);
-  
-    const upstreamErrorCount = upstreamsList.reduce(
-      (total, upstream) =>
-        total +
-        (!(
-          upstream.status && upstream.status.state !== healthConstants.Error.value
-        )
-          ? 1
-          : 0),
-      0
-    );*/
+  const { data, loading, error, setNewVariables } = useGetEnvoyList();
+  const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
+
+  React.useEffect(() => {
+    if (!!data) {
+      setAllEnvoy(data.toObject().envoyDetailsList);
+    }
+  }, [loading]);
+
+  const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
+    /*if (getResourceStatus(envoy.!) !== 'Rejected') {
+      return total;
+    }*/
+    return total;
+
+    return total + 1;
+  }, 0);
+
   return (
     <Envoy>
       <StatusTile
         titleText={'Envoy Configuration'}
         titleIcon={<EnvoyLogo />}
-        description={'This is the live config dump from Envoy. This is translated directly from the proxy config and should be updated any time the proxy configuration changes.'}
+        description={
+          'This is the live config dump from Envoy. This is translated directly from the proxy config and should be updated any time the proxy configuration changes.'
+        }
         exploreMoreLink={{
           prompt: 'View Envoy',
           link: '/admin/envoy/'
         }}
         healthStatus={healthConstants.Error.value}>
-        {!!3 ? (
+        {!data || (!data && loading) ? (
+          <div>Loading...</div>
+        ) : !!allEnvoy.length ? (
           <React.Fragment>
-            {!!3 ? (
+            {!!envoyErrorCount ? (
               <TallyInformationDisplay
-                tallyCount={1}
+                tallyCount={envoyErrorCount}
                 tallyDescription={'envoy need your attention'}
                 color='orange'
                 moreInfoLink={{
@@ -345,10 +345,8 @@ const EnvoyOverview = () => {
               <GoodStateCongratulations typeOfItem={'envoy configurations'} />
             )}
             <TallyInformationDisplay
-              tallyCount={1}
-              tallyDescription={
-                'envoy configurations currently deployed'
-              }
+              tallyCount={allEnvoy.length}
+              tallyDescription={'envoy configurations currently deployed'}
               color='blue'
             />
           </React.Fragment>

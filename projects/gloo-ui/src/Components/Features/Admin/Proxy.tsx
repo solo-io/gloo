@@ -31,8 +31,6 @@ const ProxyLogoFullSize = styled(ProxyLogo)`
 interface Props {}
 
 export const Proxys = (props: Props) => {
-  const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
-
   const namespacesList = useSelector(
     (state: AppState) => state.config.namespacesList
   );
@@ -61,18 +59,6 @@ export const Proxys = (props: Props) => {
   if (!data || (!data && loading)) {
     return <div>Loading...</div>;
   }
-
-  const toggleExpansion = (indexToggled: number) => {
-    setGatewaysOpen(
-      gatewaysOpen.map((isOpen, ind) => {
-        if (ind !== indexToggled) {
-          return false;
-        }
-
-        return !isOpen;
-      })
-    );
-  };
 
   return (
     <React.Fragment>

@@ -15,6 +15,8 @@ import { soloConstants, healthConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
+import { useGetEnvoyList } from 'Api/v2/useEnvoyClientV2';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
@@ -158,6 +160,24 @@ export const Overview = (props: Props) => {
 };
 
 const HealthStatus = (props: Props) => {
+  const { data, loading, error, setNewVariables } = useGetEnvoyList({});
+  const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
+  React.useEffect(() => {
+    if (!!data) {
+      setAllEnvoy(data.toObject().envoyDetailsList);
+    }
+  }, [loading]);
+  const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
+    /*if (getResourceStatus(envoy.!) !== 'Rejected') {
+      return total;
+    }*/
+    return total;
+
+    return total + 1;
+  }, 0);
+
+  console.log(allEnvoy);
+
   const goToEnvoys = (): void => {
     props.history.push('/admin/envoy/');
   };
@@ -173,32 +193,38 @@ const HealthStatus = (props: Props) => {
                 Envoy Health Status
               </EnvoyHealthTitle>
               <EnvoyHealthSubtitle>
-                Gloo is responsible for configuring Envoy. Whenever Virtual Services or other configs change that affect the proxy,
-                Gloo will immediately detect that change and update Envoy's configuration. 
+                Gloo is responsible for configuring Envoy. Whenever Virtual
+                Services or other configs change that affect the proxy, Gloo
+                will immediately detect that change and update Envoy's
+                configuration.
               </EnvoyHealthSubtitle>
             </div>
             <Link onClick={goToEnvoys}>View Envoy Configuration</Link>
           </EnvoyHealthHeader>
 
-          <div>
-            <TallyInformationDisplay
-              tallyCount={10}
-              tallyDescription={'envoy configuration needs your attention'}
-              color='orange'
-              moreInfoLink={{
-                prompt: 'View envoy issues',
-                link: '/admin/envoy/?status=Rejected'
-              }}
-            />
+          {!data || (!data && loading) ? (
+            <div>Loading...</div>
+          ) : (
+            <div>
+              <TallyInformationDisplay
+                tallyCount={envoyErrorCount}
+                tallyDescription={'envoy configuration needs your attention'}
+                color='orange'
+                moreInfoLink={{
+                  prompt: 'View envoy issues',
+                  link: '/admin/envoy/?status=Rejected'
+                }}
+              />
 
-            <TallyInformationDisplay
-              tallyCount={10}
-              tallyDescription={
-                'envoy configurations currently deployed and configured'
-              }
-              color='blue'
-            />
-          </div>
+              <TallyInformationDisplay
+                tallyCount={allEnvoy.length}
+                tallyDescription={
+                  'envoy configurations currently deployed and configured'
+                }
+                color='blue'
+              />
+            </div>
+          )}
         </EnvoyHealthContent>
       </StatusTile>
     </EnvoyHealth>
@@ -226,7 +252,7 @@ const VirtualServicesOverview = () => {
       total +
       (!(
         vs.virtualService!.status &&
-        vs.virtualService!.status.state !== healthConstants.Error.value
+        vs.virtualService!.status!.state !== healthConstants.Error.value
       )
         ? 1
         : 0),
@@ -313,9 +339,7 @@ const UpstreamsOverview = () => {
       <StatusTile
         titleText={'Upstreams'}
         titleIcon={<USIcon />}
-        description={
-          'Upstreams define destinations for routes.'
-        }
+        description={'Upstreams define destinations for routes.'}
         exploreMoreLink={{
           prompt: 'View Upstreams',
           link: '/upstreams/'
