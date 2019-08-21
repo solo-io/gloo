@@ -54,6 +54,7 @@ gloo:
             name: stats
             protocol: TCP
   discovery:
+    enabled: true
     deployment:
       image:
         repository: discovery

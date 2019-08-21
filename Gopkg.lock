@@ -499,9 +499,12 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -1299,7 +1302,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:0ec0efd037badeef1c37a15a94de9c9a44c2930477ff25b99414991242bd42ad"
+  digest = "1:218e01863da1618b26616e6b94d7b73c20390cb88c8f245d3e7f2b5559978390"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1424,8 +1427,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "de142be2264649a1d0f1bd28fbe924cb6f3d5431"
-  version = "v0.18.19"
+  revision = "4e14b826135dfa43a2f6e163571234201592739f"
+  version = "v0.18.20"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1505,7 +1508,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:be46669c65ae98b7d7a37a1af78cd1310d8cf67cc3815d38fdb07f9a1ce3aabf"
+  digest = "1:532c8e826268a9a0e51959928a060fcb22387594c519a68ecaaf54b8d6b47fe6"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1565,8 +1568,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "6172b86a18792f91c5323a624db93b8d8efbccb9"
-  version = "v0.10.10"
+  revision = "ed277fb6f43f758200ce1b32189f78c6df98545b"
+  version = "v0.10.12"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2582,6 +2585,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",
