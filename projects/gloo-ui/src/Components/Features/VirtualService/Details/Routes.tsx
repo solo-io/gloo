@@ -17,6 +17,8 @@ import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 import { Popconfirm } from 'antd';
+import { useDispatch } from 'react-redux';
+import { deleteRoute, shiftRoutes } from 'store/virtualServices/actions';
 
 const RouteMatch = styled.div`
   max-width: 200px;
@@ -92,9 +94,7 @@ const getRouteColumns = (
 
             <div style={{ marginLeft: '5px' }}>
               <Popconfirm
-                onConfirm={() =>
-                  deleteRoute(matcher)
-                }
+                onConfirm={() => deleteRoute(matcher)}
                 title={'Are you sure you want to delete this route? '}
                 okText='Yes'
                 cancelText='No'>
@@ -111,8 +111,8 @@ const getRouteColumns = (
 interface Props {
   routes: Route.AsObject[];
   virtualService: VirtualService.AsObject;
-  routesChanged: (newRoutes: Route.AsObject[]) => any;
-  reloadVirtualService: (newVirtualService?: VirtualService.AsObject) => any;
+  // routesChanged: (newRoutes: Route.AsObject[]) => any;
+  // reloadVirtualService: (newVirtualService?: VirtualService.AsObject) => any;
 }
 
 export const Routes: React.FC<Props> = props => {
@@ -121,7 +121,11 @@ export const Routes: React.FC<Props> = props => {
     Route.AsObject | undefined
   >(undefined);
   const [createNewRoute, setCreateNewRoute] = React.useState<boolean>(false);
-
+  const dispatch = useDispatch();
+  let virtualServiceRef = {
+    name: props.virtualService.metadata!.name,
+    namespace: props.virtualService.metadata!.namespace
+  };
   React.useEffect(() => {
     setRoutesList([...props.routes]);
   }, [props.routes]);
@@ -145,17 +149,24 @@ export const Routes: React.FC<Props> = props => {
     return existingRoutes;
   };
 
-  const deleteRoute = (matcherToDelete: string) => {
+  const handleDeleteRoute = (matcherToDelete: string) => {
+    let index = routesList.findIndex(
+      route => getRouteMatcher(route).matcher === matcherToDelete
+    );
     const newList = routesList.filter(
       route => getRouteMatcher(route).matcher !== matcherToDelete
     );
-
+    dispatch(
+      deleteRoute({
+        virtualServiceRef,
+        index
+      })
+    );
     setRoutesList(newList);
-    props.routesChanged(newList);
   };
 
   const finishNewRouteCreation = () => {
-    props.reloadVirtualService();
+    // props.reloadVirtualService();
     setCreateNewRoute(false);
   };
 
@@ -166,7 +177,7 @@ export const Routes: React.FC<Props> = props => {
   };
 
   const finishRouteEditiing = () => {
-    props.reloadVirtualService();
+    // props.reloadVirtualService();
     setRouteBeingEdited(undefined);
   };
 
@@ -177,7 +188,13 @@ export const Routes: React.FC<Props> = props => {
     newRoutesList.splice(hoverIndex, 0, movedRoute);
 
     setRoutesList(newRoutesList);
-    props.routesChanged(newRoutesList);
+    dispatch(
+      shiftRoutes({
+        virtualServiceRef,
+        fromIndex: dragIndex,
+        toIndex: hoverIndex
+      })
+    );
   };
 
   return (
@@ -193,7 +210,7 @@ export const Routes: React.FC<Props> = props => {
       </RouteSectionTitle>
 
       <SoloDragSortableTable
-        columns={getRouteColumns(beginRouteEditing, deleteRoute)}
+        columns={getRouteColumns(beginRouteEditing, handleDeleteRoute)}
         dataSource={getRouteData()}
         moveRow={reorderRoutes}
       />

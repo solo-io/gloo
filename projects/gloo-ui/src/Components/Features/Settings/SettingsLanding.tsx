@@ -16,7 +16,11 @@ import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import {
+  Secret,
+  AwsSecret,
+  TlsSecret
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { SecretValuesType } from './SecretForm';
@@ -63,6 +67,7 @@ export const SettingsLanding = (props: Props) => {
     secrets: { secretsList },
     config: { namespacesList }
   } = useSelector((state: AppState) => state);
+  console.log(secretsList);
   const [isLoading, setIsLoading] = React.useState(false);
   const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
 
@@ -170,19 +175,17 @@ export const SettingsLanding = (props: Props) => {
     const {
       secretResourceRef: { name, namespace }
     } = values;
-    const { secretKey, accessKey } = values.awsSecret;
-    dispatch(
-      createSecret({ ref: { name, namespace }, aws: { accessKey, secretKey } })
-    );
-    // try {
-    //   await secrets.createSecret({ name, namespace, values, secretKind });
-    // } catch (error) {
-    //   //   // TODO: show error modal
-    //   //   console.error('error', error);
-    //   // }
-    //   // setNewVariables({ namespaces: namespaces.namespacesList });
-    //   // setShowSuccessModal(true);
-    // }
+
+    let aws: AwsSecret.AsObject | undefined = undefined;
+    if (secretKind === Secret.KindCase.AWS) {
+      aws = values.awsSecret;
+    }
+    let tls: TlsSecret.AsObject | undefined = undefined;
+    if (secretKind === Secret.KindCase.TLS) {
+      tls = values.tlsSecret;
+    }
+
+    dispatch(createSecret({ ref: { name, namespace }, aws, tls }));
   }
 
   async function handleDeleteSecret(

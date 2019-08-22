@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Implement polling to ensure up to date data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/822
+  - type: NEW_FEATURE
+    description: Upstream status is up to date.
+    issueLink: https://github.com/solo-io/solo-projects/issues/893

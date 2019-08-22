@@ -3,7 +3,6 @@ import { UpstreamActionTypes } from './upstreams/types';
 import { VirtualServiceActionTypes } from './virtualServices/types';
 import { normalize } from 'normalizr';
 import { upstream } from './schemas';
-import { object } from 'yup';
 
 enum ActionStatus {
   INITIAL = 'INITIAL',

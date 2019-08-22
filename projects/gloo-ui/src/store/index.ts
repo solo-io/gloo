@@ -7,12 +7,14 @@ import { loadingBarReducer } from 'react-redux-loading-bar';
 import { secretsReducer } from './secrets/reducers';
 import { normalizrMiddleware } from './requests';
 import { configReducer } from './config/reducers';
+import { envoyReducer } from './envoy/reducers';
 
 const rootReducer = combineReducers({
   upstreams: upstreamsReducer,
   virtualServices: virtualServicesReducer,
   secrets: secretsReducer,
   config: configReducer,
+  envoy: envoyReducer,
   loadingBar: loadingBarReducer
 });
 

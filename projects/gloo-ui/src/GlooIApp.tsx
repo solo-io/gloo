@@ -23,6 +23,8 @@ import {
 } from 'store/config/actions';
 import { AppState } from 'store';
 import { listSecrets } from 'store/secrets/actions';
+import { listEnvoyDetails } from 'store/envoy/actions';
+import { useInterval } from 'Hooks/useInterval';
 
 const AppContainer = styled.div`
   display: grid;
@@ -40,17 +42,27 @@ export const GlooIApp = () => {
     dispatch(getPodNamespace());
     dispatch(getIsLicenseValid());
     dispatch(getVersion());
+    dispatch(listEnvoyDetails());
   }, []);
 
   const { namespacesList } = useSelector((store: AppState) => store.config);
 
   React.useEffect(() => {
-    if (namespacesList) {
-      dispatch(listUpstreams({ namespacesList }));
-      dispatch(listVirtualServices({ namespacesList }));
-      dispatch(listSecrets({ namespacesList }));
-    }
+    dispatch(listUpstreams({ namespacesList }));
+    dispatch(listVirtualServices({ namespacesList }));
+    dispatch(listSecrets({ namespacesList }));
   }, [namespacesList.length]);
+
+  useInterval(
+    () => {
+      if (namespacesList) {
+        dispatch(listUpstreams({ namespacesList }));
+        dispatch(listVirtualServices({ namespacesList }));
+        dispatch(listSecrets({ namespacesList }));
+      }
+    },
+    namespacesList.length > 0 ? 3000 : null
+  );
 
   return (
     <GlooEContext.Provider value={initialGlooEContext}>

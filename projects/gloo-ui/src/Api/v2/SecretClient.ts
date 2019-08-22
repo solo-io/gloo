@@ -118,6 +118,7 @@ export function getCreateSecret(
       tlsSecret.setRootCa(rootCa);
       request.setTls(tlsSecret);
     }
+
     client.createSecret(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);

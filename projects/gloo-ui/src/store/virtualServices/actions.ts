@@ -37,7 +37,8 @@ import {
   VirtualServiceAction,
   VirtualServiceActionTypes,
   DeleteVirtualServiceAction,
-  DeleteRouteAction
+  DeleteRouteAction,
+  ShiftRoutesAction
 } from './types';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 
@@ -346,10 +347,26 @@ export const deleteRoute = (
   deleteRouteRequest: DeleteRouteRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    const response = await getDeleteRoute(deleteRouteRequest);
-    dispatch<DeleteRouteAction>({
-      type: VirtualServiceAction.DELETE_ROUTE,
-      payload: response.virtualServiceDetails!
-    });
+    try {
+      const response = await getDeleteRoute(deleteRouteRequest);
+      dispatch<DeleteRouteAction>({
+        type: VirtualServiceAction.DELETE_ROUTE,
+        payload: response.virtualServiceDetails!
+      });
+    } catch (error) {}
+  };
+};
+
+export const shiftRoutes = (
+  shiftRoutesRequest: ShiftRoutesRequest.AsObject
+) => {
+  return async (dispatch: Dispatch) => {
+    try {
+      const response = await getShiftRoutes(shiftRoutesRequest);
+      dispatch<ShiftRoutesAction>({
+        type: VirtualServiceAction.SHIFT_ROUTES,
+        payload: response.virtualServiceDetails!
+      });
+    } catch (error) {}
   };
 };

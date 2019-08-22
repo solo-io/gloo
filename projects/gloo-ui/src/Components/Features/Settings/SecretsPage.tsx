@@ -8,6 +8,7 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import { SecretForm, SecretValuesType } from './SecretForm';
 import { getIcon } from 'utils/helpers';
+import { isEqual } from 'lodash';
 
 interface Props {
   awsSecrets?: Secret.AsObject[];
@@ -24,7 +25,27 @@ interface Props {
   ) => void;
 }
 
-export const SecretsPage = (props: Props) => {
+function equivalentProps(
+  oldProps: Readonly<Props>,
+  nextProps: Readonly<Props>
+): boolean {
+  if (
+    !!oldProps.awsSecrets !== !!nextProps.awsSecrets ||
+    !!oldProps.azureSecrets !== !!nextProps.azureSecrets
+  ) {
+    return false;
+  }
+  if (!oldProps.awsSecrets || !oldProps.azureSecrets) {
+    return true;
+  }
+
+  return (
+    isEqual(oldProps.awsSecrets, nextProps.awsSecrets) &&
+    isEqual(oldProps.azureSecrets, nextProps.azureSecrets)
+  );
+}
+
+export const SecretsPage = React.memo((props: Props) => {
   const { awsSecrets, azureSecrets } = props;
 
   let awsTableData: any[] = [];
@@ -178,4 +199,4 @@ export const SecretsPage = (props: Props) => {
       </SectionCard>
     </React.Fragment>
   );
-};
+}, equivalentProps);

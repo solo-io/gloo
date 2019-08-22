@@ -12,7 +12,12 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   GetVirtualServiceRequest,
   UpdateVirtualServiceRequest,
-  VirtualServiceInput
+  VirtualServiceInput,
+  VirtualServiceInputV2,
+  RepeatedStrings,
+  RepeatedRoutes,
+  IngressRateLimitValue,
+  ExtAuthInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { useGetVirtualService, useUpdateVirtualService } from 'Api';
 import {
@@ -41,6 +46,11 @@ import { Struct } from 'google-protobuf/google/protobuf/struct_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppState } from 'store';
+import { virtualServices } from 'Api/v2/VirtualServiceClient';
+import { getGetVirtualService } from 'store/virtualServices/actions';
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 
 const DetailsContent = styled.div`
   position: relative;
@@ -76,18 +86,8 @@ export const VirtualServiceDetails = (props: Props) => {
   const { match, history, location } = props;
   let { virtualservicename, virtualservicenamespace } = match.params;
 
-  const [virtualService, setVirtualService] = React.useState<
-    VirtualService.AsObject | undefined
-  >(undefined);
-  const [rawVS, setRawVS] = React.useState<Raw.AsObject | undefined>(undefined);
-
-  let resourceRef = new ResourceRef();
-  resourceRef.setName(virtualservicename);
-  resourceRef.setNamespace(virtualservicenamespace);
-  let vsRequest = new GetVirtualServiceRequest();
-  vsRequest.setRef(resourceRef);
-  const { data, loading, error, refetch: getVSRefetch } = useGetVirtualService(
-    vsRequest
+  const virtualServicesList = useSelector(
+    (state: AppState) => state.virtualServices.virtualServicesList
   );
 
   const {
@@ -96,29 +96,7 @@ export const VirtualServiceDetails = (props: Props) => {
     refetch: makeUpdateRequest
   } = useUpdateVirtualService(null);
 
-  React.useEffect(() => {
-    if (!!data) {
-      if (data.virtualServiceDetails) {
-        setVirtualService(data.virtualServiceDetails.virtualService);
-        setRawVS(data.virtualServiceDetails.raw);
-      } else {
-        setVirtualService(data.virtualService);
-      }
-    }
-  }, [loading]);
-
-  React.useEffect(() => {
-    if (!!updateData) {
-      if (updateData.virtualServiceDetails) {
-        setVirtualService(updateData.virtualServiceDetails.virtualService);
-        setRawVS(updateData.virtualServiceDetails.raw);
-      } else {
-        setVirtualService(updateData.virtualService);
-      }
-    }
-  }, [updateLoading]);
-
-  if (!virtualService && (loading || updateLoading)) {
+  if (updateLoading || !virtualServicesList.length) {
     return (
       <React.Fragment>
         <Breadcrumb />
@@ -133,35 +111,12 @@ export const VirtualServiceDetails = (props: Props) => {
       </React.Fragment>
     );
   }
-  if (!!error || !virtualService) {
-    return <ErrorText>{error}</ErrorText>;
-  }
 
-  /*console.log({ virtualService, virtualservicename, virtualservicenamespace });
-  if (
-    virtualService.metadata &&
-    (virtualService.metadata.name !== virtualservicename ||
-      virtualService.metadata.namespace !== virtualservicenamespace)
-  ) {
-    let resourceRef = new ResourceRef();
-    resourceRef.setName(virtualservicename);
-    resourceRef.setNamespace(virtualservicenamespace);
-    let vsRequest = new GetVirtualServiceRequest();
-    vsRequest.setRef(resourceRef);
-
-    console.log('refetching');
-    getVSRefetch(vsRequest);
-  }*/
-
-  const reloadVirtualService = (
-    newVirtualService?: VirtualService.AsObject
-  ) => {
-    if (newVirtualService) {
-      setVirtualService(newVirtualService);
-    } else {
-      getVSRefetch(vsRequest);
-    }
-  };
+  let virtualServiceDetails = virtualServicesList.find(
+    vsD => vsD && vsD.virtualService!.metadata!.name === virtualservicename
+  )!;
+  let virtualService = virtualServiceDetails!.virtualService!;
+  let rawVS = virtualServiceDetails!.raw!;
 
   let routes: Route.AsObject[] = [];
   let domains: string[] = [];
@@ -256,17 +211,21 @@ export const VirtualServiceDetails = (props: Props) => {
     newOAuth?: OAuth.AsObject;
   }) => {
     console.log(newInfo);
-    let virtualServiceInput = new VirtualServiceInput();
+    let virtualServiceInput = new VirtualServiceInputV2();
     let vsRef = new ResourceRef();
     vsRef.setName(virtualService!.metadata!.name);
     vsRef.setNamespace(virtualService!.metadata!.namespace);
     virtualServiceInput.setRef(vsRef);
-    virtualServiceInput.setDisplayName(virtualService!.displayName);
-    virtualServiceInput.setDomainsList(
+    let stringVal = new StringValue();
+    stringVal.setValue(virtualService!.displayName);
+    virtualServiceInput.setDisplayName(stringVal);
+    let domains = new RepeatedStrings();
+    domains.setValuesList(
       !!newInfo.newDomainsList
         ? newInfo.newDomainsList
         : virtualService!.virtualHost!.domainsList
     );
+    virtualServiceInput.setDomains(domains);
     const routesList: Route[] = (!!newInfo.newRoutesList
       ? newInfo.newRoutesList
       : virtualService!.virtualHost!.routesList
@@ -349,14 +308,16 @@ export const VirtualServiceDetails = (props: Props) => {
 
       return newRoute;
     });
-    virtualServiceInput.setRoutesList(routesList);
+    let routes = new RepeatedRoutes();
+    routes.setValuesList(routesList);
+    virtualServiceInput.setRoutes(routes);
 
-    if (!!virtualService!.sslConfig && !!virtualService!.sslConfig!.secretRef) {
-      let secretRef = new ResourceRef();
-      secretRef.setName(virtualService!.sslConfig!.secretRef!.name);
-      secretRef.setNamespace(virtualService!.sslConfig!.secretRef!.namespace);
-      virtualServiceInput.setSecretRef(secretRef);
-    }
+    // if (!!virtualService!.sslConfig && !!virtualService!.sslConfig!.secretRef) {
+    //   let secretRef = new ResourceRef();
+    //   secretRef.setName(virtualService!.sslConfig!.secretRef!.name);
+    //   secretRef.setNamespace(virtualService!.sslConfig!.secretRef!.namespace);
+    //   virtualServiceInput.sets(secretRef);
+    // }
 
     /** RATE LIMITS */
     let newRateLimits = new IngressRateLimit();
@@ -389,7 +350,9 @@ export const VirtualServiceDetails = (props: Props) => {
         newRateLimits.setAuthorizedLimits(authLimit);
       }
     }
-    virtualServiceInput.setRateLimitConfig(newRateLimits);
+    let rateLimit = new IngressRateLimitValue();
+    rateLimit.setValue(newRateLimits);
+    virtualServiceInput.setRateLimitConfig(rateLimit);
 
     /** AUTHORIZATIONS */
     /*if (!!configsMap && !!configsMap.get('basic-auth')) {
@@ -424,17 +387,27 @@ export const VirtualServiceDetails = (props: Props) => {
           );
           oAuth.setClientSecretRef(clientSecretRef);
         }
-        virtualServiceInput.setOauth(oAuth);
+        let config = new ExtAuthInput.Config();
+        config.setOauth(oAuth);
+        let extAuthInput = new ExtAuthInput();
+        extAuthInput.setConfig(config);
+        virtualServiceInput.setExtAuthConfig(extAuthInput);
       } else {
       }
     }
     if (!!configsMap && !!configsMap.get('custom-auth')) {
       let customAuth = new CustomAuth();
-      virtualServiceInput.setCustomAuth(customAuth);
+      let config = new ExtAuthInput.Config();
+      config.setCustomAuth(customAuth);
+
+      let extAuthInput = new ExtAuthInput();
+      extAuthInput.setConfig(config);
+
+      virtualServiceInput.setExtAuthConfig(extAuthInput);
     }
 
     let updateRequest = new UpdateVirtualServiceRequest();
-    updateRequest.setInput(virtualServiceInput);
+    updateRequest.setInputV2(virtualServiceInput);
     makeUpdateRequest(updateRequest);
   };
 
@@ -446,9 +419,6 @@ export const VirtualServiceDetails = (props: Props) => {
   };
   const externalAuthChanged = (newOAuth: OAuth.AsObject) => {
     updateVirtualService({ newOAuth });
-  };
-  const routesChanged = (newRoutesList: Route.AsObject[]) => {
-    updateVirtualService({ newRoutesList });
   };
 
   const headerInfo = [
@@ -499,8 +469,7 @@ export const VirtualServiceDetails = (props: Props) => {
             <Routes
               routes={routes}
               virtualService={virtualService!}
-              routesChanged={routesChanged}
-              reloadVirtualService={reloadVirtualService}
+              // routesChanged={routesChanged}
             />
           </DetailsSection>
           <DetailsSection>
