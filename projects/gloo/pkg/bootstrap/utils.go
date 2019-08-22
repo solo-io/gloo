@@ -215,7 +215,7 @@ func ArtifactFactoryForSettings(ctx context.Context,
 	clientset *kubernetes.Interface,
 	kubeCoreCache *cache.KubeCoreCache,
 	pluralName string) (factory.ResourceClientFactory, error) {
-	if settings.SecretSource == nil {
+	if settings.ArtifactSource == nil {
 		if sharedCache == nil {
 			return nil, errors.Errorf("internal error: shared cache cannot be nil")
 		}
@@ -229,9 +229,10 @@ func ArtifactFactoryForSettings(ctx context.Context,
 		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.RefreshRate, settings.WatchNamespaces); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
-		return &factory.KubeSecretClientFactory{
-			Clientset: *clientset,
-			Cache:     *kubeCoreCache,
+		return &factory.KubeConfigMapClientFactory{
+			Clientset:       *clientset,
+			Cache:           *kubeCoreCache,
+			CustomConverter: kubeconverters.NewKubeConfigMapConverter(),
 		}, nil
 	case *v1.Settings_DirectoryArtifactSource:
 		return &factory.FileResourceClientFactory{
