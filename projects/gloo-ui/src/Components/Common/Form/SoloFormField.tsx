@@ -15,6 +15,7 @@ import {
   MultipartStringCardsProps
 } from '../MultipartStringCardsList';
 import { SoloCheckbox } from '../SoloCheckbox';
+import { SoloDurationEditor, DurationProps } from '../SoloDurationEditor';
 import { DropdownProps, SoloDropdown, OptionType } from '../SoloDropdown';
 import { SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
@@ -43,6 +44,37 @@ export const SoloFormInput = ({ ...props }) => {
         title={props.title}
         value={field.value}
         onChange={field.onChange}
+      />
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
+    </React.Fragment>
+  );
+};
+
+interface FormDurationProps extends DurationProps {
+  name: string;
+}
+export const SoloFormDurationEditor: React.FC<FormDurationProps> = ({
+  ...props
+}) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+
+  return (
+    <React.Fragment>
+      <SoloDurationEditor
+        {...field}
+        {...props}
+        error={!!meta.error && meta.touched}
+        title={props.title}
+        value={field.value}
+        onChange={newDurationValues =>
+          form.setFieldValue(field.name, newDurationValues)
+        }
+        onBlur={newDurationValues =>
+          form.setFieldValue(field.name, newDurationValues)
+        }
       />
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}

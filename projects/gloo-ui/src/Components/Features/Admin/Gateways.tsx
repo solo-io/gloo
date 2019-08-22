@@ -11,7 +11,10 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
-import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
+import {
+  SoloFormInput,
+  SoloFormDurationEditor
+} from 'Components/Common/Form/SoloFormField';
 import {
   GatewayDetails,
   UpdateGatewayRequest
@@ -23,6 +26,9 @@ import {
 import { UpdateGatewayHttpData } from 'Api/v2/GatewayClient';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { SoloDurationEditor } from 'Components/Common/SoloDurationEditor';
+import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -52,6 +58,7 @@ export const Gateways = (props: Props) => {
   const {
     config: { namespacesList }
   } = useSelector((state: AppState) => state);
+
   const {
     data: updateData,
     loading: updateLoading,
@@ -109,44 +116,25 @@ export const Gateways = (props: Props) => {
     let updateGatewayData: UpdateGatewayHttpData = {
       acceptHttp10: values.acceptHttp10.toLowerCase() === 'true',
       defaultHostForHttp10: values.defaultHostForHttp10,
-      delayedCloseTimeout: {
-        seconds: 0,
-        nanos: values.delayedCloseTimeout.length
-          ? parseInt(values.delayedCloseTimeout)
-          : 0
-      },
-      drainTimeout: {
-        seconds: 0,
-        nanos: values.drainTimeout.length ? parseInt(values.drainTimeout) : 0
-      },
+      delayedCloseTimeout: values.delayedCloseTimeout,
+      drainTimeout: values.drainTimeout,
       generateRequestId: {
         value: values.generateRequestId.toLowerCase() === 'true'
       },
-      idleTimeout: {
-        seconds: 0,
-        nanos: values.idleTimeout.length ? parseInt(values.idleTimeout) : 0
-      },
+      idleTimeout: values.idleTimeout,
       maxRequestHeadersKb: {
         value: values.maxRequestHeadersKb.length
           ? parseInt(values.maxRequestHeadersKb)
           : 0
       },
       proxy100Continue: values.proxy100Continue.toLowerCase() === 'true',
-      requestTimeout: {
-        seconds: 0,
-        nanos: values.requestTimeout.length
-          ? parseInt(values.requestTimeout)
-          : 0
-      },
+      requestTimeout: values.requestTimeout,
       serverName: values.serverName,
       skipXffAppend: values.skipXffAppend.toLowerCase() === 'true',
-      streamIdleTimeout: {
-        seconds: 0,
-        nanos: values.streamIdleTimeout.length
-          ? parseInt(values.streamIdleTimeout)
-          : 0
-      },
-      requestHeadersForTagsList: values.requestHeadersForTags.split(','),
+      streamIdleTimeout: values.streamIdleTimeout,
+      requestHeadersForTagsList: !!values.requestHeadersForTags.length
+        ? values.requestHeadersForTags.split(',')
+        : [],
       verbose: values.verbose.toLowerCase() === 'true',
       useRemoteAddress: {
         value: values.useRemoteAddress.toLowerCase() === 'true'
@@ -158,7 +146,8 @@ export const Gateways = (props: Props) => {
     };
 
     setNewUpdateVariables({
-      originalGateway: data.getGatewayDetailsList()[gatewayIndex].getGateway()!,
+      name: allGateways[gatewayIndex].gateway!.metadata!.name,
+      namespace: allGateways[gatewayIndex].gateway!.metadata!.namespace,
       updates: updateGatewayData
     });
   };
@@ -261,15 +250,15 @@ const FormFooter = styled.div`
 interface HttpValuesType {
   skipXffAppend: string;
   maxRequestHeadersKb: string;
-  streamIdleTimeout: string;
+  streamIdleTimeout: Duration.AsObject | undefined;
   via: string;
-  requestTimeout: string;
-  idleTimeout: string;
+  requestTimeout: Duration.AsObject | undefined;
+  idleTimeout: Duration.AsObject | undefined;
   xffNumTrustedHops: string;
-  drainTimeout: string;
+  drainTimeout: Duration.AsObject | undefined;
   defaultHostForHttp10: string;
   useRemoteAddress: string;
-  delayedCloseTimeout: string;
+  delayedCloseTimeout: Duration.AsObject | undefined;
   acceptHttp10: string;
   generateRequestId: string;
   serverName: string;
@@ -281,15 +270,15 @@ interface HttpValuesType {
 let defaultHttpValues: HttpValuesType = {
   skipXffAppend: '',
   maxRequestHeadersKb: '',
-  streamIdleTimeout: '',
+  streamIdleTimeout: undefined,
   via: '',
-  requestTimeout: '',
-  idleTimeout: '',
+  requestTimeout: undefined,
+  idleTimeout: undefined,
   xffNumTrustedHops: '',
-  drainTimeout: '',
+  drainTimeout: undefined,
   defaultHostForHttp10: '',
   useRemoteAddress: '',
-  delayedCloseTimeout: '',
+  delayedCloseTimeout: undefined,
   acceptHttp10: '',
   generateRequestId: '',
   serverName: '',
@@ -304,15 +293,25 @@ const tracingList = Object.keys(defaultHttpValues).slice(-2);
 const validationSchema = yup.object().shape({
   skipXffAppend: yup.string().oneOf(['true', 'True', 'false', 'False']),
   maxRequestHeadersKb: yup.number(),
-  streamIdleTimeout: yup.number(),
+  streamIdleTimeout: yup
+    .object()
+    .shape({ nanos: yup.number(), seconds: yup.number() }),
   via: yup.string(),
-  requestTimeout: yup.number(),
-  idleTimeout: yup.number(),
+  requestTimeout: yup
+    .object()
+    .shape({ nanos: yup.number(), seconds: yup.number() }),
+  idleTimeout: yup
+    .object()
+    .shape({ nanos: yup.number(), seconds: yup.number() }),
   xffNumTrustedHops: yup.number(),
-  drainTimeout: yup.number(),
+  drainTimeout: yup
+    .object()
+    .shape({ nanos: yup.number(), seconds: yup.number() }),
   defaultHostForHttp10: yup.string(),
   useRemoteAddress: yup.string().oneOf(['true', 'True', 'false', 'False']),
-  delayedCloseTimeout: yup.number(),
+  delayedCloseTimeout: yup
+    .object()
+    .shape({ nanos: yup.number(), seconds: yup.number() }),
   acceptHttp10: yup.string().oneOf(['true', 'True', 'false', 'False']),
   generateRequestId: yup.string().oneOf(['true', 'True', 'false', 'False']),
   serverName: yup.string(),
@@ -327,17 +326,44 @@ interface FormProps {
   isExpanded: boolean;
 }
 const GatewayForm = (props: FormProps) => {
-  let httpValues = {};
+  let initialValues: HttpValuesType = { ...defaultHttpValues };
+
   if (
     props.gatewayValues.httpGateway &&
     props.gatewayValues.httpGateway.plugins &&
     props.gatewayValues.httpGateway.plugins.httpConnectionManagerSettings
   ) {
-    httpValues =
+    let httpValues =
       props.gatewayValues.httpGateway.plugins.httpConnectionManagerSettings;
-  }
 
-  const initialValues: HttpValuesType = { ...defaultHttpValues, ...httpValues };
+    initialValues.skipXffAppend = httpValues.skipXffAppend.toString();
+    initialValues.via = httpValues.via;
+    initialValues.xffNumTrustedHops = httpValues.xffNumTrustedHops.toString();
+    if (httpValues.useRemoteAddress) {
+      initialValues.useRemoteAddress = httpValues.useRemoteAddress.value.toString();
+    }
+    if (httpValues.generateRequestId) {
+      initialValues.generateRequestId = httpValues.generateRequestId.value.toString();
+    }
+    initialValues.proxy100Continue = httpValues.proxy100Continue.toString();
+    initialValues.streamIdleTimeout = httpValues.streamIdleTimeout;
+    initialValues.idleTimeout = httpValues.idleTimeout;
+    if (httpValues.maxRequestHeadersKb) {
+      initialValues.maxRequestHeadersKb = httpValues.maxRequestHeadersKb.value.toString();
+    }
+    initialValues.requestTimeout = httpValues.requestTimeout;
+    initialValues.drainTimeout = httpValues.drainTimeout;
+    initialValues.delayedCloseTimeout = httpValues.delayedCloseTimeout;
+    initialValues.serverName = httpValues.serverName;
+    initialValues.acceptHttp10 = httpValues.acceptHttp10.toString();
+    initialValues.defaultHostForHttp10 = httpValues.defaultHostForHttp10;
+    if (httpValues.tracing) {
+      initialValues.requestHeadersForTags = httpValues.tracing.requestHeadersForTagsList.join(
+        ','
+      );
+      initialValues.verbose = httpValues.tracing.verbose.toString();
+    }
+  }
 
   const invalid = (
     values: HttpValuesType,
@@ -375,27 +401,108 @@ const GatewayForm = (props: FormProps) => {
                   Http Connection Manager Settings
                 </InnerSectionTitle>
                 <InnerFormSectionContent>
-                  {connectionManagerList.map(fieldName => (
-                    <FormItem key={fieldName}>
-                      <SoloFormInput
-                        key={fieldName}
-                        name={fieldName}
-                        title={fieldName}
-                      />
-                    </FormItem>
-                  ))}
+                  <FormItem>
+                    <SoloFormInput
+                      name={'skipXffAppend'}
+                      title={'skipXffAppend'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'maxRequestHeadersKb'}
+                      title={'maxRequestHeadersKb'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormDurationEditor
+                      value={values.streamIdleTimeout}
+                      name={'streamIdleTimeout'}
+                      title={'streamIdleTimeout'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput name={'via'} title={'via'} />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormDurationEditor
+                      value={values.requestTimeout}
+                      name={'requestTimeout'}
+                      title={'requestTimeout'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormDurationEditor
+                      value={values.idleTimeout}
+                      name={'idleTimeout'}
+                      title={'idleTimeout'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'xffNumTrustedHops'}
+                      title={'xffNumTrustedHops'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormDurationEditor
+                      value={values.drainTimeout}
+                      name={'drainTimeout'}
+                      title={'drainTimeout'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'defaultHostForHttp10'}
+                      title={'defaultHostForHttp10'}
+                    />
+                  </FormItem>
+
+                  <FormItem>
+                    <SoloFormInput
+                      name={'useRemoteAddress'}
+                      title={'useRemoteAddress'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormDurationEditor
+                      value={values.delayedCloseTimeout}
+                      name={'delayedCloseTimeout'}
+                      title={'delayedCloseTimeout'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'acceptHttp10'}
+                      title={'acceptHttp10'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'generateRequestId'}
+                      title={'generateRequestId'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput name={'serverName'} title={'serverName'} />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput
+                      name={'proxy100Continue'}
+                      title={'proxy100Continue'}
+                    />
+                  </FormItem>
                 </InnerFormSectionContent>
                 <InnerSectionTitle>Tracing Settings</InnerSectionTitle>
                 <InnerFormSectionContent>
-                  {tracingList.map(fieldName => (
-                    <FormItem key={fieldName}>
-                      <SoloFormInput
-                        key={fieldName}
-                        name={fieldName}
-                        title={fieldName}
-                      />
-                    </FormItem>
-                  ))}
+                  <FormItem>
+                    <SoloFormInput
+                      name={'requestHeadersForTags'}
+                      title={'requestHeadersForTags'}
+                    />
+                  </FormItem>
+                  <FormItem>
+                    <SoloFormInput name={'verbose'} title={'verbose'} />
+                  </FormItem>
                 </InnerFormSectionContent>
                 <FormFooter>
                   <SoloButton

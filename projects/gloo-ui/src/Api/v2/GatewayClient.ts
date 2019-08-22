@@ -5,7 +5,9 @@ import {
   ListGatewaysResponse,
   ListGatewaysRequest,
   UpdateGatewayRequest,
-  UpdateGatewayResponse
+  UpdateGatewayResponse,
+  GetGatewayResponse,
+  GetGatewayRequest
 } from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import {
   Gateway,
@@ -65,113 +67,15 @@ function getGatewaysList(params: {
   });
 }
 
-export interface UpdateGatewayHttpData {
-  acceptHttp10: boolean;
-  defaultHostForHttp10: string;
-  delayedCloseTimeout: Duration.AsObject;
-  drainTimeout: Duration.AsObject;
-  generateRequestId: BoolValue.AsObject;
-  idleTimeout: Duration.AsObject;
-  maxRequestHeadersKb: UInt32Value.AsObject;
-  proxy100Continue: boolean;
-  requestHeadersForTagsList: string[];
-  requestTimeout: Duration.AsObject;
-  serverName: string;
-  skipXffAppend: boolean;
-  streamIdleTimeout: Duration.AsObject;
-  verbose: boolean;
-  useRemoteAddress: BoolValue.AsObject;
-  via: string;
-  xffNumTrustedHops: number;
-}
-
-function updateGateway(
-  params: {
-    originalGateway: Gateway;
-    updates: UpdateGatewayHttpData;
-  } | null
-): Promise<UpdateGatewayResponse> {
+function getGateway(params: {
+  name: string;
+  namespace: string;
+}): Promise<GetGatewayResponse> {
   return new Promise((resolve, reject) => {
-    let req = new UpdateGatewayRequest();
+    let req = new GetGatewayRequest();
+    req.setRef(getResourceRef(params.name, params.namespace));
 
-    if (params !== null) {
-      // TODO ~~ This does not work as a final solution
-      let updatedGateway = params.originalGateway;
-      const updates = params.updates;
-
-      // If HTTP -- only option currently
-      let httpConnectionManagerSettings = new HttpConnectionManagerSettings();
-
-      httpConnectionManagerSettings.setAcceptHttp10(updates.acceptHttp10);
-      httpConnectionManagerSettings.setDefaultHostForHttp10(
-        updates.defaultHostForHttp10
-      );
-      setDuration(
-        httpConnectionManagerSettings.setDelayedCloseTimeout,
-        updates.delayedCloseTimeout
-      );
-      setDuration(
-        httpConnectionManagerSettings.setDrainTimeout,
-        updates.drainTimeout
-      );
-      setBoolVal(
-        httpConnectionManagerSettings.setGenerateRequestId,
-        updates.generateRequestId
-      );
-      setDuration(
-        httpConnectionManagerSettings.setIdleTimeout,
-        updates.idleTimeout
-      );
-      setUInt32Val(
-        httpConnectionManagerSettings.setMaxRequestHeadersKb,
-        updates.maxRequestHeadersKb
-      );
-      httpConnectionManagerSettings.setProxy100Continue(
-        updates.proxy100Continue
-      );
-      setDuration(
-        httpConnectionManagerSettings.setRequestTimeout,
-        updates.requestTimeout
-      );
-      httpConnectionManagerSettings.setServerName(updates.serverName);
-      httpConnectionManagerSettings.setSkipXffAppend(updates.skipXffAppend);
-      setDuration(
-        httpConnectionManagerSettings.setStreamIdleTimeout,
-        updates.streamIdleTimeout
-      );
-
-      let listenerTracing = new ListenerTracingSettings();
-      listenerTracing.setRequestHeadersForTagsList(
-        updates.requestHeadersForTagsList
-      );
-      listenerTracing.setVerbose(updates.verbose);
-      httpConnectionManagerSettings.setTracing(listenerTracing);
-
-      setBoolVal(
-        httpConnectionManagerSettings.setUseRemoteAddress,
-        updates.useRemoteAddress
-      );
-      httpConnectionManagerSettings.setVia(updates.via);
-      httpConnectionManagerSettings.setXffNumTrustedHops(
-        updates.xffNumTrustedHops
-      );
-
-      let httpPlugin = new HttpListenerPlugins();
-      httpPlugin.setHttpConnectionManagerSettings(
-        httpConnectionManagerSettings
-      );
-      let httpGateway = new HttpGateway();
-      httpGateway.setPlugins(httpPlugin);
-
-      /*} else if (!!gatewayObj.tcpGateway) {
-        // Not visualizing this yet
-        // gateway.setTcpGateway(gatewayObj.tcpGateway);
-      }*/
-
-      req.setGateway(updatedGateway);
-    }
-
-    client.updateGateway(req, (error, data) => {
+    client.getGateway(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -181,6 +85,161 @@ function updateGateway(
         resolve(data!);
       }
     });
+  });
+}
+
+export interface UpdateGatewayHttpData {
+  acceptHttp10: boolean;
+  defaultHostForHttp10: string;
+  delayedCloseTimeout: Duration.AsObject | undefined;
+  drainTimeout: Duration.AsObject | undefined;
+  generateRequestId: BoolValue.AsObject | undefined;
+  idleTimeout: Duration.AsObject | undefined;
+  maxRequestHeadersKb: UInt32Value.AsObject | undefined;
+  proxy100Continue: boolean;
+  requestHeadersForTagsList: string[];
+  requestTimeout: Duration.AsObject | undefined;
+  serverName: string;
+  skipXffAppend: boolean;
+  streamIdleTimeout: Duration.AsObject | undefined;
+  verbose: boolean;
+  useRemoteAddress: BoolValue.AsObject | undefined;
+  via: string;
+  xffNumTrustedHops: number;
+}
+
+function updateGateway(
+  params: {
+    name: string;
+    namespace: string;
+    updates: UpdateGatewayHttpData;
+  } | null
+): Promise<UpdateGatewayResponse> {
+  return new Promise((resolve, reject) => {
+    let req = new UpdateGatewayRequest();
+
+    if (params !== null) {
+      let getReq = new GetGatewayRequest();
+      getReq.setRef(getResourceRef(params.name, params.namespace));
+
+      client.getGateway(getReq, (error, data) => {
+        if (
+          !!data &&
+          !!data.getGatewayDetails() &&
+          !!data.getGatewayDetails()!.getGateway()
+        ) {
+          // TODO ~~ This does not work as a final solution
+          let updatedGateway = data!.getGatewayDetails()!.getGateway()!;
+          const updates = params.updates;
+
+          // If HTTP -- only option currently
+          let httpConnectionManagerSettings = new HttpConnectionManagerSettings();
+
+          httpConnectionManagerSettings.setAcceptHttp10(updates.acceptHttp10);
+          httpConnectionManagerSettings.setDefaultHostForHttp10(
+            updates.defaultHostForHttp10
+          );
+          setDuration(
+            httpConnectionManagerSettings.setDelayedCloseTimeout.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.delayedCloseTimeout
+          );
+          setDuration(
+            httpConnectionManagerSettings.setDrainTimeout.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.drainTimeout
+          );
+          setBoolVal(
+            httpConnectionManagerSettings.setGenerateRequestId.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.generateRequestId
+          );
+          setDuration(
+            httpConnectionManagerSettings.setIdleTimeout.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.idleTimeout
+          );
+          setUInt32Val(
+            httpConnectionManagerSettings.setMaxRequestHeadersKb.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.maxRequestHeadersKb
+          );
+          if (!!updates.proxy100Continue) {
+            httpConnectionManagerSettings.setProxy100Continue(
+              updates.proxy100Continue
+            );
+          }
+          setDuration(
+            httpConnectionManagerSettings.setRequestTimeout.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.requestTimeout
+          );
+          httpConnectionManagerSettings.setServerName(updates.serverName);
+          httpConnectionManagerSettings.setSkipXffAppend(updates.skipXffAppend);
+          setDuration(
+            httpConnectionManagerSettings.setStreamIdleTimeout.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.streamIdleTimeout
+          );
+
+          let listenerTracing = new ListenerTracingSettings();
+          listenerTracing.setRequestHeadersForTagsList(
+            updates.requestHeadersForTagsList
+          );
+          listenerTracing.setVerbose(updates.verbose);
+          httpConnectionManagerSettings.setTracing(listenerTracing);
+
+          setBoolVal(
+            httpConnectionManagerSettings.setUseRemoteAddress.bind(
+              httpConnectionManagerSettings
+            ),
+            updates.useRemoteAddress
+          );
+          httpConnectionManagerSettings.setVia(updates.via);
+          httpConnectionManagerSettings.setXffNumTrustedHops(
+            updates.xffNumTrustedHops
+          );
+
+          let httpPlugin = new HttpListenerPlugins();
+          httpPlugin.setHttpConnectionManagerSettings(
+            httpConnectionManagerSettings
+          );
+          let httpGateway = new HttpGateway();
+          httpGateway.setPlugins(httpPlugin);
+
+          updatedGateway.setHttpGateway(httpGateway);
+
+          /*} else if (!!gatewayObj.tcpGateway) {
+        // Not visualizing this yet
+        // gateway.setTcpGateway(gatewayObj.tcpGateway);
+      }*/
+
+          req.setGateway(updatedGateway);
+
+          client.updateGateway(req, (error, data) => {
+            console.log({ params, req: req.toObject(), error, data });
+            if (error !== null) {
+              console.error('Error:', error.message);
+              console.error('Code:', error.code);
+              console.error('Metadata:', error.metadata);
+              reject(error);
+            } else {
+              resolve(data!);
+            }
+          });
+        }
+      });
+    } else {
+      console.log('empty?');
+      reject('null data given');
+    }
   });
 }
 

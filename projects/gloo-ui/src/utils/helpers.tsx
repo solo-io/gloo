@@ -14,6 +14,7 @@ import GRPCLogo from 'assets/grpc-logo.png';
 import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
 import { ReactComponent as RESTLogo } from 'assets/rest-logo.svg';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 
 type Resource = VirtualService.AsObject | Upstream.AsObject | number;
 

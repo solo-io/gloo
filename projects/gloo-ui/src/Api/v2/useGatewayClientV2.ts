@@ -9,7 +9,8 @@ export function useGetGatewayList(variables: { namespaces: string[] }) {
 
 export function useUpdateGateway(
   variables: {
-    originalGateway: Gateway;
+    name: string;
+    namespace: string;
     updates: UpdateGatewayHttpData;
   } | null
 ) {
