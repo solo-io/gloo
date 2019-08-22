@@ -38,7 +38,10 @@ func NewVirtualServiceDetailsConverter(r rawgetter.RawGetter) VirtualServiceDeta
 }
 
 func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gatewayv1.VirtualService) *v1.VirtualServiceDetails {
-	details := &v1.VirtualServiceDetails{VirtualService: vs}
+	details := &v1.VirtualServiceDetails{
+		VirtualService: vs,
+		Raw:            c.rawGetter.GetRaw(ctx, vs, gatewayv1.VirtualServiceCrd),
+	}
 
 	var configs map[string]*types.Struct
 	if configs = vs.GetVirtualHost().GetVirtualHostPlugins().GetExtensions().GetConfigs(); configs == nil {
@@ -71,6 +74,5 @@ func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gate
 		}
 	}
 
-	details.Raw = c.rawGetter.GetRaw(ctx, vs, gatewayv1.VirtualServiceCrd)
 	return details
 }

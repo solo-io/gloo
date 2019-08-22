@@ -71,11 +71,11 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 		}
 	}
 
-	Describe("List", func() {
-		getExpectedRaw := func() *v1.Raw {
-			return &v1.Raw{FileName: "fn", Content: "ct"}
-		}
+	getExpectedRaw := func() *v1.Raw {
+		return &v1.Raw{FileName: "fn", Content: "ct"}
+	}
 
+	Describe("List", func() {
 		BeforeEach(func() {
 			mockCtrl = gomock.NewController(GinkgoT())
 			rawGetter = mocks.NewMockRawGetter(mockCtrl)
@@ -104,7 +104,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 					desc:            "for a nil config",
 					configs:         nil,
 					expectedPlugins: nil,
-					expectedRaw:     nil,
+					expectedRaw:     getExpectedRaw(),
 				},
 				{
 					desc: "for a valid extauth plugin",

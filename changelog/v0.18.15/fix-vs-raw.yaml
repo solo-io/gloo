@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Always set Raw on virtual service details regardless of whether there are plugins.
+    issueLink: https://github.com/solo-io/solo-projects/issues/942
