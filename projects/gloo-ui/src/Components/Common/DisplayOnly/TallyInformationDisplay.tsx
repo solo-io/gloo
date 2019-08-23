@@ -4,7 +4,9 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
 
-const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>('div')`
+export const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>(
+  'div'
+)`
   display: flex;
   padding: 8px 13px;
   line-height: 24px;

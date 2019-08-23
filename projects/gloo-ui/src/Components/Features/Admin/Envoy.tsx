@@ -11,6 +11,8 @@ import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { JsonDisplayer } from 'Components/Common/DisplayOnly/JsonDisplayer';
 import { AppState } from 'store';
 import { useSelector } from 'react-redux';
+import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -82,6 +84,17 @@ export const Envoy = (props: Props) => {
     );
   };
 
+  const getHealth = (code: Status.Code): number => {
+    switch (code) {
+      case Status.Code.ERROR:
+        return healthConstants.Error.value;
+      case Status.Code.OK:
+        return healthConstants.Good.value;
+      default:
+        return healthConstants.Pending.value;
+    }
+  };
+
   return (
     <React.Fragment>
       {allEnvoys.map((envoy, ind) => {
@@ -91,8 +104,13 @@ export const Envoy = (props: Props) => {
             cardName={envoy.name}
             logoIcon={<EnvoyLogoFullSize />}
             headerSecondaryInformation={[]}
-            health={healthConstants.Good.value}
+            health={getHealth(envoy!.status!.code!)}
             healthMessage={'Envoy Status'}>
+            {envoy!.status!.message !== '' && (
+              <TallyContainer color='orange'>
+                {envoy!.status!.message!}
+              </TallyContainer>
+            )}
             <InsideHeader>
               <div>Code Log (Read Only)</div>{' '}
               {!!envoy.raw && (

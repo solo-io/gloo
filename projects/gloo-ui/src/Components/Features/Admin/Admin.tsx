@@ -27,7 +27,7 @@ export const Admin: React.FC<RouteProps> = props => {
       <Container>
         <Header>
           <div>Enterprise Gloo Administration</div>
-          <div>Advanced Administratio for your Gloo Configuration</div>
+          <div>Advanced Administration for your Gloo Configuration</div>
         </Header>
         <GatewayContainer>gatway</GatewayContainer>
         <ProxyContainer>proxy</ProxyContainer>

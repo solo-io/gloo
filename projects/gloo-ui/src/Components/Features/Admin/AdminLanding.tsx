@@ -18,6 +18,7 @@ import { getResourceStatus } from 'utils/helpers';
 import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { AppState } from 'store';
 import { useSelector } from 'react-redux';
+import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 const Container = styled.div`
   ${CardCSS};
@@ -301,13 +302,22 @@ const EnvoyOverview = () => {
   }, [envoysList.length]);
 
   const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
-    /*if (getResourceStatus(envoy.!) !== 'Rejected') {
-      return total;
-    }*/
+    if (envoy!.status!.code !== Status.Code.OK) {
+      return total + 1;
+    }
     return total;
-
-    return total + 1;
   }, 0);
+
+  const getHealthStatus = (): number => {
+    if (envoyErrorCount === allEnvoy.length) {
+      return healthConstants.Error.value;
+    }
+    if (envoyErrorCount > 0) {
+      return healthConstants.Pending.value;
+    }
+    return healthConstants.Good.value;
+  };
+
   return (
     <Envoy>
       <StatusTile
@@ -320,7 +330,7 @@ const EnvoyOverview = () => {
           prompt: 'View Envoy',
           link: '/admin/envoy/'
         }}
-        healthStatus={healthConstants.Good.value}
+        healthStatus={getHealthStatus()}
         descriptionMinHeight={'95px'}>
         {!envoysList.length ? (
           <div>Loading...</div>
@@ -329,7 +339,7 @@ const EnvoyOverview = () => {
             {!!envoyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={envoyErrorCount}
-                tallyDescription={'envoy need your attention'}
+                tallyDescription={'envoy configurations need your attention'}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View envoy issues',

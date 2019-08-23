@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Show envoy status in ui.
+    issueLink: https://github.com/solo-io/solo-projects/pull/953
