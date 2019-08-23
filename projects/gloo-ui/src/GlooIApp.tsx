@@ -25,6 +25,8 @@ import { AppState } from 'store';
 import { listSecrets } from 'store/secrets/actions';
 import { listEnvoyDetails } from 'store/envoy/actions';
 import { useInterval } from 'Hooks/useInterval';
+import { listGateways } from 'store/gateway/actions';
+import { listProxies } from 'store/proxy/actions';
 
 const AppContainer = styled.div`
   display: grid;
@@ -59,6 +61,8 @@ export const GlooIApp = () => {
         dispatch(listUpstreams({ namespacesList }));
         dispatch(listVirtualServices({ namespacesList }));
         dispatch(listSecrets({ namespacesList }));
+        dispatch(listGateways({ namespacesList }));
+        dispatch(listProxies({ namespacesList }));
       }
     },
     namespacesList.length > 0 ? 3000 : null

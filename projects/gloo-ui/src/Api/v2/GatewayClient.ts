@@ -43,7 +43,7 @@ import {
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 
-const client = new GatewayApiClient(host, {
+export const client = new GatewayApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });

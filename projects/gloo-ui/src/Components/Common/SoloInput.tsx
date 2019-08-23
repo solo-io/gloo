@@ -46,13 +46,14 @@ export interface InputProps {
   placeholder?: string;
   value: string | number;
   disabled?: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => any;
-  onBlur?: (e: React.ChangeEvent<HTMLInputElement>) => any;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   borderless?: boolean;
   error?: boolean;
+  onKeyPress?: (e: React.KeyboardEvent) => void;
 }
 
-export const SoloInput = (props: InputProps) => {
+export const SoloInput: React.FC<InputProps> = props => {
   const {
     name,
     title,
@@ -63,7 +64,8 @@ export const SoloInput = (props: InputProps) => {
     disabled,
     error,
     borderless,
-    type = 'text'
+    type = 'text',
+    onKeyPress
   } = props;
 
   return (
@@ -80,6 +82,7 @@ export const SoloInput = (props: InputProps) => {
         onBlur={onBlur}
         disabled={disabled}
         error={error}
+        onKeyPress={onKeyPress}
       />
     </div>
   );

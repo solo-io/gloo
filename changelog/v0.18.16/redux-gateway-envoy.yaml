@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add Gateway and Envoy api calls to redux store, refactor Gateway form to comform to backend.
+    issueLink: https://github.com/solo-io/solo-projects/issues/951

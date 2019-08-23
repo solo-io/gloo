@@ -6,7 +6,7 @@ import {
   ListProxiesRequest
 } from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 
-const client = new ProxyApiClient(host, {
+export const client = new ProxyApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });

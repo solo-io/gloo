@@ -5,7 +5,6 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { colors, healthConstants } from 'Styles';
-import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
@@ -34,29 +33,22 @@ export const Proxys = (props: Props) => {
   const namespacesList = useSelector(
     (state: AppState) => state.config.namespacesList
   );
-  const {
-    data,
-    loading,
-    error,
-    setNewVariables,
-    dataObj: proxyObj
-  } = useGetProxiesList({
-    namespaces: namespacesList
-  });
+  const proxiesList = useSelector(
+    (state: AppState) => state.proxies.proxiesList
+  );
+
   const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
     []
   );
 
   React.useEffect(() => {
-    if (!!data) {
-      const newProxies = data
-        .toObject()
-        .proxyDetailsList.filter(proxy => !!proxy.proxy);
+    if (!!proxiesList) {
+      const newProxies = proxiesList.filter(proxy => !!proxy.proxy);
       setAllProxies(newProxies);
     }
-  }, [loading]);
+  }, [proxiesList.length]);
 
-  if (!data || (!data && loading)) {
+  if (!proxiesList.length) {
     return <div>Loading...</div>;
   }
 

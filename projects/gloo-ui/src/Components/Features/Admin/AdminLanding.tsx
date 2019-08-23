@@ -12,11 +12,8 @@ import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg'
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
-import { useGetGatewayList } from 'Api/v2/useGatewayClientV2';
 import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import { useGetProxiesList } from 'Api/v2/useProxyClientV2';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
-import { useGetEnvoyList } from 'Api/v2/useEnvoyClientV2';
 import { getResourceStatus } from 'utils/helpers';
 import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { AppState } from 'store';
@@ -140,26 +137,22 @@ const Envoy = styled.div`
 `;
 
 const GatewayOverview = () => {
-  const {
-    config: { namespacesList }
-  } = useSelector((state: AppState) => state);
-  const { data, loading, error, setNewVariables } = useGetGatewayList({
-    namespaces: namespacesList
-  });
+  const gatewaysList = useSelector(
+    (state: AppState) => state.gateways.gatewaysList
+  );
+
   const [allGateways, setAllGateways] = React.useState<
     GatewayDetails.AsObject[]
   >([]);
 
   React.useEffect(() => {
-    if (!!data) {
-      const newGateways = data
-        .toObject()
-        .gatewayDetailsList.filter(gateway => !!gateway.gateway);
+    if (!!gatewaysList.length) {
+      const newGateways = gatewaysList.filter(gateway => !!gateway.gateway);
       setAllGateways(newGateways);
     }
-  }, [loading]);
+  }, [gatewaysList.length]);
 
-  if (!data || (!data && loading)) {
+  if (!gatewaysList.length) {
     return <div>Loading...</div>;
   }
 
@@ -219,26 +212,22 @@ const GatewayOverview = () => {
 };
 
 const ProxyOverview = () => {
-  const {
-    config: { namespacesList }
-  } = useSelector((state: AppState) => state);
-  const { data, loading, error, setNewVariables } = useGetProxiesList({
-    namespaces: namespacesList
-  });
+  const proxiesList = useSelector(
+    (state: AppState) => state.proxies.proxiesList
+  );
+
   const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
     []
   );
 
   React.useEffect(() => {
-    if (!!data) {
-      const newProxies = data
-        .toObject()
-        .proxyDetailsList.filter(proxy => proxy.proxy);
+    if (!!proxiesList.length) {
+      const newProxies = proxiesList.filter(proxy => proxy.proxy);
       setAllProxies(newProxies);
     }
-  }, [loading]);
+  }, [proxiesList.length]);
 
-  if (!data || (!data && loading)) {
+  if (!proxiesList.length) {
     return <div>Loading...</div>;
   }
 
@@ -298,14 +287,18 @@ const ProxyOverview = () => {
 };
 
 const EnvoyOverview = () => {
-  const { data, loading, error, setNewVariables } = useGetEnvoyList();
+  const envoysList = useSelector(
+    (state: AppState) => state.envoy.envoyDetailsList
+  );
   const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
-
+  const [envoyConfigs, setEnvoyConfigs] = React.useState<any[]>([]);
   React.useEffect(() => {
-    if (!!data) {
-      setAllEnvoy(data.toObject().envoyDetailsList);
+    if (!!envoysList.length) {
+      setEnvoyConfigs(envoysList.map(envoy => JSON.parse(envoy.raw!.content)));
+
+      setAllEnvoy(envoysList);
     }
-  }, [loading]);
+  }, [envoysList.length]);
 
   const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
     /*if (getResourceStatus(envoy.!) !== 'Rejected') {
@@ -315,7 +308,6 @@ const EnvoyOverview = () => {
 
     return total + 1;
   }, 0);
-
   return (
     <Envoy>
       <StatusTile
@@ -328,11 +320,11 @@ const EnvoyOverview = () => {
           prompt: 'View Envoy',
           link: '/admin/envoy/'
         }}
-        healthStatus={healthConstants.Error.value}
+        healthStatus={healthConstants.Good.value}
         descriptionMinHeight={'95px'}>
-        {!data || (!data && loading) ? (
+        {!envoysList.length ? (
           <div>Loading...</div>
-        ) : !!allEnvoy.length ? (
+        ) : !!envoysList.length ? (
           <React.Fragment>
             {!!envoyErrorCount ? (
               <TallyInformationDisplay
@@ -348,8 +340,8 @@ const EnvoyOverview = () => {
               <GoodStateCongratulations typeOfItem={'envoy configurations'} />
             )}
             <TallyInformationDisplay
-              tallyCount={allEnvoy.length}
-              tallyDescription={'envoys configured'}
+              tallyCount={envoysList.length}
+              tallyDescription={'envoy configurations currently deployed'}
               color='blue'
             />
           </React.Fragment>

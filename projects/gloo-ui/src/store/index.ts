@@ -8,12 +8,16 @@ import { secretsReducer } from './secrets/reducers';
 import { normalizrMiddleware } from './requests';
 import { configReducer } from './config/reducers';
 import { envoyReducer } from './envoy/reducers';
+import { gatewaysReducer } from './gateway/reducers';
+import { proxyReducer } from './proxy/reducers';
 
 const rootReducer = combineReducers({
   upstreams: upstreamsReducer,
   virtualServices: virtualServicesReducer,
   secrets: secretsReducer,
   config: configReducer,
+  gateways: gatewaysReducer,
+  proxies: proxyReducer,
   envoy: envoyReducer,
   loadingBar: loadingBarReducer
 });

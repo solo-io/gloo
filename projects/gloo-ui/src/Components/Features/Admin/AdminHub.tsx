@@ -69,9 +69,9 @@ export const AdminHub = (props: Props) => {
     return (
       <React.Fragment>
         <Switch>
-          <Route path='/admin/gateways/' render={() => <Gateways />} />
-          <Route path='/admin/proxy/' render={() => <Proxys />} />
-          <Route path='/admin/envoy/' render={() => <Envoy />} />
+          <Route path='/admin/gateways/' component={Gateways} />
+          <Route path='/admin/proxy/' component={Proxys} />
+          <Route path='/admin/envoy/' component={Envoy} />
         </Switch>
       </React.Fragment>
     );

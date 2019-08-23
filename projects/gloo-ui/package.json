@@ -42,7 +42,7 @@
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
     "ts-protoc-gen": "^0.9.0",
-    "typescript": "3.4.3",
+    "typescript": "3.5",
     "yup": "^0.27.0"
   },
   "scripts": {

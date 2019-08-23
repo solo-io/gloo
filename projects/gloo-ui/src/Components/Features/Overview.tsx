@@ -16,7 +16,6 @@ import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { useGetEnvoyList } from 'Api/v2/useEnvoyClientV2';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
@@ -160,13 +159,17 @@ export const Overview = (props: Props) => {
 };
 
 const HealthStatus = (props: Props) => {
-  const { data, loading, error, setNewVariables } = useGetEnvoyList({});
+  const envoysList = useSelector(
+    (state: AppState) => state.envoy.envoyDetailsList
+  );
   const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
+
   React.useEffect(() => {
-    if (!!data) {
-      setAllEnvoy(data.toObject().envoyDetailsList);
+    if (!!envoysList.length) {
+      setAllEnvoy(envoysList);
     }
-  }, [loading]);
+  }, [envoysList.length]);
+
   const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
     /*if (getResourceStatus(envoy.!) !== 'Rejected') {
       return total;
@@ -202,7 +205,7 @@ const HealthStatus = (props: Props) => {
             <Link onClick={goToEnvoys}>View Envoy Configuration</Link>
           </EnvoyHealthHeader>
 
-          {!data || (!data && loading) ? (
+          {!envoysList.length ? (
             <div>Loading...</div>
           ) : !!allEnvoy.length ? (
             <div>

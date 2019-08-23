@@ -153,6 +153,9 @@ export const StringCardsList = (props: StringCardsListProps) => {
               presetOptions={presetOptions!.map(pO => {
                 return { value: pO };
               })}
+              onKeyPress={(e: React.KeyboardEvent) =>
+                e.key === 'Enter' ? sendCreateNew() : {}
+              }
               hideArrow
             />
           ) : (
@@ -160,6 +163,9 @@ export const StringCardsList = (props: StringCardsListProps) => {
               value={newValue}
               placeholder={createNewPromptText}
               onChange={newValueChanged}
+              onKeyPress={(e: React.KeyboardEvent) =>
+                e.key === 'Enter' ? sendCreateNew() : {}
+              }
               error={
                 !!newValue.length &&
                 (!!valueIsValid ? !valueIsValid(newValue) : false)

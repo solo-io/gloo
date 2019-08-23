@@ -82,6 +82,7 @@ export interface TypeaheadProps {
   onBlur?: (newValue: string | number) => any;
   disabled?: boolean;
   hideArrow?: boolean;
+  onKeyPress?: (e: React.KeyboardEvent) => void;
 }
 
 export const SoloTypeahead = (props: TypeaheadProps) => {
@@ -94,7 +95,8 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
     presetOptions,
     onChange,
     defaultValue,
-    hideArrow
+    hideArrow,
+    onKeyPress
   } = props;
 
   const handleChange = (value: SelectValue): void => {
@@ -138,6 +140,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
         onSearch={setTypeInText}
         dataSource={getOptions()}
         placeholder={placeholder}
+        onKeyPress={onKeyPress}
       />
     </React.Fragment>
   );

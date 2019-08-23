@@ -3,14 +3,14 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
 import { colors, healthConstants, soloConstants } from 'Styles';
 import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
-import { useGetEnvoyList } from 'Api/v2/useEnvoyClientV2';
 import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { JsonDisplayer } from 'Components/Common/DisplayOnly/JsonDisplayer';
+import { AppState } from 'store';
+import { useSelector } from 'react-redux';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -42,19 +42,27 @@ const Link = styled.div`
 interface Props {}
 
 export const Envoy = (props: Props) => {
-  const [envoysOpen, setEnvoysOpen] = React.useState<boolean[]>([]);
-
-  const { data, loading, error, setNewVariables } = useGetEnvoyList();
+  const envoysList = useSelector(
+    (state: AppState) => state.envoy.envoyDetailsList
+  );
   const [allEnvoys, setAllEnvoys] = React.useState<EnvoyDetails.AsObject[]>([]);
 
   React.useEffect(() => {
-    if (!!data) {
-      setAllEnvoys(data.toObject().envoyDetailsList);
-      setEnvoysOpen(data.toObject().envoyDetailsList.map(e => false));
+    if (!!envoysList.length) {
+      setAllEnvoys(envoysList);
     }
-  }, [loading]);
+  }, [envoysList.length]);
 
-  if (!data || (!data && loading)) {
+  const [envoysOpen, setEnvoysOpen] = React.useState<boolean[]>([]);
+
+  React.useEffect(() => {
+    if (!!envoysList.length) {
+      setAllEnvoys(envoysList);
+      setEnvoysOpen(envoysList.map(e => false));
+    }
+  }, [envoysList.length]);
+
+  if (!envoysList.length) {
     return <div>Loading...</div>;
   }
 
