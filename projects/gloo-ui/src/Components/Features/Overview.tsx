@@ -204,26 +204,30 @@ const HealthStatus = (props: Props) => {
 
           {!data || (!data && loading) ? (
             <div>Loading...</div>
-          ) : (
+          ) : !!allEnvoy.length ? (
             <div>
-              <TallyInformationDisplay
-                tallyCount={envoyErrorCount}
-                tallyDescription={'envoy configuration needs your attention'}
-                color='orange'
-                moreInfoLink={{
-                  prompt: 'View envoy issues',
-                  link: '/admin/envoy/?status=Rejected'
-                }}
-              />
+              {!!envoyErrorCount ? (
+                <TallyInformationDisplay
+                  tallyCount={envoyErrorCount}
+                  tallyDescription={'envoy configuration needs your attention'}
+                  color='orange'
+                  moreInfoLink={{
+                    prompt: 'View envoy issues',
+                    link: '/admin/envoy/?status=Rejected'
+                  }}
+                />
+              ) : (
+                <GoodStateCongratulations typeOfItem={'envoy configurations'} />
+              )}
 
               <TallyInformationDisplay
                 tallyCount={allEnvoy.length}
-                tallyDescription={
-                  'envoy configurations currently deployed and configured'
-                }
+                tallyDescription={'envoys configured'}
                 color='blue'
               />
             </div>
+          ) : (
+            <div>You have no envoy configurations yet.</div>
           )}
         </EnvoyHealthContent>
       </StatusTile>

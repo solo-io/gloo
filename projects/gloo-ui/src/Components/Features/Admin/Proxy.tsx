@@ -60,6 +60,10 @@ export const Proxys = (props: Props) => {
     return <div>Loading...</div>;
   }
 
+  if (!allProxies.length) {
+    return <div>You have no Proxy configurations.</div>;
+  }
+
   return (
     <React.Fragment>
       {allProxies.map((proxy, ind) => {

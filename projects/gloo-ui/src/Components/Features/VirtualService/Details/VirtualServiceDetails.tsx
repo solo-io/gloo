@@ -96,13 +96,13 @@ export const VirtualServiceDetails = (props: Props) => {
     refetch: makeUpdateRequest
   } = useUpdateVirtualService(null);
 
-  if (updateLoading || !virtualServicesList.length) {
+  if (updateLoading && !virtualServicesList.length) {
     return (
       <React.Fragment>
         <Breadcrumb />
 
         <SectionCard
-          cardName={'Loading...'}
+          cardName={'Loading'}
           logoIcon={<GlooIcon />}
           health={healthConstants.Pending.value}
           healthMessage={'Loading...'}
@@ -115,6 +115,23 @@ export const VirtualServiceDetails = (props: Props) => {
   let virtualServiceDetails = virtualServicesList.find(
     vsD => vsD && vsD.virtualService!.metadata!.name === virtualservicename
   )!;
+
+  if (!virtualServiceDetails) {
+    return (
+      <React.Fragment>
+        <Breadcrumb />
+
+        <SectionCard
+          cardName={`${virtualservicename} isn't found`}
+          logoIcon={<GlooIcon />}
+          health={healthConstants.Error.value}
+          healthMessage={'...'}
+          onClose={() => history.push(`/virtualservices/`)}
+        />
+      </React.Fragment>
+    );
+  }
+
   let virtualService = virtualServiceDetails!.virtualService!;
   let rawVS = virtualServiceDetails!.raw!;
 
@@ -210,7 +227,6 @@ export const VirtualServiceDetails = (props: Props) => {
     newRateLimits?: IngressRateLimit.AsObject;
     newOAuth?: OAuth.AsObject;
   }) => {
-    console.log(newInfo);
     let virtualServiceInput = new VirtualServiceInputV2();
     let vsRef = new ResourceRef();
     vsRef.setName(virtualService!.metadata!.name);
@@ -320,13 +336,13 @@ export const VirtualServiceDetails = (props: Props) => {
     // }
 
     /** RATE LIMITS */
-    let newRateLimits = new IngressRateLimit();
     const usedRateLimits = !!newInfo.newRateLimits
       ? newInfo.newRateLimits
       : !!configsMap && !!configsMap.get('rate-limit')
       ? configsMap.get('rate-limit')
       : undefined;
     if (!!usedRateLimits) {
+      let newRateLimits = new IngressRateLimit();
       //@ts-ignore
       if (!!usedRateLimits.anonymousLimits) {
         const anonLimit = new RateLimit();
@@ -349,10 +365,10 @@ export const VirtualServiceDetails = (props: Props) => {
         );
         newRateLimits.setAuthorizedLimits(authLimit);
       }
+      let rateLimit = new IngressRateLimitValue();
+      rateLimit.setValue(newRateLimits);
+      virtualServiceInput.setRateLimitConfig(rateLimit);
     }
-    let rateLimit = new IngressRateLimitValue();
-    rateLimit.setValue(newRateLimits);
-    virtualServiceInput.setRateLimitConfig(rateLimit);
 
     /** AUTHORIZATIONS */
     /*if (!!configsMap && !!configsMap.get('basic-auth')) {
@@ -392,7 +408,6 @@ export const VirtualServiceDetails = (props: Props) => {
         let extAuthInput = new ExtAuthInput();
         extAuthInput.setConfig(config);
         virtualServiceInput.setExtAuthConfig(extAuthInput);
-      } else {
       }
     }
     if (!!configsMap && !!configsMap.get('custom-auth')) {

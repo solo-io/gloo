@@ -206,7 +206,7 @@ export function getCreateVirtualService(
     stringValue.setValue(inputV2!.displayName!.value);
     if (inputV2!.routes) {
       let repeatedRoutes = new RepeatedRoutes();
-      let routesList = inputV2!.routes.valuesList.map(r => {
+      let routesList = inputV2!.routes!.valuesList.map(r => {
         let newRoute = new Route();
         if (r.directResponseAction) {
           let dra = new DirectResponseAction();

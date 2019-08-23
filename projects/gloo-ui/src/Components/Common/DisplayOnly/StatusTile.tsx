@@ -49,12 +49,13 @@ const HorizontalTitle = styled.div`
   }
 `;
 
-const Description = styled.div`
+const Description = styled<'div', { minHeight?: string }>('div')`
   color: ${colors.novemberGrey};
   font-size: 16px;
   line-height: 19px;
   margin-bottom: 23px;
-  min-height: 95px;
+  min-height: ${props =>
+    props.minHeight !== undefined ? props.minHeight : '0'};
 `;
 
 const Content = styled.div``;
@@ -98,6 +99,7 @@ interface Props extends RouteComponentProps {
   };
   horizontal?: boolean;
   healthStatus?: number;
+  descriptionMinHeight?: string;
 }
 
 const StatusTileC = (props: Props) => {
@@ -120,7 +122,9 @@ const StatusTileC = (props: Props) => {
                 <HealthIndicator healthStatus={props.healthStatus} />
               )}
             </Title>
-            <Description>{props.description}</Description>
+            <Description minHeight={props.descriptionMinHeight}>
+              {props.description}
+            </Description>
             <Content>{props.children}</Content>
             {!!props.exploreMoreLink && (
               <Link onClick={goToLink}>{props.exploreMoreLink.prompt}</Link>

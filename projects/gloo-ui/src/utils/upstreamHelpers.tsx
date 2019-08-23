@@ -67,11 +67,11 @@ export function getFunctionInfo(upstream: Upstream.AsObject) {
   }
   if (
     upstream.upstreamSpec!.kube &&
-    upstream.upstreamSpec!.kube.serviceSpec &&
-    upstream.upstreamSpec!.kube.serviceSpec.rest
+    upstream.upstreamSpec!.kube!.serviceSpec &&
+    upstream.upstreamSpec!.kube!.serviceSpec!.rest
   ) {
     return `${
-      upstream.upstreamSpec!.kube.serviceSpec.rest.transformationsMap.length
+      upstream.upstreamSpec!.kube!.serviceSpec!.rest!.transformationsMap.length
     }`;
   }
   return '';
@@ -141,18 +141,16 @@ export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
   });
 // .concat({ displayName: 'other', value: false });
 
-export const RadioFilters: RadioFilterProps[] = [
-  {
-    options: [
-      {
-        displayName: 'Accepted'
-      },
-      {
-        displayName: 'Rejected'
-      }
-    ]
-  }
-];
+export const RadioFilters: RadioFilterProps = {
+  options: [
+    {
+      displayName: 'Accepted'
+    },
+    {
+      displayName: 'Rejected'
+    }
+  ]
+};
 // from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions
 export const AWS_REGIONS = [
   {

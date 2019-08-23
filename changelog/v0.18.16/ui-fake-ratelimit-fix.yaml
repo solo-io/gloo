@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: The UI no longer sends an erroneous empty rate limit while editing Virtual Services.
+    issueLink: https://github.com/solo-io/solo-projects/issues/924

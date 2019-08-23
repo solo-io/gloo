@@ -97,7 +97,7 @@ export const SoloDurationEditor = (props: DurationProps) => {
           placeholder={'##'}
           title={'Seconds'}
           type={'number'}
-          value={value ? value.seconds : undefined}
+          value={value ? value.seconds : ''}
           onChange={onChangeSeconds}
           onBlur={onBlurSeconds}
           disabled={disabled}
@@ -110,7 +110,7 @@ export const SoloDurationEditor = (props: DurationProps) => {
           placeholder={'##'}
           title={'Nanos'}
           type={'number'}
-          value={value ? value.nanos : undefined}
+          value={value ? value.nanos : ''}
           onChange={onChangeNanos}
           onBlur={onBlurNanos}
           disabled={disabled}

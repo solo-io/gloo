@@ -413,7 +413,12 @@ export const VirtualServicesListing = (props: Props) => {
       <ListingFilter
         showLabels
         strings={StringFilters}
-        radios={RadioFilters}
+        radios={[
+          {
+            ...RadioFilters,
+            choice: params.has('status') ? params.get('status')! : undefined
+          }
+        ]}
         onChange={handleFilterChange}
         filterFunction={listDisplay}
       />

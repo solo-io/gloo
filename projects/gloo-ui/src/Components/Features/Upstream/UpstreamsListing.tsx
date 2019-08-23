@@ -256,7 +256,7 @@ export const UpstreamsListing = (props: Props) => {
     const nameFilterValue: string = strings.find(
       s => s.displayName === 'Filter By Name...'
     )!.value!;
-    const selectedRadio = radios[0].choice || params.get('status') || '';
+    const selectedRadio = params.get('status') || '';
     params.set('status', selectedRadio);
     // group by type
 
@@ -492,7 +492,12 @@ export const UpstreamsListing = (props: Props) => {
         showLabels
         strings={StringFilters}
         checkboxes={CheckboxFilters}
-        radios={RadioFilters}
+        radios={[
+          {
+            ...RadioFilters,
+            choice: params.has('status') ? params.get('status')! : undefined
+          }
+        ]}
         onChange={handleFilterChange}
         filterFunction={listDisplay}
       />

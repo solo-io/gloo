@@ -187,7 +187,8 @@ const GatewayOverview = () => {
           !!gatewayErrorCount
             ? healthConstants.Error.value
             : healthConstants.Good.value
-        }>
+        }
+        descriptionMinHeight={'95px'}>
         {!!allGateways.length ? (
           <React.Fragment>
             {!!gatewayErrorCount ? (
@@ -265,7 +266,8 @@ const ProxyOverview = () => {
           !!proxyErrorCount
             ? healthConstants.Error.value
             : healthConstants.Good.value
-        }>
+        }
+        descriptionMinHeight={'95px'}>
         {!!allProxies.length ? (
           <React.Fragment>
             {!!proxyErrorCount ? (
@@ -326,7 +328,8 @@ const EnvoyOverview = () => {
           prompt: 'View Envoy',
           link: '/admin/envoy/'
         }}
-        healthStatus={healthConstants.Error.value}>
+        healthStatus={healthConstants.Error.value}
+        descriptionMinHeight={'95px'}>
         {!data || (!data && loading) ? (
           <div>Loading...</div>
         ) : !!allEnvoy.length ? (
@@ -346,7 +349,7 @@ const EnvoyOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={allEnvoy.length}
-              tallyDescription={'envoy configurations currently deployed'}
+              tallyDescription={'envoys configured'}
               color='blue'
             />
           </React.Fragment>

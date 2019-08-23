@@ -98,7 +98,7 @@ export const Envoy = (props: Props) => {
               <React.Fragment>
                 <ExpandableSection isExpanded={envoysOpen[ind]}>
                   {' '}
-                  <JsonDisplayer content={envoy.raw.content} />}
+                  <JsonDisplayer content={envoy.raw.content} />
                 </ExpandableSection>
                 <Link onClick={() => toggleExpansion(ind)}>
                   {envoysOpen[ind] ? 'Hide' : 'View'} Settings
