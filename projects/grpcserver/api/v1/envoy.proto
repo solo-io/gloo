@@ -10,8 +10,21 @@ import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto"
 message EnvoyDetails {
     // The name of the gateway-proxy pod running this instance of envoy.
     string name = 1;
+
     // Raw representation of this instance's config_dump.
     Raw raw = 2;
+
+    // Status of the instance and its relationship with Gloo.
+    // Currently there are three possible values for the "Code" field on the status message.
+    // In this context, their values have the following definitions:
+    // ERROR:
+    //   - The Proxy CRD associated with the envoy instance has status "Rejected"
+    //   - OR the gateway-proxy pod envoy runs on has a phase other than "Running"
+    // WARNING:
+    //   - The Proxy CRD associated with the envoy instance has status "Pending"
+    // OK:
+    //   - The gateway-proxy pod is running and the proxy CRD has status "Accepted"
+    Status status = 3;
 }
 
 message ListEnvoyDetailsRequest {}

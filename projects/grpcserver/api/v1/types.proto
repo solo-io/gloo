@@ -14,3 +14,16 @@ message Raw {
     // Error encountered while rendering content
     string content_render_error = 3;
 }
+
+message Status {
+    enum Code {
+        ERROR = 0;
+        WARNING = 1;
+        OK = 2;
+    }
+
+    // Red / Yellow / Green status of the resource
+    Code code = 1;
+    // Optional error message or other information about resource status
+    string message = 2;
+}

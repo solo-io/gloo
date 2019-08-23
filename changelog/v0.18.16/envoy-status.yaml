@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add envoy status to envoy details.
+    issueLink: https://github.com/solo-io/solo-projects/issues/949

@@ -7,7 +7,6 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"go.uber.org/zap"
-	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -30,16 +29,18 @@ type Client interface {
 type client struct {
 	// Use pods getter rather than namespaced pod interface
 	// to support accessing pods across namespaces in the future
-	podsGetter corev1.PodsGetter
-	httpGetter HttpGetter
+	podsGetter        corev1.PodsGetter
+	httpGetter        HttpGetter
+	proxyStatusGetter ProxyStatusGetter
 }
 
 var _ Client = &client{}
 
-func NewClient(podsGetter corev1.PodsGetter, httpGetter HttpGetter) Client {
+func NewClient(podsGetter corev1.PodsGetter, httpGetter HttpGetter, proxyStatusGetter ProxyStatusGetter) Client {
 	return &client{
-		podsGetter: podsGetter,
-		httpGetter: httpGetter,
+		podsGetter:        podsGetter,
+		httpGetter:        httpGetter,
+		proxyStatusGetter: proxyStatusGetter,
 	}
 }
 
@@ -92,16 +93,10 @@ func (c *client) List(ctx context.Context, namespace string) ([]*v1.EnvoyDetails
 				Content:            dumpString,
 				ContentRenderError: contentRenderError,
 			},
+			Status: c.proxyStatusGetter.GetProxyStatus(ctx, pod),
 		}
 		envoyDetailsList = append(envoyDetailsList, details)
 	}
 
 	return envoyDetailsList, nil
-}
-
-func getName(pod kubev1.Pod) string {
-	if id, ok := pod.Labels[GatewayProxyIdLabel]; ok {
-		return id
-	}
-	return pod.Name
 }

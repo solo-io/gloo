@@ -65,7 +65,8 @@ proto.glooeeapi.solo.io.EnvoyDetails.prototype.toObject = function(opt_includeIn
 proto.glooeeapi.solo.io.EnvoyDetails.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    raw: (f = msg.getRaw()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.toObject(includeInstance, f)
+    raw: (f = msg.getRaw()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.toObject(includeInstance, f),
+    status: (f = msg.getStatus()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -111,6 +112,11 @@ proto.glooeeapi.solo.io.EnvoyDetails.deserializeBinaryFromReader = function(msg,
       reader.readMessage(value,github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.deserializeBinaryFromReader);
       msg.setRaw(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status.deserializeBinaryFromReader);
+      msg.setStatus(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -153,6 +159,14 @@ proto.glooeeapi.solo.io.EnvoyDetails.serializeBinaryToWriter = function(message,
       2,
       f,
       github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatus();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status.serializeBinaryToWriter
     );
   }
 };
@@ -200,6 +214,36 @@ proto.glooeeapi.solo.io.EnvoyDetails.prototype.clearRaw = function() {
  */
 proto.glooeeapi.solo.io.EnvoyDetails.prototype.hasRaw = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Status status = 3;
+ * @return {?proto.glooeeapi.solo.io.Status}
+ */
+proto.glooeeapi.solo.io.EnvoyDetails.prototype.getStatus = function() {
+  return /** @type{?proto.glooeeapi.solo.io.Status} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status, 3));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.Status|undefined} value */
+proto.glooeeapi.solo.io.EnvoyDetails.prototype.setStatus = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.glooeeapi.solo.io.EnvoyDetails.prototype.clearStatus = function() {
+  this.setStatus(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.EnvoyDetails.prototype.hasStatus = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

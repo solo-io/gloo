@@ -32,3 +32,33 @@ export namespace Raw {
   }
 }
 
+export class Status extends jspb.Message {
+  getCode(): Status.Code;
+  setCode(value: Status.Code): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Status.AsObject;
+  static toObject(includeInstance: boolean, msg: Status): Status.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Status, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Status;
+  static deserializeBinaryFromReader(message: Status, reader: jspb.BinaryReader): Status;
+}
+
+export namespace Status {
+  export type AsObject = {
+    code: Status.Code,
+    message: string,
+  }
+
+  export enum Code {
+    ERROR = 0,
+    WARNING = 1,
+    OK = 2,
+  }
+}
+

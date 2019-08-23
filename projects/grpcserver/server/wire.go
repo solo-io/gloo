@@ -62,6 +62,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		us_mutation.NewFactory,
 		envoydetails.NewClient,
 		envoydetails.NewHttpGetter,
+		envoydetails.NewProxyStatusGetter,
 		scrub.NewScrubber,
 
 		// Services

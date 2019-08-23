@@ -14,6 +14,11 @@ export class EnvoyDetails extends jspb.Message {
   getRaw(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw | undefined;
   setRaw(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw): void;
 
+  hasStatus(): boolean;
+  clearStatus(): void;
+  getStatus(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status | undefined;
+  setStatus(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EnvoyDetails.AsObject;
   static toObject(includeInstance: boolean, msg: EnvoyDetails): EnvoyDetails.AsObject;
@@ -28,6 +33,7 @@ export namespace EnvoyDetails {
   export type AsObject = {
     name: string,
     raw?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
+    status?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status.AsObject,
   }
 }
 

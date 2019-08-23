@@ -70,7 +70,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, proxyClient, rawGetter)
 	podsGetter := setup.NewPodsGetter(clientSet)
 	httpGetter := envoydetails.NewHttpGetter()
-	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter)
+	proxyStatusGetter := envoydetails.NewProxyStatusGetter(proxyClient)
+	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
 	glooGrpcService := NewGlooGrpcService(listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer)
 	return glooGrpcService, nil

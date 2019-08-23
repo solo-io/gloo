@@ -32,6 +32,7 @@ weight: 5
 ```yaml
 "name": string
 "raw": .glooeeapi.solo.io.Raw
+"status": .glooeeapi.solo.io.Status
 
 ```
 
@@ -39,6 +40,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `name` | `string` | The name of the gateway-proxy pod running this instance of envoy. |  |
 | `raw` | [.glooeeapi.solo.io.Raw](../types.proto.sk#raw) | Raw representation of this instance's config_dump. |  |
+| `status` | [.glooeeapi.solo.io.Status](../types.proto.sk#status) | Status of the instance and its relationship with Gloo. Currently there are three possible values for the "Code" field on the status message. In this context, their values have the following definitions: ERROR: - The Proxy CRD associated with the envoy instance has status "Rejected" - OR the gateway-proxy pod envoy runs on has a phase other than "Running" WARNING: - The Proxy CRD associated with the envoy instance has status "Pending" OK: - The gateway-proxy pod is running and the proxy CRD has status "Accepted" |  |
 
 
 
