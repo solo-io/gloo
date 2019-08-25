@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: Fix long loading time for proxies and gateways in Admin page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/958
+  - type: FIX
+    description: Fix update gateway functionality.
+    issueLink: https://github.com/solo-io/solo-projects/issues/959
+  - type: FIX
+    description: Show correct envoy status on overview page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/960

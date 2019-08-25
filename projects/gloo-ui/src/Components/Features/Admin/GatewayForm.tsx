@@ -303,12 +303,15 @@ export const GatewayForm = (props: FormProps) => {
                 <InnerFormSectionContent>
                   <FormItem>
                     <SoloFormInput
-                      name={'requestHeadersForTagsList'}
+                      name={'tracing.requestHeadersForTagsList'}
                       title={'requestHeadersForTags'}
                     />
                   </FormItem>
                   <FormItem>
-                    <SoloFormCheckbox name={'verbose'} title={'verbose'} />
+                    <SoloFormCheckbox
+                      name='tracing.verbose'
+                      title={'verbose'}
+                    />
                   </FormItem>
                 </InnerFormSectionContent>
                 <FormFooter>

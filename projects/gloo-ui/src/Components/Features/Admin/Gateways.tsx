@@ -19,6 +19,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from 'store';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
 import { GatewayForm, HttpConnectionManagerSettingsForm } from './GatewayForm';
+import { updateGateway } from 'store/gateway/actions';
+import _ from 'lodash/fp';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -75,17 +77,10 @@ export const Gateways = (props: Props) => {
       })
     );
   };
-
-  const updateGateway = (
-    values: HttpConnectionManagerSettingsForm,
-    gatewayIndex: number
-  ) => {
-    dispatch(updateGateway({ ...values }, gatewayIndex));
-  };
-
+  console.log('gatewaysList', gatewaysList);
   return (
     <React.Fragment>
-      {allGateways.map((gateway, ind) => {
+      {gatewaysList.map((gateway, ind) => {
         return (
           <SectionCard
             key={gateway.gateway!.gatewayProxyName + ind}
@@ -118,9 +113,16 @@ export const Gateways = (props: Props) => {
               )}
             </InsideHeader>
             <GatewayForm
-              doUpdate={(values: HttpConnectionManagerSettingsForm) =>
-                updateGateway(values, ind)
-              }
+              doUpdate={(values: HttpConnectionManagerSettingsForm) => {
+                let newGateway = _.set(
+                  'gateway.httpGateway.plugins',
+                  {
+                    httpConnectionManagerSettings: values
+                  },
+                  gateway
+                );
+                dispatch(updateGateway({ gateway: newGateway.gateway! }));
+              }}
               gatewayValues={gateway.gateway!}
               isExpanded={gatewaysOpen[ind]}
             />

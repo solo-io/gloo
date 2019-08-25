@@ -53,6 +53,8 @@ export const GlooIApp = () => {
     dispatch(listUpstreams({ namespacesList }));
     dispatch(listVirtualServices({ namespacesList }));
     dispatch(listSecrets({ namespacesList }));
+    dispatch(listGateways({ namespacesList }));
+    dispatch(listProxies({ namespacesList }));
   }, [namespacesList.length]);
 
   useInterval(

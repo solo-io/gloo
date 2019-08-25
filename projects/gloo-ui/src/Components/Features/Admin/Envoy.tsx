@@ -42,7 +42,16 @@ const Link = styled.div`
 `;
 
 interface Props {}
-
+export const getEnvoyHealth = (code: Status.Code): number => {
+  switch (code) {
+    case Status.Code.ERROR:
+      return healthConstants.Error.value;
+    case Status.Code.OK:
+      return healthConstants.Good.value;
+    default:
+      return healthConstants.Pending.value;
+  }
+};
 export const Envoy = (props: Props) => {
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
@@ -84,17 +93,6 @@ export const Envoy = (props: Props) => {
     );
   };
 
-  const getHealth = (code: Status.Code): number => {
-    switch (code) {
-      case Status.Code.ERROR:
-        return healthConstants.Error.value;
-      case Status.Code.OK:
-        return healthConstants.Good.value;
-      default:
-        return healthConstants.Pending.value;
-    }
-  };
-
   return (
     <React.Fragment>
       {allEnvoys.map((envoy, ind) => {
@@ -104,7 +102,7 @@ export const Envoy = (props: Props) => {
             cardName={envoy.name}
             logoIcon={<EnvoyLogoFullSize />}
             headerSecondaryInformation={[]}
-            health={getHealth(envoy!.status!.code!)}
+            health={getEnvoyHealth(envoy!.status!.code!)}
             healthMessage={'Envoy Status'}>
             {envoy!.status!.message !== '' && (
               <TallyContainer color='orange'>

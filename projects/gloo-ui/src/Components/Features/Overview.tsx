@@ -20,6 +20,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
 import { listVirtualServices } from 'store/virtualServices/actions';
+import { getEnvoyHealth } from './Admin/Envoy';
 
 const Container = styled.div`
   ${CardCSS};
@@ -179,6 +180,9 @@ const HealthStatus = (props: Props) => {
     return total + 1;
   }, 0);
 
+  if (!envoysList.length) {
+    return <div>Loading...</div>;
+  }
   console.log(allEnvoy);
 
   const goToEnvoys = (): void => {
@@ -192,7 +196,9 @@ const HealthStatus = (props: Props) => {
           <EnvoyHealthHeader>
             <div>
               <EnvoyHealthTitle>
-                <HealthIndicator healthStatus={healthConstants.Good.value} />{' '}
+                <HealthIndicator
+                  healthStatus={getEnvoyHealth(envoysList[0]!.status!.code!)}
+                />{' '}
                 Envoy Health Status
               </EnvoyHealthTitle>
               <EnvoyHealthSubtitle>
