@@ -8,7 +8,8 @@ import {
   createUpstreamId,
   getIcon,
   getUpstreamType,
-  parseUpstreamId
+  parseUpstreamId,
+  groupBy
 } from 'utils/helpers';
 import {
   MultipartStringCardsList,
@@ -16,14 +17,21 @@ import {
 } from '../MultipartStringCardsList';
 import { SoloCheckbox } from '../SoloCheckbox';
 import { SoloDurationEditor, DurationProps } from '../SoloDurationEditor';
-import { DropdownProps, SoloDropdown, OptionType } from '../SoloDropdown';
-import { SoloInput } from '../SoloInput';
+import {
+  DropdownProps,
+  SoloDropdown,
+  OptionType,
+  SoloDropdownBlock
+} from '../SoloDropdown';
+import { SoloInput, Label } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
+import { Select } from 'antd';
+const { Option, OptGroup } = Select;
 
 export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
@@ -373,6 +381,9 @@ export const SoloFormSecretRefInput: React.FC<{
   const {
     config: { namespacesList }
   } = useSelector((state: AppState) => state);
+  const secretsList = useSelector(
+    (state: AppState) => state.secrets.secretsList
+  );
   const { name, type } = props;
   const [field, meta] = useField(name);
   const form = useFormikContext<any>();
@@ -381,17 +392,11 @@ export const SoloFormSecretRefInput: React.FC<{
   const [nameField, nameMeta] = useField(`${field.name}.name`);
 
   const [selectedNS, setSelectedNS] = React.useState(namespaceField.value);
-  const listSecretsRequest = new ListSecretsRequest();
   const [noSecrets, setNoSecrets] = React.useState(false);
-  React.useEffect(() => {
-    listSecretsRequest.setNamespacesList(namespacesList);
-  }, [namespacesList]);
-
-  const { data: secretsListData } = useListSecrets(listSecretsRequest);
 
   const [secretsFound, setSecretsFound] = React.useState(
-    secretsListData
-      ? secretsListData.secretsList
+    secretsList.length
+      ? secretsList
           .filter(secret => {
             // TODO: are these the only forms requiring a secret ref?
             if (type === 'aws') return !!secret.aws;
@@ -401,24 +406,6 @@ export const SoloFormSecretRefInput: React.FC<{
           .map(secret => secret.metadata!.name)
       : []
   );
-
-  React.useEffect(() => {
-    setSecretsFound(
-      secretsListData
-        ? secretsListData.secretsList
-            .filter(secret => {
-              if (type === 'aws') return !!secret.aws;
-              if (type === 'azure') return !!secret.azure;
-            })
-            .filter(secret => secret.metadata!.namespace === selectedNS)
-
-            .map(secret => secret.metadata!.name)
-        : []
-    );
-    if (secretsListData && secretsFound.length === 0) {
-      setNoSecrets(true);
-    }
-  }, [selectedNS]);
 
   return (
     <React.Fragment>
@@ -447,24 +434,54 @@ export const SoloFormSecretRefInput: React.FC<{
           {namespaceMeta.error}
         </ErrorText>
       </div>
-      <div>
-        <SoloTypeahead
-          {...nameField}
-          title='Secret Ref Name'
-          disabled={secretsFound.length === 0}
-          presetOptions={secretsFound.map(sF => {
-            return { value: sF };
-          })}
-          defaultValue='Secret...'
-          onChange={value => {
-            form.setFieldValue(`${field.name}.name`, value);
-          }}
-        />
-        <ErrorText errorExists={!!nameMeta.error && nameMeta.touched}>
-          {nameMeta.error}
-        </ErrorText>
-      </div>
     </React.Fragment>
+  );
+};
+
+export const SoloAWSSecretsList: React.FC<{
+  type: string;
+  name: string;
+}> = props => {
+  const secretsList = useSelector(
+    (state: AppState) => state.secrets.secretsList
+  );
+  const { name, type } = props;
+  const [field, meta] = useField(name);
+  const form = useFormikContext<any>();
+
+  const groupedSecrets = Array.from(
+    groupBy(secretsList, secret => secret.metadata!.namespace).entries()
+  );
+  const awsSecretsList = groupedSecrets.filter(([ns, secrets]) =>
+    secrets.filter(s => !!s.aws)
+  );
+
+  return (
+    <div style={{ width: '100%' }}>
+      {name && <Label>AWS Secret</Label>}
+      <SoloDropdownBlock
+        style={{ width: '200px' }}
+        labelInValue
+        onChange={(value: any) => {
+          form.setFieldValue(`${field.name}.name`, value.label);
+          form.setFieldValue(`${field.name}.namespace`, value.key);
+        }}>
+        {awsSecretsList.map(([namespace, secrets]) => {
+          return (
+            <OptGroup key={namespace} label={namespace}>
+              {secrets.map(s => (
+                <Option key={s.metadata!.name} value={s.metadata!.namespace}>
+                  {s.metadata!.name}
+                </Option>
+              ))}
+            </OptGroup>
+          );
+        })}
+      </SoloDropdownBlock>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
+    </div>
   );
 };
 

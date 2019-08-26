@@ -1,6 +1,6 @@
 import {
-  SoloFormSecretRefInput,
-  SoloFormTypeahead
+  SoloFormTypeahead,
+  SoloAWSSecretsList
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
@@ -12,7 +12,7 @@ import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { withRouter, RouterProps } from 'react-router';
-import { useFormikContext, useField } from 'formik';
+import { useField } from 'formik';
 
 export interface AwsValuesType {
   awsRegion: string;
@@ -46,7 +46,7 @@ const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
   return (
     <React.Fragment>
       <SoloFormTemplate formHeader='AWS Upstream Settings'>
-        <InputRow>
+        <InputRow style={{ justifyContent: 'spaceAround' }}>
           <div>
             <SoloFormTypeahead
               name='awsRegion'
@@ -56,7 +56,9 @@ const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
               })}
             />
           </div>
-          <SoloFormSecretRefInput name='awsSecretRef' type='aws' />
+          <div>
+            <SoloAWSSecretsList name='awsSecretRef' type='aws' />
+          </div>
         </InputRow>
         <InputRow>
           {!!meta.error && !!meta.touched && (

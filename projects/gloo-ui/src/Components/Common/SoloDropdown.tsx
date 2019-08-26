@@ -5,7 +5,7 @@ import { colors, soloConstants } from 'Styles';
 import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
 
-const SoloDropdownBlock = styled(Select)`
+export const SoloDropdownBlock = styled(Select)`
   width: 100%;
   /* margin-bottom: 15px; */
   line-height: 16px;
