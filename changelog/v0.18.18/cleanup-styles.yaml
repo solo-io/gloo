@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: Switch Envoy logo.
+    issueLink: https://github.com/solo-io/solo-projects/issues/955
+  - type: FIX
+    description: Center text in boxes with numbers.
+    issueLink: https://github.com/solo-io/solo-projects/issues/956
+  - type: NEW_FEATURE
+    description: Show Upstream counts.
+    issueLink: https://github.com/solo-io/solo-projects/issues/957

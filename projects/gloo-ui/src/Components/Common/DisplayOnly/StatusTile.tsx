@@ -16,7 +16,7 @@ const StatusTileInformation = styled<'div', { horizontal?: boolean }>('div')`
   position: relative;
   border-radius: 8px;
   background: white;
-  padding: 15px 18px 39px 15px;
+  padding: 15px 18px 18px 15px;
   height: 100%;
 
   ${props => (props.horizontal ? `display: flex;` : '')}
@@ -41,11 +41,15 @@ const HorizontalTitle = styled.div`
   display: flex;
   align-items: center;
   height: 140px;
-  margin-left: ${soloConstants.largeBuffer}px;
-  margin-right: 30px;
+  /* margin-left: ${soloConstants.largeBuffer}px; */
+  margin: 10px;
 
   svg {
-    width: 85px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 1px solid ${colors.marchGrey};
+
   }
 `;
 
@@ -58,7 +62,9 @@ const Description = styled<'div', { minHeight?: string }>('div')`
     props.minHeight !== undefined ? props.minHeight : '0'};
 `;
 
-const Content = styled.div``;
+const Content = styled.div`
+  padding-bottom: 5px;
+`;
 
 const HorizontalContent = styled.div`
   position: relative;
@@ -72,7 +78,7 @@ const HorizontalContent = styled.div`
     content: '';
     position: absolute;
     left: -${soloConstants.smallBuffer}px;
-    top: 50%;
+    top: 55%;
     margin-top: -${soloConstants.largeBuffer}px;
     border-right: ${soloConstants.smallBuffer}px solid ${colors.januaryGrey};
     border-top: 13px solid transparent;
@@ -82,7 +88,7 @@ const HorizontalContent = styled.div`
 
 const Link = styled.div`
   position: absolute;
-  bottom: 15px;
+  bottom: 10px;
   cursor: pointer;
   color: ${colors.seaBlue};
   font-size: 14px;

@@ -8,6 +8,7 @@ export const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>(
   'div'
 )`
   display: flex;
+  align-items: center;
   padding: 8px 13px;
   line-height: 24px;
   border-radius: 8px;

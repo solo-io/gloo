@@ -5,7 +5,7 @@ import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
 import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
 import { ReactComponent as VSIcon } from 'assets/virtualservice-icon.svg';
 import { ReactComponent as USIcon } from 'assets/upstream-icon.svg';
-import { ReactComponent as EnvoyIcon } from 'assets/envoy-logo.svg';
+import { ReactComponent as EnvoyIcon } from 'assets/envoy-logo-title.svg';
 import { colors } from 'Styles/colors';
 
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
@@ -20,6 +20,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
 import { listVirtualServices } from 'store/virtualServices/actions';
+import { groupBy, getUpstreamType, getIcon } from 'utils/helpers';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { getEnvoyHealth } from './Admin/Envoy';
 
 const Container = styled.div`
@@ -315,11 +317,44 @@ const VirtualServicesOverview = () => {
   );
 };
 
-const UpstreamsOverview = () => {
-  // const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
-  //   []
-  // );
+type UpstreamDetailsProps = { upstreamsList: Upstream.AsObject[] };
+const UpstreamDetailsContainer = styled.div`
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  padding: 0 10px 10px 10px;
+`;
 
+const UpstreamDetail = styled.div`
+  display: flex;
+  line-height: 1;
+  align-items: center;
+`;
+const IconContainer = styled.div`
+  padding: 0 3px;
+`;
+const UpstreamDetails: React.FC<UpstreamDetailsProps> = props => {
+  let groupedUS = Array.from(
+    groupBy(props.upstreamsList, us => getUpstreamType(us)).entries()
+  );
+
+  return (
+    <UpstreamDetailsContainer>
+      {groupedUS.map(([upstreamType, usList]) => (
+        <UpstreamDetail key={upstreamType}>
+          <IconContainer>{getIcon(upstreamType)}</IconContainer>
+          <div>
+            <b>{`${usList.length}`}</b>
+            {`${upstreamType} 
+              upstream${usList.length === 1 ? '' : 's'}`}
+          </div>
+        </UpstreamDetail>
+      ))}
+    </UpstreamDetailsContainer>
+  );
+};
+
+const UpstreamsOverview = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const dispatch = useDispatch();
   const namespacesList = useSelector(
@@ -347,6 +382,7 @@ const UpstreamsOverview = () => {
         : 0),
     0
   );
+
   return (
     <Upstreams>
       <StatusTile
@@ -377,6 +413,7 @@ const UpstreamsOverview = () => {
               tallyDescription={'upstreams currently installed and configured'}
               color='blue'
             />
+            <UpstreamDetails upstreamsList={upstreamsList} />
           </React.Fragment>
         ) : (
           <div>You have no upstreams configured yet.</div>
