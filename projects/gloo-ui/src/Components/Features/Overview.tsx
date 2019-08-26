@@ -189,8 +189,8 @@ const HealthStatus = (props: Props) => {
   }
   console.log(allEnvoy);
 
-  const goToEnvoys = (): void => {
-    props.history.push('/admin/envoy/');
+  const goToAdmin = (): void => {
+    props.history.push('/admin/');
   };
 
   return (
@@ -212,7 +212,7 @@ const HealthStatus = (props: Props) => {
                 configuration.
               </EnvoyHealthSubtitle>
             </div>
-            <Link onClick={goToEnvoys}>View Envoy Configuration</Link>
+            <Link onClick={goToAdmin}>Go to Admin View</Link>
           </EnvoyHealthHeader>
 
           {!envoysList.length ? (
@@ -230,7 +230,7 @@ const HealthStatus = (props: Props) => {
                   }}
                 />
               ) : (
-                <GoodStateCongratulations typeOfItem={'envoy configurations'} />
+                <GoodStateCongratulations typeOfItem={'envoys'} />
               )}
 
               <TallyInformationDisplay
@@ -306,7 +306,7 @@ const VirtualServicesOverview = () => {
             <TallyInformationDisplay
               tallyCount={virtualServicesList.length}
               tallyDescription={
-                'virtual services currently installed and configured'
+                'virtual services configured'
               }
               color='blue'
             />
@@ -412,7 +412,7 @@ const UpstreamsOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={upstreamsList.length}
-              tallyDescription={'upstreams currently installed and configured'}
+              tallyDescription={'upstreams configured'}
               color='blue'
             />
             <UpstreamDetails upstreamsList={upstreamsList} />
