@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: The Overview page now properly displays errors for Envoy.
+    issueLink: https://github.com/solo-io/solo-projects/issues/965

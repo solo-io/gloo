@@ -174,12 +174,14 @@ const HealthStatus = (props: Props) => {
   }, [envoysList.length]);
 
   const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
-    /*if (getResourceStatus(envoy.!) !== 'Rejected') {
-      return total;
-    }*/
-    return total;
+    if (
+      envoy.status &&
+      getEnvoyHealth(envoy.status.code) === healthConstants.Error.value
+    ) {
+      return total + 1;
+    }
 
-    return total + 1;
+    return total;
   }, 0);
 
   if (!envoysList.length) {
@@ -199,7 +201,7 @@ const HealthStatus = (props: Props) => {
             <div>
               <EnvoyHealthTitle>
                 <HealthIndicator
-                  healthStatus={getEnvoyHealth(envoysList[0]!.status!.code!)}
+                  healthStatus={getEnvoyHealth(envoysList[0]!.status!.code)}
                 />{' '}
                 Envoy Health Status
               </EnvoyHealthTitle>
