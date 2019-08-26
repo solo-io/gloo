@@ -60,19 +60,11 @@ const FormFooter = styled.div`
   justify-content: flex-end;
 `;
 
-export type HttpConnectionManagerSettingsForm = Omit<
-  HttpConnectionManagerSettings.AsObject,
-  'useRemoteAddress' | 'generateRequestId' | 'maxRequestHeadersKb' | 'tracing'
-> & {
-  useRemoteAddress: boolean;
-  generateRequestId: boolean;
-  maxRequestHeadersKb: number;
-  tracing: ListenerTracingSettings.AsObject;
-};
+export type HttpConnectionManagerSettingsForm = HttpConnectionManagerSettings.AsObject;
 
 let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   skipXffAppend: (undefined as unknown) as boolean,
-  maxRequestHeadersKb: (undefined as unknown) as number,
+  maxRequestHeadersKb: { value: (undefined as unknown) as number },
   streamIdleTimeout: undefined,
   via: (undefined as unknown) as string,
   requestTimeout: undefined,
@@ -80,10 +72,10 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   xffNumTrustedHops: (undefined as unknown) as number,
   drainTimeout: undefined,
   defaultHostForHttp10: (undefined as unknown) as string,
-  useRemoteAddress: (undefined as unknown) as boolean,
+  useRemoteAddress: { value: (undefined as unknown) as boolean },
   delayedCloseTimeout: undefined,
   acceptHttp10: (undefined as unknown) as boolean,
-  generateRequestId: (undefined as unknown) as boolean,
+  generateRequestId: { value: (undefined as unknown) as boolean },
   serverName: (undefined as unknown) as string,
   proxy100Continue: (undefined as unknown) as boolean,
   tracing: {
@@ -96,8 +88,8 @@ const connectionManagerList = Object.keys(defaultHttpValues).slice(0, -2);
 const tracingList = Object.keys(defaultHttpValues).slice(-2);
 
 const validationSchema = yup.object().shape({
-  skipXffAppend: yup.string().oneOf(['true', 'True', 'false', 'False']),
-  maxRequestHeadersKb: yup.number(),
+  skipXffAppend: yup.boolean(),
+  maxRequestHeadersKb: yup.object().shape({ value: yup.number() }),
   streamIdleTimeout: yup
     .object()
     .shape({ nanos: yup.number(), seconds: yup.number() }),
@@ -113,16 +105,19 @@ const validationSchema = yup.object().shape({
     .object()
     .shape({ nanos: yup.number(), seconds: yup.number() }),
   defaultHostForHttp10: yup.string(),
-  useRemoteAddress: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  useRemoteAddress: yup.object().shape({ value: yup.boolean() }),
   delayedCloseTimeout: yup
     .object()
     .shape({ nanos: yup.number(), seconds: yup.number() }),
-  acceptHttp10: yup.string().oneOf(['true', 'True', 'false', 'False']),
-  generateRequestId: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  acceptHttp10: yup.boolean(),
+  generateRequestId: yup.object().shape({ value: yup.boolean() }),
   serverName: yup.string(),
-  proxy100Continue: yup.string().oneOf(['true', 'True', 'false', 'False']),
+  proxy100Continue: yup.boolean(),
   requestHeadersForTags: yup.string(),
-  verbose: yup.string().oneOf(['true', 'True', 'false', 'False'])
+  tracing: yup.object().shape({
+    requestHeadersForTagsList: yup.string(),
+    verbose: yup.boolean()
+  })
 });
 
 interface FormProps {
@@ -147,16 +142,18 @@ export const GatewayForm = (props: FormProps) => {
     initialValues.via = httpValues.via;
     initialValues.xffNumTrustedHops = httpValues.xffNumTrustedHops;
     if (httpValues.useRemoteAddress) {
-      initialValues.useRemoteAddress = httpValues.useRemoteAddress.value;
+      initialValues.useRemoteAddress!.value = httpValues.useRemoteAddress.value;
     }
     if (httpValues.generateRequestId) {
-      initialValues.generateRequestId = httpValues.generateRequestId.value;
+      initialValues.generateRequestId!.value =
+        httpValues.generateRequestId.value;
     }
     initialValues.proxy100Continue = httpValues.proxy100Continue;
     initialValues.streamIdleTimeout = httpValues.streamIdleTimeout;
     initialValues.idleTimeout = httpValues.idleTimeout;
     if (httpValues.maxRequestHeadersKb) {
-      initialValues.maxRequestHeadersKb = httpValues.maxRequestHeadersKb.value;
+      initialValues.maxRequestHeadersKb!.value =
+        httpValues.maxRequestHeadersKb.value;
     }
     initialValues.requestTimeout = httpValues.requestTimeout;
     initialValues.drainTimeout = httpValues.drainTimeout;
@@ -165,9 +162,8 @@ export const GatewayForm = (props: FormProps) => {
     initialValues.acceptHttp10 = httpValues.acceptHttp10;
     initialValues.defaultHostForHttp10 = httpValues.defaultHostForHttp10;
     if (httpValues.tracing) {
-      initialValues.tracing.requestHeadersForTagsList =
-        httpValues.tracing.requestHeadersForTagsList;
-      initialValues.tracing.verbose = httpValues.tracing.verbose;
+      initialValues.tracing!.requestHeadersForTagsList = httpValues.tracing!.requestHeadersForTagsList;
+      initialValues.tracing!.verbose = httpValues.tracing.verbose;
     }
   }
 
@@ -209,7 +205,7 @@ export const GatewayForm = (props: FormProps) => {
                 <InnerFormSectionContent>
                   <FormItem>
                     <SoloFormInput
-                      name={'maxRequestHeadersKb'}
+                      name={'maxRequestHeadersKb.value'}
                       title={'maxRequestHeadersKb'}
                     />
                   </FormItem>
@@ -260,7 +256,7 @@ export const GatewayForm = (props: FormProps) => {
 
                   <FormItem>
                     <SoloFormCheckbox
-                      name={'useRemoteAddress'}
+                      name={'useRemoteAddress.value'}
                       title={'useRemoteAddress'}
                     />
                   </FormItem>
@@ -279,7 +275,7 @@ export const GatewayForm = (props: FormProps) => {
                   </FormItem>
                   <FormItem>
                     <SoloFormCheckbox
-                      name={'generateRequestId'}
+                      name={'generateRequestId.value'}
                       title={'generateRequestId'}
                     />
                   </FormItem>
@@ -322,6 +318,7 @@ export const GatewayForm = (props: FormProps) => {
                       isSubmitting || invalid(values, errors) || !isDirty(dirty)
                     }
                   />
+                  <pre>{JSON.stringify(values, null, 2)}</pre>
                 </FormFooter>
               </React.Fragment>
             );

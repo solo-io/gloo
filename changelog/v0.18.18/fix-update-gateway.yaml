@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix updating values in the gateway form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/967

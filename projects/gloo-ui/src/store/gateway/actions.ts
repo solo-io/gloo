@@ -22,6 +22,7 @@ import {
   ListGatewaysAction,
   UpdateGatewayAction
 } from './types';
+import { HttpListenerPlugins } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 
 export function getListGateways(
   listGatewaysRequest: ListGatewaysRequest.AsObject
@@ -79,7 +80,7 @@ export function getUpdateGateway(
     });
     let oldGatewayD = oldGatewayDetails.getGatewayDetails();
     if (oldGatewayD !== undefined) {
-      let oldGateway = oldGatewayD.getGateway();
+      let currentGateway = oldGatewayD.getGateway();
 
       // if (updateGatewayRequest.gateway!.bindAddress) {
       //   oldGateway!.setBindAddress(updateGatewayRequest.gateway!.bindAddress);
@@ -94,173 +95,144 @@ export function getUpdateGateway(
       //     updateGatewayRequest.gateway!.gatewayProxyName
       //   );
       // }
-      // TODO; merging strategy
-      if (oldGateway !== undefined) {
-        if (oldGateway.getHttpGateway() !== undefined) {
-          let oldHttpGateway = oldGateway.getHttpGateway();
+
+      if (currentGateway !== undefined) {
+        if (currentGateway.getHttpGateway() !== undefined) {
+          let httpGatewayToUpdate = currentGateway.getHttpGateway()!;
+          let oldHttpPlugins = httpGatewayToUpdate.getPlugins();
+          if (oldHttpPlugins === undefined) {
+            oldHttpPlugins = new HttpListenerPlugins();
+          }
+          let oldHttpCMS = oldHttpPlugins.getHttpConnectionManagerSettings();
+          if (oldHttpCMS === undefined) {
+            oldHttpCMS = new HttpConnectionManagerSettings();
+          }
+
           if (
-            oldHttpGateway !== undefined &&
-            oldHttpGateway.getPlugins() !== undefined
+            updateGatewayRequest.gateway !== undefined &&
+            updateGatewayRequest.gateway.httpGateway !== undefined
           ) {
-            let oldHttpPlugins = oldHttpGateway.getPlugins();
-            if (oldHttpPlugins !== undefined) {
-              let newHttpConnectionManagerSettings = new HttpConnectionManagerSettings();
+            if (
+              updateGatewayRequest.gateway.httpGateway.plugins !== undefined
+            ) {
               if (
-                updateGatewayRequest.gateway !== undefined &&
-                updateGatewayRequest.gateway.httpGateway !== undefined
+                updateGatewayRequest.gateway.httpGateway.plugins
+                  .httpConnectionManagerSettings !== undefined
               ) {
-                if (
-                  updateGatewayRequest.gateway.httpGateway.plugins !== undefined
-                ) {
-                  if (
-                    updateGatewayRequest.gateway.httpGateway.plugins
-                      .httpConnectionManagerSettings !== undefined
-                  ) {
-                    // set new Httpconnectionmaneg
-                    let {
-                      skipXffAppend,
-                      via,
-                      xffNumTrustedHops,
-                      useRemoteAddress,
-                      generateRequestId,
-                      proxy100Continue,
-                      streamIdleTimeout,
-                      idleTimeout,
-                      maxRequestHeadersKb,
-                      requestTimeout,
-                      drainTimeout,
-                      delayedCloseTimeout,
-                      serverName,
-                      acceptHttp10,
-                      defaultHostForHttp10,
-                      tracing
-                    } = updateGatewayRequest.gateway.httpGateway.plugins.httpConnectionManagerSettings;
-                    if (skipXffAppend !== undefined) {
-                      newHttpConnectionManagerSettings.setSkipXffAppend(
-                        skipXffAppend
-                      );
-                    }
+                let {
+                  skipXffAppend,
+                  via,
+                  xffNumTrustedHops,
+                  useRemoteAddress,
+                  generateRequestId,
+                  proxy100Continue,
+                  streamIdleTimeout,
+                  idleTimeout,
+                  maxRequestHeadersKb,
+                  requestTimeout,
+                  drainTimeout,
+                  delayedCloseTimeout,
+                  serverName,
+                  acceptHttp10,
+                  defaultHostForHttp10,
+                  tracing
+                } = updateGatewayRequest.gateway.httpGateway.plugins.httpConnectionManagerSettings;
 
-                    if (via !== undefined) {
-                      newHttpConnectionManagerSettings.setVia(via);
-                    }
+                if (skipXffAppend !== undefined) {
+                  oldHttpCMS.setSkipXffAppend(skipXffAppend);
+                }
 
-                    if (useRemoteAddress !== undefined) {
-                      let boolVal = new BoolValue();
-                      boolVal.setValue(useRemoteAddress.value);
-                      newHttpConnectionManagerSettings.setUseRemoteAddress(
-                        boolVal
-                      );
-                    }
+                if (via !== undefined) {
+                  oldHttpCMS.setVia(via);
+                }
 
-                    if (xffNumTrustedHops !== undefined) {
-                      newHttpConnectionManagerSettings.setXffNumTrustedHops(
-                        xffNumTrustedHops
-                      );
-                    }
+                if (useRemoteAddress !== undefined) {
+                  let boolVal = new BoolValue();
+                  boolVal.setValue(useRemoteAddress.value);
+                  oldHttpCMS.setUseRemoteAddress(boolVal);
+                }
 
-                    if (generateRequestId !== undefined) {
-                      let boolVal = new BoolValue();
-                      boolVal.setValue(generateRequestId.value);
-                      newHttpConnectionManagerSettings.setGenerateRequestId(
-                        boolVal
-                      );
-                    }
+                if (xffNumTrustedHops !== undefined) {
+                  oldHttpCMS.setXffNumTrustedHops(xffNumTrustedHops);
+                }
 
-                    if (proxy100Continue !== undefined) {
-                      newHttpConnectionManagerSettings.setProxy100Continue(
-                        proxy100Continue
-                      );
-                    }
+                if (generateRequestId !== undefined) {
+                  let boolVal = new BoolValue();
+                  boolVal.setValue(generateRequestId.value);
+                  oldHttpCMS.setGenerateRequestId(boolVal);
+                }
 
-                    if (streamIdleTimeout !== undefined) {
-                      let newDuration = new Duration();
-                      newDuration.setSeconds(streamIdleTimeout.seconds);
-                      newDuration.setNanos(streamIdleTimeout.nanos);
+                if (proxy100Continue !== undefined) {
+                  oldHttpCMS.setProxy100Continue(proxy100Continue);
+                }
 
-                      newHttpConnectionManagerSettings.setStreamIdleTimeout(
-                        newDuration
-                      );
-                    }
-                    if (idleTimeout !== undefined) {
-                      let newDuration = new Duration();
-                      newDuration.setSeconds(idleTimeout.seconds);
-                      newDuration.setNanos(idleTimeout.nanos);
+                if (streamIdleTimeout !== undefined) {
+                  let newDuration = new Duration();
+                  newDuration.setSeconds(streamIdleTimeout.seconds);
+                  newDuration.setNanos(streamIdleTimeout.nanos);
 
-                      newHttpConnectionManagerSettings.setIdleTimeout(
-                        newDuration
-                      );
-                    }
-                    if (drainTimeout !== undefined) {
-                      let newDuration = new Duration();
-                      newDuration.setSeconds(drainTimeout.seconds);
-                      newDuration.setNanos(drainTimeout.nanos);
+                  oldHttpCMS.setStreamIdleTimeout(newDuration);
+                }
+                if (idleTimeout !== undefined) {
+                  let newDuration = new Duration();
+                  newDuration.setSeconds(idleTimeout.seconds);
+                  newDuration.setNanos(idleTimeout.nanos);
 
-                      newHttpConnectionManagerSettings.setDrainTimeout(
-                        newDuration
-                      );
-                    }
-                    if (delayedCloseTimeout !== undefined) {
-                      let newDuration = new Duration();
-                      newDuration.setSeconds(delayedCloseTimeout.seconds);
-                      newDuration.setNanos(delayedCloseTimeout.nanos);
+                  oldHttpCMS.setIdleTimeout(newDuration);
+                }
+                if (drainTimeout !== undefined) {
+                  let newDuration = new Duration();
+                  newDuration.setSeconds(drainTimeout.seconds);
+                  newDuration.setNanos(drainTimeout.nanos);
 
-                      newHttpConnectionManagerSettings.setDelayedCloseTimeout(
-                        newDuration
-                      );
-                    }
+                  oldHttpCMS.setDrainTimeout(newDuration);
+                }
+                if (delayedCloseTimeout !== undefined) {
+                  let newDuration = new Duration();
+                  newDuration.setSeconds(delayedCloseTimeout.seconds);
+                  newDuration.setNanos(delayedCloseTimeout.nanos);
 
-                    if (maxRequestHeadersKb !== undefined) {
-                      let uInt32 = new UInt32Value();
-                      uInt32.setValue(maxRequestHeadersKb.value);
-                      newHttpConnectionManagerSettings.setMaxRequestHeadersKb(
-                        uInt32
-                      );
-                    }
+                  oldHttpCMS.setDelayedCloseTimeout(newDuration);
+                }
 
-                    if (requestTimeout !== undefined) {
-                      let newDuration = new Duration();
-                      newDuration.setSeconds(requestTimeout.seconds);
-                      newDuration.setNanos(requestTimeout.nanos);
+                if (maxRequestHeadersKb !== undefined) {
+                  let uInt32 = new UInt32Value();
+                  uInt32.setValue(maxRequestHeadersKb.value);
+                  oldHttpCMS.setMaxRequestHeadersKb(uInt32);
+                }
 
-                      newHttpConnectionManagerSettings.setStreamIdleTimeout(
-                        newDuration
-                      );
-                    }
-                    if (serverName !== undefined) {
-                      newHttpConnectionManagerSettings.setServerName(
-                        serverName
-                      );
-                    }
-                    if (acceptHttp10 !== undefined) {
-                      newHttpConnectionManagerSettings.setAcceptHttp10(
-                        acceptHttp10
-                      );
-                    }
-                    if (defaultHostForHttp10 !== undefined) {
-                      newHttpConnectionManagerSettings.setDefaultHostForHttp10(
-                        defaultHostForHttp10
-                      );
-                    }
-                    if (tracing !== undefined) {
-                      let newTracing = new ListenerTracingSettings();
-                      newTracing.setRequestHeadersForTagsList(
-                        tracing.requestHeadersForTagsList
-                      );
-                      newTracing.setVerbose(tracing.verbose);
-                      newHttpConnectionManagerSettings.setTracing(newTracing);
-                    }
-                  }
+                if (requestTimeout !== undefined) {
+                  let newDuration = new Duration();
+                  newDuration.setSeconds(requestTimeout.seconds);
+                  newDuration.setNanos(requestTimeout.nanos);
+
+                  oldHttpCMS.setRequestTimeout(newDuration);
+                }
+                if (serverName !== undefined) {
+                  oldHttpCMS.setServerName(serverName);
+                }
+                if (acceptHttp10 !== undefined) {
+                  oldHttpCMS.setAcceptHttp10(acceptHttp10);
+                }
+                if (defaultHostForHttp10 !== undefined) {
+                  oldHttpCMS.setDefaultHostForHttp10(defaultHostForHttp10);
+                }
+                if (tracing !== undefined) {
+                  let newTracing = new ListenerTracingSettings();
+                  newTracing.setRequestHeadersForTagsList(
+                    tracing.requestHeadersForTagsList
+                  );
+                  newTracing.setVerbose(tracing.verbose);
+                  oldHttpCMS.setTracing(newTracing);
                 }
               }
-
-              oldHttpPlugins.setHttpConnectionManagerSettings(
-                newHttpConnectionManagerSettings
-              );
             }
-            oldHttpGateway.setPlugins(oldHttpPlugins);
-            oldGateway.setHttpGateway(oldHttpGateway);
           }
+
+          oldHttpPlugins.setHttpConnectionManagerSettings(oldHttpCMS);
+          httpGatewayToUpdate.setPlugins(oldHttpPlugins);
+
+          currentGateway.setHttpGateway(httpGatewayToUpdate);
         }
 
         //   // let vsRefList = updateGatewayRequest.gateway!.httpGateway.virtualServicesList.map(
@@ -279,29 +251,29 @@ export function getUpdateGateway(
         // TODO
         if (updateGatewayRequest.gateway !== undefined) {
           if (updateGatewayRequest.gateway.plugins) {
-            let oldPlugins = oldGateway.getPlugins();
+            let oldPlugins = currentGateway.getPlugins();
             // TODO
-            oldGateway.setPlugins(oldPlugins);
+            currentGateway.setPlugins(oldPlugins);
           }
           if (updateGatewayRequest.gateway.ssl) {
-            oldGateway.setSsl(updateGatewayRequest.gateway.ssl);
+            currentGateway.setSsl(updateGatewayRequest.gateway.ssl);
           }
           // TODO
           if (updateGatewayRequest.gateway.tcpGateway) {
-            let oldTcpGateway = oldGateway.getTcpGateway();
+            let oldTcpGateway = currentGateway.getTcpGateway();
             // find out what changed
-            oldGateway.setTcpGateway(oldTcpGateway);
+            currentGateway.setTcpGateway(oldTcpGateway);
           }
           if (updateGatewayRequest.gateway.useProxyProto) {
             let newUseProxyProtoVal = new BoolValue();
             newUseProxyProtoVal.setValue(
               updateGatewayRequest.gateway.useProxyProto.value
             );
-            oldGateway.setUseProxyProto(newUseProxyProtoVal);
+            currentGateway.setUseProxyProto(newUseProxyProtoVal);
           }
         }
 
-        request.setGateway(oldGateway);
+        request.setGateway(currentGateway);
       }
     }
     client.updateGateway(request, (error, data) => {

@@ -77,7 +77,6 @@ export const Gateways = (props: Props) => {
       })
     );
   };
-  console.log('gatewaysList', gatewaysList);
   return (
     <React.Fragment>
       {gatewaysList.map((gateway, ind) => {
