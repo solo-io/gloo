@@ -17,6 +17,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb fr
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/lbhash/lbhash_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/shadowing/shadowing_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb";
@@ -40,6 +41,11 @@ export class ListenerPlugins extends jspb.Message {
   getAccessLoggingService(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService | undefined;
   setAccessLoggingService(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService): void;
 
+  hasExtensions(): boolean;
+  clearExtensions(): void;
+  getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
+  setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerPlugins): ListenerPlugins.AsObject;
@@ -53,6 +59,7 @@ export class ListenerPlugins extends jspb.Message {
 export namespace ListenerPlugins {
   export type AsObject = {
     accessLoggingService?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.AsObject,
+    extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
   }
 }
 
@@ -208,6 +215,11 @@ export class RoutePlugins extends jspb.Message {
   getCors(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy | undefined;
   setCors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy): void;
 
+  hasLbHash(): boolean;
+  clearLbHash(): void;
+  getLbHash(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig | undefined;
+  setLbHash(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -231,6 +243,7 @@ export namespace RoutePlugins {
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
     hostRewrite?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.AsObject,
     cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
+    lbHash?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
   }
 }
 

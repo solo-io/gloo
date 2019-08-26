@@ -100,9 +100,8 @@ export class CreateArtifactRequest extends jspb.Message {
   getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
-  getData(): string;
-  setData(value: string): void;
-
+  getDataMap(): jspb.Map<string, string>;
+  clearDataMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateArtifactRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CreateArtifactRequest): CreateArtifactRequest.AsObject;
@@ -116,7 +115,7 @@ export class CreateArtifactRequest extends jspb.Message {
 export namespace CreateArtifactRequest {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    data: string,
+    dataMap: Array<[string, string]>,
   }
 }
 
@@ -148,9 +147,8 @@ export class UpdateArtifactRequest extends jspb.Message {
   getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
-  getData(): string;
-  setData(value: string): void;
-
+  getDataMap(): jspb.Map<string, string>;
+  clearDataMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateArtifactRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateArtifactRequest): UpdateArtifactRequest.AsObject;
@@ -164,7 +162,7 @@ export class UpdateArtifactRequest extends jspb.Message {
 export namespace UpdateArtifactRequest {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    data: string,
+    dataMap: Array<[string, string]>,
   }
 }
 

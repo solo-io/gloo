@@ -499,9 +499,12 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -1299,7 +1302,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:218e01863da1618b26616e6b94d7b73c20390cb88c8f245d3e7f2b5559978390"
+  digest = "1:3131f6ecc49f9666fefe60210cb91fa52d6a20ed52e5e5a83e07dc1cba067e64"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1331,6 +1334,7 @@
     "projects/gloo/cli/pkg/argsutils",
     "projects/gloo/cli/pkg/cmd",
     "projects/gloo/cli/pkg/cmd/add",
+    "projects/gloo/cli/pkg/cmd/check",
     "projects/gloo/cli/pkg/cmd/create",
     "projects/gloo/cli/pkg/cmd/create/secret",
     "projects/gloo/cli/pkg/cmd/del",
@@ -1370,6 +1374,7 @@
     "projects/gloo/pkg/api/v1/plugins/headers",
     "projects/gloo/pkg/api/v1/plugins/hostrewrite",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
+    "projects/gloo/pkg/api/v1/plugins/lbhash",
     "projects/gloo/pkg/api/v1/plugins/pipe",
     "projects/gloo/pkg/api/v1/plugins/rest",
     "projects/gloo/pkg/api/v1/plugins/retries",
@@ -1424,8 +1429,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "4e14b826135dfa43a2f6e163571234201592739f"
-  version = "v0.18.20"
+  revision = "f13aa4d09f60940a18cfb8d3228ace9997e83fb2"
+  version = "v0.18.22"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -2582,6 +2587,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",

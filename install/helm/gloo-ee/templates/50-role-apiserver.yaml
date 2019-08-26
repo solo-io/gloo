@@ -2,7 +2,7 @@ kind: {{ include "gloo.roleKind" . }}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ .Values.apiServer.service.name }}
-  {{- if .Values.gloo.rbac.namespaced }}
+  {{- if .Values.gloo.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
   {{- end }}
   labels:

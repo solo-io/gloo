@@ -26,7 +26,9 @@ message ListArtifactsResponse {
 
 message CreateArtifactRequest {
     core.solo.io.ResourceRef ref = 1;
-    string data = 2;
+    // Artifact data is a map to be compatible with Kubernetes ConfigMaps.
+    // The key refers to the ConfigMap key, the value is the associated ConfigMap value.
+    map<string,string> data = 2;
 }
 
 message CreateArtifactResponse {
@@ -35,7 +37,9 @@ message CreateArtifactResponse {
 
 message UpdateArtifactRequest {
     core.solo.io.ResourceRef ref = 1;
-    string data = 2;
+    // Artifact data is a map to be compatible with Kubernetes ConfigMaps.
+    // The key refers to the ConfigMap key, the value is the associated ConfigMap value.
+    map<string,string> data = 2;
 }
 
 message UpdateArtifactResponse {

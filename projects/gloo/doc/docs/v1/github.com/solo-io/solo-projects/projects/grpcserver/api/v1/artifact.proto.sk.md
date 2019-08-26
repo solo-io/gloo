@@ -106,14 +106,14 @@ weight: 5
 
 ```yaml
 "ref": .core.solo.io.ResourceRef
-"data": string
+"data": map<string, string>
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `data` | `string` |  |  |
+| `data` | `map<string, string>` | Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
 
 
 
@@ -142,14 +142,14 @@ weight: 5
 
 ```yaml
 "ref": .core.solo.io.ResourceRef
-"data": string
+"data": map<string, string>
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `data` | `string` |  |  |
+| `data` | `map<string, string>` | Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
 
 
 

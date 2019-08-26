@@ -52,7 +52,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			artifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 
@@ -90,11 +90,11 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the artifact client works", func() {
 			ns1, ns2 := "one", "two"
 			artifact1 := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: core.Metadata{Namespace: ns1},
 			}
 			artifact2 := gloov1.Artifact{
-				Data:     "qwerty",
+				Data:     map[string]string{"test": "qwerty"},
 				Metadata: core.Metadata{Namespace: ns2},
 			}
 
@@ -135,7 +135,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			artifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 
@@ -157,7 +157,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			artifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 
@@ -181,11 +181,11 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			oldArtifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 			newArtifact := gloov1.Artifact{
-				Data:     "qwerty",
+				Data:     map[string]string{"test": "qwerty"},
 				Metadata: metadata,
 			}
 
@@ -210,7 +210,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			artifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 
@@ -232,7 +232,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			ref := metadata.Ref()
 			artifact := gloov1.Artifact{
-				Data:     "asdf",
+				Data:     map[string]string{"test": "asdf"},
 				Metadata: metadata,
 			}
 

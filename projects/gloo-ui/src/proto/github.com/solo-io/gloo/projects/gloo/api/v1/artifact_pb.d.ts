@@ -7,9 +7,8 @@ import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 
 export class Artifact extends jspb.Message {
-  getData(): string;
-  setData(value: string): void;
-
+  getDataMap(): jspb.Map<string, string>;
+  clearDataMap(): void;
   hasMetadata(): boolean;
   clearMetadata(): void;
   getMetadata(): github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata | undefined;
@@ -27,7 +26,7 @@ export class Artifact extends jspb.Message {
 
 export namespace Artifact {
   export type AsObject = {
-    data: string,
+    dataMap: Array<[string, string]>,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
 }

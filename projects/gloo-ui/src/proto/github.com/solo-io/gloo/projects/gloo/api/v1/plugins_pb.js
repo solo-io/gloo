@@ -27,6 +27,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb = require(
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/lbhash/lbhash_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/shadowing/shadowing_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb.js');
@@ -98,7 +99,8 @@ proto.gloo.solo.io.ListenerPlugins.prototype.toObject = function(opt_includeInst
  */
 proto.gloo.solo.io.ListenerPlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
-    accessLoggingService: (f = msg.getAccessLoggingService()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.toObject(includeInstance, f)
+    accessLoggingService: (f = msg.getAccessLoggingService()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.toObject(includeInstance, f),
+    extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -140,6 +142,11 @@ proto.gloo.solo.io.ListenerPlugins.deserializeBinaryFromReader = function(msg, r
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.deserializeBinaryFromReader);
       msg.setAccessLoggingService(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.deserializeBinaryFromReader);
+      msg.setExtensions(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -177,6 +184,14 @@ proto.gloo.solo.io.ListenerPlugins.serializeBinaryToWriter = function(message, w
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.serializeBinaryToWriter
     );
   }
+  f = message.getExtensions();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -207,6 +222,36 @@ proto.gloo.solo.io.ListenerPlugins.prototype.clearAccessLoggingService = functio
  */
 proto.gloo.solo.io.ListenerPlugins.prototype.hasAccessLoggingService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Extensions extensions = 2;
+ * @return {?proto.gloo.solo.io.Extensions}
+ */
+proto.gloo.solo.io.ListenerPlugins.prototype.getExtensions = function() {
+  return /** @type{?proto.gloo.solo.io.Extensions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.Extensions|undefined} value */
+proto.gloo.solo.io.ListenerPlugins.prototype.setExtensions = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.ListenerPlugins.prototype.clearExtensions = function() {
+  this.setExtensions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.ListenerPlugins.prototype.hasExtensions = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -964,7 +1009,8 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
     shadowing: (f = msg.getShadowing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.toObject(includeInstance, f),
     headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
     hostRewrite: (f = msg.getHostRewrite()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.toObject(includeInstance, f),
-    cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.toObject(includeInstance, f)
+    cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
+    lbHash: (f = msg.getLbHash()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1055,6 +1101,11 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.deserializeBinaryFromReader);
       msg.setCors(value);
+      break;
+    case 12:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.deserializeBinaryFromReader);
+      msg.setLbHash(value);
       break;
     default:
       reader.skipField();
@@ -1171,6 +1222,14 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
       11,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getLbHash();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.serializeBinaryToWriter
     );
   }
 };
@@ -1503,6 +1562,36 @@ proto.gloo.solo.io.RoutePlugins.prototype.clearCors = function() {
  */
 proto.gloo.solo.io.RoutePlugins.prototype.hasCors = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional lbhash.plugins.gloo.solo.io.RouteActionHashConfig lb_hash = 12;
+ * @return {?proto.lbhash.plugins.gloo.solo.io.RouteActionHashConfig}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getLbHash = function() {
+  return /** @type{?proto.lbhash.plugins.gloo.solo.io.RouteActionHashConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig, 12));
+};
+
+
+/** @param {?proto.lbhash.plugins.gloo.solo.io.RouteActionHashConfig|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setLbHash = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearLbHash = function() {
+  this.setLbHash(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasLbHash = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

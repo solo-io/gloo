@@ -722,7 +722,7 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.toObject = function(opt_
 proto.glooeeapi.solo.io.CreateArtifactRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    data: jspb.Message.getFieldWithDefault(msg, 2, "")
+    dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -765,8 +765,10 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.deserializeBinaryFromReader = func
       msg.setRef(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setData(value);
+      var value = msg.getDataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -805,12 +807,9 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.serializeBinaryToWriter = function
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
-  f = message.getData();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
+  f = message.getDataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -846,17 +845,20 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.hasRef = function() {
 
 
 /**
- * optional string data = 2;
- * @return {string}
+ * map<string, string> data = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
  */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.getData = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.getDataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      null));
 };
 
 
-/** @param {string} value */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.setData = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.clearDataMap = function() {
+  this.getDataMap().clear();
 };
 
 
@@ -1067,7 +1069,7 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.toObject = function(opt_
 proto.glooeeapi.solo.io.UpdateArtifactRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    data: jspb.Message.getFieldWithDefault(msg, 2, "")
+    dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -1110,8 +1112,10 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.deserializeBinaryFromReader = func
       msg.setRef(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setData(value);
+      var value = msg.getDataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -1150,12 +1154,9 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.serializeBinaryToWriter = function
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
-  f = message.getData();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
+  f = message.getDataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -1191,17 +1192,20 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.hasRef = function() {
 
 
 /**
- * optional string data = 2;
- * @return {string}
+ * map<string, string> data = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
  */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.getData = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.getDataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      null));
 };
 
 
-/** @param {string} value */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.setData = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.clearDataMap = function() {
+  this.getDataMap().clear();
 };
 
 

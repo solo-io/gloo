@@ -63,7 +63,7 @@ proto.gloo.solo.io.Artifact.prototype.toObject = function(opt_includeInstance) {
  */
 proto.gloo.solo.io.Artifact.toObject = function(includeInstance, msg) {
   var f, obj = {
-    data: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, undefined) : [],
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f)
   };
 
@@ -102,8 +102,10 @@ proto.gloo.solo.io.Artifact.deserializeBinaryFromReader = function(msg, reader) 
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setData(value);
+      var value = msg.getDataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     case 7:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -139,12 +141,9 @@ proto.gloo.solo.io.Artifact.prototype.serializeBinary = function() {
  */
 proto.gloo.solo.io.Artifact.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getData();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
+  f = message.getDataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
   f = message.getMetadata();
   if (f != null) {
@@ -158,17 +157,20 @@ proto.gloo.solo.io.Artifact.serializeBinaryToWriter = function(message, writer) 
 
 
 /**
- * optional string data = 1;
- * @return {string}
+ * map<string, string> data = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
  */
-proto.gloo.solo.io.Artifact.prototype.getData = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+proto.gloo.solo.io.Artifact.prototype.getDataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
 };
 
 
-/** @param {string} value */
-proto.gloo.solo.io.Artifact.prototype.setData = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
+proto.gloo.solo.io.Artifact.prototype.clearDataMap = function() {
+  this.getDataMap().clear();
 };
 
 

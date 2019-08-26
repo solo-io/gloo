@@ -156,6 +156,8 @@ global:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
     pullSecret: solo-io-readerbot-pull-secret
+  glooRbac:
+    create: true
   extensions:
     extAuth:
       envoySidecar: false
@@ -172,15 +174,6 @@ global:
       signingKey:
         name: extauth-signing-key
         signing-key: ""
-
-########################################################################
-###                                                                  ###
-###                        RBAC                                      ###
-###                                                                  ###
-########################################################################
-
-rbac:
-  create: true
 
 ########################################################################
 ###                                                                  ###
