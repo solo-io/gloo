@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    description: Include pipe and description on same level in dialogs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/968
+  - type: FIX
+    description: Fix spacing on upstream count.
+    issueLink: https://github.com/solo-io/solo-projects/issues/973
+  - type: FIX
+    description: Remove extra text on gateway form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/974
+  - type: NEW_FEATURE
+    description: Provide feedback after updating a gateway.
+    issueLink: https://github.com/solo-io/solo-projects/issues/975

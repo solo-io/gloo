@@ -44,6 +44,7 @@ const validationSchema = yup.object().shape({
   name: yup
     .string()
     .required('Upstream name is required')
+    .matches(/([a-z0-9]([-a-z0-9]*[a-z0-9])?)/, 'invalid name')
     .min(2, `Name can't be that short`),
   namespace: yup.string().required('Namespace is required'),
   type: yup.string().required('Must specify an upstream type'),

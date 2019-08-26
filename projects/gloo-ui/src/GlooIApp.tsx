@@ -65,6 +65,12 @@ export const GlooIApp = () => {
         dispatch(listSecrets({ namespacesList }));
         dispatch(listGateways({ namespacesList }));
         dispatch(listProxies({ namespacesList }));
+        dispatch(listNamespaces());
+        dispatch(getSettings());
+        dispatch(getPodNamespace());
+        dispatch(getIsLicenseValid());
+        dispatch(getVersion());
+        dispatch(listEnvoyDetails());
       }
     },
     namespacesList.length > 0 ? 3000 : null

@@ -62,8 +62,8 @@ const EnvoyHealth = styled.div`
   margin-bottom: ${soloConstants.largeBuffer}px;
 `;
 const EnvoyHealthContent = styled.div`
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 `;
 const EnvoyHealthHeader = styled.div`
   max-width: 400px;
@@ -173,11 +173,8 @@ const HealthStatus = (props: Props) => {
     }
   }, [envoysList.length]);
 
-  const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
-    if (
-      envoy.status &&
-      getEnvoyHealth(envoy.status.code) === healthConstants.Error.value
-    ) {
+  const envoyErrorCount = envoysList.reduce((total, envoy) => {
+    if (envoy.status && envoy.status.code === 0) {
       return total + 1;
     }
 
@@ -217,12 +214,14 @@ const HealthStatus = (props: Props) => {
 
           {!envoysList.length ? (
             <div>Loading...</div>
-          ) : !!allEnvoy.length ? (
+          ) : !!envoysList.length ? (
             <div>
               {!!envoyErrorCount ? (
                 <TallyInformationDisplay
                   tallyCount={envoyErrorCount}
-                  tallyDescription={'envoy configuration needs your attention'}
+                  tallyDescription={`envoy configuration error${
+                    envoyErrorCount === 1 ? '' : 's'
+                  }`}
                   color='orange'
                   moreInfoLink={{
                     prompt: 'View envoy issues',
@@ -234,8 +233,10 @@ const HealthStatus = (props: Props) => {
               )}
 
               <TallyInformationDisplay
-                tallyCount={allEnvoy.length}
-                tallyDescription={'envoys configured'}
+                tallyCount={envoysList.length}
+                tallyDescription={`envoy${
+                  envoysList.length === 1 ? '' : 's'
+                } configured`}
                 color='blue'
               />
             </div>
@@ -293,7 +294,9 @@ const VirtualServicesOverview = () => {
             {!!virtualServiceErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={virtualServiceErrorCount}
-                tallyDescription={'virtual services need your attention'}
+                tallyDescription={`virtual services error${
+                  virtualServiceErrorCount === 1 ? '' : 's'
+                }`}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View virtual service issues',
@@ -305,9 +308,9 @@ const VirtualServicesOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={virtualServicesList.length}
-              tallyDescription={
-                'virtual services configured'
-              }
+              tallyDescription={`virtual service${
+                virtualServicesList.length === 1 ? '' : 's'
+              } configured`}
               color='blue'
             />
           </React.Fragment>
@@ -347,7 +350,7 @@ const UpstreamDetails: React.FC<UpstreamDetailsProps> = props => {
           <IconContainer>{getIcon(upstreamType)}</IconContainer>
           <div>
             <b>{`${usList.length}`}</b>
-            {`${upstreamType} 
+            {`  ${upstreamType} 
               upstream${usList.length === 1 ? '' : 's'}`}
           </div>
         </UpstreamDetail>
@@ -400,7 +403,9 @@ const UpstreamsOverview = () => {
             {!!upstreamErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={upstreamErrorCount}
-                tallyDescription={'upstreams need your attention'}
+                tallyDescription={`upstream error${
+                  upstreamErrorCount === 1 ? '' : 's'
+                } `}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View upstream issues',
@@ -412,7 +417,9 @@ const UpstreamsOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={upstreamsList.length}
-              tallyDescription={'upstreams configured'}
+              tallyDescription={`upstream${
+                upstreamsList.length === 1 ? '' : 's'
+              } configured`}
               color='blue'
             />
             <UpstreamDetails upstreamsList={upstreamsList} />

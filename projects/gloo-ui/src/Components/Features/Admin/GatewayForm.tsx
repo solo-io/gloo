@@ -13,6 +13,7 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import * as yup from 'yup';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
 import { ListenerTracingSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -126,6 +127,7 @@ interface FormProps {
   isExpanded: boolean;
 }
 export const GatewayForm = (props: FormProps) => {
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   let initialValues: HttpConnectionManagerSettingsForm = {
     ...defaultHttpValues
   };
@@ -181,6 +183,10 @@ export const GatewayForm = (props: FormProps) => {
 
   return (
     <GatewayFormContainer>
+      <SuccessModal
+        visible={showSuccessModal}
+        successMessage='Gateway updated successfully'
+      />
       <div>
         Below are gateway configuration settings you can update here. For more
         information on these settings, please visit our{' '}
@@ -195,7 +201,11 @@ export const GatewayForm = (props: FormProps) => {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={props.doUpdate}>
+          onSubmit={values => {
+            setShowSuccessModal(true);
+            props.doUpdate(values);
+            setShowSuccessModal(false);
+          }}>
           {({ isSubmitting, handleSubmit, isValid, errors, dirty, values }) => {
             return (
               <React.Fragment>
@@ -318,7 +328,6 @@ export const GatewayForm = (props: FormProps) => {
                       isSubmitting || invalid(values, errors) || !isDirty(dirty)
                     }
                   />
-                  <pre>{JSON.stringify(values, null, 2)}</pre>
                 </FormFooter>
               </React.Fragment>
             );

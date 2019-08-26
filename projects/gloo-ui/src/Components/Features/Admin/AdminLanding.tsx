@@ -188,10 +188,12 @@ const GatewayOverview = () => {
             {!!gatewayErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={gatewayErrorCount}
-                tallyDescription={'gateway configurations need your attention'}
+                tallyDescription={`gateway error${
+                  gatewayErrorCount === 1 ? '' : 's'
+                }`}
                 color='orange'
                 moreInfoLink={{
-                  prompt: 'View gateway issues',
+                  prompt: 'View',
                   link: '/admin/gateways/?status=Rejected'
                 }}
               />
@@ -200,7 +202,9 @@ const GatewayOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={allGateways.length}
-              tallyDescription={'gateway configurations currently deployed'}
+              tallyDescription={`gateway configuration${
+                gatewaysList.length === 1 ? '' : 's'
+              } `}
               color='blue'
             />
           </React.Fragment>
@@ -232,7 +236,7 @@ const ProxyOverview = () => {
     return <div>Loading...</div>;
   }
 
-  const proxyErrorCount = allProxies.reduce((total, proxy) => {
+  const proxyErrorCount = proxiesList.reduce((total, proxy) => {
     if (getResourceStatus(proxy.proxy!) !== 'Rejected') {
       return total;
     }
@@ -263,10 +267,12 @@ const ProxyOverview = () => {
             {!!proxyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={proxyErrorCount}
-                tallyDescription={'proxy configurations have errors'}
+                tallyDescription={`proxy error${
+                  proxyErrorCount === 1 ? '' : 's'
+                }`}
                 color='orange'
                 moreInfoLink={{
-                  prompt: 'View proxy issues',
+                  prompt: 'View',
                   link: '/admin/proxy/?status=Rejected'
                 }}
               />
@@ -274,8 +280,10 @@ const ProxyOverview = () => {
               <GoodStateCongratulations typeOfItem={'proxy configurations'} />
             )}
             <TallyInformationDisplay
-              tallyCount={allProxies.length}
-              tallyDescription={'proxy configurations produced by Gloo'}
+              tallyCount={proxiesList.length}
+              tallyDescription={`proxy configuration${
+                proxiesList.length === 1 ? '' : 's'
+              } `}
               color='blue'
             />
           </React.Fragment>
@@ -291,6 +299,12 @@ const EnvoyOverview = () => {
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
   );
+  const envoyStatuses = useSelector((state: AppState) =>
+    state.envoy.envoyDetailsList.map(envoy => envoy.status)
+  );
+  const badEnvoys = useSelector((state: AppState) =>
+    state.envoy.envoyDetailsList.filter(envoy => envoy.status!.code !== 2)
+  );
   const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
   const [envoyConfigs, setEnvoyConfigs] = React.useState<any[]>([]);
   React.useEffect(() => {
@@ -301,15 +315,15 @@ const EnvoyOverview = () => {
     }
   }, [envoysList.length]);
 
-  const envoyErrorCount = allEnvoy.reduce((total, envoy) => {
-    if (envoy!.status!.code !== Status.Code.OK) {
-      return total + 1;
+  const envoyErrorCount = envoyStatuses.reduce((total, status) => {
+    if (status!.code !== 0) {
+      return total;
     }
-    return total;
+    return total + 1;
   }, 0);
 
   const getHealthStatus = (): number => {
-    if (envoyErrorCount === allEnvoy.length) {
+    if (envoyErrorCount === envoysList.length) {
       return healthConstants.Error.value;
     }
     if (envoyErrorCount > 0) {
@@ -339,10 +353,12 @@ const EnvoyOverview = () => {
             {!!envoyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={envoyErrorCount}
-                tallyDescription={'envoy configurations need your attention'}
+                tallyDescription={`envoy error${
+                  envoyErrorCount === 1 ? '' : 's'
+                }`}
                 color='orange'
                 moreInfoLink={{
-                  prompt: 'View envoy issues',
+                  prompt: 'View',
                   link: '/admin/envoy/?status=Rejected'
                 }}
               />
@@ -351,7 +367,9 @@ const EnvoyOverview = () => {
             )}
             <TallyInformationDisplay
               tallyCount={envoysList.length}
-              tallyDescription={'envoy configurations currently deployed'}
+              tallyDescription={`envoy${
+                envoysList.length === 1 ? '' : 's'
+              } configured`}
               color='blue'
             />
           </React.Fragment>

@@ -3,6 +3,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
+import { Divider } from 'antd';
 
 export const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>(
   'div'
@@ -39,6 +40,15 @@ const MoreInfoLink = styled.div`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  line-height: 1;
+`;
+
+const TallyDetail = styled<'div', { showLink: boolean }>('div')`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  align-items: center;
 `;
 
 interface Props extends RouteComponentProps {
@@ -73,14 +83,26 @@ const TallyInformationDisplayC = (props: Props) => {
   return (
     <TallyContainer color={props.color}>
       <TallyCount>{countDisplay()}</TallyCount>
-      <div>
+      <TallyDetail showLink={!!props.moreInfoLink}>
         <TallyDescription>{props.tallyDescription}</TallyDescription>
         {!!props.moreInfoLink && (
-          <MoreInfoLink onClick={goToMoreInfo}>
-            {props.moreInfoLink.prompt}
-          </MoreInfoLink>
+          <React.Fragment>
+            <Divider
+              style={{
+                height: '20px',
+                display: 'flex',
+                width: '2px',
+                alignSelf: 'center',
+                backgroundColor: colors.grapefruitOrange
+              }}
+              type='vertical'
+            />
+            <MoreInfoLink onClick={goToMoreInfo}>
+              {props.moreInfoLink.prompt}
+            </MoreInfoLink>
+          </React.Fragment>
         )}
-      </div>
+      </TallyDetail>
     </TallyContainer>
   );
 };
