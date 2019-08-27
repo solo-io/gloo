@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Headers and Query Parameters may now fully be created with blank values.
+    issueLink: https://github.com/solo-io/solo-projects/issues/925
+  - type: FIX
+    description: Hitting enter in an input box will, in more cases, complete the desired form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/946

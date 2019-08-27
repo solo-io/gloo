@@ -184,7 +184,6 @@ const HealthStatus = (props: Props) => {
   if (!envoysList.length) {
     return <div>Loading...</div>;
   }
-  console.log(allEnvoy);
 
   const goToAdmin = (): void => {
     props.history.push('/admin/');

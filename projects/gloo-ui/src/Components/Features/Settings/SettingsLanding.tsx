@@ -67,7 +67,6 @@ export const SettingsLanding = (props: Props) => {
     secrets: { secretsList },
     config: { namespacesList }
   } = useSelector((state: AppState) => state);
-  console.log(secretsList);
   const [isLoading, setIsLoading] = React.useState(false);
   const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
 

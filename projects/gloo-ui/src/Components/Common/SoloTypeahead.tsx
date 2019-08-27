@@ -7,6 +7,7 @@ import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
 import Select, { SelectValue } from 'antd/lib/select';
 import { DataSourceItemType } from 'antd/lib/auto-complete';
+import { useKeyPress } from 'Hooks/useKeyPress';
 
 const { Option } = AutoComplete;
 
@@ -121,7 +122,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
   };
 
   return (
-    <React.Fragment>
+    <div>
       {title && <Label>{title}</Label>}
       {/*
        // @ts-ignore */}
@@ -142,6 +143,6 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
         placeholder={placeholder}
         onKeyPress={onKeyPress}
       />
-    </React.Fragment>
+    </div>
   );
 };

@@ -122,8 +122,10 @@ export const StringCardsList = (props: StringCardsListProps) => {
   };
 
   const sendCreateNew = () => {
-    createNew!(newValue);
-    setNewValue('');
+    if (!!newValue.length && (!!valueIsValid ? valueIsValid(newValue) : true)) {
+      createNew!(newValue);
+      setNewValue('');
+    }
   };
 
   return (

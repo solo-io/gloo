@@ -146,7 +146,12 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
   };
 
   const sendCreateNew = () => {
-    if (newValue.length > 0 && newName.length > 0) {
+    if (
+      (newValue.length > 0 || valuesMayBeEmpty) &&
+      newName.length > 0 &&
+      (!!nameIsValid ? nameIsValid(newName) : true) &&
+      (!!valueIsValid ? valueIsValid(newValue) : true)
+    ) {
       // TODO: Use the slotTitles prop for this case as well
       createNew!({
         newName,
@@ -211,6 +216,9 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
                   value={newName}
                   placeholder={createNewNamePromptText}
                   onChange={newNameChanged}
+                  onKeyPress={(e: React.KeyboardEvent) =>
+                    e.key === 'Enter' ? sendCreateNew() : {}
+                  }
                   error={
                     !!newName.length &&
                     (!!nameIsValid ? !nameIsValid(newName) : false)
@@ -221,6 +229,9 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
                 value={newValue}
                 placeholder={createNewValuePromptText}
                 onChange={newValueChanged}
+                onKeyPress={(e: React.KeyboardEvent) =>
+                  e.key === 'Enter' ? sendCreateNew() : {}
+                }
                 error={
                   !!newName.length &&
                   (!!valueIsValid ? !valueIsValid(newValue) : false)
