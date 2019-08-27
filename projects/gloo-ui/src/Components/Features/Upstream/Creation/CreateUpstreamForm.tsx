@@ -44,8 +44,47 @@ const validationSchema = yup.object().shape({
   name: yup
     .string()
     .required('Upstream name is required')
-    .matches(/([a-z0-9]([-a-z0-9]*[a-z0-9])?)/, 'invalid name')
-    .min(2, `Name can't be that short`),
+    .min(2, `Names must be 2 characters or longer`)
+    .max(254, `Names must be 254 characters or shorter`)
+    .test(
+      'only lowercase',
+      'Letters in a name may only be lower-case',
+      val => val && val.toLowerCase() === val
+    )
+    .test(
+      'start and end with letters and/or numbers',
+      'Names must start and end with alphanumerics',
+      val => {
+        if (!val) {
+          return false;
+        }
+        const firstCharVal = val[0].charCodeAt(0);
+        const lastCharVal = val[val.length - 1].charCodeAt(0);
+
+        if (
+          ((firstCharVal >= 48 && firstCharVal <= 57) ||
+            (firstCharVal >= 97 && firstCharVal <= 122)) &&
+          ((lastCharVal >= 48 && lastCharVal <= 57) ||
+            (lastCharVal >= 97 && lastCharVal <= 122))
+        ) {
+          return true;
+        }
+
+        return false;
+      }
+    )
+    .test(
+      'Regex test',
+      'Must consist of lower case alphanumeric characters, " - " or ".", and must start and end with an alphanumeric character',
+      val => {
+        if (!val) {
+          return false;
+        }
+
+        const regexTest = /^[a-z0-9]+[-.a-z0-9]*[a-z0-9]{1}$/;
+        return !!val.match(regexTest) && val.match(regexTest)[0] === val;
+      }
+    ),
   namespace: yup.string().required('Namespace is required'),
   type: yup.string().required('Must specify an upstream type'),
   awsRegion: yup.string().when('type', {

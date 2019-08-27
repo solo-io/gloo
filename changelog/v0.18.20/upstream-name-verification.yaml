@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Upstream names now get properly verified during creation.
+    issueLink: https://github.com/solo-io/solo-projects/issues/982
