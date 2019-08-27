@@ -2,26 +2,26 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
-import { colors, TableActionCircle, soloConstants } from 'Styles';
+import { colors } from 'Styles';
+import Highlight, { defaultProps } from 'prism-react-renderer';
+import theme from 'prism-react-renderer/themes/github';
 
-const Container = styled.div`
-  padding: ${soloConstants.smallBuffer}px 5px ${soloConstants.smallBuffer}px
-    ${soloConstants.smallBuffer}px;
-  border: 1px solid ${colors.mayGrey};
-  border-radius: ${soloConstants.smallRadius}px;
-  background: ${colors.januaryGrey};
+export const Pre = styled.pre`
+  text-align: left;
+  margin: 1em 0;
+  padding: 0.5em;
+
+  & .token-line {
+    line-height: 1.3em;
+    height: 1.3em;
+  }
 `;
 
-const Displayer = styled.div`
-  display: block;
-  max-height: 75vh;
-  overflow-y: auto;
-  color: ${colors.septemberGrey};
-
-  pre {
-    margin: 0;
-    font-family: 'Proxima Nova', 'Open Sans', 'Helvetica', 'Arial', 'sans-serif';
-  }
+export const LineNo = styled.span`
+  display: inline-block;
+  width: 2em;
+  user-select: none;
+  opacity: 0.3;
 `;
 
 const Heading = styled.div`
@@ -34,30 +34,28 @@ const Content = styled.div`
 
 interface Props {
   content: string;
+  isJson?: boolean;
 }
 
-export const YamlDisplayer = (props: Props) => {
-  const lines = props.content.split('\n');
-
+export const YamlDisplayer = React.memo((props: Props) => {
   return (
-    <Container>
-      <Displayer>
-        {lines.map((line, ind) => {
-          if (!line.length) {
-            return null;
-          }
-
-          const sections = line.split(':');
-          const heading = sections.splice(0, 1);
-
-          return (
-            <pre key={heading[0] + ind}>
-              <Heading>{heading}:</Heading>{' '}
-              <Content>{sections.join(':')}</Content>
-            </pre>
-          );
-        })}
-      </Displayer>
-    </Container>
+    <Highlight
+      {...defaultProps}
+      theme={theme}
+      code={props.content}
+      language={props.isJson ? 'json' : 'yaml'}>
+      {({ className, style, tokens, getLineProps, getTokenProps }) => (
+        <Pre className={className} style={style}>
+          {tokens.map((line, i) => (
+            <div {...getLineProps({ line, key: i })}>
+              <LineNo>{i + 1}</LineNo>
+              {line.map((token, key) => (
+                <span {...getTokenProps({ token, key })} />
+              ))}
+            </div>
+          ))}
+        </Pre>
+      )}
+    </Highlight>
   );
-};
+});

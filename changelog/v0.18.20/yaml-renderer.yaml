@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix indentation in yaml renderer.
+    issueLink: https://github.com/solo-io/solo-projects/issues/990

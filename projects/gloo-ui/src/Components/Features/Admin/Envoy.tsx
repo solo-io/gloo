@@ -8,11 +8,11 @@ import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
 import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-import { JsonDisplayer } from 'Components/Common/DisplayOnly/JsonDisplayer';
 import { AppState } from 'store';
 import { useSelector } from 'react-redux';
 import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
+import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -30,7 +30,7 @@ const EnvoyLogoFullSize = styled(EnvoyLogo)`
 
 const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
   max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
-  overflow: hidden;
+  overflow: scroll;
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
@@ -122,7 +122,7 @@ export const Envoy = (props: Props) => {
               <React.Fragment>
                 <ExpandableSection isExpanded={envoysOpen[ind]}>
                   {' '}
-                  <JsonDisplayer content={envoy.raw.content} />
+                  <YamlDisplayer content={envoy.raw.content} isJson />
                 </ExpandableSection>
                 <Link onClick={() => toggleExpansion(ind)}>
                   {envoysOpen[ind] ? 'Hide' : 'View'} Settings
