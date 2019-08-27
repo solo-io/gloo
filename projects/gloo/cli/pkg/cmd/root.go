@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get"
@@ -60,6 +61,7 @@ func getOptionsFunc(opts *options.Options) cliutils.OptionsFunc {
 			create.RootCmd(opts),
 			gateway.RootCmd(opts),
 			edit.RootCmd(opts),
+			check.RootCmd(opts),
 		)
 	}
 }

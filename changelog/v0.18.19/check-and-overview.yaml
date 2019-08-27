@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: UI now routes to overview by default.
+    issueLink: https://github.com/solo-io/solo-projects/issues/985
+  - type: NEW_FEATURE
+    description: Glooctl now has a check command to detect known issues with CRDs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/978

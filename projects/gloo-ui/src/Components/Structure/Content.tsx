@@ -59,7 +59,7 @@ export const Content = () => {
           path='/settings/'
           render={(props: any) => <SettingsLanding {...props} />}
         />
-        <Redirect exact from='/' to='/virtualservices/' />
+        <Redirect exact from='/' to='/overview/' />
       </Switch>
     </Container>
   );
