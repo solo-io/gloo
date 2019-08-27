@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import { colors, soloConstants } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
 import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
@@ -12,6 +12,7 @@ const ConfigContainer = styled.div`
   grid-template-columns: 1fr 1fr;
   background: ${colors.januaryGrey};
   height: 80%;
+  border-radius: ${soloConstants.smallRadius}px;
 `;
 
 const ConfigItem = styled.div`

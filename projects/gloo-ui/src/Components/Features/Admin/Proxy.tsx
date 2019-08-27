@@ -9,7 +9,7 @@ import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/gr
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
 
@@ -89,7 +89,7 @@ export const Proxys = (props: Props) => {
                 />
               )}
             </InsideHeader>
-            {!!proxy.raw && <YamlDisplayer content={proxy.raw.content} />}
+            {!!proxy.raw && <ConfigDisplayer content={proxy.raw.content} />}
           </SectionCard>
         );
       })}

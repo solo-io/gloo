@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StringCardsList } from 'Components/Common/StringCardsList';
 import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import { colors, soloConstants } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
 import { isEqual } from 'lodash';
 
@@ -12,6 +12,7 @@ const DomainsContainer = styled.div`
   align-content: center;
   align-items: center;
   padding: 7px 7px 3px;
+  border-radius: ${soloConstants.smallRadius}px;
 `;
 
 interface Props {

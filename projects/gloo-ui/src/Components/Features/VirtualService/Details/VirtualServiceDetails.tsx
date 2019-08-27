@@ -51,11 +51,13 @@ import { AppState } from 'store';
 import { virtualServices } from 'Api/v2/VirtualServiceClient';
 import { getGetVirtualService } from 'store/virtualServices/actions';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 
-const DetailsContent = styled.div`
+const DetailsContent = styled<'div', { configurationShowing?: boolean }>('div')`
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr 1fr;
+  grid-template-rows: ${props => (props.configurationShowing ? 'auto' : '')} auto 1fr 1fr;
+  grid-template-columns: 100%;
   grid-column-gap: 30px;
 `;
 
@@ -63,6 +65,13 @@ const YamlLink = styled.div`
   position: absolute;
   top: 10px;
   right: 0;
+  display: flex;
+`;
+const ConfigurationToggle = styled.div`
+  cursor: pointer;
+  color: ${colors.seaBlue};
+  font-size: 14px;
+  margin-right: 8px;
 `;
 
 const DetailsSection = styled.div`
@@ -85,6 +94,8 @@ interface Props
 export const VirtualServiceDetails = (props: Props) => {
   const { match, history, location } = props;
   let { virtualservicename, virtualservicenamespace } = match.params;
+
+  const [showConfiguration, setShowConfiguration] = React.useState(false);
 
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
@@ -468,14 +479,24 @@ export const VirtualServiceDetails = (props: Props) => {
             : 'Service Status'
         }
         onClose={() => history.push(`/virtualservices/`)}>
-        <DetailsContent>
+        <DetailsContent configurationShowing={showConfiguration}>
           {!!rawVS && (
             <YamlLink>
+              <ConfigurationToggle
+                onClick={() => setShowConfiguration(s => !s)}>
+                {showConfiguration ? 'Hide' : 'View'} Raw Configuration
+              </ConfigurationToggle>
               <FileDownloadLink
                 fileContent={rawVS.content}
                 fileName={rawVS.fileName}
               />
             </YamlLink>
+          )}
+          {showConfiguration && (
+            <DetailsSection>
+              <DetailsSectionTitle>Raw Configuration</DetailsSectionTitle>
+              <ConfigDisplayer content={rawVS.content} />
+            </DetailsSection>
           )}
           <DetailsSection>
             <Domains domains={domains} domainsChanged={domainsChanged} />

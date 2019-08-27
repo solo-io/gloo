@@ -7,7 +7,6 @@ import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
 import { colors, soloConstants, healthConstants } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
 
 import {
   GatewayDetails,
@@ -123,6 +122,7 @@ export const Gateways = (props: Props) => {
                 dispatch(updateGateway({ gateway: newGateway.gateway! }));
               }}
               gatewayValues={gateway.gateway!}
+              gatewayConfiguration={gateway.raw}
               isExpanded={gatewaysOpen[ind]}
             />
             <Link onClick={() => toggleExpansion(ind)}>

@@ -12,7 +12,7 @@ import { AppState } from 'store';
 import { useSelector } from 'react-redux';
 import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
-import { YamlDisplayer } from 'Components/Common/DisplayOnly/YamlDisplayer';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -30,7 +30,7 @@ const EnvoyLogoFullSize = styled(EnvoyLogo)`
 
 const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
   max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
-  overflow: scroll;
+  overflow: auto;
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
@@ -122,7 +122,7 @@ export const Envoy = (props: Props) => {
               <React.Fragment>
                 <ExpandableSection isExpanded={envoysOpen[ind]}>
                   {' '}
-                  <YamlDisplayer content={envoy.raw.content} isJson />
+                  <ConfigDisplayer content={envoy.raw.content} isJson />
                 </ExpandableSection>
                 <Link onClick={() => toggleExpansion(ind)}>
                   {envoysOpen[ind] ? 'Hide' : 'View'} Settings

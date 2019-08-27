@@ -12,8 +12,9 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import * as yup from 'yup';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
-import { ListenerTracingSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb';
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
+import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -27,7 +28,7 @@ const GatewayFormContainer = styled.div`
 
 const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
   max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
-  overflow: hidden;
+  overflow: ${props => (props.isExpanded ? 'auto' : 'hidden')};
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
@@ -59,6 +60,17 @@ const FormFooter = styled.div`
   grid-column: 2;
   display: flex;
   justify-content: flex-end;
+`;
+
+const ConfigurationSection = styled.div`
+  margin-top: 15px;
+  overflow: auto;
+`;
+const Link = styled.div`
+  cursor: pointer;
+  color: ${colors.seaBlue};
+  font-size: 14px;
+  margin-bottom: 5px;
 `;
 
 export type HttpConnectionManagerSettingsForm = HttpConnectionManagerSettings.AsObject;
@@ -123,11 +135,14 @@ const validationSchema = yup.object().shape({
 
 interface FormProps {
   gatewayValues: Gateway.AsObject;
+  gatewayConfiguration?: Raw.AsObject;
   doUpdate: (values: HttpConnectionManagerSettingsForm) => void;
   isExpanded: boolean;
 }
 export const GatewayForm = (props: FormProps) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+  const [showConfiguration, setShowConfiguration] = React.useState(false);
+
   let initialValues: HttpConnectionManagerSettingsForm = {
     ...defaultHttpValues
   };
@@ -333,6 +348,20 @@ export const GatewayForm = (props: FormProps) => {
             );
           }}
         </Formik>
+
+        {!!props.gatewayConfiguration && (
+          <ConfigurationSection>
+            <Link onClick={() => setShowConfiguration(s => !s)}>
+              {showConfiguration ? 'Hide' : 'View'} Configuration
+            </Link>
+            {showConfiguration && (
+              <ConfigDisplayer
+                content={props.gatewayConfiguration.content}
+                whiteBacked
+              />
+            )}
+          </ConfigurationSection>
+        )}
       </ExpandableSection>
     </GatewayFormContainer>
   );

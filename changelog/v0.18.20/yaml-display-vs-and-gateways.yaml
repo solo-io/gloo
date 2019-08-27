@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Yaml configurations can now be seen within UI for Gateways and Virtual Services.
+    issueLink: https://github.com/solo-io/solo-projects/issues/931
