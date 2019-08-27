@@ -12,6 +12,16 @@ import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto"
 message GatewayDetails {
     gateway.solo.io.v2.Gateway gateway = 1;
     Raw raw = 2;
+    // Status of the instance and its relationship with Gloo.
+    // Currently there are three possible values for the "Code" field on the status message.
+    // In this context, their values have the following definitions:
+    // ERROR:
+    //   - The gateway CRD has status "Rejected"
+    // WARNING:
+    //   - The gateway CRD has status "Pending"
+    // OK:
+    //   - The gateway CRD has status "Accepted"
+    Status status = 3;
 }
 
 message GetGatewayRequest {

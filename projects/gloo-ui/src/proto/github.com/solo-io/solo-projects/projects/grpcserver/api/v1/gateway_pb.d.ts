@@ -18,6 +18,11 @@ export class GatewayDetails extends jspb.Message {
   getRaw(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw | undefined;
   setRaw(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw): void;
 
+  hasStatus(): boolean;
+  clearStatus(): void;
+  getStatus(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status | undefined;
+  setStatus(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayDetails.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayDetails): GatewayDetails.AsObject;
@@ -32,6 +37,7 @@ export namespace GatewayDetails {
   export type AsObject = {
     gateway?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.AsObject,
     raw?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
+    status?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status.AsObject,
   }
 }
 

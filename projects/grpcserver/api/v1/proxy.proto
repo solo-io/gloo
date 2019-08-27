@@ -12,6 +12,16 @@ import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto"
 message ProxyDetails {
     gloo.solo.io.Proxy proxy = 1;
     Raw raw = 2;
+    // Status of the instance and its relationship with Gloo.
+    // Currently there are three possible values for the "Code" field on the status message.
+    // In this context, their values have the following definitions:
+    // ERROR:
+    //   - The proxy CRD has status "Rejected"
+    // WARNING:
+    //   - The proxy CRD has status "Pending"
+    // OK:
+    //   - The proxy CRD has status "Accepted"
+    Status status = 3;
 }
 
 message GetProxyRequest {

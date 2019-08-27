@@ -34,6 +34,7 @@ weight: 5
 ```yaml
 "proxy": .gloo.solo.io.Proxy
 "raw": .glooeeapi.solo.io.Raw
+"status": .glooeeapi.solo.io.Status
 
 ```
 
@@ -41,6 +42,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `proxy` | [.gloo.solo.io.Proxy](../../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk#proxy) |  |  |
 | `raw` | [.glooeeapi.solo.io.Raw](../types.proto.sk#raw) |  |  |
+| `status` | [.glooeeapi.solo.io.Status](../types.proto.sk#status) | Status of the instance and its relationship with Gloo. Currently there are three possible values for the "Code" field on the status message. In this context, their values have the following definitions: ERROR: - The proxy CRD has status "Rejected" WARNING: - The proxy CRD has status "Pending" OK: - The proxy CRD has status "Accepted" |  |
 
 
 

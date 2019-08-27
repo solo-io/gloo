@@ -2640,6 +2640,7 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create/secret",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",

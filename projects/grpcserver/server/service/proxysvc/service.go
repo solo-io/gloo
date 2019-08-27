@@ -3,6 +3,8 @@ package proxysvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -12,16 +14,18 @@ import (
 )
 
 type proxyGrpcService struct {
-	ctx         context.Context
-	proxyClient gloov1.ProxyClient
-	rawGetter   rawgetter.RawGetter
+	ctx             context.Context
+	proxyClient     gloov1.ProxyClient
+	rawGetter       rawgetter.RawGetter
+	statusConverter status.InputResourceStatusGetter
 }
 
-func NewProxyGrpcService(ctx context.Context, proxyClient gloov1.ProxyClient, rawGetter rawgetter.RawGetter) v1.ProxyApiServer {
+func NewProxyGrpcService(ctx context.Context, proxyClient gloov1.ProxyClient, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.ProxyApiServer {
 	return &proxyGrpcService{
-		ctx:         ctx,
-		proxyClient: proxyClient,
-		rawGetter:   rawGetter,
+		ctx:             ctx,
+		proxyClient:     proxyClient,
+		rawGetter:       rawGetter,
+		statusConverter: statusConverter,
 	}
 }
 
@@ -53,7 +57,8 @@ func (s *proxyGrpcService) ListProxies(ctx context.Context, request *v1.ListProx
 
 func (s *proxyGrpcService) getDetails(proxy *gloov1.Proxy) *v1.ProxyDetails {
 	return &v1.ProxyDetails{
-		Proxy: proxy,
-		Raw:   s.rawGetter.GetRaw(s.ctx, proxy, gloov1.ProxyCrd),
+		Proxy:  proxy,
+		Raw:    s.rawGetter.GetRaw(s.ctx, proxy, gloov1.ProxyCrd),
+		Status: s.statusConverter.GetApiStatusFromResource(proxy),
 	}
 }

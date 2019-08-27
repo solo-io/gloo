@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
@@ -65,9 +66,10 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	virtualServiceSelector := selection.NewVirtualServiceSelector(virtualServiceClient, namespaceClient, string2)
 	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, virtualServiceClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector)
 	gatewayClient := setup.NewGatewayClient(clientSet)
-	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, gatewayClient, rawGetter)
+	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
+	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, gatewayClient, rawGetter, inputResourceStatusGetter)
 	proxyClient := setup.NewProxyClient(clientSet)
-	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, proxyClient, rawGetter)
+	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, proxyClient, rawGetter, inputResourceStatusGetter)
 	podsGetter := setup.NewPodsGetter(clientSet)
 	httpGetter := envoydetails.NewHttpGetter()
 	proxyStatusGetter := envoydetails.NewProxyStatusGetter(proxyClient)

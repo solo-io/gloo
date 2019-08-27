@@ -3,6 +3,8 @@ package gatewaysvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
+
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	"github.com/solo-io/go-utils/contextutils"
@@ -16,16 +18,18 @@ import (
 //go:generate mockgen -destination mocks/gateway_client_mock.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v2 GatewayClient
 
 type gatewayGrpcService struct {
-	ctx           context.Context
-	gatewayClient gatewayv2.GatewayClient
-	rawGetter     rawgetter.RawGetter
+	ctx             context.Context
+	gatewayClient   gatewayv2.GatewayClient
+	rawGetter       rawgetter.RawGetter
+	statusConverter status.InputResourceStatusGetter
 }
 
-func NewGatewayGrpcService(ctx context.Context, gatewayClient gatewayv2.GatewayClient, rawGetter rawgetter.RawGetter) v1.GatewayApiServer {
+func NewGatewayGrpcService(ctx context.Context, gatewayClient gatewayv2.GatewayClient, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.GatewayApiServer {
 	return &gatewayGrpcService{
-		ctx:           ctx,
-		gatewayClient: gatewayClient,
-		rawGetter:     rawGetter,
+		ctx:             ctx,
+		gatewayClient:   gatewayClient,
+		rawGetter:       rawGetter,
+		statusConverter: statusConverter,
 	}
 }
 
@@ -82,5 +86,6 @@ func (s *gatewayGrpcService) getDetails(gateway *v2.Gateway) *v1.GatewayDetails 
 	return &v1.GatewayDetails{
 		Gateway: gateway,
 		Raw:     s.rawGetter.GetRaw(s.ctx, gateway, gatewayv2.GatewayCrd),
+		Status:  s.statusConverter.GetApiStatusFromResource(gateway),
 	}
 }

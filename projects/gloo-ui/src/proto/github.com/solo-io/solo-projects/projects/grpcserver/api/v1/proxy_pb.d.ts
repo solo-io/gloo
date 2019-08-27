@@ -18,6 +18,11 @@ export class ProxyDetails extends jspb.Message {
   getRaw(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw | undefined;
   setRaw(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw): void;
 
+  hasStatus(): boolean;
+  clearStatus(): void;
+  getStatus(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status | undefined;
+  setStatus(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ProxyDetails.AsObject;
   static toObject(includeInstance: boolean, msg: ProxyDetails): ProxyDetails.AsObject;
@@ -32,6 +37,7 @@ export namespace ProxyDetails {
   export type AsObject = {
     proxy?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Proxy.AsObject,
     raw?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
+    status?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status.AsObject,
   }
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
@@ -64,6 +65,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		envoydetails.NewHttpGetter,
 		envoydetails.NewProxyStatusGetter,
 		scrub.NewScrubber,
+		status.NewInputResourceStatusGetter,
 
 		// Services
 		upstreamsvc.NewUpstreamGrpcService,

@@ -36,6 +36,7 @@ weight: 5
 ```yaml
 "gateway": .gateway.solo.io.v2.Gateway
 "raw": .glooeeapi.solo.io.Raw
+"status": .glooeeapi.solo.io.Status
 
 ```
 
@@ -43,6 +44,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `gateway` | [.gateway.solo.io.v2.Gateway](../../../../../../gloo/projects/gateway/api/v2/gateway.proto.sk#gateway) |  |  |
 | `raw` | [.glooeeapi.solo.io.Raw](../types.proto.sk#raw) |  |  |
+| `status` | [.glooeeapi.solo.io.Status](../types.proto.sk#status) | Status of the instance and its relationship with Gloo. Currently there are three possible values for the "Code" field on the status message. In this context, their values have the following definitions: ERROR: - The gateway CRD has status "Rejected" WARNING: - The gateway CRD has status "Pending" OK: - The gateway CRD has status "Accepted" |  |
 
 
 

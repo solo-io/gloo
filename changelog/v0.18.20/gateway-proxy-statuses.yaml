@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: For gateways and proxies that are invalid, pipe their status and reason through to the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/961

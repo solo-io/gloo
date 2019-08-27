@@ -13,6 +13,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
+	mock_status_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc/mocks"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
@@ -20,14 +22,15 @@ import (
 )
 
 var (
-	grpcServer    *grpc.Server
-	conn          *grpc.ClientConn
-	apiserver     v1.GatewayApiServer
-	client        v1.GatewayApiClient
-	mockCtrl      *gomock.Controller
-	gatewayClient *mocks.MockGatewayClient
-	rawGetter     *mock_rawgetter.MockRawGetter
-	testErr       = errors.Errorf("test-err")
+	grpcServer      *grpc.Server
+	conn            *grpc.ClientConn
+	apiserver       v1.GatewayApiServer
+	client          v1.GatewayApiClient
+	mockCtrl        *gomock.Controller
+	gatewayClient   *mocks.MockGatewayClient
+	rawGetter       *mock_rawgetter.MockRawGetter
+	statusConverter *mock_status_converter.MockInputResourceStatusGetter
+	testErr         = errors.Errorf("test-err")
 )
 
 var _ = Describe("ServiceTest", func() {
@@ -36,29 +39,27 @@ var _ = Describe("ServiceTest", func() {
 		return &v1.Raw{FileName: gateway.GetMetadata().Name}
 	}
 
-	getGatewayDetails := func(gateway *gatewayv2.Gateway) *v1.GatewayDetails {
-		return &v1.GatewayDetails{
-			Gateway: gateway,
-			Raw:     getRaw(gateway),
+	getStatus := func(code v1.Status_Code, message string) *v1.Status {
+		return &v1.Status{
+			Code:    code,
+			Message: message,
 		}
 	}
 
-	getGatewayDetailsList := func(gateways ...*gatewayv2.Gateway) []*v1.GatewayDetails {
-		list := make([]*v1.GatewayDetails, 0, len(gateways))
-		for _, g := range gateways {
-			list = append(list, &v1.GatewayDetails{
-				Gateway: g,
-				Raw:     getRaw(g),
-			})
+	getGatewayDetails := func(gateway *gatewayv2.Gateway, status *v1.Status) *v1.GatewayDetails {
+		return &v1.GatewayDetails{
+			Gateway: gateway,
+			Raw:     getRaw(gateway),
+			Status:  status,
 		}
-		return list
 	}
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		gatewayClient = mocks.NewMockGatewayClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
-		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter)
+		statusConverter = mock_status_converter.NewMockInputResourceStatusGetter(mockCtrl)
+		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter, statusConverter)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterGatewayApiServer(s, apiserver) })
 		client = v1.NewGatewayApiClient(conn)
@@ -78,6 +79,9 @@ var _ = Describe("ServiceTest", func() {
 			ref := metadata.Ref()
 			gateway := &gatewayv2.Gateway{
 				Metadata: metadata,
+				Status: core.Status{
+					State: core.Status_Accepted,
+				},
 			}
 
 			gatewayClient.EXPECT().
@@ -86,11 +90,16 @@ var _ = Describe("ServiceTest", func() {
 			rawGetter.EXPECT().
 				GetRaw(context.Background(), gateway, gatewayv2.GatewayCrd).
 				Return(getRaw(gateway))
+			statusConverter.EXPECT().
+				GetApiStatusFromResource(gateway).
+				Return(getStatus(v1.Status_OK, ""))
 
 			request := &v1.GetGatewayRequest{Ref: &ref}
 			actual, err := client.GetGateway(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetGatewayResponse{GatewayDetails: getGatewayDetails(gateway)}
+			expected := &v1.GetGatewayResponse{
+				GatewayDetails: getGatewayDetails(gateway, getStatus(v1.Status_OK, "")),
+			}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -118,9 +127,15 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			gateway1 := &gatewayv2.Gateway{
 				Metadata: core.Metadata{Namespace: ns1},
+				Status: core.Status{
+					State: core.Status_Accepted,
+				},
 			}
 			gateway2 := &gatewayv2.Gateway{
 				Metadata: core.Metadata{Namespace: ns2},
+				Status: core.Status{
+					State: core.Status_Pending,
+				},
 			}
 
 			gatewayClient.EXPECT().
@@ -135,11 +150,22 @@ var _ = Describe("ServiceTest", func() {
 			rawGetter.EXPECT().
 				GetRaw(context.Background(), gateway2, gatewayv2.GatewayCrd).
 				Return(getRaw(gateway2))
+			statusConverter.EXPECT().
+				GetApiStatusFromResource(gateway1).
+				Return(getStatus(v1.Status_OK, ""))
+			statusConverter.EXPECT().
+				GetApiStatusFromResource(gateway2).
+				Return(getStatus(v1.Status_WARNING, status.ResourcePending(ns2, "")))
 
 			request := &v1.ListGatewaysRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListGateways(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListGatewaysResponse{GatewayDetails: getGatewayDetailsList(gateway1, gateway2)}
+			expected := &v1.ListGatewaysResponse{
+				GatewayDetails: []*v1.GatewayDetails{
+					getGatewayDetails(gateway1, getStatus(v1.Status_OK, "")),
+					getGatewayDetails(gateway2, getStatus(v1.Status_WARNING, status.ResourcePending(ns2, ""))),
+				},
+			}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -188,7 +214,7 @@ var _ = Describe("ServiceTest", func() {
 					Name:            "name",
 					ResourceVersion: "10",
 				},
-				Status:      core.Status{},
+				Status:      core.Status{State: core.Status_Pending},
 				BindAddress: "test-new-value",
 			}
 		})
@@ -203,11 +229,14 @@ var _ = Describe("ServiceTest", func() {
 			rawGetter.EXPECT().
 				GetRaw(context.Background(), toWrite, gatewayv2.GatewayCrd).
 				Return(getRaw(toWrite))
+			statusConverter.EXPECT().
+				GetApiStatusFromResource(toWrite).
+				Return(getStatus(v1.Status_WARNING, status.ResourcePending("ns", "name")))
 
 			request := &v1.UpdateGatewayRequest{Gateway: input}
 			actual, err := client.UpdateGateway(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateGatewayResponse{GatewayDetails: getGatewayDetails(toWrite)}
+			expected := &v1.UpdateGatewayResponse{GatewayDetails: getGatewayDetails(toWrite, getStatus(v1.Status_WARNING, status.ResourcePending("ns", "name")))}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
