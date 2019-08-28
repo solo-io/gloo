@@ -12,6 +12,7 @@ import (
 
 	"os"
 
+	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 )
 
@@ -19,33 +20,39 @@ var _ = Describe("Plugin Loader", func() {
 
 	var (
 		requiredHeader    = "my-header"
-		authorizedRequest = &envoyauthv2.CheckRequest{
-			Attributes: &envoyauthv2.AttributeContext{
-				Request: &envoyauthv2.AttributeContext_Request{
-					Http: &envoyauthv2.AttributeContext_HttpRequest{
-						Headers: map[string]string{
-							requiredHeader: "value-a",
+		authorizedRequest = &api.AuthorizationRequest{
+			CheckRequest: &envoyauthv2.CheckRequest{
+				Attributes: &envoyauthv2.AttributeContext{
+					Request: &envoyauthv2.AttributeContext_Request{
+						Http: &envoyauthv2.AttributeContext_HttpRequest{
+							Headers: map[string]string{
+								requiredHeader: "value-a",
+							},
 						},
 					},
 				},
 			},
 		}
-		requestAuthorizedByFirstPluginOnly = &envoyauthv2.CheckRequest{
-			Attributes: &envoyauthv2.AttributeContext{
-				Request: &envoyauthv2.AttributeContext_Request{
-					Http: &envoyauthv2.AttributeContext_HttpRequest{
-						Headers: map[string]string{
-							// had the header required by the first plugin, but not a value allowed by the second one
-							requiredHeader: "not-allowed",
+		requestAuthorizedByFirstPluginOnly = &api.AuthorizationRequest{
+			CheckRequest: &envoyauthv2.CheckRequest{
+				Attributes: &envoyauthv2.AttributeContext{
+					Request: &envoyauthv2.AttributeContext_Request{
+						Http: &envoyauthv2.AttributeContext_HttpRequest{
+							Headers: map[string]string{
+								// had the header required by the first plugin, but not a value allowed by the second one
+								requiredHeader: "not-allowed",
+							},
 						},
 					},
 				},
 			},
 		}
-		unauthorizedRequest = &envoyauthv2.CheckRequest{
-			Attributes: &envoyauthv2.AttributeContext{
-				Request: &envoyauthv2.AttributeContext_Request{
-					Http: &envoyauthv2.AttributeContext_HttpRequest{},
+		unauthorizedRequest = &api.AuthorizationRequest{
+			CheckRequest: &envoyauthv2.CheckRequest{
+				Attributes: &envoyauthv2.AttributeContext{
+					Request: &envoyauthv2.AttributeContext_Request{
+						Http: &envoyauthv2.AttributeContext_HttpRequest{},
+					},
 				},
 			},
 		}

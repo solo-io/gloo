@@ -420,6 +420,95 @@ export namespace ApiKeySecret {
   }
 }
 
+export class OpaAuth extends jspb.Message {
+  clearModulesList(): void;
+  getModulesList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+  setModulesList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+  addModules(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+  getQuery(): string;
+  setQuery(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OpaAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: OpaAuth): OpaAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OpaAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OpaAuth;
+  static deserializeBinaryFromReader(message: OpaAuth, reader: jspb.BinaryReader): OpaAuth;
+}
+
+export namespace OpaAuth {
+  export type AsObject = {
+    modulesList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+    query: string,
+  }
+}
+
+export class AuthConfig extends jspb.Message {
+  hasBasicAuth(): boolean;
+  clearBasicAuth(): void;
+  getBasicAuth(): BasicAuth | undefined;
+  setBasicAuth(value?: BasicAuth): void;
+
+  hasOauth(): boolean;
+  clearOauth(): void;
+  getOauth(): OAuth | undefined;
+  setOauth(value?: OAuth): void;
+
+  hasCustomAuth(): boolean;
+  clearCustomAuth(): void;
+  getCustomAuth(): CustomAuth | undefined;
+  setCustomAuth(value?: CustomAuth): void;
+
+  hasApiKeyAuth(): boolean;
+  clearApiKeyAuth(): void;
+  getApiKeyAuth(): ApiKeyAuth | undefined;
+  setApiKeyAuth(value?: ApiKeyAuth): void;
+
+  hasPluginAuth(): boolean;
+  clearPluginAuth(): void;
+  getPluginAuth(): AuthPlugin | undefined;
+  setPluginAuth(value?: AuthPlugin): void;
+
+  hasOpaAuth(): boolean;
+  clearOpaAuth(): void;
+  getOpaAuth(): OpaAuth | undefined;
+  setOpaAuth(value?: OpaAuth): void;
+
+  getAuthConfigCase(): AuthConfig.AuthConfigCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthConfig): AuthConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthConfig;
+  static deserializeBinaryFromReader(message: AuthConfig, reader: jspb.BinaryReader): AuthConfig;
+}
+
+export namespace AuthConfig {
+  export type AsObject = {
+    basicAuth?: BasicAuth.AsObject,
+    oauth?: OAuth.AsObject,
+    customAuth?: CustomAuth.AsObject,
+    apiKeyAuth?: ApiKeyAuth.AsObject,
+    pluginAuth?: AuthPlugin.AsObject,
+    opaAuth?: OpaAuth.AsObject,
+  }
+
+  export enum AuthConfigCase {
+    AUTH_CONFIG_NOT_SET = 0,
+    BASIC_AUTH = 1,
+    OAUTH = 2,
+    CUSTOM_AUTH = 3,
+    API_KEY_AUTH = 4,
+    PLUGIN_AUTH = 5,
+    OPA_AUTH = 6,
+  }
+}
+
 export class VhostExtension extends jspb.Message {
   hasBasicAuth(): boolean;
   clearBasicAuth(): void;
@@ -446,6 +535,11 @@ export class VhostExtension extends jspb.Message {
   getPluginAuth(): PluginAuth | undefined;
   setPluginAuth(value?: PluginAuth): void;
 
+  clearConfigsList(): void;
+  getConfigsList(): Array<AuthConfig>;
+  setConfigsList(value: Array<AuthConfig>): void;
+  addConfigs(value?: AuthConfig, index?: number): AuthConfig;
+
   getAuthConfigCase(): VhostExtension.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VhostExtension.AsObject;
@@ -464,6 +558,7 @@ export namespace VhostExtension {
     customAuth?: CustomAuth.AsObject,
     apiKeyAuth?: ApiKeyAuth.AsObject,
     pluginAuth?: PluginAuth.AsObject,
+    configsList: Array<AuthConfig.AsObject>,
   }
 
   export enum AuthConfigCase {
@@ -520,6 +615,11 @@ export class ExtAuthConfig extends jspb.Message {
   getPluginAuth(): PluginAuth | undefined;
   setPluginAuth(value?: PluginAuth): void;
 
+  clearConfigsList(): void;
+  getConfigsList(): Array<ExtAuthConfig.AuthConfig>;
+  setConfigsList(value: Array<ExtAuthConfig.AuthConfig>): void;
+  addConfigs(value?: ExtAuthConfig.AuthConfig, index?: number): ExtAuthConfig.AuthConfig;
+
   getAuthConfigCase(): ExtAuthConfig.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
@@ -538,6 +638,7 @@ export namespace ExtAuthConfig {
     basicAuth?: BasicAuth.AsObject,
     apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
     pluginAuth?: PluginAuth.AsObject,
+    configsList: Array<ExtAuthConfig.AuthConfig.AsObject>,
   }
 
   export class OAuthConfig extends jspb.Message {
@@ -592,6 +693,85 @@ export namespace ExtAuthConfig {
   export namespace ApiKeyAuthConfig {
     export type AsObject = {
       validApiKeyAndUserMap: Array<[string, string]>,
+    }
+  }
+
+  export class OpaAuthConfig extends jspb.Message {
+    getModulesMap(): jspb.Map<string, string>;
+    clearModulesMap(): void;
+    getQuery(): string;
+    setQuery(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): OpaAuthConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: OpaAuthConfig): OpaAuthConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: OpaAuthConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): OpaAuthConfig;
+    static deserializeBinaryFromReader(message: OpaAuthConfig, reader: jspb.BinaryReader): OpaAuthConfig;
+  }
+
+  export namespace OpaAuthConfig {
+    export type AsObject = {
+      modulesMap: Array<[string, string]>,
+      query: string,
+    }
+  }
+
+  export class AuthConfig extends jspb.Message {
+    hasOauth(): boolean;
+    clearOauth(): void;
+    getOauth(): ExtAuthConfig.OAuthConfig | undefined;
+    setOauth(value?: ExtAuthConfig.OAuthConfig): void;
+
+    hasBasicAuth(): boolean;
+    clearBasicAuth(): void;
+    getBasicAuth(): BasicAuth | undefined;
+    setBasicAuth(value?: BasicAuth): void;
+
+    hasApiKeyAuth(): boolean;
+    clearApiKeyAuth(): void;
+    getApiKeyAuth(): ExtAuthConfig.ApiKeyAuthConfig | undefined;
+    setApiKeyAuth(value?: ExtAuthConfig.ApiKeyAuthConfig): void;
+
+    hasPluginAuth(): boolean;
+    clearPluginAuth(): void;
+    getPluginAuth(): AuthPlugin | undefined;
+    setPluginAuth(value?: AuthPlugin): void;
+
+    hasOpaAuth(): boolean;
+    clearOpaAuth(): void;
+    getOpaAuth(): ExtAuthConfig.OpaAuthConfig | undefined;
+    setOpaAuth(value?: ExtAuthConfig.OpaAuthConfig): void;
+
+    getAuthConfigCase(): AuthConfig.AuthConfigCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AuthConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: AuthConfig): AuthConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AuthConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AuthConfig;
+    static deserializeBinaryFromReader(message: AuthConfig, reader: jspb.BinaryReader): AuthConfig;
+  }
+
+  export namespace AuthConfig {
+    export type AsObject = {
+      oauth?: ExtAuthConfig.OAuthConfig.AsObject,
+      basicAuth?: BasicAuth.AsObject,
+      apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
+      pluginAuth?: AuthPlugin.AsObject,
+      opaAuth?: ExtAuthConfig.OpaAuthConfig.AsObject,
+    }
+
+    export enum AuthConfigCase {
+      AUTH_CONFIG_NOT_SET = 0,
+      OAUTH = 3,
+      BASIC_AUTH = 4,
+      API_KEY_AUTH = 5,
+      PLUGIN_AUTH = 6,
+      OPA_AUTH = 7,
     }
   }
 

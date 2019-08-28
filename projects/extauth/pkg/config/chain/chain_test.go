@@ -1,4 +1,4 @@
-package plugins
+package chain
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/go-utils/errors"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins/mocks"
+	chainmocks "github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain/mocks"
 )
 
 //go:generate mockgen -destination mocks/auth_service_mock.go -package mocks github.com/solo-io/ext-auth-plugins/api AuthService
@@ -85,25 +85,25 @@ var _ = Describe("Plugin Chain", func() {
 
 		var (
 			ctrl          *gomock.Controller
-			pluginWrapper pluginChain
+			pluginWrapper authServiceChain
 			mockSvc1,
 			mockSvc2,
-			mockSvc3 *mocks.MockAuthService
+			mockSvc3 *chainmocks.MockAuthService
 		)
 
 		BeforeEach(func() {
-			ctrl = gomock.NewController(T)
+			ctrl = gomock.NewController(GinkgoT())
 
-			mockSvc1 = mocks.NewMockAuthService(ctrl)
-			mockSvc2 = mocks.NewMockAuthService(ctrl)
-			mockSvc3 = mocks.NewMockAuthService(ctrl)
+			mockSvc1 = chainmocks.NewMockAuthService(ctrl)
+			mockSvc2 = chainmocks.NewMockAuthService(ctrl)
+			mockSvc3 = chainmocks.NewMockAuthService(ctrl)
 
-			pluginWrapper = pluginChain{}
-			err := pluginWrapper.AddPlugin("One", mockSvc1)
+			pluginWrapper = authServiceChain{}
+			err := pluginWrapper.AddAuthService("One", mockSvc1)
 			Expect(err).NotTo(HaveOccurred())
-			err = pluginWrapper.AddPlugin("Two", mockSvc2)
+			err = pluginWrapper.AddAuthService("Two", mockSvc2)
 			Expect(err).NotTo(HaveOccurred())
-			err = pluginWrapper.AddPlugin("Three", mockSvc3)
+			err = pluginWrapper.AddAuthService("Three", mockSvc3)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -112,9 +112,9 @@ var _ = Describe("Plugin Chain", func() {
 		})
 
 		It("fails when adding plugins with the same name", func() {
-			err := pluginWrapper.AddPlugin("One", mockSvc1)
+			err := pluginWrapper.AddAuthService("One", mockSvc1)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(DuplicatePluginNameError("One").Error()))
+			Expect(err.Error()).To(Equal(DuplicateAuthServiceNameError("One").Error()))
 		})
 
 		It("panics when adding plugins after Start has been called", func() {
@@ -124,7 +124,7 @@ var _ = Describe("Plugin Chain", func() {
 
 			err := pluginWrapper.Start(context.Background())
 			Expect(err).NotTo(HaveOccurred())
-			Expect(func() { _ = pluginWrapper.AddPlugin("Four", mockSvc1) }).To(Panic())
+			Expect(func() { _ = pluginWrapper.AddAuthService("Four", mockSvc1) }).To(Panic())
 		})
 
 		Describe("start functions", func() {
@@ -169,7 +169,7 @@ var _ = Describe("Plugin Chain", func() {
 				})
 
 				It("runs all authorize functions", func() {
-					response, err := pluginWrapper.Authorize(context.Background(), &envoyauthv2.CheckRequest{})
+					response, err := pluginWrapper.Authorize(context.Background(), &api.AuthorizationRequest{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(response).To(BeEquivalentTo(api.AuthorizedResponse()))
 				})

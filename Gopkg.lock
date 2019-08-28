@@ -102,6 +102,14 @@
   revision = "9d1f4485533ba0665fa4ca2ef6f1210198f7eaae"
 
 [[projects]]
+  digest = "1:f2aa950b9738feb15ce4a6958f899969fc0908c9c6f9fad97fb4fb6bdd0f98ff"
+  name = "github.com/OneOfOne/xxhash"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c1e3185f167680b62832a0a11938a04b1ab265fc"
+  version = "v1.2.5"
+
+[[projects]]
   digest = "1:d1665c44bd5db19aaee18d1b6233c99b0b9a986e8bccb24ef54747547a48027f"
   name = "github.com/PuerkitoBio/purell"
   packages = ["."]
@@ -1144,6 +1152,44 @@
   version = "v1.4.3"
 
 [[projects]]
+  digest = "1:9a70e87aec9406507749e4b933f55b66d8e4e7dd42c0a6b5274148d941773c05"
+  name = "github.com/open-policy-agent/opa"
+  packages = [
+    "ast",
+    "internal/compiler/wasm",
+    "internal/compiler/wasm/opa",
+    "internal/ir",
+    "internal/leb128",
+    "internal/planner",
+    "internal/version",
+    "internal/wasm/constant",
+    "internal/wasm/encoding",
+    "internal/wasm/instruction",
+    "internal/wasm/module",
+    "internal/wasm/opcode",
+    "internal/wasm/types",
+    "metrics",
+    "rego",
+    "storage",
+    "storage/inmem",
+    "topdown",
+    "topdown/builtins",
+    "topdown/copypropagation",
+    "topdown/internal/jwx/buffer",
+    "topdown/internal/jwx/jwa",
+    "topdown/internal/jwx/jwk",
+    "topdown/internal/jwx/jws",
+    "topdown/internal/jwx/jws/sign",
+    "topdown/internal/jwx/jws/verify",
+    "types",
+    "util",
+    "version",
+  ]
+  pruneopts = "UT"
+  revision = "60003bda6691103d82a6d0c8712e70f78816cdb5"
+  version = "v0.13.4"
+
+[[projects]]
   digest = "1:ee4d4af67d93cc7644157882329023ce9a7bcfce956a079069a9405521c7cc8d"
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
@@ -1255,6 +1301,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:5bbebe8ac19ecb6c87790a89faa20566e38ed0d6494a1d14c4f5b05d9ce2436c"
+  name = "github.com/rcrowley/go-metrics"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cac0b30c2563378d434b5af411844adff8e32960"
+
+[[projects]]
   digest = "1:b36a0ede02c4c2aef7df7f91cbbb7bb88a98b5d253509d4f997dda526e50c88c"
   name = "github.com/russross/blackfriday"
   packages = ["."]
@@ -1279,27 +1333,28 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:606b590efc9386016fe24c4f7b04b70822abbcc8f7da2859b4855b257f4355e0"
+  digest = "1:1c53a9a165de209d59c3e2fd8f1f0d845fed97c54c558e23a384e477045fcc81"
   name = "github.com/solo-io/ext-auth-plugins"
   packages = ["api"]
   pruneopts = "UT"
-  revision = "5c8b4bca0668aef16f81972d3918448fc832ef72"
-  version = "v0.0.3"
+  revision = "a088445a89f393b7e07927a4960190b325a40aee"
+  version = "v0.1.0"
 
 [[projects]]
-  digest = "1:f9af9d5064be9b7fa6a190f22a7ccf0017858b836242d40a06ece28e48d612f9"
+  digest = "1:56f086781bf41808c6eb26cbcac175661f6cb14781e322439798af7d17dc5a7b"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
     "pkg/config/apikeys",
     "pkg/config/apr",
     "pkg/config/oidc",
+    "pkg/config/opa",
     "pkg/consts",
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "ed54471e99fed8515d2825faccf9ea1afa72b5fb"
-  version = "v0.3.0"
+  revision = "738a6b9dac73177f68987ec70f408a8bcb268754"
+  version = "v0.4.2"
 
 [[projects]]
   digest = "1:3131f6ecc49f9666fefe60210cb91fa52d6a20ed52e5e5a83e07dc1cba067e64"
@@ -1623,6 +1678,14 @@
   ]
   pruneopts = "UT"
   revision = "7d3ee1afa71c90fd1514c8f557ae6c5f414208eb"
+
+[[projects]]
+  branch = "master"
+  digest = "1:bc2a31092538ed0bdfe9c5c784d6caca3ea5236b690371698826753d2ffa6beb"
+  name = "github.com/yashtewari/glob-intersection"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5c77d914dd0ba7bedca923f97232d37137e038f3"
 
 [[projects]]
   digest = "1:0133b905eb1f5f0249f5a209df2c38b2f8f5be59e10261b96e9216535ccdbd89"
@@ -2618,6 +2681,7 @@
     "github.com/solo-io/ext-auth-service/pkg/config/apikeys",
     "github.com/solo-io/ext-auth-service/pkg/config/apr",
     "github.com/solo-io/ext-auth-service/pkg/config/oidc",
+    "github.com/solo-io/ext-auth-service/pkg/config/opa",
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/pkg/cliutil",

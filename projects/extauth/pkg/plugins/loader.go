@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/protoutils"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"go.uber.org/zap"
 )
@@ -38,57 +39,70 @@ func NewPluginLoader(pluginDir string) Loader {
 }
 
 type Loader interface {
+	// Deprecated
 	Load(ctx context.Context, pluginConfig *extauth.PluginAuth) (api.AuthService, error)
+	LoadAuthPlugin(ctx context.Context, pluginConfig *extauth.AuthPlugin) (api.AuthService, error)
 }
 
 type loader struct {
 	pluginDir string
 }
 
+// Deprecated
 func (l *loader) Load(ctx context.Context, pluginConfigs *extauth.PluginAuth) (api.AuthService, error) {
 	logger := contextutils.LoggerFrom(ctx)
 
-	var pluginChain ExtAuthPluginChain = NewExtAuthPluginChain()
+	pluginChain := chain.NewAuthServiceChain()
 
 	for _, cfg := range pluginConfigs.Plugins {
-
-		// Load plugin
-		logger.Debugw("Loading ext-auth plugin", "name", cfg.Name)
-		extAuthPlugin, err := l.loadPlugin(ctx, cfg)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load plugin")
-		}
-
-		// Get object to deserialize plugin config into
-		logger.Debugw("Getting new instance of plugin configuration object")
-		pluginCfg, err := extAuthPlugin.NewConfigInstance(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		// Deserialize plugin config into object
-		logger.Debugw("Trying to unmarshal plugin config into configuration object",
-			zap.Any("pluginConfig", cfg.Config),
-			zap.Any("configurationObject", pluginCfg),
-		)
-		if err = parsePluginConfig(cfg.Config, pluginCfg); err != nil {
-			return nil, errors.Wrapf(err, "failed to parse config for plugin [%s]. "+
-				"Could not deserialize config: %v into configuration object %v", cfg.Name, cfg.Config, pluginCfg)
-		}
-
-		logger.Debugw("Getting AuthService instance from plugin", zap.Any("pluginConfig", pluginCfg))
-		authService, err := extAuthPlugin.GetAuthService(ctx, pluginCfg)
+		authService, err := l.LoadAuthPlugin(ctx, cfg)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get AuthService instance from plugin")
 		}
 
 		logger.Infow("Successfully loaded plugin. Adding it to the plugin chain.", zap.Any("pluginName", cfg.Name))
-		if err := pluginChain.AddPlugin(cfg.Name, authService); err != nil {
+		if err := pluginChain.AddAuthService(cfg.Name, authService); err != nil {
 			return nil, PluginChainBuildError(err)
 		}
 	}
 
 	return pluginChain, nil
+}
+
+func (l *loader) LoadAuthPlugin(ctx context.Context, pluginConfig *extauth.AuthPlugin) (api.AuthService, error) {
+	logger := contextutils.LoggerFrom(ctx)
+
+	// Load plugin
+	logger.Debugw("Loading ext-auth plugin", "name", pluginConfig.Name)
+	extAuthPlugin, err := l.loadPlugin(ctx, pluginConfig)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load plugin")
+	}
+
+	// Get object to deserialize plugin config into
+	logger.Debugw("Getting new instance of plugin configuration object")
+	pluginCfg, err := extAuthPlugin.NewConfigInstance(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Deserialize plugin config into object
+	logger.Debugw("Trying to unmarshal plugin config into configuration object",
+		zap.Any("pluginConfig", pluginConfig.Config),
+		zap.Any("configurationObject", pluginCfg),
+	)
+	if err = parsePluginConfig(pluginConfig.Config, pluginCfg); err != nil {
+		return nil, errors.Wrapf(err, "failed to parse config for plugin [%s]. "+
+			"Could not deserialize config: %v into configuration object %v", pluginConfig.Name, pluginConfig.Config, pluginCfg)
+	}
+
+	logger.Debugw("Getting AuthService instance from plugin", zap.Any("pluginConfig", pluginCfg))
+	authService, err := extAuthPlugin.GetAuthService(ctx, pluginCfg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get AuthService instance from plugin")
+	}
+
+	return authService, nil
 }
 
 func (l *loader) loadPlugin(ctx context.Context, authPlugin *extauth.AuthPlugin) (api.ExtAuthPlugin, error) {

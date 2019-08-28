@@ -36,7 +36,6 @@ var _ = Describe("Plugin", func() {
 		route        *v1.Route
 		extAuthVhost *extauth.VhostExtension
 		clientSecret *extauth.OauthSecret
-		apiKeySecret *extauth.ApiKeySecret
 	)
 
 	BeforeEach(func() {
@@ -77,10 +76,6 @@ var _ = Describe("Plugin", func() {
 					},
 				},
 			},
-		}
-
-		apiKeySecret = &extauth.ApiKeySecret{
-			ApiKey: "apiKey1",
 		}
 
 		clientSecret = &extauth.OauthSecret{
@@ -354,19 +349,6 @@ var _ = Describe("Plugin", func() {
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
 
-		It("should translate oauth config for extauth server", func() {
-			cfg, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Vhost).To(Equal(GetResourceName(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost)))
-			authCfg := cfg.AuthConfig.(*extauth.ExtAuthConfig_Oauth).Oauth
-			expectAuthCfg := extAuthVhost.AuthConfig.(*extauth.VhostExtension_Oauth).Oauth
-			Expect(authCfg.IssuerUrl).To(Equal(expectAuthCfg.IssuerUrl))
-			Expect(authCfg.ClientId).To(Equal(expectAuthCfg.ClientId))
-			Expect(authCfg.ClientSecret).To(Equal(clientSecret.ClientSecret))
-			Expect(authCfg.AppUrl).To(Equal(expectAuthCfg.AppUrl))
-			Expect(authCfg.CallbackPath).To(Equal(expectAuthCfg.CallbackPath))
-		})
-
 		Context("with custom extauth server", func() {
 			BeforeEach(func() {
 				extAuthVhost = &extauth.VhostExtension{
@@ -379,93 +361,6 @@ var _ = Describe("Plugin", func() {
 				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(IsDisabled(&out)).To(BeFalse())
-			})
-		})
-
-		Context("with api key extauth", func() {
-			BeforeEach(func() {
-				st, err := util.MessageToStruct(apiKeySecret)
-				Expect(err).NotTo(HaveOccurred())
-
-				secret = &v1.Secret{
-					Metadata: core.Metadata{
-						Name:      "secretName",
-						Namespace: "default",
-						Labels:    map[string]string{"team": "infrastructure"},
-					},
-					Kind: &v1.Secret_Extension{
-						Extension: &v1.Extension{
-							Config: st,
-						},
-					},
-				}
-				secretRef := secret.Metadata.Ref()
-
-				extAuthVhost = &extauth.VhostExtension{
-					AuthConfig: &extauth.VhostExtension_ApiKeyAuth{
-						ApiKeyAuth: &extauth.ApiKeyAuth{
-							ApiKeySecretRefs: []*core.ResourceRef{&secretRef},
-						},
-					},
-				}
-			})
-
-			Context("with api key extauth, secret ref matching", func() {
-				It("should translate api keys config for extauth server - matching secret ref", func() {
-					cfg, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(cfg.Vhost).To(Equal(GetResourceName(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost)))
-					authCfg := cfg.AuthConfig.(*extauth.ExtAuthConfig_ApiKeyAuth).ApiKeyAuth
-					Expect(authCfg.ValidApiKeyAndUser).To(Equal(map[string]string{"apiKey1": "secretName"}))
-				})
-
-				It("should translate api keys config for extauth server - mismatching secret ref", func() {
-					secret.Metadata.Name = "mismatchName"
-					_, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("list did not find secret"))
-				})
-			})
-
-			Context("with api key ext auth, label matching", func() {
-				BeforeEach(func() {
-					extAuthVhost = &extauth.VhostExtension{
-						AuthConfig: &extauth.VhostExtension_ApiKeyAuth{
-							ApiKeyAuth: &extauth.ApiKeyAuth{
-								LabelSelector: map[string]string{"team": "infrastructure"},
-							},
-						},
-					}
-				})
-
-				It("should translate api keys config for extauth server - matching label", func() {
-					cfg, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(cfg.Vhost).To(Equal(GetResourceName(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost)))
-					authCfg := cfg.AuthConfig.(*extauth.ExtAuthConfig_ApiKeyAuth).ApiKeyAuth
-					Expect(authCfg.ValidApiKeyAndUser).To(Equal(map[string]string{"apiKey1": "secretName"}))
-				})
-
-				It("should translate api keys config for extauth server - mismatched labels", func() {
-					secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
-					_, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
-				})
-
-				It("should translate api keys config for extauth server - mismatched labels", func() {
-					secret.Metadata.Labels = map[string]string{}
-					_, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
-				})
-
-				It("should translate api keys config for extauth server - mismatched labels", func() {
-					secret.Metadata.Labels = nil
-					_, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extAuthVhost)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
-				})
 			})
 		})
 	})

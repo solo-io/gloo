@@ -11,7 +11,6 @@ import (
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
-	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/gogo/protobuf/types"
 
@@ -139,7 +138,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	if err != nil {
 		return err
 	}
-	_, err = TranslateUserConfigToExtAuthServerConfig(proxy, listener, in, params.Snapshot, extAuth)
+	_, err = TranslateUserConfigToExtAuthServerConfig(params.Ctx, proxy, listener, in, params.Snapshot, extAuth)
 	if err != nil {
 		return err
 	}
@@ -149,93 +148,6 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 func GetResourceName(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost) string {
 	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, vhost.Name)
-}
-
-func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostExtAuth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
-	name := GetResourceName(proxy, listener, vhost)
-
-	extAuthConfig := &extauth.ExtAuthConfig{
-		Vhost: name,
-	}
-	switch config := vhostExtAuth.AuthConfig.(type) {
-	case *extauth.VhostExtension_CustomAuth:
-		return nil, nil
-	case *extauth.VhostExtension_BasicAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_BasicAuth{
-			BasicAuth: config.BasicAuth,
-		}
-	case *extauth.VhostExtension_Oauth:
-		secret, err := snap.Secrets.Find(config.Oauth.ClientSecretRef.Namespace, config.Oauth.ClientSecretRef.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		var clientSecret extauth.OauthSecret
-		err = utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &clientSecret)
-		if err != nil {
-			return nil, err
-		}
-
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Oauth{
-			Oauth: &extauth.ExtAuthConfig_OAuthConfig{
-				AppUrl:       config.Oauth.AppUrl,
-				ClientId:     config.Oauth.ClientId,
-				ClientSecret: clientSecret.ClientSecret,
-				IssuerUrl:    config.Oauth.IssuerUrl,
-				CallbackPath: config.Oauth.CallbackPath,
-			},
-		}
-	case *extauth.VhostExtension_ApiKeyAuth:
-		validApiKeyAndUser := make(map[string]string)
-
-		// add valid apikey/user map entries using provided secret refs
-		for _, secretRef := range config.ApiKeyAuth.ApiKeySecretRefs {
-			secret, err := snap.Secrets.Find(secretRef.Namespace, secretRef.Name)
-			if err != nil {
-				return nil, err
-			}
-			var apiKeySecret extauth.ApiKeySecret
-			err = utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
-			if err != nil {
-				return nil, err
-			}
-			validApiKeyAndUser[apiKeySecret.ApiKey] = secretRef.Name
-		}
-
-		// add valid apikey/user map entries using secrets matching provided label selector
-		if config.ApiKeyAuth.LabelSelector != nil && len(config.ApiKeyAuth.LabelSelector) > 0 {
-			foundAny := false
-			for _, secret := range snap.Secrets {
-				selector := labels.Set(config.ApiKeyAuth.LabelSelector).AsSelectorPreValidated()
-				if selector.Matches(labels.Set(secret.Metadata.Labels)) {
-					var apiKeySecret extauth.ApiKeySecret
-					err := utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
-					if err != nil {
-						return nil, err
-					}
-					validApiKeyAndUser[apiKeySecret.ApiKey] = secret.Metadata.Name
-					foundAny = true
-				}
-			}
-			if !foundAny {
-				return nil, NoMatchesForGroupError(config.ApiKeyAuth.LabelSelector)
-			}
-		}
-
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_ApiKeyAuth{
-			ApiKeyAuth: &extauth.ExtAuthConfig_ApiKeyAuthConfig{
-				ValidApiKeyAndUser: validApiKeyAndUser,
-			},
-		}
-	case *extauth.VhostExtension_PluginAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_PluginAuth{
-			PluginAuth: config.PluginAuth,
-		}
-	default:
-		return nil, fmt.Errorf("unknown ext auth configuration")
-	}
-
-	return extAuthConfig, nil
 }
 
 func markName(name string, out *envoyroute.VirtualHost) error {

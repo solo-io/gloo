@@ -90,12 +90,9 @@ message CustomAuth {
 }
 
 // Configures auth via dynamically loaded Go plugins.
+// Deprecated
 message PluginAuth {
-  // A chain of plugins which will be executed in the order they are specified. The first plugin to deny a request will
-  // cause a 403 response to be returned; any subsequent plugin in the chain will not be executed.
-  // The headers on the OkHttpResponse returned from a plugin in the chain will be added to the request that will be sent
-  // to the next one(s) according to the rules described here:
-  // https://www.envoyproxy.io/docs/envoy/latest/api-v2/service/auth/v2/external_auth.proto#service-auth-v2-okhttpresponse
+  // Deprecated
   repeated AuthPlugin plugins = 1;
 }
 
@@ -164,18 +161,50 @@ message ApiKeySecret {
   repeated string labels = 3;
 }
 
-message VhostExtension {
+message OpaAuth {
+  // An optional resource reference to config maps containing modules to assist in the resolution of `query`.
+  repeated core.solo.io.ResourceRef modules = 1;
+
+  // The query that determines the auth decision. The result of this query must be either a boolean
+  // or an array with boolean as the first element. A boolean `true` value means that the request
+  // will be authorized. Any other value, or error, means that the request will be denied.
+  string query = 2;
+}
+
+message AuthConfig {
   oneof auth_config {
     BasicAuth basic_auth = 1;
     OAuth oauth = 2;
     CustomAuth custom_auth = 3;
     ApiKeyAuth api_key_auth = 4;
-    PluginAuth plugin_auth = 5;
+    AuthPlugin plugin_auth = 5;
+    OpaAuth opa_auth = 6;
   }
 }
 
-message RouteExtension { bool disable = 1; }
+message VhostExtension {
+  oneof auth_config {
+    // Deprecated: use `configs` field instead.
+    BasicAuth basic_auth = 1;
+    // Deprecated: use `configs` field instead.
+    OAuth oauth = 2;
+    // Deprecated: use `configs` field instead.
+    CustomAuth custom_auth = 3;
+    // Deprecated: use `configs` field instead.
+    ApiKeyAuth api_key_auth = 4;
+    // Deprecated: use `configs` field instead.
+    PluginAuth plugin_auth = 5;
+  }
 
+  // A chain of AuthN\AuthZ configurations which will be executed in the order they are specified. The first plugin to deny a request will
+  // cause a 403 response to be returned; any subsequent plugin in the chain will not be executed.
+  // The headers on the OkHttpResponse returned from a plugin in the chain will be added to the request that will be sent
+  // to the next one(s) according to the rules described here:
+  // https://www.envoyproxy.io/docs/envoy/latest/api-v2/service/auth/v2/external_auth.proto#service-auth-v2-okhttpresponse
+  repeated AuthConfig configs = 6;
+}
+
+message RouteExtension { bool disable = 1; }
 
 /*
 @solo-kit:xds-service=ExtAuthDiscoveryService
@@ -211,12 +240,34 @@ message ExtAuthConfig {
     map<string, string> valid_api_key_and_user = 1;
   }
 
+  message OpaAuthConfig {
+    // An optional modules (filename, module content) maps containing modules assist in the resolution of `query`.
+    map<string, string> modules = 1;
+  
+    // The query that determines the auth decision. The result of this query must be either a boolean
+    // or an array with boolean as the first element. A boolean `true` value means that the request
+    // will be authorized. Any other value, or error, means that the request will be denied.
+    string query = 2;
+  }
+  // Deprecated
   oneof auth_config {
     OAuthConfig oauth = 3;
     BasicAuth basic_auth = 4;
     ApiKeyAuthConfig api_key_auth = 5;
     PluginAuth plugin_auth = 6;
   }
+
+  message AuthConfig {
+    oneof auth_config {
+      OAuthConfig oauth = 3;
+      BasicAuth basic_auth = 4;
+      ApiKeyAuthConfig api_key_auth = 5;
+      AuthPlugin plugin_auth = 6;
+      OpaAuthConfig opa_auth = 7;
+    }
+  }
+
+  repeated AuthConfig configs = 8;
 }
 
 /*

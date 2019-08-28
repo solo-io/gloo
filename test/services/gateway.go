@@ -44,6 +44,7 @@ type TestClients struct {
 	ProxyClient          gloov1.ProxyClient
 	UpstreamClient       gloov1.UpstreamClient
 	SecretClient         gloov1.SecretClient
+	ArtifactClient       gloov1.ArtifactClient
 	ServiceClient        skkube.ServiceClient
 	GlooPort             int
 }
@@ -85,6 +86,8 @@ func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 	Expect(err).NotTo(HaveOccurred())
 	secretClient, err := gloov1.NewSecretClient(factory)
 	Expect(err).NotTo(HaveOccurred())
+	artifactClient, err := gloov1.NewArtifactClient(factory)
+	Expect(err).NotTo(HaveOccurred())
 	proxyClient, err := gloov1.NewProxyClient(factory)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -93,6 +96,7 @@ func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 		VirtualServiceClient: virtualServiceClient,
 		UpstreamClient:       upstreamClient,
 		SecretClient:         secretClient,
+		ArtifactClient:       artifactClient,
 		ProxyClient:          proxyClient,
 	}
 }

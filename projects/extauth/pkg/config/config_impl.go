@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/go-utils/errors"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -15,6 +16,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 )
@@ -92,6 +94,12 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 
 	contextutils.LoggerFrom(c.originalCtx).Debugw("Getting config for resource", zap.Any("resource", resource))
 
+	if len(resource.Configs) != 0 {
+		return c.getConfigs(ctx, resource.Configs)
+	}
+
+	// handle deprecated code path
+
 	switch cfg := resource.AuthConfig.(type) {
 	case *extauth.ExtAuthConfig_BasicAuth:
 		aprCfg := apr.Config{
@@ -140,4 +148,62 @@ func convertAprUsers(users map[string]*extauth.BasicAuth_Apr_SaltedHashedPasswor
 		}
 	}
 	return ret
+}
+
+func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauth.ExtAuthConfig_AuthConfig) (svc api.AuthService, err error) {
+	services := chain.NewAuthServiceChain()
+	for i, config := range configs {
+		svc, name, err := c.authConfigToService(ctx, config)
+		if err != nil {
+			return nil, err
+		}
+		if name == "" {
+			name = fmt.Sprintf("%T-%d", svc, i)
+		}
+		services.AddAuthService(name, svc)
+	}
+	return services, nil
+}
+
+func (c *configGenerator) authConfigToService(ctx context.Context, config *extauth.ExtAuthConfig_AuthConfig) (svc api.AuthService, name string, err error) {
+	switch cfg := config.AuthConfig.(type) {
+	case *extauth.ExtAuthConfig_AuthConfig_BasicAuth:
+		aprCfg := apr.Config{
+			Realm:                            cfg.BasicAuth.Realm,
+			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
+		}
+
+		return &aprCfg, "", nil
+
+	case *extauth.ExtAuthConfig_AuthConfig_Oauth:
+		stateSigner := oidc.NewStateSigner(c.key)
+		cb := cfg.Oauth.CallbackPath
+		if cb == "" {
+			cb = DefaultCallback
+		}
+		// TODO: add scopes
+		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, nil, stateSigner)
+		if err != nil {
+			return nil, "", err
+		}
+		err = iss.Discover(ctx)
+		if err != nil {
+			return nil, "", err
+		}
+		return iss, "", nil
+
+	case *extauth.ExtAuthConfig_AuthConfig_ApiKeyAuth:
+		apiKeyCfg := apikeys.Config{
+			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
+		}
+		return &apiKeyCfg, "", nil
+
+	case *extauth.ExtAuthConfig_AuthConfig_PluginAuth:
+		p, err := c.pluginLoader.LoadAuthPlugin(ctx, cfg.PluginAuth)
+		return p, cfg.PluginAuth.Name, err
+	case *extauth.ExtAuthConfig_AuthConfig_OpaAuth:
+		opacfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
+		return opacfg, "", err
+	}
+	return nil, "", errors.New("unknown auth configuration")
 }

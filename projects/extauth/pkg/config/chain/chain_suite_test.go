@@ -1,4 +1,4 @@
-package plugins
+package chain
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPlugins(t *testing.T) {
+func TestChain(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ExtAuth Plugin Loader Suite")
+	RunSpecs(t, "Chain Suite")
 }

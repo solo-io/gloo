@@ -20,6 +20,7 @@ var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/durat
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ApiKeyAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ApiKeySecret', null, global);
+goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.AuthConfig', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.AuthPlugin', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.BasicAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.BasicAuth.Apr', null, global);
@@ -28,12 +29,15 @@ goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.BufferSettings', null, glo
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.CustomAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig', null, global);
+goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig', null, global);
+goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService.Request', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService.Response', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OauthSecret', null, global);
+goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OpaAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.PluginAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.RouteExtension', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.Settings', null, global);
@@ -3041,13 +3045,624 @@ proto.extauth.plugins.gloo.solo.io.ApiKeySecret.prototype.clearLabelsList = func
  * @extends {jspb.Message}
  * @constructor
  */
+proto.extauth.plugins.gloo.solo.io.OpaAuth = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.OpaAuth.repeatedFields_, null);
+};
+goog.inherits(proto.extauth.plugins.gloo.solo.io.OpaAuth, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.extauth.plugins.gloo.solo.io.OpaAuth.displayName = 'proto.extauth.plugins.gloo.solo.io.OpaAuth';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.toObject = function(opt_includeInstance) {
+  return proto.extauth.plugins.gloo.solo.io.OpaAuth.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.extauth.plugins.gloo.solo.io.OpaAuth} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    modulesList: jspb.Message.toObjectList(msg.getModulesList(),
+    github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance),
+    query: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.extauth.plugins.gloo.solo.io.OpaAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.extauth.plugins.gloo.solo.io.OpaAuth;
+  return proto.extauth.plugins.gloo.solo.io.OpaAuth.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.extauth.plugins.gloo.solo.io.OpaAuth} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.extauth.plugins.gloo.solo.io.OpaAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.addModules(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setQuery(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.extauth.plugins.gloo.solo.io.OpaAuth.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.extauth.plugins.gloo.solo.io.OpaAuth} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getModulesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getQuery();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated core.solo.io.ResourceRef modules = 1;
+ * @return {!Array<!proto.core.solo.io.ResourceRef>}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.getModulesList = function() {
+  return /** @type{!Array<!proto.core.solo.io.ResourceRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {!Array<!proto.core.solo.io.ResourceRef>} value */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.setModulesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.core.solo.io.ResourceRef=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.core.solo.io.ResourceRef}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.addModules = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.core.solo.io.ResourceRef, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.clearModulesList = function() {
+  this.setModulesList([]);
+};
+
+
+/**
+ * optional string query = 2;
+ * @return {string}
+ */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.getQuery = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.setQuery = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_);
+};
+goog.inherits(proto.extauth.plugins.gloo.solo.io.AuthConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.extauth.plugins.gloo.solo.io.AuthConfig.displayName = 'proto.extauth.plugins.gloo.solo.io.AuthConfig';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_ = [[1,2,3,4,5,6]];
+
+/**
+ * @enum {number}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.AuthConfigCase = {
+  AUTH_CONFIG_NOT_SET: 0,
+  BASIC_AUTH: 1,
+  OAUTH: 2,
+  CUSTOM_AUTH: 3,
+  API_KEY_AUTH: 4,
+  PLUGIN_AUTH: 5,
+  OPA_AUTH: 6
+};
+
+/**
+ * @return {proto.extauth.plugins.gloo.solo.io.AuthConfig.AuthConfigCase}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getAuthConfigCase = function() {
+  return /** @type {proto.extauth.plugins.gloo.solo.io.AuthConfig.AuthConfigCase} */(jspb.Message.computeOneofCase(this, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.extauth.plugins.gloo.solo.io.AuthConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.extauth.plugins.gloo.solo.io.AuthConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    basicAuth: (f = msg.getBasicAuth()) && proto.extauth.plugins.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
+    oauth: (f = msg.getOauth()) && proto.extauth.plugins.gloo.solo.io.OAuth.toObject(includeInstance, f),
+    customAuth: (f = msg.getCustomAuth()) && proto.extauth.plugins.gloo.solo.io.CustomAuth.toObject(includeInstance, f),
+    apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ApiKeyAuth.toObject(includeInstance, f),
+    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
+    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.OpaAuth.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.extauth.plugins.gloo.solo.io.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.extauth.plugins.gloo.solo.io.AuthConfig;
+  return proto.extauth.plugins.gloo.solo.io.AuthConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.extauth.plugins.gloo.solo.io.AuthConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.extauth.plugins.gloo.solo.io.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.extauth.plugins.gloo.solo.io.BasicAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.BasicAuth.deserializeBinaryFromReader);
+      msg.setBasicAuth(value);
+      break;
+    case 2:
+      var value = new proto.extauth.plugins.gloo.solo.io.OAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.OAuth.deserializeBinaryFromReader);
+      msg.setOauth(value);
+      break;
+    case 3:
+      var value = new proto.extauth.plugins.gloo.solo.io.CustomAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.CustomAuth.deserializeBinaryFromReader);
+      msg.setCustomAuth(value);
+      break;
+    case 4:
+      var value = new proto.extauth.plugins.gloo.solo.io.ApiKeyAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ApiKeyAuth.deserializeBinaryFromReader);
+      msg.setApiKeyAuth(value);
+      break;
+    case 5:
+      var value = new proto.extauth.plugins.gloo.solo.io.AuthPlugin;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.AuthPlugin.deserializeBinaryFromReader);
+      msg.setPluginAuth(value);
+      break;
+    case 6:
+      var value = new proto.extauth.plugins.gloo.solo.io.OpaAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.OpaAuth.deserializeBinaryFromReader);
+      msg.setOpaAuth(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.extauth.plugins.gloo.solo.io.AuthConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.extauth.plugins.gloo.solo.io.AuthConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getBasicAuth();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.extauth.plugins.gloo.solo.io.BasicAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getOauth();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.extauth.plugins.gloo.solo.io.OAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getCustomAuth();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.extauth.plugins.gloo.solo.io.CustomAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getApiKeyAuth();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.extauth.plugins.gloo.solo.io.ApiKeyAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getPluginAuth();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.extauth.plugins.gloo.solo.io.AuthPlugin.serializeBinaryToWriter
+    );
+  }
+  f = message.getOpaAuth();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      proto.extauth.plugins.gloo.solo.io.OpaAuth.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional BasicAuth basic_auth = 1;
+ * @return {?proto.extauth.plugins.gloo.solo.io.BasicAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getBasicAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.BasicAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.BasicAuth, 1));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.BasicAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setBasicAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearBasicAuth = function() {
+  this.setBasicAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasBasicAuth = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional OAuth oauth = 2;
+ * @return {?proto.extauth.plugins.gloo.solo.io.OAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getOauth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.OAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.OAuth, 2));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.OAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setOauth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearOauth = function() {
+  this.setOauth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasOauth = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional CustomAuth custom_auth = 3;
+ * @return {?proto.extauth.plugins.gloo.solo.io.CustomAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getCustomAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.CustomAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.CustomAuth, 3));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.CustomAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setCustomAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearCustomAuth = function() {
+  this.setCustomAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasCustomAuth = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional ApiKeyAuth api_key_auth = 4;
+ * @return {?proto.extauth.plugins.gloo.solo.io.ApiKeyAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getApiKeyAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.ApiKeyAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.ApiKeyAuth, 4));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.ApiKeyAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setApiKeyAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearApiKeyAuth = function() {
+  this.setApiKeyAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasApiKeyAuth = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional AuthPlugin plugin_auth = 5;
+ * @return {?proto.extauth.plugins.gloo.solo.io.AuthPlugin}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getPluginAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.AuthPlugin} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.AuthPlugin, 5));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.AuthPlugin|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setPluginAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearPluginAuth = function() {
+  this.setPluginAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasPluginAuth = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional OpaAuth opa_auth = 6;
+ * @return {?proto.extauth.plugins.gloo.solo.io.OpaAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getOpaAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.OpaAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.OpaAuth, 6));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.OpaAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setOpaAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearOpaAuth = function() {
+  this.setOpaAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasOpaAuth = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.extauth.plugins.gloo.solo.io.VhostExtension = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.extauth.plugins.gloo.solo.io.VhostExtension.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.VhostExtension.repeatedFields_, proto.extauth.plugins.gloo.solo.io.VhostExtension.oneofGroups_);
 };
 goog.inherits(proto.extauth.plugins.gloo.solo.io.VhostExtension, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.extauth.plugins.gloo.solo.io.VhostExtension.displayName = 'proto.extauth.plugins.gloo.solo.io.VhostExtension';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.VhostExtension.repeatedFields_ = [6];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -3110,7 +3725,9 @@ proto.extauth.plugins.gloo.solo.io.VhostExtension.toObject = function(includeIns
     oauth: (f = msg.getOauth()) && proto.extauth.plugins.gloo.solo.io.OAuth.toObject(includeInstance, f),
     customAuth: (f = msg.getCustomAuth()) && proto.extauth.plugins.gloo.solo.io.CustomAuth.toObject(includeInstance, f),
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ApiKeyAuth.toObject(includeInstance, f),
-    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.PluginAuth.toObject(includeInstance, f)
+    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.PluginAuth.toObject(includeInstance, f),
+    configsList: jspb.Message.toObjectList(msg.getConfigsList(),
+    proto.extauth.plugins.gloo.solo.io.AuthConfig.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -3171,6 +3788,11 @@ proto.extauth.plugins.gloo.solo.io.VhostExtension.deserializeBinaryFromReader = 
       var value = new proto.extauth.plugins.gloo.solo.io.PluginAuth;
       reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.PluginAuth.deserializeBinaryFromReader);
       msg.setPluginAuth(value);
+      break;
+    case 6:
+      var value = new proto.extauth.plugins.gloo.solo.io.AuthConfig;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.AuthConfig.deserializeBinaryFromReader);
+      msg.addConfigs(value);
       break;
     default:
       reader.skipField();
@@ -3239,6 +3861,14 @@ proto.extauth.plugins.gloo.solo.io.VhostExtension.serializeBinaryToWriter = func
       5,
       f,
       proto.extauth.plugins.gloo.solo.io.PluginAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getConfigsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      6,
+      f,
+      proto.extauth.plugins.gloo.solo.io.AuthConfig.serializeBinaryToWriter
     );
   }
 };
@@ -3391,6 +4021,37 @@ proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.clearPluginAuth = fu
  */
 proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.hasPluginAuth = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * repeated AuthConfig configs = 6;
+ * @return {!Array<!proto.extauth.plugins.gloo.solo.io.AuthConfig>}
+ */
+proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.getConfigsList = function() {
+  return /** @type{!Array<!proto.extauth.plugins.gloo.solo.io.AuthConfig>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.extauth.plugins.gloo.solo.io.AuthConfig, 6));
+};
+
+
+/** @param {!Array<!proto.extauth.plugins.gloo.solo.io.AuthConfig>} value */
+proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.setConfigsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 6, value);
+};
+
+
+/**
+ * @param {!proto.extauth.plugins.gloo.solo.io.AuthConfig=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.extauth.plugins.gloo.solo.io.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.addConfigs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.extauth.plugins.gloo.solo.io.AuthConfig, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.VhostExtension.prototype.clearConfigsList = function() {
+  this.setConfigsList([]);
 };
 
 
@@ -3550,12 +4211,19 @@ proto.extauth.plugins.gloo.solo.io.RouteExtension.prototype.setDisable = functio
  * @constructor
  */
 proto.extauth.plugins.gloo.solo.io.ExtAuthConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.repeatedFields_, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.oneofGroups_);
 };
 goog.inherits(proto.extauth.plugins.gloo.solo.io.ExtAuthConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.displayName = 'proto.extauth.plugins.gloo.solo.io.ExtAuthConfig';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.repeatedFields_ = [8];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -3617,7 +4285,9 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.toObject = function(includeInst
     oauth: (f = msg.getOauth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.extauth.plugins.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject(includeInstance, f),
-    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.PluginAuth.toObject(includeInstance, f)
+    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.PluginAuth.toObject(includeInstance, f),
+    configsList: jspb.Message.toObjectList(msg.getConfigsList(),
+    proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -3677,6 +4347,11 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.deserializeBinaryFromReader = f
       var value = new proto.extauth.plugins.gloo.solo.io.PluginAuth;
       reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.PluginAuth.deserializeBinaryFromReader);
       msg.setPluginAuth(value);
+      break;
+    case 8:
+      var value = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.deserializeBinaryFromReader);
+      msg.addConfigs(value);
       break;
     default:
       reader.skipField();
@@ -3744,6 +4419,14 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.serializeBinaryToWriter = funct
       6,
       f,
       proto.extauth.plugins.gloo.solo.io.PluginAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getConfigsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      8,
+      f,
+      proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.serializeBinaryToWriter
     );
   }
 };
@@ -4143,6 +4826,541 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.clea
 };
 
 
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.displayName = 'proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    modulesMap: (f = msg.getModulesMap()) ? f.toObject(includeInstance, undefined) : [],
+    query: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig;
+  return proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getModulesMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setQuery(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getModulesMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getQuery();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * map<string, string> modules = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.getModulesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.clearModulesMap = function() {
+  this.getModulesMap().clear();
+};
+
+
+/**
+ * optional string query = 2;
+ * @return {string}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.getQuery = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.prototype.setQuery = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_);
+};
+goog.inherits(proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.displayName = 'proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_ = [[3,4,5,6,7]];
+
+/**
+ * @enum {number}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.AuthConfigCase = {
+  AUTH_CONFIG_NOT_SET: 0,
+  OAUTH: 3,
+  BASIC_AUTH: 4,
+  API_KEY_AUTH: 5,
+  PLUGIN_AUTH: 6,
+  OPA_AUTH: 7
+};
+
+/**
+ * @return {proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.AuthConfigCase}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getAuthConfigCase = function() {
+  return /** @type {proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.AuthConfigCase} */(jspb.Message.computeOneofCase(this, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    oauth: (f = msg.getOauth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.toObject(includeInstance, f),
+    basicAuth: (f = msg.getBasicAuth()) && proto.extauth.plugins.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
+    apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject(includeInstance, f),
+    pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
+    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig;
+  return proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 3:
+      var value = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.deserializeBinaryFromReader);
+      msg.setOauth(value);
+      break;
+    case 4:
+      var value = new proto.extauth.plugins.gloo.solo.io.BasicAuth;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.BasicAuth.deserializeBinaryFromReader);
+      msg.setBasicAuth(value);
+      break;
+    case 5:
+      var value = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.deserializeBinaryFromReader);
+      msg.setApiKeyAuth(value);
+      break;
+    case 6:
+      var value = new proto.extauth.plugins.gloo.solo.io.AuthPlugin;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.AuthPlugin.deserializeBinaryFromReader);
+      msg.setPluginAuth(value);
+      break;
+    case 7:
+      var value = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.deserializeBinaryFromReader);
+      msg.setOpaAuth(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getOauth();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getBasicAuth();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.extauth.plugins.gloo.solo.io.BasicAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getApiKeyAuth();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getPluginAuth();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      proto.extauth.plugins.gloo.solo.io.AuthPlugin.serializeBinaryToWriter
+    );
+  }
+  f = message.getOpaAuth();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional OAuthConfig oauth = 3;
+ * @return {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getOauth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig, 3));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setOauth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearOauth = function() {
+  this.setOauth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasOauth = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional BasicAuth basic_auth = 4;
+ * @return {?proto.extauth.plugins.gloo.solo.io.BasicAuth}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getBasicAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.BasicAuth} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.BasicAuth, 4));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.BasicAuth|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setBasicAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearBasicAuth = function() {
+  this.setBasicAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasBasicAuth = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional ApiKeyAuthConfig api_key_auth = 5;
+ * @return {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getApiKeyAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig, 5));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setApiKeyAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearApiKeyAuth = function() {
+  this.setApiKeyAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasApiKeyAuth = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional AuthPlugin plugin_auth = 6;
+ * @return {?proto.extauth.plugins.gloo.solo.io.AuthPlugin}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getPluginAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.AuthPlugin} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.AuthPlugin, 6));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.AuthPlugin|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setPluginAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearPluginAuth = function() {
+  this.setPluginAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasPluginAuth = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional OpaAuthConfig opa_auth = 7;
+ * @return {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getOpaAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig, 7));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setOpaAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearOpaAuth = function() {
+  this.setOpaAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasOpaAuth = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
 /**
  * optional string vhost = 1;
  * @return {string}
@@ -4275,6 +5493,37 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.clearPluginAuth = fun
  */
 proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.hasPluginAuth = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * repeated AuthConfig configs = 8;
+ * @return {!Array<!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig>}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.getConfigsList = function() {
+  return /** @type{!Array<!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig, 8));
+};
+
+
+/** @param {!Array<!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig>} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.setConfigsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 8, value);
+};
+
+
+/**
+ * @param {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.addConfigs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 8, opt_value, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.prototype.clearConfigsList = function() {
+  this.setConfigsList([]);
 };
 
 

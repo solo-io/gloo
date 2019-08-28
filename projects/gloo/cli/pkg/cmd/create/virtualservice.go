@@ -166,15 +166,17 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 			return nil, errors.Errorf("invalid client secret ref specified: %v.%v", oidc.ClientSecretRef.Namespace, oidc.ClientSecretRef.Name)
 		}
 		vhostAuth := &extauth.VhostExtension{
-			AuthConfig: &extauth.VhostExtension_Oauth{
-				Oauth: &extauth.OAuth{
-					AppUrl:          oidc.AppUrl,
-					CallbackPath:    oidc.CallbackPath,
-					ClientId:        oidc.ClientId,
-					ClientSecretRef: oidc.ClientSecretRef,
-					IssuerUrl:       oidc.IssuerUrl,
+			Configs: []*extauth.AuthConfig{{
+				AuthConfig: &extauth.AuthConfig_Oauth{
+					Oauth: &extauth.OAuth{
+						AppUrl:          oidc.AppUrl,
+						CallbackPath:    oidc.CallbackPath,
+						ClientId:        oidc.ClientId,
+						ClientSecretRef: oidc.ClientSecretRef,
+						IssuerUrl:       oidc.IssuerUrl,
+					},
 				},
-			},
+			}},
 		}
 		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
 		if err != nil {
@@ -216,12 +218,14 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 		}
 
 		vhostAuth := &extauth.VhostExtension{
-			AuthConfig: &extauth.VhostExtension_ApiKeyAuth{
-				ApiKeyAuth: &extauth.ApiKeyAuth{
-					LabelSelector:    labelSelector,
-					ApiKeySecretRefs: secretRefs,
+			Configs: []*extauth.AuthConfig{{
+				AuthConfig: &extauth.AuthConfig_ApiKeyAuth{
+					ApiKeyAuth: &extauth.ApiKeyAuth{
+						LabelSelector:    labelSelector,
+						ApiKeySecretRefs: secretRefs,
+					},
 				},
-			},
+			}},
 		}
 		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
 		if err != nil {

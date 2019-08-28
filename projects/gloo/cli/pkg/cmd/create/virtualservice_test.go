@@ -34,7 +34,7 @@ var _ = Describe("Virtualservice", func() {
 		err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
 		Expect(err).NotTo(HaveOccurred())
 
-		return extension.AuthConfig.(*extauthpb.VhostExtension_Oauth).Oauth
+		return extension.Configs[0].GetOauth()
 	}
 
 	getApiKeyConfig := func() *extauthpb.ApiKeyAuth {
@@ -47,7 +47,7 @@ var _ = Describe("Virtualservice", func() {
 		err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
 		Expect(err).NotTo(HaveOccurred())
 
-		return extension.AuthConfig.(*extauthpb.VhostExtension_ApiKeyAuth).ApiKeyAuth
+		return extension.Configs[0].GetApiKeyAuth()
 	}
 
 	DescribeTable("should create oidc vhost",

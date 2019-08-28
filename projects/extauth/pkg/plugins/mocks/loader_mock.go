@@ -50,3 +50,18 @@ func (mr *MockLoaderMockRecorder) Load(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockLoader)(nil).Load), arg0, arg1)
 }
+
+// LoadAuthPlugin mocks base method
+func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *extauth.AuthPlugin) (api.AuthService, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAuthPlugin", arg0, arg1)
+	ret0, _ := ret[0].(api.AuthService)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAuthPlugin indicates an expected call of LoadAuthPlugin
+func (mr *MockLoaderMockRecorder) LoadAuthPlugin(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthPlugin", reflect.TypeOf((*MockLoader)(nil).LoadAuthPlugin), arg0, arg1)
+}

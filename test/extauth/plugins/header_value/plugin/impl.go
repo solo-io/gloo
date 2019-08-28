@@ -55,8 +55,8 @@ func (c *HeaderValueAuthService) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *HeaderValueAuthService) Authorize(ctx context.Context, request *envoyauthv2.CheckRequest) (*api.AuthorizationResponse, error) {
-	for key, value := range request.Attributes.Request.Http.Headers {
+func (c *HeaderValueAuthService) Authorize(ctx context.Context, request *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
+	for key, value := range request.CheckRequest.Attributes.Request.Http.Headers {
 		if key == c.RequiredHeader {
 			logger(ctx).Infow("Found required header, checking value.", "header", key, "value", value)
 

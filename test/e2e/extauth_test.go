@@ -226,6 +226,9 @@ var _ = Describe("External ", func() {
 			var (
 				privatekey      *rsa.PrivateKey
 				discoveryServer fakeDiscoveryServer
+				secret          *gloov1.Secret
+				proxy           *gloov1.Proxy
+				token           string
 			)
 			BeforeEach(func() {
 				discoveryServer = fakeDiscoveryServer{}
@@ -238,7 +241,7 @@ var _ = Describe("External ", func() {
 				secretStruct, err := envoyutil.MessageToStruct(clientSecret)
 				Expect(err).NotTo(HaveOccurred())
 
-				secret := &gloov1.Secret{
+				secret = &gloov1.Secret{
 					Metadata: core.Metadata{
 						Name:      "secret",
 						Namespace: "default",
@@ -251,9 +254,23 @@ var _ = Describe("External ", func() {
 				}
 				testClients.SecretClient.Write(secret, clients.WriteOpts{})
 
-				proxy := getProxyExtAuthOIDC(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref())
+				proxy = getProxyExtAuthOIDC(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref())
 
-				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				// create an id token
+				tokentosign := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					"foo": "bar",
+					"aud": "test-clientid",
+					"sub": "user",
+					"iss": "http://127.0.0.1:5556",
+				})
+				tokentosign.Header["kid"] = "test-123"
+				token, err = tokentosign.SignedString(privatekey)
+				Expect(err).NotTo(HaveOccurred())
+
+			})
+
+			JustBeforeEach(func() {
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Eventually(func() (core.Status, error) {
@@ -318,43 +335,103 @@ var _ = Describe("External ", func() {
 						"Header":     HaveKeyWithValue("Location", []string{finalpage}),
 					}))
 				})
-			})
 
-			Context("Oidc tests that do forward to upstream", func() {
+				Context("oidc + opa sanity", func() {
+					BeforeEach(func() {
+						policy := &gloov1.Artifact{
+							Metadata: core.Metadata{
+								Name:      "jwt",
+								Namespace: "default",
+								Labels:    map[string]string{"team": "infrastructure"},
+							},
+							Data: map[string]string{
+								"jwt.rego": `package test
+	
+				default allow = false
+				allow {
+					[header, payload, signature] = io.jwt.decode(input.state.jwt)
+					payload["foo"] = "not-bar"
+				}
+				`}}
+						modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+						proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
 
-				It("should allow access with proper jwt token", func() {
-					Eventually(func() (int, error) {
+						_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
+						Expect(err).ToNot(HaveOccurred())
+					})
 
-						// create an id token
+					It("should NOT allow access", func() {
+						EventuallyWithOffset(1, func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							req.Header.Add("Authorization", "Bearer "+token)
 
-						tokentosign := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-							"foo": "bar",
-							"aud": "test-clientid",
-							"sub": "user",
-							"iss": "http://127.0.0.1:5556",
-						})
-						tokentosign.Header["kid"] = "test-123"
-						token, err := tokentosign.SignedString(privatekey)
-						Expect(err).NotTo(HaveOccurred())
-						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-						req.Header.Add("Authorization", "Bearer "+token)
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+					})
 
-					select {
-					case r := <-testUpstream.C:
-						Expect(r.Headers["X-User-Id"]).To(HaveLen(1))
-						Expect(r.Headers["X-User-Id"][0]).To(Equal("http://127.0.0.1:5556;user"))
-					case <-time.After(time.Second):
-						Fail("expected a message to be received")
-					}
 				})
 			})
+
+			ExpectUpstreamRequest := func() {
+				EventuallyWithOffset(1, func() (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					req.Header.Add("Authorization", "Bearer "+token)
+
+					resp, err := http.DefaultClient.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+				select {
+				case r := <-testUpstream.C:
+					ExpectWithOffset(1, r.Headers["X-User-Id"]).To(HaveLen(1))
+					ExpectWithOffset(1, r.Headers["X-User-Id"][0]).To(Equal("http://127.0.0.1:5556;user"))
+				case <-time.After(time.Second):
+					Fail("expected a message to be received")
+				}
+			}
+
+			Context("Oidc tests that do forward to upstream", func() {
+				It("should allow access with proper jwt token", func() {
+					ExpectUpstreamRequest()
+				})
+			})
+
+			Context("oidc + opa sanity", func() {
+				BeforeEach(func() {
+					policy := &gloov1.Artifact{
+						Metadata: core.Metadata{
+							Name:      "jwt",
+							Namespace: "default",
+							Labels:    map[string]string{"team": "infrastructure"},
+						},
+						Data: map[string]string{
+							"jwt.rego": `package test
+
+			default allow = false
+			allow {
+				[header, payload, signature] = io.jwt.decode(input.state.jwt)
+				payload["foo"] = "bar"
+			}
+			`}}
+					modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+					proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
+
+					_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("should allow access", func() {
+					ExpectUpstreamRequest()
+				})
+			})
+
 		})
 
 		Context("api key sanity tests", func() {
@@ -587,16 +664,40 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 	return cachedPrivateKey
 }
 
+func getOauthConfig(secretRef core.ResourceRef) *extauth.OAuth {
+	return &extauth.OAuth{
+		ClientId:        "test-clientid",
+		ClientSecretRef: &secretRef,
+		IssuerUrl:       "http://localhost:5556/",
+		AppUrl:          "http://example.com",
+		CallbackPath:    "/callback",
+	}
+}
+
 func getProxyExtAuthOIDC(envoyPort uint32, secretRef, upstream core.ResourceRef) *gloov1.Proxy {
 	extauthCfg := &extauth.VhostExtension{
 		AuthConfig: &extauth.VhostExtension_Oauth{
-			Oauth: &extauth.OAuth{
+			Oauth: getOauthConfig(secretRef),
+		},
+	}
+	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
+}
 
-				ClientId:        "test-clientid",
-				ClientSecretRef: &secretRef,
-				IssuerUrl:       "http://localhost:5556/",
-				AppUrl:          "http://example.com",
-				CallbackPath:    "/callback",
+func getProxyExtAuthOIDCAndOpa(envoyPort uint32, secretRef, upstream core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
+	extauthCfg := &extauth.VhostExtension{
+		Configs: []*extauth.AuthConfig{
+			{
+				AuthConfig: &extauth.AuthConfig_Oauth{
+					Oauth: getOauthConfig(secretRef),
+				},
+			},
+			{
+				AuthConfig: &extauth.AuthConfig_OpaAuth{
+					OpaAuth: &extauth.OpaAuth{
+						Modules: modules,
+						Query:   "data.test.allow == true",
+					},
+				},
 			},
 		},
 	}

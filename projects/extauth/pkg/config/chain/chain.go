@@ -1,4 +1,4 @@
-package plugins
+package chain
 
 import (
 	"context"
@@ -14,33 +14,35 @@ import (
 	"go.uber.org/zap"
 )
 
-var DuplicatePluginNameError = func(name string) error {
-	return errors.Errorf("duplicate plugin name [%s]", name)
+var DuplicateAuthServiceNameError = func(name string) error {
+	return errors.Errorf("duplicate auth service name [%s]", name)
 }
 
-func NewExtAuthPluginChain() *pluginChain {
-	return &pluginChain{}
+func NewAuthServiceChain() *authServiceChain {
+	return &authServiceChain{}
 }
 
-type ExtAuthPluginChain interface {
+type AuthServiceChain interface {
 	api.AuthService
-	AddPlugin(name string, plugin api.AuthService) error
+	AddAuthService(name string, authService api.AuthService) error
 }
 
-type pluginWithName struct {
-	name   string
-	plugin api.AuthService
+var _ AuthServiceChain = &authServiceChain{}
+
+type authServiceWithName struct {
+	name        string
+	authService api.AuthService
 }
 
-// Used to wrap a collection of auth plugins and expose them as a single AuthService Implementation
-type pluginChain struct {
-	plugins []pluginWithName
-	started bool
-	names   []string
+// Used to wrap a collection of auth services and expose them as a single AuthService Implementation
+type authServiceChain struct {
+	authServices []authServiceWithName
+	started      bool
+	names        []string
 }
 
-// Returns true if the chain contains a plugin with the given name
-func (s *pluginChain) contains(name string) bool {
+// Returns true if the chain contains a auth service with the given name
+func (s *authServiceChain) contains(name string) bool {
 	for _, existingName := range s.names {
 		if existingName == name {
 			return true
@@ -49,25 +51,25 @@ func (s *pluginChain) contains(name string) bool {
 	return false
 }
 
-func (s *pluginChain) AddPlugin(name string, plugin api.AuthService) error {
+func (s *authServiceChain) AddAuthService(name string, authService api.AuthService) error {
 	if s.started {
-		panic("cannot add plugin to started plugin chain!")
+		panic("cannot add authService to started authServiceChain!")
 	}
 	if s.contains(name) {
-		return DuplicatePluginNameError(name)
+		return DuplicateAuthServiceNameError(name)
 	}
-	s.plugins = append(s.plugins, pluginWithName{
-		name:   name,
-		plugin: plugin,
+	s.authServices = append(s.authServices, authServiceWithName{
+		name:        name,
+		authService: authService,
 	})
 	// Pre-compute the list of names so we don't have to loop during actual requests
 	s.names = append(s.names, name)
 	return nil
 }
 
-func (s *pluginChain) Start(ctx context.Context) error {
-	for _, p := range s.plugins {
-		if err := p.plugin.Start(ctx); err != nil {
+func (s *authServiceChain) Start(ctx context.Context) error {
+	for _, p := range s.authServices {
+		if err := p.authService.Start(ctx); err != nil {
 			return err
 		}
 	}
@@ -75,34 +77,39 @@ func (s *pluginChain) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *pluginChain) Authorize(ctx context.Context, request *envoyauthv2.CheckRequest) (*api.AuthorizationResponse, error) {
+func (s *authServiceChain) Authorize(ctx context.Context, request *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
 
 	// Base case: allow request
 	lastResponse := api.AuthorizedResponse()
 
-	for i, p := range s.plugins {
+	for i, p := range s.authServices {
 
-		response, err := p.plugin.Authorize(ctx, request)
+		response, err := p.authService.Authorize(ctx, request)
 		if err != nil {
-			contextutils.LoggerFrom(ctx).Errorw("Error during plugin execution",
-				zap.Any("plugin", p.name),
+			contextutils.LoggerFrom(ctx).Errorw("Error during authService execution",
+				zap.Any("authService", p.name),
 				zap.Any("error", err),
 			)
 			return nil, err
 		}
 
-		// If response is not OK return without executing any further plugin. Nil status means OK
+		// If response is not OK return without executing any further authService. Nil status means OK
 		if status := response.CheckResponse.Status; status != nil && status.Code != int32(rpc.OK) {
-			contextutils.LoggerFrom(ctx).Infow("Access denied by auth plugin", zap.Any("plugin", p.name))
-			if i < len(s.plugins)-1 {
-				contextutils.LoggerFrom(ctx).Debugw("Skipping execution of following plugins",
-					zap.Any("skippedPlugins", s.names[i+1:]))
+			contextutils.LoggerFrom(ctx).Debugw("Access denied by auth authService", zap.Any("authService", p.name))
+			if i < len(s.authServices)-1 {
+				contextutils.LoggerFrom(ctx).Debugw("Skipping execution of following authServices",
+					zap.Any("skippedauthServices", s.names[i+1:]))
 			}
 			return response, nil
 		}
 
 		// Response is OK, merge headers into previous request
 		responseHeaders := mergeHeaders(lastResponse.CheckResponse.GetOkResponse(), response.CheckResponse.GetOkResponse())
+
+		// If no new user id given, merge the one from the last response
+		if response.UserInfo.UserID == "" {
+			response.UserInfo = lastResponse.UserInfo
+		}
 
 		if responseHeaders != nil {
 			response.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_OkResponse{

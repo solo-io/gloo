@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	v2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/solo-io/ext-auth-plugins/api"
 )
@@ -37,7 +36,7 @@ func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 }
 
 // Authorize mocks base method
-func (m *MockAuthService) Authorize(arg0 context.Context, arg1 *v2.CheckRequest) (*api.AuthorizationResponse, error) {
+func (m *MockAuthService) Authorize(arg0 context.Context, arg1 *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", arg0, arg1)
 	ret0, _ := ret[0].(*api.AuthorizationResponse)

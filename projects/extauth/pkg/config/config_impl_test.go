@@ -6,6 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
+	chainmocks "github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain/mocks"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins/mocks"
 
 	"github.com/solo-io/ext-auth-plugins/api"
@@ -70,7 +71,7 @@ var _ = Describe("Config Generator", func() {
 		var okPlugin = &extauth.AuthPlugin{Name: "ThisOneWorks"}
 
 		BeforeEach(func() {
-			authServiceMock := mocks.NewMockAuthService(ctrl)
+			authServiceMock := chainmocks.NewMockAuthService(ctrl)
 			authServiceMock.EXPECT().Start(gomock.Any()).Return(nil).AnyTimes()
 			authServiceMock.EXPECT().Authorize(gomock.Any(), gomock.Any()).Times(0)
 
@@ -119,7 +120,7 @@ var _ = Describe("Config Generator", func() {
 
 			pluginConfig, ok := cfg.Configs[resources[0].Vhost]
 			Expect(ok).To(BeTrue())
-			_, ok = pluginConfig.(*mocks.MockAuthService)
+			_, ok = pluginConfig.(*chainmocks.MockAuthService)
 			Expect(ok).To(BeTrue())
 
 			basicAuthConfig, ok := cfg.Configs[resources[1].Vhost]
