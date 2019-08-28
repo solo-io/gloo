@@ -207,6 +207,7 @@ func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCac
 		&cfg,
 		clientset,
 		&kubeCoreCache,
+		consulClient,
 		gloov1.ArtifactCrd.Plural,
 	)
 	if err != nil {

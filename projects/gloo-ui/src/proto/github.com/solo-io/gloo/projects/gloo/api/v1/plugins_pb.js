@@ -303,7 +303,8 @@ proto.gloo.solo.io.HttpListenerPlugins.prototype.toObject = function(opt_include
 proto.gloo.solo.io.HttpListenerPlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
     grpcWeb: (f = msg.getGrpcWeb()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb.toObject(includeInstance, f),
-    httpConnectionManagerSettings: (f = msg.getHttpConnectionManagerSettings()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.toObject(includeInstance, f)
+    httpConnectionManagerSettings: (f = msg.getHttpConnectionManagerSettings()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.toObject(includeInstance, f),
+    extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -350,6 +351,11 @@ proto.gloo.solo.io.HttpListenerPlugins.deserializeBinaryFromReader = function(ms
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.deserializeBinaryFromReader);
       msg.setHttpConnectionManagerSettings(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.deserializeBinaryFromReader);
+      msg.setExtensions(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -393,6 +399,14 @@ proto.gloo.solo.io.HttpListenerPlugins.serializeBinaryToWriter = function(messag
       2,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtensions();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
     );
   }
 };
@@ -455,6 +469,36 @@ proto.gloo.solo.io.HttpListenerPlugins.prototype.clearHttpConnectionManagerSetti
  */
 proto.gloo.solo.io.HttpListenerPlugins.prototype.hasHttpConnectionManagerSettings = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Extensions extensions = 3;
+ * @return {?proto.gloo.solo.io.Extensions}
+ */
+proto.gloo.solo.io.HttpListenerPlugins.prototype.getExtensions = function() {
+  return /** @type{?proto.gloo.solo.io.Extensions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions, 3));
+};
+
+
+/** @param {?proto.gloo.solo.io.Extensions|undefined} value */
+proto.gloo.solo.io.HttpListenerPlugins.prototype.setExtensions = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerPlugins.prototype.clearExtensions = function() {
+  this.setExtensions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerPlugins.prototype.hasExtensions = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

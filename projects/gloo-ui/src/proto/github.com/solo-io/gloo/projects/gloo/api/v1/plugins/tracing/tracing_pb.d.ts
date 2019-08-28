@@ -15,6 +15,11 @@ export class ListenerTracingSettings extends jspb.Message {
   getVerbose(): boolean;
   setVerbose(value: boolean): void;
 
+  hasTracePercentages(): boolean;
+  clearTracePercentages(): void;
+  getTracePercentages(): TracePercentages | undefined;
+  setTracePercentages(value?: TracePercentages): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerTracingSettings.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerTracingSettings): ListenerTracingSettings.AsObject;
@@ -29,12 +34,18 @@ export namespace ListenerTracingSettings {
   export type AsObject = {
     requestHeadersForTagsList: Array<string>,
     verbose: boolean,
+    tracePercentages?: TracePercentages.AsObject,
   }
 }
 
 export class RouteTracingSettings extends jspb.Message {
   getRouteDescriptor(): string;
   setRouteDescriptor(value: string): void;
+
+  hasTracePercentages(): boolean;
+  clearTracePercentages(): void;
+  getTracePercentages(): TracePercentages | undefined;
+  setTracePercentages(value?: TracePercentages): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteTracingSettings.AsObject;
@@ -49,6 +60,41 @@ export class RouteTracingSettings extends jspb.Message {
 export namespace RouteTracingSettings {
   export type AsObject = {
     routeDescriptor: string,
+    tracePercentages?: TracePercentages.AsObject,
+  }
+}
+
+export class TracePercentages extends jspb.Message {
+  hasClientSamplePercentage(): boolean;
+  clearClientSamplePercentage(): void;
+  getClientSamplePercentage(): google_protobuf_wrappers_pb.FloatValue | undefined;
+  setClientSamplePercentage(value?: google_protobuf_wrappers_pb.FloatValue): void;
+
+  hasRandomSamplePercentage(): boolean;
+  clearRandomSamplePercentage(): void;
+  getRandomSamplePercentage(): google_protobuf_wrappers_pb.FloatValue | undefined;
+  setRandomSamplePercentage(value?: google_protobuf_wrappers_pb.FloatValue): void;
+
+  hasOverallSamplePercentage(): boolean;
+  clearOverallSamplePercentage(): void;
+  getOverallSamplePercentage(): google_protobuf_wrappers_pb.FloatValue | undefined;
+  setOverallSamplePercentage(value?: google_protobuf_wrappers_pb.FloatValue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TracePercentages.AsObject;
+  static toObject(includeInstance: boolean, msg: TracePercentages): TracePercentages.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TracePercentages, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TracePercentages;
+  static deserializeBinaryFromReader(message: TracePercentages, reader: jspb.BinaryReader): TracePercentages;
+}
+
+export namespace TracePercentages {
+  export type AsObject = {
+    clientSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
+    randomSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
+    overallSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
   }
 }
 

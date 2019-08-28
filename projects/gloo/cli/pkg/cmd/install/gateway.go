@@ -86,10 +86,11 @@ func GetInstallSpec(opts *options.Options, optsExt *optionsExt.ExtraOptions) (*g
 	}
 
 	return &glooInstall.GlooInstallSpec{
-		HelmArchiveUri:   helmChartArchiveUri,
-		ProductName:      "glooe",
-		ValueFileName:    "",
-		ExtraValues:      extraValues,
-		ExcludeResources: getExcludeExistingPVCs(opts.Install.Namespace),
+		HelmArchiveUri:    helmChartArchiveUri,
+		ProductName:       "glooe",
+		ValueFileName:     "",
+		ExtraValues:       extraValues,
+		ExcludeResources:  getExcludeExistingPVCs(opts.Install.Namespace),
+		UserValueFileName: opts.Install.HelmChartValues,
 	}, nil
 }

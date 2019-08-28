@@ -74,6 +74,11 @@ export class HttpListenerPlugins extends jspb.Message {
   getHttpConnectionManagerSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings | undefined;
   setHttpConnectionManagerSettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings): void;
 
+  hasExtensions(): boolean;
+  clearExtensions(): void;
+  getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
+  setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerPlugins): HttpListenerPlugins.AsObject;
@@ -88,6 +93,7 @@ export namespace HttpListenerPlugins {
   export type AsObject = {
     grpcWeb?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb.AsObject,
     httpConnectionManagerSettings?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.AsObject,
+    extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
   }
 }
 

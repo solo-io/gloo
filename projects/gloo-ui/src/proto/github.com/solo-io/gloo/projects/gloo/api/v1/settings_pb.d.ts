@@ -60,6 +60,11 @@ export class Settings extends jspb.Message {
   getDirectoryArtifactSource(): Settings.Directory | undefined;
   setDirectoryArtifactSource(value?: Settings.Directory): void;
 
+  hasConsulKvArtifactSource(): boolean;
+  clearConsulKvArtifactSource(): void;
+  getConsulKvArtifactSource(): Settings.ConsulKv | undefined;
+  setConsulKvArtifactSource(value?: Settings.ConsulKv): void;
+
   getBindAddr(): string;
   setBindAddr(value: string): void;
 
@@ -139,6 +144,7 @@ export namespace Settings {
     directorySecretSource?: Settings.Directory.AsObject,
     kubernetesArtifactSource?: Settings.KubernetesConfigmaps.AsObject,
     directoryArtifactSource?: Settings.Directory.AsObject,
+    consulKvArtifactSource?: Settings.ConsulKv.AsObject,
     bindAddr: string,
     refreshRate?: google_protobuf_duration_pb.Duration.AsObject,
     devMode: boolean,
@@ -507,6 +513,7 @@ export namespace Settings {
     ARTIFACT_SOURCE_NOT_SET = 0,
     KUBERNETES_ARTIFACT_SOURCE = 9,
     DIRECTORY_ARTIFACT_SOURCE = 10,
+    CONSUL_KV_ARTIFACT_SOURCE = 23,
   }
 }
 

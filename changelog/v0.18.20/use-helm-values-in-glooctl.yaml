@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.18.26
+    description: Update gloo to version 0.18.26.
+  - type: FIX
+    description: Use helms values in glooctl.
+    issueLink: https://github.com/solo-io/solo-projects/issues/995
+  - type: FIX
+    description: Glooctl install works when disabling grafana and/or prometheus.
+    issueLink: https://github.com/solo-io/solo-projects/issues/996

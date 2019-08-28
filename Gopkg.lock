@@ -1357,7 +1357,7 @@
   version = "v0.4.2"
 
 [[projects]]
-  digest = "1:3131f6ecc49f9666fefe60210cb91fa52d6a20ed52e5e5a83e07dc1cba067e64"
+  digest = "1:5f5cac65496642f868722b2888be5bc2bebdd1f0f93a8db60eadaeec79a7c46e"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1408,6 +1408,7 @@
     "projects/gloo/cli/pkg/constants",
     "projects/gloo/cli/pkg/flagutils",
     "projects/gloo/cli/pkg/helpers",
+    "projects/gloo/cli/pkg/prerun",
     "projects/gloo/cli/pkg/printers",
     "projects/gloo/cli/pkg/surveyutils",
     "projects/gloo/cli/pkg/testutils",
@@ -1484,8 +1485,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "f13aa4d09f60940a18cfb8d3228ace9997e83fb2"
-  version = "v0.18.22"
+  revision = "b5e1a678076d43a1dcd134680902bc9a7dc981aa"
+  version = "v0.18.26"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"

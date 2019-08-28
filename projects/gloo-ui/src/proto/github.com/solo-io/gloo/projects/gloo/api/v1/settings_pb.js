@@ -67,7 +67,7 @@ proto.gloo.solo.io.Settings.repeatedFields_ = [2];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Settings.oneofGroups_ = [[4,5,21],[6,7,8],[9,10]];
+proto.gloo.solo.io.Settings.oneofGroups_ = [[4,5,21],[6,7,8],[9,10,23]];
 
 /**
  * @enum {number}
@@ -109,7 +109,8 @@ proto.gloo.solo.io.Settings.prototype.getSecretSourceCase = function() {
 proto.gloo.solo.io.Settings.ArtifactSourceCase = {
   ARTIFACT_SOURCE_NOT_SET: 0,
   KUBERNETES_ARTIFACT_SOURCE: 9,
-  DIRECTORY_ARTIFACT_SOURCE: 10
+  DIRECTORY_ARTIFACT_SOURCE: 10,
+  CONSUL_KV_ARTIFACT_SOURCE: 23
 };
 
 /**
@@ -158,6 +159,7 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     directorySecretSource: (f = msg.getDirectorySecretSource()) && proto.gloo.solo.io.Settings.Directory.toObject(includeInstance, f),
     kubernetesArtifactSource: (f = msg.getKubernetesArtifactSource()) && proto.gloo.solo.io.Settings.KubernetesConfigmaps.toObject(includeInstance, f),
     directoryArtifactSource: (f = msg.getDirectoryArtifactSource()) && proto.gloo.solo.io.Settings.Directory.toObject(includeInstance, f),
+    consulKvArtifactSource: (f = msg.getConsulKvArtifactSource()) && proto.gloo.solo.io.Settings.ConsulKv.toObject(includeInstance, f),
     bindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
     refreshRate: (f = msg.getRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     devMode: jspb.Message.getFieldWithDefault(msg, 13, false),
@@ -253,6 +255,11 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new proto.gloo.solo.io.Settings.Directory;
       reader.readMessage(value,proto.gloo.solo.io.Settings.Directory.deserializeBinaryFromReader);
       msg.setDirectoryArtifactSource(value);
+      break;
+    case 23:
+      var value = new proto.gloo.solo.io.Settings.ConsulKv;
+      reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulKv.deserializeBinaryFromReader);
+      msg.setConsulKvArtifactSource(value);
       break;
     case 11:
       var value = /** @type {string} */ (reader.readString());
@@ -416,6 +423,14 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       10,
       f,
       proto.gloo.solo.io.Settings.Directory.serializeBinaryToWriter
+    );
+  }
+  f = message.getConsulKvArtifactSource();
+  if (f != null) {
+    writer.writeMessage(
+      23,
+      f,
+      proto.gloo.solo.io.Settings.ConsulKv.serializeBinaryToWriter
     );
   }
   f = message.getBindAddr();
@@ -3130,6 +3145,36 @@ proto.gloo.solo.io.Settings.prototype.clearDirectoryArtifactSource = function() 
  */
 proto.gloo.solo.io.Settings.prototype.hasDirectoryArtifactSource = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional ConsulKv consul_kv_artifact_source = 23;
+ * @return {?proto.gloo.solo.io.Settings.ConsulKv}
+ */
+proto.gloo.solo.io.Settings.prototype.getConsulKvArtifactSource = function() {
+  return /** @type{?proto.gloo.solo.io.Settings.ConsulKv} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Settings.ConsulKv, 23));
+};
+
+
+/** @param {?proto.gloo.solo.io.Settings.ConsulKv|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setConsulKvArtifactSource = function(value) {
+  jspb.Message.setOneofWrapperField(this, 23, proto.gloo.solo.io.Settings.oneofGroups_[2], value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearConsulKvArtifactSource = function() {
+  this.setConsulKvArtifactSource(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasConsulKvArtifactSource = function() {
+  return jspb.Message.getField(this, 23) != null;
 };
 
 
