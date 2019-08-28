@@ -13,6 +13,7 @@ type ExtraOptions struct {
 	RateLimit  RateLimit
 	OIDCAuth   OIDCAuth
 	ApiKeyAuth ApiKeyAuth
+	OpaAuth    OpaAuth
 }
 
 var RateLimit_TimeUnits = func() []string {
@@ -53,4 +54,11 @@ type OIDCSettings struct {
 
 type InstallExtended struct {
 	LicenseKey string
+}
+
+type OpaAuth struct {
+	Enable bool
+
+	Query   string
+	Modules []string
 }

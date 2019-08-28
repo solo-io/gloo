@@ -26,6 +26,7 @@ glooctl create virtualservice [flags]
       --domains strings                            comma separated list of domains
       --enable-apikey-auth                         enable apikey auth features for this virtual service
       --enable-oidc-auth                           enable oidc auth features for this virtual service
+      --enable-opa-auth                            enable opa auth features for this virtual service
       --enable-rate-limiting                       enable rate limiting features for this virtual service
   -h, --help                                       help for virtualservice
       --oidc-auth-app-url string                   the public url of your app
@@ -34,6 +35,8 @@ glooctl create virtualservice [flags]
       --oidc-auth-client-secret-name string        name of the 'client secret' secret
       --oidc-auth-client-secret-namespace string   namespace of the 'client secret' secret
       --oidc-auth-issuer-url string                the url of the issuer
+      --opa-module-ref strings                     namespace.name references to a config map containing OPA modules
+      --opa-query string                           The OPA query to evaluate on a request
       --rate-limit-requests uint32                 requests per unit of time (default 100)
       --rate-limit-time-unit string                unit of time over which to apply the rate limit (default "MINUTE")
 ```

@@ -10,6 +10,7 @@ func AddVirtualServiceFlags(set *pflag.FlagSet, opts *options.ExtraOptions) {
 	addVirtualServiceFlagsRateLinmit(set, &opts.RateLimit)
 	addVirtualServiceFlagsOIDC(set, &opts.OIDCAuth)
 	addVirtualServiceFlagsApiKey(set, &opts.ApiKeyAuth)
+	addVirtualServiceFlagsOpa(set, &opts.OpaAuth)
 }
 
 func addVirtualServiceFlagsRateLinmit(set *pflag.FlagSet, rl *options.RateLimit) {
@@ -39,4 +40,12 @@ func addVirtualServiceFlagsApiKey(set *pflag.FlagSet, apiKey *options.ApiKeyAuth
 	set.StringSliceVar(&apiKey.Labels, "apikey-label-selector", []string{}, "apikey label selector to identify valid apikeys for this virtual service; a comma-separated list of labels (key=value)")
 	set.StringVar(&apiKey.SecretNamespace, "apikey-secret-namespace", "", "namespace to search for an individual apikey secret")
 	set.StringVar(&apiKey.SecretName, "apikey-secret-name", "", "name to search for in provided namespace for an individual apikey secret")
+}
+
+func addVirtualServiceFlagsOpa(set *pflag.FlagSet, opa *options.OpaAuth) {
+	// TODO: add support for authorization when it is supported for ratelimit
+	//set.StringVar(&virtualHostPlugins.RateLimits.AuthorizedHeader, "rate-limit-authorize-header", "", "header name used to authorize requests")
+	set.BoolVar(&opa.Enable, "enable-opa-auth", false, "enable opa auth features for this virtual service")
+	set.StringVar(&opa.Query, "opa-query", "", "The OPA query to evaluate on a request")
+	set.StringSliceVar(&opa.Modules, "opa-module-ref", []string{}, "namespace.name references to a config map containing OPA modules")
 }

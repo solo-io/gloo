@@ -24,7 +24,7 @@ var _ = Describe("Virtualservice", func() {
 		helpers.UseMemoryClients()
 	})
 
-	getOIDCConfig := func() *extauthpb.OAuth {
+	getExtension := func() extauthpb.VhostExtension {
 
 		vs, err := helpers.MustVirtualServiceClient().Read("gloo-system", "vs1", clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -33,21 +33,22 @@ var _ = Describe("Virtualservice", func() {
 		var extension extauthpb.VhostExtension
 		err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
 		Expect(err).NotTo(HaveOccurred())
+		return extension
+	}
 
-		return extension.Configs[0].GetOauth()
+	getOIDCConfig := func() *extauthpb.OAuth {
+		return getExtension().Configs[0].GetOauth()
 	}
 
 	getApiKeyConfig := func() *extauthpb.ApiKeyAuth {
+		return getExtension().Configs[0].GetApiKeyAuth()
+	}
+	getOpaConfig := func() *extauthpb.OpaAuth {
+		return getExtension().Configs[0].GetOpaAuth()
+	}
 
-		vs, err := helpers.MustVirtualServiceClient().Read("gloo-system", "vs1", clients.ReadOpts{})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(vs.Metadata.Name).To(Equal("vs1"))
-
-		var extension extauthpb.VhostExtension
-		err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
-		Expect(err).NotTo(HaveOccurred())
-
-		return extension.Configs[0].GetApiKeyAuth()
+	get2ndOpaConfig := func() *extauthpb.OpaAuth {
+		return getExtension().Configs[1].GetOpaAuth()
 	}
 
 	DescribeTable("should create oidc vhost",
@@ -139,6 +140,56 @@ var _ = Describe("Virtualservice", func() {
 		})
 	})
 
+	DescribeTable("should create opa vhost",
+		func(cmd string, expected extauthpb.OpaAuth) {
+			err := testutils.GlooctlEE(cmd)
+			Expect(err).NotTo(HaveOccurred())
+			opa := getOpaConfig()
+			Expect(*opa).To(Equal(expected))
+		},
+		Entry("with opa query and no modules", "create vs --name vs1 --enable-opa-auth "+
+			"--opa-query test",
+			extauthpb.OpaAuth{
+				Query: "test",
+			}),
+		Entry("with opa query and some modules", "create vs --name vs1 --enable-opa-auth "+
+			"--opa-query test --opa-module-ref ns1.name1 --opa-module-ref ns2.name2",
+			extauthpb.OpaAuth{
+				Query:   "test",
+				Modules: []*core.ResourceRef{{Namespace: "ns1", Name: "name1"}, {Namespace: "ns2", Name: "name2"}},
+			}),
+	)
+
+	It("should create opa after oidc", func() {
+		err := testutils.GlooctlEE("create vs --name vs1 " +
+			"--enable-oidc-auth --oidc-auth-client-id 1 " +
+			"--oidc-auth-app-url http://app.example.com --oidc-auth-client-secret-name fake " +
+			"--oidc-auth-client-secret-namespace fakens --oidc-auth-issuer-url http://issuer.example.com " +
+			"--oidc-auth-callback-path /cb " +
+			"--enable-opa-auth --opa-query test --opa-module-ref ns1.name1 --opa-module-ref ns2.name2")
+		Expect(err).NotTo(HaveOccurred())
+
+		expected := extauthpb.OpaAuth{
+			Query:   "test",
+			Modules: []*core.ResourceRef{{Namespace: "ns1", Name: "name1"}, {Namespace: "ns2", Name: "name2"}},
+		}
+
+		oidc := getOIDCConfig()
+		Expect(oidc).NotTo(BeNil())
+
+		opa := get2ndOpaConfig()
+		Expect(opa).NotTo(BeNil())
+		Expect(*opa).To(Equal(expected))
+
+	})
+
+	Context("OPA virtual service errors", func() {
+		It("throws error if no query provided ", func() {
+			_, err := testutils.GlooctlEEOut("create vs --name vs1 --enable-opa-auth")
+			Expect(err).To(MatchError(create.EmptyQueryError))
+		})
+	})
+
 	Context("Interactive tests", func() {
 
 		It("should create vs with no rate limits and auth", func() {
@@ -151,10 +202,14 @@ var _ = Describe("Virtualservice", func() {
 				c.SendLine("n")
 				c.ExpectString("do you wish to add apikey auth to the virtual service")
 				c.SendLine("n")
+				c.ExpectString("do you wish to add OPA auth to the virtual service")
+				c.SendLine("n")
+
 				c.ExpectString("Use default namespace (gloo-system)?")
 				c.SendLine("")
 				c.ExpectString("name of the resource:")
 				c.SendLine("default")
+
 				c.ExpectEOF()
 			}, func() {
 				err := testutils.GlooctlEE("create vs -i")
@@ -188,10 +243,14 @@ var _ = Describe("Virtualservice", func() {
 				c.ExpectString("do you wish to add apikey auth to the virtual service")
 				c.SendLine("n")
 
+				c.ExpectString("do you wish to add OPA auth to the virtual service")
+				c.SendLine("n")
+
 				c.ExpectString("Use default namespace (gloo-system)?")
 				c.SendLine("")
 				c.ExpectString("name of the resource:")
 				c.SendLine("vs1")
+
 				c.ExpectEOF()
 			}, func() {
 				err := testutils.GlooctlEE("create vs -i")
@@ -233,10 +292,14 @@ var _ = Describe("Virtualservice", func() {
 				c.ExpectString("provide a namespace to search for the secret in (empty to finish)")
 				c.SendLine("ns1")
 
+				c.ExpectString("do you wish to add OPA auth to the virtual service")
+				c.SendLine("n")
+
 				c.ExpectString("Use default namespace (gloo-system)?")
 				c.SendLine("")
 				c.ExpectString("name of the resource:")
 				c.SendLine("vs1")
+
 				c.ExpectEOF()
 			}, func() {
 				err := testutils.GlooctlEE("create vs -i")
@@ -253,6 +316,52 @@ var _ = Describe("Virtualservice", func() {
 					},
 				}
 				Expect(*apiKey).To(Equal(expected))
+
+			})
+		})
+
+		It("should create vs with OPA auth", func() {
+			testutil.ExpectInteractive(func(c *testutil.Console) {
+				c.ExpectString("Add a domain for this virtual service (empty defaults to all domains)")
+				c.SendLine("")
+				c.ExpectString("do you wish to add rate limiting to the virtual service")
+				c.SendLine("n")
+				c.ExpectString("do you wish to add oidc auth to the virtual service")
+				c.SendLine("n")
+				c.ExpectString("do you wish to add apikey auth to the virtual service")
+				c.SendLine("n")
+
+				c.ExpectString("do you wish to add OPA auth to the virtual service")
+				c.SendLine("y")
+
+				c.ExpectString("OPA query to attach to this virtual service?")
+				c.SendLine("test")
+				c.ExpectString("provide references to config maps used as OPA modules in resolving above query (empty to finish)")
+				c.SendLine("ns1.name1")
+				c.ExpectString("provide references to config maps used as OPA modules in resolving above query (empty to finish)")
+				c.SendLine("")
+
+				c.ExpectString("Use default namespace (gloo-system)?")
+				c.SendLine("")
+				c.ExpectString("name of the resource:")
+				c.SendLine("vs1")
+
+				c.ExpectEOF()
+			}, func() {
+				err := testutils.GlooctlEE("create vs -i")
+				Expect(err).NotTo(HaveOccurred())
+
+				opa := getOpaConfig()
+				expected := extauthpb.OpaAuth{
+					Query: "test",
+					Modules: []*core.ResourceRef{
+						{
+							Namespace: "ns1",
+							Name:      "name1",
+						},
+					},
+				}
+				Expect(*opa).To(Equal(expected))
 
 			})
 		})

@@ -1,6 +1,8 @@
 package create
 
 import (
+	"strings"
+
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -35,6 +37,8 @@ var (
 	UnableToMarshalApiKeyConfig = func(err error) error {
 		return errors.Wrapf(err, "Error marshalling apikey config")
 	}
+	EmptyQueryError       = errors.Errorf("query must not be empty")
+	InvlaidRefFormatError = errors.Errorf("invalid format: provide namespaced names for config maps (namespace.configMapName)")
 )
 
 func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
@@ -145,27 +149,31 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[ratelimit2.ExtensionName] = ingressRateLimitStruct
 	}
 
+	return vs, authFromOpts(vs, extopts)
+}
+
+func authFromOpts(vs *v1.VirtualService, extopts optionsExt.ExtraOptions) error {
+
+	var vhostAuth *extauth.VhostExtension
+
 	oidc := extopts.OIDCAuth
 	if oidc.Enable {
-		if vs.VirtualHost.VirtualHostPlugins == nil {
-			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
-		}
 		if oidc.AppUrl == "" {
-			return nil, errors.Errorf("invalid app url specified: %v", oidc.AppUrl)
+			return errors.Errorf("invalid app url specified: %v", oidc.AppUrl)
 		}
 		if oidc.IssuerUrl == "" {
-			return nil, errors.Errorf("invalid issuer url specified: %v", oidc.IssuerUrl)
+			return errors.Errorf("invalid issuer url specified: %v", oidc.IssuerUrl)
 		}
 		if oidc.ClientId == "" {
-			return nil, errors.Errorf("invalid client id specified: %v", oidc.ClientId)
+			return errors.Errorf("invalid client id specified: %v", oidc.ClientId)
 		}
 		if oidc.CallbackPath == "" {
-			return nil, errors.Errorf("invalid callback path specified: %v", oidc.CallbackPath)
+			return errors.Errorf("invalid callback path specified: %v", oidc.CallbackPath)
 		}
 		if oidc.ClientSecretRef.Name == "" || oidc.ClientSecretRef.Namespace == "" {
-			return nil, errors.Errorf("invalid client secret ref specified: %v.%v", oidc.ClientSecretRef.Namespace, oidc.ClientSecretRef.Name)
+			return errors.Errorf("invalid client secret ref specified: %v.%v", oidc.ClientSecretRef.Namespace, oidc.ClientSecretRef.Name)
 		}
-		vhostAuth := &extauth.VhostExtension{
+		vhostAuth = &extauth.VhostExtension{
 			Configs: []*extauth.AuthConfig{{
 				AuthConfig: &extauth.AuthConfig_Oauth{
 					Oauth: &extauth.OAuth{
@@ -178,26 +186,10 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 				},
 			}},
 		}
-		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Error marshalling oauth config")
-		}
-		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
-			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
-		}
-		if vs.VirtualHost.VirtualHostPlugins.Extensions.Configs == nil {
-			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
-		}
-		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth2.ExtensionName] = vhostAuthStruct
-
 	}
 
 	apiKey := extopts.ApiKeyAuth
 	if apiKey.Enable {
-		if vs.VirtualHost.VirtualHostPlugins == nil {
-			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
-		}
-
 		var secretRefs []*core.ResourceRef
 		if apiKey.SecretNamespace != "" && apiKey.SecretName != "" {
 			secretRefs = []*core.ResourceRef{
@@ -207,7 +199,7 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 				},
 			}
 		} else if apiKey.SecretNamespace != "" || apiKey.SecretName != "" {
-			return nil, ProvideNamespaceAndNameError(apiKey.SecretNamespace, apiKey.SecretName)
+			return ProvideNamespaceAndNameError(apiKey.SecretNamespace, apiKey.SecretName)
 		}
 
 		var labels options.InputMapStringString
@@ -217,7 +209,7 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 			labelSelector = labels.MustMap()
 		}
 
-		vhostAuth := &extauth.VhostExtension{
+		vhostAuth = &extauth.VhostExtension{
 			Configs: []*extauth.AuthConfig{{
 				AuthConfig: &extauth.AuthConfig_ApiKeyAuth{
 					ApiKeyAuth: &extauth.ApiKeyAuth{
@@ -227,9 +219,52 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 				},
 			}},
 		}
+	}
+
+	opauth := extopts.OpaAuth
+	if opauth.Enable {
+
+		var modules []*core.ResourceRef
+		query := opauth.Query
+
+		if len(query) == 0 {
+			return EmptyQueryError
+		}
+
+		for _, moduleRef := range opauth.Modules {
+
+			splits := strings.Split(moduleRef, ".")
+			if len(splits) != 2 {
+				return InvlaidRefFormatError
+			}
+			namespace := splits[0]
+			name := splits[1]
+			modules = append(modules, &core.ResourceRef{Name: name, Namespace: namespace})
+		}
+
+		if vhostAuth == nil {
+			vhostAuth = &extauth.VhostExtension{}
+		}
+		cfg := &extauth.AuthConfig{
+			AuthConfig: &extauth.AuthConfig_OpaAuth{
+				OpaAuth: &extauth.OpaAuth{
+					Modules: modules,
+					Query:   query,
+				},
+			},
+		}
+		vhostAuth.Configs = append(vhostAuth.Configs, cfg)
+	}
+
+	if vhostAuth != nil {
+
+		if vs.VirtualHost.VirtualHostPlugins == nil {
+			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
+		}
+
 		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
 		if err != nil {
-			return nil, UnableToMarshalApiKeyConfig(err)
+			return errors.Wrapf(err, "Error marshalling oauth config")
 		}
 		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
 			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
@@ -238,7 +273,8 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
 		}
 		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth2.ExtensionName] = vhostAuthStruct
+
 	}
 
-	return vs, nil
+	return nil
 }

@@ -19,6 +19,10 @@ func AddVirtualServiceFlagsInteractive(opts *options.ExtraOptions) error {
 		return err
 	}
 
+	if err := opaSurvey(&opts.OpaAuth); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -120,6 +124,34 @@ func apiKeySurvey(input *options.ApiKeyAuth) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func opaSurvey(input *options.OpaAuth) error {
+	yes, err := cliutil.GetYesInput("do you wish to add OPA auth to the virtual service [y/n]?")
+	if err != nil {
+		return err
+	}
+
+	if !yes {
+		return nil
+	}
+
+	input.Enable = true
+
+	err = cliutil.GetStringInput("OPA query to attach to this virtual service?", &input.Query)
+	if err != nil {
+		return err
+	}
+	if input.Query == "" {
+		return fmt.Errorf("query must not be empty")
+	}
+
+	err = cliutil.GetStringSliceInput("provide references to config maps used as OPA modules in resolving above query (empty to finish)", &input.Modules)
+	if err != nil {
+		return err
 	}
 
 	return nil
