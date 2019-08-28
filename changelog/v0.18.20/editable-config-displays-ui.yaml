@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Configuration displays can now be made editable in UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/998

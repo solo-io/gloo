@@ -29,7 +29,8 @@ type ExpandableSectionProps = { isExpanded: boolean };
 const ExpandableSection = styled.div`
   max-height: ${(props: ExpandableSectionProps) =>
     props.isExpanded ? '1000px' : '0px'};
-  overflow: hidden;
+  overflow: ${(props: { isExpanded: boolean }) =>
+    props.isExpanded ? 'auto' : 'hidden'};
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
