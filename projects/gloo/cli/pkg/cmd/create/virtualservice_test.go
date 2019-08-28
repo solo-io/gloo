@@ -85,6 +85,21 @@ var _ = Describe("Virtualservice", func() {
 				IssuerUrl:    "http://issuer.example.com",
 				AppUrl:       "http://app.example.com",
 			}),
+		Entry("with default scopes", "create vs --name vs1 --enable-oidc-auth --oidc-auth-client-id "+
+			"1 --oidc-auth-app-url http://app.example.com --oidc-auth-client-secret-name fake "+
+			"--oidc-auth-client-secret-namespace fakens --oidc-auth-issuer-url http://issuer.example.com "+
+			"--oidc-scope=scope1 --oidc-scope=scope2",
+			extauthpb.OAuth{
+				ClientId: "1",
+				ClientSecretRef: &core.ResourceRef{
+					Name:      "fake",
+					Namespace: "fakens",
+				},
+				CallbackPath: "/oidc-gloo-callback",
+				IssuerUrl:    "http://issuer.example.com",
+				AppUrl:       "http://app.example.com",
+				Scopes:       []string{"scope1", "scope2"},
+			}),
 	)
 
 	DescribeTable("should create apikey vhost",
@@ -239,6 +254,10 @@ var _ = Describe("Virtualservice", func() {
 				c.SendLine("secret-name")
 				c.ExpectString("What is your client secret namespace?")
 				c.SendLine("gloo-system")
+				c.ExpectString("provide additional scopes to request (empty to finish)")
+				c.SendLine("scope1")
+				c.ExpectString("provide additional scopes to request (empty to finish)")
+				c.SendLine("")
 
 				c.ExpectString("do you wish to add apikey auth to the virtual service")
 				c.SendLine("n")
@@ -266,6 +285,7 @@ var _ = Describe("Virtualservice", func() {
 					CallbackPath: "/auth-callback",
 					IssuerUrl:    "https://accounts.google.com",
 					AppUrl:       "http://app.example.com",
+					Scopes:       []string{"scope1"},
 				}
 				Expect(*oidc).To(Equal(expected))
 

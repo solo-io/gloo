@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow specifying custom scopes to OIDC
+    issueLink: https://github.com/solo-io/solo-projects/pull/1005

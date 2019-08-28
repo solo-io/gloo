@@ -93,6 +93,10 @@ func oidcSurvey(input *options.OIDCAuth) error {
 	if err != nil {
 		return err
 	}
+	err = cliutil.GetStringSliceInput("provide additional scopes to request (empty to finish)", &input.Scopes)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -45,6 +45,7 @@ interface ValuesType {
   appUrl: string;
   secretRefNamespace: string | undefined;
   secretRefName: string | undefined;
+  scopesList: string[];
 }
 const defaultValues: ValuesType = {
   clientId: '',
@@ -52,7 +53,8 @@ const defaultValues: ValuesType = {
   issuerUrl: '',
   appUrl: '',
   secretRefNamespace: '',
-  secretRefName: ''
+  secretRefName: '',
+  scopesList: [],
 };
 
 const validationSchema = yup.object().shape({
@@ -96,7 +98,8 @@ export const ExtAuthForm = (props: Props) => {
       appUrl,
       issuerUrl,
       secretRefName,
-      secretRefNamespace
+      secretRefNamespace,
+      scopesList
     } = values;
     let newExternalAuth = new OAuth().toObject();
 
@@ -104,7 +107,8 @@ export const ExtAuthForm = (props: Props) => {
       clientId,
       callbackPath,
       appUrl,
-      issuerUrl
+      issuerUrl,
+      scopesList
     };
 
     if (!!secretRefName && !!secretRefNamespace) {

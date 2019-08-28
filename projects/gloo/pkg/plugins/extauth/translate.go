@@ -266,5 +266,6 @@ func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAu
 		ClientSecret: clientSecret.ClientSecret,
 		IssuerUrl:    config.IssuerUrl,
 		CallbackPath: config.CallbackPath,
+		Scopes:       config.Scopes,
 	}, nil
 }

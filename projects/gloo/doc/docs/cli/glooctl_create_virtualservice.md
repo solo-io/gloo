@@ -35,6 +35,7 @@ glooctl create virtualservice [flags]
       --oidc-auth-client-secret-name string        name of the 'client secret' secret
       --oidc-auth-client-secret-namespace string   namespace of the 'client secret' secret
       --oidc-auth-issuer-url string                the url of the issuer
+      --oidc-scope strings                         scopes to request in addition to 'openid'. optional.
       --opa-module-ref strings                     namespace.name references to a config map containing OPA modules
       --opa-query string                           The OPA query to evaluate on a request
       --rate-limit-requests uint32                 requests per unit of time (default 100)

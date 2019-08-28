@@ -221,7 +221,8 @@ export const VirtualServiceDetails = (props: Props) => {
       clientSecretRef,
       issuerUrl,
       appUrl,
-      callbackPath
+      callbackPath,
+      scopesList: [],
     };
   }
 

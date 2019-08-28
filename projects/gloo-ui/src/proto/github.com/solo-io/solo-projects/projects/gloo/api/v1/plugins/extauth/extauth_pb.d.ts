@@ -325,6 +325,11 @@ export class OAuth extends jspb.Message {
   getCallbackPath(): string;
   setCallbackPath(value: string): void;
 
+  clearScopesList(): void;
+  getScopesList(): Array<string>;
+  setScopesList(value: Array<string>): void;
+  addScopes(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OAuth.AsObject;
   static toObject(includeInstance: boolean, msg: OAuth): OAuth.AsObject;
@@ -342,6 +347,7 @@ export namespace OAuth {
     issuerUrl: string,
     appUrl: string,
     callbackPath: string,
+    scopesList: Array<string>,
   }
 }
 
@@ -657,6 +663,11 @@ export namespace ExtAuthConfig {
     getCallbackPath(): string;
     setCallbackPath(value: string): void;
 
+    clearScopesList(): void;
+    getScopesList(): Array<string>;
+    setScopesList(value: Array<string>): void;
+    addScopes(value: string, index?: number): string;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OAuthConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OAuthConfig): OAuthConfig.AsObject;
@@ -674,6 +685,7 @@ export namespace ExtAuthConfig {
       issuerUrl: string,
       appUrl: string,
       callbackPath: string,
+      scopesList: Array<string>,
     }
   }
 

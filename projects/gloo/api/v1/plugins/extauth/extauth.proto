@@ -139,6 +139,9 @@ message OAuth {
   // a callback path relative to app url that will be used for OIDC callbacks.
   // needs to not be used by the application
   string callback_path = 5;
+
+  // Scopes to request in addtion to openid scope.
+  repeated string scopes = 6;
 }
 
 message OauthSecret { string client_secret = 1; }
@@ -233,6 +236,10 @@ message ExtAuthConfig {
     // a callback path relative to app url that will be used for OIDC callbacks.
     // needs to not be used by the application
     string callback_path = 5;
+
+    // scopes to request in addition to the openid scope.
+    repeated string scopes = 6;
+
   }
 
   message ApiKeyAuthConfig {

@@ -310,6 +310,27 @@ var _ = Describe("External ", func() {
 					}, "5s", "0.5s").Should(Equal("auth"))
 				})
 
+				It("should include email scope in url", func() {
+					client := &http.Client{
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							return http.ErrUseLastResponse
+						},
+					}
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(func() (http.Response, error) {
+						r, err := client.Do(req)
+						if err != nil {
+							return http.Response{}, err
+						}
+						return *r, err
+					}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+						"StatusCode": Equal(http.StatusFound),
+						"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
+					}))
+				})
+
 				It("should exchange token", func() {
 					finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
 					client := &http.Client{
@@ -671,6 +692,7 @@ func getOauthConfig(secretRef core.ResourceRef) *extauth.OAuth {
 		IssuerUrl:       "http://localhost:5556/",
 		AppUrl:          "http://example.com",
 		CallbackPath:    "/callback",
+		Scopes:          []string{"email"},
 	}
 }
 

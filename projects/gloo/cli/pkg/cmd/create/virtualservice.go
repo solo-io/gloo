@@ -182,6 +182,7 @@ func authFromOpts(vs *v1.VirtualService, extopts optionsExt.ExtraOptions) error 
 						ClientId:        oidc.ClientId,
 						ClientSecretRef: oidc.ClientSecretRef,
 						IssuerUrl:       oidc.IssuerUrl,
+						Scopes:          oidc.Scopes,
 					},
 				},
 			}},

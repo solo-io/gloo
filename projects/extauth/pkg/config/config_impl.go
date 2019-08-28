@@ -115,8 +115,7 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 		if cb == "" {
 			cb = DefaultCallback
 		}
-		// TODO: add scopes
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, nil, stateSigner)
+		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, cfg.Oauth.Scopes, stateSigner)
 		if err != nil {
 			return nil, err
 		}
@@ -181,8 +180,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		if cb == "" {
 			cb = DefaultCallback
 		}
-		// TODO: add scopes
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, nil, stateSigner)
+		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, cfg.Oauth.Scopes, stateSigner)
 		if err != nil {
 			return nil, "", err
 		}

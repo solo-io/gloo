@@ -2221,12 +2221,19 @@ proto.extauth.plugins.gloo.solo.io.BasicAuth.prototype.hasApr = function() {
  * @constructor
  */
 proto.extauth.plugins.gloo.solo.io.OAuth = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.OAuth.repeatedFields_, null);
 };
 goog.inherits(proto.extauth.plugins.gloo.solo.io.OAuth, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.extauth.plugins.gloo.solo.io.OAuth.displayName = 'proto.extauth.plugins.gloo.solo.io.OAuth';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.OAuth.repeatedFields_ = [6];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -2260,7 +2267,8 @@ proto.extauth.plugins.gloo.solo.io.OAuth.toObject = function(includeInstance, ms
     clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     issuerUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     appUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, "")
+    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    scopesList: jspb.Message.getRepeatedField(msg, 6)
   };
 
   if (includeInstance) {
@@ -2317,6 +2325,10 @@ proto.extauth.plugins.gloo.solo.io.OAuth.deserializeBinaryFromReader = function(
     case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setCallbackPath(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScopes(value);
       break;
     default:
       reader.skipField();
@@ -2380,6 +2392,13 @@ proto.extauth.plugins.gloo.solo.io.OAuth.serializeBinaryToWriter = function(mess
   if (f.length > 0) {
     writer.writeString(
       5,
+      f
+    );
+  }
+  f = message.getScopesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
       f
     );
   }
@@ -2473,6 +2492,35 @@ proto.extauth.plugins.gloo.solo.io.OAuth.prototype.getCallbackPath = function() 
 /** @param {string} value */
 proto.extauth.plugins.gloo.solo.io.OAuth.prototype.setCallbackPath = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * repeated string scopes = 6;
+ * @return {!Array<string>}
+ */
+proto.extauth.plugins.gloo.solo.io.OAuth.prototype.getScopesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extauth.plugins.gloo.solo.io.OAuth.prototype.setScopesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extauth.plugins.gloo.solo.io.OAuth.prototype.addScopes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.OAuth.prototype.clearScopesList = function() {
+  this.setScopesList([]);
 };
 
 
@@ -4444,12 +4492,19 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.serializeBinaryToWriter = funct
  * @constructor
  */
 proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.repeatedFields_, null);
 };
 goog.inherits(proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.displayName = 'proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.repeatedFields_ = [6];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -4483,7 +4538,8 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.toObject = function
     clientSecret: jspb.Message.getFieldWithDefault(msg, 2, ""),
     issuerUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     appUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, "")
+    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    scopesList: jspb.Message.getRepeatedField(msg, 6)
   };
 
   if (includeInstance) {
@@ -4539,6 +4595,10 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.deserializeBinaryFr
     case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setCallbackPath(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScopes(value);
       break;
     default:
       reader.skipField();
@@ -4601,6 +4661,13 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.serializeBinaryToWr
   if (f.length > 0) {
     writer.writeString(
       5,
+      f
+    );
+  }
+  f = message.getScopesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
       f
     );
   }
@@ -4679,6 +4746,35 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.getCallba
 /** @param {string} value */
 proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.setCallbackPath = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * repeated string scopes = 6;
+ * @return {!Array<string>}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.getScopesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.setScopesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.addScopes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig.prototype.clearScopesList = function() {
+  this.setScopesList([]);
 };
 
 
