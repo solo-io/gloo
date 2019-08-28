@@ -13,7 +13,7 @@ import {
 } from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
 import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { host } from '../grpc-web-hooks';
+import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';
@@ -165,8 +165,9 @@ function getUpstreamInput(params: {
       const consulServiceSpec = new ServiceSpec();
       consulSpec.setServiceSpec(consulServiceSpec);
       newUpstream.setConsul(consulSpec);
-    default:
       break;
+    default:
+      throw new Error('not supported');
   }
   return newUpstream;
 }
@@ -245,7 +246,7 @@ export function getCreateUpstream(
       awsSpec.setSecretRef(awsSecretRef);
       usInput.setAws(awsSpec);
     } else if (input!.pb_static) {
-      const { useTls, hostsList, serviceSpec } = input!.pb_static!;
+      const { useTls, hostsList /*serviceSpec*/ } = input!.pb_static!;
       staticSpec.setUseTls(useTls);
       let hosts = hostsList.map(host => {
         let hostAdded = new Host();
@@ -274,7 +275,7 @@ export function getCreateUpstream(
         connectEnabled,
         dataCentersList,
         serviceName,
-        serviceSpec,
+        //serviceSpec,
         serviceTagsList
       } = input!.consul!;
       consulSpec.setServiceName(serviceName);

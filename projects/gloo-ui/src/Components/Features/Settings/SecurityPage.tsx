@@ -1,14 +1,12 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import { TableActions, TableActionCircle } from 'Styles';
+import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { SecretForm, SecretValuesType } from './SecretForm';
 import { isEqual } from 'lodash';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import * as React from 'react';
+import { TableActionCircle, TableActions } from 'Styles';
+import { SecretForm, SecretValuesType } from './SecretForm';
+
 interface Props {
   tlsSecrets?: Secret.AsObject[];
   oAuthSecrets?: Secret.AsObject[];

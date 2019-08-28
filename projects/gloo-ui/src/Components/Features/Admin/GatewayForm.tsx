@@ -1,20 +1,19 @@
-import React from 'react';
 import styled from '@emotion/styled';
-import { colors, soloConstants } from 'Styles';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
-import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
-import { FormikErrors, Formik } from 'formik';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import {
-  SoloFormInput,
+  SoloFormCheckbox,
   SoloFormDurationEditor,
-  SoloFormCheckbox
+  SoloFormInput
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
-import * as yup from 'yup';
+import { Formik, FormikErrors } from 'formik';
+import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
-import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
-import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import React from 'react';
+import { colors, soloConstants } from 'Styles';
+import * as yup from 'yup';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -26,9 +25,11 @@ const GatewayFormContainer = styled.div`
   margin-bottom: 15px;
 `;
 
-const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
-  max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
-  overflow: ${props => (props.isExpanded ? 'auto' : 'hidden')};
+const ExpandableSection = styled.div`
+  max-height: ${(props: { isExpanded: boolean }) =>
+    props.isExpanded ? '1000px' : '0px'};
+  overflow: ${(props: { isExpanded: boolean }) =>
+    props.isExpanded ? 'auto' : 'hidden'};
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
@@ -96,9 +97,6 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
     verbose: (undefined as unknown) as boolean
   }
 };
-
-const connectionManagerList = Object.keys(defaultHttpValues).slice(0, -2);
-const tracingList = Object.keys(defaultHttpValues).slice(-2);
 
 const validationSchema = yup.object().shape({
   skipXffAppend: yup.boolean(),
@@ -207,7 +205,8 @@ export const GatewayForm = (props: FormProps) => {
         information on these settings, please visit our{' '}
         <a
           href='https://gloo.solo.io/v1/github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto.sk/'
-          target='_blank'>
+          target='_blank'
+          rel='noopener noreferrer'>
           hcm plugin documentation
         </a>
         .

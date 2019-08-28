@@ -1,7 +1,7 @@
 import css from '@emotion/css/macro';
-import { colors } from '../colors';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import { soloConstants } from 'Styles/constants';
+import { colors } from '../colors';
 
 export const ErrorTextEmo = css`
   position: relative;
@@ -43,10 +43,12 @@ const ErrorMessageCSS = css`
     font-weight: bold;
   }
 `;
+
+type LoadingProps = { loading?: boolean };
 export const ErrorMessage = styled.div`
   ${ErrorMessageCSS};
 
-  ${props =>
+  ${(props: LoadingProps) =>
     // @ts-ignore
     props.loading ? `opacity: .4;` : ''}
 `;
@@ -55,7 +57,7 @@ export const SmallErrorMessage = styled.div`
   ${ErrorMessageCSS};
   padding: 7px 15px;
 
-  ${props =>
+  ${(props: LoadingProps) =>
     // @ts-ignore
     props.loading ? `opacity: .4;` : ''}
 `;

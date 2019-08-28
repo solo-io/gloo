@@ -1,18 +1,18 @@
 import {
-  SoloFormTypeahead,
-  SoloAWSSecretsList
+  SoloAWSSecretsList,
+  SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
+import { SoloButton } from 'Components/Common/SoloButton';
+import { useField } from 'formik';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
+import { RouterProps, withRouter } from 'react-router';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { withRouter, RouterProps } from 'react-router';
-import { useField } from 'formik';
 
 export interface AwsValuesType {
   awsRegion: string;

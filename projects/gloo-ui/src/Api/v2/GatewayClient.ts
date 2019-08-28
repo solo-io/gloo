@@ -1,47 +1,29 @@
-import { GatewayApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
-import { host } from '../grpc-web-hooks';
 import { grpc } from '@improbable-eng/grpc-web';
-import {
-  ListGatewaysResponse,
-  ListGatewaysRequest,
-  UpdateGatewayRequest,
-  UpdateGatewayResponse,
-  GetGatewayResponse,
-  GetGatewayRequest
-} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import {
-  Gateway,
-  HttpGateway
-} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
-import {
-  getResourceRef,
-  getStatus,
-  getDuration,
-  getBoolVal,
-  getUInt32Val,
-  setMetadata,
-  setStatus,
-  setDuration,
-  setBoolVal,
-  setUInt32Val
-} from './helpers';
-import {
-  HttpListenerPlugins,
-  ListenerPlugins
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import { GrpcWeb } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb';
-import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 import {
   BoolValue,
   UInt32Value
 } from 'google-protobuf/google/protobuf/wrappers_pb';
+import { HttpGateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
+import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
 import { ListenerTracingSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb';
+import { HttpListenerPlugins } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { GatewayApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
+import { host } from 'store';
 import {
-  AccessLoggingService,
-  AccessLog,
-  FileSink
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+  GetGatewayRequest,
+  GetGatewayResponse,
+  ListGatewaysRequest,
+  ListGatewaysResponse,
+  UpdateGatewayRequest,
+  UpdateGatewayResponse
+} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import {
+  getResourceRef,
+  setBoolVal,
+  setDuration,
+  setUInt32Val
+} from './helpers';
 
 export const client = new GatewayApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

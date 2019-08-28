@@ -1,20 +1,18 @@
-import * as React from 'react';
-import styled from '@emotion/styled/macro';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
+import styled from '@emotion/styled';
 import { ReactComponent as AWSLogo } from 'assets/aws-logo.svg';
 import { ReactComponent as AzureLogo } from 'assets/azure-logo.svg';
+import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 // TODO: get svg format GRPC logo
 // import { ReactComponent as GRPCLogo } from 'assets/grpc-logo.svg';
 import GRPCLogo from 'assets/grpc-logo.png';
-import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
+import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
 import { ReactComponent as RESTLogo } from 'assets/rest-logo.svg';
-import { ReactComponent as Gloo } from 'assets/Gloo.svg';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import * as React from 'react';
 
 type Resource = VirtualService.AsObject | Upstream.AsObject | number;
 

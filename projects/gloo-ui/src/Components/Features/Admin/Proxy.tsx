@@ -1,17 +1,13 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
-import { colors, healthConstants } from 'Styles';
-import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
-import { SectionCard } from 'Components/Common/SectionCard';
+import styled from '@emotion/styled';
 import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
-import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
+import { colors, healthConstants } from 'Styles';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -30,9 +26,6 @@ const ProxyLogoFullSize = styled(ProxyLogo)`
 interface Props {}
 
 export const Proxys = (props: Props) => {
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList
-  );
   const proxiesList = useSelector(
     (state: AppState) => state.proxies.proxiesList
   );

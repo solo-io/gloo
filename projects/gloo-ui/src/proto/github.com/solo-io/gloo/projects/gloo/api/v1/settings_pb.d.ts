@@ -324,8 +324,8 @@ export namespace Settings {
   }
 
   export class DiscoveryOptions extends jspb.Message {
-    getFdsMode(): Settings.DiscoveryOptions.FdsMode;
-    setFdsMode(value: Settings.DiscoveryOptions.FdsMode): void;
+    getFdsMode(): Settings.DiscoveryOptions.FdsModeMap[keyof Settings.DiscoveryOptions.FdsModeMap];
+    setFdsMode(value: Settings.DiscoveryOptions.FdsModeMap[keyof Settings.DiscoveryOptions.FdsModeMap]): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DiscoveryOptions.AsObject;
@@ -339,14 +339,16 @@ export namespace Settings {
 
   export namespace DiscoveryOptions {
     export type AsObject = {
-      fdsMode: Settings.DiscoveryOptions.FdsMode,
+      fdsMode: Settings.DiscoveryOptions.FdsModeMap[keyof Settings.DiscoveryOptions.FdsModeMap],
     }
 
-    export enum FdsMode {
-      BLACKLIST = 0,
-      WHITELIST = 1,
-      DISABLED = 2,
+    export interface FdsModeMap {
+      BLACKLIST: 0;
+      WHITELIST: 1;
+      DISABLED: 2;
     }
+
+    export const FdsMode: FdsModeMap;
   }
 
   export class ConsulConfiguration extends jspb.Message {

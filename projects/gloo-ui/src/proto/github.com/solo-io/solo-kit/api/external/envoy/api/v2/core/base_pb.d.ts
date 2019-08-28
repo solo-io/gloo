@@ -299,8 +299,8 @@ export class SocketOption extends jspb.Message {
   getBufValue_asB64(): string;
   setBufValue(value: Uint8Array | string): void;
 
-  getState(): SocketOption.SocketState;
-  setState(value: SocketOption.SocketState): void;
+  getState(): SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap];
+  setState(value: SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap]): void;
 
   getValueCase(): SocketOption.ValueCase;
   serializeBinary(): Uint8Array;
@@ -320,14 +320,16 @@ export namespace SocketOption {
     name: number,
     intValue: number,
     bufValue: Uint8Array | string,
-    state: SocketOption.SocketState,
+    state: SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap],
   }
 
-  export enum SocketState {
-    STATE_PREBIND = 0,
-    STATE_BOUND = 1,
-    STATE_LISTENING = 2,
+  export interface SocketStateMap {
+    STATE_PREBIND: 0;
+    STATE_BOUND: 1;
+    STATE_LISTENING: 2;
   }
+
+  export const SocketState: SocketStateMap;
 
   export enum ValueCase {
     VALUE_NOT_SET = 0,
@@ -382,20 +384,24 @@ export namespace ControlPlane {
   }
 }
 
-export enum RoutingPriority {
-  DEFAULT = 0,
-  HIGH = 1,
+export interface RoutingPriorityMap {
+  DEFAULT: 0;
+  HIGH: 1;
 }
 
-export enum RequestMethod {
-  METHOD_UNSPECIFIED = 0,
-  GET = 1,
-  HEAD = 2,
-  POST = 3,
-  PUT = 4,
-  DELETE = 5,
-  CONNECT = 6,
-  OPTIONS = 7,
-  TRACE = 8,
+export const RoutingPriority: RoutingPriorityMap;
+
+export interface RequestMethodMap {
+  METHOD_UNSPECIFIED: 0;
+  GET: 1;
+  HEAD: 2;
+  POST: 3;
+  PUT: 4;
+  DELETE: 5;
+  CONNECT: 6;
+  OPTIONS: 7;
+  TRACE: 8;
 }
+
+export const RequestMethod: RequestMethodMap;
 

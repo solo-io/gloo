@@ -232,11 +232,11 @@ export namespace CallCredentials {
 }
 
 export class SslParameters extends jspb.Message {
-  getMinimumProtocolVersion(): SslParameters.ProtocolVersion;
-  setMinimumProtocolVersion(value: SslParameters.ProtocolVersion): void;
+  getMinimumProtocolVersion(): SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap];
+  setMinimumProtocolVersion(value: SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap]): void;
 
-  getMaximumProtocolVersion(): SslParameters.ProtocolVersion;
-  setMaximumProtocolVersion(value: SslParameters.ProtocolVersion): void;
+  getMaximumProtocolVersion(): SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap];
+  setMaximumProtocolVersion(value: SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap]): void;
 
   clearCipherSuitesList(): void;
   getCipherSuitesList(): Array<string>;
@@ -260,18 +260,20 @@ export class SslParameters extends jspb.Message {
 
 export namespace SslParameters {
   export type AsObject = {
-    minimumProtocolVersion: SslParameters.ProtocolVersion,
-    maximumProtocolVersion: SslParameters.ProtocolVersion,
+    minimumProtocolVersion: SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap],
+    maximumProtocolVersion: SslParameters.ProtocolVersionMap[keyof SslParameters.ProtocolVersionMap],
     cipherSuitesList: Array<string>,
     ecdhCurvesList: Array<string>,
   }
 
-  export enum ProtocolVersion {
-    TLS_AUTO = 0,
-    TLSV1_0 = 1,
-    TLSV1_1 = 2,
-    TLSV1_2 = 3,
-    TLSV1_3 = 4,
+  export interface ProtocolVersionMap {
+    TLS_AUTO: 0;
+    TLSV1_0: 1;
+    TLSV1_1: 2;
+    TLSV1_2: 3;
+    TLSV1_3: 4;
   }
+
+  export const ProtocolVersion: ProtocolVersionMap;
 }
 

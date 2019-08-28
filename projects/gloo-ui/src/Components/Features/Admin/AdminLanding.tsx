@@ -1,24 +1,21 @@
-import React from 'react';
-import styled from '@emotion/styled/macro';
-import { RouteProps, Route } from 'react-router';
-import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { healthConstants, colors, soloConstants } from 'Styles';
-import { CardCSS } from 'Styles/CommonEmotions/card';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
-import { ReactComponent as GatewayConfigLogo } from 'assets/gateway-config-icon.svg';
+import styled from '@emotion/styled';
 import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
+import { ReactComponent as GatewayConfigLogo } from 'assets/gateway-config-icon.svg';
+import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
 import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg';
+import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
-import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
+import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
-import { getResourceStatus } from 'utils/helpers';
-import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { AppState } from 'store';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { RouteProps } from 'react-router';
+import { AppState } from 'store';
+import { colors, healthConstants, soloConstants } from 'Styles';
+import { CardCSS } from 'Styles/CommonEmotions/card';
+import { getResourceStatus } from 'utils/helpers';
 
 const Container = styled.div`
   ${CardCSS};
@@ -70,7 +67,8 @@ const Link = styled.div`
   font-size: 14px;
 `;
 
-const HealthScoreContainer = styled<'div', { health: number }>('div')`
+type HealthScoreContainerProps = { health: number };
+const HealthScoreContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -81,7 +79,7 @@ const HealthScoreContainer = styled<'div', { health: number }>('div')`
   .health-icon {
     margin: 0 12px;
 
-    ${props =>
+    ${(props: HealthScoreContainerProps) =>
       props.health === healthConstants.Good.value
         ? '' //`fill: ${colors.forestGreen};`
         : props.health === healthConstants.Error.value
@@ -90,7 +88,7 @@ const HealthScoreContainer = styled<'div', { health: number }>('div')`
   }
 
   & span {
-    ${props =>
+    ${(props: HealthScoreContainerProps) =>
       props.health === healthConstants.Good.value
         ? '' //`fill: ${colors.forestGreen};`
         : props.health === healthConstants.Error.value

@@ -1,6 +1,6 @@
+import styled from '@emotion/styled';
 import React from 'react';
-import styled from '@emotion/styled/macro';
-import { RouteProps, Route } from 'react-router';
+import { RouteProps } from 'react-router';
 
 const Container = styled.div`
   display: grid;

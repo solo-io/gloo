@@ -1,11 +1,8 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-
-import { soloConstants } from 'Styles';
+import styled from '@emotion/styled';
 import Table from 'antd/lib/table';
-import { hslToHSLA, colors } from 'Styles/colors';
+import * as React from 'react';
+import { soloConstants } from 'Styles';
+import { colors, hslToHSLA } from 'Styles/colors';
 
 // To restyle table to match spec later
 export const TableContainer = styled.div`

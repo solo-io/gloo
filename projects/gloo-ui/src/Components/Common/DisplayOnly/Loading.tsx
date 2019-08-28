@@ -1,6 +1,5 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
 import { Spin } from 'antd';
+import React from 'react';
 
 interface LoadingProps {
   message?: string;

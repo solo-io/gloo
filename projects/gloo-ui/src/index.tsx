@@ -1,12 +1,10 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
+import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import './fontFace.css';
 import { GlooIApp } from './GlooIApp';
 import * as serviceWorker from './serviceWorker';
-import './fontFace.css';
 import { configureStore } from './store';
-
-import { Provider } from 'react-redux';
 
 const store = configureStore();
 

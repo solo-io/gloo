@@ -1,28 +1,24 @@
-import React from 'react';
-import styled from '@emotion/styled/macro';
-import { RouteProps, RouteComponentProps } from 'react-router-dom';
-import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
-import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
-import { ReactComponent as VSIcon } from 'assets/virtualservice-icon.svg';
-import { ReactComponent as USIcon } from 'assets/upstream-icon.svg';
+import styled from '@emotion/styled';
 import { ReactComponent as EnvoyIcon } from 'assets/envoy-logo-title.svg';
-import { colors } from 'Styles/colors';
-
-import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
+import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
+import { ReactComponent as USIcon } from 'assets/upstream-icon.svg';
+import { ReactComponent as VSIcon } from 'assets/virtualservice-icon.svg';
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
-import { soloConstants, healthConstants } from 'Styles';
-import { CardCSS } from 'Styles/CommonEmotions/card';
+import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { useSelector, useDispatch } from 'react-redux';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RouteComponentProps } from 'react-router-dom';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
 import { listVirtualServices } from 'store/virtualServices/actions';
-import { groupBy, getUpstreamType, getIcon } from 'utils/helpers';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { getEnvoyHealth } from './Admin/Envoy';
+import { healthConstants, soloConstants } from 'Styles';
+import { colors } from 'Styles/colors';
+import { CardCSS } from 'Styles/CommonEmotions/card';
+import { getIcon, getUpstreamType, groupBy } from 'utils/helpers';
+import { getHealth } from './Admin/Envoy';
 
 const Container = styled.div`
   ${CardCSS};
@@ -102,7 +98,8 @@ const Upstreams = styled.div`
   width: 100%;
 `;
 
-const HealthScoreContainer = styled<'div', { health: number }>('div')`
+type HealthProps = { health: number };
+const HealthScoreContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -113,7 +110,7 @@ const HealthScoreContainer = styled<'div', { health: number }>('div')`
   .health-icon {
     margin: 0 12px;
 
-    ${props =>
+    ${(props: HealthProps) =>
       props.health === healthConstants.Good.value
         ? '' //`fill: ${colors.forestGreen};`
         : props.health === healthConstants.Error.value
@@ -122,7 +119,7 @@ const HealthScoreContainer = styled<'div', { health: number }>('div')`
   }
 
   & span {
-    ${props =>
+    ${(props: HealthProps) =>
       props.health === healthConstants.Good.value
         ? '' //`fill: ${colors.forestGreen};`
         : props.health === healthConstants.Error.value
@@ -165,13 +162,6 @@ const HealthStatus = (props: Props) => {
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
   );
-  const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
-
-  React.useEffect(() => {
-    if (!!envoysList.length) {
-      setAllEnvoy(envoysList);
-    }
-  }, [envoysList.length]);
 
   const envoyErrorCount = envoysList.reduce((total, envoy) => {
     if (envoy.status && envoy.status.code === 0) {
@@ -197,7 +187,7 @@ const HealthStatus = (props: Props) => {
             <div>
               <EnvoyHealthTitle>
                 <HealthIndicator
-                  healthStatus={getEnvoyHealth(envoysList[0]!.status!.code)}
+                  healthStatus={getHealth(envoysList[0]!.status!.code)}
                 />{' '}
                 Envoy Health Status
               </EnvoyHealthTitle>
@@ -254,10 +244,6 @@ const VirtualServicesOverview = () => {
     config: { namespacesList },
     virtualServices: { virtualServicesList }
   } = useSelector((state: AppState) => state);
-  const [
-    virtualServiceForRouteCreation,
-    setVirtualServiceForRouteCreation
-  ] = React.useState<VirtualService.AsObject | undefined>(undefined);
   React.useEffect(() => {
     if (!virtualServicesList.length) {
       dispatch(listVirtualServices({ namespacesList }));
@@ -359,7 +345,6 @@ const UpstreamDetails: React.FC<UpstreamDetailsProps> = props => {
 };
 
 const UpstreamsOverview = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
   const dispatch = useDispatch();
   const namespacesList = useSelector(
     (state: AppState) => state.config.namespacesList
@@ -369,9 +354,7 @@ const UpstreamsOverview = () => {
     state.upstreams.upstreamsList.map(u => u.upstream!)
   );
   React.useEffect(() => {
-    if (upstreamsList.length) {
-      setIsLoading(false);
-    } else {
+    if (!upstreamsList.length) {
       dispatch(listUpstreams({ namespacesList }));
     }
   }, [upstreamsList.length]);

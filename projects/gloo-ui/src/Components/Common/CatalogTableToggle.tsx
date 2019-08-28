@@ -1,19 +1,12 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-
+import styled from '@emotion/styled';
 import { ReactComponent as ColorlessList } from 'assets/listView/list-view-colorless.svg';
 import { ReactComponent as ColorlessTile } from 'assets/tileView/tile-view-colorless.svg';
+import * as React from 'react';
 import { colors } from 'Styles';
 
 const Container = styled.div``;
-
-const TileIcon = styled<
-  React.FunctionComponent,
-  { selected?: boolean; onClick: () => any }
->(ColorlessTile)`
+type TileIconProps = { selected?: boolean; onClick: () => any };
+const TileIcon = styled(ColorlessTile)`
   margin-right: 10px;
   cursor: pointer;
 
@@ -26,7 +19,7 @@ const TileIcon = styled<
     }
   }
 
-  ${props =>
+  ${(props: TileIconProps) =>
     props.selected
       ? `
         pointer-events: none;
@@ -53,7 +46,7 @@ const ListIcon = styled<
     }
   }
 
-  ${props =>
+  ${(props: TileIconProps) =>
     props.selected
       ? `
         pointer-events: none;

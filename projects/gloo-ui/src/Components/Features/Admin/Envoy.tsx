@@ -1,18 +1,15 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { colors, healthConstants, soloConstants } from 'Styles';
+import styled from '@emotion/styled';
 import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
-import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-import { AppState } from 'store';
-import { useSelector } from 'react-redux';
-import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
-import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
+import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
+import { Status } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
+import { colors, healthConstants, soloConstants } from 'Styles';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -28,9 +25,11 @@ const EnvoyLogoFullSize = styled(EnvoyLogo)`
   max-height: none !important;
 `;
 
-const ExpandableSection = styled<'div', { isExpanded: boolean }>('div')`
-  max-height: ${props => (props.isExpanded ? '1000px' : '0px')};
-  overflow: auto;
+type ExpandableSectionProps = { isExpanded: boolean };
+const ExpandableSection = styled.div`
+  max-height: ${(props: ExpandableSectionProps) =>
+    props.isExpanded ? '1000px' : '0px'};
+  overflow: hidden;
   transition: max-height ${soloConstants.transitionTime};
   color: ${colors.septemberGrey};
 `;
@@ -42,7 +41,7 @@ const Link = styled.div`
 `;
 
 interface Props {}
-export const getEnvoyHealth = (code: Status.Code): number => {
+export const getHealth = (code: number): number => {
   switch (code) {
     case Status.Code.ERROR:
       return healthConstants.Error.value;
@@ -52,6 +51,7 @@ export const getEnvoyHealth = (code: Status.Code): number => {
       return healthConstants.Pending.value;
   }
 };
+
 export const Envoy = (props: Props) => {
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
@@ -102,7 +102,7 @@ export const Envoy = (props: Props) => {
             cardName={envoy.name}
             logoIcon={<EnvoyLogoFullSize />}
             headerSecondaryInformation={[]}
-            health={getEnvoyHealth(envoy!.status!.code!)}
+            health={getHealth(envoy!.status!.code)}
             healthMessage={'Envoy Status'}>
             {envoy!.status!.message !== '' && (
               <TallyContainer color='orange'>

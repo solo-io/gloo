@@ -1,11 +1,14 @@
 {
   "presets": [
     "@babel/preset-env",
-    ["@babel/preset-typescript",{"isTSX": true, "jsxPragma":"React"}],
-    "@babel/preset-react"
+    ["@babel/preset-typescript",{ "jsxPragma":"React"}],
+    "@babel/preset-react",
+    "@emotion/babel-preset-css-prop"
   ],
   "plugins": [
+    "emotion",
     "@babel/plugin-proposal-export-namespace-from",
+    "react-hot-loader/babel",
     "@babel/proposal-class-properties",
     "@babel/proposal-object-rest-spread",
     "@babel/plugin-proposal-optional-chaining"

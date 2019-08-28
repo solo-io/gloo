@@ -1,13 +1,8 @@
+import Table from 'antd/lib/table';
 import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
 import { DndProvider, DragSource, DropTarget } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { TableContainer, TableProps } from './SoloTable';
-import { soloConstants } from 'Styles';
-import Table from 'antd/lib/table';
-import { hslToHSLA, colors } from 'Styles/colors';
 
 let draggingIndex = -1;
 

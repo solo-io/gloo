@@ -1,10 +1,8 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { colors, TableActionCircle } from 'Styles';
+import styled from '@emotion/styled';
 import { ReactComponent as DocumentSVG } from 'assets/document.svg';
 import { ReactComponent as TableDownloadIcon } from 'assets/download.svg';
+import * as React from 'react';
+import { colors, TableActionCircle } from 'Styles';
 
 const Link = styled.div`
   display: flex;
@@ -18,8 +16,10 @@ const DocumentIcon = styled(DocumentSVG)`
   margin-right: 5px;
 `;
 
-const ActionCircle = styled<'div', { gridArea?: string }>('div')`
-  ${props => !!props.gridArea && `grid-area: ${props.gridArea}`};
+type ActionCircleProps = { gridArea?: string };
+const ActionCircle = styled.div`
+  ${(props: ActionCircleProps) =>
+    !!props.gridArea && `grid-area: ${props.gridArea}`};
 `;
 
 interface Props {

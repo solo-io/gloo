@@ -1,9 +1,8 @@
-import React from 'react';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import { List } from 'antd';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import React from 'react';
 import { colors } from 'Styles';
-import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { getFunctionList } from 'utils/helpers';
 
 const ExtraInfoContainer = styled.div`

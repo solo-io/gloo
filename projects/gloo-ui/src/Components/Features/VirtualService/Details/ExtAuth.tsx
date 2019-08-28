@@ -1,11 +1,11 @@
-import * as React from 'react';
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import styled from '@emotion/styled';
 import { Button } from 'antd';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { ExtAuthForm } from './ExtAuthForm';
-import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
 import { Label } from 'Components/Common/SoloInput';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import * as React from 'react';
+import { colors } from 'Styles';
+import { ExtAuthForm } from './ExtAuthForm';
 
 const ConfigItemHeader = styled.div`
   display: flex;
@@ -104,7 +104,7 @@ export const ExtAuth = (props: Props) => {
 
         <UpdateButton
           type='link'
-          onClick={e => setShowExtAuthModal(show => !show)}>
+          onClick={() => setShowExtAuthModal(show => !show)}>
           Update Authorization.
         </UpdateButton>
         <SoloModal
@@ -120,7 +120,8 @@ export const ExtAuth = (props: Props) => {
               Need help?{' '}
               <a
                 href='https://gloo.solo.io/gloo_routing/virtual_services/authentication/external_auth/oauth/'
-                target='_blank'>
+                target='_blank'
+                rel='noopener noreferrer'>
                 View Authorization documentation.
               </a>
             </Legend>

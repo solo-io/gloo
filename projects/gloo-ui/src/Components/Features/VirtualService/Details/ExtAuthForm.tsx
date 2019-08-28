@@ -1,4 +1,4 @@
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import {
   SoloFormInput,
   SoloFormTypeahead
@@ -7,11 +7,11 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
 
 const FormContainer = styled.div`
   display: grid;

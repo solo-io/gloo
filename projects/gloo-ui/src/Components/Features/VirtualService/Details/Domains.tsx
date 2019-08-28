@@ -1,9 +1,9 @@
-import * as React from 'react';
+import styled from '@emotion/styled';
 import { StringCardsList } from 'Components/Common/StringCardsList';
-import styled from '@emotion/styled/macro';
+import { isEqual } from 'lodash';
+import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
-import { isEqual } from 'lodash';
 
 const DomainsContainer = styled.div`
   background: ${colors.januaryGrey};

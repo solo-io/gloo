@@ -1,17 +1,14 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
-import { NavLink } from 'react-router-dom';
-import { colors } from 'Styles';
-import { ReactComponent as GlooE } from 'assets/GlooEE.svg';
-import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
-import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
-import styled from '@emotion/styled/macro';
+import { css } from '@emotion/core';
+import styled from '@emotion/styled';
 import { Popover } from 'antd';
-import { GetVirtualServiceRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { useGetVersion } from 'Api';
+import { ReactComponent as GlooE } from 'assets/GlooEE.svg';
+import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
+import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 import { AppState } from 'store';
+import { colors } from 'Styles';
 
 const NavLinkStyles = {
   display: 'inline-block',

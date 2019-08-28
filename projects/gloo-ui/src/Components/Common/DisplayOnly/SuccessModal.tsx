@@ -1,9 +1,8 @@
-import * as React from 'react';
-
+import styled from '@emotion/styled';
 import { Modal } from 'antd';
 import { ModalProps } from 'antd/lib/modal';
 import { ReactComponent as SuccessCheckmark } from 'assets/big-successful-checkmark.svg';
-import styled from '@emotion/styled/macro';
+import * as React from 'react';
 import { colors } from 'Styles';
 
 const maskStyle = {

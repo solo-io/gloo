@@ -1,14 +1,10 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
+import styled from '@emotion/styled';
 import { AutoComplete } from 'antd';
-import { colors, soloConstants } from 'Styles';
-import styled from '@emotion/styled/macro';
-import { Label } from './SoloInput';
-import Select, { SelectValue } from 'antd/lib/select';
 import { DataSourceItemType } from 'antd/lib/auto-complete';
-import { useKeyPress } from 'Hooks/useKeyPress';
-
+import Select, { SelectValue } from 'antd/lib/select';
+import * as React from 'react';
+import { colors, soloConstants } from 'Styles';
+import { Label } from './SoloInput';
 const { Option } = AutoComplete;
 
 const SoloAutocompleteBlock = styled(AutoComplete)`
@@ -60,7 +56,7 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
     }
 
     .ant-select-arrow {
-      display: ${props =>
+      display: ${(props: { hideArrow: boolean }) =>
         // @ts-ignore
         props.hideArrow ? 'none' : 'block'};
     }

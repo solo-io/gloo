@@ -40,8 +40,8 @@ export namespace UpstreamSpec {
     getFunctionName(): string;
     setFunctionName(value: string): void;
 
-    getAuthLevel(): UpstreamSpec.FunctionSpec.AuthLevel;
-    setAuthLevel(value: UpstreamSpec.FunctionSpec.AuthLevel): void;
+    getAuthLevel(): UpstreamSpec.FunctionSpec.AuthLevelMap[keyof UpstreamSpec.FunctionSpec.AuthLevelMap];
+    setAuthLevel(value: UpstreamSpec.FunctionSpec.AuthLevelMap[keyof UpstreamSpec.FunctionSpec.AuthLevelMap]): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): FunctionSpec.AsObject;
@@ -56,14 +56,16 @@ export namespace UpstreamSpec {
   export namespace FunctionSpec {
     export type AsObject = {
       functionName: string,
-      authLevel: UpstreamSpec.FunctionSpec.AuthLevel,
+      authLevel: UpstreamSpec.FunctionSpec.AuthLevelMap[keyof UpstreamSpec.FunctionSpec.AuthLevelMap],
     }
 
-    export enum AuthLevel {
-      ANONYMOUS = 0,
-      FUNCTION = 1,
-      ADMIN = 2,
+    export interface AuthLevelMap {
+      ANONYMOUS: 0;
+      FUNCTION: 1;
+      ADMIN: 2;
     }
+
+    export const AuthLevel: AuthLevelMap;
   }
 }
 

@@ -1,11 +1,11 @@
-import * as React from 'react';
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import styled from '@emotion/styled';
 import { Button } from 'antd';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { RateLimitForm, timeOptions } from './RateLimitForm';
-import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
 import { Label } from 'Components/Common/SoloInput';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
+import * as React from 'react';
+import { colors } from 'Styles';
+import { RateLimitForm, timeOptions } from './RateLimitForm';
 
 const ConfigItemHeader = styled.div`
   display: flex;
@@ -105,7 +105,7 @@ export const RateLimit = (props: Props) => {
         )}
         <UpdateButton
           type='link'
-          onClick={e => setShowRateLimitModal(show => !show)}>
+          onClick={() => setShowRateLimitModal(show => !show)}>
           Update Rate Limits.
         </UpdateButton>
         <SoloModal
@@ -121,7 +121,8 @@ export const RateLimit = (props: Props) => {
               Need help?{' '}
               <a
                 href='https://gloo.solo.io/gloo_routing/virtual_services/rate_limiting/simple/'
-                target='_blank'>
+                target='_blank'
+                rel='noopener noreferrer'>
                 View Rate Limit documentation.
               </a>
             </Legend>

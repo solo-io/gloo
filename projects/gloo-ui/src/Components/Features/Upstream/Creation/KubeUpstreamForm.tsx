@@ -6,11 +6,10 @@ import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { Field } from 'formik';
 import * as React from 'react';
-import * as yup from 'yup';
-import { AppState } from 'store';
 import { useSelector } from 'react-redux';
+import { AppState } from 'store';
+import * as yup from 'yup';
 
 // TODO: handle servicespec and subset spec
 export interface KubeValuesType {

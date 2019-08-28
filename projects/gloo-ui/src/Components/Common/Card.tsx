@@ -1,19 +1,17 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import {
-  colors,
-  soloConstants,
-  healthConstants,
-  TableActionCircle
-} from 'Styles';
-import { CardCSS } from 'Styles/CommonEmotions/card';
-import { hslToHSLA } from 'Styles/colors';
-import { HealthIndicator } from './HealthIndicator';
+import styled from '@emotion/styled';
 import { Popconfirm, Tooltip } from 'antd';
 import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import * as React from 'react';
+import {
+  colors,
+  healthConstants,
+  soloConstants,
+  TableActionCircle
+} from 'Styles';
+import { hslToHSLA } from 'Styles/colors';
+import { CardCSS } from 'Styles/CommonEmotions/card';
 import { FileDownloadActionCircle } from './FileDownloadLink';
+import { HealthIndicator } from './HealthIndicator';
 
 const Container = styled.div`
   ${CardCSS};
@@ -124,10 +122,11 @@ const ActionCircle = styled(TableActionCircle)`
   color: ${colors.septemberGrey};
 `;
 
-const ArrowToggle = styled<'div', { active?: boolean }>('div')`
+type ArrowToggleProps = { active?: boolean };
+const ArrowToggle = styled.div`
   position: absolute;
   right: 8px;
-  top: ${props => (props.active ? '14' : '15')}px;
+  top: ${(props: ArrowToggleProps) => (props.active ? '14' : '15')}px;
 
   &:before,
   &:after {
@@ -144,12 +143,16 @@ const ArrowToggle = styled<'div', { active?: boolean }>('div')`
     right: 5px;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    transform: rotate(${props => (props.active ? '-' : '')}45deg);
+    transform: rotate(
+      ${(props: ArrowToggleProps) => (props.active ? '-' : '')}45deg
+    );
   }
 
   &:after {
     right: 1px;
-    transform: rotate(${props => (props.active ? '' : '-')}45deg);
+    transform: rotate(
+      ${(props: ArrowToggleProps) => (props.active ? '' : '-')}45deg
+    );
   }
 `;
 

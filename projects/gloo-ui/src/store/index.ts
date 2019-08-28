@@ -11,6 +11,12 @@ import { envoyReducer } from './envoy/reducers';
 import { gatewaysReducer } from './gateway/reducers';
 import { proxyReducer } from './proxy/reducers';
 
+export const host = `${
+  process.env.NODE_ENV === 'production'
+    ? window.location.origin
+    : 'http://localhost:8080'
+}`;
+
 const rootReducer = combineReducers({
   upstreams: upstreamsReducer,
   virtualServices: virtualServicesReducer,

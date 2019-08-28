@@ -1,20 +1,20 @@
-import React from 'react';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import {
+  SoloFormInput,
+  SoloFormTypeahead,
+  TableFormWrapper
+} from 'Components/Common/Form/SoloFormField';
+import { Formik } from 'formik';
 import {
   AwsSecret,
   AzureSecret,
-  TlsSecret,
-  Secret
+  Secret,
+  TlsSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { Formik } from 'formik';
-import {
-  SoloFormInput,
-  TableFormWrapper,
-  SoloFormTypeahead
-} from 'Components/Common/Form/SoloFormField';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { AppState } from 'store';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import React from 'react';
 import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 // TODO: modify for use outside a table
 // TODO: set one source of truth for column names/order

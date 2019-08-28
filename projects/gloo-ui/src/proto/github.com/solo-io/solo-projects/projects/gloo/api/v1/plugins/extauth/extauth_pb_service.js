@@ -57,10 +57,10 @@ ExtAuthDiscoveryServiceClient.prototype.streamExtAuthConfig = function streamExt
     transport: this.options.transport
   });
   client.onEnd(function (status, statusMessage, trailers) {
-    listeners.end.forEach(function (handler) {
-      handler();
-    });
     listeners.status.forEach(function (handler) {
+      handler({ code: status, details: statusMessage, metadata: trailers });
+    });
+    listeners.end.forEach(function (handler) {
       handler({ code: status, details: statusMessage, metadata: trailers });
     });
     listeners = null;
@@ -102,10 +102,10 @@ ExtAuthDiscoveryServiceClient.prototype.deltaExtAuthConfig = function deltaExtAu
     transport: this.options.transport
   });
   client.onEnd(function (status, statusMessage, trailers) {
-    listeners.end.forEach(function (handler) {
-      handler();
-    });
     listeners.status.forEach(function (handler) {
+      handler({ code: status, details: statusMessage, metadata: trailers });
+    });
+    listeners.end.forEach(function (handler) {
       handler({ code: status, details: statusMessage, metadata: trailers });
     });
     listeners = null;

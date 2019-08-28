@@ -1,9 +1,6 @@
-import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
-
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import styled from '@emotion/styled';
 import { ReactComponent as SuccessCheckmark } from 'assets/big-successful-checkmark.svg';
+import * as React from 'react';
 
 const StateContainer = styled.div`
   display: flex;

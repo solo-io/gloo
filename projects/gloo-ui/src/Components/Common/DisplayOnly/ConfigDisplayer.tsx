@@ -1,19 +1,19 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { colors, soloConstants } from 'Styles';
+import styled from '@emotion/styled';
 import Highlight, { defaultProps } from 'prism-react-renderer';
 import theme from 'prism-react-renderer/themes/github';
+import * as React from 'react';
+import { colors, soloConstants } from 'Styles';
 
-const Container = styled<'div', { whiteBacked?: boolean }>('div')`
+type ContainerProps = { whiteBacked?: boolean };
+const Container = styled.div`
   padding: ${soloConstants.smallBuffer}px 5px ${soloConstants.smallBuffer}px
     ${soloConstants.smallBuffer}px;
   border: 1px solid ${colors.mayGrey};
   border-radius: ${soloConstants.smallRadius}px;
-  background: ${props => (props.whiteBacked ? 'white' : colors.januaryGrey)};
+  background: ${(props: ContainerProps) =>
+    props.whiteBacked ? 'white' : colors.januaryGrey};
   .prism-code {
-    background: ${props =>
+    background: ${(props: ContainerProps) =>
       props.whiteBacked ? 'white' : colors.januaryGrey} !important;
   }
 `;

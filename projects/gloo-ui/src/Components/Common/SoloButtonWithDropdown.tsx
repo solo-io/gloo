@@ -1,10 +1,6 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-
 import { colors, soloConstants } from 'Styles';
-import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { SoloButton } from './SoloButton';
 
 export enum InstallExtensionButtonAction {
@@ -13,10 +9,11 @@ export enum InstallExtensionButtonAction {
   uninstall
 }
 
-const Container = styled<'div', { inProgress?: boolean }>('div')`
+type ContainerProps = { inProgress?: boolean };
+const Container = styled.div`
   display: flex;
 
-  ${props =>
+  ${(props: ContainerProps) =>
     props.inProgress
       ? ''
       : `> button {
@@ -25,7 +22,8 @@ const Container = styled<'div', { inProgress?: boolean }>('div')`
   }`};
 `;
 
-const OptionsPrompt = styled<'div', { disabled?: boolean }>('div')`
+type OptionsPromptProps = { disabled?: boolean };
+const OptionsPrompt = styled.div`
   position: relative;
   height: 39px;
   width: 30px;
@@ -45,7 +43,7 @@ const OptionsPrompt = styled<'div', { disabled?: boolean }>('div')`
     background: ${colors.seaBlue};
   }
 
-  ${props =>
+  ${(props: OptionsPromptProps) =>
     props.disabled
       ? `
     opacity: 0.3;

@@ -1,9 +1,8 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
-import { colors, soloConstants } from '../../Styles';
-import styled from '@emotion/styled/macro';
+import { css } from '@emotion/core';
+import styled from '@emotion/styled';
 import { Checkbox } from 'antd';
+import * as React from 'react';
+import { colors, soloConstants } from 'Styles';
 
 const InputStyling = css`
   border-radius: 10px;
@@ -50,10 +49,12 @@ const CheckboxStyling = css`
   }
 `;
 
-const CheckboxWrapper = styled<
-  'div',
-  { checked?: boolean; withoutCheckboxVisual?: boolean }
->('div')`
+type CheckboxWrapperProps = {
+  checked?: boolean;
+  withoutCheckboxVisual?: boolean;
+};
+
+const CheckboxWrapper = styled.div`
   ${InputStyling}
   display: flex;
   justify-content: space-between;
@@ -62,14 +63,14 @@ const CheckboxWrapper = styled<
   transition: background ${soloConstants.transitionTime},
     border ${soloConstants.transitionTime};
 
-  ${props =>
+  ${(props: CheckboxWrapperProps) =>
     !!props.checked
       ? `background: ${colors.dropBlue};
         border-color: ${colors.seaBlue};
         cursor: default;`
       : `cursor: pointer;`}
 
-  ${props =>
+  ${(props: CheckboxWrapperProps) =>
     !!props.withoutCheckboxVisual
       ? `.ant-checkbox {
           .ant-checkbox-inner {

@@ -1,13 +1,10 @@
+import styled from '@emotion/styled';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
 import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
 import { soloConstants } from 'Styles/constants';
 import { SoloInput } from './SoloInput';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
 import { SoloTypeahead } from './SoloTypeahead';
 
 export const Container = styled.div`
@@ -16,16 +13,18 @@ export const Container = styled.div`
   align-items: center;
 `;
 
-export const StringCard = styled<'div', { limitWidth?: boolean }>('div')`
+type StringCardProps = { limitWidth?: boolean };
+export const StringCard = styled.div`
   display: flex;
   justify-content: space-between;
   line-height: 33px;
   font-size: 16px;
-  width: ${props => (props.limitWidth ? '175px' : 'auto')};
+  width: ${(props: StringCardProps) => (props.limitWidth ? '175px' : 'auto')};
   margin: 10px;
   white-space: nowrap;
 `;
-export const CardValue = styled<'div', { hasError?: boolean }>('div')`
+type HasErrorProps = { hasError?: boolean };
+export const CardValue = styled.div`
   min-width: 100px;
   max-width: 500px;
   padding-left: 10px;
@@ -36,7 +35,7 @@ export const CardValue = styled<'div', { hasError?: boolean }>('div')`
   border-radius: ${soloConstants.smallRadius}px 0 0
     ${soloConstants.smallRadius}px;
 
-  ${props =>
+  ${(props: HasErrorProps) =>
     props.hasError
       ? `background: ${colors.tangerineOrange};
       color: ${colors.pumpkinOrange};
@@ -48,14 +47,14 @@ export const CardValue = styled<'div', { hasError?: boolean }>('div')`
       background: ${colors.marchGrey};
       color: ${colors.novemberGrey};`}
 `;
-export const DeleteX = styled<'div', { hasError?: boolean }>('div')`
+export const DeleteX = styled.div`
   padding-right: 10px;
   padding-left: 5px;
   cursor: pointer;
   border-radius: 0 ${soloConstants.smallRadius}px ${soloConstants.smallRadius}px
     0;
 
-  ${props =>
+  ${(props: HasErrorProps) =>
     props.hasError
       ? `background: ${colors.tangerineOrange};
     color: ${colors.pumpkinOrange};
@@ -76,18 +75,18 @@ export const NewStringPrompt = styled.div`
   align-items: center;
   margin: 10px;
 `;
-export const PlusHolder = styled<
-  'div',
-  { disabled: boolean; withRegex?: boolean }
->('div')`
-  ${props =>
+
+type PlusHolderProps = { disabled: boolean; withRegex?: boolean };
+
+export const PlusHolder = styled.div`
+  ${(props: PlusHolderProps) =>
     props.disabled
       ? `opacity: .5;
     pointer-events: none;`
       : ''}
 
   position: absolute;
-  right: ${props => (props.withRegex ? '-23px' : '7px')};
+  right: ${(props: PlusHolderProps) => (props.withRegex ? '-23px' : '7px')};
   top: 10px;
   cursor: pointer;
   z-index: 5;

@@ -1,13 +1,9 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
-import { colors } from 'Styles';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import styled from '@emotion/styled';
 import { Divider } from 'antd';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SoloModal } from 'Components/Common/SoloModal';
+import * as React from 'react';
+import { colors } from 'Styles';
 import { CreateVirtualServiceForm } from './CreateVirtualServiceForm';
 
 const StyledGreenPlus = styled(GreenPlus)`

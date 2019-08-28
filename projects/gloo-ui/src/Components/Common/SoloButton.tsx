@@ -1,13 +1,11 @@
+import { css, SerializedStyles } from '@emotion/core';
+import { BaseButtonProps } from 'antd/lib/button/button';
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx, SerializedStyles } from '@emotion/core';
 import {
-  SoloButtonCSS,
   ButtonProgress,
+  SoloButtonCSS,
   SoloButtonStyledComponent
 } from 'Styles/CommonEmotions/button';
-
-import { BaseButtonProps } from 'antd/lib/button/button';
 
 export interface SoloButtonProps extends BaseButtonProps {
   text: string;

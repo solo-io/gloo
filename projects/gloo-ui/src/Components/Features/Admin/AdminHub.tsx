@@ -1,21 +1,17 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { RouteComponentProps, Route, Switch, Redirect } from 'react-router';
-import { colors } from 'Styles';
-import {
-  ListingFilter,
-  TypeFilterProps,
-  StringFilterProps,
-  CheckboxFilterProps,
-  RadioFilterProps
-} from 'Components/Common/ListingFilter';
-import { Envoy } from './Envoy';
-import { Proxys } from './Proxy';
-import { Gateways } from './Gateways';
+import styled from '@emotion/styled';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import {
+  CheckboxFilterProps,
+  ListingFilter,
+  RadioFilterProps,
+  StringFilterProps,
+  TypeFilterProps
+} from 'Components/Common/ListingFilter';
+import * as React from 'react';
+import { Route, RouteComponentProps, Switch } from 'react-router';
+import { Envoy } from './Envoy';
+import { Gateways } from './Gateways';
+import { Proxys } from './Proxy';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',

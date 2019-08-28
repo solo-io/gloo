@@ -1,7 +1,6 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-
-import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
 import { HealthIndicator } from '../HealthIndicator';
 
@@ -12,14 +11,16 @@ const StatusTileContainer = styled.div`
   padding: 17px;
 `;
 
-const StatusTileInformation = styled<'div', { horizontal?: boolean }>('div')`
+type StatusTileInformationProps = { horizontal?: boolean };
+const StatusTileInformation = styled.div`
   position: relative;
   border-radius: 8px;
   background: white;
   padding: 15px 18px 18px 15px;
   height: 100%;
 
-  ${props => (props.horizontal ? `display: flex;` : '')}
+  ${(props: StatusTileInformationProps) =>
+    props.horizontal ? `display: flex;` : ''}
 `;
 
 const Title = styled.div`
@@ -53,12 +54,13 @@ const HorizontalTitle = styled.div`
   }
 `;
 
-const Description = styled<'div', { minHeight?: string }>('div')`
+type DescriptionProps = { minHeight?: string };
+const Description = styled.div`
   color: ${colors.novemberGrey};
   font-size: 16px;
   line-height: 19px;
   margin-bottom: 23px;
-  min-height: ${props =>
+  min-height: ${(props: DescriptionProps) =>
     props.minHeight !== undefined ? props.minHeight : '0'};
 `;
 

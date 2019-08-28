@@ -1,7 +1,7 @@
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
+import { css } from '@emotion/core';
+import styled from '@emotion/styled';
 import { ReactComponent as SoloIcon } from 'assets/solo-logo-dark-text.svg';
+import React from 'react';
 import { colors } from 'Styles';
 
 const FooterContainer = styled.div`

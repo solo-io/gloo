@@ -44,8 +44,8 @@ export namespace Descriptor {
 }
 
 export class RateLimit extends jspb.Message {
-  getUnit(): RateLimit.Unit;
-  setUnit(value: RateLimit.Unit): void;
+  getUnit(): RateLimit.UnitMap[keyof RateLimit.UnitMap];
+  setUnit(value: RateLimit.UnitMap[keyof RateLimit.UnitMap]): void;
 
   getRequestsPerUnit(): number;
   setRequestsPerUnit(value: number): void;
@@ -62,17 +62,19 @@ export class RateLimit extends jspb.Message {
 
 export namespace RateLimit {
   export type AsObject = {
-    unit: RateLimit.Unit,
+    unit: RateLimit.UnitMap[keyof RateLimit.UnitMap],
     requestsPerUnit: number,
   }
 
-  export enum Unit {
-    UNKNOWN = 0,
-    SECOND = 1,
-    MINUTE = 2,
-    HOUR = 3,
-    DAY = 4,
+  export interface UnitMap {
+    UNKNOWN: 0;
+    SECOND: 1;
+    MINUTE: 2;
+    HOUR: 3;
+    DAY: 4;
   }
+
+  export const Unit: UnitMap;
 }
 
 export class IngressRateLimit extends jspb.Message {

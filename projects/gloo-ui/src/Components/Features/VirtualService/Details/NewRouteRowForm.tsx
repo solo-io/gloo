@@ -1,43 +1,40 @@
-import React from 'react';
-import { useCreateSecret, useGetUpstreamsList, useCreateRoute } from 'Api';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Formik, Field } from 'formik';
+import { useCreateRoute } from 'Api/useVirtualServiceClient';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import {
-  SoloFormInput,
-  TableFormWrapper,
+  ErrorText,
   SoloFormDropdown,
-  SoloFormMultiselect,
+  SoloFormInput,
   SoloFormMetadataBasedDropdown,
   SoloFormMultipartStringCardsList,
-  ErrorText
+  SoloFormMultiselect,
+  TableFormWrapper
 } from 'Components/Common/Form/SoloFormField';
 import {
-  CreateRouteValuesType,
   createRouteDefaultValues,
+  CreateRouteValuesType,
   PATH_SPECIFIERS
 } from 'Components/Features/Route/CreateRouteModal';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { Formik } from 'formik';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
-
+import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import {
+  Destination,
+  HeaderMatcher,
+  Matcher,
+  QueryParameterMatcher,
+  Route,
+  RouteAction
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { ListUpstreamsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import {
   CreateRouteRequest,
   RouteInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import {
-  Route,
-  Matcher,
-  HeaderMatcher,
-  RouteAction,
-  Destination,
-  QueryParameterMatcher
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
 
@@ -62,22 +59,21 @@ export const NewRouteRowForm: React.FC<Props> = ({
   const {
     config: { namespacesList }
   } = useSelector((state: AppState) => state);
-
+  const upstreamsList = useSelector(
+    (state: AppState) => state.upstreams.upstreamsList
+  );
   let listUpstreamsRequest = React.useRef(new ListUpstreamsRequest());
   listUpstreamsRequest.current.setNamespacesList(namespacesList);
 
-  const {
-    data: upstreamsData,
-    error: upstreamsError,
-    loading: upstreamsLoading
-  } = useGetUpstreamsList(listUpstreamsRequest.current);
   React.useEffect(() => {
     setAllUsableUpstreams(
-      !!upstreamsData
-        ? upstreamsData.upstreamsList.filter(upstream => !!upstream.metadata)
+      !!upstreamsList.length
+        ? upstreamsList
+            .map(ud => ud.upstream!)
+            .filter(upstream => !!upstream.metadata)
         : []
     );
-  }, [upstreamsData]);
+  }, [upstreamsList.length]);
 
   const initialValues = { ...createRouteDefaultValues, virtualService };
 

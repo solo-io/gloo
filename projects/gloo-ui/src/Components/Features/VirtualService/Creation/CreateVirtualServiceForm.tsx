@@ -1,22 +1,18 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-
-import { useFormValidation } from 'Hooks/useFormValidation';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { ErrorText } from '../Details/ExtAuthForm';
+import styled from '@emotion/styled';
+import { useCreateVirtualService } from 'Api/useVirtualServiceClient';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { useCreateVirtualService } from 'Api';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
+import { useFormValidation } from 'Hooks/useFormValidation';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CreateVirtualServiceRequest,
   VirtualServiceInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';
+import { ErrorText } from '../Details/ExtAuthForm';
 
 const Footer = styled.div`
   display: flex;

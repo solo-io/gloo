@@ -1,8 +1,7 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
+import styled from '@emotion/styled';
 import { Select } from 'antd';
+import React from 'react';
 import { colors, soloConstants } from 'Styles';
-import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
 
 const SoloMultiselectBlock = styled(Select)`

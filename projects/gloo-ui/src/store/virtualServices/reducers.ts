@@ -1,7 +1,5 @@
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { VirtualServiceActionTypes, VirtualServiceAction } from './types';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 
 export interface VirtualServiceState {
   virtualServicesList: VirtualServiceDetails.AsObject[];

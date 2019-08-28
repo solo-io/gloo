@@ -1,21 +1,14 @@
-import {
-  Redirect,
-  Route,
-  Switch,
-  RouteComponentProps,
-  RouteProps
-} from 'react-router-dom';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { VirtualServicesListing } from 'Components/Features/VirtualService/VirtualServicesListing';
-import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing';
-import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
-import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
-import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
-import { Overview } from 'Components/Features/Overview';
-import { AdminLanding } from 'Components/Features/Admin/AdminLanding';
+import styled from '@emotion/styled';
 import { AdminHub } from 'Components/Features/Admin/AdminHub';
+import { AdminLanding } from 'Components/Features/Admin/AdminLanding';
+import { Overview } from 'Components/Features/Overview';
+import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
+import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
+import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing';
+import { VirtualServicesListing } from 'Components/Features/VirtualService/VirtualServicesListing';
+import React from 'react';
+import { Redirect, Route, Switch } from 'react-router-dom';
+import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 
 const Container = styled.div`
   padding: 35px 0 20px;

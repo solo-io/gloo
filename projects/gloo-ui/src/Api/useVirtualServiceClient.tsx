@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { requestReducer, Reducer, RequestAction } from './request-reducer';
 
-import { virtualServiceClient } from './grpc-web-hooks';
 import {
   GetVirtualServiceRequest,
   GetVirtualServiceResponse,
@@ -25,6 +24,7 @@ import {
   ShiftRoutesResponse
 } from '../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb.d';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
+import { client } from './v2/VirtualServiceClient';
 
 // export class VirtualServiceApi {
 //   static readonly serviceName: string;
@@ -64,7 +64,7 @@ export const useGetVirtualService = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.getVirtualService(
+    client.getVirtualService(
       request,
       (
         error: ServiceError | null,
@@ -125,7 +125,7 @@ export const useListVirtualServices = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.listVirtualServices(
+    client.listVirtualServices(
       request,
       (
         error: ServiceError | null,
@@ -186,7 +186,7 @@ export const useCreateVirtualService = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.createVirtualService(
+    client.createVirtualService(
       request,
       (
         error: ServiceError | null,
@@ -248,7 +248,7 @@ export const useUpdateVirtualService = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.updateVirtualService(
+    client.updateVirtualService(
       request,
       (
         error: ServiceError | null,
@@ -309,7 +309,7 @@ export const useDeleteVirtualService = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.deleteVirtualService(
+    client.deleteVirtualService(
       request,
       (
         error: ServiceError | null,
@@ -372,7 +372,7 @@ export const useCreateRoute = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.createRoute(
+    client.createRoute(
       request,
       (
         error: ServiceError | null,
@@ -434,7 +434,7 @@ export const useUpdateRoute = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.updateRoute(
+    client.updateRoute(
       request,
       (
         error: ServiceError | null,
@@ -495,7 +495,7 @@ export const useDeleteRoute = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.deleteRoute(
+    client.deleteRoute(
       request,
       (
         error: ServiceError | null,
@@ -556,7 +556,7 @@ export const useSwapRoutes = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.swapRoutes(
+    client.swapRoutes(
       request,
       (
         error: ServiceError | null,
@@ -617,7 +617,7 @@ export const useShiftRoutes = (
     }
     dispatch({ type: RequestAction.START, payload: null });
 
-    virtualServiceClient.shiftRoutes(
+    client.shiftRoutes(
       request,
       (
         error: ServiceError | null,

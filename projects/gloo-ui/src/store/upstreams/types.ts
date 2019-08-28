@@ -1,13 +1,7 @@
 import {
-  GetUpstreamRequest,
-  ListUpstreamsRequest,
-  CreateUpstreamRequest,
   DeleteUpstreamRequest,
-  UpdateUpstreamRequest,
   UpstreamDetails
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { ActionStatusType } from 'store/requests';
 
 export enum UpstreamAction {
   GET_UPSTREAM = 'GET_UPSTREAM',

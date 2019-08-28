@@ -1,35 +1,30 @@
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import {
   SoloFormDropdown,
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
 import {
-  SoloFormTemplate,
+  Footer,
   InputRow,
-  Footer
+  SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
+import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
-
 import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RouteComponentProps } from 'react-router';
+import { withRouter } from 'react-router-dom';
+import { AppState } from 'store';
+import { createUpstream } from 'store/upstreams/actions';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
-import {
-  consulInitialValues,
-  ConsulUpstreamForm,
-  consulValidationSchema
-} from './ConsulUpstreamForm';
+import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { withRouter } from 'react-router-dom';
-import { RouteComponentProps } from 'react-router';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { createUpstream } from 'store/upstreams/actions';
-import { AppState } from 'store';
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }

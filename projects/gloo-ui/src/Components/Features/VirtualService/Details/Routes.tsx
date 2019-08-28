@@ -1,24 +1,23 @@
-import * as React from 'react';
-import styled from '@emotion/styled/macro';
-
-import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
-import {
-  getRouteMethods,
-  getRouteSingleUpstream,
-  getRouteMatcher,
-  getRouteHeaders,
-  getRouteQueryParams
-} from 'utils/helpers';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { TableActionCircle, TableActions, colors } from 'Styles';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
-import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
+import styled from '@emotion/styled';
 import { Popconfirm } from 'antd';
+import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { deleteRoute, shiftRoutes } from 'store/virtualServices/actions';
+import { colors, TableActionCircle, TableActions } from 'Styles';
+import {
+  getRouteHeaders,
+  getRouteMatcher,
+  getRouteMethods,
+  getRouteQueryParams,
+  getRouteSingleUpstream
+} from 'utils/helpers';
 
 const RouteMatch = styled.div`
   max-width: 200px;

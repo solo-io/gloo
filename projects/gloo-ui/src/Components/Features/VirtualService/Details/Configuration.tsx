@@ -1,11 +1,11 @@
+import styled from '@emotion/styled';
+import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
 import * as React from 'react';
-import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
-import { DetailsSectionTitle } from './VirtualServiceDetails';
 import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
-import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
-import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import { DetailsSectionTitle } from './VirtualServiceDetails';
 
 const ConfigContainer = styled.div`
   display: grid;

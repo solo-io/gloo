@@ -1,23 +1,19 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
-import { soloConstants } from 'Styles/constants';
-import { SoloInput, Label } from './SoloInput';
+import styled from '@emotion/styled';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { ReactComponent as GreenPlusSVG } from 'assets/small-green-plus.svg';
 import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
-import {
-  NewStringPrompt as SmallNewStringPrompt,
-  StringCard as SmallStringCard,
-  CardValue as SmallCardValue,
-  PlusHolder,
-  DeleteX as SmallDeleteX
-} from './StringCardsList';
-import { SoloCheckbox } from './SoloCheckbox';
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import * as React from 'react';
+import { colors } from 'Styles';
 import { hslToHSLA } from 'Styles/colors';
+import { SoloCheckbox } from './SoloCheckbox';
+import { Label, SoloInput } from './SoloInput';
+import {
+  CardValue as SmallCardValue,
+  DeleteX as SmallDeleteX,
+  NewStringPrompt as SmallNewStringPrompt,
+  PlusHolder,
+  StringCard as SmallStringCard
+} from './StringCardsList';
 
 const Container = styled.div`
   display: flex;
@@ -60,9 +56,10 @@ const CardBool = styled.div`
   line-height: 18px;
   height: 18px;
 `;
-const CardBoolIndicator = styled<'div', { isTrue: boolean }>('div')`
+type CardBoolprops = { isTrue: boolean };
+const CardBoolIndicator = styled.div`
   padding: 0 8px;
-  background: ${props =>
+  background: ${(props: CardBoolprops) =>
     props.isTrue ? hslToHSLA(colors.forestGreen, 0.68) : 'transparent'};
   color: white;
   height: 18px;

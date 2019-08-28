@@ -29,8 +29,8 @@ export class FractionalPercent extends jspb.Message {
   getNumerator(): number;
   setNumerator(value: number): void;
 
-  getDenominator(): FractionalPercent.DenominatorType;
-  setDenominator(value: FractionalPercent.DenominatorType): void;
+  getDenominator(): FractionalPercent.DenominatorTypeMap[keyof FractionalPercent.DenominatorTypeMap];
+  setDenominator(value: FractionalPercent.DenominatorTypeMap[keyof FractionalPercent.DenominatorTypeMap]): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FractionalPercent.AsObject;
@@ -45,13 +45,15 @@ export class FractionalPercent extends jspb.Message {
 export namespace FractionalPercent {
   export type AsObject = {
     numerator: number,
-    denominator: FractionalPercent.DenominatorType,
+    denominator: FractionalPercent.DenominatorTypeMap[keyof FractionalPercent.DenominatorTypeMap],
   }
 
-  export enum DenominatorType {
-    HUNDRED = 0,
-    TEN_THOUSAND = 1,
-    MILLION = 2,
+  export interface DenominatorTypeMap {
+    HUNDRED: 0;
+    TEN_THOUSAND: 1;
+    MILLION: 2;
   }
+
+  export const DenominatorType: DenominatorTypeMap;
 }
 

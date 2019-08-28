@@ -1,5 +1,5 @@
 import { ProxyApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb_service';
-import { host } from '../grpc-web-hooks';
+import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   ListProxiesResponse,

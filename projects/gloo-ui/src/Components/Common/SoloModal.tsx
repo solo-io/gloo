@@ -1,9 +1,7 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { colors, soloConstants } from '../../Styles';
+import styled from '@emotion/styled';
 import { ReactComponent as CloseX } from 'assets/close-x.svg';
+import * as React from 'react';
+import { colors, soloConstants } from 'Styles';
 
 const ModalWindow = styled.div`
   position: fixed;
@@ -24,12 +22,12 @@ const BlockHolder = styled.div`
   max-height: 80vh;
 `;
 
-interface ContentProps {
+type ContentProps = {
   width: number | string;
-}
-const ModalBlock = styled<'div', ContentProps>('div')`
+};
+const ModalBlock = styled.div`
   position: relative;
-  width: ${props =>
+  width: ${(props: ContentProps) =>
     props.width === 'auto' ? props.width : `${props.width}px`};
   border-radius: 10px;
   background: white;
@@ -80,7 +78,8 @@ export const SoloModal = (props: ModalProps) => {
 
   return (
     <ModalWindow onClick={onClose}>
-      <BlockHolder onClick={evt => evt.stopPropagation()}>
+      <BlockHolder
+        onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
         <ModalBlock width={width}>
           <CloseXContainer onClick={onClose}>
             <CloseX />

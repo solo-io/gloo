@@ -1,41 +1,41 @@
-import styled from '@emotion/styled/macro';
-import { useListSecrets } from 'Api';
+import styled from '@emotion/styled';
+import { Select } from 'antd';
 import { useField, useFormikContext } from 'formik';
-import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { AppState } from 'store';
 import { colors } from 'Styles';
 import {
   createUpstreamId,
   getIcon,
   getUpstreamType,
-  parseUpstreamId,
-  groupBy
+  groupBy,
+  parseUpstreamId
 } from 'utils/helpers';
 import {
   MultipartStringCardsList,
   MultipartStringCardsProps
 } from '../MultipartStringCardsList';
 import { SoloCheckbox } from '../SoloCheckbox';
-import { SoloDurationEditor, DurationProps } from '../SoloDurationEditor';
 import {
   DropdownProps,
   SoloDropdown,
-  OptionType,
   SoloDropdownBlock
 } from '../SoloDropdown';
-import { SoloInput, Label } from '../SoloInput';
+import { DurationProps, SoloDurationEditor } from '../SoloDurationEditor';
+import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
-import { Select } from 'antd';
+
 const { Option, OptGroup } = Select;
 
-export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
+type ErrorTextProps = { errorExists?: boolean };
+export const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
-  visibility: ${props => (props.errorExists ? 'visible' : 'hidden')};
+  visibility: ${(props: ErrorTextProps) =>
+    props.errorExists ? 'visible' : 'hidden'};
   min-height: 19px;
 `;
 // TODO: find best way to type the components
@@ -406,6 +406,24 @@ export const SoloFormSecretRefInput: React.FC<{
           .map(secret => secret.metadata!.name)
       : []
   );
+
+  React.useEffect(() => {
+    setSecretsFound(
+      secretsList
+        ? secretsList
+            .filter(secret => {
+              if (type === 'aws') return !!secret.aws;
+              if (type === 'azure') return !!secret.azure;
+            })
+            .filter(secret => secret.metadata!.namespace === selectedNS)
+
+            .map(secret => secret.metadata!.name)
+        : []
+    );
+    if (secretsList && secretsFound.length === 0) {
+      setNoSecrets(true);
+    }
+  }, [selectedNS]);
 
   return (
     <React.Fragment>

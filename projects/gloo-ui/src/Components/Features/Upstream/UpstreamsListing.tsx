@@ -1,58 +1,49 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { RouteComponentProps, Route, Switch } from 'react-router-dom';
-import {
-  healthConstants,
-  TableHealthCircleHolder,
-  TableActionCircle,
-  TableActions
-} from 'Styles';
-
-import {
-  ListingFilter,
-  StringFilterProps,
-  TypeFilterProps,
-  CheckboxFilterProps,
-  RadioFilterProps
-} from '../../Common/ListingFilter';
-import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import styled from '@emotion/styled';
+import { Popconfirm } from 'antd';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { SectionCard } from 'Components/Common/SectionCard';
 import { CardsListing } from 'Components/Common/CardsListing';
+import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
+import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { HealthInformation } from 'Components/Common/HealthInformation';
+import {
+  CheckboxFilterProps,
+  ListingFilter,
+  RadioFilterProps,
+  StringFilterProps,
+  TypeFilterProps
+} from 'Components/Common/ListingFilter';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloTable } from 'Components/Common/SoloTable';
+import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
+import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { LoadingBar } from 'react-redux-loading-bar';
+import { Route, RouteComponentProps } from 'react-router-dom';
+import { AppState } from 'store';
+import { deleteUpstream, listUpstreams } from 'store/upstreams/actions';
 import {
+  healthConstants,
+  TableActionCircle,
+  TableActions,
+  TableHealthCircleHolder
+} from 'Styles';
+import {
+  CheckboxFilters,
+  getFunctionInfo,
+  getIcon,
   getResourceStatus,
   getUpstreamType,
   groupBy,
-  getIcon,
-  getFunctionInfo,
-  CheckboxFilters,
   RadioFilters
 } from 'utils/helpers';
-import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
-import { HealthInformation } from 'Components/Common/HealthInformation';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from '../Route/CreateRouteModal';
-
-import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
-import _ from 'lodash';
-
-import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
-import { Popconfirm } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppState } from 'store';
-import { listUpstreams, deleteUpstream } from 'store/upstreams/actions';
-import { LoadingBar } from 'react-redux-loading-bar';
-import { upstreams } from 'Api/v2/UpstreamClient';
-import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
-import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
-import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 
 const TypeHolder = styled.div`
   display: flex;

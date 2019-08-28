@@ -1,23 +1,15 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import styled from '@emotion/styled';
+import { InputNumber } from 'antd';
+import { ReactComponent as RelatedCircles } from 'assets/related-circles.svg';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { StringCardsList } from 'Components/Common/StringCardsList';
-import { ReactComponent as RelatedCircles } from 'assets/related-circles.svg';
-import {
-  GetSettingsRequest,
-  UpdateSettingsRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { useGetSettings, useUpdateSettings } from 'Api';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { InputNumber } from 'antd';
-import { useSelector, useDispatch } from 'react-redux';
+import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';
 import { getSettings, updateSettings } from 'store/config/actions';
+import { colors } from 'Styles';
+import { css } from '@emotion/core';
 
 interface Props {}
 
@@ -33,13 +25,6 @@ const RefreshRateTitle = styled.div`
   font-weight: 600;
 `;
 
-// TODO: style input element to better match spec
-const StyledInput = styled(InputNumber)`
-  width: 60px;
-  height: 22px;
-  border: none;
-`;
-
 interface RefreshRateProps {
   updateFn: () => void;
   seconds: number;
@@ -52,26 +37,38 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
 
   return (
     <div>
-      <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <div
+        css={css`
+          display: flex;
+          flex-direction: row;
+        `}>
         <RefreshRateTitle>{`Refresh Rate:`}</RefreshRateTitle>
-        <StyledInput
+        <InputNumber
           size='small'
-          style={{ width: '60px', border: 'none', height: '22px' }}
           value={seconds}
           defaultValue={seconds}
           onChange={seconds => setSeconds(seconds!)}
           formatter={seconds => `${seconds}s`}
           parser={seconds => seconds!.replace('s', '')}
+          css={css`
+            width: 60px;
+            height: 22px;
+            border: none;
+          `}
         />
         :
-        <StyledInput
+        <InputNumber
           size='small'
-          style={{ width: '60px', border: 'none', height: '22px' }}
           value={nanos}
           defaultValue={nanos}
           onChange={nanos => setNanos(nanos!)}
           formatter={nanos => `${nanos}ns`}
           parser={nanos => nanos!.replace('ns', '')}
+          css={css`
+            width: 60px;
+            height: 22px;
+            border: none;
+          `}
         />
         <div onClick={updateFn} style={{ cursor: 'pointer' }}>
           <UpdateRefreshRateText>{'Change'}</UpdateRefreshRateText>

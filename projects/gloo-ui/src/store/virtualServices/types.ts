@@ -1,4 +1,3 @@
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import {
   VirtualServiceDetails,
   DeleteVirtualServiceRequest

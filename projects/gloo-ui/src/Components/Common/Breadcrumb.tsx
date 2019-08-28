@@ -1,20 +1,18 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
+import styled from '@emotion/styled';
 import { Breadcrumb as AntdBreadcrumb } from 'antd';
+import * as React from 'react';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { colors } from 'Styles';
 
 const BreadcrumbContainer = styled(AntdBreadcrumb)`
   margin-bottom: 15px;
 `;
 
-const CrumbLink = styled<'span', { clickable?: boolean }>('span')`
+type CrumbLinkProps = { clickable?: boolean };
+const CrumbLink = styled.span<CrumbLinkProps>`
   font-size: 14px;
 
-  ${props =>
+  ${(props: CrumbLinkProps) =>
     props.clickable
       ? `
       color: ${colors.seaBlue};

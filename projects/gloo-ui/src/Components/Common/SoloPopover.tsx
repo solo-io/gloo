@@ -1,9 +1,5 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
 import { Popover } from 'antd';
-import { colors } from '../../Styles';
+import * as React from 'react';
 
 interface PopoverProps {
   title?: string | React.ReactNode;

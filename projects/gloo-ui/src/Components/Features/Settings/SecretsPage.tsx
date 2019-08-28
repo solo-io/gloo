@@ -1,14 +1,11 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import { TableActions, TableActionCircle } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { SecretForm, SecretValuesType } from './SecretForm';
-import { getIcon } from 'utils/helpers';
 import { isEqual } from 'lodash';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import * as React from 'react';
+import { TableActionCircle, TableActions } from 'Styles';
+import { getIcon } from 'utils/helpers';
+import { SecretForm, SecretValuesType } from './SecretForm';
 
 interface Props {
   awsSecrets?: Secret.AsObject[];

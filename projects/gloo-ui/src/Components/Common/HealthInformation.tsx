@@ -1,17 +1,15 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { colors, healthConstants } from 'Styles';
-import { soloConstants } from 'Styles/constants';
+import styled from '@emotion/styled';
 import { ReactComponent as InfoPrompt } from 'assets/info-prompt.svg';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
+import * as React from 'react';
+import { colors, healthConstants } from 'Styles';
 import { hslToHSLA } from 'Styles/colors';
 
-const Health = styled<'div', { health: number }>('div')`
+type HealthProps = { health: number };
+const Health = styled.div`
   display: inline;
   position: relative;
-  color: ${props =>
+  color: ${(props: HealthProps) =>
     props.health === healthConstants.Good.value
       ? colors.forestGreen
       : props.health === healthConstants.Error.value
@@ -24,8 +22,8 @@ const InfoPromptContainer = styled.div`
   right: -16px;
   top: 2px;
 `;
-
-const ExtraInfo = styled<'div', { health: number }>('div')`
+type ExtraInfoProps = { health: number };
+const ExtraInfo = styled.div`
   position: absolute;
   left: 15px;
   top: 15px;
@@ -33,7 +31,7 @@ const ExtraInfo = styled<'div', { health: number }>('div')`
   padding: 5px 8px;
   word-break: break-word;
   border: 1px solid
-    ${props =>
+    ${(props: ExtraInfoProps) =>
       hslToHSLA(
         props.health === healthConstants.Good.value
           ? colors.forestGreen
@@ -42,7 +40,7 @@ const ExtraInfo = styled<'div', { health: number }>('div')`
           : colors.sunGold,
         0.9
       )};
-  background: ${props =>
+  background: ${(props: ExtraInfoProps) =>
     hslToHSLA(
       props.health === healthConstants.Good.value
         ? colors.groveGreen

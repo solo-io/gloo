@@ -1,10 +1,7 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { CardType, Card } from './Card';
 import { colors } from 'Styles';
+import { Card, CardType } from './Card';
 
 const ListContainer = styled.div`
   display: grid;

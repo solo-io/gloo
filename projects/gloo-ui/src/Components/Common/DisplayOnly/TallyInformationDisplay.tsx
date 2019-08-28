@@ -1,13 +1,11 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-
-import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
 import { Divider } from 'antd';
 
-export const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>(
-  'div'
-)`
+type TallyContainerProps = { color: 'orange' | 'blue' };
+export const TallyContainer = styled.div`
   display: flex;
   align-items: center;
   padding: 8px 13px;
@@ -15,7 +13,7 @@ export const TallyContainer = styled<'div', { color: 'orange' | 'blue' }>(
   border-radius: 8px;
   margin-bottom: 13px;
 
-  ${props =>
+  ${(props: TallyContainerProps) =>
     props.color === 'orange'
       ? `border: 1px solid ${colors.grapefruitOrange};
     background: ${colors.tangerineOrange};

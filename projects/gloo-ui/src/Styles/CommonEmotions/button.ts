@@ -1,10 +1,10 @@
 import { css, keyframes } from '@emotion/core';
-import { colors } from '../colors';
-import styled from '@emotion/styled/macro';
-import { soloConstants } from 'Styles/constants';
+import styled from '@emotion/styled';
+import { Button } from 'antd';
 import blueProgressMask from 'assets/primary-progress-mask.svg';
 import orangeProgressMask from 'assets/warning-progress-mask.svg';
-import { Button } from 'antd';
+import { soloConstants } from 'Styles/constants';
+import { colors } from '../colors';
 
 const slide = keyframes`
   from { background-position: -281px 0; }
@@ -67,11 +67,12 @@ const ProgressSliderCSS = css`
 export const ButtonProgress = styled.div`
   ${ProgressSliderCSS};
 `;
+
+type SoloButtonProps = { inProgress?: boolean };
 export const SoloButtonStyledComponent = styled(Button)`
   ${SoloButtonCSS};
 
-  ${props =>
-    // @ts-ignore
+  ${(props: SoloButtonProps) =>
     props.inProgress
       ? `
         pointer-events: none;
@@ -123,8 +124,7 @@ export const SoloNegativeButton = styled.button`
     background: ${colors.grapefruitOrange};
   }
 
-  ${props => {
-    // @ts-ignore
+  ${(props: SoloButtonProps) => {
     return props.inProgress
       ? `
         min-width: 100%;

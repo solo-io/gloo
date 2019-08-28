@@ -1,10 +1,8 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
-import { SoloInput } from './SoloInput';
 import { SoloCheckbox } from './SoloCheckbox';
+import { SoloInput } from './SoloInput';
 import { SoloRadioGroup } from './SoloRadioGroup';
 
 const FilterContainer = styled.div`

@@ -15,7 +15,7 @@ import {
   UpdateSettingsResponse
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { ConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb_service';
-import { host } from 'Api';
+import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';

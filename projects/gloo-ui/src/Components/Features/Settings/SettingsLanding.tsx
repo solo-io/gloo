@@ -1,33 +1,27 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { RouteComponentProps, Route, Switch, Redirect } from 'react-router';
-import { colors } from 'Styles';
-import {
-  ListingFilter,
-  TypeFilterProps,
-  StringFilterProps,
-  CheckboxFilterProps,
-  RadioFilterProps
-} from 'Components/Common/ListingFilter';
-import { SecretsPage } from './SecretsPage';
-import { WatchedNamespacesPage } from './WatchedNamespacesPage';
-import { SecurityPage } from './SecurityPage';
+import styled from '@emotion/styled';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import {
-  Secret,
+  CheckboxFilterProps,
+  ListingFilter,
+  RadioFilterProps,
+  StringFilterProps,
+  TypeFilterProps
+} from 'Components/Common/ListingFilter';
+import {
   AwsSecret,
+  Secret,
   TlsSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-
-import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
-import { SecretValuesType } from './SecretForm';
-
+import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Redirect, Route, RouteComponentProps, Switch } from 'react-router';
 import { AppState } from 'store';
-import { listSecrets, createSecret, deleteSecret } from 'store/secrets/actions';
+import { createSecret, deleteSecret, listSecrets } from 'store/secrets/actions';
+import { SecretValuesType } from './SecretForm';
+import { SecretsPage } from './SecretsPage';
+import { SecurityPage } from './SecurityPage';
+import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',

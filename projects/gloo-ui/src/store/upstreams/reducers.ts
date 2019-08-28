@@ -1,7 +1,5 @@
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { UpstreamActionTypes, UpstreamAction } from './types';
-import { upstreams } from 'Api/v2/UpstreamClient';
 import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { UpstreamAction, UpstreamActionTypes } from './types';
 
 export interface UpstreamState {
   upstreamsList: UpstreamDetails.AsObject[];

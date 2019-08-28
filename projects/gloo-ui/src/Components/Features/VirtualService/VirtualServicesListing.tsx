@@ -1,46 +1,42 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { RouteComponentProps, Route, Switch } from 'react-router';
-import { colors, healthConstants } from 'Styles';
-import {
-  TableActionCircle,
-  TableHealthCircleHolder,
-  TableActions
-} from 'Styles/table';
-import {
-  ListingFilter,
-  StringFilterProps,
-  TypeFilterProps,
-  CheckboxFilterProps,
-  RadioFilterProps
-} from 'Components/Common/ListingFilter';
-import { SoloTable } from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import styled from '@emotion/styled';
+import { Popconfirm } from 'antd';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
+import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { HealthInformation } from 'Components/Common/HealthInformation';
+import {
+  CheckboxFilterProps,
+  ListingFilter,
+  RadioFilterProps,
+  StringFilterProps,
+  TypeFilterProps
+} from 'Components/Common/ListingFilter';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { SoloTable } from 'Components/Common/SoloTable';
+import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
-import { getResourceStatus, getVSDomains, RadioFilters } from 'utils/helpers';
-import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
-import { HealthInformation } from 'Components/Common/HealthInformation';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
-import { Popconfirm } from 'antd';
-import { useSelector, useDispatch } from 'react-redux';
+import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Route, RouteComponentProps } from 'react-router';
 import { AppState } from 'store';
 import {
-  listVirtualServices,
-  deleteVirtualService
+  deleteVirtualService,
+  listVirtualServices
 } from 'store/virtualServices/actions';
-import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
-import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { colors, healthConstants } from 'Styles';
+import {
+  TableActionCircle,
+  TableActions,
+  TableHealthCircleHolder
+} from 'Styles/table';
+import { getResourceStatus, getVSDomains, RadioFilters } from 'utils/helpers';
+import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 
 const TableLink = styled.div`
   cursor: pointer;
@@ -182,9 +178,6 @@ export const VirtualServicesListing = (props: Props) => {
   let params = new URLSearchParams(props.location.search);
 
   const [catalogNotTable, setCatalogNotTable] = React.useState(true);
-  const [virtualServices, setVirtualServices] = React.useState<
-    VirtualService.AsObject[]
-  >([]);
 
   // redux
   const dispatch = useDispatch();
@@ -200,16 +193,6 @@ export const VirtualServicesListing = (props: Props) => {
       setIsLoading(false);
     } else {
       dispatch(listVirtualServices({ namespacesList }));
-    }
-  }, [virtualServicesList.length]);
-
-  React.useEffect(() => {
-    if (virtualServicesList.length > 0) {
-      let vsList = virtualServicesList.map(
-        vsDetails => vsDetails.virtualService!
-      );
-
-      setVirtualServices(vsList);
     }
   }, [virtualServicesList.length]);
 

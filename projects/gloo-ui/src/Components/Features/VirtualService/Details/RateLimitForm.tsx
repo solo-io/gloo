@@ -1,21 +1,21 @@
-import * as React from 'react';
-import styled from '@emotion/styled/macro';
-import { Formik, FormikErrors } from 'formik';
-import * as yup from 'yup';
-import { colors } from 'Styles';
-import { Label } from 'Components/Common/SoloInput';
-import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import styled from '@emotion/styled';
+import {
+  SoloFormDropdown,
+  SoloFormInput
+} from 'Components/Common/Form/SoloFormField';
+import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
+import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
+import { Label } from 'Components/Common/SoloInput';
+import { Formik, FormikErrors } from 'formik';
 import {
   IngressRateLimit,
   RateLimit
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
-import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
-import {
-  SoloFormInput,
-  SoloFormDropdown
-} from 'Components/Common/Form/SoloFormField';
-import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
+import * as React from 'react';
+import { colors } from 'Styles';
+import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import * as yup from 'yup';
 
 const FormContainer = styled.div`
   display: grid;
@@ -54,9 +54,9 @@ const SmallSoloNegativeButton = styled(SoloNegativeButton)`
 
 interface ValuesType {
   authLimitNumber: number | undefined;
-  authLimitTimeUnit: RateLimit.Unit | undefined;
+  authLimitTimeUnit: RateLimit.UnitMap[keyof RateLimit.UnitMap] | undefined;
   anonLimitNumber: number | undefined;
-  anonLimitTimeUnit: RateLimit.Unit | undefined;
+  anonLimitTimeUnit: RateLimit.UnitMap[keyof RateLimit.UnitMap] | undefined;
 }
 let defaultValues: ValuesType = {
   authLimitNumber: undefined,

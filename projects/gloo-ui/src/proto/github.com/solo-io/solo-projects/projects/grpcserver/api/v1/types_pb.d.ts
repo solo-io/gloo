@@ -33,8 +33,8 @@ export namespace Raw {
 }
 
 export class Status extends jspb.Message {
-  getCode(): Status.Code;
-  setCode(value: Status.Code): void;
+  getCode(): Status.CodeMap[keyof Status.CodeMap];
+  setCode(value: Status.CodeMap[keyof Status.CodeMap]): void;
 
   getMessage(): string;
   setMessage(value: string): void;
@@ -51,14 +51,16 @@ export class Status extends jspb.Message {
 
 export namespace Status {
   export type AsObject = {
-    code: Status.Code,
+    code: Status.CodeMap[keyof Status.CodeMap],
     message: string,
   }
 
-  export enum Code {
-    ERROR = 0,
-    WARNING = 1,
-    OK = 2,
+  export interface CodeMap {
+    ERROR: 0;
+    WARNING: 1;
+    OK: 2;
   }
+
+  export const Code: CodeMap;
 }
 

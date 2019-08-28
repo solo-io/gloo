@@ -1,14 +1,14 @@
 import {
-  SoloFormMultipartStringCardsList,
-  SoloFormCheckbox
+  SoloFormCheckbox,
+  SoloFormMultipartStringCardsList
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
+import { useFormikContext } from 'formik';
 import * as React from 'react';
 import * as yup from 'yup';
-import { useFormikContext } from 'formik';
 
 // TODO: handle service spec
 export interface StaticValuesType {

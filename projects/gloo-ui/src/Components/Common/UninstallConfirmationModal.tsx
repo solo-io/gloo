@@ -1,15 +1,14 @@
-import * as React from 'react';
-
+import styled from '@emotion/styled';
 import { Modal } from 'antd';
 import { ModalProps } from 'antd/lib/modal';
-import {
-  SoloCancelButton,
-  SoloNegativeButton,
-  ButtonNegativeProgress
-} from 'Styles/CommonEmotions/button';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
-import styled from '@emotion/styled/macro';
+import * as React from 'react';
 import { colors } from 'Styles';
+import {
+  ButtonNegativeProgress,
+  SoloCancelButton,
+  SoloNegativeButton
+} from 'Styles/CommonEmotions/button';
 
 const maskStyle = {
   background: 'transparent'

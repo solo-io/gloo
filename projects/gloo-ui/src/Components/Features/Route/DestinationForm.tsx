@@ -1,13 +1,13 @@
-import React from 'react';
-import { useField, useFormikContext } from 'formik';
 import {
-  SoloFormDropdown,
-  SoloFormCheckbox
+  SoloFormCheckbox,
+  SoloFormDropdown
 } from 'Components/Common/Form/SoloFormField';
-import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import { HalfColumn } from './CreateRouteModal';
 import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
+import { useField } from 'formik';
+import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import React from 'react';
 import { getFunctionList } from 'utils/helpers';
+import { HalfColumn } from './CreateRouteModal';
 
 interface DestiantionFormProps {
   name: string;
@@ -15,7 +15,7 @@ interface DestiantionFormProps {
 }
 
 export function DestinationForm(props: DestiantionFormProps) {
-  const [field, meta] = useField(props.name);
+  const [field] = useField(props.name);
   const { upstreamSpec } = props;
   // TODO: process upstream spec to support all types
   const functionsList = getFunctionList(props.upstreamSpec);

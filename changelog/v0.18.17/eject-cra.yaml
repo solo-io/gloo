@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Eject create react app to allow for custom config
+    issueLink: https://github.com/solo-io/solo-projects/issues/803

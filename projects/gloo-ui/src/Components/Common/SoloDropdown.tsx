@@ -1,8 +1,7 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
+import React from 'react';
 import { Select } from 'antd';
 import { colors, soloConstants } from 'Styles';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import { Label } from './SoloInput';
 
 export const SoloDropdownBlock = styled(Select)`

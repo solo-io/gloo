@@ -5,8 +5,8 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
 
 export class Status extends jspb.Message {
-  getState(): Status.State;
-  setState(value: Status.State): void;
+  getState(): Status.StateMap[keyof Status.StateMap];
+  setState(value: Status.StateMap[keyof Status.StateMap]): void;
 
   getReason(): string;
   setReason(value: string): void;
@@ -28,16 +28,18 @@ export class Status extends jspb.Message {
 
 export namespace Status {
   export type AsObject = {
-    state: Status.State,
+    state: Status.StateMap[keyof Status.StateMap],
     reason: string,
     reportedBy: string,
     subresourceStatusesMap: Array<[string, Status.AsObject]>,
   }
 
-  export enum State {
-    PENDING = 0,
-    ACCEPTED = 1,
-    REJECTED = 2,
+  export interface StateMap {
+    PENDING: 0;
+    ACCEPTED: 1;
+    REJECTED: 2;
   }
+
+  export const State: StateMap;
 }
 

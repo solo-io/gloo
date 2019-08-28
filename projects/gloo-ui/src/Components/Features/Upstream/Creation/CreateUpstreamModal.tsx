@@ -1,14 +1,10 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
-import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import styled from '@emotion/styled';
 import { Divider } from 'antd';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { CreateUpstreamForm } from './CreateUpstreamForm';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
+import { SoloModal } from 'Components/Common/SoloModal';
+import * as React from 'react';
+import { colors } from 'Styles';
+import { CreateUpstreamForm } from './CreateUpstreamForm';
 
 interface Props {
   toggleSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;

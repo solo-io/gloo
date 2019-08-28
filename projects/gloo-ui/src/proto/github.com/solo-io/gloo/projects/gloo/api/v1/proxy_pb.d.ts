@@ -669,8 +669,8 @@ export class RedirectAction extends jspb.Message {
   getPrefixRewrite(): string;
   setPrefixRewrite(value: string): void;
 
-  getResponseCode(): RedirectAction.RedirectResponseCode;
-  setResponseCode(value: RedirectAction.RedirectResponseCode): void;
+  getResponseCode(): RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap];
+  setResponseCode(value: RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap]): void;
 
   getHttpsRedirect(): boolean;
   setHttpsRedirect(value: boolean): void;
@@ -694,18 +694,20 @@ export namespace RedirectAction {
     hostRedirect: string,
     pathRedirect: string,
     prefixRewrite: string,
-    responseCode: RedirectAction.RedirectResponseCode,
+    responseCode: RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap],
     httpsRedirect: boolean,
     stripQuery: boolean,
   }
 
-  export enum RedirectResponseCode {
-    MOVED_PERMANENTLY = 0,
-    FOUND = 1,
-    SEE_OTHER = 2,
-    TEMPORARY_REDIRECT = 3,
-    PERMANENT_REDIRECT = 4,
+  export interface RedirectResponseCodeMap {
+    MOVED_PERMANENTLY: 0;
+    FOUND: 1;
+    SEE_OTHER: 2;
+    TEMPORARY_REDIRECT: 3;
+    PERMANENT_REDIRECT: 4;
   }
+
+  export const RedirectResponseCode: RedirectResponseCodeMap;
 
   export enum PathRewriteSpecifierCase {
     PATH_REWRITE_SPECIFIER_NOT_SET = 0,

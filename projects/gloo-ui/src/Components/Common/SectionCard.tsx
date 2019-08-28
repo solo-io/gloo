@@ -1,8 +1,5 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-
 import { colors, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from './HealthIndicator';

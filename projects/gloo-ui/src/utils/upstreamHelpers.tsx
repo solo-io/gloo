@@ -1,12 +1,12 @@
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import {
   CheckboxFilterProps,
   RadioFilterProps
 } from 'Components/Common/ListingFilter';
 import _ from 'lodash';
-import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */
@@ -110,7 +110,7 @@ export function getFunctionList(upstreamSpec: UpstreamSpec.AsObject) {
 // The upstreams we allow the user to create are not guaranteed to be the same
 // as the ones we can discover since these depend on the grpc server
 export const UPSTREAM_TYPES = Object.keys(UpstreamInput.SpecCase)
-  .filter(str => str != 'SPEC_NOT_SET') // auto generated for oneof fields
+  .filter(str => str !== 'SPEC_NOT_SET') // auto generated for oneof fields
   .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
   .map(upstreamType => {
     return {

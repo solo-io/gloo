@@ -1,8 +1,7 @@
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
+import { css } from '@emotion/core';
 import { colors, soloConstants } from '../../Styles';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
 import { Checkbox } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { Label } from './SoloInput';
@@ -46,8 +45,8 @@ const OnlyCheckbox = styled.span`
 ${CheckboxStyling}
 color: ${colors.septemberGrey};
 `;
-
-const CheckboxWrapper = styled<'div', { checked?: boolean }>('div')`
+type CheckboxWrapperProps = { checked?: boolean };
+const CheckboxWrapper = styled.div`
   ${InputStyling}
   display: flex;
   justify-content: space-between;
@@ -56,7 +55,7 @@ const CheckboxWrapper = styled<'div', { checked?: boolean }>('div')`
   transition: background ${soloConstants.transitionTime},
     border ${soloConstants.transitionTime};
 
-  ${props =>
+  ${(props: CheckboxWrapperProps) =>
     !!props.checked
       ? `background: ${colors.dropBlue};
         border-color: ${colors.seaBlue};`

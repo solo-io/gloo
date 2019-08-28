@@ -1,65 +1,50 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
+import styled from '@emotion/styled';
+import { useCreateRoute, useUpdateRoute } from 'Api/useVirtualServiceClient';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
-  SoloFormTemplate,
-  InputRow
-} from 'Components/Common/Form/SoloFormTemplate';
-import {
-  SoloFormInput,
   SoloFormDropdown,
-  SoloFormMultiselect,
-  SoloFormMultipartStringCardsList,
+  SoloFormInput,
   SoloFormMetadataBasedDropdown,
+  SoloFormMultipartStringCardsList,
+  SoloFormMultiselect,
   SoloFormVirtualServiceTypeahead
 } from 'Components/Common/Form/SoloFormField';
-import { Field, Formik, FormikErrors } from 'formik';
-import * as yup from 'yup';
-
+import {
+  InputRow,
+  SoloFormTemplate
+} from 'Components/Common/Form/SoloFormTemplate';
+import { SoloButton } from 'Components/Common/SoloButton';
+import { Formik, FormikErrors } from 'formik';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import {
-  CreateRouteRequest,
-  RouteInput,
-  ListVirtualServicesRequest,
-  VirtualServiceDetails
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { useCreateRoute, useUpdateRoute } from 'Api';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import {
-  Route,
-  Matcher,
-  HeaderMatcher,
-  QueryParameterMatcher,
-  RouteAction,
-  Destination,
-  KubernetesServiceDestination,
-  ConsulServiceDestination,
-  RedirectAction
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
-import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
-import { ListUpstreamsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { ErrorText } from '../VirtualService/Details/ExtAuthForm';
+import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import {
-  createUpstreamId,
-  parseUpstreamId,
-  createVirtualServiceId,
-  parseVirtualServiceId,
-  getRouteMatcher
-} from 'utils/helpers';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { ButtonProgress } from 'Styles/CommonEmotions/button';
-import { DestinationForm } from './DestinationForm';
-import { withRouter, RouteComponentProps } from 'react-router';
-import { colors, soloConstants } from 'Styles';
+  ConsulServiceDestination,
+  Destination,
+  HeaderMatcher,
+  Matcher,
+  QueryParameterMatcher,
+  Route,
+  RouteAction
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import {
+  CreateRouteRequest,
+  RouteInput,
+  VirtualServiceDetails
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
+import { colors, soloConstants } from 'Styles';
+import { ButtonProgress } from 'Styles/CommonEmotions/button';
+import { getRouteMatcher } from 'utils/helpers';
+import * as yup from 'yup';
+import { DestinationForm } from './DestinationForm';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -392,7 +377,7 @@ export const CreateRouteModalC = (props: Props) => {
       } = values.destinationSpec.aws;
       let newAWSDestinationSpec = new AWSDestinationSpec();
       newAWSDestinationSpec.setLogicalName(logicalName);
-      newAWSDestinationSpec.setInvocationStyle(+invocationStyle);
+      newAWSDestinationSpec.setInvocationStyle(invocationStyle);
       newAWSDestinationSpec.setResponseTransformation(responseTransformation);
       newDestinationSpec.setAws(newAWSDestinationSpec);
       newDestination.setDestinationSpec(newDestinationSpec);

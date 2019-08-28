@@ -1,25 +1,15 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import styled from '@emotion/styled/macro';
-import { useUpdateGateway } from 'Api/v2/useGatewayClientV2';
+import styled from '@emotion/styled';
 import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
-import { colors, soloConstants, healthConstants } from 'Styles';
-import { SectionCard } from 'Components/Common/SectionCard';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-
-import {
-  GatewayDetails,
-  UpdateGatewayRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-
-import { UpdateGatewayHttpData } from 'Api/v2/GatewayClient';
-import { useSelector, useDispatch } from 'react-redux';
-import { AppState } from 'store';
-import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
-import { GatewayForm, HttpConnectionManagerSettingsForm } from './GatewayForm';
-import { updateGateway } from 'store/gateway/actions';
+import { SectionCard } from 'Components/Common/SectionCard';
 import _ from 'lodash/fp';
+import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppState } from 'store';
+import { updateGateway } from 'store/gateway/actions';
+import { colors, healthConstants } from 'Styles';
+import { GatewayForm, HttpConnectionManagerSettingsForm } from './GatewayForm';
 
 const InsideHeader = styled.div`
   display: flex;

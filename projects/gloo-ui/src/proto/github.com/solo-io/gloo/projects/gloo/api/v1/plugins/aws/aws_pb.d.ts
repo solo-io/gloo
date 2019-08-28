@@ -69,8 +69,8 @@ export class DestinationSpec extends jspb.Message {
   getLogicalName(): string;
   setLogicalName(value: string): void;
 
-  getInvocationStyle(): DestinationSpec.InvocationStyle;
-  setInvocationStyle(value: DestinationSpec.InvocationStyle): void;
+  getInvocationStyle(): DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap];
+  setInvocationStyle(value: DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap]): void;
 
   getResponseTransformation(): boolean;
   setResponseTransformation(value: boolean): void;
@@ -88,13 +88,15 @@ export class DestinationSpec extends jspb.Message {
 export namespace DestinationSpec {
   export type AsObject = {
     logicalName: string,
-    invocationStyle: DestinationSpec.InvocationStyle,
+    invocationStyle: DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap],
     responseTransformation: boolean,
   }
 
-  export enum InvocationStyle {
-    SYNC = 0,
-    ASYNC = 1,
+  export interface InvocationStyleMap {
+    SYNC: 0;
+    ASYNC: 1;
   }
+
+  export const InvocationStyle: InvocationStyleMap;
 }
 

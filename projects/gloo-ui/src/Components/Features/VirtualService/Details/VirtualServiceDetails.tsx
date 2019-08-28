@@ -1,62 +1,55 @@
-import * as React from 'react';
-import { SectionCard } from 'Components/Common/SectionCard';
+import styled from '@emotion/styled';
+import { useUpdateVirtualService } from 'Api/useVirtualServiceClient';
 import { ReactComponent as GlooIcon } from 'assets/GlooEE.svg';
-import { Domains } from './Domains';
-import { Routes } from './Routes';
-import { Configuration } from './Configuration';
-import styled from '@emotion/styled/macro';
-import { colors, soloConstants, healthConstants } from 'Styles';
-import { RouteComponentProps } from 'react-router';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import {
-  GetVirtualServiceRequest,
-  UpdateVirtualServiceRequest,
-  VirtualServiceInput,
-  VirtualServiceInputV2,
-  RepeatedStrings,
-  RepeatedRoutes,
-  IngressRateLimitValue,
-  ExtAuthInput
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { useGetVirtualService, useUpdateVirtualService } from 'Api';
-import {
-  Route,
-  Matcher,
-  HeaderMatcher,
-  QueryParameterMatcher,
-  RouteAction,
-  Destination
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
-import { ErrorText } from './ExtAuthForm';
-import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { Struct } from 'google-protobuf/google/protobuf/struct_pb';
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
+import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import {
+  Destination,
+  HeaderMatcher,
+  Matcher,
+  QueryParameterMatcher,
+  Route,
+  RouteAction
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import {
+  CustomAuth,
+  OAuth
+} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
 import {
   IngressRateLimit,
   RateLimit
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
 import {
-  OAuth,
-  CustomAuth
-} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
-import { Struct } from 'google-protobuf/google/protobuf/struct_pb';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
-import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
-import { useSelector, useDispatch } from 'react-redux';
+  ExtAuthInput,
+  IngressRateLimitValue,
+  RepeatedRoutes,
+  RepeatedStrings,
+  UpdateVirtualServiceRequest,
+  VirtualServiceInputV2
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { RouteComponentProps } from 'react-router';
 import { AppState } from 'store';
-import { virtualServices } from 'Api/v2/VirtualServiceClient';
-import { getGetVirtualService } from 'store/virtualServices/actions';
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
+import { colors, healthConstants } from 'Styles';
+import { Configuration } from './Configuration';
+import { Domains } from './Domains';
+import { Routes } from './Routes';
 
-const DetailsContent = styled<'div', { configurationShowing?: boolean }>('div')`
+type DetailsContentProps = { configurationShowing?: boolean };
+const DetailsContent = styled.div`
   position: relative;
   display: grid;
-  grid-template-rows: ${props => (props.configurationShowing ? 'auto' : '')} auto 1fr 1fr;
+  grid-template-rows: ${(props: DetailsContentProps) =>
+      props.configurationShowing ? 'auto' : ''} auto 1fr 1fr;
   grid-template-columns: 100%;
   grid-column-gap: 30px;
 `;

@@ -1,8 +1,6 @@
+import styled from '@emotion/styled';
 import * as React from 'react';
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
-import { colors, soloConstants } from '../../Styles';
-import styled from '@emotion/styled/macro';
+import { colors, soloConstants } from 'Styles';
 
 export const Label = styled.label`
   display: block;
@@ -11,10 +9,8 @@ export const Label = styled.label`
   margin-bottom: 10px;
   font-weight: 500;
 `;
-
-const Input = styled<'input', { error?: boolean; borderless?: boolean }>(
-  'input'
-)`
+type InputStyleProps = { error?: boolean; borderless?: boolean };
+const Input = styled.input`
   width: 100%;
   padding: 9px 15px 9px 11px;
   border-radius: ${soloConstants.smallRadius}px;
@@ -23,7 +19,7 @@ const Input = styled<'input', { error?: boolean; borderless?: boolean }>(
   outline: none;
 
   border: 1px solid
-    ${props =>
+    ${(props: InputStyleProps) =>
       props.error
         ? colors.grapefruitOrange
         : props.borderless
