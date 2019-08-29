@@ -31,7 +31,7 @@ var _ = Describe("Config Generator", func() {
 	)
 
 	BeforeEach(func() {
-		ctrl = gomock.NewController(T)
+		ctrl = gomock.NewController(GinkgoT())
 		pluginLoaderMock = mocks.NewMockLoader(ctrl)
 		generator = configproto.NewConfigGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock)
 	})

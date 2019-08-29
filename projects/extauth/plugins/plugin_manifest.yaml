@@ -1,0 +1,13 @@
+#####################################################################
+# This file is used by the plugin verification script during builds #
+#####################################################################
+plugins:
+- name: Ldap
+  pluginFileName: Ldap.so
+  exportedSymbolName: Plugin
+  config:
+    ServerUrl: localhost:389
+    UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io"
+    AllowedGroups:
+    - "cn=mangers,ou=groups,dc=solo,dc=io"
+    - "cn=developers,ou=groups,dc=solo,dc=io"

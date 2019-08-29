@@ -1,4 +1,4 @@
-package configproto_test
+package pkg_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestExtauthConfig(t *testing.T) {
+func TestPkg(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Extauth Config Suite")
+	RunSpecs(t, "Ldap Auth Suite")
 }

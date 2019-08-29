@@ -4,7 +4,8 @@
 
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
-OUTPUT_DIR ?= $(ROOTDIR)/_output
+RELATIVE_OUTPUT_DIR ?= _output
+OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 # Kind of a hack to make sure _output exists
 z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
@@ -327,7 +328,6 @@ $(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
 $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
-
 .PHONY: extauth
 extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 
@@ -349,6 +349,14 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
     	--build-arg GCFLAGS=$(GCFLAGS) \
     	.
 	touch $@
+
+.PHONY: auth-plugins
+auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
+	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
+		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+		--build-arg GC_FLAGS=$(GCFLAGS) \
+		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
+		.
 
 .PHONY: extauth-docker
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
@@ -532,7 +540,8 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker observability-docker
+docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
+	gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -548,6 +557,7 @@ ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push quay.io/solo-io/observability-ee:$(VERSION) && \
 	docker push quay.io/solo-io/extauth-ee:$(VERSION)
+	docker push quay.io/solo-io/ext-auth-plugins:$(VERSION)
 endif
 
 push-kind-images: docker
@@ -559,6 +569,7 @@ push-kind-images: docker
 	kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
 
 #----------------------------------------------------------------------------------
 # Distribution

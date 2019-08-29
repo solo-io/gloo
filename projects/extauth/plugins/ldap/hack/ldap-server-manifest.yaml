@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ldap
+  name: ldap
+spec:
+  selector:
+    matchLabels:
+      app: ldap
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ldap
+    spec:
+      volumes:
+      - name: config
+        emptyDir: {}
+      - name: configmap
+        configMap:
+          name: ldap
+      # We need this intermediary step because when Kubernetes mounts a configMap to a directory,
+      # it generates additional files that the LDAP server tries to load, causing it to fail.
+      initContainers:
+      - name: copy-config
+        image: busybox
+        command: ['sh', '-c', 'cp /configmap/*.ldif /config']
+        volumeMounts:
+        - name: configmap
+          mountPath: /configmap
+          # This is the volume that will be mounted to the LDAP container
+        - name: config
+          mountPath: /config
+      containers:
+      - image: osixia/openldap:1.2.5
+        name: openldap
+        args: ["--copy-service", "--loglevel", "debug"]
+        env:
+        - name: LDAP_ORGANISATION
+          value: "Solo.io"
+        - name: LDAP_DOMAIN
+          value: "solo.io"
+        - name: LDAP_ADMIN_PASSWORD
+          value: "solopwd"
+        ports:
+        - containerPort: 389
+          name: ldap
+        - containerPort: 636
+          name: ldaps
+        volumeMounts:
+        - mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
+          name: config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldap
+  labels:
+    app: ldap
+spec:
+  ports:
+  - port: 389
+    protocol: TCP
+  selector:
+    app: ldap

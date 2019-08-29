@@ -137,7 +137,7 @@ steps:
   args:
   - '-ce'
   - |
-    go generate ./test/extauth/plugins/...
+    go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
     /builder/bin/ginkgo.bash -r
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
