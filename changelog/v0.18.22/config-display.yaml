@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Configuration displays editing has better UX.
+    issueLink: https://github.com/solo-io/solo-projects/issues/998

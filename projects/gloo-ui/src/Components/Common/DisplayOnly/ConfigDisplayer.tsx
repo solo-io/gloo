@@ -4,6 +4,9 @@ import Editor from 'react-simple-code-editor';
 import theme from 'prism-react-renderer/themes/github';
 import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
+import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
+import { SoloButton } from '../SoloButton';
+import { SoloCancelButton } from 'Styles/CommonEmotions/button';
 
 type ContainerProps = { whiteBacked?: boolean };
 const Container = styled.div`
@@ -22,6 +25,31 @@ const Container = styled.div`
   > div > pre {
     overflow: visible;
   }
+`;
+
+type EditPencilHolderProps = { inEditingMode?: boolean };
+const EditPencilHolder = styled.div`
+  ${(props: EditPencilHolderProps) =>
+    props.inEditingMode
+      ? `background: ${colors.septemberGrey}; 
+      .aEditPencil { fill: ${colors.januaryGrey}; }`
+      : `background: transparent; 
+      .aEditPencil { fill: ${colors.septemberGrey}; }`};
+  position: absolute;
+  top: 0;
+  right: 0;
+  text-align: center;
+  padding: 8px 8px 4px;
+  cursor: pointer;
+  z-index: 2;
+`;
+const EditPencil = styled(EditIcon)`
+  width: 20px;
+  height: 20px;
+`;
+
+const EditingActionsContainer = styled.div`
+  display: flex;
 `;
 
 export const Pre = styled.pre`
@@ -70,10 +98,12 @@ interface Props {
   isJson?: boolean;
   whiteBacked?: boolean;
   asEditor?: boolean;
+  saveEdits?: (newContent: string) => void;
 }
 
 export const ConfigDisplayer = React.memo((props: Props) => {
   const [editingContent, setEditingContent] = React.useState(props.content);
+  const [inEditingMode, setInEditingMode] = React.useState(false);
 
   React.useEffect(() => {
     if (editingContent !== props.content) {
@@ -83,6 +113,18 @@ export const ConfigDisplayer = React.memo((props: Props) => {
 
   const onContentChange = (code: string): void => {
     setEditingContent(code);
+  };
+
+  const saveEdits = (): void => {
+    if (props.saveEdits) {
+      props.saveEdits(editingContent);
+    }
+    setInEditingMode(false);
+  };
+
+  const cancelEdits = (): void => {
+    setEditingContent(props.content);
+    setInEditingMode(false);
   };
 
   const highlight = (code: string): React.ReactNode => {
@@ -95,7 +137,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
         code={code}
         language={props.isJson ? 'json' : 'yaml'}>
         {({ className, style, tokens, getLineProps, getTokenProps }) =>
-          props.asEditor ? (
+          props.asEditor && inEditingMode ? (
             <React.Fragment>
               {tokens.map((line, i) => {
                 return (
@@ -134,7 +176,23 @@ export const ConfigDisplayer = React.memo((props: Props) => {
 
   return (
     <Container whiteBacked={props.whiteBacked}>
-      {props.asEditor ? (
+      {props.asEditor && (
+        <React.Fragment>
+          {inEditingMode ? (
+            <EditingActionsContainer>
+              <SoloCancelButton text={'Cancel'} onClick={cancelEdits} />
+              <SoloButton text={'Save'} onClick={saveEdits} />
+            </EditingActionsContainer>
+          ) : (
+            <EditPencilHolder
+              inEditingMode={inEditingMode}
+              onClick={() => setInEditingMode(editing => !editing)}>
+              <EditPencil />
+            </EditPencilHolder>
+          )}
+        </React.Fragment>
+      )}
+      {props.asEditor && inEditingMode ? (
         <Editor
           value={editingContent}
           onValueChange={onContentChange}
