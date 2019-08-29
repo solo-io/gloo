@@ -8,6 +8,7 @@
     "@babel/preset-env": "^7.4.3",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.3.3",
+    "@babel/runtime": "^7.5.5",
     "@emotion/babel-preset-css-prop": "^10.0.14",
     "@emotion/core": "^10.0.16",
     "@emotion/styled": "^10.0.15",
@@ -69,6 +70,7 @@
     "postcss-preset-env": "6.7.0",
     "postcss-safe-parser": "4.0.1",
     "prettier": "1.18.2",
+    "prism-react-renderer": "^0.1.7",
     "react": "^16.9.0",
     "react-app-polyfill": "^1.0.2",
     "react-dev-utils": "^9.0.3",
@@ -76,7 +78,6 @@
     "react-dnd-html5-backend": "^9.3.4",
     "react-dom": "16.9.0",
     "react-hot-loader": "^4.12.11",
-    "prism-react-renderer": "^0.1.7",
     "react-redux": "^7.1.0",
     "react-redux-loading-bar": "^4.4.0",
     "react-router-dom": "^5.0.0",
@@ -123,6 +124,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.5.2",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.5.5",
     "babel-plugin-emotion": "^10.0.16",
     "husky": "^3.0.4",
     "pretty-quick": "^1.10.0"

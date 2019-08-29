@@ -7,6 +7,12 @@
   ],
   "plugins": [
     "emotion",
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "regenerator": true
+      }
+    ],
     "@babel/plugin-proposal-export-namespace-from",
     "react-hot-loader/babel",
     "@babel/proposal-class-properties",
