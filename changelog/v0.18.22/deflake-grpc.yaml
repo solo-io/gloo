@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Deflake grpc server tests by not running a grpcserver.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1021

@@ -18,15 +18,10 @@ import (
 	mock_status_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc/mocks"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer      *grpc.Server
-	conn            *grpc.ClientConn
 	apiserver       v1.GatewayApiServer
-	client          v1.GatewayApiClient
 	mockCtrl        *gomock.Controller
 	gatewayClient   *mocks.MockGatewayClient
 	licenseClient   *mock_license.MockClient
@@ -63,13 +58,9 @@ var _ = Describe("ServiceTest", func() {
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		statusConverter = mock_status_converter.NewMockInputResourceStatusGetter(mockCtrl)
 		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter, statusConverter, licenseClient)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterGatewayApiServer(s, apiserver) })
-		client = v1.NewGatewayApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -98,7 +89,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getStatus(v1.Status_OK, ""))
 
 			request := &v1.GetGatewayRequest{Ref: &ref}
-			actual, err := client.GetGateway(context.TODO(), request)
+			actual, err := apiserver.GetGateway(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetGatewayResponse{
 				GatewayDetails: getGatewayDetails(gateway, getStatus(v1.Status_OK, "")),
@@ -118,7 +109,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.GetGatewayRequest{Ref: &ref}
-			_, err := client.GetGateway(context.TODO(), request)
+			_, err := apiserver.GetGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToGetGatewayError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -161,7 +152,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getStatus(v1.Status_WARNING, status.ResourcePending(ns2, "")))
 
 			request := &v1.ListGatewaysRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListGateways(context.TODO(), request)
+			actual, err := apiserver.ListGateways(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListGatewaysResponse{
 				GatewayDetails: []*v1.GatewayDetails{
@@ -180,7 +171,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.ListGatewaysRequest{Namespaces: []string{ns}}
-			_, err := client.ListGateways(context.TODO(), request)
+			_, err := apiserver.ListGateways(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToListGatewaysError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -238,7 +229,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getStatus(v1.Status_WARNING, status.ResourcePending("ns", "name")))
 
 			request := &v1.UpdateGatewayRequest{Gateway: input}
-			actual, err := client.UpdateGateway(context.TODO(), request)
+			actual, err := apiserver.UpdateGateway(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.UpdateGatewayResponse{GatewayDetails: getGatewayDetails(toWrite, getStatus(v1.Status_WARNING, status.ResourcePending("ns", "name")))}
 			ExpectEqualProtoMessages(actual, expected)
@@ -250,7 +241,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.UpdateGatewayRequest{Gateway: input}
-			_, err := client.UpdateGateway(context.TODO(), request)
+			_, err := apiserver.UpdateGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -265,7 +256,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.UpdateGatewayRequest{Gateway: input}
-			_, err := client.UpdateGateway(context.TODO(), request)
+			_, err := apiserver.UpdateGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

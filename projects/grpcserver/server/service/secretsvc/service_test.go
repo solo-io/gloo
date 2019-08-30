@@ -14,17 +14,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	mock_scrub "github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub/mocks"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer    *grpc.Server
-	conn          *grpc.ClientConn
 	apiserver     v1.SecretApiServer
-	client        v1.SecretApiClient
 	mockCtrl      *gomock.Controller
 	secretClient  *mock_gloo.MockSecretClient
 	licenseClient *mock_license.MockClient
@@ -40,13 +35,9 @@ var _ = Describe("ServiceTest", func() {
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		scrubber = mock_scrub.NewMockScrubber(mockCtrl)
 		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient, scrubber, licenseClient)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterSecretApiServer(s, apiserver) })
-		client = v1.NewSecretApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -68,7 +59,7 @@ var _ = Describe("ServiceTest", func() {
 			scrubber.EXPECT().Secret(context.Background(), &secret)
 
 			request := &v1.GetSecretRequest{Ref: &ref}
-			actual, err := client.GetSecret(context.TODO(), request)
+			actual, err := apiserver.GetSecret(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetSecretResponse{Secret: &secret}
 			ExpectEqualProtoMessages(actual, expected)
@@ -86,7 +77,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.GetSecretRequest{Ref: &ref}
-			_, err := client.GetSecret(context.TODO(), request)
+			_, err := apiserver.GetSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := secretsvc.FailedToReadSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -115,7 +106,7 @@ var _ = Describe("ServiceTest", func() {
 			scrubber.EXPECT().Secret(context.Background(), &secret2)
 
 			request := &v1.ListSecretsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListSecrets(context.TODO(), request)
+			actual, err := apiserver.ListSecrets(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListSecretsResponse{Secrets: []*gloov1.Secret{&secret1, &secret2}}
 			ExpectEqualProtoMessages(actual, expected)
@@ -129,7 +120,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.ListSecretsRequest{Namespaces: []string{ns}}
-			_, err := client.ListSecrets(context.TODO(), request)
+			_, err := apiserver.ListSecrets(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := secretsvc.FailedToListSecretsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -265,7 +256,7 @@ var _ = Describe("ServiceTest", func() {
 					scrubber.EXPECT().Secret(context.Background(), &tc.secret)
 					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
-					actual, err := client.CreateSecret(context.TODO(), &tc.request)
+					actual, err := apiserver.CreateSecret(context.TODO(), &tc.request)
 					Expect(err).NotTo(HaveOccurred())
 					expected := &v1.CreateSecretResponse{Secret: &tc.secret}
 					ExpectEqualProtoMessages(actual, expected)
@@ -289,7 +280,7 @@ var _ = Describe("ServiceTest", func() {
 				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
-				_, err := client.CreateSecret(context.TODO(), request)
+				_, err := apiserver.CreateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -432,7 +423,7 @@ var _ = Describe("ServiceTest", func() {
 					scrubber.EXPECT().Secret(context.Background(), &tc.newSecret)
 					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
-					actual, err := client.UpdateSecret(context.TODO(), &tc.request)
+					actual, err := apiserver.UpdateSecret(context.TODO(), &tc.request)
 					Expect(err).NotTo(HaveOccurred())
 					expected := &v1.UpdateSecretResponse{Secret: &tc.newSecret}
 					ExpectEqualProtoMessages(actual, expected)
@@ -452,7 +443,7 @@ var _ = Describe("ServiceTest", func() {
 				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
-				_, err := client.UpdateSecret(context.TODO(), request)
+				_, err := apiserver.UpdateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -480,7 +471,7 @@ var _ = Describe("ServiceTest", func() {
 				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
-				_, err := client.UpdateSecret(context.TODO(), request)
+				_, err := apiserver.UpdateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -503,7 +494,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil)
 
 			request := &v1.DeleteSecretRequest{Ref: &ref}
-			actual, err := client.DeleteSecret(context.TODO(), request)
+			actual, err := apiserver.DeleteSecret(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteSecretResponse{}
 			ExpectEqualProtoMessages(actual, expected)
@@ -520,7 +511,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(testErr)
 
 			request := &v1.DeleteSecretRequest{Ref: &ref}
-			_, err := client.DeleteSecret(context.TODO(), request)
+			_, err := apiserver.DeleteSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := secretsvc.FailedToDeleteSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

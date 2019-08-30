@@ -15,15 +15,10 @@ import (
 	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer     *grpc.Server
-	conn           *grpc.ClientConn
 	apiserver      v1.ArtifactApiServer
-	client         v1.ArtifactApiClient
 	mockCtrl       *gomock.Controller
 	artifactClient *mock_gloo.MockArtifactClient
 	licenseClient  *mock_license.MockClient
@@ -37,13 +32,9 @@ var _ = Describe("ServiceTest", func() {
 		artifactClient = mock_gloo.NewMockArtifactClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), artifactClient, licenseClient)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterArtifactApiServer(s, apiserver) })
-		client = v1.NewArtifactApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -64,7 +55,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(&artifact, nil)
 
 			request := &v1.GetArtifactRequest{Ref: &ref}
-			actual, err := client.GetArtifact(context.TODO(), request)
+			actual, err := apiserver.GetArtifact(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetArtifactResponse{Artifact: &artifact}
 			ExpectEqualProtoMessages(actual, expected)
@@ -82,7 +73,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.GetArtifactRequest{Ref: &ref}
-			_, err := client.GetArtifact(context.TODO(), request)
+			_, err := apiserver.GetArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := artifactsvc.FailedToReadArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -109,7 +100,7 @@ var _ = Describe("ServiceTest", func() {
 				Return([]*gloov1.Artifact{&artifact2}, nil)
 
 			request := &v1.ListArtifactsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListArtifacts(context.TODO(), request)
+			actual, err := apiserver.ListArtifacts(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListArtifactsResponse{Artifacts: []*gloov1.Artifact{&artifact1, &artifact2}}
 			ExpectEqualProtoMessages(actual, expected)
@@ -123,7 +114,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.ListArtifactsRequest{Namespaces: []string{ns}}
-			_, err := client.ListArtifacts(context.TODO(), request)
+			_, err := apiserver.ListArtifacts(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := artifactsvc.FailedToListArtifactsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -204,7 +195,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(&artifact, nil)
 
 				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				actual, err := client.CreateArtifact(context.TODO(), request)
+				actual, err := apiserver.CreateArtifact(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.CreateArtifactResponse{Artifact: &artifact}
 				ExpectEqualProtoMessages(actual, expected)
@@ -226,7 +217,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 
 				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := client.CreateArtifact(context.TODO(), request)
+				_, err := apiserver.CreateArtifact(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -335,7 +326,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 
 				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := client.UpdateArtifact(context.TODO(), request)
+				_, err := apiserver.UpdateArtifact(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -361,7 +352,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 
 				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := client.UpdateArtifact(context.TODO(), request)
+				_, err := apiserver.UpdateArtifact(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -382,7 +373,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil)
 
 			request := &v1.DeleteArtifactRequest{Ref: &ref}
-			actual, err := client.DeleteArtifact(context.TODO(), request)
+			actual, err := apiserver.DeleteArtifact(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteArtifactResponse{}
 			ExpectEqualProtoMessages(actual, expected)
@@ -400,7 +391,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(testErr)
 
 			request := &v1.DeleteArtifactRequest{Ref: &ref}
-			_, err := client.DeleteArtifact(context.TODO(), request)
+			_, err := apiserver.DeleteArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := artifactsvc.FailedToDeleteArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

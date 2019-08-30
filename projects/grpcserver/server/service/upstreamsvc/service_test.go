@@ -17,17 +17,12 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	mock_mutator "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation/mocks"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer     *grpc.Server
-	conn           *grpc.ClientConn
 	apiserver      v1.UpstreamApiServer
-	client         v1.UpstreamApiClient
 	mockCtrl       *gomock.Controller
 	upstreamClient *mock_gloo.MockUpstreamClient
 	licenseClient  *mock_license.MockClient
@@ -62,13 +57,9 @@ var _ = Describe("ServiceTest", func() {
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, licenseClient, settingsValues, mutator, factory, rawGetter)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterUpstreamApiServer(s, apiserver) })
-		client = v1.NewUpstreamApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -93,7 +84,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(raw)
 
 			request := &v1.GetUpstreamRequest{Ref: &ref}
-			actual, err := client.GetUpstream(context.TODO(), request)
+			actual, err := apiserver.GetUpstream(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
@@ -111,7 +102,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.GetUpstreamRequest{Ref: &ref}
-			_, err := client.GetUpstream(context.TODO(), request)
+			_, err := apiserver.GetUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToReadUpstreamError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -146,7 +137,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(raw2)
 
 			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListUpstreams(context.TODO(), request)
+			actual, err := apiserver.ListUpstreams(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListUpstreamsResponse{
 				Upstreams:       []*gloov1.Upstream{upstream1, upstream2},
@@ -163,7 +154,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns}}
-			_, err := client.ListUpstreams(context.TODO(), request)
+			_, err := apiserver.ListUpstreams(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToListUpstreamsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -266,7 +257,7 @@ var _ = Describe("ServiceTest", func() {
 					GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
 					Return(raw)
 
-				actual, err := client.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{Input: getInput(&ref)})
+				actual, err := apiserver.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{Input: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.CreateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 				ExpectEqualProtoMessages(actual, expected)
@@ -287,7 +278,7 @@ var _ = Describe("ServiceTest", func() {
 				request := &v1.CreateUpstreamRequest{
 					Input: getInput(&ref),
 				}
-				_, err := client.CreateUpstream(context.TODO(), request)
+				_, err := apiserver.CreateUpstream(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -333,7 +324,7 @@ var _ = Describe("ServiceTest", func() {
 				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
 				Return(raw)
 
-			actual, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
+			actual, err := apiserver.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.UpdateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
@@ -351,7 +342,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(context.TODO(), &ref, gomock.Any()).
 				Return(nil, testErr)
 
-			_, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
+			_, err := apiserver.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -370,7 +361,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil)
 
 			request := &v1.DeleteUpstreamRequest{Ref: &ref}
-			actual, err := client.DeleteUpstream(context.TODO(), request)
+			actual, err := apiserver.DeleteUpstream(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteUpstreamResponse{}
 			ExpectEqualProtoMessages(actual, expected)
@@ -387,7 +378,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(testErr)
 
 			request := &v1.DeleteUpstreamRequest{Ref: &ref}
-			_, err := client.DeleteUpstream(context.TODO(), request)
+			_, err := apiserver.DeleteUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToDeleteUpstreamError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

@@ -13,20 +13,15 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	mock_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mocks"
 	mock_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation/mocks"
 	mock_selector "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/selection/mocks"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer            *grpc.Server
-	conn                  *grpc.ClientConn
 	apiserver             v1.VirtualServiceApiServer
-	client                v1.VirtualServiceApiClient
 	mockCtrl              *gomock.Controller
 	virtualServiceClient  *mocks.MockVirtualServiceClient
 	mutator               *mock_mutation.MockMutator
@@ -72,13 +67,9 @@ var _ = Describe("ServiceTest", func() {
 		detailsExpectation = detailsConverter.EXPECT().
 			GetDetails(context.TODO(), virtualService).
 			Return(virtualServiceDetails)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterVirtualServiceApiServer(s, apiserver) })
-		client = v1.NewVirtualServiceApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -89,7 +80,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(virtualService, nil)
 
 			request := &v1.GetVirtualServiceRequest{Ref: &ref}
-			actual, err := client.GetVirtualService(context.TODO(), request)
+			actual, err := apiserver.GetVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -102,7 +93,7 @@ var _ = Describe("ServiceTest", func() {
 			detailsExpectation.Times(0)
 
 			request := &v1.GetVirtualServiceRequest{Ref: &ref}
-			_, err := client.GetVirtualService(context.TODO(), request)
+			_, err := apiserver.GetVirtualService(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToReadVirtualServiceError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -142,7 +133,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(virtualServiceDetails2)
 
 			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListVirtualServices(context.TODO(), request)
+			actual, err := apiserver.ListVirtualServices(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListVirtualServicesResponse{
 				VirtualServices:       []*gatewayv1.VirtualService{virtualService1, virtualService2},
@@ -160,7 +151,7 @@ var _ = Describe("ServiceTest", func() {
 			detailsExpectation.Times(0)
 
 			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns}}
-			_, err := client.ListVirtualServices(context.TODO(), request)
+			_, err := apiserver.ListVirtualServices(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToListVirtualServicesError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -181,7 +172,7 @@ var _ = Describe("ServiceTest", func() {
 					Create(&ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
+				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
@@ -197,7 +188,7 @@ var _ = Describe("ServiceTest", func() {
 				request := &v1.CreateVirtualServiceRequest{
 					Input: getInput(&ref),
 				}
-				_, err := client.CreateVirtualService(context.TODO(), request)
+				_, err := apiserver.CreateVirtualService(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -217,7 +208,7 @@ var _ = Describe("ServiceTest", func() {
 					Create(&ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
@@ -230,7 +221,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 				detailsExpectation.Times(0)
 
-				_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
 				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -239,7 +230,7 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors when no input is provided", func() {
 			detailsExpectation.Times(0)
-			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
+			_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
@@ -259,7 +250,7 @@ var _ = Describe("ServiceTest", func() {
 					Update(&ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
+				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
@@ -272,7 +263,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 				detailsExpectation.Times(0)
 
-				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
+				_, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
 				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -292,7 +283,7 @@ var _ = Describe("ServiceTest", func() {
 					Update(&ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
@@ -305,7 +296,7 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 				detailsExpectation.Times(0)
 
-				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				_, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
 				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -314,7 +305,7 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors when no input is provided", func() {
 			detailsExpectation.Times(0)
-			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
+			_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
@@ -328,7 +319,7 @@ var _ = Describe("ServiceTest", func() {
 			detailsExpectation.Times(0)
 
 			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
-			actual, err := client.DeleteVirtualService(context.TODO(), request)
+			actual, err := apiserver.DeleteVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteVirtualServiceResponse{}
 			ExpectEqualProtoMessages(actual, expected)
@@ -341,7 +332,7 @@ var _ = Describe("ServiceTest", func() {
 			detailsExpectation.Times(0)
 
 			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
-			_, err := client.DeleteVirtualService(context.TODO(), request)
+			_, err := apiserver.DeleteVirtualService(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToDeleteVirtualServiceError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -365,7 +356,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			actual, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.CreateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -377,7 +368,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(virtualService, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -389,7 +380,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -409,7 +400,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := client.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
+			actual, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.UpdateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -422,7 +413,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToUpdateRouteError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -443,7 +434,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := client.DeleteRoute(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.DeleteRoute(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -456,7 +447,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.DeleteRoute(context.TODO(), getRequest(&ref))
+			_, err := apiserver.DeleteRoute(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToDeleteRouteError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -478,7 +469,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := client.SwapRoutes(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.SwapRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.SwapRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -491,7 +482,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.SwapRoutes(context.TODO(), getRequest(&ref))
+			_, err := apiserver.SwapRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToSwapRoutesError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -513,7 +504,7 @@ var _ = Describe("ServiceTest", func() {
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := client.ShiftRoutes(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.ShiftRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ShiftRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -526,7 +517,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := client.ShiftRoutes(context.TODO(), getRequest(&ref))
+			_, err := apiserver.ShiftRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToShiftRoutesError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

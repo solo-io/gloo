@@ -11,14 +11,9 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc"
 	mock_envoy_details "github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails/mocks"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer    *grpc.Server
-	conn          *grpc.ClientConn
-	client        v1.EnvoyApiClient
 	apiServer     v1.EnvoyApiServer
 	mockCtrl      *gomock.Controller
 	detailsClient *mock_envoy_details.MockClient
@@ -32,13 +27,9 @@ var _ = Describe("Envoy Service Test", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		detailsClient = mock_envoy_details.NewMockClient(mockCtrl)
 		apiServer = envoysvc.NewEnvoyGrpcService(context.Background(), detailsClient, podNamespace)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterEnvoyApiServer(s, apiServer) })
-		client = v1.NewEnvoyApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -47,7 +38,7 @@ var _ = Describe("Envoy Service Test", func() {
 			detailsList := []*v1.EnvoyDetails{{Name: "test"}}
 			detailsClient.EXPECT().List(context.Background(), podNamespace).Return(detailsList, nil)
 
-			actual, err := client.ListEnvoyDetails(context.Background(), &v1.ListEnvoyDetailsRequest{})
+			actual, err := apiServer.ListEnvoyDetails(context.Background(), &v1.ListEnvoyDetailsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListEnvoyDetailsResponse{EnvoyDetails: detailsList}
 			ExpectEqualProtoMessages(actual, expected)
@@ -56,7 +47,7 @@ var _ = Describe("Envoy Service Test", func() {
 		It("errors when the envoy details client errors", func() {
 			detailsClient.EXPECT().List(context.Background(), podNamespace).Return(nil, testErr)
 
-			_, err := client.ListEnvoyDetails(context.Background(), &v1.ListEnvoyDetailsRequest{})
+			_, err := apiServer.ListEnvoyDetails(context.Background(), &v1.ListEnvoyDetailsRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := envoysvc.FailedToListEnvoyDetailsError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

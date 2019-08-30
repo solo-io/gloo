@@ -17,16 +17,11 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_status "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status/mocks"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer      *grpc.Server
-	conn            *grpc.ClientConn
 	apiserver       v1.ProxyApiServer
-	client          v1.ProxyApiClient
 	mockCtrl        *gomock.Controller
 	proxyClient     *mocks.MockProxyClient
 	rawGetter       *mock_rawgetter.MockRawGetter
@@ -61,13 +56,9 @@ var _ = Describe("ServiceTest", func() {
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		statusConverter = mock_status.NewMockInputResourceStatusGetter(mockCtrl)
 		apiserver = proxysvc.NewProxyGrpcService(context.TODO(), proxyClient, rawGetter, statusConverter)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterProxyApiServer(s, apiserver) })
-		client = v1.NewProxyApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
@@ -96,7 +87,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getStatus(v1.Status_OK, ""))
 
 			request := &v1.GetProxyRequest{Ref: &ref}
-			actual, err := client.GetProxy(context.TODO(), request)
+			actual, err := apiserver.GetProxy(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetProxyResponse{ProxyDetails: getProxyDetails(proxy, getStatus(v1.Status_OK, ""))}
 			ExpectEqualProtoMessages(actual, expected)
@@ -114,7 +105,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.GetProxyRequest{Ref: &ref}
-			_, err := client.GetProxy(context.TODO(), request)
+			_, err := apiserver.GetProxy(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := proxysvc.FailedToGetProxyError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -157,7 +148,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getStatus(v1.Status_WARNING, status.ResourcePending(ns2, "")))
 
 			request := &v1.ListProxiesRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := client.ListProxies(context.TODO(), request)
+			actual, err := apiserver.ListProxies(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListProxiesResponse{
 				ProxyDetails: []*v1.ProxyDetails{
@@ -176,7 +167,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 
 			request := &v1.ListProxiesRequest{Namespaces: []string{ns}}
-			_, err := client.ListProxies(context.TODO(), request)
+			_, err := apiserver.ListProxies(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := proxysvc.FailedToListProxiesError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

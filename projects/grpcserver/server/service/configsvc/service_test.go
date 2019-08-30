@@ -20,15 +20,10 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_namespace "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
-	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
-	"google.golang.org/grpc"
 )
 
 var (
-	grpcServer        *grpc.Server
-	conn              *grpc.ClientConn
 	apiserver         v1.ConfigApiServer
-	client            v1.ConfigApiClient
 	mockCtrl          *gomock.Controller
 	settingsClient    *mock_gloo.MockSettingsClient
 	licenseClient     *mock_license.MockClient
@@ -46,19 +41,15 @@ var _ = Describe("ServiceTest", func() {
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
 		apiserver = configsvc.NewConfigGrpcService(context.TODO(), settingsClient, licenseClient, namespaceClient, testOAuthEndpoint, testVersion, podNamespace)
-
-		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterConfigApiServer(s, apiserver) })
-		client = v1.NewConfigApiClient(conn)
 	})
 
 	AfterEach(func() {
-		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 
 	Describe("GetVersion", func() {
 		It("works", func() {
-			actual, err := client.GetVersion(context.TODO(), &v1.GetVersionRequest{})
+			actual, err := apiserver.GetVersion(context.TODO(), &v1.GetVersionRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetVersionResponse{Version: string(testVersion)}
 			ExpectEqualProtoMessages(actual, expected)
@@ -67,7 +58,7 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetOAuthEndpoint", func() {
 		It("works", func() {
-			actual, err := client.GetOAuthEndpoint(context.TODO(), &v1.GetOAuthEndpointRequest{})
+			actual, err := apiserver.GetOAuthEndpoint(context.TODO(), &v1.GetOAuthEndpointRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetOAuthEndpointResponse{OAuthEndpoint: &testOAuthEndpoint}
 			ExpectEqualProtoMessages(actual, expected)
@@ -78,7 +69,7 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the license client works", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
-			actual, err := client.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
+			actual, err := apiserver.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetIsLicenseValidResponse{IsLicenseValid: true}
 			ExpectEqualProtoMessages(actual, expected)
@@ -87,7 +78,7 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the license client errors", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(testErr)
 
-			_, err := client.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
+			_, err := apiserver.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := configsvc.LicenseIsInvalidError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -102,7 +93,7 @@ var _ = Describe("ServiceTest", func() {
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(settings, nil)
 
-			actual, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
+			actual, err := apiserver.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetSettingsResponse{Settings: settings}
 			ExpectEqualProtoMessages(actual, expected)
@@ -113,7 +104,7 @@ var _ = Describe("ServiceTest", func() {
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			_, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
+			_, err := apiserver.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := configsvc.FailedToReadSettingsError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -156,7 +147,7 @@ var _ = Describe("ServiceTest", func() {
 					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writeSettings, nil)
 
-				actual, err := client.UpdateSettings(context.TODO(), request)
+				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateSettingsResponse{Settings: writeSettings}
 				ExpectEqualProtoMessages(actual, expected)
@@ -170,7 +161,7 @@ var _ = Describe("ServiceTest", func() {
 					Settings:    buildSettings([]string{}, &refreshRate),
 				}
 
-				_, err := client.UpdateSettings(context.TODO(), request)
+				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := configsvc.InvalidRefreshRateError(1 * time.Nanosecond)
 				wrapped := configsvc.FailedToUpdateSettingsError(expectedErr)
@@ -228,7 +219,7 @@ var _ = Describe("ServiceTest", func() {
 					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writeSettings, nil)
 
-				actual, err := client.UpdateSettings(context.TODO(), request)
+				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateSettingsResponse{Settings: writeSettings}
 				ExpectEqualProtoMessages(actual, expected)
@@ -263,7 +254,7 @@ var _ = Describe("ServiceTest", func() {
 					Write(writtenSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writtenSettings, nil)
 
-				actual, err := client.UpdateSettings(context.TODO(), request)
+				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateSettingsResponse{Settings: writtenSettings}
 				ExpectEqualProtoMessages(actual, expected)
@@ -285,7 +276,7 @@ var _ = Describe("ServiceTest", func() {
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(readSettings, nil)
 
-				_, err := client.UpdateSettings(context.TODO(), request)
+				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := configsvc.InvalidRefreshRateError(1 * time.Nanosecond)
 				wrapped := configsvc.FailedToUpdateSettingsError(expectedErr)
@@ -305,7 +296,7 @@ var _ = Describe("ServiceTest", func() {
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(nil, testErr)
 
-				_, err := client.UpdateSettings(context.TODO(), request)
+				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -326,7 +317,7 @@ var _ = Describe("ServiceTest", func() {
 					Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(nil, testErr)
 
-				_, err := client.UpdateSettings(context.TODO(), request)
+				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
 				expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -342,7 +333,7 @@ var _ = Describe("ServiceTest", func() {
 				ListNamespaces().
 				Return(namespaceList, nil)
 
-			actual, err := client.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
+			actual, err := apiserver.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListNamespacesResponse{Namespaces: namespaceList}
 			ExpectEqualProtoMessages(actual, expected)
@@ -353,7 +344,7 @@ var _ = Describe("ServiceTest", func() {
 				ListNamespaces().
 				Return(nil, testErr)
 
-			_, err := client.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
+			_, err := apiserver.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := configsvc.FailedToListNamespacesError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
@@ -362,7 +353,7 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetPodNamespace", func() {
 		It("works", func() {
-			actual, err := client.GetPodNamespace(context.TODO(), &v1.GetPodNamespaceRequest{})
+			actual, err := apiserver.GetPodNamespace(context.TODO(), &v1.GetPodNamespaceRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetPodNamespaceResponse{Namespace: podNamespace}
 			ExpectEqualProtoMessages(actual, expected)

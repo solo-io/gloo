@@ -1967,7 +1967,7 @@
   revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
-  digest = "1:c4e17550279fea4bf342e63ed6a0491722463708f991cfdad63859b6ee77cbeb"
+  digest = "1:ae799fbb66c4eb2b84a6f4d77c3cf5a06f17ace1fa8317a1a327116bb9bb4ee7"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -1999,7 +1999,6 @@
     "stats",
     "status",
     "tap",
-    "test/bufconn",
     "transport",
   ]
   pruneopts = "UT"
@@ -2824,7 +2823,6 @@
     "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/status",
-    "google.golang.org/grpc/test/bufconn",
     "gopkg.in/square/go-jose.v2",
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
