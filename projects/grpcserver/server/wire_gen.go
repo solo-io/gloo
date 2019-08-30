@@ -64,7 +64,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	mutationFactory := mutation2.NewMutationFactory()
 	virtualServiceDetailsConverter := converter.NewVirtualServiceDetailsConverter(rawGetter)
 	virtualServiceSelector := selection.NewVirtualServiceSelector(virtualServiceClient, namespaceClient, string2)
-	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, virtualServiceClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector)
+	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, virtualServiceClient, client, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector)
 	gatewayClient := setup.NewGatewayClient(clientSet)
 	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
 	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, gatewayClient, rawGetter, inputResourceStatusGetter, client)

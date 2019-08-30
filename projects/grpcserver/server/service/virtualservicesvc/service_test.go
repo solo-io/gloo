@@ -11,6 +11,7 @@ import (
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
@@ -24,6 +25,7 @@ var (
 	apiserver             v1.VirtualServiceApiServer
 	mockCtrl              *gomock.Controller
 	virtualServiceClient  *mocks.MockVirtualServiceClient
+	licenseClient         *mock_license.MockClient
 	mutator               *mock_mutation.MockMutator
 	mutationFactory       *mock_mutation.MockMutationFactory
 	settingsValues        *mock_settings.MockValuesClient
@@ -46,6 +48,7 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		virtualServiceClient = mocks.NewMockVirtualServiceClient(mockCtrl)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
 		mutator = mock_mutation.NewMockMutator(mockCtrl)
 		mutationFactory = mock_mutation.NewMockMutationFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
@@ -55,6 +58,7 @@ var _ = Describe("ServiceTest", func() {
 			context.TODO(),
 			"",
 			virtualServiceClient,
+			licenseClient,
 			settingsValues,
 			mutator,
 			mutationFactory,
@@ -312,6 +316,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("DeleteVirtualService", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		It("works when the virtual service client works", func() {
 			virtualServiceClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).

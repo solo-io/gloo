@@ -350,6 +350,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("DeleteUpstream", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		It("works when the upstream client works", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",

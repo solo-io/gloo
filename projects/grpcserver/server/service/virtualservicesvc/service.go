@@ -3,6 +3,9 @@ package virtualservicesvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/pkg/license"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -22,6 +25,7 @@ type virtualServiceGrpcService struct {
 	podNamespace         string
 	settingsValues       settings.ValuesClient
 	virtualServiceClient gatewayv1.VirtualServiceClient
+	licenseClient        license.Client
 	mutator              mutation.Mutator
 	mutationFactory      mutation.MutationFactory
 	detailsConverter     converter.VirtualServiceDetailsConverter
@@ -32,6 +36,7 @@ func NewVirtualServiceGrpcService(
 	ctx context.Context,
 	podNamespace string,
 	virtualServiceClient gatewayv1.VirtualServiceClient,
+	licenseClient license.Client,
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
 	mutationFactory mutation.MutationFactory,
@@ -43,6 +48,7 @@ func NewVirtualServiceGrpcService(
 		ctx:                  ctx,
 		podNamespace:         podNamespace,
 		virtualServiceClient: virtualServiceClient,
+		licenseClient:        licenseClient,
 		settingsValues:       settingsValues,
 		mutator:              mutator,
 		mutationFactory:      mutationFactory,
@@ -133,6 +139,9 @@ func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, re
 }
 
 func (s *virtualServiceGrpcService) DeleteVirtualService(ctx context.Context, request *v1.DeleteVirtualServiceRequest) (*v1.DeleteVirtualServiceResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	err := s.virtualServiceClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteVirtualServiceError(err, request.GetRef())
