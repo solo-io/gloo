@@ -107,7 +107,7 @@ export const AdminLanding: React.FC<RouteProps> = props => {
           <div>
             <PageTitle>Enterprise Gloo Administration</PageTitle>
             <PageSubtitle>
-              Advanced Administration for youur Gloo Configuration
+              Advanced Administration for your Gloo Configuration
             </PageSubtitle>
           </div>
           <HealthScoreContainer health={healthConstants.Good.value}>
