@@ -13,6 +13,7 @@ import (
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
@@ -29,6 +30,7 @@ var (
 	client         v1.UpstreamApiClient
 	mockCtrl       *gomock.Controller
 	upstreamClient *mock_gloo.MockUpstreamClient
+	licenseClient  *mock_license.MockClient
 	mutator        *mock_mutator.MockMutator
 	factory        *mock_mutator.MockFactory
 	settingsValues *mock_settings.MockValuesClient
@@ -54,11 +56,12 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		upstreamClient = mock_gloo.NewMockUpstreamClient(mockCtrl)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
 		mutator = mock_mutator.NewMockMutator(mockCtrl)
 		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, settingsValues, mutator, factory, rawGetter)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, licenseClient, settingsValues, mutator, factory, rawGetter)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterUpstreamApiServer(s, apiserver) })
 		client = v1.NewUpstreamApiClient(conn)
@@ -168,6 +171,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateUpstream", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		Context("with unified input objects", func() {
 			It("works when the mutator works", func() {
 				metadata := core.Metadata{
@@ -290,6 +296,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("UpdateUpstream", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		getInput := func(ref *core.ResourceRef) *v1.UpstreamInput {
 			return &v1.UpstreamInput{
 				Ref: ref,

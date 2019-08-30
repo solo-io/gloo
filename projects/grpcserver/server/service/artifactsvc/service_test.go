@@ -12,6 +12,7 @@ import (
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
@@ -25,6 +26,7 @@ var (
 	client         v1.ArtifactApiClient
 	mockCtrl       *gomock.Controller
 	artifactClient *mock_gloo.MockArtifactClient
+	licenseClient  *mock_license.MockClient
 	testErr        = errors.Errorf("test-err")
 )
 
@@ -33,7 +35,8 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		artifactClient = mock_gloo.NewMockArtifactClient(mockCtrl)
-		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), artifactClient)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
+		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), artifactClient, licenseClient)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterArtifactApiServer(s, apiserver) })
 		client = v1.NewArtifactApiClient(conn)
@@ -129,6 +132,9 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("CreateArtifact", func() {
 		Context("with unified input objects", func() {
+			BeforeEach(func() {
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			})
 			buildArtifact := func() *gloov1.Artifact {
 				metadata := core.Metadata{
 					Namespace:     "ns",
@@ -179,6 +185,9 @@ var _ = Describe("ServiceTest", func() {
 			})
 		})
 		Context("with legacy input objects", func() {
+			BeforeEach(func() {
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			})
 			It("works when the artifact client works", func() {
 				metadata := core.Metadata{
 					Namespace: "ns",
@@ -227,6 +236,9 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("UpdateArtifact", func() {
 		Context("with unified input objects", func() {
+			BeforeEach(func() {
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			})
 			buildArtifact := func(testValue string) *gloov1.Artifact {
 				metadata := core.Metadata{
 					Namespace: "ns",
@@ -291,6 +303,7 @@ var _ = Describe("ServiceTest", func() {
 					Metadata: metadata,
 				}
 
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 				artifactClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(&oldArtifact, nil)
@@ -316,6 +329,7 @@ var _ = Describe("ServiceTest", func() {
 					Metadata: metadata,
 				}
 
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 				artifactClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(nil, testErr)
@@ -338,6 +352,7 @@ var _ = Describe("ServiceTest", func() {
 					Metadata: metadata,
 				}
 
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 				artifactClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(&artifact, nil)
@@ -361,6 +376,7 @@ var _ = Describe("ServiceTest", func() {
 				Name:      "name",
 			}
 
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			artifactClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(nil)
@@ -378,6 +394,7 @@ var _ = Describe("ServiceTest", func() {
 				Name:      "name",
 			}
 
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			artifactClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(testErr)

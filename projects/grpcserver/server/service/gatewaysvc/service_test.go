@@ -11,6 +11,7 @@ import (
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
@@ -28,6 +29,7 @@ var (
 	client          v1.GatewayApiClient
 	mockCtrl        *gomock.Controller
 	gatewayClient   *mocks.MockGatewayClient
+	licenseClient   *mock_license.MockClient
 	rawGetter       *mock_rawgetter.MockRawGetter
 	statusConverter *mock_status_converter.MockInputResourceStatusGetter
 	testErr         = errors.Errorf("test-err")
@@ -57,9 +59,10 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		gatewayClient = mocks.NewMockGatewayClient(mockCtrl)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		statusConverter = mock_status_converter.NewMockInputResourceStatusGetter(mockCtrl)
-		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter, statusConverter)
+		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter, statusConverter, licenseClient)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterGatewayApiServer(s, apiserver) })
 		client = v1.NewGatewayApiClient(conn)
@@ -217,6 +220,7 @@ var _ = Describe("ServiceTest", func() {
 				Status:      core.Status{State: core.Status_Pending},
 				BindAddress: "test-new-value",
 			}
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
 
 		It("works when the gateway client works", func() {

@@ -3,6 +3,10 @@ package artifactsvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/pkg/license"
+
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -14,12 +18,14 @@ import (
 type artifactGrpcService struct {
 	ctx            context.Context
 	artifactClient gloov1.ArtifactClient
+	licenseClient  license.Client
 }
 
-func NewArtifactGrpcService(ctx context.Context, artifactClient gloov1.ArtifactClient) v1.ArtifactApiServer {
+func NewArtifactGrpcService(ctx context.Context, artifactClient gloov1.ArtifactClient, licenseClient license.Client) v1.ArtifactApiServer {
 	return &artifactGrpcService{
 		ctx:            ctx,
 		artifactClient: artifactClient,
+		licenseClient:  licenseClient,
 	}
 }
 
@@ -49,6 +55,9 @@ func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.Lis
 }
 
 func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.CreateArtifactRequest) (*v1.CreateArtifactResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		artifact *gloov1.Artifact
 		ref      *core.ResourceRef
@@ -79,6 +88,9 @@ func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.Cr
 }
 
 func (s *artifactGrpcService) UpdateArtifact(ctx context.Context, request *v1.UpdateArtifactRequest) (*v1.UpdateArtifactResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		artifactToWrite *gloov1.Artifact
 		ref             *core.ResourceRef
@@ -113,6 +125,9 @@ func (s *artifactGrpcService) UpdateArtifact(ctx context.Context, request *v1.Up
 }
 
 func (s *artifactGrpcService) DeleteArtifact(ctx context.Context, request *v1.DeleteArtifactRequest) (*v1.DeleteArtifactResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	err := s.artifactClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteArtifactError(err, request.GetRef())

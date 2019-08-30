@@ -121,6 +121,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("UpdateSettings", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		Context("with unified input objects", func() {
 			buildSettings := func(watchNamespaces []string, refreshRate *types.Duration) *gloov1.Settings {
 				namespaces := watchNamespaces

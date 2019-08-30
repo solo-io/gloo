@@ -10,6 +10,7 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	mock_vssvc "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
@@ -21,6 +22,7 @@ var (
 	writeError    = errors.Errorf("write-error")
 	readError     = errors.Errorf("read-error")
 	mutationError = errors.Errorf("mutation-error")
+	licenseClient *mock_license.MockClient
 )
 
 var _ = Describe("Mutator", func() {
@@ -44,7 +46,9 @@ var _ = Describe("Mutator", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		client = mock_vssvc.NewMockVirtualServiceClient(mockCtrl)
-		mutator = mutation.NewMutator(context.TODO(), client)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
+		mutator = mutation.NewMutator(context.TODO(), client, licenseClient)
+		licenseClient.EXPECT().IsLicenseValid().Return(nil)
 	})
 
 	AfterEach(func() {

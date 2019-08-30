@@ -3,6 +3,10 @@ package secretsvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/pkg/license"
+
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -16,13 +20,20 @@ type secretGrpcService struct {
 	ctx            context.Context
 	secretClient   gloov1.SecretClient
 	secretScrubber scrub.Scrubber
+	licenseClient  license.Client
 }
 
-func NewSecretGrpcService(ctx context.Context, secretClient gloov1.SecretClient, secretScrubber scrub.Scrubber) v1.SecretApiServer {
+func NewSecretGrpcService(
+	ctx context.Context,
+	secretClient gloov1.SecretClient,
+	secretScrubber scrub.Scrubber,
+	licenseClient license.Client,
+) v1.SecretApiServer {
 	return &secretGrpcService{
 		ctx:            ctx,
 		secretClient:   secretClient,
 		secretScrubber: secretScrubber,
+		licenseClient:  licenseClient,
 	}
 }
 
@@ -58,6 +69,10 @@ func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSec
 }
 
 func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.CreateSecretRequest) (*v1.CreateSecretResponse, error) {
+	// TODO(mitchdraft) move this (and all other calls to CheckLicenseForGlooUiMutations) to solo-kit as a client hook
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		secret *gloov1.Secret
 		ref    *core.ResourceRef
@@ -100,6 +115,9 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 }
 
 func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.UpdateSecretRequest) (*v1.UpdateSecretResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		ref           *core.ResourceRef
 		secretToWrite *gloov1.Secret
@@ -144,6 +162,9 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 }
 
 func (s *secretGrpcService) DeleteSecret(ctx context.Context, request *v1.DeleteSecretRequest) (*v1.DeleteSecretResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	err := s.secretClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteSecretError(err, request.GetRef())

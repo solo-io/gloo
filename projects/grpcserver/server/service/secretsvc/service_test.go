@@ -12,6 +12,7 @@ import (
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
@@ -20,14 +21,15 @@ import (
 )
 
 var (
-	grpcServer   *grpc.Server
-	conn         *grpc.ClientConn
-	apiserver    v1.SecretApiServer
-	client       v1.SecretApiClient
-	mockCtrl     *gomock.Controller
-	secretClient *mock_gloo.MockSecretClient
-	scrubber     *mock_scrub.MockScrubber
-	testErr      = errors.Errorf("test-err")
+	grpcServer    *grpc.Server
+	conn          *grpc.ClientConn
+	apiserver     v1.SecretApiServer
+	client        v1.SecretApiClient
+	mockCtrl      *gomock.Controller
+	secretClient  *mock_gloo.MockSecretClient
+	licenseClient *mock_license.MockClient
+	scrubber      *mock_scrub.MockScrubber
+	testErr       = errors.Errorf("test-err")
 )
 
 var _ = Describe("ServiceTest", func() {
@@ -35,8 +37,9 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		secretClient = mock_gloo.NewMockSecretClient(mockCtrl)
+		licenseClient = mock_license.NewMockClient(mockCtrl)
 		scrubber = mock_scrub.NewMockScrubber(mockCtrl)
-		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient, scrubber)
+		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient, scrubber, licenseClient)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterSecretApiServer(s, apiserver) })
 		client = v1.NewSecretApiClient(conn)
@@ -165,6 +168,7 @@ var _ = Describe("ServiceTest", func() {
 						Write(&tc, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 						Return(&tc, nil)
 					scrubber.EXPECT().Secret(context.Background(), &tc)
+					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 					actual, err := apiserver.CreateSecret(context.TODO(), &v1.CreateSecretRequest{
 						Secret: &tc,
@@ -189,6 +193,7 @@ var _ = Describe("ServiceTest", func() {
 				secretClient.EXPECT().
 					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 					Return(nil, testErr)
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.CreateSecretRequest{
 					Secret: &secret,
@@ -258,6 +263,7 @@ var _ = Describe("ServiceTest", func() {
 						Write(&tc.secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 						Return(&tc.secret, nil)
 					scrubber.EXPECT().Secret(context.Background(), &tc.secret)
+					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 					actual, err := client.CreateSecret(context.TODO(), &tc.request)
 					Expect(err).NotTo(HaveOccurred())
@@ -280,6 +286,7 @@ var _ = Describe("ServiceTest", func() {
 				secretClient.EXPECT().
 					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 					Return(nil, testErr)
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
 				_, err := client.CreateSecret(context.TODO(), request)
@@ -322,6 +329,7 @@ var _ = Describe("ServiceTest", func() {
 						Write(&tc, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 						Return(&tc, nil)
 					scrubber.EXPECT().Secret(context.Background(), &tc)
+					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 					actual, err := apiserver.UpdateSecret(context.TODO(), &v1.UpdateSecretRequest{
 						Secret: &tc,
@@ -342,7 +350,10 @@ var _ = Describe("ServiceTest", func() {
 					Metadata: metadata,
 				}
 
-				secretClient.EXPECT().Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).Return(nil, testErr)
+				secretClient.EXPECT().
+					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(nil, testErr)
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.UpdateSecretRequest{
 					Secret: &secret,
@@ -419,6 +430,7 @@ var _ = Describe("ServiceTest", func() {
 						Write(&tc.newSecret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 						Return(&tc.newSecret, nil)
 					scrubber.EXPECT().Secret(context.Background(), &tc.newSecret)
+					licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 					actual, err := client.UpdateSecret(context.TODO(), &tc.request)
 					Expect(err).NotTo(HaveOccurred())
@@ -437,6 +449,7 @@ var _ = Describe("ServiceTest", func() {
 				secretClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(nil, testErr)
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
 				_, err := client.UpdateSecret(context.TODO(), request)
@@ -464,6 +477,8 @@ var _ = Describe("ServiceTest", func() {
 					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(nil, testErr)
 
+				licenseClient.EXPECT().IsLicenseValid().Return(nil)
+
 				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
 				_, err := client.UpdateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
@@ -474,6 +489,9 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("DeleteSecret", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
 		It("works when the secret client works", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",

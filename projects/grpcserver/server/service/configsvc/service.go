@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	"github.com/gogo/protobuf/types"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -80,6 +82,9 @@ func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSett
 }
 
 func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.UpdateSettingsRequest) (*v1.UpdateSettingsResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		settingsToWrite *gloov1.Settings
 		refreshRate     *types.Duration

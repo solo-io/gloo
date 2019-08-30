@@ -1952,13 +1952,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c9fe4cc09582aed38f0c4cc2972f903b8e1d23d840dd1122286921b396f323f7"
+  digest = "1:23c8c2aa3cfe38450bad5889e8152cc16a1c8fc9304c4b254797f71eb9e16b3d"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
     "googleapis/datastore/v1",
     "googleapis/iam/v1",
     "googleapis/rpc/code",
+    "googleapis/rpc/errdetails",
     "googleapis/rpc/status",
     "googleapis/type/latlng",
   ]
@@ -2817,6 +2818,7 @@
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
     "google.golang.org/genproto/googleapis/api/annotations",
+    "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/health/grpc_health_v1",

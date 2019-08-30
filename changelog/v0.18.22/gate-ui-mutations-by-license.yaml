@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add license checks to API server mutations.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1000

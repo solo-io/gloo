@@ -30,7 +30,9 @@ type mutator struct {
 var _ Mutator = &mutator{}
 
 func NewMutator(client gloov1.UpstreamClient) Mutator {
-	return &mutator{client: client}
+	return &mutator{
+		client: client,
+	}
 }
 
 func (m *mutator) Create(ctx context.Context, ref *core.ResourceRef, f Mutation) (*gloov1.Upstream, error) {

@@ -3,6 +3,10 @@ package upstreamsvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/pkg/license"
+
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -17,6 +21,7 @@ import (
 type upstreamGrpcService struct {
 	ctx             context.Context
 	upstreamClient  gloov1.UpstreamClient
+	licenseClient   license.Client
 	settingsValues  settings.ValuesClient
 	mutator         mutation.Mutator
 	mutationFactory mutation.Factory
@@ -26,6 +31,7 @@ type upstreamGrpcService struct {
 func NewUpstreamGrpcService(
 	ctx context.Context,
 	upstreamClient gloov1.UpstreamClient,
+	licenseClient license.Client,
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
 	factory mutation.Factory,
@@ -38,6 +44,7 @@ func NewUpstreamGrpcService(
 		mutator:         mutator,
 		mutationFactory: factory,
 		rawGetter:       rawGetter,
+		licenseClient:   licenseClient,
 	}
 }
 
@@ -73,6 +80,9 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 }
 
 func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.CreateUpstreamRequest) (*v1.CreateUpstreamResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		written *gloov1.Upstream
 		err     error
@@ -92,6 +102,9 @@ func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.Cr
 }
 
 func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.UpdateUpstreamRequest) (*v1.UpdateUpstreamResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	var (
 		written *gloov1.Upstream
 		err     error

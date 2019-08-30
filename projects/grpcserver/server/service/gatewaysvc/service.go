@@ -3,6 +3,10 @@ package gatewaysvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/pkg/license"
+
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
@@ -22,14 +26,22 @@ type gatewayGrpcService struct {
 	gatewayClient   gatewayv2.GatewayClient
 	rawGetter       rawgetter.RawGetter
 	statusConverter status.InputResourceStatusGetter
+	licenseClient   license.Client
 }
 
-func NewGatewayGrpcService(ctx context.Context, gatewayClient gatewayv2.GatewayClient, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.GatewayApiServer {
+func NewGatewayGrpcService(
+	ctx context.Context,
+	gatewayClient gatewayv2.GatewayClient,
+	rawGetter rawgetter.RawGetter,
+	statusConverter status.InputResourceStatusGetter,
+	licenseClient license.Client,
+) v1.GatewayApiServer {
 	return &gatewayGrpcService{
 		ctx:             ctx,
 		gatewayClient:   gatewayClient,
 		rawGetter:       rawGetter,
 		statusConverter: statusConverter,
+		licenseClient:   licenseClient,
 	}
 }
 
@@ -61,6 +73,9 @@ func (s *gatewayGrpcService) ListGateways(ctx context.Context, request *v1.ListG
 }
 
 func (s *gatewayGrpcService) UpdateGateway(ctx context.Context, request *v1.UpdateGatewayRequest) (*v1.UpdateGatewayResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
 	gateway := request.GetGateway()
 	ref := gateway.GetMetadata().Ref()
 	read, err := s.gatewayClient.Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: s.ctx})
