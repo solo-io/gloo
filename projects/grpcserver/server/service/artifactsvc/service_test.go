@@ -128,126 +128,229 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateArtifact", func() {
-		It("works when the artifact client works", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			artifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "asdf"},
-				Metadata: metadata,
+		Context("with unified input objects", func() {
+			buildArtifact := func() *gloov1.Artifact {
+				metadata := core.Metadata{
+					Namespace:     "ns",
+					Name:          "name",
+					XXX_sizecache: -1,
+				}
+				return &gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
 			}
 
-			artifactClient.EXPECT().
-				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(&artifact, nil)
+			It("works when the artifact client works", func() {
+				artifact := buildArtifact()
+				artifactClient.EXPECT().
+					Write(artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(artifact, nil)
 
-			request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-			actual, err := client.CreateArtifact(context.TODO(), request)
-			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateArtifactResponse{Artifact: &artifact}
-			ExpectEqualProtoMessages(actual, expected)
+				request := &v1.CreateArtifactRequest{
+					Ref:      nil,
+					Data:     nil,
+					Artifact: artifact,
+				}
+				actual, err := apiserver.CreateArtifact(context.TODO(), request)
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.CreateArtifactResponse{Artifact: buildArtifact()}
+				ExpectEqualProtoMessages(actual, expected)
+			})
+
+			It("errors when the artifact client errors", func() {
+				artifact := buildArtifact()
+				artifactClient.EXPECT().
+					Write(artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(nil, testErr)
+
+				request := &v1.CreateArtifactRequest{
+					Ref:      nil,
+					Data:     nil,
+					Artifact: artifact,
+				}
+				_, err := apiserver.CreateArtifact(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &core.ResourceRef{
+					Namespace: "ns",
+					Name:      "name",
+				})
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
+		Context("with legacy input objects", func() {
+			It("works when the artifact client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "n",
+				}
+				ref := metadata.Ref()
+				artifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
 
-		It("errors when the artifact client errors", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			artifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "asdf"},
-				Metadata: metadata,
-			}
+				artifactClient.EXPECT().
+					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(&artifact, nil)
 
-			artifactClient.EXPECT().
-				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(nil, testErr)
+				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
+				actual, err := client.CreateArtifact(context.TODO(), request)
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.CreateArtifactResponse{Artifact: &artifact}
+				ExpectEqualProtoMessages(actual, expected)
+			})
 
-			request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-			_, err := client.CreateArtifact(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			It("errors when the artifact client errors", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				artifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
+
+				artifactClient.EXPECT().
+					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(nil, testErr)
+
+				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
+				_, err := client.CreateArtifact(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 	})
 
 	Describe("UpdateArtifact", func() {
-		It("works when the artifact client works", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
+		Context("with unified input objects", func() {
+			buildArtifact := func(testValue string) *gloov1.Artifact {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				return &gloov1.Artifact{
+					Data:     map[string]string{"test": testValue},
+					Metadata: metadata,
+				}
 			}
-			ref := metadata.Ref()
-			oldArtifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "asdf"},
-				Metadata: metadata,
-			}
-			newArtifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "qwerty"},
-				Metadata: metadata,
-			}
+			It("works when the artifact client works", func() {
+				testArtifact := buildArtifact("new-test-value")
+				artifactClient.EXPECT().
+					Write(testArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(testArtifact, nil)
 
-			artifactClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&oldArtifact, nil)
-			artifactClient.EXPECT().
-				Write(&newArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(&newArtifact, nil)
+				request := &v1.UpdateArtifactRequest{
+					Artifact: buildArtifact("new-test-value"),
+				}
+				actual, err := apiserver.UpdateArtifact(context.TODO(), request)
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.UpdateArtifactResponse{Artifact: buildArtifact("new-test-value")}
+				ExpectEqualProtoMessages(actual, expected)
+			})
 
-			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: newArtifact.Data}
-			actual, err := client.UpdateArtifact(context.TODO(), request)
-			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateArtifactResponse{Artifact: &newArtifact}
-			ExpectEqualProtoMessages(actual, expected)
+			It("errors when the artifact client errors on write", func() {
+				namespace := "ns"
+				name := "name"
+				testArtifact := buildArtifact("test-value")
+				artifactClient.EXPECT().
+					Write(testArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(nil, testErr)
+
+				request := &v1.UpdateArtifactRequest{
+					Ref:      nil,
+					Data:     nil,
+					Artifact: testArtifact,
+				}
+				_, err := apiserver.UpdateArtifact(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &core.ResourceRef{
+					Name:      name,
+					Namespace: namespace,
+				})
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 
-		It("errors when the artifact client errors on read", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			artifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "asdf"},
-				Metadata: metadata,
-			}
+		Context("with legacy input objects", func() {
+			It("works when the artifact client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				oldArtifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
+				newArtifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "qwerty"},
+					Metadata: metadata,
+				}
 
-			artifactClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr)
+				artifactClient.EXPECT().
+					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+					Return(&oldArtifact, nil)
+				artifactClient.EXPECT().
+					Write(&newArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(&newArtifact, nil)
 
-			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-			_, err := client.UpdateArtifact(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-		})
+				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: newArtifact.Data}
+				actual, err := apiserver.UpdateArtifact(context.TODO(), request)
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.UpdateArtifactResponse{Artifact: &newArtifact}
+				ExpectEqualProtoMessages(actual, expected)
+			})
 
-		It("errors when the artifact client errors on write", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			artifact := gloov1.Artifact{
-				Data:     map[string]string{"test": "asdf"},
-				Metadata: metadata,
-			}
+			It("errors when the artifact client errors on read", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				artifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
 
-			artifactClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&artifact, nil)
-			artifactClient.EXPECT().
-				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(nil, testErr)
+				artifactClient.EXPECT().
+					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+					Return(nil, testErr)
 
-			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-			_, err := client.UpdateArtifact(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
+				_, err := client.UpdateArtifact(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
+
+			It("errors when the artifact client errors on write", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				artifact := gloov1.Artifact{
+					Data:     map[string]string{"test": "asdf"},
+					Metadata: metadata,
+				}
+
+				artifactClient.EXPECT().
+					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+					Return(&artifact, nil)
+				artifactClient.EXPECT().
+					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(nil, testErr)
+
+				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
+				_, err := client.UpdateArtifact(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 	})
 

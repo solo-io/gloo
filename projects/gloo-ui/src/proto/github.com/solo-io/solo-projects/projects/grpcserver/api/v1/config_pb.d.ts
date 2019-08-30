@@ -159,6 +159,11 @@ export class UpdateSettingsRequest extends jspb.Message {
   getRefreshRate(): google_protobuf_duration_pb.Duration | undefined;
   setRefreshRate(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasSettings(): boolean;
+  clearSettings(): void;
+  getSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb.Settings | undefined;
+  setSettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb.Settings): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateSettingsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateSettingsRequest): UpdateSettingsRequest.AsObject;
@@ -174,6 +179,7 @@ export namespace UpdateSettingsRequest {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     watchNamespacesList: Array<string>,
     refreshRate?: google_protobuf_duration_pb.Duration.AsObject,
+    settings?: github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb.Settings.AsObject,
   }
 }
 

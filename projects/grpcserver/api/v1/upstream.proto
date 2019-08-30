@@ -53,7 +53,9 @@ message UpstreamInput {
 }
 
 message CreateUpstreamRequest {
-    UpstreamInput input = 1;
+    // Deprecated: use `upstreamInput` instead
+    UpstreamInput input = 1 [deprecated=true];
+    gloo.solo.io.Upstream upstream_input = 2;
 }
 
 message CreateUpstreamResponse {
@@ -62,7 +64,9 @@ message CreateUpstreamResponse {
     UpstreamDetails upstream_details = 2;}
 
 message UpdateUpstreamRequest {
-    UpstreamInput input = 1;
+    // Deprecated: use `upstreamInput` instead
+    UpstreamInput input = 1 [deprecated=true];
+    gloo.solo.io.Upstream upstream_input = 2;
 }
 
 message UpdateUpstreamResponse {

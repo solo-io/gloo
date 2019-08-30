@@ -58,27 +58,40 @@ func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSec
 }
 
 func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.CreateSecretRequest) (*v1.CreateSecretResponse, error) {
-	secret := gloov1.Secret{
-		Metadata: core.Metadata{
-			Namespace: request.GetRef().GetNamespace(),
-			Name:      request.GetRef().GetName(),
-		},
+	var (
+		secret *gloov1.Secret
+		ref    *core.ResourceRef
+	)
+
+	if request.GetSecret() == nil {
+		secret = &gloov1.Secret{
+			Metadata: core.Metadata{
+				Namespace: request.GetRef().GetNamespace(),
+				Name:      request.GetRef().GetName(),
+			},
+		}
+
+		switch request.GetKind().(type) {
+		case *v1.CreateSecretRequest_Aws:
+			secret.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
+		case *v1.CreateSecretRequest_Azure:
+			secret.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
+		case *v1.CreateSecretRequest_Extension:
+			secret.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
+		case *v1.CreateSecretRequest_Tls:
+			secret.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
+		}
+
+		ref = request.GetRef()
+	} else {
+		secret = request.GetSecret()
+		secretRef := request.GetSecret().GetMetadata().Ref()
+		ref = &secretRef
 	}
 
-	switch request.GetKind().(type) {
-	case *v1.CreateSecretRequest_Aws:
-		secret.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
-	case *v1.CreateSecretRequest_Azure:
-		secret.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-	case *v1.CreateSecretRequest_Extension:
-		secret.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
-	case *v1.CreateSecretRequest_Tls:
-		secret.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
-	}
-
-	written, err := s.writeSecret(secret, false)
+	written, err := s.writeSecret(*secret, false)
 	if err != nil {
-		wrapped := FailedToCreateSecretError(err, request.GetRef())
+		wrapped := FailedToCreateSecretError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -87,27 +100,41 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 }
 
 func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.UpdateSecretRequest) (*v1.UpdateSecretResponse, error) {
-	read, err := s.readSecret(request.GetRef())
-	if err != nil {
-		wrapped := FailedToUpdateSecretError(err, request.GetRef())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return nil, wrapped
+	var (
+		ref           *core.ResourceRef
+		secretToWrite *gloov1.Secret
+	)
+
+	if request.GetSecret() == nil {
+		ref = request.GetRef()
+
+		read, err := s.readSecret(ref)
+		if err != nil {
+			wrapped := FailedToUpdateSecretError(err, ref)
+			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+
+		switch request.GetKind().(type) {
+		case *v1.UpdateSecretRequest_Aws:
+			read.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
+		case *v1.UpdateSecretRequest_Azure:
+			read.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
+		case *v1.UpdateSecretRequest_Extension:
+			read.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
+		case *v1.UpdateSecretRequest_Tls:
+			read.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
+		}
+		secretToWrite = read
+	} else {
+		metadataRef := request.GetSecret().GetMetadata().Ref()
+		ref = &metadataRef
+		secretToWrite = request.GetSecret()
 	}
 
-	switch request.GetKind().(type) {
-	case *v1.UpdateSecretRequest_Aws:
-		read.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
-	case *v1.UpdateSecretRequest_Azure:
-		read.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-	case *v1.UpdateSecretRequest_Extension:
-		read.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
-	case *v1.UpdateSecretRequest_Tls:
-		read.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
-	}
-
-	written, err := s.writeSecret(*read, true)
+	written, err := s.writeSecret(*secretToWrite, true)
 	if err != nil {
-		wrapped := FailedToUpdateSecretError(err, request.GetRef())
+		wrapped := FailedToUpdateSecretError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

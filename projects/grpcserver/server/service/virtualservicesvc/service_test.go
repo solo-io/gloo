@@ -168,7 +168,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateVirtualService", func() {
-		Context("with deprecated input", func() {
+		Context("with deprecated V1 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
 				return &v1.VirtualServiceInput{
 					Ref: ref,
@@ -204,7 +204,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 		})
 
-		Context("with v2 input", func() {
+		Context("with deprecated V2 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
 				return &v1.VirtualServiceInputV2{
 					Ref: ref,
@@ -246,7 +246,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("UpdateVirtualService", func() {
-		Context("with deprecated input", func() {
+		Context("with deprecated V1 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
 				return &v1.VirtualServiceInput{
 					Ref: ref,
@@ -279,7 +279,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 		})
 
-		Context("with v2 input", func() {
+		Context("with deprecated V2 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
 				return &v1.VirtualServiceInputV2{
 					Ref: ref,

@@ -134,211 +134,342 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateSecret", func() {
-		It("works when the secret client works", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
+		Context("with unified input objects", func() {
+			It("works when the secret client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
 
-			testCases := []struct {
-				request v1.CreateSecretRequest
-				secret  gloov1.Secret
-			}{
-				{
-					request: v1.CreateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}},
-					},
-					secret: gloov1.Secret{
+				testCases := []gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.CreateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.CreateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}},
-					},
-					secret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.CreateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.CreateSecretRequest_Extension{Extension: &gloov1.Extension{}},
-					},
-					secret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Extension{Extension: &gloov1.Extension{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.CreateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.CreateSecretRequest_Tls{Tls: &gloov1.TlsSecret{}},
-					},
-					secret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}},
 						Metadata: metadata,
 					},
-				},
-			}
+				}
 
-			for _, tc := range testCases {
+				for _, tc := range testCases {
+					secretClient.EXPECT().
+						Write(&tc, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+						Return(&tc, nil)
+					scrubber.EXPECT().Secret(context.Background(), &tc)
+
+					actual, err := apiserver.CreateSecret(context.TODO(), &v1.CreateSecretRequest{
+						Secret: &tc,
+					})
+					Expect(err).NotTo(HaveOccurred())
+					expected := &v1.CreateSecretResponse{Secret: &tc}
+					ExpectEqualProtoMessages(actual, expected)
+				}
+			})
+
+			It("errors when the secret client errors", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				secret := gloov1.Secret{
+					Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
+					Metadata: metadata,
+				}
+
 				secretClient.EXPECT().
-					Write(&tc.secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-					Return(&tc.secret, nil)
-				scrubber.EXPECT().Secret(context.Background(), &tc.secret)
+					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(nil, testErr)
 
-				actual, err := client.CreateSecret(context.TODO(), &tc.request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateSecretResponse{Secret: &tc.secret}
-				ExpectEqualProtoMessages(actual, expected)
-			}
+				request := &v1.CreateSecretRequest{
+					Secret: &secret,
+				}
+				_, err := apiserver.CreateSecret(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
+		Context("with legacy input objects", func() {
+			It("works when the secret client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
 
-		It("errors when the secret client errors", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			secret := gloov1.Secret{
-				Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
-				Metadata: metadata,
-			}
+				testCases := []struct {
+					request v1.CreateSecretRequest
+					secret  gloov1.Secret
+				}{
+					{
+						request: v1.CreateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}},
+						},
+						secret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.CreateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.CreateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}},
+						},
+						secret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.CreateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.CreateSecretRequest_Extension{Extension: &gloov1.Extension{}},
+						},
+						secret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Extension{Extension: &gloov1.Extension{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.CreateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.CreateSecretRequest_Tls{Tls: &gloov1.TlsSecret{}},
+						},
+						secret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}},
+							Metadata: metadata,
+						},
+					},
+				}
 
-			secretClient.EXPECT().
-				Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(nil, testErr)
+				for _, tc := range testCases {
+					secretClient.EXPECT().
+						Write(&tc.secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+						Return(&tc.secret, nil)
+					scrubber.EXPECT().Secret(context.Background(), &tc.secret)
 
-			request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
-			_, err := client.CreateSecret(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+					actual, err := client.CreateSecret(context.TODO(), &tc.request)
+					Expect(err).NotTo(HaveOccurred())
+					expected := &v1.CreateSecretResponse{Secret: &tc.secret}
+					ExpectEqualProtoMessages(actual, expected)
+				}
+			})
+
+			It("errors when the secret client errors", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				secret := gloov1.Secret{
+					Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
+					Metadata: metadata,
+				}
+
+				secretClient.EXPECT().
+					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+					Return(nil, testErr)
+
+				request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
+				_, err := client.CreateSecret(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 	})
 
 	Describe("UpdateSecret", func() {
-		It("works when the secret client works", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			oldSecret := gloov1.Secret{
-				Kind:     &gloov1.Secret_Aws{},
-				Metadata: metadata,
-			}
+		Context("with unified input objects", func() {
+			It("works when the secret client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
 
-			testCases := []struct {
-				request   v1.UpdateSecretRequest
-				newSecret gloov1.Secret
-			}{
-				{
-					request: v1.UpdateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.UpdateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}},
-					},
-					newSecret: gloov1.Secret{
+				testCases := []gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.UpdateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}},
-					},
-					newSecret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.UpdateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.UpdateSecretRequest_Extension{Extension: &gloov1.Extension{}},
-					},
-					newSecret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Extension{Extension: &gloov1.Extension{}},
 						Metadata: metadata,
 					},
-				},
-				{
-					request: v1.UpdateSecretRequest{
-						Ref:  &ref,
-						Kind: &v1.UpdateSecretRequest_Tls{Tls: &gloov1.TlsSecret{}},
-					},
-					newSecret: gloov1.Secret{
+					{
 						Kind:     &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}},
 						Metadata: metadata,
 					},
-				},
-			}
+				}
 
-			for _, tc := range testCases {
+				for _, tc := range testCases {
+					secretClient.EXPECT().
+						Write(&tc, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+						Return(&tc, nil)
+					scrubber.EXPECT().Secret(context.Background(), &tc)
+
+					actual, err := apiserver.UpdateSecret(context.TODO(), &v1.UpdateSecretRequest{
+						Secret: &tc,
+					})
+					Expect(err).NotTo(HaveOccurred())
+					expected := &v1.UpdateSecretResponse{Secret: &tc}
+					ExpectEqualProtoMessages(actual, expected)
+				}
+			})
+
+			It("errors when the secret client errors on write", func() {
+				metadata := core.Metadata{}
+				ref := metadata.Ref()
+				secret := gloov1.Secret{
+					Kind: &gloov1.Secret_Aws{
+						Aws: &gloov1.AwsSecret{},
+					},
+					Metadata: metadata,
+				}
+
+				secretClient.EXPECT().Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).Return(nil, testErr)
+
+				request := &v1.UpdateSecretRequest{
+					Secret: &secret,
+				}
+				_, err := apiserver.UpdateSecret(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
+		})
+		Context("with legacy input objects", func() {
+			It("works when the secret client works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				oldSecret := gloov1.Secret{
+					Kind:     &gloov1.Secret_Aws{},
+					Metadata: metadata,
+				}
+
+				testCases := []struct {
+					request   v1.UpdateSecretRequest
+					newSecret gloov1.Secret
+				}{
+					{
+						request: v1.UpdateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.UpdateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}},
+						},
+						newSecret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.UpdateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}},
+						},
+						newSecret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.UpdateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.UpdateSecretRequest_Extension{Extension: &gloov1.Extension{}},
+						},
+						newSecret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Extension{Extension: &gloov1.Extension{}},
+							Metadata: metadata,
+						},
+					},
+					{
+						request: v1.UpdateSecretRequest{
+							Ref:  &ref,
+							Kind: &v1.UpdateSecretRequest_Tls{Tls: &gloov1.TlsSecret{}},
+						},
+						newSecret: gloov1.Secret{
+							Kind:     &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}},
+							Metadata: metadata,
+						},
+					},
+				}
+
+				for _, tc := range testCases {
+					secretClient.EXPECT().
+						Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+						Return(&oldSecret, nil)
+					secretClient.EXPECT().
+						Write(&tc.newSecret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+						Return(&tc.newSecret, nil)
+					scrubber.EXPECT().Secret(context.Background(), &tc.newSecret)
+
+					actual, err := client.UpdateSecret(context.TODO(), &tc.request)
+					Expect(err).NotTo(HaveOccurred())
+					expected := &v1.UpdateSecretResponse{Secret: &tc.newSecret}
+					ExpectEqualProtoMessages(actual, expected)
+				}
+			})
+
+			It("errors when the secret client errors on read", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+
 				secretClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(&oldSecret, nil)
+					Return(nil, testErr)
+
+				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
+				_, err := client.UpdateSecret(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
+
+			It("errors when the secret client errors on write", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				ref := metadata.Ref()
+				secret := gloov1.Secret{
+					Kind:     &gloov1.Secret_Aws{},
+					Metadata: metadata,
+				}
+
 				secretClient.EXPECT().
-					Write(&tc.newSecret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(&tc.newSecret, nil)
-				scrubber.EXPECT().Secret(context.Background(), &tc.newSecret)
+					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
+					Return(&secret, nil)
 
-				actual, err := client.UpdateSecret(context.TODO(), &tc.request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateSecretResponse{Secret: &tc.newSecret}
-				ExpectEqualProtoMessages(actual, expected)
-			}
-		})
+				secretClient.EXPECT().
+					Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+					Return(nil, testErr)
 
-		It("errors when the secret client errors on read", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-
-			secretClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr)
-
-			request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
-			_, err := client.UpdateSecret(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-		})
-
-		It("errors when the secret client errors on write", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			secret := gloov1.Secret{
-				Kind:     &gloov1.Secret_Aws{},
-				Metadata: metadata,
-			}
-
-			secretClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&secret, nil)
-
-			secretClient.EXPECT().
-				Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(nil, testErr)
-
-			request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
-			_, err := client.UpdateSecret(context.TODO(), request)
-			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+				request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
+				_, err := client.UpdateSecret(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 	})
 

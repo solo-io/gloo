@@ -110,16 +110,18 @@ weight: 5
 "azure": .gloo.solo.io.AzureSecret
 "tls": .gloo.solo.io.TlsSecret
 "extension": .gloo.solo.io.Extension
+"secret": .gloo.solo.io.Secret
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Deprecated |  |
 | `aws` | [.gloo.solo.io.AwsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#awssecret) |  |  |
 | `azure` | [.gloo.solo.io.AzureSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#azuresecret) |  |  |
 | `tls` | [.gloo.solo.io.TlsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#tlssecret) |  |  |
 | `extension` | [.gloo.solo.io.Extension](../../../../../../gloo/projects/gloo/api/v1/extensions.proto.sk#extension) |  |  |
+| `secret` | [.gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
 
 
 
@@ -152,16 +154,18 @@ weight: 5
 "azure": .gloo.solo.io.AzureSecret
 "tls": .gloo.solo.io.TlsSecret
 "extension": .gloo.solo.io.Extension
+"secret": .gloo.solo.io.Secret
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Deprecated |  |
 | `aws` | [.gloo.solo.io.AwsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#awssecret) |  |  |
 | `azure` | [.gloo.solo.io.AzureSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#azuresecret) |  |  |
 | `tls` | [.gloo.solo.io.TlsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#tlssecret) |  |  |
 | `extension` | [.gloo.solo.io.Extension](../../../../../../gloo/projects/gloo/api/v1/extensions.proto.sk#extension) |  |  |
+| `secret` | [.gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
 
 
 

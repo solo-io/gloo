@@ -6,6 +6,8 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
+
+	//TODO: (Graham) handle plugins correclty once the reorg happens "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
@@ -16,6 +18,7 @@ import (
 type MutationFactory interface {
 	// Deprecated
 	ConfigureVirtualService(input *v1.VirtualServiceInput) Mutation
+	// Deprecated
 	ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV2) Mutation
 	CreateRoute(input *v1.RouteInput) Mutation
 	UpdateRoute(input *v1.RouteInput) Mutation

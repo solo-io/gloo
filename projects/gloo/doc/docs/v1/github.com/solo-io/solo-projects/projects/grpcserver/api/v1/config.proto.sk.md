@@ -160,14 +160,16 @@ weight: 5
 "ref": .core.solo.io.ResourceRef
 "watchNamespaces": []string
 "refreshRate": .google.protobuf.Duration
+"settings": .gloo.solo.io.Settings
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `watchNamespaces` | `[]string` |  |  |
-| `refreshRate` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Deprecated |  |
+| `watchNamespaces` | `[]string` | Deprecated |  |
+| `refreshRate` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Deprecated |  |
+| `settings` | [.gloo.solo.io.Settings](../../../../../../gloo/projects/gloo/api/v1/settings.proto.sk#settings) |  |  |
 
 
 

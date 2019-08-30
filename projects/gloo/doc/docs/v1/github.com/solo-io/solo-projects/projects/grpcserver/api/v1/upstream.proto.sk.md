@@ -160,12 +160,14 @@ weight: 5
 
 ```yaml
 "input": .glooeeapi.solo.io.UpstreamInput
+"upstreamInput": .gloo.solo.io.Upstream
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.UpstreamInput](../upstream.proto.sk#upstreaminput) |  |  |
+| `input` | [.glooeeapi.solo.io.UpstreamInput](../upstream.proto.sk#upstreaminput) | Deprecated: use `upstreamInput` instead |  |
+| `upstreamInput` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
 
 
 
@@ -196,12 +198,14 @@ weight: 5
 
 ```yaml
 "input": .glooeeapi.solo.io.UpstreamInput
+"upstreamInput": .gloo.solo.io.Upstream
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.UpstreamInput](../upstream.proto.sk#upstreaminput) |  |  |
+| `input` | [.glooeeapi.solo.io.UpstreamInput](../upstream.proto.sk#upstreaminput) | Deprecated: use `upstreamInput` instead |  |
+| `upstreamInput` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
 
 
 

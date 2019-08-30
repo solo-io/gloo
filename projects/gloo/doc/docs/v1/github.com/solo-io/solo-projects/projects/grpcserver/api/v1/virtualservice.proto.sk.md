@@ -404,7 +404,7 @@ Deprecated. Use VirtualServiceInputV2
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) | Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided. |  |
+| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) |  |  |
 | `inputV2` | [.glooeeapi.solo.io.VirtualServiceInputV2](../virtualservice.proto.sk#virtualserviceinputv2) |  |  |
 
 
@@ -442,7 +442,7 @@ Deprecated. Use VirtualServiceInputV2
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) | Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided. |  |
+| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) |  |  |
 | `inputV2` | [.glooeeapi.solo.io.VirtualServiceInputV2](../virtualservice.proto.sk#virtualserviceinputv2) |  |  |
 
 

@@ -49,16 +49,29 @@ func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.Lis
 }
 
 func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.CreateArtifactRequest) (*v1.CreateArtifactResponse, error) {
-	artifact := gloov1.Artifact{
-		Metadata: core.Metadata{
-			Namespace: request.GetRef().GetNamespace(),
-			Name:      request.GetRef().GetName(),
-		},
-		Data: request.GetData(),
+	var (
+		artifact *gloov1.Artifact
+		ref      *core.ResourceRef
+	)
+
+	if request.GetArtifact() == nil {
+		ref = request.GetRef()
+		artifact = &gloov1.Artifact{
+			Metadata: core.Metadata{
+				Namespace: ref.GetNamespace(),
+				Name:      ref.GetName(),
+			},
+			Data: request.GetData(),
+		}
+	} else {
+		artifact = request.GetArtifact()
+		metadataRef := artifact.GetMetadata().Ref()
+		ref = &metadataRef
 	}
+
 	written, err := s.writeArtifact(artifact, false)
 	if err != nil {
-		wrapped := FailedToCreateArtifactError(err, request.GetRef())
+		wrapped := FailedToCreateArtifactError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -66,22 +79,37 @@ func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.Cr
 }
 
 func (s *artifactGrpcService) UpdateArtifact(ctx context.Context, request *v1.UpdateArtifactRequest) (*v1.UpdateArtifactResponse, error) {
-	read, err := s.readArtifact(request.GetRef())
-	if err != nil {
-		wrapped := FailedToUpdateArtifactError(err, request.GetRef())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return nil, wrapped
+	var (
+		artifactToWrite *gloov1.Artifact
+		ref             *core.ResourceRef
+		err             error
+	)
+
+	if request.GetArtifact() == nil {
+		ref = request.GetRef()
+
+		artifactToWrite, err = s.readArtifact(ref)
+		if err != nil {
+			wrapped := FailedToUpdateArtifactError(err, ref)
+			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+		artifactToWrite.Data = request.GetData()
+	} else {
+		metadataRef := request.GetArtifact().GetMetadata().Ref()
+		ref = &metadataRef
+		artifactToWrite = request.GetArtifact()
 	}
 
-	read.Data = request.GetData()
-	written, err := s.writeArtifact(*read, true)
+	written, err := s.writeArtifact(artifactToWrite, true)
 	if err != nil {
-		wrapped := FailedToUpdateArtifactError(err, request.GetRef())
+		wrapped := FailedToUpdateArtifactError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
 	return &v1.UpdateArtifactResponse{Artifact: written}, nil
+
 }
 
 func (s *artifactGrpcService) DeleteArtifact(ctx context.Context, request *v1.DeleteArtifactRequest) (*v1.DeleteArtifactResponse, error) {
@@ -98,6 +126,6 @@ func (s *artifactGrpcService) readArtifact(ref *core.ResourceRef) (*gloov1.Artif
 	return s.artifactClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 
-func (s *artifactGrpcService) writeArtifact(artifact gloov1.Artifact, shouldOverWrite bool) (*gloov1.Artifact, error) {
-	return s.artifactClient.Write(&artifact, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
+func (s *artifactGrpcService) writeArtifact(artifact *gloov1.Artifact, shouldOverWrite bool) (*gloov1.Artifact, error) {
+	return s.artifactClient.Write(artifact, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
 }

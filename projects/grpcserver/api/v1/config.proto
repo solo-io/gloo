@@ -33,9 +33,13 @@ message GetSettingsResponse {
 }
 
 message UpdateSettingsRequest {
-    core.solo.io.ResourceRef ref = 1;
-    repeated string watch_namespaces = 2;
+    // Deprecated
+    core.solo.io.ResourceRef ref = 1 [deprecated=true];
+    // Deprecated
+    repeated string watch_namespaces = 2 [deprecated=true];
+    // Deprecated
     google.protobuf.Duration refresh_rate = 3;
+    gloo.solo.io.Settings settings = 4;
 }
 
 message UpdateSettingsResponse {

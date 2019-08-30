@@ -121,6 +121,11 @@ export class CreateSecretRequest extends jspb.Message {
   getExtension(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension | undefined;
   setExtension(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension): void;
 
+  hasSecret(): boolean;
+  clearSecret(): void;
+  getSecret(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret | undefined;
+  setSecret(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret): void;
+
   getKindCase(): CreateSecretRequest.KindCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateSecretRequest.AsObject;
@@ -139,6 +144,7 @@ export namespace CreateSecretRequest {
     azure?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.AsObject,
     tls?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.AsObject,
     extension?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension.AsObject,
+    secret?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject,
   }
 
   export enum KindCase {
@@ -198,6 +204,11 @@ export class UpdateSecretRequest extends jspb.Message {
   getExtension(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension | undefined;
   setExtension(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension): void;
 
+  hasSecret(): boolean;
+  clearSecret(): void;
+  getSecret(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret | undefined;
+  setSecret(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret): void;
+
   getKindCase(): UpdateSecretRequest.KindCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateSecretRequest.AsObject;
@@ -216,6 +227,7 @@ export namespace UpdateSecretRequest {
     azure?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.AsObject,
     tls?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.AsObject,
     extension?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension.AsObject,
+    secret?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject,
   }
 
   export enum KindCase {

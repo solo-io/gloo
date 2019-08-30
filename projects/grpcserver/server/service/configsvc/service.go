@@ -80,25 +80,46 @@ func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSett
 }
 
 func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.UpdateSettingsRequest) (*v1.UpdateSettingsResponse, error) {
-	existing, err := s.settingsClient.Read(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.ReadOpts{Ctx: s.ctx})
-	if err != nil {
-		wrapped := FailedToUpdateSettingsError(err)
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return nil, wrapped
-	}
+	var (
+		settingsToWrite *gloov1.Settings
+		refreshRate     *types.Duration
+		ref             *core.ResourceRef
+		err             error
+	)
 
-	if request.GetRefreshRate() != nil {
-		if err := validateRefreshRate(request.GetRefreshRate()); err != nil {
+	if request.GetSettings() == nil {
+		refreshRate = request.GetRefreshRate()
+		watchNamespaces := request.GetWatchNamespaces()
+		ref = request.GetRef()
+
+		settingsToWrite, err = s.settingsClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
+		if err != nil {
 			wrapped := FailedToUpdateSettingsError(err)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		existing.RefreshRate = request.GetRefreshRate()
-	}
-	existing.WatchNamespaces = request.GetWatchNamespaces()
 
-	existing.Status = core.Status{}
-	written, err := s.settingsClient.Write(existing, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+		settingsToWrite.WatchNamespaces = watchNamespaces
+		settingsToWrite.Status = core.Status{}
+		if refreshRate != nil {
+			settingsToWrite.RefreshRate = refreshRate
+		}
+	} else {
+		settingsToWrite = request.GetSettings()
+		settingsRef := settingsToWrite.GetMetadata().Ref()
+		ref = &settingsRef
+		refreshRate = settingsToWrite.GetRefreshRate()
+	}
+
+	if refreshRate != nil {
+		if err := validateRefreshRate(refreshRate); err != nil {
+			wrapped := FailedToUpdateSettingsError(err)
+			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+	}
+
+	written, err := s.settingsClient.Write(settingsToWrite, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		wrapped := FailedToUpdateSettingsError(err)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

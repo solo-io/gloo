@@ -25,10 +25,13 @@ message ListArtifactsResponse {
 }
 
 message CreateArtifactRequest {
-    core.solo.io.ResourceRef ref = 1;
+    // Deprecated
+    core.solo.io.ResourceRef ref = 1 [deprecated=true];
+    // Deprecated
     // Artifact data is a map to be compatible with Kubernetes ConfigMaps.
     // The key refers to the ConfigMap key, the value is the associated ConfigMap value.
-    map<string,string> data = 2;
+    map<string,string> data = 2 [deprecated=true];
+    gloo.solo.io.Artifact artifact = 3;
 }
 
 message CreateArtifactResponse {
@@ -36,10 +39,13 @@ message CreateArtifactResponse {
 }
 
 message UpdateArtifactRequest {
-    core.solo.io.ResourceRef ref = 1;
+    // Deprecated
+    core.solo.io.ResourceRef ref = 1 [deprecated=true];
+    // Deprecated
     // Artifact data is a map to be compatible with Kubernetes ConfigMaps.
     // The key refers to the ConfigMap key, the value is the associated ConfigMap value.
-    map<string,string> data = 2;
+    map<string,string> data = 2 [deprecated=true];
+    gloo.solo.io.Artifact artifact = 3;
 }
 
 message UpdateArtifactResponse {

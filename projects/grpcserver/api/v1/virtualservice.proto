@@ -114,7 +114,6 @@ message VirtualServiceInputV2 {
 }
 
 message CreateVirtualServiceRequest {
-    // Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
     VirtualServiceInput input = 1;
     VirtualServiceInputV2 input_v2 = 2;
 }
@@ -126,7 +125,6 @@ message CreateVirtualServiceResponse {
 }
 
 message UpdateVirtualServiceRequest {
-    // Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
     VirtualServiceInput input = 1;
     VirtualServiceInputV2 input_v2 = 2;
 }

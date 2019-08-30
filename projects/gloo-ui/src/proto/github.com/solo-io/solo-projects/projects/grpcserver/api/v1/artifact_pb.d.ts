@@ -102,6 +102,11 @@ export class CreateArtifactRequest extends jspb.Message {
 
   getDataMap(): jspb.Map<string, string>;
   clearDataMap(): void;
+  hasArtifact(): boolean;
+  clearArtifact(): void;
+  getArtifact(): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact | undefined;
+  setArtifact(value?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateArtifactRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CreateArtifactRequest): CreateArtifactRequest.AsObject;
@@ -116,6 +121,7 @@ export namespace CreateArtifactRequest {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     dataMap: Array<[string, string]>,
+    artifact?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject,
   }
 }
 
@@ -149,6 +155,11 @@ export class UpdateArtifactRequest extends jspb.Message {
 
   getDataMap(): jspb.Map<string, string>;
   clearDataMap(): void;
+  hasArtifact(): boolean;
+  clearArtifact(): void;
+  getArtifact(): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact | undefined;
+  setArtifact(value?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateArtifactRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateArtifactRequest): UpdateArtifactRequest.AsObject;
@@ -163,6 +174,7 @@ export namespace UpdateArtifactRequest {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     dataMap: Array<[string, string]>,
+    artifact?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject,
   }
 }
 

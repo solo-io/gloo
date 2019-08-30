@@ -216,6 +216,11 @@ export class CreateUpstreamRequest extends jspb.Message {
   getInput(): UpstreamInput | undefined;
   setInput(value?: UpstreamInput): void;
 
+  hasUpstreamInput(): boolean;
+  clearUpstreamInput(): void;
+  getUpstreamInput(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
+  setUpstreamInput(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateUpstreamRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CreateUpstreamRequest): CreateUpstreamRequest.AsObject;
@@ -229,6 +234,7 @@ export class CreateUpstreamRequest extends jspb.Message {
 export namespace CreateUpstreamRequest {
   export type AsObject = {
     input?: UpstreamInput.AsObject,
+    upstreamInput?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
   }
 }
 
@@ -266,6 +272,11 @@ export class UpdateUpstreamRequest extends jspb.Message {
   getInput(): UpstreamInput | undefined;
   setInput(value?: UpstreamInput): void;
 
+  hasUpstreamInput(): boolean;
+  clearUpstreamInput(): void;
+  getUpstreamInput(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
+  setUpstreamInput(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateUpstreamRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateUpstreamRequest): UpdateUpstreamRequest.AsObject;
@@ -279,6 +290,7 @@ export class UpdateUpstreamRequest extends jspb.Message {
 export namespace UpdateUpstreamRequest {
   export type AsObject = {
     input?: UpstreamInput.AsObject,
+    upstreamInput?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
   }
 }
 

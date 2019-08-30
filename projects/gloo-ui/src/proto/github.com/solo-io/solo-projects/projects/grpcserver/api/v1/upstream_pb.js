@@ -1476,7 +1476,8 @@ proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.CreateUpstreamRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    input: (f = msg.getInput()) && proto.glooeeapi.solo.io.UpstreamInput.toObject(includeInstance, f)
+    input: (f = msg.getInput()) && proto.glooeeapi.solo.io.UpstreamInput.toObject(includeInstance, f),
+    upstreamInput: (f = msg.getUpstreamInput()) && github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1518,6 +1519,11 @@ proto.glooeeapi.solo.io.CreateUpstreamRequest.deserializeBinaryFromReader = func
       reader.readMessage(value,proto.glooeeapi.solo.io.UpstreamInput.deserializeBinaryFromReader);
       msg.setInput(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.deserializeBinaryFromReader);
+      msg.setUpstreamInput(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1555,6 +1561,14 @@ proto.glooeeapi.solo.io.CreateUpstreamRequest.serializeBinaryToWriter = function
       proto.glooeeapi.solo.io.UpstreamInput.serializeBinaryToWriter
     );
   }
+  f = message.getUpstreamInput();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -1585,6 +1599,36 @@ proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.clearInput = function() 
  */
 proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.hasInput = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional gloo.solo.io.Upstream upstream_input = 2;
+ * @return {?proto.gloo.solo.io.Upstream}
+ */
+proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.getUpstreamInput = function() {
+  return /** @type{?proto.gloo.solo.io.Upstream} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.Upstream|undefined} value */
+proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.setUpstreamInput = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.clearUpstreamInput = function() {
+  this.setUpstreamInput(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.CreateUpstreamRequest.prototype.hasUpstreamInput = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -1838,7 +1882,8 @@ proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.UpdateUpstreamRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    input: (f = msg.getInput()) && proto.glooeeapi.solo.io.UpstreamInput.toObject(includeInstance, f)
+    input: (f = msg.getInput()) && proto.glooeeapi.solo.io.UpstreamInput.toObject(includeInstance, f),
+    upstreamInput: (f = msg.getUpstreamInput()) && github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1880,6 +1925,11 @@ proto.glooeeapi.solo.io.UpdateUpstreamRequest.deserializeBinaryFromReader = func
       reader.readMessage(value,proto.glooeeapi.solo.io.UpstreamInput.deserializeBinaryFromReader);
       msg.setInput(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.deserializeBinaryFromReader);
+      msg.setUpstreamInput(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1917,6 +1967,14 @@ proto.glooeeapi.solo.io.UpdateUpstreamRequest.serializeBinaryToWriter = function
       proto.glooeeapi.solo.io.UpstreamInput.serializeBinaryToWriter
     );
   }
+  f = message.getUpstreamInput();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -1947,6 +2005,36 @@ proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.clearInput = function() 
  */
 proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.hasInput = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional gloo.solo.io.Upstream upstream_input = 2;
+ * @return {?proto.gloo.solo.io.Upstream}
+ */
+proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.getUpstreamInput = function() {
+  return /** @type{?proto.gloo.solo.io.Upstream} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.Upstream|undefined} value */
+proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.setUpstreamInput = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.clearUpstreamInput = function() {
+  this.setUpstreamInput(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.UpdateUpstreamRequest.prototype.hasUpstreamInput = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

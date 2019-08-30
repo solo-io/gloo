@@ -107,13 +107,15 @@ weight: 5
 ```yaml
 "ref": .core.solo.io.ResourceRef
 "data": map<string, string>
+"artifact": .gloo.solo.io.Artifact
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `data` | `map<string, string>` | Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Deprecated |  |
+| `data` | `map<string, string>` | Deprecated Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
+| `artifact` | [.gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
 
 
 
@@ -143,13 +145,15 @@ weight: 5
 ```yaml
 "ref": .core.solo.io.ResourceRef
 "data": map<string, string>
+"artifact": .gloo.solo.io.Artifact
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `data` | `map<string, string>` | Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Deprecated |  |
+| `data` | `map<string, string>` | Deprecated Artifact data is a map to be compatible with Kubernetes ConfigMaps. The key refers to the ConfigMap key, the value is the associated ConfigMap value. |  |
+| `artifact` | [.gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
 
 
 

@@ -25,3 +25,6 @@ projects/gloo/doc/site/
 
 # test-build files
 test-build.yaml
+
+# ignore intermediate files that gomock sometimes generates
+**/gomock_reflect*

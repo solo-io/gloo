@@ -1086,7 +1086,6 @@ func (m *VirtualServiceInputV2) GetExtAuthConfig() *ExtAuthInput {
 }
 
 type CreateVirtualServiceRequest struct {
-	// Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
 	Input                *VirtualServiceInput   `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
 	InputV2              *VirtualServiceInputV2 `protobuf:"bytes,2,opt,name=input_v2,json=inputV2,proto3" json:"input_v2,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
@@ -1180,7 +1179,6 @@ func (m *CreateVirtualServiceResponse) GetVirtualServiceDetails() *VirtualServic
 }
 
 type UpdateVirtualServiceRequest struct {
-	// Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
 	Input                *VirtualServiceInput   `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
 	InputV2              *VirtualServiceInputV2 `protobuf:"bytes,2,opt,name=input_v2,json=inputV2,proto3" json:"input_v2,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
