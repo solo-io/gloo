@@ -1,0 +1,6 @@
+{
+  "version": "v1",
+  "name": "envoy.glooe.solo.io",
+  "docs_dir": "projects/gloo/doc/docs/external",
+  "go_package": "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external"
+}

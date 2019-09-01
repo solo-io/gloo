@@ -1,0 +1,6 @@
+changelog:
+- type: NEW_FEATURE
+  description: Integrate WAF/ModSecurity filter into Gloo
+  issueLink:  https://github.com/solo-io/solo-projects/issues/695
+
+

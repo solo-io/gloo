@@ -35,6 +35,11 @@ type SnapshotSetter interface {
 }
 
 func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
+	logger := contextutils.LoggerFrom(ctx)
+	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, )", snap.Hash(),
+		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts))
+	defer logger.Infof("end sync %v", snap.Hash())
 	return s.SyncAndSet(ctx, snap, xdsCache)
 }
 

@@ -1,0 +1,54 @@
+package waf
+
+import (
+	"path/filepath"
+)
+
+var (
+	crsPathPrefix = "/modsecurity/rules/crs"
+	crsRulesFiles = []string{
+		"REQUEST-901-INITIALIZATION.conf",
+		"REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf",
+		"REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf",
+		"REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf",
+		"REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf",
+		"REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf",
+		"REQUEST-905-COMMON-EXCEPTIONS.conf",
+		"REQUEST-910-IP-REPUTATION.conf",
+		"REQUEST-911-METHOD-ENFORCEMENT.conf",
+		"REQUEST-912-DOS-PROTECTION.conf",
+		"REQUEST-913-SCANNER-DETECTION.conf",
+		"REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+		"REQUEST-921-PROTOCOL-ATTACK.conf",
+		"REQUEST-930-APPLICATION-ATTACK-LFI.conf",
+		"REQUEST-931-APPLICATION-ATTACK-RFI.conf",
+		"REQUEST-932-APPLICATION-ATTACK-RCE.conf",
+		"REQUEST-933-APPLICATION-ATTACK-PHP.conf",
+		"REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+		"REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+		"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+		"REQUEST-944-APPLICATION-ATTACK-JAVA.conf",
+		"REQUEST-949-BLOCKING-EVALUATION.conf",
+		"RESPONSE-950-DATA-LEAKAGES.conf",
+		"RESPONSE-951-DATA-LEAKAGES-SQL.conf",
+		"RESPONSE-952-DATA-LEAKAGES-JAVA.conf",
+		"RESPONSE-953-DATA-LEAKAGES-PHP.conf",
+		"RESPONSE-954-DATA-LEAKAGES-IIS.conf",
+		"RESPONSE-959-BLOCKING-EVALUATION.conf",
+		"RESPONSE-980-CORRELATION.conf",
+	}
+)
+
+const (
+	GeneralPathPrefix = "/modsecurity/rules/general"
+	ModSecurityConf   = "modsecurity.conf"
+	CrsConf           = "crs-setup.conf"
+)
+
+func getCoreRuleSetFiles() []string {
+	result := make([]string, len(crsRulesFiles))
+	for i, v := range crsRulesFiles {
+		result[i] = filepath.Join(crsPathPrefix, v)
+	}
+	return result
+}

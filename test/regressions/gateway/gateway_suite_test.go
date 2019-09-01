@@ -8,7 +8,11 @@ import (
 	"testing"
 	"time"
 
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/avast/retry-go"
 	"github.com/solo-io/go-utils/kubeutils"
@@ -95,3 +99,44 @@ var _ = AfterSuite(func() {
 		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
 	}, "60s", "1s").Should(HaveOccurred())
 })
+
+var writeVhost = func(vsClient v1.VirtualServiceClient, vhostextensions *gloov1.Extensions, routeExtensions *gloov1.Extensions, sslConfig *gloov1.SslConfig) {
+	_, err := vsClient.Write(&v1.VirtualService{
+
+		Metadata: core.Metadata{
+			Name:      "vs",
+			Namespace: testHelper.InstallNamespace,
+		},
+		SslConfig: sslConfig,
+		VirtualHost: &gloov1.VirtualHost{
+			VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+				Extensions: vhostextensions,
+			},
+			Domains: []string{"*"},
+			Routes: []*gloov1.Route{{
+				RoutePlugins: &gloov1.RoutePlugins{
+					Extensions: routeExtensions,
+				},
+				Matcher: &gloov1.Matcher{
+					PathSpecifier: &gloov1.Matcher_Prefix{
+						Prefix: "/",
+					},
+				},
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{
+						Destination: &gloov1.RouteAction_Single{
+							Single: &gloov1.Destination{
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: &core.ResourceRef{
+										Namespace: testHelper.InstallNamespace,
+										Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
+	}, clients.WriteOpts{})
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+}

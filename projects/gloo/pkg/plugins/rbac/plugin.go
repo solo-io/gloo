@@ -25,14 +25,16 @@ import (
 const (
 	FilterName    = "envoy.filters.http.rbac"
 	ExtensionName = "rbac"
-	filterStage   = plugins.PostInAuth
+)
+
+var (
+	_           plugins.Plugin = new(Plugin)
+	filterStage                = plugins.DuringStage(plugins.AuthZStage)
 )
 
 type Plugin struct {
 	settings *rbac.Settings
 }
-
-var _ plugins.Plugin = new(Plugin)
 
 func NewPlugin() *Plugin {
 	return &Plugin{}

@@ -73,7 +73,10 @@ func StartRateLimit(ctx context.Context, s settings.Settings, clientSettings Set
 		"/rlconfig",
 		"print out the currently loaded configuration for debugging",
 		func(writer http.ResponseWriter, request *http.Request) {
-			io.WriteString(writer, service.GetCurrentConfig().Dump())
+			config := service.GetCurrentConfig()
+			if config != nil {
+				io.WriteString(writer, config.Dump())
+			}
 		})
 
 	err := srv.Start(ctx)

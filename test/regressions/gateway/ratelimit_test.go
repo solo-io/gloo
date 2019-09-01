@@ -2,7 +2,6 @@ package gateway_test
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -31,7 +30,6 @@ import (
 	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	ratelimitpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"k8s.io/client-go/rest"
@@ -81,47 +79,6 @@ var _ = Describe("Ratelimit tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	writeVhost := func(vhostextensions *gloov1.Extensions, routeExtensions *gloov1.Extensions) {
-
-		_, err := virtualServiceClient.Write(&v1.VirtualService{
-
-			Metadata: core.Metadata{
-				Name:      "vs",
-				Namespace: testHelper.InstallNamespace,
-			},
-			VirtualHost: &gloov1.VirtualHost{
-				VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-					Extensions: vhostextensions,
-				},
-				Domains: []string{"*"},
-				Routes: []*gloov1.Route{{
-					RoutePlugins: &gloov1.RoutePlugins{
-						Extensions: routeExtensions,
-					},
-					Matcher: &gloov1.Matcher{
-						PathSpecifier: &gloov1.Matcher_Prefix{
-							Prefix: "/",
-						},
-					},
-					Action: &gloov1.Route_RouteAction{
-						RouteAction: &gloov1.RouteAction{
-							Destination: &gloov1.RouteAction_Single{
-								Single: &gloov1.Destination{
-									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: &core.ResourceRef{
-											Namespace: testHelper.InstallNamespace,
-											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
-									},
-								},
-							},
-						},
-					},
-				}},
-			},
-		}, clients.WriteOpts{})
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	}
-
 	waitForGateway := func() {
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -163,7 +120,7 @@ var _ = Describe("Ratelimit tests", func() {
 		extensions := &gloov1.Extensions{
 			Configs: protos,
 		}
-		writeVhost(extensions, nil)
+		writeVhost(virtualServiceClient, extensions, nil, nil)
 		checkRateLimited()
 	})
 
@@ -233,7 +190,7 @@ var _ = Describe("Ratelimit tests", func() {
 				Configs: protos,
 			}
 
-			writeVhost(extensions, nil)
+			writeVhost(virtualServiceClient, extensions, nil, nil)
 			checkRateLimited()
 
 		})
@@ -262,7 +219,7 @@ var _ = Describe("Ratelimit tests", func() {
 				Configs: protos,
 			}
 
-			writeVhost(nil, extensions)
+			writeVhost(virtualServiceClient, nil, extensions, nil)
 			checkRateLimited()
 		})
 
@@ -304,7 +261,7 @@ var _ = Describe("Ratelimit tests", func() {
 				Configs: protos,
 			}
 
-			writeVhost(vhostExtensions, extensions)
+			writeVhost(virtualServiceClient, vhostExtensions, extensions, nil)
 			checkRateLimited()
 		})
 

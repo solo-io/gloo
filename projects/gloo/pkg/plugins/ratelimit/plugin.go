@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -87,8 +87,11 @@ const (
 
 const (
 	filterName = "envoy.rate_limit"
+)
+
+var (
 	// rate limiting should happen after auth
-	filterStage = plugins.PostInAuth
+	filterStage = plugins.DuringStage(plugins.RateLimitStage)
 )
 
 type Plugin struct {

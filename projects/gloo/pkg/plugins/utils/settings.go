@@ -8,15 +8,19 @@ import (
 )
 
 type tmpPluginContainer struct {
-	params plugins.InitParams
+	extensions *v1.Extensions
 }
 
 func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
-	return t.params.ExtensionsSettings
+	return t.extensions
 }
 
 func GetSettings(params plugins.InitParams, name string, settings proto.Message) (bool, error) {
-	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, name, settings)
+	return UnmarshalExtension(params.ExtensionsSettings, name, settings)
+}
+
+func UnmarshalExtension(ext *v1.Extensions, name string, settings proto.Message) (bool, error) {
+	err := utils.UnmarshalExtension(&tmpPluginContainer{extensions: ext}, name, settings)
 	if err != nil {
 		if err == utils.NotFoundError {
 			return false, nil

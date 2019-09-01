@@ -9,7 +9,8 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
-	"github.com/pkg/errors"
+	"github.com/solo-io/go-utils/errors"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 
 	"github.com/gogo/protobuf/types"
@@ -22,21 +23,22 @@ import (
 	sputils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 )
 
-//go:generate protoc -I$GOPATH/src/github.com/envoyproxy/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ sanitize.proto
-
 const (
 	ExtensionName         = "extauth"
 	ContextExtensionVhost = "virtual_host"
 )
 
 const (
-	SanitizeFilterName  = "io.solo.filters.http.sanitize"
-	sanitizeFilterStage = plugins.PreInAuth
-	ExtAuthFilterName   = "envoy.ext_authz"
-	// rate limiting should happen after auth
-	filterStage = plugins.InAuth
+	SanitizeFilterName = "io.solo.filters.http.sanitize"
+	ExtAuthFilterName  = "envoy.ext_authz"
 
 	DefaultAuthHeader = "x-user-id"
+)
+
+var (
+	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
+	// rate limiting should happen after auth
+	filterStage = plugins.DuringStage(plugins.AuthNStage)
 )
 
 var (

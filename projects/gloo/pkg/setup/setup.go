@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
 
@@ -42,6 +43,7 @@ func GetGlooEeExtensions() syncer.Extensions {
 			extauth.NewPlugin(),
 			rbac.NewPlugin(),
 			jwt.NewPlugin(),
+			waf.NewPlugin(),
 		},
 	}
 }

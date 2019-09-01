@@ -609,7 +609,7 @@ TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test gr
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
-grpcserver-docker-test: $(OUTPUT_DIR)/grpcserver-linux-amd64 grpcserver-docker
+grpcserver-docker-test: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/.grpcserver-docker
 	docker push $(call get_test_tag,grpcserver-ee)
 
 grpcserver-envoy-docker-test: grpcserver-envoy-docker $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
@@ -627,10 +627,10 @@ extauth-docker-test: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.
 observability-docker-test: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
 	docker push $(call get_test_tag,observability-ee)
 
-gloo-docker-test: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+gloo-docker-test: gloo-docker
 	docker push $(call get_test_tag,gloo-ee)
 
-gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit gloo-ee-envoy-wrapper-docker
 	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
 
 .PHONY: build-test-chart

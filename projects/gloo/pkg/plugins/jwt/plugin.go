@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pkg/errors"
+	"github.com/solo-io/go-utils/errors"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -25,15 +26,16 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
-//go:generate protoc -I$GOPATH/src/github.com/envoyproxy/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,import_path=jwt,paths=source_relative:. solo_jwt_authn.proto
-
 const (
 	JwtFilterName     = "io.solo.filters.http.solo_jwt_authn"
 	ExtensionName     = "jwt"
 	DisableName       = "-any:cf7a7de2-83ff-45ce-b697-f57d6a4775b5-"
 	StateName         = "filterState"
-	filterStage       = plugins.InAuth
 	PayloadInMetadata = "principal"
+)
+
+var (
+	filterStage = plugins.DuringStage(plugins.AuthNStage)
 )
 
 // gather all the configurations from all the vhosts and place them in the filter config
@@ -287,12 +289,12 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 
 		keyset, err := TranslateKey(jwks.Local.Key)
 		if err != nil {
-			return errors.Wrap(err, "failed to parse inline jwks")
+			return errors.Wrapf(err, "failed to parse inline jwks")
 		}
 
 		keysetJson, err := json.Marshal(keyset)
 		if err != nil {
-			return errors.Wrap(err, "failed to serialize inline jwks")
+			return errors.Wrapf(err, "failed to serialize inline jwks")
 		}
 
 		out.JwksSourceSpecifier = &envoyauth.JwtProvider_LocalJwks{
@@ -316,7 +318,7 @@ func TranslateKey(key string) (*jose.JSONWebKeySet, error) {
 	if err == nil {
 		return ks, nil
 	}
-	multierr = multierror.Append(multierr, errors.Wrap(err, "PEM"))
+	multierr = multierror.Append(multierr, errors.Wrapf(err, "PEM"))
 
 	ks, err = parseKeySet(key)
 	if err == nil {
@@ -325,15 +327,15 @@ func TranslateKey(key string) (*jose.JSONWebKeySet, error) {
 		}
 		err = errors.New("no keys in set")
 	}
-	multierr = multierror.Append(multierr, errors.Wrap(err, "JWKS"))
+	multierr = multierror.Append(multierr, errors.Wrapf(err, "JWKS"))
 
 	ks, err = parseKey(key)
 	if err == nil {
 		return ks, nil
 	}
-	multierr = multierror.Append(multierr, errors.Wrap(err, "JWK"))
+	multierr = multierror.Append(multierr, errors.Wrapf(err, "JWK"))
 
-	return nil, errors.Wrap(multierr, "cannot parse local jwks")
+	return nil, errors.Wrapf(multierr, "cannot parse local jwks")
 }
 
 func parseKeySet(key string) (*jose.JSONWebKeySet, error) {

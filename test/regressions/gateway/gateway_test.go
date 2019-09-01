@@ -2,7 +2,6 @@ package gateway_test
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -85,38 +84,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	It("can route request to upstream", func() {
 
-		_, err := virtualServiceClient.Write(&v1.VirtualService{
-
-			Metadata: core.Metadata{
-				Name:      "vs",
-				Namespace: testHelper.InstallNamespace,
-			},
-			VirtualHost: &gloov1.VirtualHost{
-				Name:    "default",
-				Domains: []string{"*"},
-				Routes: []*gloov1.Route{{
-					Matcher: &gloov1.Matcher{
-						PathSpecifier: &gloov1.Matcher_Prefix{
-							Prefix: "/",
-						},
-					},
-					Action: &gloov1.Route_RouteAction{
-						RouteAction: &gloov1.RouteAction{
-							Destination: &gloov1.RouteAction_Single{
-								Single: &gloov1.Destination{
-									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: &core.ResourceRef{
-											Namespace: testHelper.InstallNamespace,
-											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
-									},
-								},
-							},
-						},
-					},
-				}},
-			},
-		}, clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
+		writeVhost(virtualServiceClient, nil, nil, nil)
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -152,46 +120,16 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			createdSecret, err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Create(helpers.GetKubeSecret("secret", testHelper.InstallNamespace))
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = virtualServiceClient.Write(&v1.VirtualService{
-
-				Metadata: core.Metadata{
-					Name:      "vs",
-					Namespace: testHelper.InstallNamespace,
-				},
-				SslConfig: &gloov1.SslConfig{
-					SslSecrets: &gloov1.SslConfig_SecretRef{
-						SecretRef: &core.ResourceRef{
-							Name:      createdSecret.ObjectMeta.Name,
-							Namespace: createdSecret.ObjectMeta.Namespace,
-						},
+			sslConfig := &gloov1.SslConfig{
+				SslSecrets: &gloov1.SslConfig_SecretRef{
+					SecretRef: &core.ResourceRef{
+						Name:      createdSecret.ObjectMeta.Name,
+						Namespace: createdSecret.ObjectMeta.Namespace,
 					},
 				},
-				VirtualHost: &gloov1.VirtualHost{
-					Name:    "default",
-					Domains: []string{"*"},
-					Routes: []*gloov1.Route{{
-						Matcher: &gloov1.Matcher{
-							PathSpecifier: &gloov1.Matcher_Prefix{
-								Prefix: "/",
-							},
-						},
-						Action: &gloov1.Route_RouteAction{
-							RouteAction: &gloov1.RouteAction{
-								Destination: &gloov1.RouteAction_Single{
-									Single: &gloov1.Destination{
-										DestinationType: &gloov1.Destination_Upstream{
-											Upstream: &core.ResourceRef{
-												Namespace: testHelper.InstallNamespace,
-												Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
-										},
-									},
-								},
-							},
-						},
-					}},
-				},
-			}, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
+			}
+
+			writeVhost(virtualServiceClient, nil, nil, sslConfig)
 
 			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 			// wait for default gateway to be created
