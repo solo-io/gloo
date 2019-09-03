@@ -97,6 +97,35 @@ func (s *gatewayGrpcService) UpdateGateway(ctx context.Context, request *v1.Upda
 	return &v1.UpdateGatewayResponse{GatewayDetails: s.getDetails(written)}, nil
 }
 
+func (s *gatewayGrpcService) UpdateGatewayYaml(ctx context.Context, request *v1.UpdateGatewayYamlRequest) (*v1.UpdateGatewayResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
+
+	var (
+		editedYaml     = request.GetEditedYamlData().EditedYaml
+		refToBeUpdated = request.GetEditedYamlData().Ref
+	)
+
+	gatewayFromYaml := &v2.Gateway{}
+	err := s.rawGetter.InitResourceFromYamlString(s.ctx, editedYaml, refToBeUpdated, gatewayFromYaml)
+
+	if err != nil {
+		wrapped := FailedToParseGatewayFromYamlError(err, refToBeUpdated)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	written, err := s.gatewayClient.Write(gatewayFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	if err != nil {
+		wrapped := FailedToUpdateGatewayError(err, refToBeUpdated)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	return &v1.UpdateGatewayResponse{GatewayDetails: s.getDetails(written)}, nil
+}
+
 func (s *gatewayGrpcService) getDetails(gateway *v2.Gateway) *v1.GatewayDetails {
 	return &v1.GatewayDetails{
 		Gateway: gateway,

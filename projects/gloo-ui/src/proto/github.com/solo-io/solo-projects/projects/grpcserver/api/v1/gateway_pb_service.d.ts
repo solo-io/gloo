@@ -31,11 +31,21 @@ type GatewayApiUpdateGateway = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse;
 };
 
+type GatewayApiUpdateGatewayYaml = {
+  readonly methodName: string;
+  readonly service: typeof GatewayApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse;
+};
+
 export class GatewayApi {
   static readonly serviceName: string;
   static readonly GetGateway: GatewayApiGetGateway;
   static readonly ListGateways: GatewayApiListGateways;
   static readonly UpdateGateway: GatewayApiUpdateGateway;
+  static readonly UpdateGatewayYaml: GatewayApiUpdateGatewayYaml;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -95,6 +105,15 @@ export class GatewayApiClient {
   ): UnaryResponse;
   updateGateway(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse|null) => void
+  ): UnaryResponse;
+  updateGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse|null) => void
+  ): UnaryResponse;
+  updateGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse|null) => void
   ): UnaryResponse;
 }

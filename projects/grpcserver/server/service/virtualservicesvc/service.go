@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/pkg/license"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -30,6 +31,7 @@ type virtualServiceGrpcService struct {
 	mutationFactory      mutation.MutationFactory
 	detailsConverter     converter.VirtualServiceDetailsConverter
 	selector             selection.VirtualServiceSelector
+	rawGetter            rawgetter.RawGetter
 }
 
 func NewVirtualServiceGrpcService(
@@ -42,6 +44,7 @@ func NewVirtualServiceGrpcService(
 	mutationFactory mutation.MutationFactory,
 	detailsConverter converter.VirtualServiceDetailsConverter,
 	selector selection.VirtualServiceSelector,
+	rawgetter rawgetter.RawGetter,
 ) v1.VirtualServiceApiServer {
 
 	return &virtualServiceGrpcService{
@@ -54,6 +57,7 @@ func NewVirtualServiceGrpcService(
 		mutationFactory:      mutationFactory,
 		detailsConverter:     detailsConverter,
 		selector:             selector,
+		rawGetter:            rawgetter,
 	}
 }
 
@@ -131,6 +135,36 @@ func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, re
 	written, err := s.mutator.Update(ref, updateMutation)
 	if err != nil {
 		wrapped := FailedToUpdateVirtualServiceError(err, ref)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.UpdateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+}
+
+func (s *virtualServiceGrpcService) UpdateVirtualServiceYaml(ctx context.Context, request *v1.UpdateVirtualServiceYamlRequest) (*v1.UpdateVirtualServiceResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
+
+	var (
+		editedYaml  = request.GetEditedYamlData().GetEditedYaml()
+		refToUpdate = request.GetEditedYamlData().GetRef()
+	)
+
+	virtualServiceFromYaml := &gatewayv1.VirtualService{}
+	err := s.rawGetter.InitResourceFromYamlString(s.ctx, editedYaml, refToUpdate, virtualServiceFromYaml)
+
+	if err != nil {
+		wrapped := FailedToParseVirtualServiceFromYamlError(err, refToUpdate)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	written, err := s.virtualServiceClient.Write(virtualServiceFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+
+	if err != nil {
+		wrapped := FailedToUpdateVirtualServiceError(err, refToUpdate)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

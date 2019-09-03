@@ -40,6 +40,15 @@ type VirtualServiceApiUpdateVirtualService = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse;
 };
 
+type VirtualServiceApiUpdateVirtualServiceYaml = {
+  readonly methodName: string;
+  readonly service: typeof VirtualServiceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse;
+};
+
 type VirtualServiceApiDeleteVirtualService = {
   readonly methodName: string;
   readonly service: typeof VirtualServiceApi;
@@ -100,6 +109,7 @@ export class VirtualServiceApi {
   static readonly ListVirtualServices: VirtualServiceApiListVirtualServices;
   static readonly CreateVirtualService: VirtualServiceApiCreateVirtualService;
   static readonly UpdateVirtualService: VirtualServiceApiUpdateVirtualService;
+  static readonly UpdateVirtualServiceYaml: VirtualServiceApiUpdateVirtualServiceYaml;
   static readonly DeleteVirtualService: VirtualServiceApiDeleteVirtualService;
   static readonly CreateRoute: VirtualServiceApiCreateRoute;
   static readonly UpdateRoute: VirtualServiceApiUpdateRoute;
@@ -174,6 +184,15 @@ export class VirtualServiceApiClient {
   ): UnaryResponse;
   updateVirtualService(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse|null) => void
+  ): UnaryResponse;
+  updateVirtualServiceYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse|null) => void
+  ): UnaryResponse;
+  updateVirtualServiceYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse|null) => void
   ): UnaryResponse;
   deleteVirtualService(

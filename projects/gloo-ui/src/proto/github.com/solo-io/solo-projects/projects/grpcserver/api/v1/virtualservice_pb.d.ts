@@ -613,6 +613,28 @@ export namespace UpdateVirtualServiceRequest {
   }
 }
 
+export class UpdateVirtualServiceYamlRequest extends jspb.Message {
+  hasEditedYamlData(): boolean;
+  clearEditedYamlData(): void;
+  getEditedYamlData(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml | undefined;
+  setEditedYamlData(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateVirtualServiceYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateVirtualServiceYamlRequest): UpdateVirtualServiceYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateVirtualServiceYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateVirtualServiceYamlRequest;
+  static deserializeBinaryFromReader(message: UpdateVirtualServiceYamlRequest, reader: jspb.BinaryReader): UpdateVirtualServiceYamlRequest;
+}
+
+export namespace UpdateVirtualServiceYamlRequest {
+  export type AsObject = {
+    editedYamlData?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml.AsObject,
+  }
+}
+
 export class UpdateVirtualServiceResponse extends jspb.Message {
   hasVirtualService(): boolean;
   clearVirtualService(): void;

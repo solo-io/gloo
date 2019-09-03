@@ -17,6 +17,7 @@ weight: 5
 - [ListGatewaysRequest](#listgatewaysrequest)
 - [ListGatewaysResponse](#listgatewaysresponse)
 - [UpdateGatewayRequest](#updategatewayrequest)
+- [UpdateGatewayYamlRequest](#updategatewayyamlrequest)
 - [UpdateGatewayResponse](#updategatewayresponse)
   
 
@@ -130,6 +131,23 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `gateway` | [.gateway.solo.io.v2.Gateway](../../../../../../gloo/projects/gateway/api/v2/gateway.proto.sk#gateway) |  |  |
+
+
+
+
+---
+### UpdateGatewayYamlRequest
+
+
+
+```yaml
+"editedYamlData": .glooeeapi.solo.io.EditedResourceYaml
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `editedYamlData` | [.glooeeapi.solo.io.EditedResourceYaml](../types.proto.sk#editedresourceyaml) |  |  |
 
 
 

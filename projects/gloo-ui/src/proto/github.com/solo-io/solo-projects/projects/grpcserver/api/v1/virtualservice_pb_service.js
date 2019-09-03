@@ -46,6 +46,15 @@ VirtualServiceApi.UpdateVirtualService = {
   responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse
 };
 
+VirtualServiceApi.UpdateVirtualServiceYaml = {
+  methodName: "UpdateVirtualServiceYaml",
+  service: VirtualServiceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceYamlRequest,
+  responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.UpdateVirtualServiceResponse
+};
+
 VirtualServiceApi.DeleteVirtualService = {
   methodName: "DeleteVirtualService",
   service: VirtualServiceApi,
@@ -205,6 +214,37 @@ VirtualServiceApiClient.prototype.updateVirtualService = function updateVirtualS
     callback = arguments[1];
   }
   var client = grpc.unary(VirtualServiceApi.UpdateVirtualService, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+VirtualServiceApiClient.prototype.updateVirtualServiceYaml = function updateVirtualServiceYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(VirtualServiceApi.UpdateVirtualServiceYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

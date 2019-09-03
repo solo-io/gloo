@@ -17,4 +17,8 @@ var (
 	FailedToUpdateGatewayError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to update gateway %v.%v", ref.GetNamespace(), ref.GetName())
 	}
+
+	FailedToParseGatewayFromYamlError = func(err error, ref *core.ResourceRef) error {
+		return errors.Wrapf(err, "Failed to parse gateway %s.%s from YAML", ref.Namespace, ref.Name)
+	}
 )

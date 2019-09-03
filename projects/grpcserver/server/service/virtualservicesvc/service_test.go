@@ -3,6 +3,10 @@ package virtualservicesvc_test
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,6 +17,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	mock_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter/mocks"
@@ -34,6 +39,7 @@ var (
 	detailsExpectation    *gomock.Call
 	virtualService        *gatewayv1.VirtualService
 	virtualServiceDetails *v1.VirtualServiceDetails
+	rawGetter             *mock_rawgetter.MockRawGetter
 	testErr               = errors.Errorf("test-err")
 	uint32Zero, uint32One = uint32(0), uint32(1)
 	metadata              = core.Metadata{
@@ -54,6 +60,7 @@ var _ = Describe("ServiceTest", func() {
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		detailsConverter = mock_converter.NewMockVirtualServiceDetailsConverter(mockCtrl)
 		selector = mock_selector.NewMockVirtualServiceSelector(mockCtrl)
+		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(
 			context.TODO(),
 			"",
@@ -64,6 +71,7 @@ var _ = Describe("ServiceTest", func() {
 			mutationFactory,
 			detailsConverter,
 			selector,
+			rawGetter,
 		)
 
 		virtualService = &gatewayv1.VirtualService{Metadata: metadata}
@@ -237,6 +245,131 @@ var _ = Describe("ServiceTest", func() {
 			_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
+		})
+	})
+
+	Describe("UpdateVirtualServiceYaml", func() {
+		It("works on valid input", func() {
+			yamlString := "totally-valid-yaml"
+
+			ref := &core.ResourceRef{
+				Name:      "service",
+				Namespace: "gloo-system",
+			}
+			labels := map[string]string{"test-label": "test-value"}
+
+			action := func(ctx context.Context,
+				yamlString string,
+				refToValidate *core.ResourceRef,
+				emptyInputResource resources.InputResource,
+			) error {
+				virtualService.Metadata.Labels = labels
+				return nil
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
+				DoAndReturn(action)
+			virtualServiceClient.EXPECT().
+				Write(gomock.Any(), gomock.Any()).
+				Return(virtualService, nil)
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+
+			response, err := apiserver.UpdateVirtualServiceYaml(context.TODO(), &v1.UpdateVirtualServiceYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(err).NotTo(HaveOccurred())
+			ExpectEqualProtoMessages(response.VirtualServiceDetails.VirtualService, virtualService)
+		})
+
+		It("fails when the license is invalid", func() {
+			yamlString := "valid-yaml"
+			ref := &core.ResourceRef{
+				Name:      "service",
+				Namespace: "gloo-system",
+			}
+
+			detailsExpectation.Times(0)
+
+			licenseClient.EXPECT().IsLicenseValid().Return(testErr)
+
+			response, err := apiserver.UpdateVirtualServiceYaml(context.TODO(), &v1.UpdateVirtualServiceYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(response).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring(codes.PermissionDenied.String()))
+		})
+
+		It("fails when the client fails", func() {
+			yamlString := "totally-valid-yaml"
+
+			ref := &core.ResourceRef{
+				Name:      "service",
+				Namespace: "gloo-system",
+			}
+			labels := map[string]string{"test-label": "test-value"}
+
+			action := func(ctx context.Context,
+				yamlString string,
+				refToValidate *core.ResourceRef,
+				emptyInputResource resources.InputResource,
+			) error {
+				virtualService.Metadata.Labels = labels
+				return nil
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
+				DoAndReturn(action)
+			virtualServiceClient.EXPECT().
+				Write(gomock.Any(), gomock.Any()).
+				Return(nil, testErr)
+			detailsExpectation.Times(0)
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+
+			response, err := apiserver.UpdateVirtualServiceYaml(context.TODO(), &v1.UpdateVirtualServiceYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(response).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, ref).Error()))
+		})
+
+		It("fails on invalid input", func() {
+			yamlString := "totally-broken-yaml"
+			ref := &core.ResourceRef{
+				Name:      "service",
+				Namespace: "gloo-system",
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
+				Return(testErr)
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+
+			// should not expect details
+			detailsExpectation.Times(0)
+
+			response, err := apiserver.UpdateVirtualServiceYaml(context.TODO(), &v1.UpdateVirtualServiceYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(err.Error()).To(Equal(virtualservicesvc.FailedToParseVirtualServiceFromYamlError(testErr, ref).Error()))
+			Expect(response).To(BeNil())
 		})
 	})
 

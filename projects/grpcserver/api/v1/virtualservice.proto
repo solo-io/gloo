@@ -129,6 +129,10 @@ message UpdateVirtualServiceRequest {
     VirtualServiceInputV2 input_v2 = 2;
 }
 
+message UpdateVirtualServiceYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
+}
+
 message UpdateVirtualServiceResponse {
     // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
@@ -209,6 +213,7 @@ service VirtualServiceApi {
     rpc ListVirtualServices(ListVirtualServicesRequest) returns (ListVirtualServicesResponse) {}
     rpc CreateVirtualService(CreateVirtualServiceRequest) returns (CreateVirtualServiceResponse) {}
     rpc UpdateVirtualService(UpdateVirtualServiceRequest) returns (UpdateVirtualServiceResponse) {}
+    rpc UpdateVirtualServiceYaml(UpdateVirtualServiceYamlRequest) returns (UpdateVirtualServiceResponse) {}
     rpc DeleteVirtualService(DeleteVirtualServiceRequest) returns (DeleteVirtualServiceResponse) {}
     rpc CreateRoute(CreateRouteRequest) returns (CreateRouteResponse) {}
     rpc UpdateRoute(UpdateRouteRequest) returns (UpdateRouteResponse) {}

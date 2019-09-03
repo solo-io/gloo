@@ -31,6 +31,7 @@ weight: 5
 - [CreateVirtualServiceRequest](#createvirtualservicerequest)
 - [CreateVirtualServiceResponse](#createvirtualserviceresponse)
 - [UpdateVirtualServiceRequest](#updatevirtualservicerequest)
+- [UpdateVirtualServiceYamlRequest](#updatevirtualserviceyamlrequest)
 - [UpdateVirtualServiceResponse](#updatevirtualserviceresponse)
 - [DeleteVirtualServiceRequest](#deletevirtualservicerequest)
 - [DeleteVirtualServiceResponse](#deletevirtualserviceresponse)
@@ -444,6 +445,23 @@ Deprecated. Use VirtualServiceInputV2
 | ----- | ---- | ----------- |----------- | 
 | `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) |  |  |
 | `inputV2` | [.glooeeapi.solo.io.VirtualServiceInputV2](../virtualservice.proto.sk#virtualserviceinputv2) |  |  |
+
+
+
+
+---
+### UpdateVirtualServiceYamlRequest
+
+
+
+```yaml
+"editedYamlData": .glooeeapi.solo.io.EditedResourceYaml
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `editedYamlData` | [.glooeeapi.solo.io.EditedResourceYaml](../types.proto.sk#editedresourceyaml) |  |  |
 
 
 

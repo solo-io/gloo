@@ -14,6 +14,7 @@ weight: 5
 - [Raw](#raw)
 - [Status](#status)
 - [Code](#code)
+- [EditedResourceYaml](#editedresourceyaml)
   
 
 
@@ -75,6 +76,25 @@ weight: 5
 | `ERROR` |  |
 | `WARNING` |  |
 | `OK` |  |
+
+
+
+
+---
+### EditedResourceYaml
+
+
+
+```yaml
+"editedYaml": string
+"ref": .core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `editedYaml` | `string` |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | ref for the resource being edited, to enforce that the resource's name/namespace have not been edited |  |
 
 
 

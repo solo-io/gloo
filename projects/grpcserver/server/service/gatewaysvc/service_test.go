@@ -3,6 +3,10 @@ package gatewaysvc_test
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -175,6 +179,149 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToListGatewaysError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
+
+	Describe("UpdateGatewayYaml", func() {
+		It("works on valid input", func() {
+			yamlString := "totally-valid-yaml"
+
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			gateway := &gatewayv2.Gateway{
+				Metadata: metadata,
+				Status: core.Status{
+					State: core.Status_Accepted,
+				},
+			}
+			labels := map[string]string{"test-label": "test-value"}
+
+			action := func(ctx context.Context,
+				yamlString string,
+				refToValidate *core.ResourceRef,
+				emptyInputResource resources.InputResource,
+			) error {
+				gateway.Metadata.Labels = labels
+				return nil
+			}
+
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				DoAndReturn(action)
+
+			gatewayClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(gateway, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), gateway, gatewayv2.GatewayCrd).
+				Return(getRaw(gateway))
+			statusConverter.EXPECT().
+				GetApiStatusFromResource(gateway).
+				Return(getStatus(v1.Status_WARNING, status.ResourcePending("ns", "name")))
+
+			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(err).NotTo(HaveOccurred())
+			ExpectEqualProtoMessages(response.GatewayDetails.Gateway, gateway)
+		})
+
+		It("fails when the client fails", func() {
+			yamlString := "totally-valid-yaml"
+
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			gateway := &gatewayv2.Gateway{
+				Metadata: metadata,
+				Status: core.Status{
+					State: core.Status_Accepted,
+				},
+			}
+			labels := map[string]string{"test-label": "test-value"}
+
+			action := func(ctx context.Context,
+				yamlString string,
+				refToValidate *core.ResourceRef,
+				emptyInputResource resources.InputResource,
+			) error {
+				gateway.Metadata.Labels = labels
+				return nil
+			}
+
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				DoAndReturn(action)
+			gatewayClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(nil, testErr)
+
+			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(response).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring(gatewaysvc.FailedToUpdateGatewayError(testErr, &ref).Error()))
+		})
+
+		It("fails on invalid license", func() {
+			yamlString := "totally-valid-yaml"
+
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+
+			licenseClient.EXPECT().IsLicenseValid().Return(testErr)
+
+			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			})
+
+			Expect(response).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring(codes.PermissionDenied.String()))
+		})
+
+		It("fails on invalid input", func() {
+			yamlString := "totally-broken-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(testErr)
+
+			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					EditedYaml: yamlString,
+					Ref:        &ref,
+				},
+			})
+
+			Expect(response).To(BeNil())
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(Equal(gatewaysvc.FailedToParseGatewayFromYamlError(testErr, &ref)))
 		})
 	})
 

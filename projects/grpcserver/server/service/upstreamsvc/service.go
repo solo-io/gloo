@@ -86,15 +86,19 @@ func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.Cr
 	var (
 		written *gloov1.Upstream
 		err     error
+		ref     *core.ResourceRef
 	)
 	if request.GetUpstreamInput() == nil {
-		written, err = s.mutator.Create(s.ctx, request.GetInput().GetRef(), s.mutationFactory.ConfigureUpstream(request.GetInput()))
+		ref = request.Input.Ref
+		written, err = s.mutator.Create(s.ctx, ref, s.mutationFactory.ConfigureUpstream(request.GetInput()))
 	} else {
+		upstreamRef := request.GetUpstreamInput().GetMetadata().Ref()
+		ref = &upstreamRef
 		written, err = s.mutator.CreateUpstream(s.ctx, request.GetUpstreamInput())
 	}
 
 	if err != nil {
-		wrapped := FailedToCreateUpstreamError(err, request.GetInput().GetRef())
+		wrapped := FailedToCreateUpstreamError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -107,17 +111,21 @@ func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.Up
 	}
 	var (
 		written *gloov1.Upstream
+		ref     *core.ResourceRef
 		err     error
 	)
 
 	if request.GetUpstreamInput() == nil {
-		written, err = s.mutator.Update(s.ctx, request.GetInput().GetRef(), s.mutationFactory.ConfigureUpstream(request.GetInput()))
+		ref = request.GetInput().GetRef()
+		written, err = s.mutator.Update(s.ctx, ref, s.mutationFactory.ConfigureUpstream(request.GetInput()))
 	} else {
 		written, err = s.mutator.UpdateUpstream(s.ctx, request.GetUpstreamInput())
+		upstreamRef := request.GetUpstreamInput().GetMetadata().Ref()
+		ref = &upstreamRef
 	}
 
 	if err != nil {
-		wrapped := FailedToUpdateUpstreamError(err, request.GetInput().GetRef())
+		wrapped := FailedToUpdateUpstreamError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

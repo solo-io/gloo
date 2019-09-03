@@ -151,6 +151,28 @@ export namespace UpdateGatewayRequest {
   }
 }
 
+export class UpdateGatewayYamlRequest extends jspb.Message {
+  hasEditedYamlData(): boolean;
+  clearEditedYamlData(): void;
+  getEditedYamlData(): github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml | undefined;
+  setEditedYamlData(value?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateGatewayYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGatewayYamlRequest): UpdateGatewayYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateGatewayYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGatewayYamlRequest;
+  static deserializeBinaryFromReader(message: UpdateGatewayYamlRequest, reader: jspb.BinaryReader): UpdateGatewayYamlRequest;
+}
+
+export namespace UpdateGatewayYamlRequest {
+  export type AsObject = {
+    editedYamlData?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml.AsObject,
+  }
+}
+
 export class UpdateGatewayResponse extends jspb.Message {
   hasGatewayDetails(): boolean;
   clearGatewayDetails(): void;

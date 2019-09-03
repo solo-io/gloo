@@ -5,6 +5,8 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+
 // "Raw" representation of a resource, e.g. yaml representation of a kube custom resource
 message Raw {
     // e.g. resource-name.yaml
@@ -26,4 +28,11 @@ message Status {
     Code code = 1;
     // Optional error message or other information about resource status
     string message = 2;
+}
+
+message EditedResourceYaml {
+    string edited_yaml = 1;
+
+    // ref for the resource being edited, to enforce that the resource's name/namespace have not been edited
+    core.solo.io.ResourceRef ref = 2;
 }

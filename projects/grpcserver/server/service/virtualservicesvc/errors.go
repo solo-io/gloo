@@ -24,6 +24,10 @@ var (
 		return errors.Wrapf(err, "Failed to update virtual service %v.%v", ref.GetNamespace(), ref.GetName())
 	}
 
+	FailedToParseVirtualServiceFromYamlError = func(err error, ref *core.ResourceRef) error {
+		return errors.Wrapf(err, "Failed to parse virtual service %s.%s from YAML", ref.Namespace, ref.Name)
+	}
+
 	FailedToDeleteVirtualServiceError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to delete virtual service %v.%v", ref.GetNamespace(), ref.GetName())
 	}

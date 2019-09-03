@@ -44,6 +44,10 @@ message UpdateGatewayRequest {
     gateway.solo.io.v2.Gateway gateway = 1;
 }
 
+message UpdateGatewayYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
+}
+
 message UpdateGatewayResponse {
     GatewayDetails gateway_details = 1;
 }
@@ -52,4 +56,5 @@ service GatewayApi {
     rpc GetGateway(GetGatewayRequest) returns (GetGatewayResponse) {}
     rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
     rpc UpdateGateway(UpdateGatewayRequest) returns (UpdateGatewayResponse) {}
+    rpc UpdateGatewayYaml(UpdateGatewayYamlRequest) returns (UpdateGatewayResponse) {}
 }

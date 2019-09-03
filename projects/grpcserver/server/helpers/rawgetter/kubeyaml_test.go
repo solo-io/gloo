@@ -2,8 +2,11 @@ package rawgetter_test
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -36,6 +39,67 @@ var _ = Describe("Kube Yaml RawGetter", func() {
 
 			actual := getter.GetRaw(context.Background(), resource, gloov1.ProxyCrd)
 			ExpectEqualProtoMessages(actual, expected)
+		})
+	})
+
+	Describe("InitResourceFromYamlString", func() {
+		It("works", func() {
+			ref := &core.ResourceRef{
+				Name:      "default-petstore-8080",
+				Namespace: "gloo-system",
+			}
+			file, openErr := os.Open("./fixtures/example-upstream.yaml")
+			Expect(openErr).NotTo(HaveOccurred())
+
+			yamlString, readErr := ioutil.ReadAll(file)
+			Expect(readErr).NotTo(HaveOccurred())
+
+			emptyUpstream := &gloov1.Upstream{}
+			parseErr := getter.InitResourceFromYamlString(context.TODO(), string(yamlString), ref, emptyUpstream)
+
+			Expect(parseErr).NotTo(HaveOccurred())
+
+			status := emptyUpstream.GetStatus()
+			Expect((&status).GetReportedBy()).To(Equal("gloo"))
+
+			metadata := emptyUpstream.GetMetadata()
+			Expect((&metadata).GetResourceVersion()).To(Equal("58959"))
+		})
+
+		It("fails when the namespace is edited", func() {
+			ref := &core.ResourceRef{
+				Name:      "default-petstore-8080",
+				Namespace: "gloo-system",
+			}
+			file, openErr := os.Open("./fixtures/changed-upstream-ref.yaml")
+			Expect(openErr).NotTo(HaveOccurred())
+
+			yamlString, readErr := ioutil.ReadAll(file)
+			Expect(readErr).NotTo(HaveOccurred())
+
+			emptyUpstream := &gloov1.Upstream{}
+			parseErr := getter.InitResourceFromYamlString(context.TODO(), string(yamlString), ref, emptyUpstream)
+
+			Expect(parseErr).To(HaveOccurred())
+			Expect(parseErr.Error()).To(ContainSubstring(rawgetter.EditedRefError(ref).Error()))
+		})
+
+		It("fails when the resource version is omitted", func() {
+			ref := &core.ResourceRef{
+				Name:      "default-petstore-8080",
+				Namespace: "gloo-system",
+			}
+			file, openErr := os.Open("./fixtures/blank-resource-version-upstream.yaml")
+			Expect(openErr).NotTo(HaveOccurred())
+
+			yamlString, readErr := ioutil.ReadAll(file)
+			Expect(readErr).NotTo(HaveOccurred())
+
+			emptyUpstream := &gloov1.Upstream{}
+			parseErr := getter.InitResourceFromYamlString(context.TODO(), string(yamlString), ref, emptyUpstream)
+
+			Expect(parseErr).To(HaveOccurred())
+			Expect(parseErr.Error()).To(ContainSubstring(rawgetter.NoResourceVersionError(ref).Error()))
 		})
 	})
 })

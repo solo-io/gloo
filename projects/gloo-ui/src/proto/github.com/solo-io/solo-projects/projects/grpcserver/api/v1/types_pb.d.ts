@@ -3,6 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
+import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 
 export class Raw extends jspb.Message {
   getFileName(): string;
@@ -62,5 +63,31 @@ export namespace Status {
   }
 
   export const Code: CodeMap;
+}
+
+export class EditedResourceYaml extends jspb.Message {
+  getEditedYaml(): string;
+  setEditedYaml(value: string): void;
+
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EditedResourceYaml.AsObject;
+  static toObject(includeInstance: boolean, msg: EditedResourceYaml): EditedResourceYaml.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EditedResourceYaml, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EditedResourceYaml;
+  static deserializeBinaryFromReader(message: EditedResourceYaml, reader: jspb.BinaryReader): EditedResourceYaml;
+}
+
+export namespace EditedResourceYaml {
+  export type AsObject = {
+    editedYaml: string,
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+  }
 }
 

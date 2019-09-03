@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	crd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	resources "github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
@@ -49,4 +50,18 @@ func (m *MockRawGetter) GetRaw(arg0 context.Context, arg1 resources.InputResourc
 func (mr *MockRawGetterMockRecorder) GetRaw(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockRawGetter)(nil).GetRaw), arg0, arg1, arg2)
+}
+
+// InitResourceFromYamlString mocks base method
+func (m *MockRawGetter) InitResourceFromYamlString(arg0 context.Context, arg1 string, arg2 *core.ResourceRef, arg3 resources.InputResource) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InitResourceFromYamlString", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InitResourceFromYamlString indicates an expected call of InitResourceFromYamlString
+func (mr *MockRawGetterMockRecorder) InitResourceFromYamlString(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitResourceFromYamlString", reflect.TypeOf((*MockRawGetter)(nil).InitResourceFromYamlString), arg0, arg1, arg2, arg3)
 }

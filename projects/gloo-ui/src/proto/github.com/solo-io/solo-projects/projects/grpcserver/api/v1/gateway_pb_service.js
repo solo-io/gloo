@@ -37,6 +37,15 @@ GatewayApi.UpdateGateway = {
   responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse
 };
 
+GatewayApi.UpdateGatewayYaml = {
+  methodName: "UpdateGatewayYaml",
+  service: GatewayApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayYamlRequest,
+  responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_gateway_pb.UpdateGatewayResponse
+};
+
 exports.GatewayApi = GatewayApi;
 
 function GatewayApiClient(serviceHost, options) {
@@ -111,6 +120,37 @@ GatewayApiClient.prototype.updateGateway = function updateGateway(requestMessage
     callback = arguments[1];
   }
   var client = grpc.unary(GatewayApi.UpdateGateway, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GatewayApiClient.prototype.updateGatewayYaml = function updateGatewayYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GatewayApi.UpdateGatewayYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
