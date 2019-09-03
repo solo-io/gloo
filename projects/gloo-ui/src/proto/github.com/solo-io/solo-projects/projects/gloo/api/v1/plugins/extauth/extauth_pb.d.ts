@@ -36,6 +36,12 @@ export class Settings extends jspb.Message {
   getRequestBody(): BufferSettings | undefined;
   setRequestBody(value?: BufferSettings): void;
 
+  getClearRouteCache(): boolean;
+  setClearRouteCache(value: boolean): void;
+
+  getStatusOnError(): number;
+  setStatusOnError(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -54,6 +60,8 @@ export namespace Settings {
     requestTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     failureModeAllow: boolean,
     requestBody?: BufferSettings.AsObject,
+    clearRouteCache: boolean,
+    statusOnError: number,
   }
 }
 

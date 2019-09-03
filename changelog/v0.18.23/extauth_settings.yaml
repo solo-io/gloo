@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support clearRouteCache and statusOnError ext-auth settings
+    issueLink: https://github.com/solo-io/solo-projects/pull/1039

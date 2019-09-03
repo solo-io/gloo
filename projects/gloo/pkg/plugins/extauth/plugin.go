@@ -13,6 +13,7 @@ import (
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 
+	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 	"github.com/gogo/protobuf/types"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -282,9 +283,15 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 
 	cfg.FailureModeAllow = p.extAuthSettings.FailureModeAllow
 	cfg.WithRequestBody = translateRequestBody(p.extAuthSettings.RequestBody)
+	cfg.ClearRouteCache = p.extAuthSettings.ClearRouteCache
+	cfg.StatusOnError, err = translateStatusOnError(p.extAuthSettings.StatusOnError)
+	if err != nil {
+		return nil, err
+	}
 
 	return cfg, nil
 }
+
 func translateRequestBody(in *extauth.BufferSettings) *envoyauth.BufferSettings {
 	if in == nil {
 		return nil
@@ -344,4 +351,17 @@ func translateListMatcher(in []string) *envoymatcher.ListStringMatcher {
 
 func convertPattern(pattern string) *envoymatcher.StringMatcher {
 	return &envoymatcher.StringMatcher{MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: pattern}}
+}
+
+func translateStatusOnError(statusOnError uint32) (*envoytype.HttpStatus, error) {
+	if statusOnError == 0 {
+		return nil, nil
+	}
+
+	// make sure it is allowed:
+	if _, ok := envoytype.StatusCode_name[int32(statusOnError)]; !ok {
+		return nil, errors.Errorf("invalid statusOnError code")
+	}
+
+	return &envoytype.HttpStatus{Code: envoytype.StatusCode(int32(statusOnError))}, nil
 }

@@ -12,6 +12,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
+	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
@@ -237,10 +238,10 @@ var _ = Describe("Plugin", func() {
 		})
 
 	})
-
 	Context("with extauth server", func() {
 		var (
-			extAuthRef *core.ResourceRef
+			extAuthRef      *core.ResourceRef
+			extAuthSettings *extauth.Settings
 		)
 		BeforeEach(func() {
 			second := time.Second
@@ -248,7 +249,7 @@ var _ = Describe("Plugin", func() {
 				Name:      "extauth",
 				Namespace: "default",
 			}
-			extAuthSettings := &extauth.Settings{
+			extAuthSettings = &extauth.Settings{
 				ExtauthzServerRef: extAuthRef,
 				FailureModeAllow:  true,
 				RequestBody: &extauth.BufferSettings{
@@ -257,7 +258,8 @@ var _ = Describe("Plugin", func() {
 				},
 				RequestTimeout: &second,
 			}
-
+		})
+		JustBeforeEach(func() {
 			settingsStruct, err := util.MessageToStruct(extAuthSettings)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -272,37 +274,83 @@ var _ = Describe("Plugin", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should provide filters", func() {
-			filters, err := plugin.HttpFilters(params, nil)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(filters).To(HaveLen(2))
-			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
-			Expect(filters[1].HttpFilter.Name).To(Equal(ExtAuthFilterName))
+		Context("should provide filters", func() {
 
-			// get the ext auth filter config:
-			receivedExtAuth := &envoyauth.ExtAuthz{}
-			err = translatorutil.ParseConfig(filters[1].HttpFilter, receivedExtAuth)
-			Expect(err).ToNot(HaveOccurred())
+			var (
+				expectedConfig *envoyauth.ExtAuthz
+			)
 
-			expectedConfig := &envoyauth.ExtAuthz{
-				FailureModeAllow: true,
-				WithRequestBody: &envoyauth.BufferSettings{
-					AllowPartialMessage: true,
-					MaxRequestBytes:     54,
-				},
-				Services: &envoyauth.ExtAuthz_GrpcService{
-					GrpcService: &envoycore.GrpcService{
-						Timeout: &types.Duration{
-							Seconds: 1,
-						},
-						TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-								ClusterName: translator.UpstreamToClusterName(*extAuthRef),
+			BeforeEach(func() {
+
+				expectedConfig = &envoyauth.ExtAuthz{
+					FailureModeAllow: true,
+					WithRequestBody: &envoyauth.BufferSettings{
+						AllowPartialMessage: true,
+						MaxRequestBytes:     54,
+					},
+					Services: &envoyauth.ExtAuthz_GrpcService{
+						GrpcService: &envoycore.GrpcService{
+							Timeout: &types.Duration{
+								Seconds: 1,
 							},
-						}},
-				},
+							TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+								EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+									ClusterName: translator.UpstreamToClusterName(*extAuthRef),
+								},
+							}},
+					},
+				}
+			})
+
+			getAuthConfig := func() *envoyauth.ExtAuthz {
+				filters, err := plugin.HttpFilters(params, nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filters).To(HaveLen(2))
+				Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+				Expect(filters[1].HttpFilter.Name).To(Equal(ExtAuthFilterName))
+
+				// get the ext auth filter config:
+				receivedExtAuth := &envoyauth.ExtAuthz{}
+				err = translatorutil.ParseConfig(filters[1].HttpFilter, receivedExtAuth)
+				Expect(err).NotTo(HaveOccurred())
+				return receivedExtAuth
 			}
-			Expect(expectedConfig).To(BeEquivalentTo(receivedExtAuth))
+
+			It("should provide filters", func() {
+				Expect(expectedConfig).To(BeEquivalentTo(getAuthConfig()))
+			})
+
+			Context("clear cache", func() {
+				BeforeEach(func() {
+					extAuthSettings.ClearRouteCache = true
+					expectedConfig.ClearRouteCache = true
+				})
+
+				It("should provide filters", func() {
+					Expect(expectedConfig).To(BeEquivalentTo(getAuthConfig()))
+				})
+			})
+			Context("StatusOnError", func() {
+				BeforeEach(func() {
+					extAuthSettings.StatusOnError = 500
+					expectedConfig.StatusOnError = &envoytype.HttpStatus{Code: envoytype.StatusCode_InternalServerError}
+				})
+
+				It("should provide filters", func() {
+					Expect(expectedConfig).To(BeEquivalentTo(getAuthConfig()))
+				})
+			})
+			Context("bad StatusOnError", func() {
+				BeforeEach(func() {
+					extAuthSettings.StatusOnError = 600
+				})
+
+				It("should not provide filters", func() {
+					_, err := plugin.HttpFilters(params, nil)
+					Expect(err).To(MatchError("invalid statusOnError code"))
+				})
+			})
+
 		})
 
 		It("should not error processing vhost", func() {

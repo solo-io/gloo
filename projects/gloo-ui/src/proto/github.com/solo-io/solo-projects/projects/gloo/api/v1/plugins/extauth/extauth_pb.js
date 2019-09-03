@@ -94,7 +94,9 @@ proto.extauth.plugins.gloo.solo.io.Settings.toObject = function(includeInstance,
     userIdHeader: jspb.Message.getFieldWithDefault(msg, 3, ""),
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     failureModeAllow: jspb.Message.getFieldWithDefault(msg, 5, false),
-    requestBody: (f = msg.getRequestBody()) && proto.extauth.plugins.gloo.solo.io.BufferSettings.toObject(includeInstance, f)
+    requestBody: (f = msg.getRequestBody()) && proto.extauth.plugins.gloo.solo.io.BufferSettings.toObject(includeInstance, f),
+    clearRouteCache: jspb.Message.getFieldWithDefault(msg, 7, false),
+    statusOnError: jspb.Message.getFieldWithDefault(msg, 8, 0)
   };
 
   if (includeInstance) {
@@ -158,6 +160,14 @@ proto.extauth.plugins.gloo.solo.io.Settings.deserializeBinaryFromReader = functi
       var value = new proto.extauth.plugins.gloo.solo.io.BufferSettings;
       reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.BufferSettings.deserializeBinaryFromReader);
       msg.setRequestBody(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setClearRouteCache(value);
+      break;
+    case 8:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setStatusOnError(value);
       break;
     default:
       reader.skipField();
@@ -232,6 +242,20 @@ proto.extauth.plugins.gloo.solo.io.Settings.serializeBinaryToWriter = function(m
       6,
       f,
       proto.extauth.plugins.gloo.solo.io.BufferSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getClearRouteCache();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
+    );
+  }
+  f = message.getStatusOnError();
+  if (f !== 0) {
+    writer.writeUint32(
+      8,
+      f
     );
   }
 };
@@ -386,6 +410,38 @@ proto.extauth.plugins.gloo.solo.io.Settings.prototype.clearRequestBody = functio
  */
 proto.extauth.plugins.gloo.solo.io.Settings.prototype.hasRequestBody = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional bool clear_route_cache = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.Settings.prototype.getClearRouteCache = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.extauth.plugins.gloo.solo.io.Settings.prototype.setClearRouteCache = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
+};
+
+
+/**
+ * optional uint32 status_on_error = 8;
+ * @return {number}
+ */
+proto.extauth.plugins.gloo.solo.io.Settings.prototype.getStatusOnError = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 8, 0));
+};
+
+
+/** @param {number} value */
+proto.extauth.plugins.gloo.solo.io.Settings.prototype.setStatusOnError = function(value) {
+  jspb.Message.setProto3IntField(this, 8, value);
 };
 
 
