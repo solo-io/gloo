@@ -1,0 +1,11 @@
+changelog:
+- type: NEW_FEATURE
+  description: Add LDAP Ext Auth support.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1038
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.4.4
+  description: Update ext-auth-service to version 0.4.4.
+
+

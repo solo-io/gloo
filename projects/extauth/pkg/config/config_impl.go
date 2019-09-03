@@ -15,6 +15,7 @@ import (
 
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
+	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
@@ -159,7 +160,9 @@ func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauth.Ext
 		if name == "" {
 			name = fmt.Sprintf("%T-%d", svc, i)
 		}
-		services.AddAuthService(name, svc)
+		if err := services.AddAuthService(name, svc); err != nil {
+			return nil, err
+		}
 	}
 	return services, nil
 }
@@ -200,8 +203,22 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		p, err := c.pluginLoader.LoadAuthPlugin(ctx, cfg.PluginAuth)
 		return p, cfg.PluginAuth.Name, err
 	case *extauth.ExtAuthConfig_AuthConfig_OpaAuth:
-		opacfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
-		return opacfg, "", err
+		opaCfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
+		if err != nil {
+			return nil, "", err
+		}
+		return opaCfg, "", nil
+	case *extauth.ExtAuthConfig_AuthConfig_Ldap:
+		ldapCfg, err := ldap.NewLdapAuthService(ldap.NewLdapClientBuilder(), &ldap.Config{
+			ServerAddress:           cfg.Ldap.Address,
+			UserDnTemplate:          cfg.Ldap.UserDnTemplate,
+			MembershipAttributeName: cfg.Ldap.MembershipAttributeName,
+			AllowedGroups:           cfg.Ldap.AllowedGroups,
+		})
+		if err != nil {
+			return nil, "", err
+		}
+		return ldapCfg, "", nil
 	}
 	return nil, "", errors.New("unknown auth configuration")
 }

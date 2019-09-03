@@ -25,6 +25,7 @@ func NewAuthServiceChain() *authServiceChain {
 type AuthServiceChain interface {
 	api.AuthService
 	AddAuthService(name string, authService api.AuthService) error
+	ListAuthServices() []api.AuthService
 }
 
 var _ AuthServiceChain = &authServiceChain{}
@@ -65,6 +66,13 @@ func (s *authServiceChain) AddAuthService(name string, authService api.AuthServi
 	// Pre-compute the list of names so we don't have to loop during actual requests
 	s.names = append(s.names, name)
 	return nil
+}
+
+func (s *authServiceChain) ListAuthServices() (out []api.AuthService) {
+	for _, svc := range s.authServices {
+		out = append(out, svc.authService)
+	}
+	return
 }
 
 func (s *authServiceChain) Start(ctx context.Context) error {

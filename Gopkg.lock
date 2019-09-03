@@ -1357,20 +1357,21 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:56f086781bf41808c6eb26cbcac175661f6cb14781e322439798af7d17dc5a7b"
+  digest = "1:ab51893875fdd94735415dd593402ebf1ee30ea4622dd8c72790db40bc8e6712"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
     "pkg/config/apikeys",
     "pkg/config/apr",
+    "pkg/config/ldap",
     "pkg/config/oidc",
     "pkg/config/opa",
     "pkg/consts",
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "738a6b9dac73177f68987ec70f408a8bcb268754"
-  version = "v0.4.2"
+  revision = "fbd996c3746efccb7738e40592dbd7cd44f624bb"
+  version = "v0.4.4"
 
 [[projects]]
   digest = "1:1972a6deb92ff4ccf6a92680533778562a61440374689590489e0f8894363142"
@@ -2707,6 +2708,7 @@
     "github.com/solo-io/ext-auth-service/pkg/config",
     "github.com/solo-io/ext-auth-service/pkg/config/apikeys",
     "github.com/solo-io/ext-auth-service/pkg/config/apr",
+    "github.com/solo-io/ext-auth-service/pkg/config/ldap",
     "github.com/solo-io/ext-auth-service/pkg/config/oidc",
     "github.com/solo-io/ext-auth-service/pkg/config/opa",
     "github.com/solo-io/ext-auth-service/pkg/service",

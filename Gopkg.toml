@@ -105,7 +105,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-service"
-  version = "v0.4.2"
+  version = "v0.4.4"
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-plugins"

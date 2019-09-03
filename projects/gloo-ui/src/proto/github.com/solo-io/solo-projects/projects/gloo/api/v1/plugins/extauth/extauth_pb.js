@@ -35,6 +35,7 @@ goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfi
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService.Request', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.HttpService.Response', null, global);
+goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.Ldap', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OauthSecret', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.OpaAuth', null, global);
@@ -3344,6 +3345,250 @@ proto.extauth.plugins.gloo.solo.io.OpaAuth.prototype.setQuery = function(value) 
  * @extends {jspb.Message}
  * @constructor
  */
+proto.extauth.plugins.gloo.solo.io.Ldap = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.extauth.plugins.gloo.solo.io.Ldap.repeatedFields_, null);
+};
+goog.inherits(proto.extauth.plugins.gloo.solo.io.Ldap, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.extauth.plugins.gloo.solo.io.Ldap.displayName = 'proto.extauth.plugins.gloo.solo.io.Ldap';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.repeatedFields_ = [4];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.toObject = function(opt_includeInstance) {
+  return proto.extauth.plugins.gloo.solo.io.Ldap.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.extauth.plugins.gloo.solo.io.Ldap} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    address: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    userdntemplate: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    membershipattributename: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    allowedgroupsList: jspb.Message.getRepeatedField(msg, 4)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.extauth.plugins.gloo.solo.io.Ldap}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.extauth.plugins.gloo.solo.io.Ldap;
+  return proto.extauth.plugins.gloo.solo.io.Ldap.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.extauth.plugins.gloo.solo.io.Ldap} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.extauth.plugins.gloo.solo.io.Ldap}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAddress(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserdntemplate(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMembershipattributename(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAllowedgroups(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.extauth.plugins.gloo.solo.io.Ldap.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.extauth.plugins.gloo.solo.io.Ldap} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getUserdntemplate();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getMembershipattributename();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getAllowedgroupsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string address = 1;
+ * @return {string}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.getAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.setAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string userDnTemplate = 2;
+ * @return {string}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.getUserdntemplate = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.setUserdntemplate = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string membershipAttributeName = 3;
+ * @return {string}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.getMembershipattributename = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.setMembershipattributename = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated string allowedGroups = 4;
+ * @return {!Array<string>}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.getAllowedgroupsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.setAllowedgroupsList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.addAllowedgroups = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.Ldap.prototype.clearAllowedgroupsList = function() {
+  this.setAllowedgroupsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.extauth.plugins.gloo.solo.io.AuthConfig = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_);
 };
@@ -3359,7 +3604,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_ = [[1,2,3,4,5,6]];
+proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_ = [[1,2,3,4,5,6,7]];
 
 /**
  * @enum {number}
@@ -3371,7 +3616,8 @@ proto.extauth.plugins.gloo.solo.io.AuthConfig.AuthConfigCase = {
   CUSTOM_AUTH: 3,
   API_KEY_AUTH: 4,
   PLUGIN_AUTH: 5,
-  OPA_AUTH: 6
+  OPA_AUTH: 6,
+  LDAP: 7
 };
 
 /**
@@ -3415,7 +3661,8 @@ proto.extauth.plugins.gloo.solo.io.AuthConfig.toObject = function(includeInstanc
     customAuth: (f = msg.getCustomAuth()) && proto.extauth.plugins.gloo.solo.io.CustomAuth.toObject(includeInstance, f),
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ApiKeyAuth.toObject(includeInstance, f),
     pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
-    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.OpaAuth.toObject(includeInstance, f)
+    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.OpaAuth.toObject(includeInstance, f),
+    ldap: (f = msg.getLdap()) && proto.extauth.plugins.gloo.solo.io.Ldap.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3481,6 +3728,11 @@ proto.extauth.plugins.gloo.solo.io.AuthConfig.deserializeBinaryFromReader = func
       var value = new proto.extauth.plugins.gloo.solo.io.OpaAuth;
       reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.OpaAuth.deserializeBinaryFromReader);
       msg.setOpaAuth(value);
+      break;
+    case 7:
+      var value = new proto.extauth.plugins.gloo.solo.io.Ldap;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.Ldap.deserializeBinaryFromReader);
+      msg.setLdap(value);
       break;
     default:
       reader.skipField();
@@ -3557,6 +3809,14 @@ proto.extauth.plugins.gloo.solo.io.AuthConfig.serializeBinaryToWriter = function
       6,
       f,
       proto.extauth.plugins.gloo.solo.io.OpaAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getLdap();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.extauth.plugins.gloo.solo.io.Ldap.serializeBinaryToWriter
     );
   }
 };
@@ -3739,6 +3999,36 @@ proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearOpaAuth = function(
  */
 proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasOpaAuth = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional Ldap ldap = 7;
+ * @return {?proto.extauth.plugins.gloo.solo.io.Ldap}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.getLdap = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.Ldap} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.Ldap, 7));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.Ldap|undefined} value */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.setLdap = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.extauth.plugins.gloo.solo.io.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.clearLdap = function() {
+  this.setLdap(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.AuthConfig.prototype.hasLdap = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 
@@ -5175,7 +5465,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_ = [[3,4,5,6,7]];
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_ = [[3,4,5,6,7,8]];
 
 /**
  * @enum {number}
@@ -5186,7 +5476,8 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.AuthConfigCase = {
   BASIC_AUTH: 4,
   API_KEY_AUTH: 5,
   PLUGIN_AUTH: 6,
-  OPA_AUTH: 7
+  OPA_AUTH: 7,
+  LDAP: 8
 };
 
 /**
@@ -5229,7 +5520,8 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.toObject = function(
     basicAuth: (f = msg.getBasicAuth()) && proto.extauth.plugins.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject(includeInstance, f),
     pluginAuth: (f = msg.getPluginAuth()) && proto.extauth.plugins.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
-    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(includeInstance, f)
+    opaAuth: (f = msg.getOpaAuth()) && proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(includeInstance, f),
+    ldap: (f = msg.getLdap()) && proto.extauth.plugins.gloo.solo.io.Ldap.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5290,6 +5582,11 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.deserializeBinaryFro
       var value = new proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig;
       reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.deserializeBinaryFromReader);
       msg.setOpaAuth(value);
+      break;
+    case 8:
+      var value = new proto.extauth.plugins.gloo.solo.io.Ldap;
+      reader.readMessage(value,proto.extauth.plugins.gloo.solo.io.Ldap.deserializeBinaryFromReader);
+      msg.setLdap(value);
       break;
     default:
       reader.skipField();
@@ -5358,6 +5655,14 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.serializeBinaryToWri
       7,
       f,
       proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getLdap();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      proto.extauth.plugins.gloo.solo.io.Ldap.serializeBinaryToWriter
     );
   }
 };
@@ -5510,6 +5815,36 @@ proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearOpaAu
  */
 proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasOpaAuth = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional Ldap ldap = 8;
+ * @return {?proto.extauth.plugins.gloo.solo.io.Ldap}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.getLdap = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.Ldap} */ (
+    jspb.Message.getWrapperField(this, proto.extauth.plugins.gloo.solo.io.Ldap, 8));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.Ldap|undefined} value */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.setLdap = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.clearLdap = function() {
+  this.setLdap(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.ExtAuthConfig.AuthConfig.prototype.hasLdap = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

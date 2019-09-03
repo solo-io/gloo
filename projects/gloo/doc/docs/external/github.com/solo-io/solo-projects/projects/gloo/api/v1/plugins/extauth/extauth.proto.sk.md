@@ -27,6 +27,7 @@ weight: 5
 - [ApiKeyAuth](#apikeyauth)
 - [ApiKeySecret](#apikeysecret)
 - [OpaAuth](#opaauth)
+- [Ldap](#ldap)
 - [AuthConfig](#authconfig)
 - [VhostExtension](#vhostextension)
 - [RouteExtension](#routeextension)
@@ -373,9 +374,40 @@ Deprecated
 
 
 ---
+### Ldap
+
+ 
+Authenticates and authorizes requests by querying an LDAP server. Gloo makes the following assumptions:
+ * Requests provide credentials via the basic HTTP authentication header. Gloo will BIND to the LDAP server using the
+   credentials extracted from the header.
+ * Your LDAP server is configured so that each entry you want to authorize has an attribute that indicates its group
+   memberships. A common way of achieving this is by using the [*memberof* overlay](http://www.openldap.org/software/man.cgi?query=slapo-memberof).
+
+```yaml
+"address": string
+"userDnTemplate": string
+"membershipAttributeName": string
+"allowedGroups": []string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `address` | `string` | Address of the LDAP server to query. Should be in the form: <address>:<port>. |  |
+| `userDnTemplate` | `string` | Template to build user entry distinguished names (DN). This must contains a single occurrence of the "%s" placeholder. When processing a request, Gloo will substitute the name of the user (extracted from the auth header) for the placeholder and issue a search request with the resulting DN as baseDN (and 'base' search scope). E.g. "uid=%s,ou=people,dc=solo,dc=io" |  |
+| `membershipAttributeName` | `string` | Case-insensitive name of the attribute that contains the names of the groups an entry is member of. Gloo will look for attributes with the given name to determine which groups the user entry belongs to. Defaults to 'memberOf' if not provided. |  |
+| `allowedGroups` | `[]string` | In order for the request to be authenticated, the membership attribute (e.g. *memberOf*) on the user entry must contain at least of one of the group DNs specified via this option. E.g. []string{ "cn=managers,ou=groups,dc=solo,dc=io", "cn=developers,ou=groups,dc=solo,dc=io" } |  |
+
+
+
+
+---
 ### AuthConfig
 
-
+ 
+This message represents the user-facing auth configuration. When processed by Gloo, certain configuration types
+(i.a. oauth, opa) will be translated, e.g. to resolve resource references. See the `ExtAuthConfig.AuthConfig` for the
+final config format that will be included in the extauth snapshot.
 
 ```yaml
 "basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
@@ -384,6 +416,7 @@ Deprecated
 "apiKeyAuth": .extauth.plugins.gloo.solo.io.ApiKeyAuth
 "pluginAuth": .extauth.plugins.gloo.solo.io.AuthPlugin
 "opaAuth": .extauth.plugins.gloo.solo.io.OpaAuth
+"ldap": .extauth.plugins.gloo.solo.io.Ldap
 
 ```
 
@@ -395,6 +428,7 @@ Deprecated
 | `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ApiKeyAuth](../extauth.proto.sk#apikeyauth) |  |  |
 | `pluginAuth` | [.extauth.plugins.gloo.solo.io.AuthPlugin](../extauth.proto.sk#authplugin) |  |  |
 | `opaAuth` | [.extauth.plugins.gloo.solo.io.OpaAuth](../extauth.proto.sk#opaauth) |  |  |
+| `ldap` | [.extauth.plugins.gloo.solo.io.Ldap](../extauth.proto.sk#ldap) |  |  |
 
 
 
@@ -545,6 +579,7 @@ Deprecated
 "apiKeyAuth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig
 "pluginAuth": .extauth.plugins.gloo.solo.io.AuthPlugin
 "opaAuth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig
+"ldap": .extauth.plugins.gloo.solo.io.Ldap
 
 ```
 
@@ -555,6 +590,7 @@ Deprecated
 | `apiKeyAuth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig](../extauth.proto.sk#apikeyauthconfig) |  |  |
 | `pluginAuth` | [.extauth.plugins.gloo.solo.io.AuthPlugin](../extauth.proto.sk#authplugin) |  |  |
 | `opaAuth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OpaAuthConfig](../extauth.proto.sk#opaauthconfig) |  |  |
+| `ldap` | [.extauth.plugins.gloo.solo.io.Ldap](../extauth.proto.sk#ldap) |  |  |
 
 
 

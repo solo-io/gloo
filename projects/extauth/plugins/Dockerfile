@@ -20,8 +20,6 @@ RUN cp -a vendor/. /go/src/ && rm -rf vendor
 
 # Build plugins with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
-    -o projects/extauth/compiled-plugins/Ldap.so projects/extauth/plugins/ldap/plugin.go
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
     -o projects/extauth/compiled-plugins/RequiredHeader.so projects/extauth/plugins/required_header/plugin.go
 
 # Verify that plugins can be loaded by GlooE

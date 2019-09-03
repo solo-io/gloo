@@ -460,6 +460,40 @@ export namespace OpaAuth {
   }
 }
 
+export class Ldap extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getUserdntemplate(): string;
+  setUserdntemplate(value: string): void;
+
+  getMembershipattributename(): string;
+  setMembershipattributename(value: string): void;
+
+  clearAllowedgroupsList(): void;
+  getAllowedgroupsList(): Array<string>;
+  setAllowedgroupsList(value: Array<string>): void;
+  addAllowedgroups(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Ldap.AsObject;
+  static toObject(includeInstance: boolean, msg: Ldap): Ldap.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Ldap, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Ldap;
+  static deserializeBinaryFromReader(message: Ldap, reader: jspb.BinaryReader): Ldap;
+}
+
+export namespace Ldap {
+  export type AsObject = {
+    address: string,
+    userdntemplate: string,
+    membershipattributename: string,
+    allowedgroupsList: Array<string>,
+  }
+}
+
 export class AuthConfig extends jspb.Message {
   hasBasicAuth(): boolean;
   clearBasicAuth(): void;
@@ -491,6 +525,11 @@ export class AuthConfig extends jspb.Message {
   getOpaAuth(): OpaAuth | undefined;
   setOpaAuth(value?: OpaAuth): void;
 
+  hasLdap(): boolean;
+  clearLdap(): void;
+  getLdap(): Ldap | undefined;
+  setLdap(value?: Ldap): void;
+
   getAuthConfigCase(): AuthConfig.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AuthConfig.AsObject;
@@ -510,6 +549,7 @@ export namespace AuthConfig {
     apiKeyAuth?: ApiKeyAuth.AsObject,
     pluginAuth?: AuthPlugin.AsObject,
     opaAuth?: OpaAuth.AsObject,
+    ldap?: Ldap.AsObject,
   }
 
   export enum AuthConfigCase {
@@ -520,6 +560,7 @@ export namespace AuthConfig {
     API_KEY_AUTH = 4,
     PLUGIN_AUTH = 5,
     OPA_AUTH = 6,
+    LDAP = 7,
   }
 }
 
@@ -765,6 +806,11 @@ export namespace ExtAuthConfig {
     getOpaAuth(): ExtAuthConfig.OpaAuthConfig | undefined;
     setOpaAuth(value?: ExtAuthConfig.OpaAuthConfig): void;
 
+    hasLdap(): boolean;
+    clearLdap(): void;
+    getLdap(): Ldap | undefined;
+    setLdap(value?: Ldap): void;
+
     getAuthConfigCase(): AuthConfig.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): AuthConfig.AsObject;
@@ -783,6 +829,7 @@ export namespace ExtAuthConfig {
       apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: ExtAuthConfig.OpaAuthConfig.AsObject,
+      ldap?: Ldap.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -792,6 +839,7 @@ export namespace ExtAuthConfig {
       API_KEY_AUTH = 5,
       PLUGIN_AUTH = 6,
       OPA_AUTH = 7,
+      LDAP = 8,
     }
   }
 
