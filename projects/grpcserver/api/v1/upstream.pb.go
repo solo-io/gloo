@@ -33,7 +33,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type UpstreamDetails struct {
 	Upstream             *v1.Upstream `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
@@ -377,9 +377,9 @@ func (m *UpstreamInput) GetAwsEc2() *ec2.UpstreamSpec {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*UpstreamInput) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _UpstreamInput_OneofMarshaler, _UpstreamInput_OneofUnmarshaler, _UpstreamInput_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*UpstreamInput) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*UpstreamInput_Kube)(nil),
 		(*UpstreamInput_Static)(nil),
 		(*UpstreamInput_Aws)(nil),
@@ -387,144 +387,6 @@ func (*UpstreamInput) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer)
 		(*UpstreamInput_Consul)(nil),
 		(*UpstreamInput_AwsEc2)(nil),
 	}
-}
-
-func _UpstreamInput_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*UpstreamInput)
-	// spec
-	switch x := m.Spec.(type) {
-	case *UpstreamInput_Kube:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Kube); err != nil {
-			return err
-		}
-	case *UpstreamInput_Static:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Static); err != nil {
-			return err
-		}
-	case *UpstreamInput_Aws:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Aws); err != nil {
-			return err
-		}
-	case *UpstreamInput_Azure:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Azure); err != nil {
-			return err
-		}
-	case *UpstreamInput_Consul:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Consul); err != nil {
-			return err
-		}
-	case *UpstreamInput_AwsEc2:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AwsEc2); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("UpstreamInput.Spec has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _UpstreamInput_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*UpstreamInput)
-	switch tag {
-	case 2: // spec.kube
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(kubernetes.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_Kube{msg}
-		return true, err
-	case 3: // spec.static
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(static.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_Static{msg}
-		return true, err
-	case 4: // spec.aws
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(aws.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_Aws{msg}
-		return true, err
-	case 5: // spec.azure
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(azure.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_Azure{msg}
-		return true, err
-	case 6: // spec.consul
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(consul.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_Consul{msg}
-		return true, err
-	case 7: // spec.aws_ec2
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ec2.UpstreamSpec)
-		err := b.DecodeMessage(msg)
-		m.Spec = &UpstreamInput_AwsEc2{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _UpstreamInput_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*UpstreamInput)
-	// spec
-	switch x := m.Spec.(type) {
-	case *UpstreamInput_Kube:
-		s := proto.Size(x.Kube)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *UpstreamInput_Static:
-		s := proto.Size(x.Static)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *UpstreamInput_Aws:
-		s := proto.Size(x.Aws)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *UpstreamInput_Azure:
-		s := proto.Size(x.Azure)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *UpstreamInput_Consul:
-		s := proto.Size(x.Consul)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *UpstreamInput_AwsEc2:
-		s := proto.Size(x.AwsEc2)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type CreateUpstreamRequest struct {

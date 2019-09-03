@@ -31,7 +31,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type VirtualServiceDetails struct {
 	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
@@ -485,78 +485,12 @@ func (m *ExtAuthInput_Config) GetCustomAuth() *extauth.CustomAuth {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExtAuthInput_Config) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExtAuthInput_Config_OneofMarshaler, _ExtAuthInput_Config_OneofUnmarshaler, _ExtAuthInput_Config_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ExtAuthInput_Config) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ExtAuthInput_Config_Oauth)(nil),
 		(*ExtAuthInput_Config_CustomAuth)(nil),
 	}
-}
-
-func _ExtAuthInput_Config_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExtAuthInput_Config)
-	// value
-	switch x := m.Value.(type) {
-	case *ExtAuthInput_Config_Oauth:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Oauth); err != nil {
-			return err
-		}
-	case *ExtAuthInput_Config_CustomAuth:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CustomAuth); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ExtAuthInput_Config.Value has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExtAuthInput_Config_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExtAuthInput_Config)
-	switch tag {
-	case 1: // value.oauth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.OAuth)
-		err := b.DecodeMessage(msg)
-		m.Value = &ExtAuthInput_Config_Oauth{msg}
-		return true, err
-	case 2: // value.custom_auth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.CustomAuth)
-		err := b.DecodeMessage(msg)
-		m.Value = &ExtAuthInput_Config_CustomAuth{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExtAuthInput_Config_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExtAuthInput_Config)
-	// value
-	switch x := m.Value.(type) {
-	case *ExtAuthInput_Config_Oauth:
-		s := proto.Size(x.Oauth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ExtAuthInput_Config_CustomAuth:
-		s := proto.Size(x.CustomAuth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type GetVirtualServiceRequest struct {
@@ -860,97 +794,13 @@ func (m *VirtualServiceInput) GetCustomAuth() *extauth.CustomAuth {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*VirtualServiceInput) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _VirtualServiceInput_OneofMarshaler, _VirtualServiceInput_OneofUnmarshaler, _VirtualServiceInput_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*VirtualServiceInput) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*VirtualServiceInput_BasicAuth)(nil),
 		(*VirtualServiceInput_Oauth)(nil),
 		(*VirtualServiceInput_CustomAuth)(nil),
 	}
-}
-
-func _VirtualServiceInput_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*VirtualServiceInput)
-	// ext_auth_config
-	switch x := m.ExtAuthConfig.(type) {
-	case *VirtualServiceInput_BasicAuth:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.BasicAuth); err != nil {
-			return err
-		}
-	case *VirtualServiceInput_Oauth:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Oauth); err != nil {
-			return err
-		}
-	case *VirtualServiceInput_CustomAuth:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CustomAuth); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("VirtualServiceInput.ExtAuthConfig has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _VirtualServiceInput_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*VirtualServiceInput)
-	switch tag {
-	case 7: // ext_auth_config.basic_auth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(VirtualServiceInput_BasicAuthInput)
-		err := b.DecodeMessage(msg)
-		m.ExtAuthConfig = &VirtualServiceInput_BasicAuth{msg}
-		return true, err
-	case 8: // ext_auth_config.oauth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.OAuth)
-		err := b.DecodeMessage(msg)
-		m.ExtAuthConfig = &VirtualServiceInput_Oauth{msg}
-		return true, err
-	case 9: // ext_auth_config.custom_auth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.CustomAuth)
-		err := b.DecodeMessage(msg)
-		m.ExtAuthConfig = &VirtualServiceInput_CustomAuth{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _VirtualServiceInput_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*VirtualServiceInput)
-	// ext_auth_config
-	switch x := m.ExtAuthConfig.(type) {
-	case *VirtualServiceInput_BasicAuth:
-		s := proto.Size(x.BasicAuth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *VirtualServiceInput_Oauth:
-		s := proto.Size(x.Oauth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *VirtualServiceInput_CustomAuth:
-		s := proto.Size(x.CustomAuth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type VirtualServiceInput_BasicAuthInput struct {

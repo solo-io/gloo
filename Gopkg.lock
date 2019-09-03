@@ -491,7 +491,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:9b99ed2cb03eac00d0814d1104a01f3b64cb14a29b356eef16bad0f8d0b66024"
+  digest = "1:92af5d1e4774a8cceb6dfae9d31e3a2879cd44a84eb63c0bd571d9866c82e0f4"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -503,8 +503,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
-  version = "v1.2.1"
+  revision = "0ca988a254f991240804bf9821f3450d87ccbb1b"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -1365,7 +1365,7 @@
   version = "v0.4.2"
 
 [[projects]]
-  digest = "1:b8564a69cb7f782885646e17c3d0dba743e5414db624ea8c185df292b6e9176a"
+  digest = "1:10faedf5061f0be1abfd5c141b35d6f71cf9f14dbd3538e22bad08d23ad21d6c"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1493,8 +1493,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "28e9f5469e46d5f20a91adc13b568d81f862d7cf"
-  version = "v0.18.27"
+  revision = "3e2b187c5a9170a2cee3fb843c3a755a69b56c56"
+  version = "v0.18.29"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1574,7 +1574,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:532c8e826268a9a0e51959928a060fcb22387594c519a68ecaaf54b8d6b47fe6"
+  digest = "1:c49aa9872f937c1e3bce091cb05dd06e83d7efb686f40b251f6c328848a5a4f2"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1634,8 +1634,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "ed277fb6f43f758200ce1b32189f78c6df98545b"
-  version = "v0.10.12"
+  revision = "516e34cf58adb6e4c674b7c95ef181c0ea43cb6a"
+  version = "v0.10.14"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2809,6 +2809,7 @@
     "github.com/spf13/cobra",
     "github.com/spf13/cobra/doc",
     "github.com/spf13/pflag",
+    "go.opencensus.io/plugin/ocgrpc",
     "go.opencensus.io/stats",
     "go.opencensus.io/stats/view",
     "go.opencensus.io/tag",

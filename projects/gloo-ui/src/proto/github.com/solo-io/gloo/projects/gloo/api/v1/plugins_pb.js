@@ -712,7 +712,8 @@ proto.gloo.solo.io.VirtualHostPlugins.toObject = function(includeInstance, msg) 
     retries: (f = msg.getRetries()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.toObject(includeInstance, f),
     stats: (f = msg.getStats()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats.toObject(includeInstance, f),
     headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
-    cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.toObject(includeInstance, f)
+    cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
+    transformations: (f = msg.getTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -773,6 +774,11 @@ proto.gloo.solo.io.VirtualHostPlugins.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.deserializeBinaryFromReader);
       msg.setCors(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.deserializeBinaryFromReader);
+      msg.setTransformations(value);
       break;
     default:
       reader.skipField();
@@ -841,6 +847,14 @@ proto.gloo.solo.io.VirtualHostPlugins.serializeBinaryToWriter = function(message
       3,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getTransformations();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.serializeBinaryToWriter
     );
   }
 };
@@ -993,6 +1007,36 @@ proto.gloo.solo.io.VirtualHostPlugins.prototype.clearCors = function() {
  */
 proto.gloo.solo.io.VirtualHostPlugins.prototype.hasCors = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional envoy.api.v2.filter.http.RouteTransformations transformations = 4;
+ * @return {?proto.envoy.api.v2.filter.http.RouteTransformations}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.getTransformations = function() {
+  return /** @type{?proto.envoy.api.v2.filter.http.RouteTransformations} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations, 4));
+};
+
+
+/** @param {?proto.envoy.api.v2.filter.http.RouteTransformations|undefined} value */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.setTransformations = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostPlugins.prototype.clearTransformations = function() {
+  this.setTransformations(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.hasTransformations = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -2005,7 +2049,8 @@ proto.gloo.solo.io.WeightedDestinationPlugins.prototype.toObject = function(opt_
  */
 proto.gloo.solo.io.WeightedDestinationPlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
-    headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f)
+    headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
+    transformations: (f = msg.getTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2047,6 +2092,11 @@ proto.gloo.solo.io.WeightedDestinationPlugins.deserializeBinaryFromReader = func
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.deserializeBinaryFromReader);
       msg.setHeaderManipulation(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.deserializeBinaryFromReader);
+      msg.setTransformations(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2084,6 +2134,14 @@ proto.gloo.solo.io.WeightedDestinationPlugins.serializeBinaryToWriter = function
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.serializeBinaryToWriter
     );
   }
+  f = message.getTransformations();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -2114,6 +2172,36 @@ proto.gloo.solo.io.WeightedDestinationPlugins.prototype.clearHeaderManipulation 
  */
 proto.gloo.solo.io.WeightedDestinationPlugins.prototype.hasHeaderManipulation = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional envoy.api.v2.filter.http.RouteTransformations transformations = 2;
+ * @return {?proto.envoy.api.v2.filter.http.RouteTransformations}
+ */
+proto.gloo.solo.io.WeightedDestinationPlugins.prototype.getTransformations = function() {
+  return /** @type{?proto.envoy.api.v2.filter.http.RouteTransformations} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations, 2));
+};
+
+
+/** @param {?proto.envoy.api.v2.filter.http.RouteTransformations|undefined} value */
+proto.gloo.solo.io.WeightedDestinationPlugins.prototype.setTransformations = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.WeightedDestinationPlugins.prototype.clearTransformations = function() {
+  this.setTransformations(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.WeightedDestinationPlugins.prototype.hasTransformations = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

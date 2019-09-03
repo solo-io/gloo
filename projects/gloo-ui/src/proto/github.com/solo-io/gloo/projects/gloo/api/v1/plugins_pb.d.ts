@@ -145,6 +145,11 @@ export class VirtualHostPlugins extends jspb.Message {
   getCors(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy | undefined;
   setCors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy): void;
 
+  hasTransformations(): boolean;
+  clearTransformations(): void;
+  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
+  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -162,6 +167,7 @@ export namespace VirtualHostPlugins {
     stats?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats.AsObject,
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
     cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
+    transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
   }
 }
 
@@ -308,6 +314,11 @@ export class WeightedDestinationPlugins extends jspb.Message {
   getHeaderManipulation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation | undefined;
   setHeaderManipulation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation): void;
 
+  hasTransformations(): boolean;
+  clearTransformations(): void;
+  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
+  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WeightedDestinationPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: WeightedDestinationPlugins): WeightedDestinationPlugins.AsObject;
@@ -321,6 +332,7 @@ export class WeightedDestinationPlugins extends jspb.Message {
 export namespace WeightedDestinationPlugins {
   export type AsObject = {
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
+    transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
   }
 }
 

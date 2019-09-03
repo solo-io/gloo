@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
+	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/stats/view"
 
 	"go.uber.org/zap"
 
@@ -30,6 +32,10 @@ import (
 
 	"google.golang.org/grpc"
 )
+
+func init() {
+	view.Register(ocgrpc.DefaultServerViews...)
+}
 
 func Run() {
 	clientSettings := NewSettings()
@@ -68,7 +74,7 @@ func RunWithSettings(ctx context.Context, clientSettings Settings) error {
 }
 
 func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth.Server) error {
-	srv := grpc.NewServer(grpc.UnaryInterceptor(nil))
+	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 
 	pb.RegisterAuthorizationServer(srv, service)
 	healthpb.RegisterHealthServer(srv, &healthChecker{})
