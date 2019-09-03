@@ -272,7 +272,8 @@ const VirtualServicesOverview = () => {
         }
         exploreMoreLink={{
           prompt: 'View Virtual Services',
-          link: '/virtualservices/'
+          link: '/virtualservices/',
+          testId:'view-virtual-services-link' 
         }}>
         {!!virtualServicesList.length ? (
           <React.Fragment>
@@ -378,7 +379,8 @@ const UpstreamsOverview = () => {
         description={'Upstreams define destinations for routes.'}
         exploreMoreLink={{
           prompt: 'View Upstreams',
-          link: '/upstreams/'
+          link: '/upstreams/',
+          testId: 'view-upstreams-link'
         }}>
         {!!upstreamsList.length ? (
           <React.Fragment>

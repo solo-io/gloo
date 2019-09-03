@@ -48,6 +48,7 @@ export interface DropdownProps {
   defaultValue?: string | number;
   onBlur?: (newValue: string | number) => any;
   disabled?: boolean;
+  testId?: string;
 }
 
 export const SoloDropdown = (props: DropdownProps) => {
@@ -59,7 +60,8 @@ export const SoloDropdown = (props: DropdownProps) => {
     placeholder,
     options,
     onChange,
-    onBlur
+    onBlur,
+    testId
   } = props;
 
   const getDefaultValue = (): string | number => {
@@ -74,6 +76,8 @@ export const SoloDropdown = (props: DropdownProps) => {
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
       <SoloDropdownBlock
+        data-testid={testId}
+        dropdownClassName={testId}
         value={value}
         defaultValue={getDefaultValue() /**
       //@ts-ignore */}

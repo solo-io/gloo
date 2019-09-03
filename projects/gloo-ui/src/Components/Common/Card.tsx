@@ -244,7 +244,7 @@ export const Card = (props: CardType) => {
           {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}
         </CardSubtitle>
       </MainSection>
-      <Footer onClick={handleFooterClick}>
+      <Footer onClick={handleFooterClick} data-testid='view-details-link'>
         <span>View Details</span>
         <HealthIndicator
           healthStatus={healthStatus || healthConstants.Pending.value}

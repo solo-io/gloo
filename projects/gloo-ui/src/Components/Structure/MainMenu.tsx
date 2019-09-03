@@ -103,28 +103,39 @@ export const MainMenu = () => {
         <TitleDiv>
           <GlooE /> Gloo Enterprise
         </TitleDiv>
-        <NavLink style={NavLinkStyles} to='/overview' activeStyle={activeStyle}>
+        <NavLink
+          data-testid='overview-navlink'
+          style={NavLinkStyles}
+          to='/overview'
+          activeStyle={activeStyle}>
           Overview
         </NavLink>
         <NavLink
+          data-testid='virtual-services-navlink'
           style={NavLinkStyles}
           to='/virtualservices/'
           activeStyle={activeStyle}>
           Virtual Services
         </NavLink>
         <NavLink
+          data-testid='upstreams-navlink'
           style={NavLinkStyles}
           to='/upstreams/'
           activeStyle={activeStyle}>
           Upstreams
         </NavLink>
-        <NavLink style={NavLinkStyles} to='/admin' activeStyle={activeStyle}>
+        <NavLink
+          data-testid='admin-navlink'
+          style={NavLinkStyles}
+          to='/admin'
+          activeStyle={activeStyle}>
           Admin
         </NavLink>
         {/*<NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
           Stats
         </NavLink>*/}
         <NavLink
+          data-testid='settings-navlink'
           style={{
             ...NavLinkStyles,
             float: 'right',

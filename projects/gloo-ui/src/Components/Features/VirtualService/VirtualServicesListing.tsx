@@ -299,7 +299,7 @@ export const VirtualServicesListing = (props: Props) => {
           path={`${props.match.path}`}
           exact
           render={() => (
-            <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
+            <SectionCard data-testid="vs-listing-section" cardName={'Virtual Services'} logoIcon={<Gloo />}>
               {!virtualServicesList.length && !isLoading ? (
                 <EmptyPrompt>
                   You don't have any virtual services.

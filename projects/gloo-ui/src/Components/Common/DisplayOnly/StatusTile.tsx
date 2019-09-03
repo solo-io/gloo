@@ -104,6 +104,7 @@ interface Props extends RouteComponentProps {
   exploreMoreLink?: {
     prompt: string;
     link: string;
+    testId?: string;
   };
   horizontal?: boolean;
   healthStatus?: number;
@@ -135,7 +136,7 @@ const StatusTileC = (props: Props) => {
             </Description>
             <Content>{props.children}</Content>
             {!!props.exploreMoreLink && (
-              <Link onClick={goToLink}>{props.exploreMoreLink.prompt}</Link>
+              <Link data-testid={props.exploreMoreLink.testId} onClick={goToLink}>{props.exploreMoreLink.prompt}</Link>
             )}
           </React.Fragment>
         ) : (

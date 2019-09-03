@@ -97,7 +97,9 @@ const getRouteColumns = (
                 title={'Are you sure you want to delete this route? '}
                 okText='Yes'
                 cancelText='No'>
-                <TableActionCircle>x</TableActionCircle>
+                <TableActionCircle data-testid={`delete-route-${matcher}`}>
+                  x
+                </TableActionCircle>
               </Popconfirm>
             </div>
           </TableActions>
@@ -200,7 +202,9 @@ export const Routes: React.FC<Props> = props => {
     <React.Fragment>
       <RouteSectionTitle>
         Routes
-        <ModalTrigger onClick={() => setCreateNewRoute(true)}>
+        <ModalTrigger
+          data-testid='create-new-route-modal'
+          onClick={() => setCreateNewRoute(true)}>
           <React.Fragment>
             <StyledGreenPlus />
             Create Route

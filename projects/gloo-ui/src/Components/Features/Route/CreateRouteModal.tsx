@@ -176,7 +176,7 @@ const validationSchema = yup.object().shape({
   })
 });
 
-const FormContainer = styled.div`
+const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
 `;
@@ -513,7 +513,7 @@ export const CreateRouteModalC = (props: Props) => {
         setFieldValue
       }) => {
         return (
-          <FormContainer>
+          <FormContainer data-testid='create-route-form'>
             <SoloFormTemplate>
               <InputRow>
                 <React.Fragment>
@@ -536,6 +536,7 @@ export const CreateRouteModalC = (props: Props) => {
                   {allUsableUpstreams.length && (
                     <HalfColumn>
                       <SoloFormMetadataBasedDropdown
+                        testId='upstream-dropdown'
                         name='upstream'
                         title='Upstream'
                         value={values.upstream}

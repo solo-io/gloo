@@ -1,9 +1,16 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
+import { render, waitForElement, fireEvent } from 'test-utils';
 import { GlooIApp } from './GlooIApp';
 
-it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<GlooIApp />, div);
-  ReactDOM.unmountComponentAtNode(div);
+xdescribe('<App />', () => {
+  it('renders without errors', async () => {
+    const { container, debug } = render(<GlooIApp />);
+    expect(container).toBeDefined();
+  });
+  it('can navigate to virtual services page', async () => {
+    const { getByText, debug, getByTestId } = render(<GlooIApp />);
+    fireEvent.click(getByTestId('virtual-services-navlink'));
+    const createVSButton = getByText('Create Virtual Service');
+    expect(createVSButton).toBeDefined();
+  });
 });
