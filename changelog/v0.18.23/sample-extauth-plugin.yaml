@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Publish the example 'required_header' plugin from here as part of the `ext-auth-plugins` image (which currently
+    contains the LDAP plugin).

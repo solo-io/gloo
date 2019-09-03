@@ -328,8 +328,13 @@ $(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
 $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: extauth
-extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
+$(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
+	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
+    	--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+    	--build-arg VERSION=$(VERSION) \
+    	--build-arg GCFLAGS=$(GCFLAGS) \
+    	.
+	touch $@
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 $(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
@@ -342,14 +347,11 @@ $(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
 		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
 		/verify-plugins-linux-amd64 /opt/mount/verify-plugins-linux-amd64
 
-$(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
-	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
-    	--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
-    	--build-arg VERSION=$(VERSION) \
-    	--build-arg GCFLAGS=$(GCFLAGS) \
-    	.
-	touch $@
+# Build extauth binaries
+.PHONY: extauth
+extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 
+# Build ext-auth-plugins docker image
 .PHONY: auth-plugins
 auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
 	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
@@ -358,6 +360,7 @@ auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
 		.
 
+# Build extauth server docker image
 .PHONY: extauth-docker
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 

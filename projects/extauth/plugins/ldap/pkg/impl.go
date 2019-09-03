@@ -86,5 +86,5 @@ func validateConfig(config *Config) error {
 }
 
 func logger(ctx context.Context) *zap.SugaredLogger {
-	return contextutils.LoggerFrom(contextutils.WithLogger(ctx, "header_value_plugin"))
+	return contextutils.LoggerFrom(contextutils.WithLogger(ctx, "ldap_plugin"))
 }

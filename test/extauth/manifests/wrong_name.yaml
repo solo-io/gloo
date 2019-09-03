@@ -1,7 +1,7 @@
 plugins:
-- name: RequiredHeader
+- name: IsHeaderPresent
   pluginFileName: WRONG.so
-  exportedSymbolName: RequiredHeader
+  exportedSymbolName: IsHeaderPresent
 - name: HeaderValue
-  plugin_file_name: CheckHeaderValue.so
+  plugin_file_name: RequiredHeaderValue.so
   exported_symbol_name: Plugin

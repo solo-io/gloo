@@ -13,36 +13,36 @@ import (
 )
 
 // This plugin will authorize any requests that include a given header, regardless of its value.
-type RequiredHeaderPlugin struct{}
+type IsHeaderPresentPlugin struct{}
 
 type Config struct {
 	RequiredHeader string
 }
 
-func (p *RequiredHeaderPlugin) NewConfigInstance(ctx context.Context) (interface{}, error) {
-	logger(ctx).Infow("Called 'NewConfigInstance' on RequiredHeaderPlugin")
+func (p *IsHeaderPresentPlugin) NewConfigInstance(ctx context.Context) (interface{}, error) {
+	logger(ctx).Infow("Called 'NewConfigInstance' on IsHeaderPresentPlugin")
 	return &Config{}, nil
 }
 
-func (p *RequiredHeaderPlugin) GetAuthService(ctx context.Context, configInstance interface{}) (api.AuthService, error) {
+func (p *IsHeaderPresentPlugin) GetAuthService(ctx context.Context, configInstance interface{}) (api.AuthService, error) {
 	config, ok := configInstance.(*Config)
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("unexpected config type %T", configInstance))
 	}
-	logger(ctx).Infow("Returning RequiredHeaderAuthService instance", zap.Any("requiredHeader", config.RequiredHeader))
-	return &RequiredHeaderAuthService{RequiredHeader: config.RequiredHeader}, nil
+	logger(ctx).Infow("Returning IsHeaderPresentAuthService instance", zap.Any("requiredHeader", config.RequiredHeader))
+	return &IsHeaderPresentAuthService{RequiredHeader: config.RequiredHeader}, nil
 }
 
-type RequiredHeaderAuthService struct {
+type IsHeaderPresentAuthService struct {
 	RequiredHeader string
 }
 
-func (c *RequiredHeaderAuthService) Start(ctx context.Context) error {
-	logger(ctx).Infow("Called 'Start' on RequiredHeaderAuthService")
+func (c *IsHeaderPresentAuthService) Start(ctx context.Context) error {
+	logger(ctx).Infow("Called 'Start' on IsHeaderPresentAuthService")
 	return nil
 }
 
-func (c *RequiredHeaderAuthService) Authorize(ctx context.Context, request *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
+func (c *IsHeaderPresentAuthService) Authorize(ctx context.Context, request *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
 	for key, value := range request.CheckRequest.Attributes.Request.Http.Headers {
 		if key == c.RequiredHeader {
 			logger(ctx).Infow("Found required header", "header", key, "value", value)

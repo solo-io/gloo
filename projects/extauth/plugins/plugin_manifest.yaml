@@ -11,3 +11,12 @@ plugins:
     AllowedGroups:
     - "cn=mangers,ou=groups,dc=solo,dc=io"
     - "cn=developers,ou=groups,dc=solo,dc=io"
+- name: RequiredHeader
+  pluginFileName: RequiredHeader.so
+  exportedSymbolName: Plugin
+  config:
+    RequiredHeader: my-auth-header
+    AllowedValues:
+    - foo
+    - bar
+    - baz

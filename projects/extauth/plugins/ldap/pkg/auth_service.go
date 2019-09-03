@@ -70,7 +70,7 @@ func (s *ldapAuthService) Authorize(ctx context.Context, request *api.Authorizat
 	username, password, ok := GetBasicAuthCredentials(request)
 	if !ok {
 		ur := unauthenticatedResponse()
-		logger(ctx).Infow("failed to retrieve basic auth credentials from header", zap.Any("request", request), zap.Any("response", ur))
+		logger(ctx).Debugw("failed to retrieve basic auth credentials from header", zap.Any("request", request), zap.Any("response", ur))
 		return ur, nil
 	}
 
@@ -106,7 +106,11 @@ func (s *ldapAuthService) Authorize(ctx context.Context, request *api.Authorizat
 	// transmitted in the BIND request can be verified by the server.
 	if err = conn.Bind(userDN, password); err != nil {
 		ur := unauthenticatedResponse()
-		logger(ctx).Infow("failed to BIND to LDAP server", zap.Any("userDN", userDN), zap.Any("response", ur))
+		logger(ctx).Warnw("failed to BIND to LDAP server",
+			zap.Any("userDN", userDN),
+			zap.Any("response", ur),
+			zap.Any("error", err),
+		)
 		return ur, nil
 	}
 
@@ -121,10 +125,13 @@ func (s *ldapAuthService) Authorize(ctx context.Context, request *api.Authorizat
 		nil,
 	)
 
-	// TODO(marco): turn infos to debugs
 	result, err := conn.Search(searchReq)
 	if err != nil {
-		logger(ctx).Infow("failed to search LDAP server", zap.Any("userDN", userDN), zap.Any("searchRequest", searchReq))
+		logger(ctx).Warnw("failed to search LDAP server",
+			zap.Any("userDN", userDN),
+			zap.Any("searchRequest", searchReq),
+			zap.Any("error", err),
+		)
 		return nil, FailedSearchError(err)
 	}
 
@@ -132,7 +139,7 @@ func (s *ldapAuthService) Authorize(ctx context.Context, request *api.Authorizat
 		memberOf := entry.GetAttributeValues(MembershipAttribute)
 		for _, group := range memberOf {
 			if _, ok := s.allowedGroups[group]; ok {
-				logger(ctx).Infow("user is a member of allowed group",
+				logger(ctx).Debugw("user is a member of allowed group",
 					zap.Any("userDN", userDN),
 					zap.Any("allowedGroups", s.allowedGroups),
 					zap.Any("userMemberships", memberOf),

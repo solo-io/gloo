@@ -1,18 +1,18 @@
 package main
 
 import (
+	"github.com/solo-io/ext-auth-plugin-examples/plugins/required_header/pkg"
 	"github.com/solo-io/ext-auth-plugins/api"
-	"github.com/solo-io/solo-projects/test/extauth/plugins/required_header/plugin"
 )
 
-//go:generate go build -buildmode=plugin -o ./../RequiredHeader.so interface.go
+//go:generate go build -buildmode=plugin -o ./../RequiredHeaderValue.so interface.go
 
 func main() {}
 
-var _ api.ExtAuthPlugin = &plugin.RequiredHeaderPlugin{}
+var _ api.ExtAuthPlugin = &pkg.RequiredHeaderPlugin{}
 
-// This is the exported symbol that the ext auth server will look for.
-// In this case we export the struct, not a pointer to it. The resulting symbol will thus be of type *plugin.RequiredHeaderPlugin,
-// which implements the ExtAuthPlugin interface.
+// This is the exported symbol that the ext auth server will look for. In this case we export a pointer to the struct,
+// so a valid ExtAuthPlugin interface implementation. The resulting symbol loaded by the ext-auth server will thus be
+// of type **plugin.HeaderValuePlugin. We want to test that the server can handle this case as well.
 //noinspection GoUnusedGlobalVariable
-var RequiredHeader plugin.RequiredHeaderPlugin
+var Plugin *pkg.RequiredHeaderPlugin

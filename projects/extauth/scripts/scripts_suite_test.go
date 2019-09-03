@@ -48,16 +48,16 @@ var _ = Describe("Plugin verification script", func() {
 			Expect(pluginCfg.Plugins).To(HaveLen(2))
 			Expect(pluginCfg.Plugins).To(ConsistOf(
 				&extauth.AuthPlugin{
-					Name:               "RequiredHeader",
-					PluginFileName:     "RequiredHeader.so",
-					ExportedSymbolName: "RequiredHeader",
+					Name:               "IsHeaderPresent",
+					PluginFileName:     "IsHeaderPresent.so",
+					ExportedSymbolName: "IsHeaderPresent",
 					Config: &types.Struct{
 						Fields: map[string]*types.Value{},
 					},
 				},
 				&extauth.AuthPlugin{
 					Name:               "HeaderValue",
-					PluginFileName:     "CheckHeaderValue.so",
+					PluginFileName:     "RequiredHeaderValue.so",
 					ExportedSymbolName: "Plugin",
 				},
 			))
