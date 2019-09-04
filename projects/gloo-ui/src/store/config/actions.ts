@@ -28,12 +28,7 @@ export const getVersion = () => {
         type: ConfigAction.GET_VERSION,
         payload: response.version
       });
-    } catch (error) {
-      warning({
-        title: 'There was an error retrieving the version.',
-        content: error.message
-      });
-    }
+    } catch (error) {}
   };
 };
 export const getSettings = () => {
@@ -45,12 +40,7 @@ export const getSettings = () => {
         type: ConfigAction.GET_SETTINGS,
         payload: response.settings!
       });
-    } catch (error) {
-      warning({
-        title: 'There was an error retrieving the version.',
-        content: error.message
-      });
-    }
+    } catch (error) {}
   };
 };
 export const listNamespaces = () => {
@@ -62,12 +52,7 @@ export const listNamespaces = () => {
         type: ConfigAction.LIST_NAMESPACES,
         payload: response.namespacesList!
       });
-    } catch (error) {
-      warning({
-        title: 'There was an error listing the available namespaces.',
-        content: error.message
-      });
-    }
+    } catch (error) {}
   };
 };
 

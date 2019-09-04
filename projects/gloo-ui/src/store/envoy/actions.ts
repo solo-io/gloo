@@ -15,11 +15,6 @@ export const listEnvoyDetails = () => {
         payload: response!.toObject().envoyDetailsList
       });
       dispatch(hideLoading());
-    } catch (error) {
-      warning({
-        title: 'There was an error retrieving envoy information.',
-        content: error.message
-      });
-    }
+    } catch (error) {}
   };
 };

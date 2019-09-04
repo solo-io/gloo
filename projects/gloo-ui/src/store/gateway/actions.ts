@@ -380,6 +380,11 @@ export const updateGatewayYaml = (
         type: GatewayAction.UPDATE_GATEWAY_YAML,
         payload: response.gatewayDetails!
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error updating the gateway configuration.',
+        content: error.message
+      });
+    }
   };
 };

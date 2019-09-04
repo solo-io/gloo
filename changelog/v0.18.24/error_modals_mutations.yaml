@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Only show error modals after mutations to prevent overly repetitive modals.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1052

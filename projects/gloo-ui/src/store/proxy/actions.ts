@@ -38,11 +38,6 @@ export const listProxies = (
         type: ProxyAction.LIST_PROXIES,
         payload: response.proxyDetailsList
       });
-    } catch (error) {
-      warning({
-        title: 'There was an error retrieving the proxies.',
-        content: error.message
-      });
-    }
+    } catch (error) {}
   };
 };
