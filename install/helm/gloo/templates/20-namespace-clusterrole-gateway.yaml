@@ -130,7 +130,7 @@ metadata:
       "helm.sh/hook-weight": "10"
 rules:
 - apiGroups: ["gateway.solo.io"]
-  resources: ["virtualservices"]
+  resources: ["virtualservices", "routetables"]
   # update is needed for status updates
   verbs: ["get", "list", "watch", "update"]
 - apiGroups: ["gateway.solo.io"]

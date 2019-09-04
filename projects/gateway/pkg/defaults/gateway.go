@@ -70,14 +70,13 @@ func DefaultVirtualService(namespace, name string) *v1.VirtualService {
 			Name:      name,
 			Namespace: namespace,
 		},
-		VirtualHost: &gloov1.VirtualHost{
-			Name:    "routes",
+		VirtualHost: &v1.VirtualHost{
 			Domains: []string{"*"},
-			Routes: []*gloov1.Route{{
+			Routes: []*v1.Route{{
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{Prefix: "/"},
 				},
-				Action: &gloov1.Route_DirectResponseAction{DirectResponseAction: &gloov1.DirectResponseAction{
+				Action: &v1.Route_DirectResponseAction{DirectResponseAction: &gloov1.DirectResponseAction{
 					Status: 200,
 					Body: `Gloo and Envoy are configured correctly!
 

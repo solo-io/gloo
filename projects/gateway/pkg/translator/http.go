@@ -82,7 +82,7 @@ func validateAndMergeVirtualServices(gateway *v2.Gateway, virtualServices v1.Vir
 		}
 
 		// take the first one as they are all the same
-		var routes []*gloov1.Route
+		var routes []*v1.Route
 		var sslConfig *gloov1.SslConfig
 		var vhostPlugins *gloov1.VirtualHostPlugins
 		for _, vs := range vslist {
@@ -105,7 +105,7 @@ func validateAndMergeVirtualServices(gateway *v2.Gateway, virtualServices v1.Vir
 			}
 		}
 
-		glooutils.SortRoutesByPath(routes)
+		glooutils.SortGatewayRoutesByPath(routes)
 
 		ref := core.Metadata{
 			// name shouldnt matter as it this object is ephemeral.
@@ -113,10 +113,9 @@ func validateAndMergeVirtualServices(gateway *v2.Gateway, virtualServices v1.Vir
 			Namespace: ns,
 		}
 		mergedVs := &v1.VirtualService{
-			VirtualHost: &gloov1.VirtualHost{
+			VirtualHost: &v1.VirtualHost{
 				Domains:            vslist[0].VirtualHost.Domains,
 				Routes:             routes,
-				Name:               fmt.Sprintf("%v.%v", ref.Namespace, ref.Name),
 				VirtualHostPlugins: vhostPlugins,
 			},
 			SslConfig: sslConfig,
@@ -187,10 +186,9 @@ func desiredListenerForHttp(gateway *v2.Gateway, virtualServicesForGateway v1.Vi
 	for _, virtualService := range virtualServicesForGateway {
 		ref := virtualService.Metadata.Ref()
 		if virtualService.VirtualHost == nil {
-			virtualService.VirtualHost = &gloov1.VirtualHost{}
+			virtualService.VirtualHost = &v1.VirtualHost{}
 		}
-		virtualService.VirtualHost.Name = fmt.Sprintf("%v.%v", ref.Namespace, ref.Name)
-		virtualHosts = append(virtualHosts, virtualService.VirtualHost)
+		virtualHosts = append(virtualHosts, convertVirtualHost(ref, virtualService.VirtualHost))
 		if virtualService.SslConfig != nil {
 			sslConfigs = append(sslConfigs, virtualService.SslConfig)
 		}
@@ -209,4 +207,47 @@ func desiredListenerForHttp(gateway *v2.Gateway, virtualServicesForGateway v1.Vi
 	}
 	listener.SslConfigurations = sslConfigs
 	return listener
+}
+
+func convertVirtualHost(vs core.ResourceRef, ours *v1.VirtualHost) *gloov1.VirtualHost {
+	vh := &gloov1.VirtualHost{
+		Name:               fmt.Sprintf("%v.%v", vs.Namespace, vs.Name),
+		Domains:            ours.Domains,
+		Routes:             convertRoutes(ours.Routes),
+		VirtualHostPlugins: ours.VirtualHostPlugins,
+	}
+
+	return vh
+}
+
+func convertRoutes(ours []*v1.Route) []*gloov1.Route {
+	var routes []*gloov1.Route
+	for _, r := range ours {
+		routes = append(routes, convertRoute(r))
+	}
+	return routes
+}
+
+func convertRoute(ours *v1.Route) *gloov1.Route {
+	route := &gloov1.Route{
+		Matcher:      ours.Matcher,
+		RoutePlugins: ours.RoutePlugins,
+	}
+	switch action := ours.Action.(type) {
+	case *v1.Route_RedirectAction:
+		route.Action = &gloov1.Route_RedirectAction{
+			RedirectAction: action.RedirectAction,
+		}
+	case *v1.Route_DirectResponseAction:
+		route.Action = &gloov1.Route_DirectResponseAction{
+			DirectResponseAction: action.DirectResponseAction,
+		}
+	case *v1.Route_RouteAction:
+		route.Action = &gloov1.Route_RouteAction{
+			RouteAction: action.RouteAction,
+		}
+	case *v1.Route_DelegateAction:
+		panic("not implemented")
+	}
+	return route
 }

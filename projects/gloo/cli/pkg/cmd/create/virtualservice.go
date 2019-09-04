@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/prerun"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/cliutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -91,7 +90,7 @@ func VirtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 	}
 	vs := &v1.VirtualService{
 		Metadata: meta,
-		VirtualHost: &gloov1.VirtualHost{
+		VirtualHost: &v1.VirtualHost{
 			Domains: input.Domains,
 		},
 		DisplayName: displayName,

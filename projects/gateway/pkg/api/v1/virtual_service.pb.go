@@ -26,14 +26,108 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 //
-//A virtual service describes the set of routes to match for a set of domains.
-//Domains must be unique across all virtual services within a gateway (i.e. no overlap between sets).
+//
+// The **VirtualService** is the root Routing object for the Gloo Gateway.
+// A virtual service describes the set of routes to match for a set of domains.
+//
+// It defines:
+// - a set of domains
+// - the root set of routes for those domains
+// - an optional SSL configuration for server TLS Termination
+// - VirtualHostPlugins that will apply configuration to all routes that live on the VirtualService.
+//
+// Domains must be unique across all virtual services within a gateway (i.e. no overlap between sets).
+//
+// VirtualServices can delegate routing behavior to the RouteTable resource by using the `delegateAction` on routes.
+//
+// An example configuration using two VirtualServices (one with TLS termination and one without) which share
+// a RouteTable looks as follows:
+//
+// ```yaml
+// # HTTP VirtualService:
+// apiVersion: gateway.solo.io/v1
+// kind: VirtualService
+// metadata:
+//   name: 'http'
+//   namespace: 'usernamespace'
+// spec:
+//   virtualHost:
+//     domains:
+//     - '*.mydomain.com'
+//     - 'mydomain.com'
+//     routes:
+//     - matcher:
+//         prefix: '/'
+//       # delegate all traffic to the `shared-routes` RouteTable
+//       delegateAction:
+//         name: 'shared-routes'
+//         namespace: 'usernamespace'
+//
+// ```
+//
+// ```yaml
+// # HTTPS VirtualService:
+// apiVersion: gateway.solo.io/v1
+// kind: VirtualService
+// metadata:
+//   name: 'https'
+//   namespace: 'usernamespace'
+// spec:
+//   virtualHost:
+//     domains:
+//     - '*.mydomain.com'
+//     - 'mydomain.com'
+//     routes:
+//     - matcher:
+//         prefix: '/'
+//       # delegate all traffic to the `shared-routes` RouteTable
+//       delegateAction:
+//         name: 'shared-routes'
+//         namespace: 'usernamespace'
+//   sslConfig:
+//     secretRef:
+//       name: gateway-tls
+//       namespace: gloo-system
+//
+// ```
+//
+// ```yaml
+// # the RouteTable shared by both VirtualServices:
+// apiVersion: gateway.solo.io/v1
+// kind: RouteTable
+// metadata:
+//   name: 'shared-routes'
+//   namespace: 'usernamespace'
+// spec:
+//   routes:
+//     - matcher:
+//         prefix: '/some-route'
+//       routeAction:
+//         single:
+//           upstream:
+//             name: 'some-upstream'
+//      ...
+// ```
+//
+// **Delegated Routes** are routes that use the `delegateAction` routing action. Delegated Routes obey the following
+// constraints:
+//
+// - delegate routes must use `prefix` path matchers
+// - delegated routes cannot specify header, query, or methods portion of the normal route matcher.
+// - `routePlugin` configuration will be inherited from parent routes, but can be overridden by the child
+//
 type VirtualService struct {
-	VirtualHost *v1.VirtualHost `protobuf:"bytes,1,opt,name=virtual_host,json=virtualHost,proto3" json:"virtual_host,omitempty"`
+	// The VirtualHost contains the
+	// The list of HTTP routes define routing actions to be taken
+	// for incoming HTTP requests whose host header matches
+	// this virtual host. If the request matches more than one route in the list, the first route matched will be selected.
+	// If the list of routes is empty, the virtual host will be ignored by Gloo.
+	VirtualHost *VirtualHost `protobuf:"bytes,1,opt,name=virtual_host,json=virtualHost,proto3" json:"virtual_host,omitempty"`
 	// If provided, the Gateway will serve TLS/SSL traffic for this set of routes
 	SslConfig *v1.SslConfig `protobuf:"bytes,2,opt,name=ssl_config,json=sslConfig,proto3" json:"ssl_config,omitempty"`
 	// Display only, optional descriptive name.
-	// Unlike metadata.name, DisplayName can be changed without deleting the resource.
+	// Unlike metadata.name, DisplayName can be any string
+	// and can be changed after creating the resource.
 	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	// Status indicates the validation status of this resource.
 	// Status is read-only by clients, and set by gloo during validation
@@ -69,7 +163,7 @@ func (m *VirtualService) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_VirtualService proto.InternalMessageInfo
 
-func (m *VirtualService) GetVirtualHost() *v1.VirtualHost {
+func (m *VirtualService) GetVirtualHost() *VirtualHost {
 	if m != nil {
 		return m.VirtualHost
 	}
@@ -104,8 +198,341 @@ func (m *VirtualService) GetMetadata() core.Metadata {
 	return core.Metadata{}
 }
 
+//
+//Virtual Hosts serve an ordered list of routes for a set of domains.
+//
+//An HTTP request is first matched to a virtual host based on its host header, then to a route within the virtual host.
+//
+//If a request is not matched to any virtual host or a route therein, the target proxy will reply with a 404.
+//
+//Unlike the [Gloo Virtual Host]({{< ref "/v1/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk.md" >}}/#virtualhost),
+//Gateway* Virtual Hosts can **delegate** their routes to `RouteTables`.
+//
+type VirtualHost struct {
+	// The list of domains (i.e.: matching the `Host` header of a request) that belong to this virtual host.
+	// Note that the wildcard will not match the empty string. e.g. “*-bar.foo.com” will match “baz-bar.foo.com”
+	// but not “-bar.foo.com”. Additionally, a special entry “*” is allowed which will match any host/authority header.
+	// Only a single virtual host on a gateway can match on “*”. A domain must be unique across all
+	// virtual hosts on a gateway or the config will be invalidated by Gloo
+	// Domains on virtual hosts obey the same rules as [Envoy Virtual Hosts](https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto)
+	Domains []string `protobuf:"bytes,2,rep,name=domains,proto3" json:"domains,omitempty"`
+	// The list of HTTP routes define routing actions to be taken for incoming HTTP requests whose host header matches
+	// this virtual host. If the request matches more than one route in the list, the first route matched will be selected.
+	// If the list of routes is empty, the virtual host will be ignored by Gloo.
+	Routes []*Route `protobuf:"bytes,3,rep,name=routes,proto3" json:"routes,omitempty"`
+	// Virtual host plugins contain additional configuration to be applied to all traffic served by the Virtual Host.
+	// Some configuration here can be overridden by Route Plugins.
+	VirtualHostPlugins   *v1.VirtualHostPlugins `protobuf:"bytes,4,opt,name=virtual_host_plugins,json=virtualHostPlugins,proto3" json:"virtual_host_plugins,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *VirtualHost) Reset()         { *m = VirtualHost{} }
+func (m *VirtualHost) String() string { return proto.CompactTextString(m) }
+func (*VirtualHost) ProtoMessage()    {}
+func (*VirtualHost) Descriptor() ([]byte, []int) {
+	return fileDescriptor_93fa9472926a2049, []int{1}
+}
+func (m *VirtualHost) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VirtualHost.Unmarshal(m, b)
+}
+func (m *VirtualHost) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VirtualHost.Marshal(b, m, deterministic)
+}
+func (m *VirtualHost) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VirtualHost.Merge(m, src)
+}
+func (m *VirtualHost) XXX_Size() int {
+	return xxx_messageInfo_VirtualHost.Size(m)
+}
+func (m *VirtualHost) XXX_DiscardUnknown() {
+	xxx_messageInfo_VirtualHost.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VirtualHost proto.InternalMessageInfo
+
+func (m *VirtualHost) GetDomains() []string {
+	if m != nil {
+		return m.Domains
+	}
+	return nil
+}
+
+func (m *VirtualHost) GetRoutes() []*Route {
+	if m != nil {
+		return m.Routes
+	}
+	return nil
+}
+
+func (m *VirtualHost) GetVirtualHostPlugins() *v1.VirtualHostPlugins {
+	if m != nil {
+		return m.VirtualHostPlugins
+	}
+	return nil
+}
+
+//
+//
+// Routes declare the entry points on virtual hosts and the action to take for matched requests.
+//
+// DelegateActions can be used to delegate the behavior for a set out routes with a given *prefix* to
+// a top-level `RouteTable` resource.
+//
+// Routes specified in the RouteTable will have their paths prefixed by the prefix provided in the
+// parent's matcher.
+//
+// For example, the following configuration:
+//
+// ```
+// virtualService: mydomain.com
+// match: /a
+// delegate: a-routes
+// ---
+// routeTable: a-routes
+// match: /1
+// delegate: 1-routes
+// match: /2
+// delegate: 2-routes
+// ---
+// routeTable: 1-routes
+// match: /foo
+// destination: foo-svc
+// match: /bar
+// destination: bar-svc
+// ----
+// routeTable: 2-routes
+// match: /baz
+// destination: baz-svc
+// match: /qux
+// destination: qux-svc
+// ```
+//
+//
+// ```yaml
+// apiVersion: gateway.solo.io/v1
+// kind: VirtualService
+// metadata:
+//   name: 'any'
+//   namespace: 'any'
+// spec:
+//   virtualHost:
+//     domains:
+//     - 'any.com'
+//     routes:
+//     - matcher:
+//         prefix: '/a'
+//       delegateAction:
+//         name: 'a-routes'
+//         namespace: 'a'
+// ```
+//
+// ```yaml
+// apiVersion: gateway.solo.io/v1
+// kind: RouteTable
+// metadata:
+//   name: 'a-routes'
+//   namespace: 'a'
+// spec:
+//   routes:
+//     - matcher:
+//         prefix: '/1'
+//       delegateAction:
+//         name: 'one-routes'
+//         namespace: 'one'
+//     - matcher:
+//         prefix: '/2'
+//       delegateAction:
+//         name: 'two-routes'
+//         namespace: 'two'
+// ```
+//
+// ```yaml
+// apiVersion: gateway.solo.io/v1
+// kind: RouteTable
+// metadata:
+//   name: 'one-routes'
+//   namespace: 'one'
+// spec:
+//   routes:
+//     - matcher:
+//         prefix: '/foo'
+//       routeAction:
+//         single:
+//           upstream:
+//             name: 'foo-upstream'
+//     - matcher:
+//         prefix: '/bar'
+//       routeAction:
+//         single:
+//           upstream:
+//             name: 'bar-upstream'
+// ```
+//
+// ```yaml
+// apiVersion: gateway.solo.io/v1
+// kind: RouteTable
+// metadata:
+//   name: 'two-routes'
+//   namespace: 'two'
+// spec:
+//   routes:
+//     - matcher:
+//         prefix: '/baz'
+//       routeAction:
+//         single:
+//           upstream:
+//             name: 'baz-upstream'
+//     - matcher:
+//         prefix: '/qux'
+//       routeAction:
+//         single:
+//           upstream:
+//             name: 'qux-upstream'
+// ```
+//
+//
+// Would produce the following route config for `mydomain.com`:
+//
+// ```
+// /a/1/foo -> foo-svc
+// /a/1/bar -> bar-svc
+// /a/2/baz -> baz-svc
+// /a/2/qux -> qux-svc
+// ```
+//
+type Route struct {
+	// The matcher contains parameters for matching requests (i.e.: based on HTTP path, headers, etc.)
+	// For delegated routes, the matcher must contain only a `prefix` path matcher and no other config
+	Matcher *v1.Matcher `protobuf:"bytes,1,opt,name=matcher,proto3" json:"matcher,omitempty"`
+	// The Route Action Defines what action the proxy should take when a request matches the route.
+	//
+	// Types that are valid to be assigned to Action:
+	//	*Route_RouteAction
+	//	*Route_RedirectAction
+	//	*Route_DirectResponseAction
+	//	*Route_DelegateAction
+	Action isRoute_Action `protobuf_oneof:"action"`
+	// Route Plugins extend the behavior of routes.
+	// Route plugins include configuration such as retries, rate limiting, and request/response transformation.
+	// RoutePlugin behavior will be inherited by delegated routes which do not specify their own `routePlugins`
+	RoutePlugins         *v1.RoutePlugins `protobuf:"bytes,6,opt,name=route_plugins,json=routePlugins,proto3" json:"route_plugins,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *Route) Reset()         { *m = Route{} }
+func (m *Route) String() string { return proto.CompactTextString(m) }
+func (*Route) ProtoMessage()    {}
+func (*Route) Descriptor() ([]byte, []int) {
+	return fileDescriptor_93fa9472926a2049, []int{2}
+}
+func (m *Route) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Route.Unmarshal(m, b)
+}
+func (m *Route) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Route.Marshal(b, m, deterministic)
+}
+func (m *Route) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Route.Merge(m, src)
+}
+func (m *Route) XXX_Size() int {
+	return xxx_messageInfo_Route.Size(m)
+}
+func (m *Route) XXX_DiscardUnknown() {
+	xxx_messageInfo_Route.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Route proto.InternalMessageInfo
+
+type isRoute_Action interface {
+	isRoute_Action()
+	Equal(interface{}) bool
+}
+
+type Route_RouteAction struct {
+	RouteAction *v1.RouteAction `protobuf:"bytes,2,opt,name=route_action,json=routeAction,proto3,oneof"`
+}
+type Route_RedirectAction struct {
+	RedirectAction *v1.RedirectAction `protobuf:"bytes,3,opt,name=redirect_action,json=redirectAction,proto3,oneof"`
+}
+type Route_DirectResponseAction struct {
+	DirectResponseAction *v1.DirectResponseAction `protobuf:"bytes,4,opt,name=direct_response_action,json=directResponseAction,proto3,oneof"`
+}
+type Route_DelegateAction struct {
+	DelegateAction *core.ResourceRef `protobuf:"bytes,5,opt,name=delegate_action,json=delegateAction,proto3,oneof"`
+}
+
+func (*Route_RouteAction) isRoute_Action()          {}
+func (*Route_RedirectAction) isRoute_Action()       {}
+func (*Route_DirectResponseAction) isRoute_Action() {}
+func (*Route_DelegateAction) isRoute_Action()       {}
+
+func (m *Route) GetAction() isRoute_Action {
+	if m != nil {
+		return m.Action
+	}
+	return nil
+}
+
+func (m *Route) GetMatcher() *v1.Matcher {
+	if m != nil {
+		return m.Matcher
+	}
+	return nil
+}
+
+func (m *Route) GetRouteAction() *v1.RouteAction {
+	if x, ok := m.GetAction().(*Route_RouteAction); ok {
+		return x.RouteAction
+	}
+	return nil
+}
+
+func (m *Route) GetRedirectAction() *v1.RedirectAction {
+	if x, ok := m.GetAction().(*Route_RedirectAction); ok {
+		return x.RedirectAction
+	}
+	return nil
+}
+
+func (m *Route) GetDirectResponseAction() *v1.DirectResponseAction {
+	if x, ok := m.GetAction().(*Route_DirectResponseAction); ok {
+		return x.DirectResponseAction
+	}
+	return nil
+}
+
+func (m *Route) GetDelegateAction() *core.ResourceRef {
+	if x, ok := m.GetAction().(*Route_DelegateAction); ok {
+		return x.DelegateAction
+	}
+	return nil
+}
+
+func (m *Route) GetRoutePlugins() *v1.RoutePlugins {
+	if m != nil {
+		return m.RoutePlugins
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Route) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*Route_RouteAction)(nil),
+		(*Route_RedirectAction)(nil),
+		(*Route_DirectResponseAction)(nil),
+		(*Route_DelegateAction)(nil),
+	}
+}
+
 func init() {
 	proto.RegisterType((*VirtualService)(nil), "gateway.solo.io.VirtualService")
+	proto.RegisterType((*VirtualHost)(nil), "gateway.solo.io.VirtualHost")
+	proto.RegisterType((*Route)(nil), "gateway.solo.io.Route")
 }
 
 func init() {
@@ -113,32 +540,47 @@ func init() {
 }
 
 var fileDescriptor_93fa9472926a2049 = []byte{
-	// 399 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xcf, 0xae, 0xd2, 0x40,
-	0x14, 0xc6, 0x2d, 0x36, 0xe8, 0x1d, 0x6e, 0xfc, 0x33, 0xb9, 0xd1, 0xde, 0xbb, 0x00, 0xc2, 0x46,
-	0x36, 0x76, 0x82, 0x24, 0x04, 0x89, 0xab, 0x1a, 0xa3, 0x1b, 0x5d, 0x94, 0xc4, 0x85, 0x1b, 0x32,
-	0x94, 0x61, 0x18, 0x69, 0x39, 0x4d, 0xcf, 0x50, 0x65, 0x67, 0x78, 0x1a, 0x1f, 0xc5, 0xb5, 0x0f,
-	0xc0, 0xc2, 0x37, 0xc0, 0x27, 0x30, 0x9d, 0x4e, 0x25, 0x18, 0x93, 0x0b, 0xab, 0x99, 0x93, 0xef,
-	0xfc, 0xbe, 0x93, 0x7c, 0xe7, 0x90, 0x37, 0x52, 0xe9, 0xc5, 0x7a, 0xea, 0x47, 0x90, 0x30, 0x84,
-	0x18, 0x9e, 0x2b, 0x60, 0x32, 0x06, 0x60, 0x69, 0x06, 0x9f, 0x45, 0xa4, 0x91, 0x49, 0xae, 0xc5,
-	0x17, 0xbe, 0x61, 0x3c, 0x55, 0x2c, 0xef, 0xb1, 0x5c, 0x65, 0x7a, 0xcd, 0xe3, 0x09, 0x8a, 0x2c,
-	0x57, 0x91, 0xf0, 0xd3, 0x0c, 0x34, 0xd0, 0x87, 0xb6, 0xcb, 0x2f, 0x3c, 0x7c, 0x05, 0x37, 0x57,
-	0x12, 0x24, 0x18, 0x8d, 0x15, 0xbf, 0xb2, 0xed, 0xa6, 0xf7, 0x9f, 0x69, 0xe6, 0x5d, 0x2a, 0x5d,
-	0x0d, 0x48, 0x84, 0xe6, 0x33, 0xae, 0xb9, 0x45, 0xd8, 0x09, 0x08, 0x6a, 0xae, 0xd7, 0x78, 0xc6,
-	0x8c, 0xaa, 0xb6, 0xc8, 0xe0, 0xf6, 0x10, 0x8a, 0xaa, 0x82, 0x31, 0xb6, 0xdc, 0xf0, 0x2c, 0x2e,
-	0xcd, 0xe0, 0xeb, 0xa6, 0x24, 0x3b, 0x3f, 0x6b, 0xe4, 0xc1, 0xc7, 0x32, 0xc9, 0x71, 0x19, 0x24,
-	0x7d, 0x45, 0x2e, 0xab, 0x6c, 0x17, 0x80, 0xda, 0x73, 0xda, 0x4e, 0xb7, 0xf1, 0xe2, 0xda, 0x2f,
-	0x2c, 0xaa, 0x58, 0x7d, 0xcb, 0xbc, 0x03, 0xd4, 0x61, 0x23, 0x3f, 0x14, 0x74, 0x40, 0x08, 0x62,
-	0x3c, 0x89, 0x60, 0x35, 0x57, 0xd2, 0xab, 0x19, 0xf6, 0xe9, 0x31, 0x3b, 0xc6, 0xf8, 0xb5, 0x91,
-	0xc3, 0x0b, 0xac, 0xbe, 0xf4, 0x19, 0xb9, 0x9c, 0x29, 0x4c, 0x63, 0xbe, 0x99, 0xac, 0x78, 0x22,
-	0xbc, 0xbb, 0x6d, 0xa7, 0x7b, 0x11, 0xb8, 0xdf, 0xf6, 0xae, 0x13, 0x36, 0xac, 0xf2, 0x81, 0x27,
-	0x82, 0xbe, 0x25, 0xf5, 0x32, 0x66, 0xaf, 0x6e, 0xcc, 0xaf, 0xfc, 0x08, 0x32, 0x71, 0x30, 0x37,
-	0x5a, 0x70, 0xfd, 0x63, 0xd7, 0xba, 0xf3, 0x7b, 0xd7, 0x7a, 0xac, 0x05, 0xea, 0x99, 0x9a, 0xcf,
-	0x47, 0x1d, 0x25, 0x57, 0x90, 0x89, 0x4e, 0x68, 0x71, 0x3a, 0x24, 0xf7, 0xab, 0x15, 0x7b, 0xf7,
-	0x8c, 0xd5, 0x93, 0x63, 0xab, 0xf7, 0x56, 0x0d, 0xdc, 0xc2, 0x2c, 0xfc, 0xdb, 0x3d, 0x6a, 0x6e,
-	0xf7, 0xae, 0x4b, 0x6a, 0x39, 0x6e, 0xf7, 0x2e, 0xa5, 0x8f, 0xfe, 0xb9, 0x44, 0x0c, 0x5e, 0x7e,
-	0xff, 0xd5, 0x74, 0x3e, 0xf5, 0x4f, 0xbe, 0xe8, 0x74, 0x29, 0xed, 0x6e, 0xa6, 0x75, 0xb3, 0x96,
-	0xfe, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x98, 0xcc, 0x82, 0x70, 0x0f, 0x03, 0x00, 0x00,
+	// 639 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0xc1, 0x4e, 0xd4, 0x40,
+	0x18, 0xa6, 0xdb, 0xb2, 0xc0, 0x2c, 0x82, 0x4e, 0x56, 0x2c, 0xc4, 0xc0, 0xa6, 0x17, 0x39, 0x68,
+	0x1b, 0x24, 0x21, 0xc8, 0x41, 0xe2, 0x8a, 0x81, 0x0b, 0xc6, 0x0c, 0x89, 0x07, 0x2e, 0x9b, 0xa1,
+	0x9d, 0x2d, 0x23, 0x6d, 0xa7, 0x99, 0x99, 0x56, 0xb9, 0x19, 0x9e, 0xc6, 0xc4, 0xc4, 0xe7, 0xf0,
+	0x05, 0xbc, 0x72, 0xf0, 0x0d, 0xf0, 0x09, 0x4c, 0xa7, 0x33, 0x0b, 0xc5, 0x4d, 0xdc, 0x3d, 0x6d,
+	0xff, 0xf9, 0xbf, 0xef, 0x9b, 0x7f, 0xbf, 0xef, 0x6f, 0xc1, 0xbb, 0x98, 0xca, 0xf3, 0xe2, 0xcc,
+	0x0f, 0x59, 0x1a, 0x08, 0x96, 0xb0, 0x17, 0x94, 0x05, 0x71, 0xc2, 0x58, 0x90, 0x73, 0xf6, 0x89,
+	0x84, 0x52, 0x04, 0x31, 0x96, 0xe4, 0x33, 0xbe, 0x0c, 0x70, 0x4e, 0x83, 0x72, 0x2b, 0x28, 0x29,
+	0x97, 0x05, 0x4e, 0x06, 0x82, 0xf0, 0x92, 0x86, 0xc4, 0xcf, 0x39, 0x93, 0x0c, 0x2e, 0x6b, 0x94,
+	0x5f, 0x69, 0xf8, 0x94, 0xad, 0x75, 0x63, 0x16, 0x33, 0xd5, 0x0b, 0xaa, 0xa7, 0x1a, 0xb6, 0xb6,
+	0x35, 0xe6, 0x36, 0xf5, 0x7b, 0x41, 0xa5, 0xb9, 0x20, 0x25, 0x12, 0x47, 0x58, 0x62, 0x4d, 0x09,
+	0x26, 0xa0, 0x08, 0x89, 0x65, 0x21, 0x34, 0xe1, 0xf9, 0x04, 0x04, 0x4e, 0x86, 0x53, 0x4c, 0x64,
+	0x6a, 0x4d, 0xd9, 0xf9, 0xbf, 0x65, 0x55, 0x65, 0xc8, 0x22, 0xd1, 0xbc, 0xdd, 0xa9, 0x78, 0x39,
+	0x67, 0x5f, 0x2e, 0x35, 0x73, 0x6f, 0x3a, 0x66, 0x52, 0xc4, 0x34, 0xd3, 0x76, 0x78, 0xbf, 0x5a,
+	0x60, 0xe9, 0x63, 0x9d, 0xd9, 0x49, 0x1d, 0x19, 0xdc, 0x07, 0x8b, 0x26, 0xc5, 0x73, 0x26, 0xa4,
+	0x6b, 0xf5, 0xac, 0xcd, 0xce, 0xcb, 0xa7, 0xfe, 0xbd, 0x0c, 0x7d, 0x4d, 0x3b, 0x62, 0x42, 0xa2,
+	0x4e, 0x79, 0x5b, 0xc0, 0x1d, 0x00, 0x84, 0x48, 0x06, 0x21, 0xcb, 0x86, 0x34, 0x76, 0x5b, 0x8a,
+	0xfe, 0xc4, 0xaf, 0x66, 0x18, 0x71, 0x4f, 0x44, 0xf2, 0x56, 0xb5, 0xd1, 0x82, 0x30, 0x8f, 0xf0,
+	0x19, 0x58, 0x8c, 0xa8, 0xc8, 0x13, 0x7c, 0x39, 0xc8, 0x70, 0x4a, 0x5c, 0xbb, 0x67, 0x6d, 0x2e,
+	0xf4, 0x9d, 0xaf, 0x37, 0x8e, 0x85, 0x3a, 0xba, 0xf3, 0x1e, 0xa7, 0x04, 0x1e, 0x82, 0x76, 0x9d,
+	0xa9, 0xdb, 0x56, 0xe2, 0x5d, 0x3f, 0x64, 0x9c, 0xdc, 0x8a, 0xab, 0x5e, 0x7f, 0xf5, 0xe7, 0xf5,
+	0xc6, 0xcc, 0x9f, 0xeb, 0x8d, 0x47, 0x92, 0x08, 0x19, 0xd1, 0xe1, 0x70, 0xcf, 0xa3, 0x71, 0xc6,
+	0x38, 0xf1, 0x90, 0xa6, 0xc3, 0x5d, 0x30, 0x6f, 0xf6, 0xc9, 0x9d, 0x53, 0x52, 0x2b, 0x4d, 0xa9,
+	0x63, 0xdd, 0xed, 0x3b, 0x95, 0x18, 0x1a, 0xa1, 0xf7, 0xd6, 0xaf, 0x6e, 0x1c, 0x07, 0xb4, 0x4a,
+	0x71, 0x75, 0xe3, 0x40, 0xf8, 0xf0, 0xde, 0xda, 0x0b, 0xef, 0xbb, 0x05, 0x3a, 0x77, 0x0c, 0x82,
+	0x2e, 0x98, 0x8b, 0x58, 0x8a, 0x69, 0x26, 0xdc, 0x56, 0xcf, 0xde, 0x5c, 0x40, 0xa6, 0x84, 0x3e,
+	0x68, 0x73, 0x56, 0x48, 0x22, 0x5c, 0xbb, 0x67, 0xab, 0x09, 0xee, 0x1b, 0x8d, 0xaa, 0x36, 0xd2,
+	0x28, 0x88, 0x40, 0xf7, 0x6e, 0x3c, 0x03, 0x9d, 0xa7, 0xeb, 0xa8, 0xf9, 0x7b, 0x4d, 0x9f, 0xef,
+	0x8c, 0xf0, 0xa1, 0xc6, 0x21, 0x58, 0xfe, 0x73, 0xe6, 0xfd, 0xb0, 0xc1, 0xac, 0xba, 0x05, 0x06,
+	0x60, 0x2e, 0xc5, 0x32, 0x3c, 0x27, 0x5c, 0xe7, 0xfe, 0xb8, 0x29, 0x78, 0x5c, 0x37, 0x91, 0x41,
+	0xc1, 0xd7, 0x60, 0x51, 0x0d, 0x36, 0xc0, 0xa1, 0xa4, 0x2c, 0xd3, 0x71, 0xaf, 0x36, 0x59, 0x4a,
+	0xfb, 0x8d, 0x02, 0x1c, 0xcd, 0xa0, 0x0e, 0xbf, 0x2d, 0xe1, 0x21, 0x58, 0xe6, 0x24, 0xa2, 0x9c,
+	0x84, 0xd2, 0x48, 0xd8, 0x66, 0xe1, 0x1a, 0x12, 0x1a, 0x34, 0x52, 0x59, 0xe2, 0x8d, 0x13, 0x78,
+	0x0a, 0x56, 0xb4, 0x0c, 0x27, 0x22, 0x67, 0x99, 0x18, 0x8d, 0x54, 0x3b, 0xe3, 0x35, 0xf5, 0x0e,
+	0x14, 0x16, 0x69, 0xe8, 0x48, 0xb5, 0x1b, 0x8d, 0x39, 0x87, 0x07, 0x60, 0x39, 0x22, 0x09, 0xa9,
+	0x82, 0x31, 0xa2, 0xb3, 0xfa, 0x7f, 0x36, 0xd6, 0x05, 0x11, 0xc1, 0x0a, 0x1e, 0x12, 0x44, 0x86,
+	0xd5, 0x84, 0x86, 0xa3, 0x55, 0xf6, 0xc1, 0x83, 0xda, 0x2a, 0x13, 0x59, 0xbd, 0xbd, 0x6b, 0x63,
+	0xbc, 0x32, 0x61, 0xd5, 0xde, 0xea, 0xaa, 0x3f, 0x0f, 0xda, 0xf5, 0xed, 0xfd, 0x57, 0xdf, 0x7e,
+	0xaf, 0x5b, 0xa7, 0xdb, 0x13, 0x7f, 0x9d, 0xf3, 0x8b, 0x58, 0xbf, 0xff, 0x67, 0x6d, 0xf5, 0xe2,
+	0x6f, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x81, 0xce, 0xe9, 0x1c, 0xdb, 0x05, 0x00, 0x00,
 }
 
 func (this *VirtualService) Equal(that interface{}) bool {
@@ -176,6 +618,184 @@ func (this *VirtualService) Equal(that interface{}) bool {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VirtualHost) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualHost)
+	if !ok {
+		that2, ok := that.(VirtualHost)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.Domains) != len(that1.Domains) {
+		return false
+	}
+	for i := range this.Domains {
+		if this.Domains[i] != that1.Domains[i] {
+			return false
+		}
+	}
+	if len(this.Routes) != len(that1.Routes) {
+		return false
+	}
+	for i := range this.Routes {
+		if !this.Routes[i].Equal(that1.Routes[i]) {
+			return false
+		}
+	}
+	if !this.VirtualHostPlugins.Equal(that1.VirtualHostPlugins) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *Route) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Route)
+	if !ok {
+		that2, ok := that.(Route)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Matcher.Equal(that1.Matcher) {
+		return false
+	}
+	if that1.Action == nil {
+		if this.Action != nil {
+			return false
+		}
+	} else if this.Action == nil {
+		return false
+	} else if !this.Action.Equal(that1.Action) {
+		return false
+	}
+	if !this.RoutePlugins.Equal(that1.RoutePlugins) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *Route_RouteAction) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Route_RouteAction)
+	if !ok {
+		that2, ok := that.(Route_RouteAction)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.RouteAction.Equal(that1.RouteAction) {
+		return false
+	}
+	return true
+}
+func (this *Route_RedirectAction) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Route_RedirectAction)
+	if !ok {
+		that2, ok := that.(Route_RedirectAction)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.RedirectAction.Equal(that1.RedirectAction) {
+		return false
+	}
+	return true
+}
+func (this *Route_DirectResponseAction) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Route_DirectResponseAction)
+	if !ok {
+		that2, ok := that.(Route_DirectResponseAction)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.DirectResponseAction.Equal(that1.DirectResponseAction) {
+		return false
+	}
+	return true
+}
+func (this *Route_DelegateAction) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Route_DelegateAction)
+	if !ok {
+		that2, ok := that.(Route_DelegateAction)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.DelegateAction.Equal(that1.DelegateAction) {
 		return false
 	}
 	return true

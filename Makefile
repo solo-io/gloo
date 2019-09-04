@@ -125,6 +125,7 @@ MOCK_RESOURCE_INFO := \
 	gloo:upstream:UpstreamClient \
 	gateway:gateway:GatewayClient \
 	gateway:virtual_service:VirtualServiceClient\
+	gateway:route_table:RouteTableClient\
 
 # Use gomock (https://github.com/golang/mock) to generate mocks for our resource clients.
 .PHONY: generate-client-mocks

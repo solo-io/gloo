@@ -51,9 +51,9 @@ var _ = Describe("Translator", func() {
 				VirtualServices: v1.VirtualServiceList{
 					{
 						Metadata: core.Metadata{Namespace: ns, Name: "name1"},
-						VirtualHost: &gloov1.VirtualHost{
+						VirtualHost: &v1.VirtualHost{
 							Domains: []string{"d1.com"},
-							Routes: []*gloov1.Route{
+							Routes: []*v1.Route{
 								{
 									Matcher: &gloov1.Matcher{
 										PathSpecifier: &gloov1.Matcher_Prefix{
@@ -66,9 +66,9 @@ var _ = Describe("Translator", func() {
 					},
 					{
 						Metadata: core.Metadata{Namespace: ns, Name: "name2"},
-						VirtualHost: &gloov1.VirtualHost{
+						VirtualHost: &v1.VirtualHost{
 							Domains: []string{"d2.com"},
-							Routes: []*gloov1.Route{
+							Routes: []*v1.Route{
 								{
 									Matcher: &gloov1.Matcher{
 										PathSpecifier: &gloov1.Matcher_Prefix{
@@ -205,9 +205,9 @@ var _ = Describe("Translator", func() {
 				VirtualServices: v1.VirtualServiceList{
 					{
 						Metadata: core.Metadata{Namespace: ns, Name: "name1"},
-						VirtualHost: &gloov1.VirtualHost{
+						VirtualHost: &v1.VirtualHost{
 							Domains: []string{"d1.com"},
-							Routes: []*gloov1.Route{
+							Routes: []*v1.Route{
 								{
 									Matcher: &gloov1.Matcher{
 										PathSpecifier: &gloov1.Matcher_Prefix{
@@ -220,9 +220,9 @@ var _ = Describe("Translator", func() {
 					},
 					{
 						Metadata: core.Metadata{Namespace: ns, Name: "name2"},
-						VirtualHost: &gloov1.VirtualHost{
+						VirtualHost: &v1.VirtualHost{
 							Domains: []string{"d2.com"},
-							Routes: []*gloov1.Route{
+							Routes: []*v1.Route{
 								{
 									Matcher: &gloov1.Matcher{
 										PathSpecifier: &gloov1.Matcher_Prefix{

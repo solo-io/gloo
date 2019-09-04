@@ -789,17 +789,16 @@ var _ = Describe("Kube2e: gateway", func() {
 					Name:      "vs",
 					Namespace: testHelper.InstallNamespace,
 				},
-				VirtualHost: &gloov1.VirtualHost{
-					Name:    "default",
+				VirtualHost: &gatewayv1.VirtualHost{
 					Domains: []string{"*"},
-					Routes: []*gloov1.Route{
+					Routes: []*gatewayv1.Route{
 						{
 							Matcher: &gloov1.Matcher{
 								PathSpecifier: &gloov1.Matcher_Prefix{
 									Prefix: "/red",
 								},
 							},
-							Action: &gloov1.Route_RouteAction{
+							Action: &gatewayv1.Route_RouteAction{
 								RouteAction: &gloov1.RouteAction{
 									Destination: &gloov1.RouteAction_Single{
 										Single: &gloov1.Destination{
@@ -819,7 +818,7 @@ var _ = Describe("Kube2e: gateway", func() {
 									Prefix: "/",
 								},
 							},
-							Action: &gloov1.Route_RouteAction{
+							Action: &gatewayv1.Route_RouteAction{
 								RouteAction: &gloov1.RouteAction{
 									Destination: &gloov1.RouteAction_UpstreamGroup{
 										UpstreamGroup: &ugref,
@@ -915,17 +914,16 @@ func getVirtualService(dest *gloov1.Destination, sslConfig *gloov1.SslConfig) *g
 			Namespace: testHelper.InstallNamespace,
 		},
 		SslConfig: sslConfig,
-		VirtualHost: &gloov1.VirtualHost{
-			Name:    "default",
+		VirtualHost: &gatewayv1.VirtualHost{
 			Domains: []string{"*"},
 
-			Routes: []*gloov1.Route{{
+			Routes: []*gatewayv1.Route{{
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/",
 					},
 				},
-				Action: &gloov1.Route_RouteAction{
+				Action: &gatewayv1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
 							Single: dest,

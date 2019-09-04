@@ -10,6 +10,11 @@
         "version": "v1"
       },
       {
+        "name": "RouteTable",
+        "package": "gateway.solo.io",
+        "version": "v1"
+      },
+      {
         "name": "Gateway",
         "package": "gateway.solo.io.v2"
       }
