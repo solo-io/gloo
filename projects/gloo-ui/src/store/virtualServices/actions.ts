@@ -356,7 +356,12 @@ export const listVirtualServices = (
         payload: response.virtualServiceDetailsList!
       });
       dispatch(hideLoading());
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error retrieving virtual services.',
+        content: error.message
+      });
+    }
   };
 };
 
@@ -401,6 +406,10 @@ export const updateVirtualServiceYaml = (
       dispatch(hideLoading());
     } catch (error) {
       //handle error
+      warning({
+        title: 'There was an error updating the virtual service.',
+        content: error.message
+      });
     }
   };
 };

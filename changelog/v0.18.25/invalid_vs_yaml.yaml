@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Show error modal when user makes invalid updates to the raw yaml.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1059
