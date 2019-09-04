@@ -13,10 +13,13 @@ import {
   GetOAuthEndpointAction,
   GetIsLicenseValidAction,
   GetPodNamespaceAction,
-  UpdateSettingsAction
+  UpdateSettingsAction,
+  UpdateWatchNamespacesAction,
+  UpdateRefreshRateAction
 } from './types';
 import { Modal } from 'antd';
 import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 const { warning } = Modal;
 
 export const getVersion = () => {
@@ -38,11 +41,12 @@ export const getSettings = () => {
       const response = await config.getSettings();
       dispatch<GetSettingsAction>({
         type: ConfigAction.GET_SETTINGS,
-        payload: response.settings!
+        payload: response.toObject().settings!
       });
     } catch (error) {}
   };
 };
+
 export const listNamespaces = () => {
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
@@ -93,8 +97,61 @@ export const getPodNamespace = () => {
     } catch (error) {}
   };
 };
+
+export const updateWatchNamespaces = (updateWatchNamespacesRequest: {
+  watchNamespacesList: string[];
+}) => {
+  return async (dispatch: Dispatch) => {
+    dispatch(showLoading());
+    try {
+      const response = await config.updateWatchNamespaces(
+        updateWatchNamespacesRequest
+      );
+      dispatch<UpdateWatchNamespacesAction>({
+        type: ConfigAction.UPDATE_WATCH_NAMESPACES,
+        payload: response.settings!
+      });
+      dispatch(hideLoading());
+      dispatch<SuccessMessageAction>({
+        type: MessageAction.SUCCESS_MESSAGE,
+        message: 'Watched namespaces successfully updated.'
+      });
+    } catch (error) {
+      warning({
+        title: 'There was an error updating watched namespaces.',
+        content: error.message
+      });
+    }
+  };
+};
+
+export const updateRefreshRate = (updateRefreshRateRequest: {
+  refreshRate: Duration.AsObject;
+}) => {
+  return async (dispatch: Dispatch) => {
+    dispatch(showLoading());
+    try {
+      const response = await config.updateRefreshRate(updateRefreshRateRequest);
+      dispatch<UpdateRefreshRateAction>({
+        type: ConfigAction.UPDATE_REFRESH_RATE,
+        payload: response.settings!
+      });
+      dispatch(hideLoading());
+      dispatch<SuccessMessageAction>({
+        type: MessageAction.SUCCESS_MESSAGE,
+        message: 'Refresh rate successfully updated.'
+      });
+    } catch (error) {
+      warning({
+        title: 'There was an error updating refresh rate.',
+        content: error.message
+      });
+    }
+  };
+};
+
 export const updateSettings = (
-  updateSettingsRequest: UpdateSettingsRequest.AsObject
+  updateSettingsRequest: UpdateSettingsRequest
 ) => {
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());

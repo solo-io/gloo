@@ -19,6 +19,7 @@ import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -56,10 +57,65 @@ function getOAuthEndpoint(): Promise<GetOAuthEndpointResponse.AsObject> {
     });
   });
 }
-function getSettings(): Promise<GetSettingsResponse.AsObject> {
+function getSettings(): Promise<GetSettingsResponse> {
   return new Promise((resolve, reject) => {
-    let request = new GetOAuthEndpointRequest();
+    let request = new GetSettingsRequest();
     client.getSettings(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!);
+      }
+    });
+  });
+}
+
+function updateWatchNamespaces(updateWatchNamespacesRequest: {
+  watchNamespacesList: string[];
+}): Promise<UpdateSettingsResponse.AsObject> {
+  return new Promise(async (resolve, reject) => {
+    let currentSettingsReq = await config.getSettings();
+    let settingsToUpdate = currentSettingsReq.getSettings();
+    let request = new UpdateSettingsRequest();
+    let { watchNamespacesList } = updateWatchNamespacesRequest;
+    if (settingsToUpdate !== undefined) {
+      settingsToUpdate.setWatchNamespacesList(watchNamespacesList);
+
+      request.setSettings(settingsToUpdate);
+    }
+    client.updateSettings(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+function updateRefreshRate(updateRefreshRateRequest: {
+  refreshRate: Duration.AsObject;
+}): Promise<UpdateSettingsResponse.AsObject> {
+  return new Promise(async (resolve, reject) => {
+    let currentSettingsReq = await config.getSettings();
+    let settingsToUpdate = currentSettingsReq.getSettings();
+    let newRefreshRate = new Duration();
+    newRefreshRate.setNanos(updateRefreshRateRequest.refreshRate.nanos);
+    newRefreshRate.setSeconds(updateRefreshRateRequest.refreshRate.seconds);
+
+    let updateSettingsRequest = new UpdateSettingsRequest();
+    if (settingsToUpdate !== undefined) {
+      settingsToUpdate.setRefreshRate(newRefreshRate);
+      updateSettingsRequest.setSettings(settingsToUpdate);
+    }
+
+    client.updateSettings(updateSettingsRequest, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -73,20 +129,10 @@ function getSettings(): Promise<GetSettingsResponse.AsObject> {
 }
 
 function updateSettings(
-  updateSettingsRequest: UpdateSettingsRequest.AsObject
+  updateSettingsRequest: UpdateSettingsRequest
 ): Promise<UpdateSettingsResponse.AsObject> {
-  return new Promise((resolve, reject) => {
-    let request = new UpdateSettingsRequest();
-    let settingsRef = new ResourceRef();
-    settingsRef.setName(updateSettingsRequest.ref!.name);
-    settingsRef.setNamespace(updateSettingsRequest.ref!.namespace);
-    request.setRef(settingsRef);
-    let duration = new Duration();
-    duration.setSeconds(updateSettingsRequest.refreshRate!.seconds);
-    duration.setNanos(updateSettingsRequest.refreshRate!.nanos);
-    request.setRefreshRate(duration);
-    request.setWatchNamespacesList(updateSettingsRequest.watchNamespacesList);
-    client.updateSettings(request, (error, data) => {
+  return new Promise(async (resolve, reject) => {
+    client.updateSettings(updateSettingsRequest, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -154,5 +200,7 @@ export const config = {
   updateSettings,
   getIsLicenseValid,
   listNamespaces,
-  getPodNamespace
+  getPodNamespace,
+  updateRefreshRate,
+  updateWatchNamespaces
 };

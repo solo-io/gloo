@@ -10,6 +10,8 @@ export enum ConfigAction {
   GET_IS_LICENSE_VALID = 'GET_IS_LICENSE_VALID',
   GET_SETTINGS = 'GET_SETTINGS',
   UPDATE_SETTINGS = 'UPDATE_SETTINGS',
+  UPDATE_WATCH_NAMESPACES = 'UPDATE_WATCH_NAMESPACES',
+  UPDATE_REFRESH_RATE = 'UPDATE_REFRESH_RATE',
   LIST_NAMESPACES = 'LIST_NAMESPACES',
   GET_POD_NAMESPACE = 'GET_POD_NAMESPACE'
 }
@@ -44,6 +46,16 @@ export interface UpdateSettingsAction {
   payload: Settings.AsObject;
 }
 
+export interface UpdateWatchNamespacesAction {
+  type: typeof ConfigAction.UPDATE_WATCH_NAMESPACES;
+  payload: Settings.AsObject;
+}
+
+export interface UpdateRefreshRateAction {
+  type: typeof ConfigAction.UPDATE_REFRESH_RATE;
+  payload: Settings.AsObject;
+}
+
 export interface GetPodNamespaceAction {
   type: typeof ConfigAction.GET_POD_NAMESPACE;
   payload: string;
@@ -56,4 +68,6 @@ export type ConfigActionTypes =
   | GetIsLicenseValidAction
   | GetVersionAction
   | UpdateSettingsAction
+  | UpdateWatchNamespacesAction
+  | UpdateRefreshRateAction
   | GetPodNamespaceAction;

@@ -150,6 +150,7 @@ export const StringCardsList = (props: StringCardsListProps) => {
           {asTypeahead ? (
             <SoloTypeahead
               placeholder={createNewPromptText}
+              defaultValue={createNewPromptText}
               onChange={value => setNewValue(value)}
               presetOptions={presetOptions!.map(pO => {
                 return { value: pO };

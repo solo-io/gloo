@@ -3,13 +3,17 @@ import { InputNumber } from 'antd';
 import { ReactComponent as RelatedCircles } from 'assets/related-circles.svg';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { StringCardsList } from 'Components/Common/StringCardsList';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';
-import { getSettings, updateSettings } from 'store/config/actions';
+import {
+  getSettings,
+  updateRefreshRate,
+  updateWatchNamespaces
+} from 'store/config/actions';
 import { colors } from 'Styles';
 import { css } from '@emotion/core';
+import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 
 interface Props {}
 
@@ -81,78 +85,74 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
 // TODO: consolidate update functions to avoid repetition
 export const WatchedNamespacesPage = (props: Props) => {
   const dispatch = useDispatch();
-  const { namespacesList, settings } = useSelector(
-    (store: AppState) => store.config
+  const { namespacesList } = useSelector((store: AppState) => store.config);
+
+  const settings = useSelector((state: AppState) => state.config.settings);
+  const currentRefreshRate = useSelector(
+    (state: AppState) => state.config.settings.refreshRate
+  );
+  const watchNamespacesList = useSelector(
+    (state: AppState) => state.config.settings.watchNamespacesList
   );
 
   const [availableNS, setAvailableNS] = React.useState(namespacesList);
+
+  const [refreshRateSeconds, setRefreshRateSeconds] = React.useState(
+    () => settings.refreshRate!.seconds || 1
+  );
+  const [refreshRateNanos, setRefreshRateNanos] = React.useState(
+    () => settings.refreshRate!.seconds || 0
+  );
+
+  React.useEffect(() => {
+    if (currentRefreshRate) {
+      setRefreshRateSeconds(currentRefreshRate!.seconds);
+      setRefreshRateNanos(currentRefreshRate!.nanos);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (!settings) {
       dispatch(getSettings());
     }
-  }, [settings]);
-
-  const [refreshRateSeconds, setRefreshRateSeconds] = React.useState(() =>
-    settings && settings.refreshRate ? settings!.refreshRate!.seconds : 1
-  );
-  const [refreshRateNanos, setRefreshRateNanos] = React.useState(() =>
-    settings && settings.refreshRate ? settings!.refreshRate!.nanos : 0
-  );
-
-  const [watchedNamespacesList, setWatchedNamespacesList] = React.useState<
-    string[]
-  >(settings.watchNamespacesList);
-
-  React.useEffect(() => {
-    if (settings && settings.refreshRate) {
-      const { watchNamespacesList, refreshRate } = settings!;
-      setWatchedNamespacesList(watchNamespacesList);
-      setRefreshRateSeconds(refreshRate!.seconds);
-      setRefreshRateNanos(settings!.refreshRate!.nanos);
-    }
-  }, [settings]);
+  }, [settings.refreshRate, settings.watchNamespacesList]);
 
   React.useEffect(() => {
     setAvailableNS(
-      namespacesList.filter(ns => !watchedNamespacesList.includes(ns))
+      namespacesList.filter(ns => !watchNamespacesList.includes(ns))
     );
-  }, [watchedNamespacesList]);
+  }, [watchNamespacesList]);
 
-  if (!watchedNamespacesList) {
+  if (!watchNamespacesList) {
     return <div>Loading...</div>;
   }
 
   const addNamespace = (newNamespace: string) => {
-    const newArray = [...watchedNamespacesList];
+    const newArray = [...watchNamespacesList];
     newArray.push(newNamespace);
-    setWatchedNamespacesList(newArray);
-    dispatch(updateSettings({ ...settings, watchNamespacesList: newArray }));
+    dispatch(updateWatchNamespaces({ watchNamespacesList: newArray }));
   };
 
   const removeNamespace = (removeIndex: number) => {
-    if (watchedNamespacesList.length > 1) {
-      let newList = [...watchedNamespacesList];
+    if (watchNamespacesList.length > 1) {
+      let newList = [...watchNamespacesList];
       newList.splice(removeIndex, 1);
       // setWatchedNamespacesList(newList);
-      dispatch(updateSettings({ ...settings, watchNamespacesList: newList }));
+      dispatch(updateWatchNamespaces({ watchNamespacesList: newList }));
     } else {
-      dispatch(updateSettings({ ...settings, watchNamespacesList: [] }));
+      dispatch(updateWatchNamespaces({ watchNamespacesList: [] }));
     }
 
     setTimeout(() => dispatch(getSettings()), 300);
   };
 
-  const updateRefreshRate = () => {
-    const duration = new Duration();
-    duration.setSeconds(refreshRateSeconds);
-    duration.setNanos(refreshRateNanos);
+  const handleUpdateRefreshRate = () => {
     dispatch(
-      updateSettings({
-        ...settings,
+      updateRefreshRate({
         refreshRate: { seconds: refreshRateSeconds, nanos: refreshRateNanos }
       })
     );
+    setTimeout(() => dispatch(getSettings()), 300);
   };
 
   return (
@@ -164,12 +164,19 @@ export const WatchedNamespacesPage = (props: Props) => {
           nanos={refreshRateNanos}
           setSeconds={setRefreshRateSeconds}
           setNanos={setRefreshRateNanos}
-          updateFn={updateRefreshRate}
+          updateFn={handleUpdateRefreshRate}
         />
       }
       logoIcon={<RelatedCircles />}>
+      {watchNamespacesList.length === 0 && (
+        <TallyContainer
+          color='blue'
+          style={{ display: 'flex', justifyContent: 'center' }}>
+          Currently watching all namespaces
+        </TallyContainer>
+      )}
       <StringCardsList
-        values={watchedNamespacesList}
+        values={watchNamespacesList}
         valueDeleted={removeNamespace}
         createNew={addNamespace}
         createNewPromptText={'watch namespace'}
