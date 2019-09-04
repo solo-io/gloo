@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/solo-io/ext-auth-plugins/api"
-	extauth "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 )
 
 // MockLoader is a mock of Loader interface

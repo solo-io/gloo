@@ -9,8 +9,8 @@ import (
 	pb_struct "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
 
 	pb_rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
-	glooee "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	solorl "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	glooee "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
+	solorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 
 	"go.uber.org/zap"
 )

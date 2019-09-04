@@ -1,8 +1,8 @@
 package configproto
 
 import (
+	server_pb_struct "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/rate-limiter/pkg/config"
-	server_pb_struct "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 )
 
 type RateLimitConfigGenerator interface {

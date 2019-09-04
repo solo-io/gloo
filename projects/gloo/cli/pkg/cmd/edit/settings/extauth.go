@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/go-utils/cliutils"
 	"github.com/solo-io/go-utils/protoutils"
@@ -16,7 +17,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 	flagutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	surveyutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
-	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/spf13/cobra"
 )

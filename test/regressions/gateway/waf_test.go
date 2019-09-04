@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
-	envoywaf "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/waf"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/waf"
+	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 

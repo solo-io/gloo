@@ -10,8 +10,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"go.uber.org/zap"
 
 	. "github.com/onsi/ginkgo"

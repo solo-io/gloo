@@ -22,11 +22,11 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CustomAuth,
   OAuth
-} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb';
 import {
   IngressRateLimit,
   RateLimit
-} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
 import {
   ExtAuthInput,
   IngressRateLimitValue,

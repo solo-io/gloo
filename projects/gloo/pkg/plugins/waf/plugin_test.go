@@ -6,11 +6,11 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	envoywaf "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/waf"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/waf"
 )
 
 var _ = Describe("waf plugin", func() {

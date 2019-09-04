@@ -23,7 +23,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/rbac/rbac.proto](https://github.com/solo-io/solo-projects/blob/master/projects/gloo/api/v1/plugins/rbac/rbac.proto)
+##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac.proto](https://github.com/solo-io/solo-projects/blob/master/projects/gloo/api/v1/plugins/rbac/rbac.proto)
 
 
 

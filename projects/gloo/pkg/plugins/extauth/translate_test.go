@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
 	"github.com/envoyproxy/go-control-plane/pkg/util"

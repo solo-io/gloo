@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
-import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
-import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
+import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb';
+import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
 import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { ExtAuth } from './ExtAuth';

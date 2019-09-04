@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"k8s.io/apimachinery/pkg/labels"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"

@@ -13,8 +13,8 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/square/go-jose.v2"
 
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/jwt"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"

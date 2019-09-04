@@ -35,7 +35,7 @@ weight: 5
 
 
 
-##### Source File: [github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto](https://github.com/solo-io/solo-projects/blob/master/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto)
+##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit.proto](https://github.com/solo-io/solo-projects/blob/master/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto)
 
 
 

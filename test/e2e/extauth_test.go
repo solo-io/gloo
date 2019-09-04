@@ -29,7 +29,7 @@ import (
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/test/services"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fgrosse/zaptest"

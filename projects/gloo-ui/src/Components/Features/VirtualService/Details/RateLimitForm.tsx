@@ -11,7 +11,7 @@ import { Formik, FormikErrors } from 'formik';
 import {
   IngressRateLimit,
   RateLimit
-} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';

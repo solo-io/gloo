@@ -8,8 +8,8 @@ import (
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 
 	"github.com/gogo/protobuf/types"
+	gloorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloorl "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
 
 /*

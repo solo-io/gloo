@@ -15,8 +15,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	configproto "github.com/solo-io/solo-projects/projects/extauth/pkg/config"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 )
 
 var _ = Describe("Config Generator", func() {

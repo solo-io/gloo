@@ -1374,7 +1374,7 @@
   version = "v0.4.4"
 
 [[projects]]
-  digest = "1:1972a6deb92ff4ccf6a92680533778562a61440374689590489e0f8894363142"
+  digest = "1:2a4609e7d9b3b702cd3850aef814395846ca87d25c0c2810449a5d4437f06e3c"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1432,7 +1432,16 @@
     "projects/gloo/cli/pkg/xdsinspection",
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
+    "projects/gloo/pkg/api/external/envoy/extauth",
+    "projects/gloo/pkg/api/external/envoy/jwt",
+    "projects/gloo/pkg/api/external/envoy/waf",
     "projects/gloo/pkg/api/v1",
+    "projects/gloo/pkg/api/v1/enterprise",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/jwt",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/rbac",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/waf",
     "projects/gloo/pkg/api/v1/plugins",
     "projects/gloo/pkg/api/v1/plugins/als",
     "projects/gloo/pkg/api/v1/plugins/aws",
@@ -1502,8 +1511,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "40e56f5316f3386b5d4bcf61e9b8a56d64acaa86"
-  version = "v0.18.30"
+  revision = "b27018fdbadf7526ebe7190cf692e66235e3e922"
+  version = "v0.18.31"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -2667,7 +2676,6 @@
     "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/envoy/type/matcher",
     "github.com/envoyproxy/go-control-plane/pkg/util",
-    "github.com/envoyproxy/protoc-gen-validate/validate",
     "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",
     "github.com/go-ldap/ldap",
@@ -2753,7 +2761,16 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/printers",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extauth",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/jwt",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws/ec2",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/azure",
@@ -2806,7 +2823,6 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
-    "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/client",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util",
     "github.com/solo-io/solo-kit/pkg/api/v1/eventloop",
@@ -2830,7 +2846,6 @@
     "go.uber.org/zap",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
-    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

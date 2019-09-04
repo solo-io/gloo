@@ -10,11 +10,11 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/ext-auth-plugins/api"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"go.uber.org/zap"
 )
 

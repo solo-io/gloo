@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"sort"
 
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
 	"github.com/solo-io/go-utils/errors"
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/api/external/envoy/jwt"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/go-utils/errors"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 

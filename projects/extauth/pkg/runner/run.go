@@ -22,8 +22,8 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
+	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	configproto "github.com/solo-io/solo-projects/projects/extauth/pkg/config"
-	xdsproto "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	plugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"

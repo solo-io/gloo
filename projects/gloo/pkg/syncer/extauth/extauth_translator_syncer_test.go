@@ -12,9 +12,9 @@ import (
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	extauth2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 

@@ -25,8 +25,8 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -36,8 +36,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 

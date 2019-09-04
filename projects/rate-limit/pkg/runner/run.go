@@ -23,8 +23,8 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/go-utils/stats"
-	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
 	"google.golang.org/grpc"
 )

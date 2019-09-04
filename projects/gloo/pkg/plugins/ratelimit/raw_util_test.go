@@ -9,7 +9,7 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/types"
-	gloorl "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	gloorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 

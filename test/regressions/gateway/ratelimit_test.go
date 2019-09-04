@@ -22,15 +22,15 @@ import (
 	"github.com/solo-io/go-utils/kubeutils"
 	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	ratelimitpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"k8s.io/client-go/rest"
 )

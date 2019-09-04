@@ -2,7 +2,7 @@ package configproto
 
 import (
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 )
 
 type ConfigGenerator interface {

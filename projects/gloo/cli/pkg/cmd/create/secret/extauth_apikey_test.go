@@ -9,11 +9,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	pluginutils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/create/secret"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/testutils"
-	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
