@@ -3,7 +3,7 @@ import {
   UpdateSettingsRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { Dispatch } from 'redux';
-import { showLoading } from 'react-redux-loading-bar';
+import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { config } from 'Api/v2/ConfigClient';
 import {
   ConfigAction,
@@ -15,6 +15,9 @@ import {
   GetPodNamespaceAction,
   UpdateSettingsAction
 } from './types';
+import { Modal } from 'antd';
+import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+const { warning } = Modal;
 
 export const getVersion = () => {
   return async (dispatch: Dispatch) => {
@@ -25,7 +28,12 @@ export const getVersion = () => {
         type: ConfigAction.GET_VERSION,
         payload: response.version
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error retrieving the version.',
+        content: error.message
+      });
+    }
   };
 };
 export const getSettings = () => {
@@ -37,7 +45,12 @@ export const getSettings = () => {
         type: ConfigAction.GET_SETTINGS,
         payload: response.settings!
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error retrieving the version.',
+        content: error.message
+      });
+    }
   };
 };
 export const listNamespaces = () => {
@@ -49,7 +62,12 @@ export const listNamespaces = () => {
         type: ConfigAction.LIST_NAMESPACES,
         payload: response.namespacesList!
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error listing the available namespaces.',
+        content: error.message
+      });
+    }
   };
 };
 
@@ -101,6 +119,16 @@ export const updateSettings = (
         type: ConfigAction.UPDATE_SETTINGS,
         payload: response.settings!
       });
-    } catch (error) {}
+      dispatch(hideLoading());
+      dispatch<SuccessMessageAction>({
+        type: MessageAction.SUCCESS_MESSAGE,
+        message: 'Settings successfully updated.'
+      });
+    } catch (error) {
+      warning({
+        title: 'There was an error updating settings.',
+        content: error.message
+      });
+    }
   };
 };

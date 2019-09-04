@@ -24,6 +24,7 @@ import { MainMenu } from './Components/Structure/MainMenu';
 import { globalStyles } from './Styles';
 import './Styles/styles.css';
 import { hot } from 'react-hot-loader/root';
+import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 
 const AppContainer = styled.div`
   display: grid;
@@ -72,9 +73,11 @@ const App = () => {
     },
     namespacesList.length > 0 ? 3000 : null
   );
-
+  const showModal = useSelector((state: AppState) => state.modal.showModal);
+  const modalMessage = useSelector((state: AppState) => state.modal.message);
   return (
     <BrowserRouter>
+      <SuccessModal visible={!!showModal} successMessage={modalMessage} />
       <Global styles={globalStyles} />
       <AppContainer>
         <MainMenu />

@@ -2,6 +2,8 @@ import { Dispatch } from 'redux';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { envoy } from 'Api/v2/EnvoyClient';
 import { ListEnvoyDetailsAction, EnvoyAction } from './types';
+import { Modal } from 'antd';
+const { warning } = Modal;
 
 export const listEnvoyDetails = () => {
   return async (dispatch: Dispatch) => {
@@ -13,6 +15,11 @@ export const listEnvoyDetails = () => {
         payload: response!.toObject().envoyDetailsList
       });
       dispatch(hideLoading());
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error retrieving envoy information.',
+        content: error.message
+      });
+    }
   };
 };

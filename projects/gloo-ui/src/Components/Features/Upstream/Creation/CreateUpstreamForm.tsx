@@ -201,7 +201,7 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     }
 
     props.toggleModal(s => !s);
-    props.history.push('/upstreams', { showSuccess: true });
+    props.history.push('/upstreams');
   }
 
   return (

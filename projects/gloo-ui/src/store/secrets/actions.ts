@@ -7,6 +7,8 @@ import { Dispatch } from 'redux';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { secrets, getCreateSecret } from 'Api/v2/SecretClient';
 import { ListSecretsAction, SecretAction, CreateSecretAction } from './types';
+import { Modal } from 'antd';
+const { warning } = Modal;
 
 export const listSecrets = (
   listSecretsRequest: ListSecretsRequest.AsObject
@@ -38,7 +40,10 @@ export const createSecret = (
         payload: response.secret!
       });
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error creating the secret.',
+        content: error.message
+      });
     }
   };
 };
@@ -55,7 +60,10 @@ export const deleteSecret = (
         payload: response
       });
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error deleting the secret',
+        content: error.message
+      });
     }
   };
 };

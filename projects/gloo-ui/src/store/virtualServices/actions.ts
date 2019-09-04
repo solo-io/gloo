@@ -41,6 +41,8 @@ import {
   ShiftRoutesAction
 } from './types';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
+import { Modal } from 'antd';
+const { warning } = Modal;
 
 export function getListVirtualServices(
   listVirtualServicesRequest: ListVirtualServicesRequest.AsObject
@@ -338,7 +340,10 @@ export const deleteVirtualService = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error deleting the virtual service.',
+        content: error.message
+      });
     }
   };
 };
@@ -353,7 +358,12 @@ export const deleteRoute = (
         type: VirtualServiceAction.DELETE_ROUTE,
         payload: response.virtualServiceDetails!
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error deleting the route.',
+        content: error.message
+      });
+    }
   };
 };
 

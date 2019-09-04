@@ -5,6 +5,8 @@ import {
 import { Dispatch } from 'redux';
 import { client } from 'Api/v2/ProxyClient';
 import { ListProxiesAction, ProxyAction } from './types';
+import { Modal } from 'antd';
+const { warning } = Modal;
 
 export function getListProxies(
   listProxiesRequest: ListProxiesRequest.AsObject
@@ -36,6 +38,11 @@ export const listProxies = (
         type: ProxyAction.LIST_PROXIES,
         payload: response.proxyDetailsList
       });
-    } catch (error) {}
+    } catch (error) {
+      warning({
+        title: 'There was an error retrieving the proxies.',
+        content: error.message
+      });
+    }
   };
 };

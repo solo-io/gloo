@@ -6,9 +6,7 @@ import * as React from 'react';
 import { colors } from 'Styles';
 import { CreateUpstreamForm } from './CreateUpstreamForm';
 
-interface Props {
-  toggleSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
-}
+interface Props {}
 
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;

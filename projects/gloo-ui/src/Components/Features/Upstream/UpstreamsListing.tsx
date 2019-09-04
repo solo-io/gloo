@@ -210,7 +210,6 @@ export const UpstreamsListing = (props: Props) => {
     }
   }, [upstreamsList.length]);
 
-  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   let params = new URLSearchParams(props.location.search);
 
   const [catalogNotTable, setCatalogNotTable] = React.useState(
@@ -226,13 +225,6 @@ export const UpstreamsListing = (props: Props) => {
       props.location.state.showSuccess = false;
     }
   }, []);
-
-  React.useEffect(() => {
-    if (props.location.state && props.location.state.showSuccess) {
-      setShowSuccessModal(true);
-    }
-    return () => setShowSuccessModal(false);
-  }, [props.location.state && props.location.state.showSuccess]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -458,11 +450,7 @@ export const UpstreamsListing = (props: Props) => {
       <Heading>
         <Breadcrumb />
         <Action>
-          <CreateUpstreamModal toggleSuccessModal={setShowSuccessModal} />
-          <SuccessModal
-            visible={showSuccessModal}
-            successMessage='Upstream added successfully'
-          />
+          <CreateUpstreamModal />
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {

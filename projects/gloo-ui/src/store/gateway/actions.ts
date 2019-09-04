@@ -23,6 +23,9 @@ import {
   UpdateGatewayAction
 } from './types';
 import { HttpListenerPlugins } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { Modal } from 'antd';
+import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+const { warning } = Modal;
 
 export function getListGateways(
   listGatewaysRequest: ListGatewaysRequest.AsObject
@@ -317,6 +320,17 @@ export const updateGateway = (
         type: GatewayAction.UPDATE_GATEWAY,
         payload: response.gatewayDetails!
       });
-    } catch (error) {}
+
+      dispatch<SuccessMessageAction>({
+        type: MessageAction.SUCCESS_MESSAGE,
+        message: 'Gateway successfully updated.'
+      });
+      dispatch(hideLoading());
+    } catch (error) {
+      warning({
+        title: 'There was an error updating the gateway configuration.',
+        content: error.message
+      });
+    }
   };
 };

@@ -15,6 +15,9 @@ import {
   ListUpstreamsAction,
   UpstreamAction
 } from './types';
+import { Modal } from 'antd';
+import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+const { warning } = Modal;
 
 export const listUpstreams = (
   listUpstreamsRequest: ListUpstreamsRequest.AsObject
@@ -49,7 +52,10 @@ export const deleteUpstream = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error deleting the upstream.',
+        content: error.message
+      });
     }
   };
 };
@@ -67,8 +73,17 @@ export const createUpstream = (
         payload: response.upstreamDetails!
       });
       dispatch(hideLoading());
+      dispatch<SuccessMessageAction>({
+        type: MessageAction.SUCCESS_MESSAGE,
+        message: `Upstream ${
+          response.upstreamDetails!.upstream!.metadata!.name
+        } successfully created.`
+      });
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error creating the upstream.',
+        content: error.message
+      });
     }
   };
 };
@@ -87,7 +102,10 @@ export const getUpstream = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      //handle error
+      warning({
+        title: 'There was an error retrieving the upstream.',
+        content: error.message
+      });
     }
   };
 };

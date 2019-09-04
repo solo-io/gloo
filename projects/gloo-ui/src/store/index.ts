@@ -10,6 +10,7 @@ import { configReducer } from './config/reducers';
 import { envoyReducer } from './envoy/reducers';
 import { gatewaysReducer } from './gateway/reducers';
 import { proxyReducer } from './proxy/reducers';
+import { modalReducer } from './modal/reducers';
 
 export const host = `${
   process.env.NODE_ENV === 'production'
@@ -25,7 +26,8 @@ const rootReducer = combineReducers({
   gateways: gatewaysReducer,
   proxies: proxyReducer,
   envoy: envoyReducer,
-  loadingBar: loadingBarReducer
+  loadingBar: loadingBarReducer,
+  modal: modalReducer
 });
 
 export type AppState = ReturnType<typeof rootReducer>;

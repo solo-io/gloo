@@ -186,26 +186,6 @@ export const SettingsLanding = (props: Props) => {
     namespace: string,
     secretKind: Secret.KindCase
   ) {
-    if (secretKind === Secret.KindCase.AWS) {
-      setAwsSecrets(awsSecrets =>
-        awsSecrets.filter(s => s.metadata!.name !== name)
-      );
-    }
-    if (secretKind === Secret.KindCase.AZURE) {
-      setAzureSecrets(azureSecrets =>
-        azureSecrets.filter(s => s.metadata!.name !== name)
-      );
-    }
-    if (secretKind === Secret.KindCase.TLS) {
-      setTlsSecrets(tlsSecrets =>
-        tlsSecrets.filter(s => s.metadata!.name !== name)
-      );
-    }
-    if (secretKind === Secret.KindCase.EXTENSION) {
-      setOAuthSecrets(oAuthSecrets =>
-        oAuthSecrets.filter(s => s.metadata!.name !== name)
-      );
-    }
     try {
       dispatch(deleteSecret({ ref: { name, namespace } }));
     } catch (error) {

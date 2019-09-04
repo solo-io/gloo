@@ -28,6 +28,7 @@ import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
+import _ from 'lodash';
 
 const { Option, OptGroup } = Select;
 
@@ -456,10 +457,16 @@ export const SoloFormSecretRefInput: React.FC<{
   );
 };
 
+const compareFn = (
+  prevProps: Readonly<{ type: string; name: string }>,
+  newProps: Readonly<{ type: string; name: string }>
+) => {
+  return _.isEqual(prevProps, newProps);
+};
 export const SoloAWSSecretsList: React.FC<{
   type: string;
   name: string;
-}> = props => {
+}> = React.memo(props => {
   const secretsList = useSelector(
     (state: AppState) => state.secrets.secretsList
   );
@@ -488,9 +495,7 @@ export const SoloAWSSecretsList: React.FC<{
           return (
             <OptGroup key={namespace} label={namespace}>
               {secrets.map(s => (
-                <Option key={s.metadata!.name} value={s.metadata!.namespace}>
-                  {s.metadata!.name}
-                </Option>
+                <Option key={s.metadata!.name}>{s.metadata!.name}</Option>
               ))}
             </OptGroup>
           );
@@ -501,7 +506,7 @@ export const SoloAWSSecretsList: React.FC<{
       </ErrorText>
     </div>
   );
-};
+}, compareFn);
 
 export const TableFormWrapper: React.FC = props => {
   return (
