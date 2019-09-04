@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Implement front-side of editing resource YAML
+    issueLink: https://github.com/solo-io/solo-projects/issues/997

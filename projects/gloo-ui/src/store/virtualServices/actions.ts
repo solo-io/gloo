@@ -17,7 +17,8 @@ import {
   UpdateVirtualServiceRequest,
   UpdateVirtualServiceResponse,
   VirtualServiceInput,
-  RepeatedRoutes
+  RepeatedRoutes,
+  UpdateVirtualServiceYamlRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { client } from 'Api/v2/VirtualServiceClient';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
@@ -38,9 +39,12 @@ import {
   VirtualServiceActionTypes,
   DeleteVirtualServiceAction,
   DeleteRouteAction,
-  ShiftRoutesAction
+  ShiftRoutesAction,
+  UpdateVirtualServiceYamlAction
 } from './types';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { getResourceRef } from 'Api/v2/helpers';
 import { Modal } from 'antd';
 const { warning } = Modal;
 
@@ -97,6 +101,38 @@ export function getDeleteVirtualService(
     ref.setNamespace(deleteVirtualServiceRequest.ref!.namespace);
     request.setRef(ref);
     client.deleteVirtualService(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        // TODO: normalize
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+export function getUpdateVirtualServiceYaml(
+  updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
+): Promise<UpdateVirtualServiceResponse.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new UpdateVirtualServiceYamlRequest();
+
+    let editedYamlData = new EditedResourceYaml();
+    editedYamlData.setRef(
+      getResourceRef(
+        updateVirtualServiceYamlRequest.editedYamlData!.ref!.name,
+        updateVirtualServiceYamlRequest.editedYamlData!.ref!.namespace
+      )
+    );
+    editedYamlData.setEditedYaml(
+      updateVirtualServiceYamlRequest.editedYamlData!.editedYaml
+    );
+
+    request.setEditedYamlData(editedYamlData);
+    client.updateVirtualServiceYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -344,6 +380,27 @@ export const deleteVirtualService = (
         title: 'There was an error deleting the virtual service.',
         content: error.message
       });
+    }
+  };
+};
+
+export const updateVirtualServiceYaml = (
+  updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
+) => {
+  return async (dispatch: Dispatch) => {
+    dispatch(showLoading());
+
+    try {
+      const response = await getUpdateVirtualServiceYaml(
+        updateVirtualServiceYamlRequest
+      );
+      dispatch<UpdateVirtualServiceYamlAction>({
+        type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML,
+        payload: response.virtualServiceDetails!
+      });
+      dispatch(hideLoading());
+    } catch (error) {
+      //handle error
     }
   };
 };

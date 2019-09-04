@@ -16,7 +16,8 @@ import {
   ListGatewaysRequest,
   ListGatewaysResponse,
   UpdateGatewayRequest,
-  UpdateGatewayResponse
+  UpdateGatewayResponse,
+  UpdateGatewayYamlRequest
 } from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import {
   getResourceRef,
@@ -24,6 +25,7 @@ import {
   setDuration,
   setUInt32Val
 } from './helpers';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 export const client = new GatewayApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

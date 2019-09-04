@@ -3,7 +3,8 @@ import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/
 export enum GatewayAction {
   GET_GATEWAY = 'GET_GATEWAY',
   LIST_GATEWAYS = 'LIST_GATEWAYS',
-  UPDATE_GATEWAY = 'UPDATE_GATEWAY'
+  UPDATE_GATEWAY = 'UPDATE_GATEWAY',
+  UPDATE_GATEWAY_YAML = 'UPDATE_GATEWAY_YAML'
 }
 
 export interface GetGatewayAction {
@@ -19,7 +20,14 @@ export interface UpdateGatewayAction {
   type: typeof GatewayAction.UPDATE_GATEWAY;
   payload: GatewayDetails.AsObject;
 }
+
+export interface UpdateGatewayYamlAction {
+  type: typeof GatewayAction.UPDATE_GATEWAY_YAML;
+  payload: GatewayDetails.AsObject;
+}
+
 export type GatewayActionTypes =
   | GetGatewayAction
   | ListGatewaysAction
-  | UpdateGatewayAction;
+  | UpdateGatewayAction
+  | UpdateGatewayYamlAction;

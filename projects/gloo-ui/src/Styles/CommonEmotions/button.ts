@@ -23,6 +23,7 @@ export const SoloButtonCSS = css`
   outline: none;
   border-radius: ${soloConstants.smallRadius}px;
   min-width: 125px;
+  height: auto;
   cursor: pointer;
 
   transition: min-width ${soloConstants.transitionTime};

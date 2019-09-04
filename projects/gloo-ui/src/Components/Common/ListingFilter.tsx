@@ -14,6 +14,7 @@ const Filters = styled.div`
 `;
 const Content = styled.div`
   flex: 1;
+  width: calc(100% - 225px);
 `;
 
 const StyledHeader = styled.div`

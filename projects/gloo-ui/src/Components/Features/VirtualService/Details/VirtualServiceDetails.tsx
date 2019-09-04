@@ -36,13 +36,17 @@ import {
   VirtualServiceInputV2
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { AppState } from 'store';
 import { colors, healthConstants } from 'Styles';
 import { Configuration } from './Configuration';
 import { Domains } from './Domains';
 import { Routes } from './Routes';
+import { UpdateGatewayYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { getResourceRef } from 'Api/v2/helpers';
+import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
 
 type DetailsContentProps = { configurationShowing?: boolean };
 const DetailsContent = styled.div`
@@ -99,6 +103,8 @@ export const VirtualServiceDetails = (props: Props) => {
     loading: updateLoading,
     refetch: makeUpdateRequest
   } = useUpdateVirtualService(null);
+
+  const dispatch = useDispatch();
 
   if (updateLoading && !virtualServicesList.length) {
     return (
@@ -222,7 +228,7 @@ export const VirtualServiceDetails = (props: Props) => {
       issuerUrl,
       appUrl,
       callbackPath,
-      scopesList: [],
+      scopesList: []
     };
   }
 
@@ -441,6 +447,21 @@ export const VirtualServiceDetails = (props: Props) => {
     updateVirtualService({ newOAuth });
   };
 
+  const saveYamlChange = (newYaml: string) => {
+    let editedYamlData = {
+      editedYaml: newYaml,
+      ref: {
+        name: virtualService.metadata!.name,
+        namespace: virtualService.metadata!.namespace
+      }
+    } as EditedResourceYaml.AsObject;
+    const updateVirtualServiceYamlRequest = {
+      editedYamlData
+    };
+
+    dispatch(updateVirtualServiceYaml(updateVirtualServiceYamlRequest));
+  };
+
   const headerInfo = [
     {
       title: 'namespace',
@@ -489,7 +510,11 @@ export const VirtualServiceDetails = (props: Props) => {
           {showConfiguration && (
             <DetailsSection>
               <DetailsSectionTitle>Raw Configuration</DetailsSectionTitle>
-              <ConfigDisplayer content={rawVS.content} />
+              <ConfigDisplayer
+                content={rawVS.content}
+                asEditor
+                saveEdits={saveYamlChange}
+              />
             </DetailsSection>
           )}
           <DetailsSection>

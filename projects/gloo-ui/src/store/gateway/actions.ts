@@ -13,16 +13,20 @@ import {
   ListGatewaysRequest,
   ListGatewaysResponse,
   UpdateGatewayRequest,
-  UpdateGatewayResponse
+  UpdateGatewayResponse,
+  UpdateGatewayYamlRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Dispatch } from 'redux';
 import {
   GatewayAction,
   ListGatewaysAction,
-  UpdateGatewayAction
+  UpdateGatewayAction,
+  UpdateGatewayYamlAction
 } from './types';
 import { HttpListenerPlugins } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { getResourceRef } from 'Api/v2/helpers';
 import { Modal } from 'antd';
 import { SuccessMessageAction, MessageAction } from 'store/modal/types';
 const { warning } = Modal;
@@ -292,6 +296,36 @@ export function getUpdateGateway(
   });
 }
 
+export function getUpdateGatewayYaml(
+  updateGatewayYamlRequest: UpdateGatewayYamlRequest.AsObject
+): Promise<UpdateGatewayResponse.AsObject> {
+  return new Promise(async (resolve, reject) => {
+    let request = new UpdateGatewayYamlRequest();
+    let editedResourceYaml = new EditedResourceYaml();
+    editedResourceYaml.setRef(
+      getResourceRef(
+        updateGatewayYamlRequest.editedYamlData!.ref!.name,
+        updateGatewayYamlRequest.editedYamlData!.ref!.namespace
+      )
+    );
+    editedResourceYaml.setEditedYaml(
+      updateGatewayYamlRequest.editedYamlData!.editedYaml
+    );
+    request.setEditedYamlData(editedResourceYaml);
+
+    client.updateGatewayYaml(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
 export const listGateways = (
   listGatewaysRequest: ListGatewaysRequest.AsObject
 ) => {
@@ -332,5 +366,20 @@ export const updateGateway = (
         content: error.message
       });
     }
+  };
+};
+
+export const updateGatewayYaml = (
+  updateGatewayYamlRequest: UpdateGatewayYamlRequest.AsObject
+) => {
+  return async (dispatch: Dispatch) => {
+    dispatch(showLoading());
+    try {
+      const response = await getUpdateGatewayYaml(updateGatewayYamlRequest);
+      dispatch<UpdateGatewayYamlAction>({
+        type: GatewayAction.UPDATE_GATEWAY_YAML,
+        payload: response.gatewayDetails!
+      });
+    } catch (error) {}
   };
 };

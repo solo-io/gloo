@@ -10,10 +10,18 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
-import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import {
+  Raw,
+  EditedResourceYaml
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import React from 'react';
 import { colors, soloConstants } from 'Styles';
 import * as yup from 'yup';
+import { UpdateGatewayYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { getResourceRef } from 'Api/v2/helpers';
+import _ from 'lodash/fp';
+import { updateGatewayYaml } from 'store/gateway/actions';
+import { useDispatch } from 'react-redux';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -141,6 +149,8 @@ export const GatewayForm = (props: FormProps) => {
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
   const [showConfiguration, setShowConfiguration] = React.useState(false);
 
+  const dispatch = useDispatch();
+
   let initialValues: HttpConnectionManagerSettingsForm = {
     ...defaultHttpValues
   };
@@ -192,6 +202,21 @@ export const GatewayForm = (props: FormProps) => {
   };
   const isDirty = (formIsDirty: boolean) => {
     return formIsDirty;
+  };
+
+  const saveYamlChange = (newYaml: string) => {
+    let editedYamlData = {
+      editedYaml: newYaml,
+      ref: {
+        name: props.gatewayValues.metadata!.name,
+        namespace: props.gatewayValues.metadata!.namespace
+      }
+    } as EditedResourceYaml.AsObject;
+    const updateGatewayYamlRequest = {
+      editedYamlData
+    };
+
+    dispatch(updateGatewayYaml(updateGatewayYamlRequest));
   };
 
   return (
@@ -357,6 +382,8 @@ export const GatewayForm = (props: FormProps) => {
               <ConfigDisplayer
                 content={props.gatewayConfiguration.content}
                 whiteBacked
+                asEditor
+                saveEdits={saveYamlChange}
               />
             )}
           </ConfigurationSection>

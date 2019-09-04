@@ -21,7 +21,8 @@ import {
   SwapRoutesRequest,
   SwapRoutesResponse,
   ShiftRoutesRequest,
-  ShiftRoutesResponse
+  ShiftRoutesResponse,
+  UpdateVirtualServiceYamlRequest
 } from '../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb.d';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
 import { client } from './v2/VirtualServiceClient';
@@ -286,6 +287,7 @@ export const useUpdateVirtualService = (
     refetch: makeRequest
   };
 };
+
 /* -------------------------------------------------------------------------- */
 /*                           DELETE VIRTUAL SERVICE                           */
 /* -------------------------------------------------------------------------- */

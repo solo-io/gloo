@@ -6,7 +6,10 @@ import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
 import { SoloButton } from '../SoloButton';
-import { SoloCancelButton } from 'Styles/CommonEmotions/button';
+import {
+  SoloCancelButton,
+  SoloButtonStyledComponent
+} from 'Styles/CommonEmotions/button';
 
 type ContainerProps = { whiteBacked?: boolean };
 const Container = styled.div`
@@ -22,8 +25,14 @@ const Container = styled.div`
       props.whiteBacked ? 'white' : colors.januaryGrey} !important;
   }
 
-  > div > pre {
-    overflow: visible;
+  > div {
+    > textarea {
+      outline: none !important;
+      border: 1px solid ${colors.mayGrey} !important;
+    }
+    > pre {
+      overflow: visible;
+    }
   }
 `;
 
@@ -49,7 +58,20 @@ const EditPencil = styled(EditIcon)`
 `;
 
 const EditingActionsContainer = styled.div`
-  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 8px;
+  background: white;
+  border-top-right-radius: ${soloConstants.smallRadius}px;
+  z-index: 2;
+
+  background: ${(props: ContainerProps) =>
+    props.whiteBacked ? 'white' : colors.januaryGrey};
+`;
+
+const CancelButton = styled(SoloCancelButton)`
+  margin-right: 8px;
 `;
 
 export const Pre = styled.pre`
@@ -89,7 +111,9 @@ const ourTheme = {
 
 const styles = {
   root: {
-    ...ourTheme
+    ...ourTheme,
+    fontFamily:
+      "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace"
   }
 };
 
@@ -179,9 +203,11 @@ export const ConfigDisplayer = React.memo((props: Props) => {
       {props.asEditor && (
         <React.Fragment>
           {inEditingMode ? (
-            <EditingActionsContainer>
-              <SoloCancelButton text={'Cancel'} onClick={cancelEdits} />
-              <SoloButton text={'Save'} onClick={saveEdits} />
+            <EditingActionsContainer whiteBacked={props.whiteBacked}>
+              <CancelButton onClick={cancelEdits}>Reset</CancelButton>
+              <SoloButtonStyledComponent onClick={saveEdits}>
+                Submit
+              </SoloButtonStyledComponent>
             </EditingActionsContainer>
           ) : (
             <EditPencilHolder
