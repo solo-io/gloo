@@ -23,7 +23,6 @@ import {
 import { client } from 'Api/v2/VirtualServiceClient';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
-  Route,
   DirectResponseAction,
   Matcher,
   QueryParameterMatcher,
@@ -31,6 +30,9 @@ import {
   RouteAction,
   Destination
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
+  Route,
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Dispatch } from 'redux';
 import {

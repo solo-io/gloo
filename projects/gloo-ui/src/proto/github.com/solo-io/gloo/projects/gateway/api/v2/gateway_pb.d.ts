@@ -54,6 +54,11 @@ export class Gateway extends jspb.Message {
   getGatewayProxyName(): string;
   setGatewayProxyName(value: string): void;
 
+  clearProxyNamesList(): void;
+  getProxyNamesList(): Array<string>;
+  setProxyNamesList(value: Array<string>): void;
+  addProxyNames(value: string, index?: number): string;
+
   getGatewaytypeCase(): Gateway.GatewaytypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Gateway.AsObject;
@@ -77,6 +82,7 @@ export namespace Gateway {
     httpGateway?: HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
     gatewayProxyName: string,
+    proxyNamesList: Array<string>,
   }
 
   export enum GatewaytypeCase {
@@ -92,6 +98,8 @@ export class HttpGateway extends jspb.Message {
   setVirtualServicesList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
   addVirtualServices(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
 
+  getVirtualServiceSelectorMap(): jspb.Map<string, string>;
+  clearVirtualServiceSelectorMap(): void;
   hasPlugins(): boolean;
   clearPlugins(): void;
   getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins | undefined;
@@ -110,6 +118,7 @@ export class HttpGateway extends jspb.Message {
 export namespace HttpGateway {
   export type AsObject = {
     virtualServicesList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+    virtualServiceSelectorMap: Array<[string, string]>,
     plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.AsObject,
   }
 }

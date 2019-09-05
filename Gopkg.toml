@@ -62,7 +62,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.18.31"
+  version = "0.18.32"
 
 [[override]]
   name = "github.com/hashicorp/consul"

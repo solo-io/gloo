@@ -1374,7 +1374,7 @@
   version = "v0.4.4"
 
 [[projects]]
-  digest = "1:2a4609e7d9b3b702cd3850aef814395846ca87d25c0c2810449a5d4437f06e3c"
+  digest = "1:65960dbcd08c9f76e21dad642b948ca39a9a40f81efb04f8366c2d1bc86f41be"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1511,8 +1511,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "b27018fdbadf7526ebe7190cf692e66235e3e922"
-  version = "v0.18.31"
+  revision = "ce3dba537f6d3a6fd0f4490d7e67a9814d3dc3b0"
+  version = "v0.18.33"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -2678,7 +2678,6 @@
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",
-    "github.com/go-ldap/ldap",
     "github.com/gogo/googleapis/google/rpc",
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/jsonpb",
@@ -2846,6 +2845,7 @@
     "go.uber.org/zap",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
+    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

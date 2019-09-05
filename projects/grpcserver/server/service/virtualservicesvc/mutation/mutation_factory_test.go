@@ -22,8 +22,8 @@ var (
 )
 
 var _ = Describe("MutationFactory", func() {
-	getRoute := func(exactValue string) *gloov1.Route {
-		return &gloov1.Route{
+	getRoute := func(exactValue string) *gatewayv1.Route {
+		return &gatewayv1.Route{
 			Matcher: &gloov1.Matcher{
 				PathSpecifier: &gloov1.Matcher_Exact{
 					Exact: exactValue,
@@ -33,13 +33,13 @@ var _ = Describe("MutationFactory", func() {
 	}
 
 	getVirtualService := func(matchers ...string) *gatewayv1.VirtualService {
-		var routes []*gloov1.Route
+		var routes []*gatewayv1.Route
 		for _, m := range matchers {
 			routes = append(routes, getRoute(m))
 		}
 
 		return &gatewayv1.VirtualService{
-			VirtualHost: &gloov1.VirtualHost{
+			VirtualHost: &gatewayv1.VirtualHost{
 				Routes: routes,
 			},
 		}
@@ -109,7 +109,7 @@ var _ = Describe("MutationFactory", func() {
 							Ref:             getRef("ns", "name"),
 							DisplayName:     "ds",
 							Domains:         []string{"one", "two"},
-							Routes:          []*gloov1.Route{getRoute("a")},
+							Routes:          []*gatewayv1.Route{getRoute("a")},
 							ExtAuthConfig:   getOAuthInput(),
 							RateLimitConfig: getRateLimit(),
 							SecretRef:       getRef("sns", "sn"),
@@ -122,9 +122,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("sns", "sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -138,7 +138,7 @@ var _ = Describe("MutationFactory", func() {
 					},
 					{
 						vsInput:  &v1.VirtualServiceInput{},
-						expected: &gatewayv1.VirtualService{VirtualHost: &gloov1.VirtualHost{}},
+						expected: &gatewayv1.VirtualService{VirtualHost: &gatewayv1.VirtualHost{}},
 					},
 				}
 
@@ -161,7 +161,7 @@ var _ = Describe("MutationFactory", func() {
 							Ref:             getRef("ns", "name"),
 							DisplayName:     "new-ds",
 							Domains:         []string{"three"},
-							Routes:          []*gloov1.Route{getRoute("b"), getRoute("c")},
+							Routes:          []*gatewayv1.Route{getRoute("b"), getRoute("c")},
 							ExtAuthConfig:   getOAuthInput(),
 							RateLimitConfig: getRateLimit(),
 							SecretRef:       getRef("new-sns", "new-sn"),
@@ -174,9 +174,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("sns", "sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -194,9 +194,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("new-sns", "new-sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"three"},
-								Routes:  []*gloov1.Route{getRoute("b"), getRoute("c")},
+								Routes:  []*gatewayv1.Route{getRoute("b"), getRoute("c")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -218,7 +218,7 @@ var _ = Describe("MutationFactory", func() {
 						},
 						expected: &gatewayv1.VirtualService{
 							Metadata:    getMetadata("ns", "name"),
-							VirtualHost: &gloov1.VirtualHost{},
+							VirtualHost: &gatewayv1.VirtualHost{},
 						},
 					},
 					{
@@ -277,7 +277,7 @@ var _ = Describe("MutationFactory", func() {
 			}
 
 			getRoutes := func(matchers []string) *v1.RepeatedRoutes {
-				var routes []*gloov1.Route
+				var routes []*gatewayv1.Route
 				for _, r := range matchers {
 					routes = append(routes, getRoute(r))
 				}
@@ -331,9 +331,9 @@ var _ = Describe("MutationFactory", func() {
 							SslConfig: &gloov1.SslConfig{
 								SniDomains: []string{"a", "b"},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -355,7 +355,7 @@ var _ = Describe("MutationFactory", func() {
 						},
 						expected: &gatewayv1.VirtualService{
 							Metadata:    getMetadata("ns", "name"),
-							VirtualHost: &gloov1.VirtualHost{},
+							VirtualHost: &gatewayv1.VirtualHost{},
 						},
 					},
 					{
@@ -377,9 +377,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("sns", "sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -392,7 +392,7 @@ var _ = Describe("MutationFactory", func() {
 						},
 						expected: &gatewayv1.VirtualService{
 							Metadata: getMetadata("ns", "name"),
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{},
 								},
@@ -410,9 +410,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("sns", "sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
@@ -431,9 +431,9 @@ var _ = Describe("MutationFactory", func() {
 									SecretRef: getRef("sns", "sn"),
 								},
 							},
-							VirtualHost: &gloov1.VirtualHost{
+							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
-								Routes:  []*gloov1.Route{getRoute("a")},
+								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{

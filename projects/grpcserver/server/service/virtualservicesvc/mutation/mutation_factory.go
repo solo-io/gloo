@@ -85,7 +85,7 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 		}
 
 		if vs.GetVirtualHost() == nil {
-			vs.VirtualHost = &gloov1.VirtualHost{}
+			vs.VirtualHost = &gatewayv1.VirtualHost{}
 		}
 
 		if extAuthStruct != nil || rateLimitStruct != nil {
@@ -157,7 +157,7 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 		}
 
 		if vs.GetVirtualHost() == nil {
-			vs.VirtualHost = &gloov1.VirtualHost{}
+			vs.VirtualHost = &gatewayv1.VirtualHost{}
 		}
 
 		if input.GetExtAuthConfig() != nil || input.GetRateLimitConfig() != nil {

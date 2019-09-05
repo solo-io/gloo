@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -40,7 +39,7 @@ var _ = Describe("SelectorTest", func() {
 				Namespace: namespace,
 				Name:      name,
 			},
-			VirtualHost: &gloov1.VirtualHost{
+			VirtualHost: &gatewayv1.VirtualHost{
 				Domains: []string{"*"},
 			},
 		}
@@ -61,7 +60,7 @@ var _ = Describe("SelectorTest", func() {
 		getVirtualService := func(meta core.Metadata, domain string) *gatewayv1.VirtualService {
 			return &gatewayv1.VirtualService{
 				Metadata:    meta,
-				VirtualHost: &gloov1.VirtualHost{Domains: []string{domain}},
+				VirtualHost: &gatewayv1.VirtualHost{Domains: []string{domain}},
 			}
 		}
 

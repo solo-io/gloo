@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
@@ -59,7 +60,7 @@ func ExtAuthConfig(opts *editRouteOptions.RouteEditInput, optionsFunc ...cliutil
 }
 
 func editRoute(opts *editRouteOptions.RouteEditInput, input *authEditInput, args []string) error {
-	return editRouteOptions.UpdateRoute(opts, func(route *gloov1.Route) error {
+	return editRouteOptions.UpdateRoute(opts, func(route *gatewayv1.Route) error {
 		var extAuthRouteExtension extauthpb.RouteExtension
 		err := utils.UnmarshalExtension(route.RoutePlugins, extauth.ExtensionName, &extAuthRouteExtension)
 		if err != nil {

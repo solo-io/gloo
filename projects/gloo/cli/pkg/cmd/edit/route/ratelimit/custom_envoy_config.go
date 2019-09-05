@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"github.com/gogo/protobuf/types"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
@@ -36,7 +37,7 @@ func RateLimitCustomConfig(opts *editRouteOptions.RouteEditInput, optionsFunc ..
 }
 
 func editRoute(opts *editRouteOptions.RouteEditInput) error {
-	return editRouteOptions.UpdateRoute(opts, func(route *gloov1.Route) error {
+	return editRouteOptions.UpdateRoute(opts, func(route *gatewayv1.Route) error {
 		ratelimitRouteExtension := new(ratelimitpb.RateLimitRouteExtension)
 		err := utils.UnmarshalExtension(route.RoutePlugins, ratelimit.EnvoyExtensionName, ratelimitRouteExtension)
 		if err != nil {

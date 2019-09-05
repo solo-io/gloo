@@ -108,12 +108,12 @@ var writeVhost = func(vsClient v1.VirtualServiceClient, vhostextensions *gloov1.
 			Namespace: testHelper.InstallNamespace,
 		},
 		SslConfig: sslConfig,
-		VirtualHost: &gloov1.VirtualHost{
+		VirtualHost: &v1.VirtualHost{
 			VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 				Extensions: vhostextensions,
 			},
 			Domains: []string{"*"},
-			Routes: []*gloov1.Route{{
+			Routes: []*v1.Route{{
 				RoutePlugins: &gloov1.RoutePlugins{
 					Extensions: routeExtensions,
 				},
@@ -122,7 +122,7 @@ var writeVhost = func(vsClient v1.VirtualServiceClient, vhostextensions *gloov1.
 						Prefix: "/",
 					},
 				},
-				Action: &gloov1.Route_RouteAction{
+				Action: &v1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{

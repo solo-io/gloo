@@ -3,6 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb";
 
 export class UpstreamSpec extends jspb.Message {
@@ -13,6 +14,11 @@ export class UpstreamSpec extends jspb.Message {
 
   getUseTls(): boolean;
   setUseTls(value: boolean): void;
+
+  hasAutoHostRewrite(): boolean;
+  clearAutoHostRewrite(): void;
+  getAutoHostRewrite(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAutoHostRewrite(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasServiceSpec(): boolean;
   clearServiceSpec(): void;
@@ -33,6 +39,7 @@ export namespace UpstreamSpec {
   export type AsObject = {
     hostsList: Array<Host.AsObject>,
     useTls: boolean,
+    autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     serviceSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.AsObject,
   }
 }

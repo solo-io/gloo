@@ -15,9 +15,11 @@ import {
   HeaderMatcher,
   Matcher,
   QueryParameterMatcher,
-  Route,
   RouteAction
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
+  Route,
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CustomAuth,

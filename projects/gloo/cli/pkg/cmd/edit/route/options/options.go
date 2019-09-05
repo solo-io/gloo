@@ -3,10 +3,10 @@ package options
 import (
 	"fmt"
 
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 )
@@ -16,7 +16,7 @@ type RouteEditInput struct {
 	Index uint32
 }
 
-func UpdateRoute(opts *RouteEditInput, modify func(*gloov1.Route) error) error {
+func UpdateRoute(opts *RouteEditInput, modify func(*gatewayv1.Route) error) error {
 	vsClient := helpers.MustVirtualServiceClient()
 	vs, err := vsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name, clients.ReadOpts{})
 	if err != nil {

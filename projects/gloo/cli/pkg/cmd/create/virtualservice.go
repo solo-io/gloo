@@ -5,6 +5,7 @@ import (
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
@@ -116,7 +117,7 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 	}
 	vs := &v1.VirtualService{
 		Metadata: meta,
-		VirtualHost: &gloov1.VirtualHost{
+		VirtualHost: &gatewayv1.VirtualHost{
 			Domains: input.Domains,
 		},
 		DisplayName: displayName,

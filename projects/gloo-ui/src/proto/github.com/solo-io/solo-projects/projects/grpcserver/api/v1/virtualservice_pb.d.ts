@@ -150,9 +150,9 @@ export namespace RepeatedStrings {
 
 export class RepeatedRoutes extends jspb.Message {
   clearValuesList(): void;
-  getValuesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>;
-  setValuesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>): void;
-  addValues(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route;
+  getValuesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route>;
+  setValuesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route>): void;
+  addValues(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RepeatedRoutes.AsObject;
@@ -166,7 +166,7 @@ export class RepeatedRoutes extends jspb.Message {
 
 export namespace RepeatedRoutes {
   export type AsObject = {
-    valuesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject>,
+    valuesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.AsObject>,
   }
 }
 
@@ -386,9 +386,9 @@ export class VirtualServiceInput extends jspb.Message {
   addDomains(value: string, index?: number): string;
 
   clearRoutesList(): void;
-  getRoutesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>;
-  setRoutesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>): void;
-  addRoutes(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route;
+  getRoutesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route>;
+  setRoutesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route>): void;
+  addRoutes(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route;
 
   hasSecretRef(): boolean;
   clearSecretRef(): void;
@@ -431,7 +431,7 @@ export namespace VirtualServiceInput {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     displayName: string,
     domainsList: Array<string>,
-    routesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject>,
+    routesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.AsObject>,
     secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     rateLimitConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     basicAuth?: VirtualServiceInput.BasicAuthInput.AsObject,
@@ -712,8 +712,8 @@ export class RouteInput extends jspb.Message {
 
   hasRoute(): boolean;
   clearRoute(): void;
-  getRoute(): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route | undefined;
-  setRoute(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route): void;
+  getRoute(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route | undefined;
+  setRoute(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteInput.AsObject;
@@ -729,7 +729,7 @@ export namespace RouteInput {
   export type AsObject = {
     virtualServiceRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     index: number,
-    route?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject,
+    route?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.AsObject,
   }
 }
 

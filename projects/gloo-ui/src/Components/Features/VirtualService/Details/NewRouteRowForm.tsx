@@ -15,7 +15,10 @@ import {
   PATH_SPECIFIERS
 } from 'Components/Features/Route/CreateRouteModal';
 import { Formik } from 'formik';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import {
+  VirtualService,
+  Route,
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
@@ -24,7 +27,6 @@ import {
   HeaderMatcher,
   Matcher,
   QueryParameterMatcher,
-  Route,
   RouteAction
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';

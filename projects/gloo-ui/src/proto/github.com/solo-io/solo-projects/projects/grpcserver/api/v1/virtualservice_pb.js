@@ -1096,7 +1096,7 @@ proto.glooeeapi.solo.io.RepeatedRoutes.prototype.toObject = function(opt_include
 proto.glooeeapi.solo.io.RepeatedRoutes.toObject = function(includeInstance, msg) {
   var f, obj = {
     valuesList: jspb.Message.toObjectList(msg.getValuesList(),
-    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.toObject, includeInstance)
+    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -1134,8 +1134,8 @@ proto.glooeeapi.solo.io.RepeatedRoutes.deserializeBinaryFromReader = function(ms
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.deserializeBinaryFromReader);
       msg.addValues(value);
       break;
     default:
@@ -1172,35 +1172,35 @@ proto.glooeeapi.solo.io.RepeatedRoutes.serializeBinaryToWriter = function(messag
     writer.writeRepeatedMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * repeated gloo.solo.io.Route values = 1;
- * @return {!Array<!proto.gloo.solo.io.Route>}
+ * repeated gateway.solo.io.Route values = 1;
+ * @return {!Array<!proto.gateway.solo.io.Route>}
  */
 proto.glooeeapi.solo.io.RepeatedRoutes.prototype.getValuesList = function() {
-  return /** @type{!Array<!proto.gloo.solo.io.Route>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route, 1));
+  return /** @type{!Array<!proto.gateway.solo.io.Route>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route, 1));
 };
 
 
-/** @param {!Array<!proto.gloo.solo.io.Route>} value */
+/** @param {!Array<!proto.gateway.solo.io.Route>} value */
 proto.glooeeapi.solo.io.RepeatedRoutes.prototype.setValuesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.gloo.solo.io.Route=} opt_value
+ * @param {!proto.gateway.solo.io.Route=} opt_value
  * @param {number=} opt_index
- * @return {!proto.gloo.solo.io.Route}
+ * @return {!proto.gateway.solo.io.Route}
  */
 proto.glooeeapi.solo.io.RepeatedRoutes.prototype.addValues = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Route, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.Route, opt_index);
 };
 
 
@@ -2739,7 +2739,7 @@ proto.glooeeapi.solo.io.VirtualServiceInput.toObject = function(includeInstance,
     displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
     domainsList: jspb.Message.getRepeatedField(msg, 3),
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
-    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.toObject, includeInstance),
+    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.toObject, includeInstance),
     secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     rateLimitConfig: (f = msg.getRateLimitConfig()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(includeInstance, f),
@@ -2795,8 +2795,8 @@ proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader = functi
       msg.addDomains(value);
       break;
     case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.deserializeBinaryFromReader);
       msg.addRoutes(value);
       break;
     case 5:
@@ -2880,7 +2880,7 @@ proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter = function(m
     writer.writeRepeatedMessage(
       4,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.serializeBinaryToWriter
     );
   }
   f = message.getSecretRef();
@@ -3170,28 +3170,28 @@ proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearDomainsList = functio
 
 
 /**
- * repeated gloo.solo.io.Route routes = 4;
- * @return {!Array<!proto.gloo.solo.io.Route>}
+ * repeated gateway.solo.io.Route routes = 4;
+ * @return {!Array<!proto.gateway.solo.io.Route>}
  */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRoutesList = function() {
-  return /** @type{!Array<!proto.gloo.solo.io.Route>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route, 4));
+  return /** @type{!Array<!proto.gateway.solo.io.Route>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route, 4));
 };
 
 
-/** @param {!Array<!proto.gloo.solo.io.Route>} value */
+/** @param {!Array<!proto.gateway.solo.io.Route>} value */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRoutesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
 
 /**
- * @param {!proto.gloo.solo.io.Route=} opt_value
+ * @param {!proto.gateway.solo.io.Route=} opt_value
  * @param {number=} opt_index
- * @return {!proto.gloo.solo.io.Route}
+ * @return {!proto.gateway.solo.io.Route}
  */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.addRoutes = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.gloo.solo.io.Route, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.gateway.solo.io.Route, opt_index);
 };
 
 
@@ -5068,7 +5068,7 @@ proto.glooeeapi.solo.io.RouteInput.toObject = function(includeInstance, msg) {
   var f, obj = {
     virtualServiceRef: (f = msg.getVirtualServiceRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     index: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    route: (f = msg.getRoute()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.toObject(includeInstance, f)
+    route: (f = msg.getRoute()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5115,8 +5115,8 @@ proto.glooeeapi.solo.io.RouteInput.deserializeBinaryFromReader = function(msg, r
       msg.setIndex(value);
       break;
     case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.deserializeBinaryFromReader);
       msg.setRoute(value);
       break;
     default:
@@ -5168,7 +5168,7 @@ proto.glooeeapi.solo.io.RouteInput.serializeBinaryToWriter = function(message, w
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route.serializeBinaryToWriter
     );
   }
 };
@@ -5220,16 +5220,16 @@ proto.glooeeapi.solo.io.RouteInput.prototype.setIndex = function(value) {
 
 
 /**
- * optional gloo.solo.io.Route route = 3;
- * @return {?proto.gloo.solo.io.Route}
+ * optional gateway.solo.io.Route route = 3;
+ * @return {?proto.gateway.solo.io.Route}
  */
 proto.glooeeapi.solo.io.RouteInput.prototype.getRoute = function() {
-  return /** @type{?proto.gloo.solo.io.Route} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route, 3));
+  return /** @type{?proto.gateway.solo.io.Route} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.Route, 3));
 };
 
 
-/** @param {?proto.gloo.solo.io.Route|undefined} value */
+/** @param {?proto.gateway.solo.io.Route|undefined} value */
 proto.glooeeapi.solo.io.RouteInput.prototype.setRoute = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };

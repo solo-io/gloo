@@ -40,7 +40,7 @@ message RepeatedStrings {
 }
 
 message RepeatedRoutes {
-    repeated gloo.solo.io.Route values = 1;
+    repeated gateway.solo.io.Route values = 1;
 }
 
 message SslConfigValue {
@@ -87,7 +87,7 @@ message VirtualServiceInput {
     core.solo.io.ResourceRef ref = 1;
     string display_name = 2;
     repeated string domains = 3;
-    repeated gloo.solo.io.Route routes = 4;
+    repeated gateway.solo.io.Route routes = 4;
     core.solo.io.ResourceRef secret_ref = 5;
     ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
 
@@ -150,7 +150,7 @@ message RouteInput {
     // If not provided to CreateRoute, a default virtual service will be identified or created.
     core.solo.io.ResourceRef virtual_service_ref = 1;
     uint32 index = 2;
-    gloo.solo.io.Route route = 3;
+    gateway.solo.io.Route route = 3;
 }
 
 message CreateRouteRequest {
