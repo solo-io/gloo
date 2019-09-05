@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Refreshing on the watch namespaces would sometimes resut in an error.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1063

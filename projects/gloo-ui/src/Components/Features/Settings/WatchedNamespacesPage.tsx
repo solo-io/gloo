@@ -30,14 +30,23 @@ const RefreshRateTitle = styled.div`
 `;
 
 interface RefreshRateProps {
-  updateFn: () => void;
   seconds: number;
   nanos: number;
-  setSeconds: React.Dispatch<React.SetStateAction<number>>;
-  setNanos: React.Dispatch<React.SetStateAction<number>>;
 }
 const RefreshRate: React.FC<RefreshRateProps> = props => {
-  const { updateFn, seconds, nanos, setSeconds, setNanos } = props;
+  const dispatch = useDispatch();
+  const { seconds, nanos } = props;
+  const [currentSeconds, setCurrentSeconds] = React.useState(seconds);
+  const [currentNanos, setCurrentNanos] = React.useState(nanos);
+
+  const handleUpdateRefreshRate = () => {
+    dispatch(
+      updateRefreshRate({
+        refreshRate: { seconds: currentSeconds, nanos: currentNanos }
+      })
+    );
+    setTimeout(() => dispatch(getSettings()), 300);
+  };
 
   return (
     <div>
@@ -49,9 +58,9 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
         <RefreshRateTitle>{`Refresh Rate:`}</RefreshRateTitle>
         <InputNumber
           size='small'
-          value={seconds}
-          defaultValue={seconds}
-          onChange={seconds => setSeconds(seconds!)}
+          value={currentSeconds}
+          defaultValue={currentSeconds}
+          onChange={seconds => setCurrentSeconds(seconds!)}
           formatter={seconds => `${seconds}s`}
           parser={seconds => seconds!.replace('s', '')}
           css={css`
@@ -63,9 +72,9 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
         :
         <InputNumber
           size='small'
-          value={nanos}
-          defaultValue={nanos}
-          onChange={nanos => setNanos(nanos!)}
+          value={currentNanos}
+          defaultValue={currentNanos}
+          onChange={nanos => setCurrentNanos(nanos!)}
           formatter={nanos => `${nanos}ns`}
           parser={nanos => nanos!.replace('ns', '')}
           css={css`
@@ -74,7 +83,7 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
             border: none;
           `}
         />
-        <div onClick={updateFn} style={{ cursor: 'pointer' }}>
+        <div onClick={handleUpdateRefreshRate} style={{ cursor: 'pointer' }}>
           <UpdateRefreshRateText>{'Change'}</UpdateRefreshRateText>
         </div>
       </div>
@@ -98,10 +107,11 @@ export const WatchedNamespacesPage = (props: Props) => {
   const [availableNS, setAvailableNS] = React.useState(namespacesList);
 
   const [refreshRateSeconds, setRefreshRateSeconds] = React.useState(
-    () => settings.refreshRate!.seconds || 1
+    settings && settings.refreshRate ? settings.refreshRate!.seconds : 1
   );
+
   const [refreshRateNanos, setRefreshRateNanos] = React.useState(
-    () => settings.refreshRate!.seconds || 0
+    settings && settings.refreshRate ? settings.refreshRate!.nanos : 0
   );
 
   React.useEffect(() => {
@@ -109,7 +119,7 @@ export const WatchedNamespacesPage = (props: Props) => {
       setRefreshRateSeconds(currentRefreshRate!.seconds);
       setRefreshRateNanos(currentRefreshRate!.nanos);
     }
-  }, []);
+  }, [currentRefreshRate]);
 
   React.useEffect(() => {
     if (!settings) {
@@ -146,26 +156,11 @@ export const WatchedNamespacesPage = (props: Props) => {
     setTimeout(() => dispatch(getSettings()), 300);
   };
 
-  const handleUpdateRefreshRate = () => {
-    dispatch(
-      updateRefreshRate({
-        refreshRate: { seconds: refreshRateSeconds, nanos: refreshRateNanos }
-      })
-    );
-    setTimeout(() => dispatch(getSettings()), 300);
-  };
-
   return (
     <SectionCard
       cardName={'Watched Namespaces'}
       secondaryComponent={
-        <RefreshRate
-          seconds={refreshRateSeconds}
-          nanos={refreshRateNanos}
-          setSeconds={setRefreshRateSeconds}
-          setNanos={setRefreshRateNanos}
-          updateFn={handleUpdateRefreshRate}
-        />
+        <RefreshRate seconds={refreshRateSeconds} nanos={refreshRateNanos} />
       }
       logoIcon={<RelatedCircles />}>
       {watchNamespacesList.length === 0 && (
