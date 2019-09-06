@@ -395,10 +395,12 @@ proto.gateway.solo.io.VirtualHost.prototype.toObject = function(opt_includeInsta
  */
 proto.gateway.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
   var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     domainsList: jspb.Message.getRepeatedField(msg, 2),
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gateway.solo.io.Route.toObject, includeInstance),
-    virtualHostPlugins: (f = msg.getVirtualHostPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.toObject(includeInstance, f)
+    virtualHostPlugins: (f = msg.getVirtualHostPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.toObject(includeInstance, f),
+    corsPolicy: (f = msg.getCorsPolicy()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -435,6 +437,10 @@ proto.gateway.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, re
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.addDomains(value);
@@ -448,6 +454,11 @@ proto.gateway.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, re
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.deserializeBinaryFromReader);
       msg.setVirtualHostPlugins(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.deserializeBinaryFromReader);
+      msg.setCorsPolicy(value);
       break;
     default:
       reader.skipField();
@@ -478,6 +489,13 @@ proto.gateway.solo.io.VirtualHost.prototype.serializeBinary = function() {
  */
 proto.gateway.solo.io.VirtualHost.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
   f = message.getDomainsList();
   if (f.length > 0) {
     writer.writeRepeatedString(
@@ -501,6 +519,29 @@ proto.gateway.solo.io.VirtualHost.serializeBinaryToWriter = function(message, wr
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.serializeBinaryToWriter
     );
   }
+  f = message.getCorsPolicy();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gateway.solo.io.VirtualHost.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
@@ -591,6 +632,36 @@ proto.gateway.solo.io.VirtualHost.prototype.clearVirtualHostPlugins = function()
  */
 proto.gateway.solo.io.VirtualHost.prototype.hasVirtualHostPlugins = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional gloo.solo.io.CorsPolicy cors_policy = 5;
+ * @return {?proto.gloo.solo.io.CorsPolicy}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.getCorsPolicy = function() {
+  return /** @type{?proto.gloo.solo.io.CorsPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy, 5));
+};
+
+
+/** @param {?proto.gloo.solo.io.CorsPolicy|undefined} value */
+proto.gateway.solo.io.VirtualHost.prototype.setCorsPolicy = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.gateway.solo.io.VirtualHost.prototype.clearCorsPolicy = function() {
+  this.setCorsPolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

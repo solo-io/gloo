@@ -2,6 +2,7 @@ package install_test
 
 import (
 	"context"
+	"fmt"
 
 	install3 "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/install"
 	options2 "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
@@ -74,7 +75,12 @@ var _ = Describe("Install", func() {
 	expectLabels := func(resources []install2.ResourceType, labels map[string]string) {
 		for _, resource := range resources {
 			actualLabels := resource.Metadata.Labels
+			By(fmt.Sprintf("resource: %v.%v\nactual labels: %v",
+				resource.Metadata.Namespace,
+				resource.Metadata.Name,
+				actualLabels))
 			for k, v := range labels {
+				By(fmt.Sprintf("label: %v", k))
 				val, ok := actualLabels[k]
 				ExpectWithOffset(1, ok).To(BeTrue())
 				// Currently all the observability stuff has custom app labels

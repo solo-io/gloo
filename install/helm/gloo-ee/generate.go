@@ -121,9 +121,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string
 	config.Gloo.Gateway.Deployment.Image.Tag = osGlooVersion
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
-	config.ApiServer.Deployment.Server.Image.Tag = version
-	config.ApiServer.Deployment.Envoy.Image.Tag = version
-	config.ApiServer.Deployment.Ui.Image.Tag = version
+	config.Gloo.ApiServer.Deployment.Server.Image.Tag = version
+	config.Gloo.ApiServer.Deployment.Envoy.Image.Tag = version
+	config.Gloo.ApiServer.Deployment.Ui.Image.Tag = version
 
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	for _, v := range config.Gloo.GatewayProxies {
@@ -136,10 +136,10 @@ func generateValuesYaml(version, pullPolicy, outputFile, repositoryPrefix string
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
+	config.Gloo.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
+	config.Gloo.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 
 	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
 		return err

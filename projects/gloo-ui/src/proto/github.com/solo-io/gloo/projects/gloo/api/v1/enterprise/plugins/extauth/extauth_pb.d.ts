@@ -475,6 +475,11 @@ export class Ldap extends jspb.Message {
   setAllowedgroupsList(value: Array<string>): void;
   addAllowedgroups(value: string, index?: number): string;
 
+  hasPool(): boolean;
+  clearPool(): void;
+  getPool(): Ldap.ConnectionPool | undefined;
+  setPool(value?: Ldap.ConnectionPool): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Ldap.AsObject;
   static toObject(includeInstance: boolean, msg: Ldap): Ldap.AsObject;
@@ -491,6 +496,31 @@ export namespace Ldap {
     userdntemplate: string,
     membershipattributename: string,
     allowedgroupsList: Array<string>,
+    pool?: Ldap.ConnectionPool.AsObject,
+  }
+
+  export class ConnectionPool extends jspb.Message {
+    getMaxsize(): number;
+    setMaxsize(value: number): void;
+
+    getInitialsize(): number;
+    setInitialsize(value: number): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConnectionPool.AsObject;
+    static toObject(includeInstance: boolean, msg: ConnectionPool): ConnectionPool.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConnectionPool, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConnectionPool;
+    static deserializeBinaryFromReader(message: ConnectionPool, reader: jspb.BinaryReader): ConnectionPool;
+  }
+
+  export namespace ConnectionPool {
+    export type AsObject = {
+      maxsize: number,
+      initialsize: number,
+    }
   }
 }
 

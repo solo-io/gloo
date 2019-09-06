@@ -56,6 +56,9 @@ export namespace VirtualService {
 }
 
 export class VirtualHost extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
   clearDomainsList(): void;
   getDomainsList(): Array<string>;
   setDomainsList(value: Array<string>): void;
@@ -71,6 +74,11 @@ export class VirtualHost extends jspb.Message {
   getVirtualHostPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins | undefined;
   setVirtualHostPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins): void;
 
+  hasCorsPolicy(): boolean;
+  clearCorsPolicy(): void;
+  getCorsPolicy(): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy | undefined;
+  setCorsPolicy(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHost.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHost): VirtualHost.AsObject;
@@ -83,9 +91,11 @@ export class VirtualHost extends jspb.Message {
 
 export namespace VirtualHost {
   export type AsObject = {
+    name: string,
     domainsList: Array<string>,
     routesList: Array<Route.AsObject>,
     virtualHostPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.AsObject,
+    corsPolicy?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.AsObject,
   }
 }
 

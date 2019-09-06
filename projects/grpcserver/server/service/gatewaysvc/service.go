@@ -11,7 +11,6 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
-	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -131,7 +130,7 @@ func (s *gatewayGrpcService) UpdateGatewayYaml(ctx context.Context, request *v1.
 func (s *gatewayGrpcService) getDetails(gateway *v2.Gateway) *v1.GatewayDetails {
 	return &v1.GatewayDetails{
 		Gateway: gateway,
-		Raw:     s.rawGetter.GetRaw(s.ctx, gateway, gatewayv2.GatewayCrd),
+		Raw:     s.rawGetter.GetRaw(s.ctx, gateway, v2.GatewayCrd),
 		Status:  s.statusConverter.GetApiStatusFromResource(gateway),
 	}
 }

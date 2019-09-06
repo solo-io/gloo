@@ -12,7 +12,6 @@ type Config struct {
 	Gloo          *generate.Config   `json:"gloo,omitempty"`
 	Redis         *Redis             `json:"redis,omitempty"`
 	RateLimit     *RateLimit         `json:"rateLimit,omitempty"`
-	ApiServer     *ApiServer         `json:"apiServer,omitempty"`
 	Observability *Observability     `json:"observability,omitempty"`
 	Rbac          *Rbac              `json:"rbac"`
 	Grafana       interface{}        `json:"grafana,omitempty"`
@@ -21,11 +20,6 @@ type Config struct {
 }
 
 // Common
-
-type OAuth struct {
-	Server string `json:"server"`
-	Client string `json:"client"`
-}
 
 type Rbac struct {
 	Create bool `json:"create"`
@@ -68,48 +62,6 @@ type RedisDeployment struct {
 
 type RedisService struct {
 	Port uint   `json:"port"`
-	Name string `json:"name"`
-}
-
-type ApiServer struct {
-	NoAuth     bool                 `json:"noAuth"`
-	Deployment *ApiServerDeployment `json:"deployment,omitempty"`
-	Service    *ApiServerService    `json:"service,omitempty"`
-	ConfigMap  *ApiServerConfigMap  `json:"configMap,omitempty"`
-	EnableBeta bool                 `json:"enableBeta,omitempty"`
-}
-
-type ApiServerDeployment struct {
-	Server *ApiServerServerDeployment `json:"server,omitempty"`
-	Ui     *ApiServerUiDeployment     `json:"ui,omitempty"`
-	Envoy  *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
-	*generate.DeploymentSpec
-}
-
-type ApiServerServerDeployment struct {
-	GrpcPort uint            `json:"grpcPort"`
-	OAuth    *OAuth          `json:"oauth,omitempty"`
-	Image    *generate.Image `json:"image"`
-	*generate.DeploymentSpec
-}
-
-type ApiServerEnvoyDeployment struct {
-	Image *generate.Image `json:"image"`
-	*generate.DeploymentSpec
-}
-
-type ApiServerUiDeployment struct {
-	StaticPort       uint            `json:"staticPort"`
-	StaticPortNoAuth uint            `json:"staticPortNoAuth"`
-	Image            *generate.Image `json:"image,omitempty"`
-	*generate.DeploymentSpec
-}
-
-type ApiServerService struct {
-	Name string `json:"name"`
-}
-
-type ApiServerConfigMap struct {
 	Name string `json:"name"`
 }
 

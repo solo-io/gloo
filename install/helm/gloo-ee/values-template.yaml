@@ -70,6 +70,31 @@ gloo:
       image:
         repository: gateway-conversion
       restartPolicy: Never
+  apiServer:
+    enterprise: true
+    enable: true
+    enableBeta: true
+    deployment:
+      stats: true
+      name: "grpcserver-ui"
+      server:
+        image:
+          name: apiserver
+          repository: grpcserver-ee
+        grpcPort: 10101
+        oauth: {}
+      ui:
+        image:
+          name: "gloo-ui"
+          repository: grpcserver-ui
+        staticPort: 8080
+      envoy:
+        image:
+          name: "grpcserver-envoy"
+          repository: grpcserver-envoy
+    service:
+      name: "apiserver-ui"
+
 
 ########################################################################
 ###                                                                  ###
@@ -102,35 +127,6 @@ redis:
   service:
     port: 6379
     name: redis
-
-########################################################################
-###                                                                  ###
-###                        API Server                                ###
-###                                                                  ###
-########################################################################
-
-apiServer:
-  enableBeta: true
-  deployment:
-    stats: true
-    name: "grpcserver-ui"
-    server:
-      image:
-        name: apiserver
-        repository: grpcserver-ee
-      grpcPort: 10101
-      oauth: {}
-    ui:
-      image:
-        name: "gloo-ui"
-        repository: grpcserver-ui
-      staticPort: 8080
-    envoy:
-      image:
-        name: "grpcserver-envoy"
-        repository: grpcserver-envoy
-  service:
-    name: "apiserver-ui"
 
 ########################################################################
 ###                                                                  ###
