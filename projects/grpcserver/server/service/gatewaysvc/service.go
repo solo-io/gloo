@@ -22,7 +22,7 @@ import (
 
 type gatewayGrpcService struct {
 	ctx             context.Context
-	gatewayClient   gatewayv2.GatewayClient
+	gatewayClient   v2.GatewayClient
 	rawGetter       rawgetter.RawGetter
 	statusConverter status.InputResourceStatusGetter
 	licenseClient   license.Client
@@ -30,7 +30,7 @@ type gatewayGrpcService struct {
 
 func NewGatewayGrpcService(
 	ctx context.Context,
-	gatewayClient gatewayv2.GatewayClient,
+	gatewayClient v2.GatewayClient,
 	rawGetter rawgetter.RawGetter,
 	statusConverter status.InputResourceStatusGetter,
 	licenseClient license.Client,
