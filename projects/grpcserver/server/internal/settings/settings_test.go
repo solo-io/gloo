@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -21,7 +19,6 @@ var (
 	client         settings.ValuesClient
 	mockCtrl       *gomock.Controller
 	settingsClient *mock_gloo.MockSettingsClient
-	clientCache    *mocks.MockClientCache
 	testErr        = errors.Errorf("test-err")
 )
 
@@ -30,9 +27,7 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		settingsClient = mock_gloo.NewMockSettingsClient(mockCtrl)
-		clientCache = mocks.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetSettingsClient().Return(settingsClient).AnyTimes()
-		client = settings.NewSettingsValuesClient(context.TODO(), clientCache)
+		client = settings.NewSettingsValuesClient(context.TODO(), settingsClient)
 	})
 
 	AfterEach(func() {

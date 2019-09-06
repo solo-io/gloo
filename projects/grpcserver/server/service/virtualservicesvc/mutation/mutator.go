@@ -3,8 +3,6 @@ package mutation
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
@@ -25,7 +23,7 @@ type Mutator interface {
 
 type mutator struct {
 	ctx           context.Context
-	clientCache   client.ClientCache
+	client        gatewayv1.VirtualServiceClient
 	licenseClient license.Client
 }
 
@@ -46,7 +44,7 @@ func (m *mutator) Update(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualS
 	if err := svccodes.CheckLicenseForGlooUiMutations(m.ctx, m.licenseClient); err != nil {
 		return nil, err
 	}
-	virtualService, err := m.clientCache.GetVirtualServiceClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: m.ctx})
+	virtualService, err := m.client.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: m.ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -58,13 +56,13 @@ func (m *mutator) mutateAndWrite(vs *gatewayv1.VirtualService, f Mutation, overw
 		return nil, err
 	}
 	vs.Status = core.Status{}
-	return m.clientCache.GetVirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: overwrite})
+	return m.client.Write(vs, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: overwrite})
 }
 
-func NewMutator(ctx context.Context, clientCache client.ClientCache, licenseClient license.Client) Mutator {
+func NewMutator(ctx context.Context, client gatewayv1.VirtualServiceClient, licenseClient license.Client) Mutator {
 	return &mutator{
 		ctx:           ctx,
-		clientCache:   clientCache,
+		client:        client,
 		licenseClient: licenseClient,
 	}
 }

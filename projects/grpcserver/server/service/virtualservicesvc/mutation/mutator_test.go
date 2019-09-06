@@ -3,8 +3,6 @@ package mutation_test
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +18,6 @@ import (
 var (
 	mockCtrl      *gomock.Controller
 	client        *mock_vssvc.MockVirtualServiceClient
-	clientCache   *mocks.MockClientCache
 	mutator       mutation.Mutator
 	writeError    = errors.Errorf("write-error")
 	readError     = errors.Errorf("read-error")
@@ -49,10 +46,8 @@ var _ = Describe("Mutator", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		client = mock_vssvc.NewMockVirtualServiceClient(mockCtrl)
-		clientCache = mocks.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetVirtualServiceClient().Return(client).AnyTimes()
 		licenseClient = mock_license.NewMockClient(mockCtrl)
-		mutator = mutation.NewMutator(context.TODO(), clientCache, licenseClient)
+		mutator = mutation.NewMutator(context.TODO(), client, licenseClient)
 		licenseClient.EXPECT().IsLicenseValid().Return(nil)
 	})
 

@@ -13,7 +13,6 @@ import (
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
@@ -37,57 +36,45 @@ import (
 
 func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcService, error) {
 	v1Settings := setup.MustSettings(ctx)
-	config, err := setup.NewKubeConfig()
+	clientSet, err := setup.NewClientSet(ctx, v1Settings)
 	if err != nil {
 		return nil, err
 	}
-	token, err := setup.GetToken(config)
-	if err != nil {
-		return nil, err
-	}
-	clientCache, err := client.NewClientCache(ctx, v1Settings, config, token)
-	if err != nil {
-		return nil, err
-	}
-	licenseClient := license.NewClient(ctx)
-	valuesClient := settings.NewSettingsValuesClient(ctx, clientCache)
-	mutator := mutation.NewMutator(clientCache)
+	upstreamClient := setup.NewUpstreamClient(clientSet)
+	client := license.NewClient(ctx)
+	settingsClient := setup.NewSettingsClient(clientSet)
+	valuesClient := settings.NewSettingsValuesClient(ctx, settingsClient)
+	mutator := mutation.NewMutator(upstreamClient)
 	factory := mutation.NewFactory()
 	rawGetter := rawgetter.NewKubeYamlRawGetter()
-	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter)
-	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient)
-	coreV1Interface, err := setup.GetK8sCoreInterface(config)
-	if err != nil {
-		return nil, err
-	}
-	namespacesGetter := setup.NewNamespacesGetter(coreV1Interface)
+	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, upstreamClient, client, valuesClient, mutator, factory, rawGetter)
+	artifactClient := setup.NewArtifactClient(clientSet)
+	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, artifactClient, client)
+	namespacesGetter := setup.NewNamespacesGetter(clientSet)
 	namespaceClient := kube.NewNamespaceClient(namespacesGetter)
 	oAuthEndpoint := setup.NewOAuthEndpoint()
 	buildVersion := setup.GetBuildVersion()
 	string2 := envutils.MustGetPodNamespace(ctx)
-	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, oAuthEndpoint, buildVersion, string2)
-	if err != nil {
-		return nil, err
-	}
+	configApiServer := configsvc.NewConfigGrpcService(ctx, settingsClient, client, namespaceClient, oAuthEndpoint, buildVersion, string2)
+	secretClient := setup.NewSecretClient(clientSet)
 	scrubber := scrub.NewScrubber()
-	secretApiServer := secretsvc.NewSecretGrpcService(ctx, clientCache, scrubber, licenseClient)
-	mutationMutator := mutation2.NewMutator(ctx, clientCache, licenseClient)
+	secretApiServer := secretsvc.NewSecretGrpcService(ctx, secretClient, scrubber, client)
+	virtualServiceClient := setup.NewVirtualServiceClient(clientSet)
+	mutationMutator := mutation2.NewMutator(ctx, virtualServiceClient, client)
 	mutationFactory := mutation2.NewMutationFactory()
 	virtualServiceDetailsConverter := converter.NewVirtualServiceDetailsConverter(rawGetter)
-	virtualServiceSelector := selection.NewVirtualServiceSelector(clientCache, namespaceClient, string2)
-	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, clientCache, licenseClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
+	virtualServiceSelector := selection.NewVirtualServiceSelector(virtualServiceClient, namespaceClient, string2)
+	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, virtualServiceClient, client, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
+	gatewayClient := setup.NewGatewayClient(clientSet)
 	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
-	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, licenseClient)
-	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter)
-	podsGetter := setup.NewPodsGetter(coreV1Interface)
+	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, gatewayClient, rawGetter, inputResourceStatusGetter, client)
+	proxyClient := setup.NewProxyClient(clientSet)
+	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, proxyClient, rawGetter, inputResourceStatusGetter)
+	podsGetter := setup.NewPodsGetter(clientSet)
 	httpGetter := envoydetails.NewHttpGetter()
-	proxyStatusGetter := envoydetails.NewProxyStatusGetter(clientCache)
+	proxyStatusGetter := envoydetails.NewProxyStatusGetter(proxyClient)
 	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
-	updater := client.NewClientUpdater(clientCache, config, token)
-	glooGrpcService, err := NewGlooGrpcService(listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
-	if err != nil {
-		return nil, err
-	}
+	glooGrpcService := NewGlooGrpcService(listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer)
 	return glooGrpcService, nil
 }

@@ -4,10 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
 
 	"github.com/gogo/protobuf/types"
@@ -22,34 +18,36 @@ import (
 	"go.uber.org/zap"
 )
 
+type BuildVersion string
+
 type configGrpcService struct {
 	ctx             context.Context
-	clientCache     client.ClientCache
+	settingsClient  gloov1.SettingsClient
 	licenseClient   license.Client
 	namespaceClient kube.NamespaceClient
 	oAuthEndpoint   v1.OAuthEndpoint
-	version         setup.BuildVersion
+	version         BuildVersion
 	podNamespace    string
 }
 
 func NewConfigGrpcService(
 	ctx context.Context,
-	clientCache client.ClientCache,
+	settingsClient gloov1.SettingsClient,
 	licenseClient license.Client,
 	namespaceClient kube.NamespaceClient,
 	oAuthEndpoint v1.OAuthEndpoint,
-	version setup.BuildVersion,
-	podNamespace string) (v1.ConfigApiServer, error) {
+	version BuildVersion,
+	podNamespace string) v1.ConfigApiServer {
 
 	return &configGrpcService{
 		ctx:             ctx,
-		clientCache:     clientCache,
+		settingsClient:  settingsClient,
 		licenseClient:   licenseClient,
 		namespaceClient: namespaceClient,
 		oAuthEndpoint:   oAuthEndpoint,
 		version:         version,
 		podNamespace:    podNamespace,
-	}, nil
+	}
 }
 
 func (s *configGrpcService) GetVersion(context.Context, *v1.GetVersionRequest) (*v1.GetVersionResponse, error) {
@@ -73,7 +71,7 @@ func (s *configGrpcService) GetIsLicenseValid(context.Context, *v1.GetIsLicenseV
 func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSettingsRequest) (*v1.GetSettingsResponse, error) {
 	namespace := s.podNamespace
 	name := defaults.SettingsName
-	settings, err := s.clientCache.GetSettingsClient().Read(namespace, name, clients.ReadOpts{Ctx: s.ctx})
+	settings, err := s.settingsClient.Read(namespace, name, clients.ReadOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToReadSettingsError(err)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err))
@@ -99,7 +97,7 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 		watchNamespaces := request.GetWatchNamespaces()
 		ref = request.GetRef()
 
-		settingsToWrite, err = s.clientCache.GetSettingsClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
+		settingsToWrite, err = s.settingsClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToUpdateSettingsError(err)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -126,7 +124,7 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 		}
 	}
 
-	written, err := s.clientCache.GetSettingsClient().Write(settingsToWrite, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	written, err := s.settingsClient.Write(settingsToWrite, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		wrapped := FailedToUpdateSettingsError(err)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

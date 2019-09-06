@@ -3,8 +3,6 @@ package artifactsvc_test
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,7 +22,6 @@ var (
 	mockCtrl       *gomock.Controller
 	artifactClient *mock_gloo.MockArtifactClient
 	licenseClient  *mock_license.MockClient
-	clientCache    *mocks.MockClientCache
 	testErr        = errors.Errorf("test-err")
 )
 
@@ -34,9 +31,7 @@ var _ = Describe("ServiceTest", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		artifactClient = mock_gloo.NewMockArtifactClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
-		clientCache = mocks.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetArtifactClient().Return(artifactClient).AnyTimes()
-		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), clientCache, licenseClient)
+		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), artifactClient, licenseClient)
 	})
 
 	AfterEach(func() {

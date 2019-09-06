@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	clientscache "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -21,13 +20,13 @@ type ProxyStatusGetter interface {
 }
 
 type proxyStatusGetter struct {
-	clientCache clientscache.ClientCache
+	proxyClient gloov1.ProxyClient
 }
 
 var _ ProxyStatusGetter = &proxyStatusGetter{}
 
-func NewProxyStatusGetter(clientCache clientscache.ClientCache) ProxyStatusGetter {
-	return &proxyStatusGetter{clientCache: clientCache}
+func NewProxyStatusGetter(proxyClient gloov1.ProxyClient) ProxyStatusGetter {
+	return &proxyStatusGetter{proxyClient: proxyClient}
 }
 
 func (g *proxyStatusGetter) GetProxyStatus(ctx context.Context, pod kubev1.Pod) *v1.Status {
@@ -39,7 +38,7 @@ func (g *proxyStatusGetter) GetProxyStatus(ctx context.Context, pod kubev1.Pod) 
 	}
 
 	// TODO joekelley is there a stronger association among gateways, proxies, and gateway-proxies?
-	proxy, err := g.clientCache.GetProxyClient().Read(pod.Namespace, pod.Labels[GatewayProxyIdLabel], clients.ReadOpts{Ctx: ctx})
+	proxy, err := g.proxyClient.Read(pod.Namespace, pod.Labels[GatewayProxyIdLabel], clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Errorw(
 			fmt.Sprintf("Failed to load proxy resource for gateway proxy pod %v.%v", pod.Namespace, pod.Name),

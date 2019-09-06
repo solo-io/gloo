@@ -3,8 +3,6 @@ package envoydetails_test
 import (
 	"context"
 
-	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -21,7 +19,6 @@ import (
 var (
 	getter      envoydetails.ProxyStatusGetter
 	proxyClient *mocks.MockProxyClient
-	clientCache *clientmocks.MockClientCache
 
 	namespace = "ns"
 	name      = "name"
@@ -57,9 +54,7 @@ var _ = Describe("ProxyStatusGetter Test", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		proxyClient = mocks.NewMockProxyClient(mockCtrl)
-		clientCache = clientmocks.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetProxyClient().Return(proxyClient).AnyTimes()
-		getter = envoydetails.NewProxyStatusGetter(clientCache)
+		getter = envoydetails.NewProxyStatusGetter(proxyClient)
 	})
 
 	AfterEach(func() {

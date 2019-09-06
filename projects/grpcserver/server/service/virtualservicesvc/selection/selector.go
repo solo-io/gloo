@@ -3,8 +3,6 @@ package selection
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -21,25 +19,25 @@ type VirtualServiceSelector interface {
 }
 
 type virtualServiceSelector struct {
-	clientCache     client.ClientCache
-	namespaceClient kube.NamespaceClient
-	podNamespace    string
+	virtualServiceClient gatewayv1.VirtualServiceClient
+	namespaceClient      kube.NamespaceClient
+	podNamespace         string
 }
 
 var _ VirtualServiceSelector = &virtualServiceSelector{}
 
-func NewVirtualServiceSelector(clientCache client.ClientCache, namespaceClient kube.NamespaceClient, podNamespace string) VirtualServiceSelector {
+func NewVirtualServiceSelector(virtualServiceClient gatewayv1.VirtualServiceClient, namespaceClient kube.NamespaceClient, podNamespace string) VirtualServiceSelector {
 	return &virtualServiceSelector{
-		clientCache:     clientCache,
-		namespaceClient: namespaceClient,
-		podNamespace:    podNamespace,
+		virtualServiceClient: virtualServiceClient,
+		namespaceClient:      namespaceClient,
+		podNamespace:         podNamespace,
 	}
 }
 
 func (s *virtualServiceSelector) SelectOrCreate(ctx context.Context, ref *core.ResourceRef) (*gatewayv1.VirtualService, error) {
 	// Read or create virtual service as specified
 	if ref.GetNamespace() != "" && ref.GetName() != "" {
-		found, err := s.clientCache.GetVirtualServiceClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: ctx})
+		found, err := s.virtualServiceClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: ctx})
 		if err != nil && !sk_errors.IsNotExist(err) {
 			return nil, err
 		}
@@ -59,7 +57,7 @@ func (s *virtualServiceSelector) SelectOrCreate(ctx context.Context, ref *core.R
 		return nil, err
 	}
 	for _, ns := range namespaces {
-		allVirtualServices, err := s.clientCache.GetVirtualServiceClient().List(ns, clients.ListOpts{Ctx: ctx})
+		allVirtualServices, err := s.virtualServiceClient.List(ns, clients.ListOpts{Ctx: ctx})
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +92,7 @@ func (s *virtualServiceSelector) create(ctx context.Context, ref *core.ResourceR
 		virtualService.Metadata.Name = "default"
 	}
 
-	written, err := s.clientCache.GetVirtualServiceClient().Write(virtualService, clients.WriteOpts{Ctx: ctx})
+	written, err := s.virtualServiceClient.Write(virtualService, clients.WriteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}

@@ -4,10 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -32,9 +28,8 @@ var (
 	settingsClient    *mock_gloo.MockSettingsClient
 	licenseClient     *mock_license.MockClient
 	namespaceClient   *mock_namespace.MockNamespaceClient
-	clientCache       *mocks.MockClientCache
 	podNamespace      = "pod-ns"
-	testVersion       = setup.BuildVersion("test-version")
+	testVersion       = configsvc.BuildVersion("test-version")
 	testOAuthEndpoint = v1.OAuthEndpoint{Url: "test", ClientName: "name"}
 	testErr           = errors.Errorf("test-err")
 )
@@ -45,12 +40,7 @@ var _ = Describe("ServiceTest", func() {
 		settingsClient = mock_gloo.NewMockSettingsClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
-		clientCache = mocks.NewMockClientCache(mockCtrl)
-
-		server, err := configsvc.NewConfigGrpcService(context.TODO(), clientCache, licenseClient, namespaceClient, testOAuthEndpoint, testVersion, podNamespace)
-		Expect(err).NotTo(HaveOccurred())
-
-		apiserver = server
+		apiserver = configsvc.NewConfigGrpcService(context.TODO(), settingsClient, licenseClient, namespaceClient, testOAuthEndpoint, testVersion, podNamespace)
 	})
 
 	AfterEach(func() {
@@ -102,7 +92,6 @@ var _ = Describe("ServiceTest", func() {
 			settingsClient.EXPECT().
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(settings, nil)
-			clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 			actual, err := apiserver.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).NotTo(HaveOccurred())
@@ -114,7 +103,6 @@ var _ = Describe("ServiceTest", func() {
 			settingsClient.EXPECT().
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
-			clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 			_, err := apiserver.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).To(HaveOccurred())
@@ -158,7 +146,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writeSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
@@ -188,7 +175,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(nil, testErr)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
@@ -232,7 +218,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writeSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
 
 				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
@@ -268,7 +253,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Write(writtenSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writtenSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
 
 				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
@@ -291,7 +275,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(readSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
@@ -312,7 +295,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
 					Return(nil, testErr)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
@@ -334,7 +316,6 @@ var _ = Describe("ServiceTest", func() {
 				settingsClient.EXPECT().
 					Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(nil, testErr)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())

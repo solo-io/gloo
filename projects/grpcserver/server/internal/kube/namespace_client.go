@@ -2,7 +2,7 @@ package kube
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type NamespaceClient interface {
@@ -10,7 +10,7 @@ type NamespaceClient interface {
 }
 
 type namespaceClient struct {
-	namespacesGetter v1.NamespacesGetter
+	namespacesGetter corev1.NamespacesGetter
 }
 
 func (n *namespaceClient) ListNamespaces() ([]string, error) {
@@ -25,7 +25,7 @@ func (n *namespaceClient) ListNamespaces() ([]string, error) {
 	return namespaces, nil
 }
 
-func NewNamespaceClient(namespacesGetter v1.NamespacesGetter) NamespaceClient {
+func NewNamespaceClient(namespacesGetter corev1.NamespacesGetter) NamespaceClient {
 	return &namespaceClient{
 		namespacesGetter: namespacesGetter,
 	}

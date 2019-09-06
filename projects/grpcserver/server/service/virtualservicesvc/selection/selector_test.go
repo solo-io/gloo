@@ -3,8 +3,6 @@ package selection_test
 import (
 	"context"
 
-	mockclientcache "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +21,6 @@ var (
 	mockCtrl     *gomock.Controller
 	vsClient     *mocks.MockVirtualServiceClient
 	nsClient     *mock_ns.MockNamespaceClient
-	clientCache  *mockclientcache.MockClientCache
 	selector     selection.VirtualServiceSelector
 	podNamespace = "pod-ns"
 	otherNs      = "ns"
@@ -52,9 +49,7 @@ var _ = Describe("SelectorTest", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		vsClient = mocks.NewMockVirtualServiceClient(mockCtrl)
 		nsClient = mock_ns.NewMockNamespaceClient(mockCtrl)
-		clientCache = mockclientcache.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetVirtualServiceClient().Return(vsClient).AnyTimes()
-		selector = selection.NewVirtualServiceSelector(clientCache, nsClient, podNamespace)
+		selector = selection.NewVirtualServiceSelector(vsClient, nsClient, podNamespace)
 	})
 
 	AfterEach(func() {

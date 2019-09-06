@@ -3,8 +3,6 @@ package secretsvc
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
@@ -20,20 +18,20 @@ import (
 
 type secretGrpcService struct {
 	ctx            context.Context
-	clientCache    client.ClientCache
+	secretClient   gloov1.SecretClient
 	secretScrubber scrub.Scrubber
 	licenseClient  license.Client
 }
 
 func NewSecretGrpcService(
 	ctx context.Context,
-	clientCache client.ClientCache,
+	secretClient gloov1.SecretClient,
 	secretScrubber scrub.Scrubber,
 	licenseClient license.Client,
 ) v1.SecretApiServer {
 	return &secretGrpcService{
 		ctx:            ctx,
-		clientCache:    clientCache,
+		secretClient:   secretClient,
 		secretScrubber: secretScrubber,
 		licenseClient:  licenseClient,
 	}
@@ -54,7 +52,7 @@ func (s *secretGrpcService) GetSecret(ctx context.Context, request *v1.GetSecret
 func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSecretsRequest) (*v1.ListSecretsResponse, error) {
 	var secretList gloov1.SecretList
 	for _, ns := range request.GetNamespaces() {
-		secrets, err := s.clientCache.GetSecretClient().List(ns, clients.ListOpts{Ctx: s.ctx})
+		secrets, err := s.secretClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListSecretsError(err, ns)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -167,7 +165,7 @@ func (s *secretGrpcService) DeleteSecret(ctx context.Context, request *v1.Delete
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	err := s.clientCache.GetSecretClient().Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
+	err := s.secretClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -177,9 +175,9 @@ func (s *secretGrpcService) DeleteSecret(ctx context.Context, request *v1.Delete
 }
 
 func (s *secretGrpcService) readSecret(ref *core.ResourceRef) (*gloov1.Secret, error) {
-	return s.clientCache.GetSecretClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
+	return s.secretClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 
 func (s *secretGrpcService) writeSecret(secret gloov1.Secret, shouldOverWrite bool) (*gloov1.Secret, error) {
-	return s.clientCache.GetSecretClient().Write(&secret, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
+	return s.secretClient.Write(&secret, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
 }

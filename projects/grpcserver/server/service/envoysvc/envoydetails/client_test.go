@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +18,6 @@ var (
 	mockCtrl                 *gomock.Controller
 	podsGetter               *mocks.MockPodsGetter
 	podNamespacePodInterface *mocks.MockPodInterface
-	mockClientCache          *clientmocks.MockClientCache
 	httpGetter               *mocks.MockHttpGetter
 	proxyStatusGetter        *mocks.MockProxyStatusGetter
 	client                   envoydetails.Client

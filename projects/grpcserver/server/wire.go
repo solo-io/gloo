@@ -6,8 +6,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/google/wire"
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/pkg/license"
@@ -41,14 +39,16 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		setup.NewOAuthEndpoint,
 
 		// Resource clients.
-		setup.NewKubeConfig,
-		setup.GetToken,
-		setup.GetK8sCoreInterface,
+		setup.NewClientSet,
 		setup.NewNamespacesGetter,
 		setup.NewPodsGetter,
-
-		client.NewClientCache,
-		client.NewClientUpdater,
+		setup.NewSettingsClient,
+		setup.NewVirtualServiceClient,
+		setup.NewUpstreamClient,
+		setup.NewArtifactClient,
+		setup.NewSecretClient,
+		setup.NewGatewayClient,
+		setup.NewProxyClient,
 
 		// Derived and simple clients.
 		license.NewClient,

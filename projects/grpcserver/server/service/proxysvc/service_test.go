@@ -3,8 +3,6 @@ package proxysvc_test
 import (
 	"context"
 
-	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
 	"github.com/golang/mock/gomock"
@@ -27,7 +25,6 @@ var (
 	mockCtrl        *gomock.Controller
 	proxyClient     *mocks.MockProxyClient
 	rawGetter       *mock_rawgetter.MockRawGetter
-	clientCache     *clientmocks.MockClientCache
 	statusConverter *mock_status.MockInputResourceStatusGetter
 	testErr         = errors.Errorf("test-err")
 )
@@ -57,10 +54,8 @@ var _ = Describe("ServiceTest", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		proxyClient = mocks.NewMockProxyClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
-		clientCache = clientmocks.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetProxyClient().Return(proxyClient).AnyTimes()
 		statusConverter = mock_status.NewMockInputResourceStatusGetter(mockCtrl)
-		apiserver = proxysvc.NewProxyGrpcService(context.TODO(), clientCache, rawGetter, statusConverter)
+		apiserver = proxysvc.NewProxyGrpcService(context.TODO(), proxyClient, rawGetter, statusConverter)
 	})
 
 	AfterEach(func() {

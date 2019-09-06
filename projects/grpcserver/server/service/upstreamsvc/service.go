@@ -3,8 +3,6 @@ package upstreamsvc
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
@@ -22,7 +20,7 @@ import (
 
 type upstreamGrpcService struct {
 	ctx             context.Context
-	clientCache     client.ClientCache
+	upstreamClient  gloov1.UpstreamClient
 	licenseClient   license.Client
 	settingsValues  settings.ValuesClient
 	mutator         mutation.Mutator
@@ -32,7 +30,7 @@ type upstreamGrpcService struct {
 
 func NewUpstreamGrpcService(
 	ctx context.Context,
-	clientCache client.ClientCache,
+	upstreamClient gloov1.UpstreamClient,
 	licenseClient license.Client,
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
@@ -41,7 +39,7 @@ func NewUpstreamGrpcService(
 
 	return &upstreamGrpcService{
 		ctx:             ctx,
-		clientCache:     clientCache,
+		upstreamClient:  upstreamClient,
 		settingsValues:  settingsValues,
 		mutator:         mutator,
 		mutationFactory: factory,
@@ -64,7 +62,7 @@ func (s *upstreamGrpcService) GetUpstream(ctx context.Context, request *v1.GetUp
 func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.ListUpstreamsRequest) (*v1.ListUpstreamsResponse, error) {
 	var upstreamList gloov1.UpstreamList
 	for _, ns := range request.GetNamespaces() {
-		upstreams, err := s.clientCache.GetUpstreamClient().List(ns, clients.ListOpts{Ctx: s.ctx})
+		upstreams, err := s.upstreamClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListUpstreamsError(err, ns)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -138,7 +136,7 @@ func (s *upstreamGrpcService) DeleteUpstream(ctx context.Context, request *v1.De
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	err := s.clientCache.GetUpstreamClient().Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
+	err := s.upstreamClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteUpstreamError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -148,11 +146,11 @@ func (s *upstreamGrpcService) DeleteUpstream(ctx context.Context, request *v1.De
 }
 
 func (s *upstreamGrpcService) readUpstream(ref *core.ResourceRef) (*gloov1.Upstream, error) {
-	return s.clientCache.GetUpstreamClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
+	return s.upstreamClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 
 func (s *upstreamGrpcService) writeUpstream(upstream *gloov1.Upstream, overwriteExisting bool) (*gloov1.Upstream, error) {
-	return s.clientCache.GetUpstreamClient().Write(upstream, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: overwriteExisting})
+	return s.upstreamClient.Write(upstream, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: overwriteExisting})
 }
 
 func (s *upstreamGrpcService) getDetails(upstream *gloov1.Upstream) *v1.UpstreamDetails {

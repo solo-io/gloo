@@ -3,8 +3,6 @@ package artifactsvc
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
@@ -18,16 +16,16 @@ import (
 )
 
 type artifactGrpcService struct {
-	ctx           context.Context
-	clientCache   client.ClientCache
-	licenseClient license.Client
+	ctx            context.Context
+	artifactClient gloov1.ArtifactClient
+	licenseClient  license.Client
 }
 
-func NewArtifactGrpcService(ctx context.Context, clientCache client.ClientCache, licenseClient license.Client) v1.ArtifactApiServer {
+func NewArtifactGrpcService(ctx context.Context, artifactClient gloov1.ArtifactClient, licenseClient license.Client) v1.ArtifactApiServer {
 	return &artifactGrpcService{
-		ctx:           ctx,
-		clientCache:   clientCache,
-		licenseClient: licenseClient,
+		ctx:            ctx,
+		artifactClient: artifactClient,
+		licenseClient:  licenseClient,
 	}
 }
 
@@ -45,7 +43,7 @@ func (s *artifactGrpcService) GetArtifact(ctx context.Context, request *v1.GetAr
 func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.ListArtifactsRequest) (*v1.ListArtifactsResponse, error) {
 	var artifactList gloov1.ArtifactList
 	for _, ns := range request.GetNamespaces() {
-		artifacts, err := s.clientCache.GetArtifactClient().List(ns, clients.ListOpts{Ctx: s.ctx})
+		artifacts, err := s.artifactClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListArtifactsError(err, ns)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -130,7 +128,7 @@ func (s *artifactGrpcService) DeleteArtifact(ctx context.Context, request *v1.De
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	err := s.clientCache.GetArtifactClient().Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
+	err := s.artifactClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteArtifactError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -140,9 +138,9 @@ func (s *artifactGrpcService) DeleteArtifact(ctx context.Context, request *v1.De
 }
 
 func (s *artifactGrpcService) readArtifact(ref *core.ResourceRef) (*gloov1.Artifact, error) {
-	return s.clientCache.GetArtifactClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
+	return s.artifactClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 
 func (s *artifactGrpcService) writeArtifact(artifact *gloov1.Artifact, shouldOverWrite bool) (*gloov1.Artifact, error) {
-	return s.clientCache.GetArtifactClient().Write(artifact, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
+	return s.artifactClient.Write(artifact, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
 }

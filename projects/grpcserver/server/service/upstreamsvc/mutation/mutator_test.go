@@ -3,8 +3,6 @@ package mutation_test
 import (
 	"context"
 
-	k8smockclients "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +18,6 @@ var (
 	mockCtrl      *gomock.Controller
 	client        *mocks.MockUpstreamClient
 	mutator       mutation.Mutator
-	clientCache   *k8smockclients.MockClientCache
 	writeError    = errors.Errorf("write-error")
 	readError     = errors.Errorf("read-error")
 	mutationError = errors.Errorf("mutation-error")
@@ -47,9 +44,7 @@ var _ = Describe("Mutator", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		client = mocks.NewMockUpstreamClient(mockCtrl)
-		clientCache = k8smockclients.NewMockClientCache(mockCtrl)
-		clientCache.EXPECT().GetUpstreamClient().Return(client).AnyTimes()
-		mutator = mutation.NewMutator(clientCache)
+		mutator = mutation.NewMutator(client)
 	})
 
 	AfterEach(func() {

@@ -3,8 +3,6 @@ package virtualservicesvc
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
@@ -24,22 +22,22 @@ import (
 //go:generate mockgen -destination mocks/virtual_service_client_mock.go -self_package github.com/solo-io/gloo/projects/gateway/pkg/api/v1 -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 VirtualServiceClient
 
 type virtualServiceGrpcService struct {
-	ctx              context.Context
-	podNamespace     string
-	settingsValues   settings.ValuesClient
-	clientCache      client.ClientCache
-	licenseClient    license.Client
-	mutator          mutation.Mutator
-	mutationFactory  mutation.MutationFactory
-	detailsConverter converter.VirtualServiceDetailsConverter
-	selector         selection.VirtualServiceSelector
-	rawGetter        rawgetter.RawGetter
+	ctx                  context.Context
+	podNamespace         string
+	settingsValues       settings.ValuesClient
+	virtualServiceClient gatewayv1.VirtualServiceClient
+	licenseClient        license.Client
+	mutator              mutation.Mutator
+	mutationFactory      mutation.MutationFactory
+	detailsConverter     converter.VirtualServiceDetailsConverter
+	selector             selection.VirtualServiceSelector
+	rawGetter            rawgetter.RawGetter
 }
 
 func NewVirtualServiceGrpcService(
 	ctx context.Context,
 	podNamespace string,
-	clientCache client.ClientCache,
+	virtualServiceClient gatewayv1.VirtualServiceClient,
 	licenseClient license.Client,
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
@@ -50,21 +48,21 @@ func NewVirtualServiceGrpcService(
 ) v1.VirtualServiceApiServer {
 
 	return &virtualServiceGrpcService{
-		ctx:              ctx,
-		podNamespace:     podNamespace,
-		clientCache:      clientCache,
-		licenseClient:    licenseClient,
-		settingsValues:   settingsValues,
-		mutator:          mutator,
-		mutationFactory:  mutationFactory,
-		detailsConverter: detailsConverter,
-		selector:         selector,
-		rawGetter:        rawgetter,
+		ctx:                  ctx,
+		podNamespace:         podNamespace,
+		virtualServiceClient: virtualServiceClient,
+		licenseClient:        licenseClient,
+		settingsValues:       settingsValues,
+		mutator:              mutator,
+		mutationFactory:      mutationFactory,
+		detailsConverter:     detailsConverter,
+		selector:             selector,
+		rawGetter:            rawgetter,
 	}
 }
 
 func (s *virtualServiceGrpcService) GetVirtualService(ctx context.Context, request *v1.GetVirtualServiceRequest) (*v1.GetVirtualServiceResponse, error) {
-	virtualService, err := s.clientCache.GetVirtualServiceClient().Read(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.ReadOpts{Ctx: s.ctx})
+	virtualService, err := s.virtualServiceClient.Read(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.ReadOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToReadVirtualServiceError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -78,7 +76,7 @@ func (s *virtualServiceGrpcService) GetVirtualService(ctx context.Context, reque
 func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, request *v1.ListVirtualServicesRequest) (*v1.ListVirtualServicesResponse, error) {
 	var virtualServiceList gatewayv1.VirtualServiceList
 	for _, ns := range request.GetNamespaces() {
-		virtualServices, err := s.clientCache.GetVirtualServiceClient().List(ns, clients.ListOpts{Ctx: s.ctx})
+		virtualServices, err := s.virtualServiceClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListVirtualServicesError(err, ns)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -163,7 +161,7 @@ func (s *virtualServiceGrpcService) UpdateVirtualServiceYaml(ctx context.Context
 		return nil, wrapped
 	}
 
-	written, err := s.clientCache.GetVirtualServiceClient().Write(virtualServiceFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	written, err := s.virtualServiceClient.Write(virtualServiceFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 
 	if err != nil {
 		wrapped := FailedToUpdateVirtualServiceError(err, refToUpdate)
@@ -178,7 +176,7 @@ func (s *virtualServiceGrpcService) DeleteVirtualService(ctx context.Context, re
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	err := s.clientCache.GetVirtualServiceClient().Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
+	err := s.virtualServiceClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToDeleteVirtualServiceError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
