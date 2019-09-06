@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Rebuild all k8s resource clients when the settings change
+    issueLink: https://github.com/solo-io/solo-projects/issues/1054

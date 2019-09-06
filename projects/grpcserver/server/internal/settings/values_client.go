@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	clientscache "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+
 	"github.com/gogo/protobuf/types"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	v1clients "github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"go.uber.org/zap"
 )
 
@@ -20,14 +21,15 @@ type ValuesClient interface {
 }
 
 type client struct {
-	ctx            context.Context
-	settingsClient v1.SettingsClient
+	ctx         context.Context
+	clientCache clientscache.ClientCache
 }
 
 func (c *client) GetRefreshRate() time.Duration {
 	var refreshRate time.Duration
 	// TODO cleanup hardcoded resource namespace / name
-	settings, err := c.settingsClient.Read("gloo-system", "default", clients.ReadOpts{Ctx: c.ctx})
+
+	settings, err := c.clientCache.GetSettingsClient().Read("gloo-system", "default", v1clients.ReadOpts{Ctx: c.ctx})
 	if err != nil {
 		contextutils.LoggerFrom(c.ctx).Errorw("Failed to read settings",
 			zap.Error(err))
@@ -48,9 +50,9 @@ func (c *client) GetRefreshRate() time.Duration {
 	return refreshRate
 }
 
-func NewSettingsValuesClient(ctx context.Context, settingsClient v1.SettingsClient) ValuesClient {
+func NewSettingsValuesClient(ctx context.Context, clientCache clientscache.ClientCache) ValuesClient {
 	return &client{
-		ctx:            ctx,
-		settingsClient: settingsClient,
+		ctx:         ctx,
+		clientCache: clientCache,
 	}
 }

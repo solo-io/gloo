@@ -3,6 +3,8 @@ package proxysvc
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -15,22 +17,22 @@ import (
 
 type proxyGrpcService struct {
 	ctx             context.Context
-	proxyClient     gloov1.ProxyClient
+	clientCache     client.ClientCache
 	rawGetter       rawgetter.RawGetter
 	statusConverter status.InputResourceStatusGetter
 }
 
-func NewProxyGrpcService(ctx context.Context, proxyClient gloov1.ProxyClient, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.ProxyApiServer {
+func NewProxyGrpcService(ctx context.Context, clientCache client.ClientCache, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.ProxyApiServer {
 	return &proxyGrpcService{
 		ctx:             ctx,
-		proxyClient:     proxyClient,
+		clientCache:     clientCache,
 		rawGetter:       rawGetter,
 		statusConverter: statusConverter,
 	}
 }
 
 func (s *proxyGrpcService) GetProxy(ctx context.Context, request *v1.GetProxyRequest) (*v1.GetProxyResponse, error) {
-	proxy, err := s.proxyClient.Read(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.ReadOpts{Ctx: s.ctx})
+	proxy, err := s.clientCache.GetProxyClient().Read(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.ReadOpts{Ctx: s.ctx})
 	if err != nil {
 		wrapped := FailedToGetProxyError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -42,7 +44,7 @@ func (s *proxyGrpcService) GetProxy(ctx context.Context, request *v1.GetProxyReq
 func (s *proxyGrpcService) ListProxies(ctx context.Context, request *v1.ListProxiesRequest) (*v1.ListProxiesResponse, error) {
 	var proxyDetailsList []*v1.ProxyDetails
 	for _, ns := range request.GetNamespaces() {
-		proxiesInNamespace, err := s.proxyClient.List(ns, clients.ListOpts{Ctx: s.ctx})
+		proxiesInNamespace, err := s.clientCache.GetProxyClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListProxiesError(err, ns)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

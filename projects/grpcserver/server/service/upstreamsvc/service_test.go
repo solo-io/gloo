@@ -3,6 +3,8 @@ package upstreamsvc_test
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,6 +31,7 @@ var (
 	mutator        *mock_mutator.MockMutator
 	factory        *mock_mutator.MockFactory
 	settingsValues *mock_settings.MockValuesClient
+	clientCache    *mocks.MockClientCache
 	rawGetter      *mock_rawgetter.MockRawGetter
 	testErr        = errors.Errorf("test-err")
 )
@@ -56,7 +59,9 @@ var _ = Describe("ServiceTest", func() {
 		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, licenseClient, settingsValues, mutator, factory, rawGetter)
+		clientCache = mocks.NewMockClientCache(mockCtrl)
+		clientCache.EXPECT().GetUpstreamClient().Return(upstreamClient).AnyTimes()
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter)
 	})
 
 	AfterEach(func() {

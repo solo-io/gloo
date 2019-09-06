@@ -3,6 +3,8 @@ package mutation
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -24,14 +26,14 @@ type Mutator interface {
 }
 
 type mutator struct {
-	client gloov1.UpstreamClient
+	clientCache client.ClientCache
 }
 
 var _ Mutator = &mutator{}
 
-func NewMutator(client gloov1.UpstreamClient) Mutator {
+func NewMutator(clientCache client.ClientCache) Mutator {
 	return &mutator{
-		client: client,
+		clientCache: clientCache,
 	}
 }
 
@@ -54,7 +56,7 @@ func (m *mutator) UpdateUpstream(ctx context.Context, upstream *gloov1.Upstream)
 }
 
 func (m *mutator) Update(ctx context.Context, ref *core.ResourceRef, f Mutation) (*gloov1.Upstream, error) {
-	virtualService, err := m.client.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: ctx})
+	virtualService, err := m.clientCache.GetUpstreamClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -72,5 +74,5 @@ func (m *mutator) write(ctx context.Context, upstream *gloov1.Upstream, overwrit
 	// TODO why are we resetting its status before writing it?
 	upstream.Status = core.Status{}
 
-	return m.client.Write(upstream, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwrite})
+	return m.clientCache.GetUpstreamClient().Write(upstream, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwrite})
 }

@@ -4,13 +4,14 @@ import (
 	"context"
 	"os"
 
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	"github.com/solo-io/go-utils/kubeutils"
+	"k8s.io/client-go/kubernetes"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/pkg/version"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 func MustSettings(ctx context.Context) *gloov1.Settings {
@@ -21,42 +22,45 @@ func NewOAuthEndpoint() v1.OAuthEndpoint {
 	return v1.OAuthEndpoint{Url: os.Getenv("OAUTH_SERVER"), ClientName: os.Getenv("OAUTH_CLIENT")}
 }
 
-func NewNamespacesGetter(set *ClientSet) corev1.NamespacesGetter {
-	return set.CoreV1Interface
+type BuildVersion string
+
+func GetBuildVersion() BuildVersion {
+	return BuildVersion(version.Version)
 }
 
-func NewPodsGetter(set *ClientSet) corev1.PodsGetter {
-	return set.CoreV1Interface
+func NewKubeConfig() (*rest.Config, error) {
+	// When running in-cluster, this configuration will hold a token associated with the pod service account
+	return kubeutils.GetConfig("", "")
 }
 
-func NewSettingsClient(set *ClientSet) gloov1.SettingsClient {
-	return set.SettingsClient
+// have to type this as something else because wire is already injecting a string
+type Token *string
+
+func GetToken(cfg *rest.Config) (Token, error) {
+	var token string
+
+	// TODO: temporary solution to bypass authentication.
+	if token == "" {
+		// Use the token associated with the pod service account
+		token = cfg.BearerToken
+	}
+
+	return &token, nil
 }
 
-func NewVirtualServiceClient(set *ClientSet) gatewayv1.VirtualServiceClient {
-	return set.VirtualServiceClient
+func GetK8sCoreInterface(cfg *rest.Config) (corev1.CoreV1Interface, error) {
+	kubeClientset, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return kubeClientset.CoreV1(), nil
 }
 
-func NewUpstreamClient(set *ClientSet) gloov1.UpstreamClient {
-	return set.UpstreamClient
+func NewNamespacesGetter(coreInterface corev1.CoreV1Interface) corev1.NamespacesGetter {
+	return coreInterface
 }
 
-func NewSecretClient(set *ClientSet) gloov1.SecretClient {
-	return set.SecretClient
-}
-
-func NewArtifactClient(set *ClientSet) gloov1.ArtifactClient {
-	return set.ArtifactClient
-}
-
-func NewGatewayClient(set *ClientSet) gatewayv2.GatewayClient {
-	return set.GatewayClient
-}
-
-func NewProxyClient(set *ClientSet) gloov1.ProxyClient {
-	return set.ProxyClient
-}
-
-func GetBuildVersion() configsvc.BuildVersion {
-	return configsvc.BuildVersion(version.Version)
+func NewPodsGetter(coreInterface corev1.CoreV1Interface) corev1.PodsGetter {
+	return coreInterface
 }

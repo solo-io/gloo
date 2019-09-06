@@ -3,6 +3,8 @@ package gatewaysvc_test
 import (
 	"context"
 
+	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+
 	"google.golang.org/grpc/codes"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -30,6 +32,7 @@ var (
 	gatewayClient   *mocks.MockGatewayClient
 	licenseClient   *mock_license.MockClient
 	rawGetter       *mock_rawgetter.MockRawGetter
+	clientCache     *clientmocks.MockClientCache
 	statusConverter *mock_status_converter.MockInputResourceStatusGetter
 	testErr         = errors.Errorf("test-err")
 )
@@ -60,8 +63,10 @@ var _ = Describe("ServiceTest", func() {
 		gatewayClient = mocks.NewMockGatewayClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
+		clientCache = clientmocks.NewMockClientCache(mockCtrl)
+		clientCache.EXPECT().GetGatewayClient().Return(gatewayClient).AnyTimes()
 		statusConverter = mock_status_converter.NewMockInputResourceStatusGetter(mockCtrl)
-		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), gatewayClient, rawGetter, statusConverter, licenseClient)
+		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), clientCache, rawGetter, statusConverter, licenseClient)
 	})
 
 	AfterEach(func() {
