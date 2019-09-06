@@ -1,6 +1,6 @@
 syntax = "proto3";
 package envoy.config.filter.http.modsecurity.v2;
-option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf";
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;

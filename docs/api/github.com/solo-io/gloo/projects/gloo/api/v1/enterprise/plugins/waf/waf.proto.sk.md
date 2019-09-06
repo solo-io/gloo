@@ -41,7 +41,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `disabled` | `bool` | disable waf on this listener |  |
 | `coreRuleSet` | [.waf.plugins.gloo.solo.io.CoreRuleSet](../waf.proto.sk#coreruleset) | Add owasp core rule set if nil will not be added |  |
-| `ruleSets` | [[]envoy.config.filter.http.modsecurity.v2.RuleSet](../../../../../external/envoy/waf/waf.proto.sk#ruleset) | custom rule sets rules to add |  |
+| `ruleSets` | [[]envoy.config.filter.http.modsecurity.v2.RuleSet](../../../../../external/envoy/extensions/waf/waf.proto.sk#ruleset) | custom rule sets rules to add |  |
 
 
 

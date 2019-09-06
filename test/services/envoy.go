@@ -297,6 +297,11 @@ func (ei *EnvoyInstance) LocalAddr() string {
 	return ei.GlooAddr
 }
 
+func (ei *EnvoyInstance) SetPanicThreshold() error {
+	_, err := http.Post(fmt.Sprintf("http://localhost:%d/runtime_modify?upstream.healthy_panic_threshold=%d", ei.AdminPort, 0), "", nil)
+	return err
+}
+
 func (ei *EnvoyInstance) Clean() error {
 	http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
 	if ei.cmd != nil {

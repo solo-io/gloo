@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package envoy.config.filter.http.aws.v2;
 
-option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws";
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws";
 
 import "validate/validate.proto";
 
