@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Do not require readConfig to be set in order to show Envoy details. 
+    issueLink: https://github.com/solo-io/solo-projects/issues/1061

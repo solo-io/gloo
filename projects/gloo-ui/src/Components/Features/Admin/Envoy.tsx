@@ -41,7 +41,7 @@ const Link = styled.div`
   font-size: 14px;
 `;
 
-interface Props {}
+interface Props { }
 export const getHealth = (code: number): number => {
   switch (code) {
     case Status.Code.ERROR:
@@ -94,9 +94,11 @@ export const Envoy = (props: Props) => {
     );
   };
 
+
   return (
     <React.Fragment>
       {allEnvoys.map((envoy, ind) => {
+        const hasConfigDump = !!envoy.raw && envoy.raw.content.length > 0
         return (
           <SectionCard
             key={envoy.name + ind}
@@ -112,24 +114,26 @@ export const Envoy = (props: Props) => {
             )}
             <InsideHeader>
               <div>Code Log (Read Only)</div>{' '}
-              {!!envoy.raw && (
+              {hasConfigDump ? (
                 <FileDownloadLink
-                  fileName={envoy.raw.fileName}
-                  fileContent={envoy.raw.content}
+                  fileName={envoy.raw!.fileName}
+                  fileContent={envoy.raw!.content}
                 />
-              )}
+              ) : (<div>---</div>)}
             </InsideHeader>
-            {!!envoy.raw && (
+            {hasConfigDump ? (
               <React.Fragment>
                 <ExpandableSection isExpanded={envoysOpen[ind]}>
                   {' '}
-                  <ConfigDisplayer content={envoy.raw.content} isJson />
+                  <ConfigDisplayer content={envoy.raw!.content} isJson />
                 </ExpandableSection>
                 <Link onClick={() => toggleExpansion(ind)}>
-                  {envoysOpen[ind] ? 'Hide' : 'View'} Settings
+                  {envoysOpen[ind] ? 'Hide' : 'View'} Envoy Config
                 </Link>
               </React.Fragment>
-            )}
+            ) : (
+                <div><i>Install Gloo with </i><code>gatewayProxies.gatewayProxyV2.readConfig</code> <i>enabled to view Envoy config.</i></div>
+              )}
           </SectionCard>
         );
       })}

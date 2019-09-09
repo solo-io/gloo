@@ -2847,7 +2847,6 @@
     "go.uber.org/zap",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
-    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

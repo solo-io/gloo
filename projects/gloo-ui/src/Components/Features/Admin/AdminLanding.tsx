@@ -80,18 +80,18 @@ const HealthScoreContainer = styled.div`
     margin: 0 12px;
 
     ${(props: HealthScoreContainerProps) =>
-      props.health === healthConstants.Good.value
-        ? '' //`fill: ${colors.forestGreen};`
-        : props.health === healthConstants.Error.value
+    props.health === healthConstants.Good.value
+      ? '' //`fill: ${colors.forestGreen};`
+      : props.health === healthConstants.Error.value
         ? `fill: ${colors.grapefruitOrange};`
         : `fill: ${colors.sunGold};`}
   }
 
   & span {
     ${(props: HealthScoreContainerProps) =>
-      props.health === healthConstants.Good.value
-        ? '' //`fill: ${colors.forestGreen};`
-        : props.health === healthConstants.Error.value
+    props.health === healthConstants.Good.value
+      ? '' //`fill: ${colors.forestGreen};`
+      : props.health === healthConstants.Error.value
         ? `color: ${colors.grapefruitOrange};`
         : `color: ${colors.sunGold};`}
     padding: 5px;
@@ -188,7 +188,7 @@ const GatewayOverview = () => {
                 tallyCount={gatewayErrorCount}
                 tallyDescription={`gateway error${
                   gatewayErrorCount === 1 ? '' : 's'
-                }`}
+                  }`}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View',
@@ -196,19 +196,19 @@ const GatewayOverview = () => {
                 }}
               />
             ) : (
-              <GoodStateCongratulations typeOfItem={'gateway configurations'} />
-            )}
+                <GoodStateCongratulations typeOfItem={'gateway configurations'} />
+              )}
             <TallyInformationDisplay
               tallyCount={allGateways.length}
               tallyDescription={`gateway configuration${
                 gatewaysList.length === 1 ? '' : 's'
-              } `}
+                } `}
               color='blue'
             />
           </React.Fragment>
         ) : (
-          <div>You have no gateways configured yet.</div>
-        )}
+            <div>You have no gateways configured yet.</div>
+          )}
       </StatusTile>
     </Gateway>
   );
@@ -267,7 +267,7 @@ const ProxyOverview = () => {
                 tallyCount={proxyErrorCount}
                 tallyDescription={`proxy error${
                   proxyErrorCount === 1 ? '' : 's'
-                }`}
+                  }`}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View',
@@ -275,19 +275,19 @@ const ProxyOverview = () => {
                 }}
               />
             ) : (
-              <GoodStateCongratulations typeOfItem={'proxy configurations'} />
-            )}
+                <GoodStateCongratulations typeOfItem={'proxy configurations'} />
+              )}
             <TallyInformationDisplay
               tallyCount={proxiesList.length}
               tallyDescription={`proxy configuration${
                 proxiesList.length === 1 ? '' : 's'
-              } `}
+                } `}
               color='blue'
             />
           </React.Fragment>
         ) : (
-          <div>You have no proxy configured yet.</div>
-        )}
+            <div>You have no proxy configured yet.</div>
+          )}
       </StatusTile>
     </Proxy>
   );
@@ -307,7 +307,11 @@ const EnvoyOverview = () => {
   const [envoyConfigs, setEnvoyConfigs] = React.useState<any[]>([]);
   React.useEffect(() => {
     if (!!envoysList.length) {
-      setEnvoyConfigs(envoysList.map(envoy => JSON.parse(envoy.raw!.content)));
+      setEnvoyConfigs(envoysList.map(envoy => {
+        if (envoy.raw!.contentRenderError === "" && envoy.raw!.content !== "") {
+          return JSON.parse(envoy.raw!.content)
+        }
+      }));
 
       setAllEnvoy(envoysList);
     }
@@ -353,7 +357,7 @@ const EnvoyOverview = () => {
                 tallyCount={envoyErrorCount}
                 tallyDescription={`envoy error${
                   envoyErrorCount === 1 ? '' : 's'
-                }`}
+                  }`}
                 color='orange'
                 moreInfoLink={{
                   prompt: 'View',
@@ -361,19 +365,19 @@ const EnvoyOverview = () => {
                 }}
               />
             ) : (
-              <GoodStateCongratulations typeOfItem={'envoy configurations'} />
-            )}
+                <GoodStateCongratulations typeOfItem={'envoy configurations'} />
+              )}
             <TallyInformationDisplay
               tallyCount={envoysList.length}
               tallyDescription={`envoy${
                 envoysList.length === 1 ? '' : 's'
-              } configured`}
+                } configured`}
               color='blue'
             />
           </React.Fragment>
         ) : (
-          <div>You have no envoy configured yet.</div>
-        )}
+              <div>You have no envoy configured yet.</div>
+            )}
       </StatusTile>
     </Envoy>
   );

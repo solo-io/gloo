@@ -73,6 +73,13 @@ var _ = Describe("Helm Test", func() {
 					gatewayProxyDeployment *appsv1.Deployment
 				)
 
+				includeStatConfig := func() {
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-stats"] = "/stats"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-ready"] = "/ready"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-config_dump"] = "/config_dump"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
+				}
+
 				BeforeEach(func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
@@ -84,13 +91,9 @@ var _ = Describe("Helm Test", func() {
 						"gateway-proxy":    "live",
 					}
 					podAnnotations := map[string]string{
-						"prometheus.io/path":     "/metrics",
-						"prometheus.io/port":     "8081",
-						"prometheus.io/scrape":   "true",
-						"readconfig-stats":       "/stats",
-						"readconfig-ready":       "/ready",
-						"readconfig-config_dump": "/config_dump",
-						"readconfig-port":        "8082",
+						"prometheus.io/path":   "/metrics",
+						"prometheus.io/port":   "8081",
+						"prometheus.io/scrape": "true",
 					}
 					podname := v1.EnvVar{
 						Name: "POD_NAME",
@@ -159,14 +162,32 @@ var _ = Describe("Helm Test", func() {
 					gatewayProxyDeployment = deploy
 				})
 
+				It("creates a deployment without envoy config annotations", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+
+					prepareMakefile(helmFlags)
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
+				It("creates a deployment with envoy config annotations", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true " +
+						"--set gloo.gatewayProxies.gatewayProxyV2.readConfig=true"
+
+					prepareMakefile(helmFlags)
+					includeStatConfig()
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
 				It("creates a deployment without extauth sidecar", func() {
 					helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+
 					prepareMakefile(helmFlags)
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 				})
 
 				It("creates a deployment with extauth sidecar", func() {
-					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set global.extensions.extAuth.envoySidecar=true"
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true " +
+						"--set global.extensions.extAuth.envoySidecar=true "
 					prepareMakefile(helmFlags)
 
 					gatewayProxyDeployment.Spec.Template.Spec.Volumes = append(

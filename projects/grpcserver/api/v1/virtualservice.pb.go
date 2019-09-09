@@ -455,10 +455,10 @@ type isExtAuthInput_Config_Value interface {
 }
 
 type ExtAuthInput_Config_Oauth struct {
-	Oauth *extauth.OAuth `protobuf:"bytes,1,opt,name=oauth,proto3,oneof"`
+	Oauth *extauth.OAuth `protobuf:"bytes,1,opt,name=oauth,proto3,oneof" json:"oauth,omitempty"`
 }
 type ExtAuthInput_Config_CustomAuth struct {
-	CustomAuth *extauth.CustomAuth `protobuf:"bytes,2,opt,name=custom_auth,json=customAuth,proto3,oneof"`
+	CustomAuth *extauth.CustomAuth `protobuf:"bytes,2,opt,name=custom_auth,json=customAuth,proto3,oneof" json:"custom_auth,omitempty"`
 }
 
 func (*ExtAuthInput_Config_Oauth) isExtAuthInput_Config_Value()      {}
@@ -711,13 +711,13 @@ type isVirtualServiceInput_ExtAuthConfig interface {
 }
 
 type VirtualServiceInput_BasicAuth struct {
-	BasicAuth *VirtualServiceInput_BasicAuthInput `protobuf:"bytes,7,opt,name=basic_auth,json=basicAuth,proto3,oneof"`
+	BasicAuth *VirtualServiceInput_BasicAuthInput `protobuf:"bytes,7,opt,name=basic_auth,json=basicAuth,proto3,oneof" json:"basic_auth,omitempty"`
 }
 type VirtualServiceInput_Oauth struct {
-	Oauth *extauth.OAuth `protobuf:"bytes,8,opt,name=oauth,proto3,oneof"`
+	Oauth *extauth.OAuth `protobuf:"bytes,8,opt,name=oauth,proto3,oneof" json:"oauth,omitempty"`
 }
 type VirtualServiceInput_CustomAuth struct {
-	CustomAuth *extauth.CustomAuth `protobuf:"bytes,9,opt,name=custom_auth,json=customAuth,proto3,oneof"`
+	CustomAuth *extauth.CustomAuth `protobuf:"bytes,9,opt,name=custom_auth,json=customAuth,proto3,oneof" json:"custom_auth,omitempty"`
 }
 
 func (*VirtualServiceInput_BasicAuth) isVirtualServiceInput_ExtAuthConfig()  {}

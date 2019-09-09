@@ -107,43 +107,49 @@ var _ = Describe("Envoy Details Client Test", func() {
 				Expect(actual).To(Equal(expected))
 			})
 
-			It("skips pods that don't have a port annotation", func() {
+			It("includes pods that don't have a port annotation", func() {
 				podA := getPod("a", "ipa", "porta", "config-dump-a", "proxy-a")
 				podB := getPod("b", "ipb", "", "config-dump-b", "proxy-b")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{podA, podB}}
 
 				dumpA := "a config dump"
+				dumpB := ""
 
 				podNamespacePodInterface.EXPECT().
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return(dumpA, nil)
 				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podA).Return(getStatus())
+				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podB).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
 					getDetails("proxy-a", dumpA, "", getStatus()),
+					getDetails("proxy-b", dumpB, "", getStatus()),
 				}
 				Expect(actual).To(Equal(expected))
 			})
 
-			It("skips pods that don't have a config dump path annotation", func() {
+			It("includes pods that don't have a config dump path annotation", func() {
 				podA := getPod("a", "ipa", "porta", "", "proxy-a")
 				podB := getPod("b", "ipb", "portb", "config-dump-b", "proxy-b")
 				podList := &kubev1.PodList{Items: []kubev1.Pod{podA, podB}}
 
+				dumpA := ""
 				dumpB := "b config dump"
 
 				podNamespacePodInterface.EXPECT().
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipb", "portb", "config-dump-b").Return(dumpB, nil)
+				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podA).Return(getStatus())
 				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podB).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
+					getDetails("proxy-a", dumpA, "", getStatus()),
 					getDetails("proxy-b", dumpB, "", getStatus()),
 				}
 				Expect(actual).To(Equal(expected))

@@ -296,22 +296,22 @@ type isUpstreamInput_Spec interface {
 }
 
 type UpstreamInput_Kube struct {
-	Kube *kubernetes.UpstreamSpec `protobuf:"bytes,2,opt,name=kube,proto3,oneof"`
+	Kube *kubernetes.UpstreamSpec `protobuf:"bytes,2,opt,name=kube,proto3,oneof" json:"kube,omitempty"`
 }
 type UpstreamInput_Static struct {
-	Static *static.UpstreamSpec `protobuf:"bytes,3,opt,name=static,proto3,oneof"`
+	Static *static.UpstreamSpec `protobuf:"bytes,3,opt,name=static,proto3,oneof" json:"static,omitempty"`
 }
 type UpstreamInput_Aws struct {
-	Aws *aws.UpstreamSpec `protobuf:"bytes,4,opt,name=aws,proto3,oneof"`
+	Aws *aws.UpstreamSpec `protobuf:"bytes,4,opt,name=aws,proto3,oneof" json:"aws,omitempty"`
 }
 type UpstreamInput_Azure struct {
-	Azure *azure.UpstreamSpec `protobuf:"bytes,5,opt,name=azure,proto3,oneof"`
+	Azure *azure.UpstreamSpec `protobuf:"bytes,5,opt,name=azure,proto3,oneof" json:"azure,omitempty"`
 }
 type UpstreamInput_Consul struct {
-	Consul *consul.UpstreamSpec `protobuf:"bytes,6,opt,name=consul,proto3,oneof"`
+	Consul *consul.UpstreamSpec `protobuf:"bytes,6,opt,name=consul,proto3,oneof" json:"consul,omitempty"`
 }
 type UpstreamInput_AwsEc2 struct {
-	AwsEc2 *ec2.UpstreamSpec `protobuf:"bytes,7,opt,name=aws_ec2,json=awsEc2,proto3,oneof"`
+	AwsEc2 *ec2.UpstreamSpec `protobuf:"bytes,7,opt,name=aws_ec2,json=awsEc2,proto3,oneof" json:"aws_ec2,omitempty"`
 }
 
 func (*UpstreamInput_Kube) isUpstreamInput_Spec()   {}

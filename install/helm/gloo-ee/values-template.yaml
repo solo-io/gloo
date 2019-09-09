@@ -31,7 +31,6 @@ gloo:
   gatewayProxies:
     gatewayProxyV2:
       stats: true
-      readConfig: true
       kind:
         deployment:
           replicas: 1

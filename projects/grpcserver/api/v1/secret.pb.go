@@ -228,16 +228,16 @@ type isCreateSecretRequest_Kind interface {
 }
 
 type CreateSecretRequest_Aws struct {
-	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof"`
+	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof" json:"aws,omitempty"`
 }
 type CreateSecretRequest_Azure struct {
-	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof"`
+	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof" json:"azure,omitempty"`
 }
 type CreateSecretRequest_Tls struct {
-	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof"`
+	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof" json:"tls,omitempty"`
 }
 type CreateSecretRequest_Extension struct {
-	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof"`
+	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof" json:"extension,omitempty"`
 }
 
 func (*CreateSecretRequest_Aws) isCreateSecretRequest_Kind()       {}
@@ -389,16 +389,16 @@ type isUpdateSecretRequest_Kind interface {
 }
 
 type UpdateSecretRequest_Aws struct {
-	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof"`
+	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof" json:"aws,omitempty"`
 }
 type UpdateSecretRequest_Azure struct {
-	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof"`
+	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof" json:"azure,omitempty"`
 }
 type UpdateSecretRequest_Tls struct {
-	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof"`
+	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof" json:"tls,omitempty"`
 }
 type UpdateSecretRequest_Extension struct {
-	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof"`
+	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof" json:"extension,omitempty"`
 }
 
 func (*UpdateSecretRequest_Aws) isUpdateSecretRequest_Kind()       {}
