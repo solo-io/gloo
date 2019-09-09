@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Send the correct AWS secret namespce value to the backend.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1078

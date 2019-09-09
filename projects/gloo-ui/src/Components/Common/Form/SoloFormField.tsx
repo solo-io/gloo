@@ -486,16 +486,26 @@ export const SoloAWSSecretsList: React.FC<{
       {name && <Label>AWS Secret</Label>}
       <SoloDropdownBlock
         style={{ width: '200px' }}
-        labelInValue
         onChange={(value: any) => {
-          form.setFieldValue(`${field.name}.name`, value.label);
-          form.setFieldValue(`${field.name}.namespace`, value.key);
+          let [name, namespace] = value.split('::');
+          let selectedSecret = secretsList.find(
+            s =>
+              s.metadata!.name === name && s.metadata!.namespace === namespace
+          );
+
+          form.setFieldValue(`${field.name}.name`, value);
+          form.setFieldValue(
+            `${field.name}.namespace`,
+            selectedSecret!.metadata!.namespace
+          );
         }}>
         {awsSecretsList.map(([namespace, secrets]) => {
           return (
             <OptGroup key={namespace} label={namespace}>
               {secrets.map(s => (
-                <Option key={s.metadata!.name}>{s.metadata!.name}</Option>
+                <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
+                  {s.metadata!.name}
+                </Option>
               ))}
             </OptGroup>
           );
