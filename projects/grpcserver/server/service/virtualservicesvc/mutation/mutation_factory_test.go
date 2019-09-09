@@ -80,10 +80,17 @@ var _ = Describe("MutationFactory", func() {
 			}
 		}
 
-		getOAuthStruct := func() *types.Struct {
-			authStruct, err := util.MessageToStruct(getOAuth())
+		getVHostExtensionStruct := func() *types.Struct {
+			vHostExtension := &extauth2.VhostExtension{
+				Configs: []*extauth2.AuthConfig{{
+					AuthConfig: &extauth2.AuthConfig_Oauth{
+						Oauth: getOAuth(),
+					},
+				}},
+			}
+			vHostStruct, err := util.MessageToStruct(vHostExtension)
 			Expect(err).NotTo(HaveOccurred())
-			return authStruct
+			return vHostStruct
 		}
 
 		getRateLimitStruct := func() *types.Struct {
@@ -128,7 +135,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -200,7 +207,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -337,7 +344,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -383,7 +390,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -416,7 +423,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -437,7 +444,7 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getOAuthStruct(),
+											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},

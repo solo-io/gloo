@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix extauth update on virtual services API.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1036

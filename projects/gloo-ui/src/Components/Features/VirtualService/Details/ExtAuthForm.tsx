@@ -54,7 +54,7 @@ const defaultValues: ValuesType = {
   appUrl: '',
   secretRefNamespace: '',
   secretRefName: '',
-  scopesList: [],
+  scopesList: []
 };
 
 const validationSchema = yup.object().shape({
@@ -158,14 +158,14 @@ export const ExtAuthForm = (props: Props) => {
               <SoloFormInput
                 name='issuerUrl'
                 title='Issuer URL'
-                placeholder='myclientidtheissuer.com'
+                placeholder='https://myclientidtheissuer.com'
               />
             </div>
             <div>
               <SoloFormInput
                 name='appUrl'
                 title='App URL'
-                placeholder='myapp.com'
+                placeholder='https://myapp.com'
               />
             </div>
             <div>

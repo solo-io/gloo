@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 
 	//TODO: (Graham) handle plugins correclty once the reorg happens "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
@@ -29,6 +30,10 @@ type MutationFactory interface {
 
 type mutationFactory struct{}
 
+func NewMutationFactory() MutationFactory {
+	return &mutationFactory{}
+}
+
 func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) Mutation {
 	return func(vs *gatewayv1.VirtualService) error {
 		// Only set metadata if this is a new Virtual Service
@@ -45,12 +50,12 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			case *v1.VirtualServiceInput_BasicAuth:
 				return errors.Errorf("Basic auth is not supported.")
 			case *v1.VirtualServiceInput_Oauth:
-				extAuthStruct, err = util.MessageToStruct(t.Oauth)
+				extAuthStruct, err = getOauthVhostExtensionStruct(t.Oauth)
 				if err != nil {
 					return err
 				}
 			case *v1.VirtualServiceInput_CustomAuth:
-				extAuthStruct, err = util.MessageToStruct(t.CustomAuth)
+				extAuthStruct, err = getCustomAuthVhostExtensionStruct(t.CustomAuth)
 				if err != nil {
 					return err
 				}
@@ -130,12 +135,12 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 			if input.GetExtAuthConfig().GetConfig() != nil {
 				switch t := input.ExtAuthConfig.Config.Value.(type) {
 				case *v1.ExtAuthInput_Config_Oauth:
-					extAuthStruct, err = util.MessageToStruct(t.Oauth)
+					extAuthStruct, err = getOauthVhostExtensionStruct(t.Oauth)
 					if err != nil {
 						return err
 					}
 				case *v1.ExtAuthInput_Config_CustomAuth:
-					extAuthStruct, err = util.MessageToStruct(t.CustomAuth)
+					extAuthStruct, err = getCustomAuthVhostExtensionStruct(t.CustomAuth)
 					if err != nil {
 						return err
 					}
@@ -277,6 +282,22 @@ func (*mutationFactory) ShiftRoutes(fromIndex, toIndex uint32) Mutation {
 	}
 }
 
-func NewMutationFactory() MutationFactory {
-	return &mutationFactory{}
+func getOauthVhostExtensionStruct(oauth *extauthapi.OAuth) (*types.Struct, error) {
+	return util.MessageToStruct(&extauthapi.VhostExtension{
+		Configs: []*extauthapi.AuthConfig{{
+			AuthConfig: &extauthapi.AuthConfig_Oauth{
+				Oauth: oauth,
+			},
+		}},
+	})
+}
+
+func getCustomAuthVhostExtensionStruct(customAuth *extauthapi.CustomAuth) (*types.Struct, error) {
+	return util.MessageToStruct(&extauthapi.VhostExtension{
+		Configs: []*extauthapi.AuthConfig{{
+			AuthConfig: &extauthapi.AuthConfig_CustomAuth{
+				CustomAuth: customAuth,
+			},
+		}},
+	})
 }
