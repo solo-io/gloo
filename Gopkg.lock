@@ -1357,24 +1357,25 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:ab51893875fdd94735415dd593402ebf1ee30ea4622dd8c72790db40bc8e6712"
+  digest = "1:1943ab9e04af3a40584cf6f63dad2ca4a075076409a13c57f4468b405b945f2a"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
     "pkg/config/apikeys",
     "pkg/config/apr",
     "pkg/config/ldap",
+    "pkg/config/ldap/pool",
     "pkg/config/oidc",
     "pkg/config/opa",
     "pkg/consts",
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "fbd996c3746efccb7738e40592dbd7cd44f624bb"
-  version = "v0.4.4"
+  revision = "c4f5971e24fa8fb0ed1a30eeacecc93bae275fe5"
+  version = "v0.5.1"
 
 [[projects]]
-  digest = "1:b352c50e4dc0a691c38a5010b1026d560fd755e0d27e07afdc231506170808f9"
+  digest = "1:33116aea836829162d2b3cd56a4356faa88accbbec058e275b04fdc6de01eedf"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1432,9 +1433,10 @@
     "projects/gloo/cli/pkg/xdsinspection",
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
-    "projects/gloo/pkg/api/external/envoy/extauth",
-    "projects/gloo/pkg/api/external/envoy/jwt",
-    "projects/gloo/pkg/api/external/envoy/waf",
+    "projects/gloo/pkg/api/external/envoy/extensions/aws",
+    "projects/gloo/pkg/api/external/envoy/extensions/extauth",
+    "projects/gloo/pkg/api/external/envoy/extensions/jwt",
+    "projects/gloo/pkg/api/external/envoy/extensions/waf",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/enterprise",
     "projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
@@ -1511,8 +1513,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "c3b5e815dff1c8ff7443cb5cbb9ef6b3b83df745"
-  version = "v0.18.35"
+  revision = "93fd7499b01bec5d1d29f4b06a8c67943ab7726d"
+  version = "v0.18.37"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -2760,9 +2762,9 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/printers",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extauth",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/jwt",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth",

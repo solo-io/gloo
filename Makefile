@@ -131,6 +131,7 @@ UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc
 		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1 \
 		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1 \
 		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise \
+		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
 		--ts_out=service=true:projects/gloo-ui/src/proto
 
@@ -157,6 +158,12 @@ generated-ui:
 		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/validate/validate.proto
 	protoc $(UI_PROTOC_FLAGS) \
 	 	$(GOPATH)/src/github.com/solo-io/solo-kit/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
@@ -605,8 +612,10 @@ endif
 
 .PHONY: build-test-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-test-assets: docker push-test-images build-test-chart
+
 .PHONY: build-kind-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-kind-assets: push-kind-images build-kind-chart
+
 TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)

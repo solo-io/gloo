@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sort"
 
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/jwt"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
 	"github.com/solo-io/go-utils/errors"
 

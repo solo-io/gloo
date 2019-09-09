@@ -27,10 +27,10 @@ func TranslateUserConfigToExtAuthServerConfig(ctx context.Context, proxy *v1.Pro
 	if vhostExtAuth.AuthConfig == nil {
 		return nil, fmt.Errorf("no config defined on vhost")
 	}
-	return depreactedTranslateUserConfigToExtAuthServerConfig(ctx, proxy, listener, vhost, snap, vhostExtAuth)
+	return deprecatedTranslateUserConfigToExtAuthServerConfig(ctx, proxy, listener, vhost, snap, vhostExtAuth)
 }
 
-// This is currently unused. we can use this instead of depreactedTranslateUserConfigToExtAuthServerConfig once we are sure there are no old ext auth servers out there
+// This is currently unused. we can use this instead of deprecatedTranslateUserConfigToExtAuthServerConfig once we are sure there are no old ext auth servers out there
 func translateOldConfigToChain(ctx context.Context, proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostExtAuth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
 	var configs []*extauth.AuthConfig
 
@@ -63,7 +63,6 @@ func translateOldConfigToChain(ctx context.Context, proxy *v1.Proxy, listener *v
 				},
 			})
 		}
-
 	default:
 		return nil, fmt.Errorf("unknown ext auth configuration")
 	}
@@ -71,7 +70,7 @@ func translateOldConfigToChain(ctx context.Context, proxy *v1.Proxy, listener *v
 	return TranslateUserConfigs(ctx, proxy, listener, vhost, snap, configs)
 }
 
-func depreactedTranslateUserConfigToExtAuthServerConfig(ctx context.Context, proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostExtAuth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
+func deprecatedTranslateUserConfigToExtAuthServerConfig(ctx context.Context, proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostExtAuth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
 	name := GetResourceName(proxy, listener, vhost)
 
 	extAuthConfig := &extauth.ExtAuthConfig{
@@ -150,6 +149,10 @@ func TranslateUserConfig(ctx context.Context, proxy *v1.Proxy, snap *v1.ApiSnaps
 			return nil, err
 		}
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_AuthConfig_OpaAuth{OpaAuth: cfg}
+	case *extauth.AuthConfig_Ldap:
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_AuthConfig_Ldap{
+			Ldap: config.Ldap,
+		}
 	default:
 		return nil, fmt.Errorf("unknown ext auth configuration")
 	}

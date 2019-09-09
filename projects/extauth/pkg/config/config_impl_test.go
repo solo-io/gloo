@@ -3,6 +3,8 @@ package configproto_test
 import (
 	"context"
 
+	pbtypes "github.com/gogo/protobuf/types"
+
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 
 	"github.com/golang/mock/gomock"
@@ -160,6 +162,14 @@ var _ = Describe("Config Generator", func() {
 				AllowedGroups: []string{
 					"cn=managers,ou=groups,dc=solo,dc=io",
 					"cn=developers,ou=groups,dc=solo,dc=io",
+				},
+				Pool: &extauth.Ldap_ConnectionPool{
+					MaxSize: &pbtypes.UInt32Value{
+						Value: uint32(5),
+					},
+					InitialSize: &pbtypes.UInt32Value{
+						Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
+					},
 				},
 			}
 		)

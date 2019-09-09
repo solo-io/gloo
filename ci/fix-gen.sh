@@ -10,6 +10,7 @@ do
   sed "s|google/rpc/status_pb.js|github.com/solo-io/solo-kit/api/external/google/rpc/status_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|envoy/api/v2/discovery_pb.js|github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|envoy/api/v2/core/base_pb.js|github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|envoy/type/range_pb.js|github.com/solo-io/gloo/projects/gloo/api/external/envoy/type/range_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|envoy/type/percent_pb.js|github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|../../../../../gogoproto/gogo_pb.js|../../../../gogo/protobuf/gogoproto/gogo_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"

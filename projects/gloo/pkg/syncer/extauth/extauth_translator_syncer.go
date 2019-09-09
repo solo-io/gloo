@@ -20,13 +20,13 @@ import (
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
-type ExtAuthTranslatorSyncerExtension struct {
+type TranslatorSyncerExtension struct {
 }
 
 var _ syncer.TranslatorSyncerExtension = NewTranslatorSyncerExtension()
 
-func NewTranslatorSyncerExtension() *ExtAuthTranslatorSyncerExtension {
-	return &ExtAuthTranslatorSyncerExtension{}
+func NewTranslatorSyncerExtension() *TranslatorSyncerExtension {
+	return &TranslatorSyncerExtension{}
 }
 
 // TODO: move this into solo-kit
@@ -34,7 +34,7 @@ type SnapshotSetter interface {
 	SetSnapshot(node string, snapshot envoycache.Snapshot) error
 }
 
-func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, )", snap.Hash(),
@@ -43,7 +43,7 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 	return s.SyncAndSet(ctx, snap, xdsCache)
 }
 
-func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
+func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
 	var cfgs []*extauth.ExtAuthConfig
 
 	for _, proxy := range snap.Proxies {

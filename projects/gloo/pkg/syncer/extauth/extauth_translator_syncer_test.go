@@ -21,7 +21,7 @@ import (
 var _ = Describe("ExtauthTranslatorSyncer", func() {
 	var (
 		proxy       *gloov1.Proxy
-		translator  *ExtAuthTranslatorSyncerExtension
+		translator  *TranslatorSyncerExtension
 		secret      *gloov1.Secret
 		apiSnapshot *gloov1.ApiSnapshot
 		snapCache   *mockSetSnapshot

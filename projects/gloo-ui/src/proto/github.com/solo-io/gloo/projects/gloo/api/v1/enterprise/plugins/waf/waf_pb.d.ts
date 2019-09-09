@@ -2,7 +2,7 @@
 // file: github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/waf/waf.proto
 
 import * as jspb from "google-protobuf";
-import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb from "../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/waf/waf_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb from "../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../../../gogoproto/gogo_pb";
 
 export class Settings extends jspb.Message {
@@ -15,9 +15,9 @@ export class Settings extends jspb.Message {
   setCoreRuleSet(value?: CoreRuleSet): void;
 
   clearRuleSetsList(): void;
-  getRuleSetsList(): Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb.RuleSet>;
-  setRuleSetsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb.RuleSet>): void;
-  addRuleSets(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb.RuleSet, index?: number): github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb.RuleSet;
+  getRuleSetsList(): Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet>;
+  setRuleSetsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet>): void;
+  addRuleSets(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet, index?: number): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
@@ -33,7 +33,7 @@ export namespace Settings {
   export type AsObject = {
     disabled: boolean,
     coreRuleSet?: CoreRuleSet.AsObject,
-    ruleSetsList: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_waf_waf_pb.RuleSet.AsObject>,
+    ruleSetsList: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.AsObject>,
   }
 }
 

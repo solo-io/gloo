@@ -6,7 +6,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/waf"
+	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"

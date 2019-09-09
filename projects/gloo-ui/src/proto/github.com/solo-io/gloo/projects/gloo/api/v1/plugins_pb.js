@@ -43,6 +43,8 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transfor
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DestinationSpec', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HttpListenerPlugins', null, global);
@@ -2217,12 +2219,19 @@ proto.gloo.solo.io.WeightedDestinationPlugins.prototype.hasTransformations = fun
  * @constructor
  */
 proto.gloo.solo.io.UpstreamSpec = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.UpstreamSpec.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.UpstreamSpec.repeatedFields_, proto.gloo.solo.io.UpstreamSpec.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.UpstreamSpec, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.UpstreamSpec.displayName = 'proto.gloo.solo.io.UpstreamSpec';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.UpstreamSpec.repeatedFields_ = [5];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -2231,20 +2240,20 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.UpstreamSpec.oneofGroups_ = [[1,4,12,2,3,5,11]];
+proto.gloo.solo.io.UpstreamSpec.oneofGroups_ = [[8,9,10,11,12,13,14]];
 
 /**
  * @enum {number}
  */
 proto.gloo.solo.io.UpstreamSpec.UpstreamTypeCase = {
   UPSTREAM_TYPE_NOT_SET: 0,
-  KUBE: 1,
-  STATIC: 4,
-  PIPE: 12,
-  AWS: 2,
-  AZURE: 3,
-  CONSUL: 5,
-  AWS_EC2: 11
+  KUBE: 8,
+  STATIC: 9,
+  PIPE: 10,
+  AWS: 11,
+  AZURE: 12,
+  CONSUL: 13,
+  AWS_EC2: 14
 };
 
 /**
@@ -2287,7 +2296,10 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     loadBalancerConfig: (f = msg.getLoadBalancerConfig()) && github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig.toObject(includeInstance, f),
     connectionConfig: (f = msg.getConnectionConfig()) && github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.toObject(includeInstance, f),
-    useHttp2: jspb.Message.getFieldWithDefault(msg, 10, false),
+    healthChecksList: jspb.Message.toObjectList(msg.getHealthChecksList(),
+    github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.toObject, includeInstance),
+    outlierDetection: (f = msg.getOutlierDetection()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.toObject(includeInstance, f),
+    useHttp2: jspb.Message.getFieldWithDefault(msg, 7, false),
     kube: (f = msg.getKube()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.toObject(includeInstance, f),
     pb_static: (f = msg.getStatic()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.toObject(includeInstance, f),
     pipe: (f = msg.getPipe()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.toObject(includeInstance, f),
@@ -2331,61 +2343,71 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 6:
+    case 1:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.UpstreamSslConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
       msg.setSslConfig(value);
       break;
-    case 7:
+    case 2:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.deserializeBinaryFromReader);
       msg.setCircuitBreakers(value);
       break;
-    case 8:
+    case 3:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig.deserializeBinaryFromReader);
       msg.setLoadBalancerConfig(value);
       break;
-    case 9:
+    case 4:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.deserializeBinaryFromReader);
       msg.setConnectionConfig(value);
       break;
-    case 10:
+    case 5:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.deserializeBinaryFromReader);
+      msg.addHealthChecks(value);
+      break;
+    case 6:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.deserializeBinaryFromReader);
+      msg.setOutlierDetection(value);
+      break;
+    case 7:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setUseHttp2(value);
       break;
-    case 1:
+    case 8:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setKube(value);
       break;
-    case 4:
+    case 9:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setStatic(value);
       break;
-    case 12:
+    case 10:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setPipe(value);
       break;
-    case 2:
+    case 11:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setAws(value);
       break;
-    case 3:
+    case 12:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setAzure(value);
       break;
-    case 5:
+    case 13:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setConsul(value);
       break;
-    case 11:
+    case 14:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setAwsEc2(value);
@@ -2422,7 +2444,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getSslConfig();
   if (f != null) {
     writer.writeMessage(
-      6,
+      1,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
@@ -2430,7 +2452,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getCircuitBreakers();
   if (f != null) {
     writer.writeMessage(
-      7,
+      2,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.serializeBinaryToWriter
     );
@@ -2438,7 +2460,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getLoadBalancerConfig();
   if (f != null) {
     writer.writeMessage(
-      8,
+      3,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig.serializeBinaryToWriter
     );
@@ -2446,22 +2468,38 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getConnectionConfig();
   if (f != null) {
     writer.writeMessage(
-      9,
+      4,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getHealthChecksList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      5,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.serializeBinaryToWriter
+    );
+  }
+  f = message.getOutlierDetection();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.serializeBinaryToWriter
     );
   }
   f = message.getUseHttp2();
   if (f) {
     writer.writeBool(
-      10,
+      7,
       f
     );
   }
   f = message.getKube();
   if (f != null) {
     writer.writeMessage(
-      1,
+      8,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2469,7 +2507,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getStatic();
   if (f != null) {
     writer.writeMessage(
-      4,
+      9,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2477,7 +2515,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getPipe();
   if (f != null) {
     writer.writeMessage(
-      12,
+      10,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2485,7 +2523,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getAws();
   if (f != null) {
     writer.writeMessage(
-      2,
+      11,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2493,7 +2531,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getAzure();
   if (f != null) {
     writer.writeMessage(
-      3,
+      12,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2501,7 +2539,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getConsul();
   if (f != null) {
     writer.writeMessage(
-      5,
+      13,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2509,7 +2547,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   f = message.getAwsEc2();
   if (f != null) {
     writer.writeMessage(
-      11,
+      14,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.serializeBinaryToWriter
     );
@@ -2518,18 +2556,18 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
 
 
 /**
- * optional UpstreamSslConfig ssl_config = 6;
+ * optional UpstreamSslConfig ssl_config = 1;
  * @return {?proto.gloo.solo.io.UpstreamSslConfig}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.UpstreamSslConfig, 6));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.UpstreamSslConfig, 1));
 };
 
 
 /** @param {?proto.gloo.solo.io.UpstreamSslConfig|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setSslConfig = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
+  jspb.Message.setWrapperField(this, 1, value);
 };
 
 
@@ -2543,23 +2581,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearSslConfig = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasSslConfig = function() {
-  return jspb.Message.getField(this, 6) != null;
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional CircuitBreakerConfig circuit_breakers = 7;
+ * optional CircuitBreakerConfig circuit_breakers = 2;
  * @return {?proto.gloo.solo.io.CircuitBreakerConfig}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getCircuitBreakers = function() {
   return /** @type{?proto.gloo.solo.io.CircuitBreakerConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig, 7));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig, 2));
 };
 
 
 /** @param {?proto.gloo.solo.io.CircuitBreakerConfig|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setCircuitBreakers = function(value) {
-  jspb.Message.setWrapperField(this, 7, value);
+  jspb.Message.setWrapperField(this, 2, value);
 };
 
 
@@ -2573,23 +2611,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearCircuitBreakers = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasCircuitBreakers = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional LoadBalancerConfig load_balancer_config = 8;
+ * optional LoadBalancerConfig load_balancer_config = 3;
  * @return {?proto.gloo.solo.io.LoadBalancerConfig}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getLoadBalancerConfig = function() {
   return /** @type{?proto.gloo.solo.io.LoadBalancerConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig, 8));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig, 3));
 };
 
 
 /** @param {?proto.gloo.solo.io.LoadBalancerConfig|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setLoadBalancerConfig = function(value) {
-  jspb.Message.setWrapperField(this, 8, value);
+  jspb.Message.setWrapperField(this, 3, value);
 };
 
 
@@ -2603,23 +2641,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearLoadBalancerConfig = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasLoadBalancerConfig = function() {
-  return jspb.Message.getField(this, 8) != null;
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional ConnectionConfig connection_config = 9;
+ * optional ConnectionConfig connection_config = 4;
  * @return {?proto.gloo.solo.io.ConnectionConfig}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getConnectionConfig = function() {
   return /** @type{?proto.gloo.solo.io.ConnectionConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig, 9));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig, 4));
 };
 
 
 /** @param {?proto.gloo.solo.io.ConnectionConfig|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setConnectionConfig = function(value) {
-  jspb.Message.setWrapperField(this, 9, value);
+  jspb.Message.setWrapperField(this, 4, value);
 };
 
 
@@ -2633,40 +2671,101 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearConnectionConfig = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasConnectionConfig = function() {
-  return jspb.Message.getField(this, 9) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
 /**
- * optional bool use_http2 = 10;
+ * repeated envoy.api.v2.core.HealthCheck health_checks = 5;
+ * @return {!Array<!proto.envoy.api.v2.core.HealthCheck>}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getHealthChecksList = function() {
+  return /** @type{!Array<!proto.envoy.api.v2.core.HealthCheck>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck, 5));
+};
+
+
+/** @param {!Array<!proto.envoy.api.v2.core.HealthCheck>} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setHealthChecksList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 5, value);
+};
+
+
+/**
+ * @param {!proto.envoy.api.v2.core.HealthCheck=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.api.v2.core.HealthCheck}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.addHealthChecks = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.envoy.api.v2.core.HealthCheck, opt_index);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearHealthChecksList = function() {
+  this.setHealthChecksList([]);
+};
+
+
+/**
+ * optional envoy.api.v2.cluster.OutlierDetection outlier_detection = 6;
+ * @return {?proto.envoy.api.v2.cluster.OutlierDetection}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getOutlierDetection = function() {
+  return /** @type{?proto.envoy.api.v2.cluster.OutlierDetection} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection, 6));
+};
+
+
+/** @param {?proto.envoy.api.v2.cluster.OutlierDetection|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setOutlierDetection = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearOutlierDetection = function() {
+  this.setOutlierDetection(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasOutlierDetection = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional bool use_http2 = 7;
  * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
  * You should avoid comparisons like {@code val === true/false} in those cases.
  * @return {boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getUseHttp2 = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 10, false));
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
 };
 
 
 /** @param {boolean} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setUseHttp2 = function(value) {
-  jspb.Message.setProto3BooleanField(this, 10, value);
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 
 /**
- * optional kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 1;
+ * optional kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 8;
  * @return {?proto.kubernetes.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getKube = function() {
   return /** @type{?proto.kubernetes.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec, 1));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec, 8));
 };
 
 
 /** @param {?proto.kubernetes.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setKube = function(value) {
-  jspb.Message.setOneofWrapperField(this, 1, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 8, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2680,23 +2779,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearKube = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasKube = function() {
-  return jspb.Message.getField(this, 1) != null;
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
 /**
- * optional static.plugins.gloo.solo.io.UpstreamSpec static = 4;
+ * optional static.plugins.gloo.solo.io.UpstreamSpec static = 9;
  * @return {?proto.static.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getStatic = function() {
   return /** @type{?proto.static.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec, 4));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec, 9));
 };
 
 
 /** @param {?proto.static.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setStatic = function(value) {
-  jspb.Message.setOneofWrapperField(this, 4, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 9, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2710,23 +2809,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearStatic = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasStatic = function() {
-  return jspb.Message.getField(this, 4) != null;
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
 /**
- * optional pipe.plugins.gloo.solo.io.UpstreamSpec pipe = 12;
+ * optional pipe.plugins.gloo.solo.io.UpstreamSpec pipe = 10;
  * @return {?proto.pipe.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getPipe = function() {
   return /** @type{?proto.pipe.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec, 12));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec, 10));
 };
 
 
 /** @param {?proto.pipe.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setPipe = function(value) {
-  jspb.Message.setOneofWrapperField(this, 12, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 10, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2740,23 +2839,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearPipe = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasPipe = function() {
-  return jspb.Message.getField(this, 12) != null;
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
 /**
- * optional aws.plugins.gloo.solo.io.UpstreamSpec aws = 2;
+ * optional aws.plugins.gloo.solo.io.UpstreamSpec aws = 11;
  * @return {?proto.aws.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getAws = function() {
   return /** @type{?proto.aws.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec, 11));
 };
 
 
 /** @param {?proto.aws.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setAws = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 11, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2770,23 +2869,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearAws = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasAws = function() {
-  return jspb.Message.getField(this, 2) != null;
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
 /**
- * optional azure.plugins.gloo.solo.io.UpstreamSpec azure = 3;
+ * optional azure.plugins.gloo.solo.io.UpstreamSpec azure = 12;
  * @return {?proto.azure.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getAzure = function() {
   return /** @type{?proto.azure.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec, 3));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec, 12));
 };
 
 
 /** @param {?proto.azure.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setAzure = function(value) {
-  jspb.Message.setOneofWrapperField(this, 3, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 12, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2800,23 +2899,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearAzure = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasAzure = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 12) != null;
 };
 
 
 /**
- * optional consul.plugins.gloo.solo.io.UpstreamSpec consul = 5;
+ * optional consul.plugins.gloo.solo.io.UpstreamSpec consul = 13;
  * @return {?proto.consul.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getConsul = function() {
   return /** @type{?proto.consul.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec, 5));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec, 13));
 };
 
 
 /** @param {?proto.consul.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setConsul = function(value) {
-  jspb.Message.setOneofWrapperField(this, 5, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 13, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2830,23 +2929,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearConsul = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasConsul = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
 /**
- * optional aws_ec2.plugins.gloo.solo.io.UpstreamSpec aws_ec2 = 11;
+ * optional aws_ec2.plugins.gloo.solo.io.UpstreamSpec aws_ec2 = 14;
  * @return {?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getAwsEc2 = function() {
   return /** @type{?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec, 11));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec, 14));
 };
 
 
 /** @param {?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
 proto.gloo.solo.io.UpstreamSpec.prototype.setAwsEc2 = function(value) {
-  jspb.Message.setOneofWrapperField(this, 11, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 14, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
 };
 
 
@@ -2860,7 +2959,7 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearAwsEc2 = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasAwsEc2 = function() {
-  return jspb.Message.getField(this, 11) != null;
+  return jspb.Message.getField(this, 14) != null;
 };
 
 

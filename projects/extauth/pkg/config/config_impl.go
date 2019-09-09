@@ -209,16 +209,50 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		return opaCfg, "", nil
 	case *extauth.ExtAuthConfig_AuthConfig_Ldap:
-		ldapCfg, err := ldap.NewLdapAuthService(ldap.NewLdapClientBuilder(), &ldap.Config{
-			ServerAddress:           cfg.Ldap.Address,
-			UserDnTemplate:          cfg.Ldap.UserDnTemplate,
-			MembershipAttributeName: cfg.Ldap.MembershipAttributeName,
-			AllowedGroups:           cfg.Ldap.AllowedGroups,
-		})
+		ldapSvc, err := getLdapAuthService(ctx, cfg.Ldap)
 		if err != nil {
 			return nil, "", err
 		}
-		return ldapCfg, "", nil
+		return ldapSvc, "", nil
 	}
 	return nil, "", errors.New("unknown auth configuration")
+}
+
+func getLdapAuthService(ctx context.Context, ldapCfg *extauth.Ldap) (api.AuthService, error) {
+	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg)
+
+	// Connection pool will be cleaned up when the context is cancelled
+	ldapClientBuilder, err := ldap.NewPooledClientBuilder(ctx, &ldap.ClientPoolConfig{
+		ServerAddress:   ldapCfg.Address,
+		InitialCapacity: poolInitCap,
+		MaximumCapacity: poolMaxCap,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to start LDAP connection pool")
+	}
+
+	ldapAuthService, err := ldap.NewLdapAuthService(ldapClientBuilder, &ldap.Config{
+		UserDnTemplate:          ldapCfg.UserDnTemplate,
+		MembershipAttributeName: ldapCfg.MembershipAttributeName,
+		AllowedGroups:           ldapCfg.AllowedGroups,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create LDAP auth service")
+	}
+	return ldapAuthService, nil
+}
+
+func getLdapConnectionPoolParams(config *extauth.Ldap) (initCap int, maxCap int) {
+	initCap = 2
+	maxCap = 5
+
+	if initSize := config.GetPool().GetInitialSize(); initSize != nil {
+		initCap = int(initSize.Value)
+	}
+
+	if maxSize := config.GetPool().GetMaxSize(); maxSize != nil {
+		maxCap = int(maxSize.Value)
+	}
+
+	return
 }

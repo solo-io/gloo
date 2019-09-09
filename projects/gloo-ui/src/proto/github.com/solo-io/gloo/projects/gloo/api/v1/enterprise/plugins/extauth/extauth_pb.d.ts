@@ -8,6 +8,7 @@ import * as envoy_api_v2_discovery_pb from "../../../../../../../../../../envoy/
 import * as google_api_annotations_pb from "../../../../../../../../../../google/api/annotations_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class Settings extends jspb.Message {
   hasExtauthzServerRef(): boolean;
@@ -500,11 +501,15 @@ export namespace Ldap {
   }
 
   export class ConnectionPool extends jspb.Message {
-    getMaxsize(): number;
-    setMaxsize(value: number): void;
+    hasMaxsize(): boolean;
+    clearMaxsize(): void;
+    getMaxsize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+    setMaxsize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
-    getInitialsize(): number;
-    setInitialsize(value: number): void;
+    hasInitialsize(): boolean;
+    clearInitialsize(): void;
+    getInitialsize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+    setInitialsize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConnectionPool.AsObject;
@@ -518,8 +523,8 @@ export namespace Ldap {
 
   export namespace ConnectionPool {
     export type AsObject = {
-      maxsize: number,
-      initialsize: number,
+      maxsize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+      initialsize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     }
   }
 }

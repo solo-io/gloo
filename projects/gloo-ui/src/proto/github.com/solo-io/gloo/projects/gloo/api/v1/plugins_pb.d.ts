@@ -33,6 +33,8 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class ListenerPlugins extends jspb.Message {
@@ -357,6 +359,16 @@ export class UpstreamSpec extends jspb.Message {
   getConnectionConfig(): github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig | undefined;
   setConnectionConfig(value?: github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig): void;
 
+  clearHealthChecksList(): void;
+  getHealthChecksList(): Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck>;
+  setHealthChecksList(value: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck>): void;
+  addHealthChecks(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck, index?: number): github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck;
+
+  hasOutlierDetection(): boolean;
+  clearOutlierDetection(): void;
+  getOutlierDetection(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection | undefined;
+  setOutlierDetection(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection): void;
+
   getUseHttp2(): boolean;
   setUseHttp2(value: boolean): void;
 
@@ -412,6 +424,8 @@ export namespace UpstreamSpec {
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     loadBalancerConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig.AsObject,
     connectionConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.AsObject,
+    healthChecksList: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.AsObject>,
+    outlierDetection?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.AsObject,
     useHttp2: boolean,
     kube?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
     pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.AsObject,
@@ -424,13 +438,13 @@ export namespace UpstreamSpec {
 
   export enum UpstreamTypeCase {
     UPSTREAM_TYPE_NOT_SET = 0,
-    KUBE = 1,
-    STATIC = 4,
-    PIPE = 12,
-    AWS = 2,
-    AZURE = 3,
-    CONSUL = 5,
-    AWS_EC2 = 11,
+    KUBE = 8,
+    STATIC = 9,
+    PIPE = 10,
+    AWS = 11,
+    AZURE = 12,
+    CONSUL = 13,
+    AWS_EC2 = 14,
   }
 }
 

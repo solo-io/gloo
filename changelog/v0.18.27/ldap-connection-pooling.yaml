@@ -1,0 +1,18 @@
+changelog:
+- type: NEW_FEATURE
+  description: Pool extauth connections to LDAP server.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1066
+- type: NON_USER_FACING
+  description: Pool extauth connections to LDAP server.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.5.1
+  description: Update ext-auth-service to version 0.5.1.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v0.18.37
+  description: Update OS Gloo to version 0.18.37.
+
+

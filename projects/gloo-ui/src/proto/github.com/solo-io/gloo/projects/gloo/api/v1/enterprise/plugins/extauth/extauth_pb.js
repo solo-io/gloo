@@ -18,6 +18,7 @@ var envoy_api_v2_discovery_pb = require('../../../../../../../../../../github.co
 var google_api_annotations_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/external/google/api/annotations_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ApiKeyAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.ApiKeySecret', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.AuthConfig', null, global);
@@ -3566,8 +3567,8 @@ proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.toObject = func
  */
 proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxsize: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    initialsize: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    maxsize: (f = msg.getMaxsize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    initialsize: (f = msg.getInitialsize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3605,11 +3606,13 @@ proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.deserializeBinaryFromRead
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readUint32());
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setMaxsize(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readUint32());
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setInitialsize(value);
       break;
     default:
@@ -3642,49 +3645,81 @@ proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.serializeBinary
 proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getMaxsize();
-  if (f !== 0) {
-    writer.writeUint32(
+  if (f != null) {
+    writer.writeMessage(
       1,
-      f
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
   f = message.getInitialsize();
-  if (f !== 0) {
-    writer.writeUint32(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional uint32 maxSize = 1;
- * @return {number}
+ * optional google.protobuf.UInt32Value maxSize = 1;
+ * @return {?proto.google.protobuf.UInt32Value}
  */
 proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.getMaxsize = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 1));
 };
 
 
-/** @param {number} value */
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
 proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.setMaxsize = function(value) {
-  jspb.Message.setProto3IntField(this, 1, value);
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.clearMaxsize = function() {
+  this.setMaxsize(undefined);
 };
 
 
 /**
- * optional uint32 initialSize = 2;
- * @return {number}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.getInitialsize = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.hasMaxsize = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
-/** @param {number} value */
+/**
+ * optional google.protobuf.UInt32Value initialSize = 2;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.getInitialsize = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 2));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
 proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.setInitialsize = function(value) {
-  jspb.Message.setProto3IntField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.clearInitialsize = function() {
+  this.setInitialsize(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.extauth.plugins.gloo.solo.io.Ldap.ConnectionPool.prototype.hasInitialsize = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
