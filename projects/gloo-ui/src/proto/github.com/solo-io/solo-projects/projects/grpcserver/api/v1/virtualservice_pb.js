@@ -14,7 +14,6 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');

@@ -59,13 +59,19 @@ func (s *configGrpcService) GetOAuthEndpoint(context.Context, *v1.GetOAuthEndpoi
 }
 
 func (s *configGrpcService) GetIsLicenseValid(context.Context, *v1.GetIsLicenseValidRequest) (*v1.GetIsLicenseValidResponse, error) {
+	var wrappedError error
+	isValid := true
+	var invalidReason string
 	if err := s.licenseClient.IsLicenseValid(); err != nil {
-		wrapped := LicenseIsInvalidError(err)
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err))
-		return nil, wrapped
+		wrappedError = LicenseIsInvalidError(err)
+		contextutils.LoggerFrom(s.ctx).Debugw("license is not valid", zap.Error(wrappedError))
+		isValid = false
+	}
+	if wrappedError != nil {
+		invalidReason = wrappedError.Error()
 	}
 
-	return &v1.GetIsLicenseValidResponse{IsLicenseValid: true}, nil
+	return &v1.GetIsLicenseValidResponse{IsLicenseValid: isValid, InvalidReason: invalidReason}, nil
 }
 
 func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSettingsRequest) (*v1.GetSettingsResponse, error) {

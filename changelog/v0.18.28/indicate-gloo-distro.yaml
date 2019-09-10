@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Improved UI version display, show UI version and indicate Gloo vs. GlooE.
+    issueLink: https://github.com/solo-io/solo-projects/pull/1077

@@ -1625,7 +1625,8 @@ proto.glooeeapi.solo.io.GetIsLicenseValidResponse.prototype.toObject = function(
  */
 proto.glooeeapi.solo.io.GetIsLicenseValidResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    isLicenseValid: jspb.Message.getFieldWithDefault(msg, 1, false)
+    isLicenseValid: jspb.Message.getFieldWithDefault(msg, 1, false),
+    invalidReason: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -1666,6 +1667,10 @@ proto.glooeeapi.solo.io.GetIsLicenseValidResponse.deserializeBinaryFromReader = 
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setIsLicenseValid(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInvalidReason(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1702,6 +1707,13 @@ proto.glooeeapi.solo.io.GetIsLicenseValidResponse.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getInvalidReason();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -1719,6 +1731,21 @@ proto.glooeeapi.solo.io.GetIsLicenseValidResponse.prototype.getIsLicenseValid = 
 /** @param {boolean} value */
 proto.glooeeapi.solo.io.GetIsLicenseValidResponse.prototype.setIsLicenseValid = function(value) {
   jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional string invalid_reason = 2;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.GetIsLicenseValidResponse.prototype.getInvalidReason = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.GetIsLicenseValidResponse.prototype.setInvalidReason = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

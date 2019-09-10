@@ -75,13 +75,13 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the license client errors", func() {
+		It("returns reason when license client errors", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(testErr)
 
-			_, err := apiserver.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
-			Expect(err).To(HaveOccurred())
+			resp, err := apiserver.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
+			Expect(err).NotTo(HaveOccurred())
 			expectedErr := configsvc.LicenseIsInvalidError(testErr)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			Expect(resp.InvalidReason).To(Equal(expectedErr.Error()))
 		})
 	})
 

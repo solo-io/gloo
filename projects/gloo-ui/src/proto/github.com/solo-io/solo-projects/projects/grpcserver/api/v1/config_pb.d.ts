@@ -225,6 +225,9 @@ export class GetIsLicenseValidResponse extends jspb.Message {
   getIsLicenseValid(): boolean;
   setIsLicenseValid(value: boolean): void;
 
+  getInvalidReason(): string;
+  setInvalidReason(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetIsLicenseValidResponse.AsObject;
   static toObject(includeInstance: boolean, msg: GetIsLicenseValidResponse): GetIsLicenseValidResponse.AsObject;
@@ -238,6 +241,7 @@ export class GetIsLicenseValidResponse extends jspb.Message {
 export namespace GetIsLicenseValidResponse {
   export type AsObject = {
     isLicenseValid: boolean,
+    invalidReason: string,
   }
 }
 

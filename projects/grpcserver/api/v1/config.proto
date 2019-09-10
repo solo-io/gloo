@@ -50,6 +50,7 @@ message GetIsLicenseValidRequest {}
 
 message GetIsLicenseValidResponse {
     bool is_license_valid = 1;
+    string invalid_reason = 2;
 }
 
 message GetPodNamespaceRequest {}

@@ -1,6 +1,7 @@
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 import { Popover } from 'antd';
+import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { ReactComponent as GlooE } from 'assets/GlooEE.svg';
 import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
 import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
@@ -9,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { AppState } from 'store';
 import { colors } from 'Styles';
+import G from 'glob';
 
 const NavLinkStyles = {
   display: 'inline-block',
@@ -97,11 +99,15 @@ const VersionDisplay = styled.div`
 
 export const MainMenu = () => {
   const version = useSelector((state: AppState) => state.config.version);
+  const hasValidLicense = useSelector((state: AppState) => state.config.isLicenseValid);
   return (
     <Container>
       <InnerContainer>
         <TitleDiv>
-          <GlooE /> Gloo Enterprise
+          {hasValidLicense
+            ? <><GlooE /> Gloo Enterprise</>
+            : <><Gloo /> Gloo</>
+          }
         </TitleDiv>
         <NavLink
           data-testid='overview-navlink'
@@ -164,12 +170,12 @@ export const MainMenu = () => {
                 </DocumentationLink>
 
                 <VersionDisplay>
-                  Version:{' '}
+                  {hasValidLicense ? "Version: " : "UI Version: "}
                   {version
                     ? version
                     : // : versionLoading
-                      // ? 'loading...'
-                      'unknown'}
+                    // ? 'loading...'
+                    'unknown'}
                 </VersionDisplay>
               </div>
             }>
