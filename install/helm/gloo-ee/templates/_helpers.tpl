@@ -29,6 +29,8 @@ Expand the name of the chart.
       valueFrom:
         fieldRef:
           fieldPath: metadata.namespace
+    - name: SERVICE_NAME
+      value: {{ $extAuth.serviceName  | quote }}
     - name: GLOO_ADDRESS
 {{- if $extAuth.deployment.glooAddress }}
       value: {{ $extAuth.deployment.glooAddress }}

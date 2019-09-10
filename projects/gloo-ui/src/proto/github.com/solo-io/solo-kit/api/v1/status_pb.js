@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../gogo/protobuf/gogoproto/gogo_pb.js');
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 goog.exportSymbol('proto.core.solo.io.Status', null, global);
 goog.exportSymbol('proto.core.solo.io.Status.State', null, global);
 
@@ -65,7 +66,8 @@ proto.core.solo.io.Status.toObject = function(includeInstance, msg) {
     state: jspb.Message.getFieldWithDefault(msg, 1, 0),
     reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
     reportedBy: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    subresourceStatusesMap: (f = msg.getSubresourceStatusesMap()) ? f.toObject(includeInstance, proto.core.solo.io.Status.toObject) : []
+    subresourceStatusesMap: (f = msg.getSubresourceStatusesMap()) ? f.toObject(includeInstance, proto.core.solo.io.Status.toObject) : [],
+    details: (f = msg.getDetails()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -119,6 +121,11 @@ proto.core.solo.io.Status.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.core.solo.io.Status.deserializeBinaryFromReader, "");
          });
+      break;
+    case 5:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setDetails(value);
       break;
     default:
       reader.skipField();
@@ -174,6 +181,14 @@ proto.core.solo.io.Status.serializeBinaryToWriter = function(message, writer) {
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.core.solo.io.Status.serializeBinaryToWriter);
   }
+  f = message.getDetails();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -183,7 +198,8 @@ proto.core.solo.io.Status.serializeBinaryToWriter = function(message, writer) {
 proto.core.solo.io.Status.State = {
   PENDING: 0,
   ACCEPTED: 1,
-  REJECTED: 2
+  REJECTED: 2,
+  WARNING: 3
 };
 
 /**
@@ -246,6 +262,36 @@ proto.core.solo.io.Status.prototype.getSubresourceStatusesMap = function(opt_noL
 
 proto.core.solo.io.Status.prototype.clearSubresourceStatusesMap = function() {
   this.getSubresourceStatusesMap().clear();
+};
+
+
+/**
+ * optional google.protobuf.Struct details = 5;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.core.solo.io.Status.prototype.getDetails = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 5));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.core.solo.io.Status.prototype.setDetails = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.core.solo.io.Status.prototype.clearDetails = function() {
+  this.setDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.core.solo.io.Status.prototype.hasDetails = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

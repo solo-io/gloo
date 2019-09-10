@@ -90,6 +90,7 @@ type ExtAuth struct {
 	SigningKey   *ExtAuthSigningKey        `json:"signingKey,omitempty"`
 	Plugins      map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
 	EnvoySidecar bool                      `json:"envoySidecar"`
+	ServiceName  string                    `json:"serviceName,omitempty"`
 }
 
 type ExtAuthDeployment struct {

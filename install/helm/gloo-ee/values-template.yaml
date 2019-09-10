@@ -104,6 +104,7 @@ gloo:
 rateLimit:
   # setting to false will disable rate limiting
   enabled: true
+  serviceName: rate-limit
   deployment:
     stats: true
     name: "rate-limit"
@@ -161,6 +162,7 @@ global:
   extensions:
     extAuth:
       envoySidecar: false
+      serviceName: ext-auth
       userIdHeader: x-user-id
       deployment:
         stats: true

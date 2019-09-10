@@ -21,6 +21,9 @@ export class Metadata extends jspb.Message {
   clearLabelsMap(): void;
   getAnnotationsMap(): jspb.Map<string, string>;
   clearAnnotationsMap(): void;
+  getGeneration(): number;
+  setGeneration(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Metadata.AsObject;
   static toObject(includeInstance: boolean, msg: Metadata): Metadata.AsObject;
@@ -39,6 +42,7 @@ export namespace Metadata {
     resourceVersion: string,
     labelsMap: Array<[string, string]>,
     annotationsMap: Array<[string, string]>,
+    generation: number,
   }
 }
 

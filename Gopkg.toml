@@ -58,11 +58,11 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.10.14"
+  version = "0.10.16"
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.18.37"
+  version = "0.18.40"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -79,7 +79,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.9.17"
+  version = "0.10.0"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"

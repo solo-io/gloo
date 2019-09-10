@@ -103,6 +103,7 @@ var _ = Describe("Helm Test", func() {
 							},
 						},
 					}
+
 					container := GetQuayContainerSpec("gloo-ee-envoy-wrapper", version, GetPodNamespaceEnvVar(), podname)
 					container.Name = translator.GatewayProxyName
 					container.Args = []string{"--disable-hot-restart"}
@@ -211,6 +212,7 @@ var _ = Describe("Helm Test", func() {
 						v1.Container{
 							Name:            "extauth",
 							Image:           "quay.io/solo-io/extauth-ee:dev",
+							Ports:           nil,
 							ImagePullPolicy: getPullPolicy(),
 							Env: []v1.EnvVar{
 								{
@@ -220,6 +222,10 @@ var _ = Describe("Helm Test", func() {
 											FieldPath: "metadata.namespace",
 										},
 									},
+								},
+								{
+									Name:  "SERVICE_NAME",
+									Value: "ext-auth",
 								},
 								{
 									Name:  "GLOO_ADDRESS",

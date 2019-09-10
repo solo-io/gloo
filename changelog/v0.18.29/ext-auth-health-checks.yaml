@@ -1,0 +1,4 @@
+changelog:
+- type: NEW_FEATURE
+  description: Enable active health checks for ext-auth server.
+  issueLink: https://github.com/solo-io/gloo/issues/941

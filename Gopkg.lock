@@ -1344,12 +1344,12 @@
   version = "v0.1.0"
 
 [[projects]]
+  branch = "go-utils0.10.0"
   digest = "1:8d7c0147eaa795d72ec28244d5bc3c8a7d5c9663bd6986f6eb14e42c674357aa"
   name = "github.com/solo-io/ext-auth-plugin-examples"
   packages = ["plugins/required_header/pkg"]
   pruneopts = "UT"
-  revision = "d5d4649cfb3f25e1ac2e266166e4a1549a690934"
-  version = "v0.1.0"
+  revision = "86a040e321a0f95a74203046850350f46f7a09a9"
 
 [[projects]]
   digest = "1:1c53a9a165de209d59c3e2fd8f1f0d845fed97c54c558e23a384e477045fcc81"
@@ -1378,7 +1378,7 @@
   version = "v0.5.1"
 
 [[projects]]
-  digest = "1:33116aea836829162d2b3cd56a4356faa88accbbec058e275b04fdc6de01eedf"
+  digest = "1:3118a06e556339e039e6f9602a6fd52b57e0f74e559b4e0c9abb7d1f3fa2a1e1"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1516,8 +1516,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "93fd7499b01bec5d1d29f4b06a8c67943ab7726d"
-  version = "v0.18.37"
+  revision = "47261575e46dd5740437980b84ad096e585c0159"
+  version = "v0.18.40"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1528,7 +1528,7 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:4dc66f4e4d72925b7372695d8959852203064d55f8aa21aaf0258571cf3d7b51"
+  digest = "1:c34498d647e0b6861429391b7da35109d764ea854885d03be2f33e43399f1c45"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1542,6 +1542,7 @@
     "errutils",
     "githubutils",
     "hashutils",
+    "healthchecker",
     "installutils/helmchart",
     "installutils/kuberesource",
     "kubeinstallutils",
@@ -1563,8 +1564,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "71704af17a52b1dce01b6bb8bcab447f59e59f07"
-  version = "v0.9.17"
+  revision = "075c4b07de59a9b7b20475b7eab02dcdc6a62d64"
+  version = "v0.10.0"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1601,7 +1602,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:c49aa9872f937c1e3bce091cb05dd06e83d7efb686f40b251f6c328848a5a4f2"
+  digest = "1:41432d8e68bf62b2b4460640836cb1b7955d15a8fa22464327ee769b780a9d4b"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1661,8 +1662,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "516e34cf58adb6e4c674b7c95ef181c0ea43cb6a"
-  version = "v0.10.14"
+  revision = "6f7e0f9898235c000129c61484d6546cba7915de"
+  version = "v0.10.17"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2810,6 +2811,7 @@
     "github.com/solo-io/go-utils/errutils",
     "github.com/solo-io/go-utils/githubutils",
     "github.com/solo-io/go-utils/hashutils",
+    "github.com/solo-io/go-utils/healthchecker",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/log",
     "github.com/solo-io/go-utils/manifesttestutils",
@@ -2855,10 +2857,10 @@
     "go.uber.org/zap",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
-    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/status",

@@ -9,6 +9,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   upstreamSpec:
+    healthChecks:
+    - timeout: 5s
+      interval: 1m
+      unhealthyThreshold: 5
+      healthyThreshold: 5
+      grpcHealthCheck:
+        serviceName: ratelimit
     kube:
       serviceName: {{ .Values.rateLimit.service.name }}
       serviceNamespace: {{ .Release.Namespace }}

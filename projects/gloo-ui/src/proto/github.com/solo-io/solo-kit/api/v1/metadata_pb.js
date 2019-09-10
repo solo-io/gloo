@@ -66,7 +66,8 @@ proto.core.solo.io.Metadata.toObject = function(includeInstance, msg) {
     cluster: jspb.Message.getFieldWithDefault(msg, 7, ""),
     resourceVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
     labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    annotationsMap: (f = msg.getAnnotationsMap()) ? f.toObject(includeInstance, undefined) : []
+    annotationsMap: (f = msg.getAnnotationsMap()) ? f.toObject(includeInstance, undefined) : [],
+    generation: jspb.Message.getFieldWithDefault(msg, 8, 0)
   };
 
   if (includeInstance) {
@@ -130,6 +131,10 @@ proto.core.solo.io.Metadata.deserializeBinaryFromReader = function(msg, reader) 
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
+      break;
+    case 8:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setGeneration(value);
       break;
     default:
       reader.skipField();
@@ -195,6 +200,13 @@ proto.core.solo.io.Metadata.serializeBinaryToWriter = function(message, writer) 
   f = message.getAnnotationsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(6, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getGeneration();
+  if (f !== 0) {
+    writer.writeInt64(
+      8,
+      f
+    );
   }
 };
 
@@ -292,6 +304,21 @@ proto.core.solo.io.Metadata.prototype.getAnnotationsMap = function(opt_noLazyCre
 
 proto.core.solo.io.Metadata.prototype.clearAnnotationsMap = function() {
   this.getAnnotationsMap().clear();
+};
+
+
+/**
+ * optional int64 generation = 8;
+ * @return {number}
+ */
+proto.core.solo.io.Metadata.prototype.getGeneration = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 8, 0));
+};
+
+
+/** @param {number} value */
+proto.core.solo.io.Metadata.prototype.setGeneration = function(value) {
+  jspb.Message.setProto3IntField(this, 8, value);
 };
 
 

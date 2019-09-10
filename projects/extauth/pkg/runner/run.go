@@ -6,9 +6,11 @@ import (
 	"net"
 	"os"
 
+	"github.com/solo-io/go-utils/healthchecker"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
+	"google.golang.org/grpc/health"
 
 	"go.uber.org/zap"
 
@@ -77,7 +79,8 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 
 	pb.RegisterAuthorizationServer(srv, service)
-	healthpb.RegisterHealthServer(srv, &healthChecker{})
+	hc := healthchecker.NewGrpc(clientSettings.ServiceName, health.NewServer())
+	healthpb.RegisterHealthServer(srv, hc.GetServer())
 	reflection.Register(srv)
 
 	logger := contextutils.LoggerFrom(ctx)
@@ -182,10 +185,4 @@ func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node
 		}
 		return err
 	})
-}
-
-type healthChecker struct{}
-
-func (h *healthChecker) Check(context.Context, *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
-	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
 }
