@@ -158,7 +158,7 @@
   version = "v2.2.0"
 
 [[projects]]
-  digest = "1:0f963d6a6a7fbd178a1ef062bac8fcac88aee76f063cdf88faea81d1fd195625"
+  digest = "1:e7d3a50707865ac39af24b1a8435eee90fe536b5c6cd57ecc0a46ed6ce06f2c2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -172,6 +172,7 @@
     "aws/credentials/endpointcreds",
     "aws/credentials/processcreds",
     "aws/credentials/stscreds",
+    "aws/crr",
     "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
@@ -193,6 +194,8 @@
     "private/protocol/rest",
     "private/protocol/restjson",
     "private/protocol/xml/xmlutil",
+    "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
     "service/ec2",
     "service/lambda",
     "service/sts",
@@ -1581,17 +1584,21 @@
   version = "v0.1.1"
 
 [[projects]]
-  digest = "1:3c8eac7ed56610b2dacf46c6f8f3e3f9c27ada979fa6b954ee496a7427e9ba62"
+  digest = "1:d1e1a508f3ed20d043c4cb0f3861c2398b6b93edf45604fbb5b4f6ae04876ddd"
   name = "github.com/solo-io/rate-limiter"
   packages = [
+    "cmd/service/runner",
+    "pkg/cache",
     "pkg/config",
+    "pkg/dynamodb",
     "pkg/redis",
     "pkg/server",
     "pkg/service",
     "pkg/settings",
   ]
   pruneopts = "UT"
-  revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
+  revision = "43ce459163c55736254aa1cc18ef89b0c0e1c21b"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:c49aa9872f937c1e3bce091cb05dd06e83d7efb686f40b251f6c328848a5a4f2"
@@ -2661,6 +2668,9 @@
   input-imports = [
     "cloud.google.com/go/storage",
     "github.com/avast/retry-go",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/dynamodb",
     "github.com/dgrijalva/jwt-go",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
@@ -2811,11 +2821,9 @@
     "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/licensing/pkg/defaults",
     "github.com/solo-io/licensing/pkg/keys",
+    "github.com/solo-io/rate-limiter/cmd/service/runner",
     "github.com/solo-io/rate-limiter/pkg/config",
-    "github.com/solo-io/rate-limiter/pkg/redis",
-    "github.com/solo-io/rate-limiter/pkg/server",
     "github.com/solo-io/rate-limiter/pkg/service",
-    "github.com/solo-io/rate-limiter/pkg/settings",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube",
@@ -2847,6 +2855,7 @@
     "go.uber.org/zap",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
+    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

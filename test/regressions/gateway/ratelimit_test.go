@@ -70,7 +70,6 @@ var _ = Describe("Ratelimit tests", func() {
 
 		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-
 	})
 
 	AfterEach(func() {
@@ -90,7 +89,7 @@ var _ = Describe("Ratelimit tests", func() {
 	checkRateLimited := func() {
 		waitForGateway()
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
 			Path:              "/",
@@ -192,7 +191,6 @@ var _ = Describe("Ratelimit tests", func() {
 
 			writeVhost(virtualServiceClient, extensions, nil, nil)
 			checkRateLimited()
-
 		})
 
 		It("can rate limit to upstream route", func() {

@@ -32,14 +32,23 @@ type GlooEeExtensions struct {
 }
 
 type RateLimit struct {
-	Enabled    bool                 `json:"enabled"`
+	Enabled    bool                 `json:"enabled" desc:"if true, deploy rate limit service (default true)"`
 	Deployment *RateLimitDeployment `json:"deployment,omitempty"`
 	Service    *RateLimitService    `json:"service,omitempty"`
+}
+
+type DynamoDb struct {
+	Region             string `json:"region" desc:"aws region to run DynamoDB requests in"`
+	SecretName         string `json:"secretName,omitempty" desc:"name of the aws secret in gloo's installation namespace that has aws creds (if provided, uses DynamoDB to back rate-limiting service instead of Redis)"`
+	RateLimitTableName string `json:"tableName" desc:"DynamoDB table name used to back rate limit service (default rate-limits)"`
+	ConsistentReads    bool   `json:"consistentReads" desc:"if true, reads from DynamoDB will be strongly consistent (default false)"`
+	BatchSize          uint8  `json:"batchSize" desc:"batch size for get requests to DynamoDB (max 100, default 100)"`
 }
 
 type RateLimitDeployment struct {
 	RedisUrl    string          `json:"redisUrl"`
 	GlooAddress string          `json:"glooAddress"`
+	DynamoDb    DynamoDb        `json:"dynamodb"`
 	Image       *generate.Image `json:"image,omitempty"`
 	*generate.DeploymentSpec
 }

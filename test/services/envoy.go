@@ -278,6 +278,10 @@ func (ei *EnvoyInstance) LocalAddr() string {
 	return ei.GlooAddr
 }
 
+func (ei *EnvoyInstance) UseDocker() bool {
+	return ei.useDocker
+}
+
 func (ei *EnvoyInstance) Clean() error {
 	http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
 	if ei.cmd != nil {
@@ -286,7 +290,7 @@ func (ei *EnvoyInstance) Clean() error {
 	}
 
 	if ei.useDocker {
-		if err := stopContainer(); err != nil {
+		if err := StopContainer(containerName); err != nil {
 			return err
 		}
 	}
@@ -317,17 +321,6 @@ func (ei *EnvoyInstance) runContainer() error {
 	err := cmd.Run()
 	if err != nil {
 		return errors.Wrap(err, "Unable to start envoy container")
-	}
-	return nil
-}
-
-func stopContainer() error {
-	cmd := exec.Command("docker", "stop", containerName)
-	cmd.Stdout = ginkgo.GinkgoWriter
-	cmd.Stderr = ginkgo.GinkgoWriter
-	err := cmd.Run()
-	if err != nil {
-		return errors.Wrap(err, "Error stopping container "+containerName)
 	}
 	return nil
 }

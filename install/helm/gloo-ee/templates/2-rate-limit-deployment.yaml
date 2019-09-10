@@ -38,14 +38,35 @@ spec:
                   fieldPath: metadata.namespace
             - name: GLOO_ADDRESS
               value: {{ .Values.rateLimit.deployment.glooAddress }}
-            - name: REDIS_URL
-              value: {{ .Values.rateLimit.deployment.redisUrl }}
-            - name: REDIS_SOCKET_TYPE
-              value: tcp
             {{- if .Values.rateLimit.deployment.stats }}
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
+            {{- if .Values.rateLimit.deployment.dynamodb.secretName }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rateLimit.deployment.dynamodb.secretName }}
+                  key: aws_access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rateLimit.deployment.dynamodb.secretName }}
+                  key: aws_secret_access_key
+            - name: AWS_REGION
+              value: {{ .Values.rateLimit.deployment.dynamodb.region }}
+            - name: DYNAMODB_RATE_LIMIT_TABLE_NAME
+              value: {{ .Values.rateLimit.deployment.dynamodb.tableName }}
+            - name: DYNAMODB_CONSISTENT_READS
+              value: {{ .Values.rateLimit.deployment.dynamodb.consistentReads | quote }}
+            - name: DYNAMODB_BATCH_SIZE
+              value: {{ .Values.rateLimit.deployment.dynamodb.batchSize | quote }}
+            {{- else }} # .Values.rateLimit.deployment.dynamodb.secretName
+            - name: REDIS_URL
+              value: {{ .Values.rateLimit.deployment.redisUrl }}
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+            {{- end }} # .Values.rateLimit.deployment.dynamodb.secretName
       {{- if $image.pullSecret }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}

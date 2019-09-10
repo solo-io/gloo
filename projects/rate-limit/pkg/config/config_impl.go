@@ -1,6 +1,7 @@
 package configproto
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -75,7 +76,9 @@ func (this rateLimitConfig) Dump() string {
 }
 
 func (this rateLimitConfig) GetLimit(
-	domain string, descriptor *pb_struct.RateLimitDescriptor) *config.RateLimit {
+	ctx context.Context,
+	domain string,
+	descriptor *pb_struct.RateLimitDescriptor) *config.RateLimit {
 
 	this.logger.Debugf("starting get limit lookup")
 	var rateLimit *config.RateLimit = nil

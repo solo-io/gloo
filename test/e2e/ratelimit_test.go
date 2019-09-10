@@ -7,10 +7,15 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
@@ -18,12 +23,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-projects/test/services"
-	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
@@ -31,14 +32,14 @@ import (
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/test/services"
+	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
 )
 
 var _ = Describe("Rate Limit", func() {
@@ -51,6 +52,7 @@ var _ = Describe("Rate Limit", func() {
 		rlService      rlservice.RateLimitServiceServer
 		glooExtensions map[string]*types.Struct
 		cache          memory.InMemoryResourceCache
+		rlAddr         string
 	)
 	const (
 		redisaddr = "127.0.0.1"
@@ -58,33 +60,193 @@ var _ = Describe("Rate Limit", func() {
 		rladdr    = "127.0.0.1"
 		rlport    = uint32(18081)
 	)
+	runAllTests := func() {
+		It("rlserver receives config", func() {
+			tu := v1helpers.NewTestHttpUpstream(ctx, "fake-addr")
+			var opts clients.WriteOpts
+			up := tu.Upstream
+			_, err := testClients.UpstreamClient.Write(up, opts)
+			Expect(err).NotTo(HaveOccurred())
 
-	getRedisPath := func() string {
-		binaryPath := os.Getenv("REDIS_BINARY")
-		if binaryPath != "" {
-			return binaryPath
-		}
-		return "redis-server"
+			envoyPort := uint32(8080)
+			proxy := getProxy(envoyPort, up.Metadata.Ref(), map[string]bool{"host1": true})
+
+			proxycli := testClients.ProxyClient
+			_, err = proxycli.Write(proxy, opts)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
+
+		})
+
+		Context("With envoy", func() {
+
+			var (
+				envoyInstance *services.EnvoyInstance
+				testUpstream  *v1helpers.TestUpstream
+				envoyPort     = uint32(8080)
+			)
+
+			BeforeEach(func() {
+				var err error
+				envoyInstance, err = envoyFactory.NewEnvoyInstance()
+				Expect(err).NotTo(HaveOccurred())
+
+				envoyInstance.RatelimitAddr = rladdr
+				envoyInstance.RatelimitPort = rlport
+				if runtime.GOOS == "darwin" && envoyInstance.UseDocker() {
+					rlAddr = "host.docker.internal"
+				}
+
+				err = envoyInstance.Run(testClients.GlooPort)
+				Expect(err).NotTo(HaveOccurred())
+
+				testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+				// drain channel as we dont care about it
+				go func() {
+					for range testUpstream.C {
+					}
+				}()
+				var opts clients.WriteOpts
+				up := testUpstream.Upstream
+				_, err = testClients.UpstreamClient.Write(up, opts)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				if envoyInstance != nil {
+					envoyInstance.Clean()
+				}
+			})
+
+			It("should should rate limit envoy", func() {
+
+				hosts := map[string]bool{"host1": true}
+				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				rls := rlService
+				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+				EventuallyRateLimited("host1", envoyPort)
+			})
+
+			It("should should rate limit two vhosts", func() {
+
+				hosts := map[string]bool{"host1": true, "host2": true}
+				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				rls := rlService
+				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+
+				EventuallyRateLimited("host1", envoyPort)
+				EventuallyRateLimited("host2", envoyPort)
+			})
+			It("should should rate limit one vhosts", func() {
+
+				hosts := map[string]bool{"host1": false, "host2": true}
+				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				rls := rlService
+				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+
+				// waiting for envoy to start, so that consistently works
+				EventuallyOk("host1", envoyPort)
+
+				ConsistentlyNotRateLimited("host1", envoyPort)
+				EventuallyRateLimited("host2", envoyPort)
+			})
+
+			Context("with auth", func() {
+
+				JustBeforeEach(func() {
+					// start the ext auth server
+					extauthport := uint32(9100)
+
+					extauthAddr := "localhost"
+					if runtime.GOOS == "darwin" && envoyInstance.UseDocker() {
+						extauthAddr = "host.docker.internal"
+					}
+					extauthserver := &gloov1.Upstream{
+						Metadata: core.Metadata{
+							Name:      "extauth-server",
+							Namespace: "default",
+						},
+						UpstreamSpec: &gloov1.UpstreamSpec{
+							UseHttp2: true,
+							UpstreamType: &gloov1.UpstreamSpec_Static{
+								Static: &gloov1static.UpstreamSpec{
+									Hosts: []*gloov1static.Host{{
+										Addr: extauthAddr,
+										Port: extauthport,
+									}},
+								},
+							},
+						},
+					}
+
+					testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
+					ref := extauthserver.Metadata.Ref()
+					extauthSettings := &extauthpb.Settings{
+						ExtauthzServerRef: &ref,
+					}
+					settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
+					Expect(err).NotTo(HaveOccurred())
+
+					glooExtensions[extauth.ExtensionName] = settingsStruct
+
+					settings := extauthrunner.Settings{
+						GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
+						DebugPort:    0,
+						ServerPort:   int(extauthport),
+						SigningKey:   "hello",
+						UserIdHeader: "X-User-Id",
+					}
+					go func(testctx context.Context) {
+						defer GinkgoRecover()
+						err := extauthrunner.RunWithSettings(testctx, settings)
+						if testctx.Err() == nil {
+							Expect(err).NotTo(HaveOccurred())
+						}
+					}(ctx)
+				})
+
+				It("should ratelimit authorized users", func() {
+					ingressRateLimit := &ratelimit.IngressRateLimit{
+						AuthorizedLimits: &ratelimit.RateLimit{
+							RequestsPerUnit: 1,
+							Unit:            ratelimit.RateLimit_SECOND,
+						},
+					}
+					rlb := RlProxyBuilder{
+						envoyPort:         envoyPort,
+						upstream:          testUpstream.Upstream.Metadata.Ref(),
+						hostsToRateLimits: map[string]bool{"host1": true},
+						ingressRateLimit:  ingressRateLimit,
+					}
+					proxy := rlb.getProxy()
+					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
+					vhost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = toStruct(GetBasicAuthExtension())
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					rls := rlService
+					Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					// do the eventually first to give envoy a chance to start
+					EventuallyRateLimited("user:password@host1", envoyPort)
+					ConsistentlyNotRateLimited("host1/noauth", envoyPort)
+				})
+			})
+		})
 	}
-
-	BeforeEach(func() {
-		var err error
-		os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
-		os.Setenv("REDIS_SOCKET_TYPE", "tcp")
-
-		command := exec.Command(getRedisPath(), "--port", "6379")
-		redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).NotTo(HaveOccurred())
-
-		// give redis a chance to start
-		Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
-
-		ctx, cancel = context.WithCancel(context.Background())
-		cache = memory.NewInMemoryResourceCache()
-
-		testClients = services.GetTestClients(cache)
-		testClients.GlooPort = int(services.AllocateGlooPort())
-
+	justBeforeEach := func() {
 		// add the rl service as a static upstream
 		rlserver := &gloov1.Upstream{
 			Metadata: core.Metadata{
@@ -96,7 +258,7 @@ var _ = Describe("Rate Limit", func() {
 				UpstreamType: &gloov1.UpstreamSpec_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: "localhost",
+							Addr: rlAddr,
 							Port: rlport,
 						}},
 					},
@@ -116,10 +278,8 @@ var _ = Describe("Rate Limit", func() {
 			ratelimit2.ExtensionName: settingsStruct,
 		}
 
-		rlService = ratelimitservice.RunRatelimit(ctx, testClients.GlooPort)
-	})
+		rlService = ratelimitservice.RunRatelimit(ctx, cancel, testClients.GlooPort)
 
-	JustBeforeEach(func() {
 		extensions := &gloov1.Extensions{
 			Configs: glooExtensions,
 		}
@@ -130,193 +290,80 @@ var _ = Describe("Rate Limit", func() {
 		}
 
 		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
-	})
+	}
 
-	AfterEach(func() {
-		cancel()
-		redisSession.Kill()
-	})
-
-	It("rlserver receives config", func() {
-
-		tu := v1helpers.NewTestHttpUpstream(ctx, "fake-addr")
-		var opts clients.WriteOpts
-		up := tu.Upstream
-		_, err := testClients.UpstreamClient.Write(up, opts)
-		Expect(err).NotTo(HaveOccurred())
-
-		envoyPort := uint32(8080)
-		proxy := getProxy(envoyPort, up.Metadata.Ref(), map[string]bool{"host1": true})
-
-		proxycli := testClients.ProxyClient
-		_, err = proxycli.Write(proxy, opts)
-		Expect(err).NotTo(HaveOccurred())
-
-		Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
-
-	})
-
-	Context("With envoy", func() {
-
-		var (
-			envoyInstance *services.EnvoyInstance
-			testUpstream  *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
-		)
-
+	Context("Redis-backed rate limiting", func() {
+		getRedisPath := func() string {
+			binaryPath := os.Getenv("REDIS_BINARY")
+			if binaryPath != "" {
+				return binaryPath
+			}
+			return "redis-server"
+		}
 		BeforeEach(func() {
 			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
+			os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
+			os.Setenv("REDIS_SOCKET_TYPE", "tcp")
+
+			command := exec.Command(getRedisPath(), "--port", "6379")
+			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			envoyInstance.RatelimitAddr = rladdr
-			envoyInstance.RatelimitPort = rlport
+			// give redis a chance to start
+			Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
 
-			err = envoyInstance.Run(testClients.GlooPort)
-			Expect(err).NotTo(HaveOccurred())
+			ctx, cancel = context.WithCancel(context.Background())
+			cache = memory.NewInMemoryResourceCache()
 
-			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-			// drain channel as we dont care about it
-			go func() {
-				for range testUpstream.C {
-				}
-			}()
-			var opts clients.WriteOpts
-			up := testUpstream.Upstream
-			_, err = testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
+			testClients = services.GetTestClients(cache)
+			testClients.GlooPort = int(services.AllocateGlooPort())
+
+			rlAddr = "localhost"
 		})
+		JustBeforeEach(justBeforeEach)
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
+			cancel()
+			redisSession.Kill()
 		})
 
-		It("should should rate limit envoy", func() {
-
-			hosts := map[string]bool{"host1": true}
-			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			rls := rlService
-			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
-			EventuallyRateLimited("host1", envoyPort)
-		})
-
-		It("should should rate limit two vhosts", func() {
-
-			hosts := map[string]bool{"host1": true, "host2": true}
-			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			rls := rlService
-			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
-
-			EventuallyRateLimited("host1", envoyPort)
-			EventuallyRateLimited("host2", envoyPort)
-		})
-		It("should should rate limit one vhosts", func() {
-
-			hosts := map[string]bool{"host1": false, "host2": true}
-			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			rls := rlService
-			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
-
-			// waiting for envoy to start, so that consistently works
-			EventuallyOk("host1", envoyPort)
-
-			ConsistentlyNotRateLimited("host1", envoyPort)
-			EventuallyRateLimited("host2", envoyPort)
-		})
-
-		Context("with auth", func() {
-
-			BeforeEach(func() {
-				// start the ext auth server
-				extauthport := uint32(9100)
-
-				extauthserver := &gloov1.Upstream{
-					Metadata: core.Metadata{
-						Name:      "extauth-server",
-						Namespace: "default",
-					},
-					UpstreamSpec: &gloov1.UpstreamSpec{
-						UseHttp2: true,
-						UpstreamType: &gloov1.UpstreamSpec_Static{
-							Static: &gloov1static.UpstreamSpec{
-								Hosts: []*gloov1static.Host{{
-									Addr: "localhost",
-									Port: extauthport,
-								}},
-							},
-						},
-					},
-				}
-
-				testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
-				ref := extauthserver.Metadata.Ref()
-				extauthSettings := &extauthpb.Settings{
-					ExtauthzServerRef: &ref,
-				}
-				settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
-				Expect(err).NotTo(HaveOccurred())
-
-				glooExtensions[extauth.ExtensionName] = settingsStruct
-
-				settings := extauthrunner.Settings{
-					GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
-					DebugPort:    0,
-					ServerPort:   int(extauthport),
-					SigningKey:   "hello",
-					UserIdHeader: "X-User-Id",
-				}
-				go func(testctx context.Context) {
-					defer GinkgoRecover()
-					err := extauthrunner.RunWithSettings(testctx, settings)
-					if testctx.Err() == nil {
-						Expect(err).NotTo(HaveOccurred())
-					}
-				}(ctx)
-
-			})
-
-			It("should ratelimit authorized users", func() {
-
-				ingressRateLimit := &ratelimit.IngressRateLimit{
-					AuthorizedLimits: &ratelimit.RateLimit{
-						RequestsPerUnit: 1,
-						Unit:            ratelimit.RateLimit_SECOND,
-					},
-				}
-				rlb := RlProxyBuilder{
-					envoyPort:         envoyPort,
-					upstream:          testUpstream.Upstream.Metadata.Ref(),
-					hostsToRateLimits: map[string]bool{"host1": true},
-					ingressRateLimit:  ingressRateLimit,
-				}
-				proxy := rlb.getProxy()
-				vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
-				vhost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = toStruct(GetBasicAuthExtension())
-				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-
-				rls := rlService
-				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
-				// do the eventually first to give envoy a chance to start
-				EventuallyRateLimited("user:password@host1", envoyPort)
-				ConsistentlyNotRateLimited("host1/noauth", envoyPort)
-			})
-		})
+		runAllTests()
 	})
+
+	Context("DynamoDb-backed rate limiting", func() {
+
+		BeforeEach(func() {
+			// By setting these environment variables to non-empty values we signal we want to use DynamoDb
+			// instead of Redis as our rate limiting backend. Local DynamoDB requires any non-empty creds to work
+			os.Setenv("AWS_ACCESS_KEY_ID", "fakeMyKeyId")
+			os.Setenv("AWS_SECRET_ACCESS_KEY", "fakeSecretAccessKey")
+
+			awsEndpoint := "http://" + services.GetDynamoDbHost() + ":" + services.DynamoDbPort
+			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
+			os.Setenv("AWS_ENDPOINT", awsEndpoint)
+
+			services.RunDynamoDbContainer()
+			Eventually(services.DynamoDbHealthCheck(awsEndpoint), "5s", "100ms").Should(BeEquivalentTo(services.HealthCheck{IsHealthy: true}))
+
+			ctx, cancel = context.WithCancel(context.Background())
+			cache = memory.NewInMemoryResourceCache()
+
+			testClients = services.GetTestClients(cache)
+			testClients.GlooPort = int(services.AllocateGlooPort())
+
+			rlAddr = "localhost"
+		})
+
+		JustBeforeEach(justBeforeEach)
+
+		AfterEach(func() {
+			cancel()
+			services.MustStopContainer(services.DynamoDbContainerName)
+		})
+
+		runAllTests()
+	})
+
 })
 
 func EventuallyOk(hostname string, port uint32) {
@@ -381,7 +428,6 @@ func get(hostname string, port uint32) (*http.Response, error) {
 }
 
 func getProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
-
 	ingressRateLimit := &ratelimit.IngressRateLimit{
 		AnonymousLimits: &ratelimit.RateLimit{
 			RequestsPerUnit: 1,
@@ -487,7 +533,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "127.0.0.1",
+			BindAddress: "0.0.0.0",
 			BindPort:    b.envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{
