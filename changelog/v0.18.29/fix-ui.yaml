@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix AWS upstream creation in UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1078

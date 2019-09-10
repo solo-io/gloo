@@ -493,7 +493,9 @@ export const SoloAWSSecretsList: React.FC<{
               s.metadata!.name === name && s.metadata!.namespace === namespace
           );
 
-          form.setFieldValue(`${field.name}.name`, value);
+          form.setFieldValue(
+              `${field.name}.name`,
+              selectedSecret!.metadata!.name);
           form.setFieldValue(
             `${field.name}.namespace`,
             selectedSecret!.metadata!.namespace
