@@ -10,7 +10,7 @@ func main() {
 		Repo:            "solo-projects",
 		Product:         "gloo",
 		ChangelogPrefix: "glooe",
-		DocsParentPath:  "",
+		DocsParentPath:  "projects/gloo/doc",
 		CliPrefix:       "glooctl",
 	}
 	docsutils.PushDocsCli(&spec)
