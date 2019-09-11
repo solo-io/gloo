@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow the grafana UI to be loaded after install
+    issueLink: https://github.com/solo-io/solo-projects/issues/1028

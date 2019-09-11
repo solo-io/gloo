@@ -243,7 +243,4 @@ grafana:
             path: /var/lib/grafana/dashboards/gloo
   dashboardsConfigMaps:
     gloo: glooe-grafana-custom-dashboards
-  grafana.ini:
-    server:
-      domain: glooe-grafana
-      root_url: "%(protocol)s://%(domain)s/grafana/"
+
