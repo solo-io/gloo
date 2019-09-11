@@ -3,8 +3,6 @@ package e2e_test
 import (
 	"testing"
 
-	"github.com/solo-io/go-utils/testutils"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -38,7 +36,6 @@ func TestE2e(t *testing.T) {
 	// set default port to an unprivileged port for local testing.
 	defaults.HttpPort = 8081
 
-	testutils.RegisterPreFailHandler(testutils.PrintTrimmedStack)
 	helpers.RegisterCommonFailHandlers()
 	helpers.SetupLog()
 	// RegisterFailHandler(Fail)

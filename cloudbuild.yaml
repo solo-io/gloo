@@ -138,7 +138,7 @@ steps:
   - '-ce'
   - |
     go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-    /builder/bin/ginkgo.bash -r
+    /builder/bin/ginkgo.bash -r -failFast -trace -progress
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'ENVOY_BINARY=/workspace/envoy'
@@ -212,7 +212,7 @@ steps:
     - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
     - 'RUN_KUBE2E_TESTS=1'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  args: ['-r', 'test/regressions']
+  args: ['-r', 'test/regressions', '-failFast', '-trace', '-progress']
   waitFor: ['build-test-assets', 'get-credentials-regression']
   id: 'regression-tests'
 
