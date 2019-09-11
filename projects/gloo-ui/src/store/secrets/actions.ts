@@ -8,6 +8,8 @@ import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { secrets, getCreateSecret } from 'Api/v2/SecretClient';
 import { ListSecretsAction, SecretAction, CreateSecretAction } from './types';
 import { Modal } from 'antd';
+import { guardByLicense } from 'store/config/actions';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 const { warning } = Modal;
 
 export const listSecrets = (
@@ -40,10 +42,7 @@ export const createSecret = (
         payload: response.secret!
       });
     } catch (error) {
-      warning({
-        title: 'There was an error creating the secret.',
-        content: error.message
-      });
+      SoloWarning('There was an error creating the secret.', error)
     }
   };
 };
@@ -54,16 +53,14 @@ export const deleteSecret = (
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
     try {
+      guardByLicense()
       const response = await secrets.deleteSecret(deleteSecretRequest);
       dispatch<CreateSecretAction>({
         type: SecretAction.CREATE_SECRET,
         payload: response
       });
     } catch (error) {
-      warning({
-        title: 'There was an error deleting the secret',
-        content: error.message
-      });
+      SoloWarning('There was an error deleting the secret.', error)
     }
   };
 };

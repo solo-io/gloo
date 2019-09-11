@@ -1,8 +1,9 @@
+import * as React from 'react';
 import {
   GetVersionRequest,
   UpdateSettingsRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { Dispatch } from 'redux';
+import { Dispatch, AnyAction } from 'redux';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { config } from 'Api/v2/ConfigClient';
 import {
@@ -15,11 +16,13 @@ import {
   GetPodNamespaceAction,
   UpdateSettingsAction,
   UpdateWatchNamespacesAction,
-  UpdateRefreshRateAction
+  UpdateRefreshRateAction,
 } from './types';
 import { Modal } from 'antd';
+import { SoloWarning } from 'Components/Common/SoloWarningContent'
 import { SuccessMessageAction, MessageAction } from 'store/modal/types';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { globalStore } from 'store';
 const { warning } = Modal;
 
 export const getVersion = () => {
@@ -31,7 +34,7 @@ export const getVersion = () => {
         type: ConfigAction.GET_VERSION,
         payload: response.version
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 export const getSettings = () => {
@@ -43,7 +46,7 @@ export const getSettings = () => {
         type: ConfigAction.GET_SETTINGS,
         payload: response.toObject().settings!
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 
@@ -56,7 +59,7 @@ export const listNamespaces = () => {
         type: ConfigAction.LIST_NAMESPACES,
         payload: response.namespacesList!
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 
@@ -69,7 +72,7 @@ export const getOAuthEndpoint = () => {
         type: ConfigAction.GET_OAUTH_ENDPOINT,
         payload: response.oAuthEndpoint!
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 
@@ -82,7 +85,7 @@ export const getIsLicenseValid = () => {
         type: ConfigAction.GET_IS_LICENSE_VALID,
         payload: response.isLicenseValid!
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 export const getPodNamespace = () => {
@@ -94,7 +97,7 @@ export const getPodNamespace = () => {
         type: ConfigAction.GET_POD_NAMESPACE,
         payload: response.namespace
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 
@@ -104,6 +107,7 @@ export const updateWatchNamespaces = (updateWatchNamespacesRequest: {
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
     try {
+      guardByLicense()
       const response = await config.updateWatchNamespaces(
         updateWatchNamespacesRequest
       );
@@ -117,10 +121,7 @@ export const updateWatchNamespaces = (updateWatchNamespacesRequest: {
         message: 'Watched namespaces successfully updated.'
       });
     } catch (error) {
-      warning({
-        title: 'There was an error updating watched namespaces.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating watched namespaces.', error)
     }
   };
 };
@@ -131,6 +132,7 @@ export const updateRefreshRate = (updateRefreshRateRequest: {
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
     try {
+      guardByLicense()
       const response = await config.updateRefreshRate(updateRefreshRateRequest);
       dispatch<UpdateRefreshRateAction>({
         type: ConfigAction.UPDATE_REFRESH_RATE,
@@ -142,10 +144,7 @@ export const updateRefreshRate = (updateRefreshRateRequest: {
         message: 'Refresh rate successfully updated.'
       });
     } catch (error) {
-      warning({
-        title: 'There was an error updating refresh rate.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating refresh rate.', error)
     }
   };
 };
@@ -156,6 +155,7 @@ export const updateSettings = (
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
     try {
+      guardByLicense()
       const response = await config.updateSettings(updateSettingsRequest);
       dispatch<UpdateSettingsAction>({
         type: ConfigAction.UPDATE_SETTINGS,
@@ -167,10 +167,17 @@ export const updateSettings = (
         message: 'Settings successfully updated.'
       });
     } catch (error) {
-      warning({
-        title: 'There was an error updating settings.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating settings.', error)
     }
   };
 };
+
+// this string should be unique among errors
+export const INVALID_LICENSE_ERROR_ID = "This feature requires an Enterprise Gloo license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license."
+
+export const guardByLicense = (): void => {
+  const isValid = globalStore.getState().config.isLicenseValid
+  if (isValid !== true) {
+    throw (new Error(INVALID_LICENSE_ERROR_ID))
+  }
+}

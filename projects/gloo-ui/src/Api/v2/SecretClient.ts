@@ -20,6 +20,7 @@ import {
   AzureSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import { getResourceRef } from './helpers';
+import { guardByLicense } from 'store/config/actions';
 
 const client = new SecretApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -119,6 +120,7 @@ export function getCreateSecret(
       request.setTls(tlsSecret);
     }
 
+    guardByLicense()
     client.createSecret(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -142,6 +144,7 @@ function createSecret(params: {
   let newSecretReq = setSecretRequest({ secretKind, values });
   newSecretReq.setRef(getResourceRef(name, namespace));
   return new Promise((resolve, reject) => {
+    guardByLicense()
     client.createSecret(newSecretReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -164,6 +167,7 @@ function deleteSecret(
 
   deleteSecretReq.setRef(ref);
   return new Promise((resolve, reject) => {
+    guardByLicense()
     client.deleteSecret(deleteSecretReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);

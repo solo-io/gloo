@@ -40,11 +40,11 @@ func ContainerExistsWithName(containerName string) bool {
 func MustStopContainer(containerName string) {
 	err := StopContainer(containerName)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(ContainerExistsWithName(containerName), "20s", "2s").Should(BeFalse())
+	Eventually(ContainerExistsWithName(containerName), "10s", "1s").Should(BeFalse())
 }
 
 func StopContainer(containerName string) error {
-	cmd := exec.Command("docker", "stop", containerName)
+	cmd := exec.Command("docker", "kill", containerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
 	err := cmd.Run()

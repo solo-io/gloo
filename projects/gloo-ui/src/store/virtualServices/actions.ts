@@ -60,6 +60,8 @@ import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { getResourceRef } from 'Api/v2/helpers';
 import { Modal } from 'antd';
+import { guardByLicense } from 'store/config/actions';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 import {
   RateLimit,
   IngressRateLimit
@@ -135,6 +137,7 @@ export function getDeleteVirtualService(
     ref.setName(deleteVirtualServiceRequest.ref!.name);
     ref.setNamespace(deleteVirtualServiceRequest.ref!.namespace);
     request.setRef(ref);
+    guardByLicense()
     client.deleteVirtualService(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -160,6 +163,7 @@ export function getUpdateVirtualServiceYaml(
     editedYamlData.setEditedYaml(editedYaml);
 
     request.setEditedYamlData(editedYamlData);
+    guardByLicense()
     client.updateVirtualServiceYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -184,6 +188,7 @@ export function getDeleteRoute(
     vsRef.setNamespace(deleteRouteRequest.virtualServiceRef!.namespace);
     request.setVirtualServiceRef(vsRef);
     request.setIndex(deleteRouteRequest.index);
+    guardByLicense()
     client.deleteRoute(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -209,6 +214,7 @@ export function getSwapRoutes(
     request.setVirtualServiceRef(vsRef);
     request.setIndex1(swapRoutesRequest.index1);
     request.setIndex2(swapRoutesRequest.index2);
+    guardByLicense()
     client.swapRoutes(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -234,6 +240,7 @@ export function getShiftRoutes(
     request.setVirtualServiceRef(vsRef);
     request.setToIndex(shiftRoutesRequest.toIndex);
     request.setFromIndex(shiftRoutesRequest.fromIndex);
+    guardByLicense()
     client.shiftRoutes(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -1147,10 +1154,7 @@ export const listVirtualServices = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      warning({
-        title: 'There was an error retrieving virtual services.',
-        content: error.message
-      });
+      SoloWarning('There was an error retrieving virtual services.', error)
     }
   };
 };
@@ -1255,6 +1259,7 @@ export const deleteVirtualService = (
     dispatch(showLoading());
 
     try {
+      guardByLicense()
       const response = await getDeleteVirtualService(
         deleteVirtualServiceRequest
       );
@@ -1264,10 +1269,7 @@ export const deleteVirtualService = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      warning({
-        title: 'There was an error deleting the virtual service.',
-        content: error.message
-      });
+      SoloWarning('There was an error deleting the virtual service.', error)
     }
   };
 };
@@ -1289,10 +1291,7 @@ export const updateVirtualServiceYaml = (
       dispatch(hideLoading());
     } catch (error) {
       //handle error
-      warning({
-        title: 'There was an error updating the virtual service.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating the virtual service.', error)
     }
   };
 };
@@ -1308,10 +1307,7 @@ export const deleteRoute = (
         payload: response.virtualServiceDetails!
       });
     } catch (error) {
-      warning({
-        title: 'There was an error deleting the route.',
-        content: error.message
-      });
+      SoloWarning('There was an error deleting the route.', error)
     }
   };
 };
@@ -1326,7 +1322,7 @@ export const shiftRoutes = (
         type: VirtualServiceAction.SHIFT_ROUTES,
         payload: response.virtualServiceDetails!
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 

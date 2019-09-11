@@ -13,7 +13,8 @@ export enum ConfigAction {
   UPDATE_WATCH_NAMESPACES = 'UPDATE_WATCH_NAMESPACES',
   UPDATE_REFRESH_RATE = 'UPDATE_REFRESH_RATE',
   LIST_NAMESPACES = 'LIST_NAMESPACES',
-  GET_POD_NAMESPACE = 'GET_POD_NAMESPACE'
+  GET_POD_NAMESPACE = 'GET_POD_NAMESPACE',
+  LICENSE_CHECK_GUARD = 'LICENSE_CHECK_GUARD'
 }
 
 export interface GetSettingsAction {
@@ -61,6 +62,10 @@ export interface GetPodNamespaceAction {
   payload: string;
 }
 
+export interface LicenseCheckGuard {
+  type: typeof ConfigAction.LICENSE_CHECK_GUARD;
+}
+
 export type ConfigActionTypes =
   | GetSettingsAction
   | ListNamespacesAction
@@ -70,4 +75,5 @@ export type ConfigActionTypes =
   | UpdateSettingsAction
   | UpdateWatchNamespacesAction
   | UpdateRefreshRateAction
-  | GetPodNamespaceAction;
+  | GetPodNamespaceAction
+  | LicenseCheckGuard;

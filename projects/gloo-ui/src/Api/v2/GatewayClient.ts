@@ -26,6 +26,7 @@ import {
   setUInt32Val
 } from './helpers';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { guardByLicense } from 'store/config/actions';
 
 export const client = new GatewayApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -207,6 +208,7 @@ function updateGateway(
 
           req.setGateway(updatedGateway);
 
+          guardByLicense()
           client.updateGateway(req, (error, data) => {
             console.log({ params, req: req.toObject(), error, data });
             if (error !== null) {

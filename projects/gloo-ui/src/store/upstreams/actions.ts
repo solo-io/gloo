@@ -17,6 +17,8 @@ import {
 } from './types';
 import { Modal } from 'antd';
 import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+import { guardByLicense } from 'store/config/actions';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 const { warning } = Modal;
 
 export const listUpstreams = (
@@ -45,6 +47,7 @@ export const deleteUpstream = (
     dispatch(showLoading());
 
     try {
+      guardByLicense()
       const response = await upstreams.deleteUpstream(deleteUpstreamRequest);
       dispatch<DeleteUpstreamAction>({
         type: UpstreamAction.DELETE_UPSTREAM,
@@ -52,10 +55,7 @@ export const deleteUpstream = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      warning({
-        title: 'There was an error deleting the upstream.',
-        content: error.message
-      });
+      SoloWarning('There was an error deleting the upstream.', error)
     }
   };
 };
@@ -67,6 +67,7 @@ export const createUpstream = (
     dispatch(showLoading());
 
     try {
+      guardByLicense()
       const response = await upstreams.getCreateUpstream(createUpstreamRequest);
       dispatch<CreateUpstreamAction>({
         type: UpstreamAction.CREATE_UPSTREAM,
@@ -77,13 +78,10 @@ export const createUpstream = (
         type: MessageAction.SUCCESS_MESSAGE,
         message: `Upstream ${
           response.upstreamDetails!.upstream!.metadata!.name
-        } successfully created.`
+          } successfully created.`
       });
     } catch (error) {
-      warning({
-        title: 'There was an error creating the upstream.',
-        content: error.message
-      });
+      SoloWarning('There was an error creating the upstream.', error)
     }
   };
 };
@@ -102,10 +100,7 @@ export const getUpstream = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      warning({
-        title: 'There was an error retrieving the upstream.',
-        content: error.message
-      });
+      SoloWarning('There was an error retrieving the upstream.', error)
     }
   };
 };
@@ -117,6 +112,6 @@ export const updateUpstream = (
   return async (dispatch: Dispatch) => {
     dispatch(showLoading());
     try {
-    } catch (error) {}
+    } catch (error) { }
   };
 };

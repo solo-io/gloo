@@ -30,6 +30,7 @@ import {
   UpstreamSpec as StaticUpstreamSpec,
   Host
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
+import { guardByLicense } from 'store/config/actions';
 
 export const client = new UpstreamApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -38,10 +39,10 @@ export const client = new UpstreamApiClient(host, {
 
 export interface UpstreamSpecificValues
   extends AwsValuesType,
-    KubeValuesType,
-    StaticValuesType,
-    AzureValuesType,
-    ConsulVauesType {}
+  KubeValuesType,
+  StaticValuesType,
+  AzureValuesType,
+  ConsulVauesType { }
 
 function getUpstreamsList(
   listUpstreamsRequest: ListUpstreamsRequest.AsObject
@@ -98,6 +99,7 @@ function createUpstream(params: {
     let upstreamInput = getUpstreamInput({ name, namespace, type, values });
     req.setInput(upstreamInput);
 
+    guardByLicense()
     client.createUpstream(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -182,6 +184,7 @@ function updateUpstream(params: {
   let updateReq = new UpdateUpstreamRequest();
   updateReq.setInput(getUpstreamInput({ name, namespace, type, values }));
   return new Promise((resolve, reject) => {
+    guardByLicense()
     client.updateUpstream(updateReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -204,6 +207,7 @@ function deleteUpstream(
     ref.setName(deleteUpstreamRequest.ref!.name);
     ref.setNamespace(deleteUpstreamRequest.ref!.namespace);
     request.setRef(ref);
+    guardByLicense()
     client.deleteUpstream(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -287,6 +291,7 @@ export function getCreateUpstream(
       usInput.setConsul(consulSpec);
     }
     request.setInput(usInput);
+    guardByLicense()
     client.createUpstream(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);

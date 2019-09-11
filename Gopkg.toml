@@ -77,7 +77,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
   name = "github.com/solo-io/go-checkpoint"
   version = "0.1.0"
 
-[[constraint]]
+[[override]]
   name = "github.com/solo-io/go-utils"
   version = "0.10.0"
 

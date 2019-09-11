@@ -4,12 +4,10 @@ import { Provider } from 'react-redux';
 import './fontFace.css';
 import { GlooIApp } from './GlooIApp';
 import * as serviceWorker from './serviceWorker';
-import { configureStore } from './store';
-
-const store = configureStore();
+import { globalStore } from './store';
 
 ReactDOM.render(
-  <Provider store={store}>
+  <Provider store={globalStore}>
     <GlooIApp />
   </Provider>,
   document.getElementById('root')

@@ -29,6 +29,8 @@ import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/proje
 import { getResourceRef } from 'Api/v2/helpers';
 import { Modal } from 'antd';
 import { SuccessMessageAction, MessageAction } from 'store/modal/types';
+import { guardByLicense } from 'store/config/actions';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 const { warning } = Modal;
 
 export function getListGateways(
@@ -283,6 +285,7 @@ export function getUpdateGateway(
         request.setGateway(currentGateway);
       }
     }
+    guardByLicense()
     client.updateGateway(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -313,6 +316,7 @@ export function getUpdateGatewayYaml(
     );
     request.setEditedYamlData(editedResourceYaml);
 
+    guardByLicense()
     client.updateGatewayYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -339,7 +343,7 @@ export const listGateways = (
         payload: response.gatewayDetailsList
       });
       dispatch(hideLoading());
-    } catch (error) {}
+    } catch (error) { }
   };
 };
 
@@ -361,10 +365,7 @@ export const updateGateway = (
       });
       dispatch(hideLoading());
     } catch (error) {
-      warning({
-        title: 'There was an error updating the gateway configuration.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating the gateway configuration.', error)
     }
   };
 };
@@ -381,10 +382,7 @@ export const updateGatewayYaml = (
         payload: response.gatewayDetails!
       });
     } catch (error) {
-      warning({
-        title: 'There was an error updating the gateway configuration.',
-        content: error.message
-      });
+      SoloWarning('There was an error updating the gateway configuration.', error)
     }
   };
 };

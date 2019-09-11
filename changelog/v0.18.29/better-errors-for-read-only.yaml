@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add user-friendly error messages for UI in read-only mode.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1086
