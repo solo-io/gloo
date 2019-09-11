@@ -32,22 +32,12 @@ const ModalTrigger = styled.div`
 `;
 
 interface Props {
-  finishCreation: (succeeded?: { namespace: string; name: string }) => any;
   withoutDivider?: boolean;
   promptText?: string;
 }
 
 export const CreateVirtualServiceModal = (props: Props) => {
   const [showModal, setShowModal] = React.useState(false);
-
-  const finishCreation = (succeeded?: {
-    namespace: string;
-    name: string;
-  }): void => {
-    setShowModal(false);
-
-    props.finishCreation(succeeded);
-  };
 
   return (
     <ModalContainer>
@@ -77,7 +67,7 @@ export const CreateVirtualServiceModal = (props: Props) => {
             Virtual Services define a set of route rules, an optional SNI
             configuration for a given domain or set of domains.
           </Legend>
-          <CreateVirtualServiceForm onCompletion={finishCreation} />
+          <CreateVirtualServiceForm toggleModal={setShowModal} />
         </React.Fragment>
       </SoloModal>
     </ModalContainer>

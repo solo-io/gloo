@@ -133,7 +133,7 @@ UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc
 		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise \
 		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
-		--ts_out=service=true:projects/gloo-ui/src/proto
+		--ts_out=service=grpc-web:projects/gloo-ui/src/proto
 
 .PHONY: generated-ui
 generated-ui:

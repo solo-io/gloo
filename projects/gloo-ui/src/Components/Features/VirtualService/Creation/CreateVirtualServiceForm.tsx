@@ -1,18 +1,16 @@
 import styled from '@emotion/styled';
-import { useCreateVirtualService } from 'Api/useVirtualServiceClient';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
-import { useFormValidation } from 'Hooks/useFormValidation';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
-  CreateVirtualServiceRequest,
-  VirtualServiceInput
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+  SoloFormInput,
+  SoloFormTypeahead
+} from 'Components/Common/Form/SoloFormField';
+import { SoloButton } from 'Components/Common/SoloButton';
+import { Formik } from 'formik';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';
-import { ErrorText } from '../Details/ExtAuthForm';
+import { createVirtualService } from 'store/virtualServices/actions';
+import * as yup from 'yup';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 const Footer = styled.div`
   display: flex;
@@ -29,125 +27,99 @@ const InputContainer = styled.div`
 let initialValues = {
   virtualServiceName: '',
   displayName: '',
-  addDomain: '',
   namespace: ''
 };
 
-const validate = (values: typeof initialValues) => {
-  let errors = {} as typeof initialValues;
-  if (!values.virtualServiceName) {
-    errors.virtualServiceName = 'Name is required';
-  }
-  if (values.virtualServiceName.toLowerCase() !== values.virtualServiceName) {
-    errors.virtualServiceName = 'Letters in a name may only be lower-case';
-  }
-  if (values.virtualServiceName.length >= 254) {
-    errors.virtualServiceName = 'Names must be 253 characters or less';
-  }
+const validationSchema = yup.object().shape({
+  virtualServiceName: yup
+    .string()
+    .required('Name is required')
+    .matches(/[a-z0-9]+[-.a-z0-9]*[a-z0-9]/, 'Name is invalid'),
+  displayName: yup.string(),
+  namespace: yup
+    .string()
+    .required('Namespace is required')
+    .matches(/[a-z0-9]+[-.a-z0-9]*[a-z0-9]/, 'Namespace is invalid')
+});
 
-  if (!values.namespace) {
-    errors.namespace = 'Namespace is required';
-  }
-
-  if (!!values.displayName && values.displayName.length > 500) {
-    errors.displayName = 'Display name cannot be longer than 500 characters';
-  }
-
-  return errors;
-};
-
-interface Props {
-  onCompletion?: (succeeded?: { namespace: string; name: string }) => any;
+interface Props extends RouteComponentProps {
+  toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const CreateVirtualServiceForm = (props: Props) => {
+export const CreateVirtualServiceForm = withRouter((props: Props) => {
   const {
     config: { namespacesList, namespace: podNamespace }
   } = useSelector((state: AppState) => state);
+  const dispatch = useDispatch();
   // this is to match the value displayed by the typeahead
   initialValues.namespace = podNamespace;
-  const {
-    handleSubmit,
-    handleChange,
-    handleBlur,
-    values,
-    errors,
-    isSubmitting,
-    isDifferent
-  } = useFormValidation(initialValues, validate, createVirtualService);
 
-  const { refetch: makeRequest } = useCreateVirtualService(null);
+  const handleCreateVirtualService = (values: typeof initialValues) => {
+    let { namespace, virtualServiceName, displayName } = values;
 
-  function createVirtualService(values: typeof initialValues) {
-    let vsRequest = new CreateVirtualServiceRequest();
-    let vsInput = new VirtualServiceInput();
-
-    let vsRef = new ResourceRef();
-    vsRef.setName(values.virtualServiceName);
-    vsRef.setNamespace(values.namespace);
-    vsInput.setRef(vsRef);
-
-    vsInput.setDisplayName(values.displayName);
-
-    vsRequest.setInput(vsInput);
-    makeRequest(vsRequest);
-
-    if (!!props.onCompletion) {
-      props.onCompletion({
-        name: values.virtualServiceName,
-        namespace: values.namespace
+    dispatch(
+      createVirtualService({
+        inputV2: {
+          displayName: {
+            value: displayName
+          },
+          ref: {
+            name: virtualServiceName,
+            namespace
+          }
+        }
+      })
+    );
+    setTimeout(() => {
+      props.history.push({
+        pathname: `${props.match.path}${values.namespace}/${values.virtualServiceName}`
       });
-    }
-  }
-
-  const isSubmittable = () => {
-    return isDifferent && !Object.keys(errors).length && !isSubmitting;
+    }, 500);
+    props.toggleModal(s => !s);
   };
 
   return (
-    <div>
-      <InputContainer>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={handleCreateVirtualService}
+      validationSchema={validationSchema}>
+      {({ values, isSubmitting, handleSubmit }) => (
         <div>
-          <SoloInput
-            title='Virtual Service Name'
-            name='virtualServiceName'
-            value={values.virtualServiceName}
-            placeholder={'Virtual Service Name'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.virtualServiceName}</ErrorText>}
+          <InputContainer>
+            <div>
+              <SoloFormInput
+                name='virtualServiceName'
+                title='Virtual Service Name'
+                placeholder='Virtual Service Name'
+              />
+            </div>
+            <div>
+              <SoloFormInput
+                name='displayName'
+                title='Display Name'
+                placeholder='Display Name'
+              />
+            </div>
+            <div>
+              <SoloFormTypeahead
+                name='namespace'
+                title='Virtual Service Namespace'
+                defaultValue={values.namespace}
+                presetOptions={namespacesList.map(ns => {
+                  return { value: ns };
+                })}
+              />
+            </div>
+          </InputContainer>
+          <Footer>
+            <SoloButton
+              onClick={handleSubmit}
+              text='Create Virtual Service'
+              disabled={isSubmitting}
+            />
+          </Footer>
         </div>
-        <div>
-          <SoloInput
-            title='Display Name'
-            name='displayName'
-            value={values.displayName}
-            placeholder={'Display Name'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.displayName}</ErrorText>}
-        </div>
-        <div>
-          <SoloTypeahead
-            title='Virtual Service Namespace'
-            defaultValue={values.namespace}
-            onChange={e => handleChange(e, 'namespace')}
-            presetOptions={namespacesList.map(ns => {
-              return { value: ns };
-            })}
-          />
-          {errors && <ErrorText>{errors.namespace}</ErrorText>}
-        </div>
-      </InputContainer>
-      <Footer>
-        <SoloButton
-          onClick={handleSubmit}
-          text='Create Virtual Service'
-          disabled={!isSubmittable()}
-        />
-      </Footer>
-    </div>
+      )}
+    </Formik>
   );
-};
+});

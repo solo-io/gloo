@@ -299,12 +299,14 @@ export const VirtualServicesListing = (props: Props) => {
           path={`${props.match.path}`}
           exact
           render={() => (
-            <SectionCard data-testid="vs-listing-section" cardName={'Virtual Services'} logoIcon={<Gloo />}>
+            <SectionCard
+              data-testid='vs-listing-section'
+              cardName={'Virtual Services'}
+              logoIcon={<Gloo />}>
               {!virtualServicesList.length && !isLoading ? (
                 <EmptyPrompt>
                   You don't have any virtual services.
                   <CreateVirtualServiceModal
-                    finishCreation={finishCreation}
                     promptText="Let's create one."
                     withoutDivider
                   />
@@ -342,20 +344,6 @@ export const VirtualServicesListing = (props: Props) => {
     );
   };
 
-  const finishCreation = (succeeded?: {
-    namespace: string;
-    name: string;
-  }): void => {
-    //TODO : Proper way to do this is to be polling always and, once we see the VS that matches this exists, we then jump
-
-    if (succeeded) {
-      setTimeout(() => {
-        history.push({
-          pathname: `${match.path}${succeeded.namespace}/${succeeded.name}`
-        });
-      }, 500);
-    }
-  };
   function deleteVS(name: string, namespace: string) {
     dispatch(deleteVirtualService({ ref: { name, namespace } }));
   }
@@ -379,7 +367,7 @@ export const VirtualServicesListing = (props: Props) => {
       <Heading>
         <Breadcrumb />
         <Action>
-          <CreateVirtualServiceModal finishCreation={finishCreation} />
+          <CreateVirtualServiceModal />
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {

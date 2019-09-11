@@ -112,8 +112,6 @@ const getRouteColumns = (
 interface Props {
   routes: Route.AsObject[];
   virtualService: VirtualService.AsObject;
-  // routesChanged: (newRoutes: Route.AsObject[]) => any;
-  // reloadVirtualService: (newVirtualService?: VirtualService.AsObject) => any;
 }
 
 export const Routes: React.FC<Props> = props => {
@@ -121,12 +119,14 @@ export const Routes: React.FC<Props> = props => {
   const [routeBeingEdited, setRouteBeingEdited] = React.useState<
     Route.AsObject | undefined
   >(undefined);
-  const [createNewRoute, setCreateNewRoute] = React.useState<boolean>(false);
+  const [showCreateRouteModal, setShowCreateRouteModal] = React.useState(false);
   const dispatch = useDispatch();
+
   let virtualServiceRef = {
     name: props.virtualService.metadata!.name,
     namespace: props.virtualService.metadata!.namespace
   };
+
   React.useEffect(() => {
     setRoutesList([...props.routes]);
   }, [props.routes]);
@@ -166,11 +166,6 @@ export const Routes: React.FC<Props> = props => {
     setRoutesList(newList);
   };
 
-  const finishNewRouteCreation = () => {
-    // props.reloadVirtualService();
-    setCreateNewRoute(false);
-  };
-
   const beginRouteEditing = (matcherToEdit: string) => {
     setRouteBeingEdited(
       routesList.find(route => getRouteMatcher(route).matcher === matcherToEdit)
@@ -178,7 +173,6 @@ export const Routes: React.FC<Props> = props => {
   };
 
   const finishRouteEditiing = () => {
-    // props.reloadVirtualService();
     setRouteBeingEdited(undefined);
   };
 
@@ -188,7 +182,6 @@ export const Routes: React.FC<Props> = props => {
     let newRoutesList = [...routesList];
     newRoutesList.splice(hoverIndex, 0, movedRoute);
 
-    setRoutesList(newRoutesList);
     dispatch(
       shiftRoutes({
         virtualServiceRef,
@@ -196,6 +189,7 @@ export const Routes: React.FC<Props> = props => {
         toIndex: hoverIndex
       })
     );
+    setRoutesList(newRoutesList);
   };
 
   return (
@@ -204,7 +198,7 @@ export const Routes: React.FC<Props> = props => {
         Routes
         <ModalTrigger
           data-testid='create-new-route-modal'
-          onClick={() => setCreateNewRoute(true)}>
+          onClick={() => setShowCreateRouteModal(true)}>
           <React.Fragment>
             <StyledGreenPlus />
             Create Route
@@ -219,13 +213,13 @@ export const Routes: React.FC<Props> = props => {
       />
 
       <SoloModal
-        visible={createNewRoute}
+        visible={showCreateRouteModal}
         width={500}
         title={'Create Route'}
-        onClose={() => setCreateNewRoute(false)}>
+        onClose={() => setShowCreateRouteModal(false)}>
         <CreateRouteModal
           defaultVirtualService={props.virtualService}
-          completeCreation={finishNewRouteCreation}
+          completeCreation={() => setShowCreateRouteModal(false)}
           lockVirtualService
         />
       </SoloModal>

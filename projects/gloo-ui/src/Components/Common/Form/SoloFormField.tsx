@@ -162,18 +162,8 @@ export const SoloFormMultiselect = (props: any) => {
         {...field}
         {...props}
         error={!!meta.error && meta.touched}
-        values={Object.keys(field.value).filter(key => field.value[key])}
-        onChange={newValues => {
-          const newFieldValues = { ...field.value };
-          Object.keys(newFieldValues).forEach(key => {
-            newFieldValues[key] = false;
-          });
-          for (let val of newValues) {
-            newFieldValues[val] = true;
-          }
-
-          form.setFieldValue(field.name, newFieldValues);
-        }}
+        values={field.value}
+        onChange={(value: string[]) => form.setFieldValue(field.name, value)}
       />
       <ErrorText errorExists={!!meta.touched && !!meta.error}>
         {meta.error}
@@ -494,8 +484,9 @@ export const SoloAWSSecretsList: React.FC<{
           );
 
           form.setFieldValue(
-              `${field.name}.name`,
-              selectedSecret!.metadata!.name);
+            `${field.name}.name`,
+            selectedSecret!.metadata!.name
+          );
           form.setFieldValue(
             `${field.name}.namespace`,
             selectedSecret!.metadata!.namespace

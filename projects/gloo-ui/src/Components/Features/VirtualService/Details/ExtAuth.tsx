@@ -1,11 +1,12 @@
 import styled from '@emotion/styled';
-import { Button } from 'antd';
+import { Button, Spin } from 'antd';
 import { Label } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { ExtAuthForm } from './ExtAuthForm';
+import { ExtAuthPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 
 const ConfigItemHeader = styled.div`
   display: flex;
@@ -49,11 +50,11 @@ const StrongLabel = styled(Label)`
 `;
 
 interface Props {
-  externalAuth: OAuth.AsObject | undefined;
-  externalAuthChanged: (newExternalAuth: OAuth.AsObject) => any;
+  externalAuth?: ExtAuthPlugin.AsObject;
 }
+
 export const ExtAuth = (props: Props) => {
-  const { externalAuth, externalAuthChanged } = props;
+  const { externalAuth } = props;
 
   const [showExtAuthModal, setShowExtAuthModal] = React.useState(false);
 
@@ -61,36 +62,38 @@ export const ExtAuth = (props: Props) => {
     <div>
       <ConfigItemHeader>External Authorization </ConfigItemHeader>
       <div>
-        {!!externalAuth ? (
+        {!!externalAuth &&
+        !!externalAuth.value &&
+        !!externalAuth.value.oauth ? (
           <AuthInfo>
             <InfoBlock>
               <StrongLabel>Client ID:</StrongLabel>
-              <InfoBlock>{externalAuth.clientId}</InfoBlock>
+              <InfoBlock>{externalAuth.value.oauth.clientId}</InfoBlock>
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>Callback Path:</StrongLabel>
-              <InfoBlock>{externalAuth.callbackPath}</InfoBlock>
+              <InfoBlock>{externalAuth.value.oauth.callbackPath}</InfoBlock>
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>Issuer URL:</StrongLabel>
-              <InfoBlock>{externalAuth.issuerUrl}</InfoBlock>
+              <InfoBlock>{externalAuth.value.oauth.issuerUrl}</InfoBlock>
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>App URL:</StrongLabel>
-              <InfoBlock>{externalAuth.appUrl}</InfoBlock>
+              <InfoBlock>{externalAuth.value.oauth.appUrl}</InfoBlock>
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>Secret Ref Name:</StrongLabel>
-              {!!externalAuth.clientSecretRef ? (
-                <InfoBlock>{externalAuth.clientSecretRef.name}</InfoBlock>
+              {!!externalAuth.value.oauth.clientSecret ? (
+                <InfoBlock>{`(Secret)`}</InfoBlock>
               ) : (
                 'None'
               )}
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>Secret Ref Namespace:</StrongLabel>
-              {!!externalAuth.clientSecretRef ? (
-                <InfoBlock>{externalAuth.clientSecretRef.namespace}</InfoBlock>
+              {!!externalAuth.value.oauth.clientSecret ? (
+                <InfoBlock>{`(Secret)`}</InfoBlock>
               ) : (
                 'None'
               )}
@@ -125,11 +128,7 @@ export const ExtAuth = (props: Props) => {
                 View Authorization documentation.
               </a>
             </Legend>
-
-            <ExtAuthForm
-              externalAuth={externalAuth}
-              externalAuthChanged={externalAuthChanged}
-            />
+            <ExtAuthForm externalAuth={externalAuth} />
           </React.Fragment>
         </SoloModal>
       </div>

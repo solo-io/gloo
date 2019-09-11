@@ -2,10 +2,10 @@ import styled from '@emotion/styled';
 import { Button } from 'antd';
 import { Label } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { RateLimitForm, timeOptions } from './RateLimitForm';
+import { RateLimitPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 
 const ConfigItemHeader = styled.div`
   display: flex;
@@ -53,11 +53,10 @@ const PerText = styled.div`
 `;
 
 interface Props {
-  rates: IngressRateLimit.AsObject | undefined;
-  rateLimitsChanged: (newRateLimits: IngressRateLimit.AsObject) => any;
+  rateLimits: RateLimitPlugin.AsObject | undefined;
 }
 export const RateLimit = (props: Props) => {
-  const { rates, rateLimitsChanged } = props;
+  const { rateLimits } = props;
 
   const [showRateLimitModal, setShowRateLimitModal] = React.useState(false);
 
@@ -65,17 +64,18 @@ export const RateLimit = (props: Props) => {
     <div>
       <ConfigItemHeader>Rate Limits</ConfigItemHeader>
       <div>
-        {!!rates ? (
+        {!!rateLimits && !!rateLimits.value ? (
           <RatesInfo>
             <InfoBlock>
               <StrongLabel>Authorized Limits:</StrongLabel>
-              {!!rates.authorizedLimits ? (
+              {rateLimits.value.authorizedLimits ? (
                 <InfoBlock>
-                  {rates.authorizedLimits.requestsPerUnit}
+                  {rateLimits.value.authorizedLimits.requestsPerUnit}
                   <PerText>per</PerText>
                   {
                     timeOptions.find(
-                      opt => opt.value === rates.authorizedLimits!.unit
+                      opt =>
+                        opt.value === rateLimits.value!.authorizedLimits!.unit
                     )!.displayValue
                   }
                 </InfoBlock>
@@ -85,13 +85,14 @@ export const RateLimit = (props: Props) => {
             </InfoBlock>
             <InfoBlock>
               <StrongLabel>Anonymous Limits:</StrongLabel>
-              {!!rates.anonymousLimits ? (
+              {!!rateLimits.value.anonymousLimits ? (
                 <InfoBlock>
-                  {rates.anonymousLimits.requestsPerUnit}
+                  {rateLimits.value.anonymousLimits.requestsPerUnit}
                   <PerText>per</PerText>
                   {
                     timeOptions.find(
-                      opt => opt.value === rates.anonymousLimits!.unit
+                      opt =>
+                        opt.value === rateLimits.value!.anonymousLimits!.unit
                     )!.displayValue
                   }
                 </InfoBlock>
@@ -126,10 +127,7 @@ export const RateLimit = (props: Props) => {
                 View Rate Limit documentation.
               </a>
             </Legend>
-            <RateLimitForm
-              rates={rates}
-              rateLimitsChanged={rateLimitsChanged}
-            />
+            <RateLimitForm rateLimits={rateLimits} />
           </React.Fragment>
         </SoloModal>
       </div>

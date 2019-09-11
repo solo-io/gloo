@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow setting rate limits from the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1071

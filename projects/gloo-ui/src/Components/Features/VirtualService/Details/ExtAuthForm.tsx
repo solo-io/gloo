@@ -5,10 +5,12 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
-import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb';
+import { ExtAuthPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
+import { updateExtAuth } from 'store/virtualServices/actions';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
@@ -72,13 +74,17 @@ const validationSchema = yup.object().shape({
   callbackPath: yup.string().required('A callback path is required.')
 });
 
-interface Props {
-  externalAuth: OAuth.AsObject | undefined;
-  externalAuthChanged: (newExternalAuth: OAuth.AsObject) => any;
+interface Props
+  extends RouteComponentProps<{
+    virtualservicename: string;
+    virtualservicenamespace: string;
+  }> {
+  externalAuth: ExtAuthPlugin.AsObject | undefined;
 }
 
-export const ExtAuthForm = (props: Props) => {
-  const { externalAuth, externalAuthChanged } = props;
+export const ExtAuthForm = withRouter((props: Props) => {
+  const dispatch = useDispatch();
+  const { externalAuth } = props;
   const {
     config: { namespacesList, namespace: podNamespace }
   } = useSelector((state: AppState) => state);
@@ -91,7 +97,7 @@ export const ExtAuthForm = (props: Props) => {
     return !!isInvalid;
   };
 
-  const updateExtAuth = (values: ValuesType) => {
+  const handleUpdateExtAuth = (values: ValuesType) => {
     const {
       clientId,
       callbackPath,
@@ -101,34 +107,37 @@ export const ExtAuthForm = (props: Props) => {
       secretRefNamespace,
       scopesList
     } = values;
-    let newExternalAuth = new OAuth().toObject();
 
-    newExternalAuth = {
-      clientId,
-      callbackPath,
-      appUrl,
-      issuerUrl,
-      scopesList
-    };
-
-    if (!!secretRefName && !!secretRefNamespace) {
-      newExternalAuth = {
-        ...newExternalAuth,
-        clientSecretRef: {
-          name: secretRefName,
-          namespace: secretRefNamespace
+    dispatch(
+      updateExtAuth({
+        ref: {
+          name: props.match.params.virtualservicename,
+          namespace: props.match.params.virtualservicenamespace
+        },
+        extAuthConfig: {
+          config: {
+            oauth: {
+              clientSecretRef: {
+                name: secretRefName!,
+                namespace: secretRefNamespace!
+              },
+              clientId,
+              callbackPath,
+              appUrl,
+              issuerUrl,
+              scopesList
+            }
+          }
         }
-      };
-    }
-
-    externalAuthChanged(newExternalAuth);
+      })
+    );
   };
 
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={updateExtAuth}>
+      onSubmit={handleUpdateExtAuth}>
       {({
         isSubmitting,
         handleSubmit,
@@ -200,4 +209,4 @@ export const ExtAuthForm = (props: Props) => {
       }}
     </Formik>
   );
-};
+});

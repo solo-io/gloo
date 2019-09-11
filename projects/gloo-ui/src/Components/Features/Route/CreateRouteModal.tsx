@@ -17,7 +17,7 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import {
   VirtualService,
-  Route,
+  Route
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
@@ -39,7 +39,7 @@ import {
   VirtualServiceDetails
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
 import { colors, soloConstants } from 'Styles';
@@ -47,6 +47,10 @@ import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { getRouteMatcher } from 'utils/helpers';
 import * as yup from 'yup';
 import { DestinationForm } from './DestinationForm';
+import {
+  updateVirtualService,
+  createRoute
+} from 'store/virtualServices/actions';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -73,32 +77,17 @@ export const PATH_SPECIFIERS = [
   }
 ];
 
-type MethodType =
-  | 'POST'
-  | 'PUT'
-  | 'GET'
-  | 'PATCH'
-  | 'DELETE'
-  | 'HEAD'
-  | 'OPTIONS';
-type RouteMethodsType = { [key in MethodType]: boolean };
+let httpMethods = ['POST', 'PUT', 'GET', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+
 export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
   destinationSpec: DestinationSpec.AsObject | undefined;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
-  headers: {
-    name: string;
-    value: string;
-    regex: boolean;
-  }[];
-  queryParameters: {
-    name: string;
-    value: string;
-    regex: boolean;
-  }[];
-  methods: RouteMethodsType;
+  headers: HeaderMatcher.AsObject[];
+  queryParameters: QueryParameterMatcher.AsObject[];
+  methods: string[];
 }
 
 export const createRouteDefaultValues: CreateRouteValuesType = {
@@ -109,15 +98,7 @@ export const createRouteDefaultValues: CreateRouteValuesType = {
   matchType: 'PREFIX',
   headers: [],
   queryParameters: [],
-  methods: {
-    POST: false,
-    PUT: false,
-    GET: false,
-    PATCH: false,
-    DELETE: false,
-    HEAD: false,
-    OPTIONS: false
-  }
+  methods: []
 };
 
 const validationSchema = yup.object().shape({
@@ -167,15 +148,7 @@ const validationSchema = yup.object().shape({
       regex: yup.boolean()
     })
   ),
-  methods: yup.object().shape({
-    POST: yup.boolean(),
-    PUT: yup.boolean(),
-    GET: yup.boolean(),
-    PATCH: yup.boolean(),
-    DELETE: yup.boolean(),
-    HEAD: yup.boolean(),
-    OPTIONS: yup.boolean()
-  })
+  methods: yup.array().of(yup.string())
 });
 
 const FormContainer = styled.form`
@@ -221,6 +194,7 @@ interface Props extends RouteComponentProps {
 }
 
 export const CreateRouteModalC = (props: Props) => {
+  const dispatch = useDispatch();
   const namespacesList = useSelector(
     (state: AppState) => state.config.namespacesList
   );
@@ -293,140 +267,40 @@ export const CreateRouteModalC = (props: Props) => {
   if (!upstreamsList.length || !virtualServicesList.length) {
     return <Loading />;
   }
-  // if (!!upstreamsError || !!virtualServicesError) {
-  //   // @ts-ignore
-  //   return <ErrorText>{upstreamsError || virtualServicesError}</ErrorText>;
-  // }
 
   const { defaultUpstream, defaultVirtualService } = props;
 
-  const createRoute = (values: CreateRouteValuesType) => {
-    let newRouteReq = new CreateRouteRequest();
-    let reqRouteInput = new RouteInput();
-
-    let virtualServiceResourceRef = new ResourceRef();
-
-    if (!!values.virtualService && values.virtualService.metadata) {
-      virtualServiceResourceRef.setName(values.virtualService.metadata.name);
-      virtualServiceResourceRef.setNamespace(
-        values.virtualService.metadata.namespace
-      );
-      reqRouteInput.setVirtualServiceRef(virtualServiceResourceRef);
-    }
-    /* -------------------------- ROUTE CREATION BEGINS ------------------------- */
-    console.log('values', values);
-    let newRoute = new Route();
-    let routeMatcher = new Matcher();
-    switch (values.matchType) {
-      case 'PREFIX':
-        routeMatcher.setPrefix(values.path);
-        break;
-      case 'EXACT':
-        routeMatcher.setExact(values.path);
-        break;
-      case 'REGEX':
-        routeMatcher.setRegex(values.path);
-        break;
-    }
-
-    let matcherHeaders: HeaderMatcher[] = values.headers.map(head => {
-      const newMatcherHeader = new HeaderMatcher();
-      newMatcherHeader.setName(head.name);
-      newMatcherHeader.setValue(head.value);
-      newMatcherHeader.setRegex(head.regex);
-
-      return newMatcherHeader;
-    });
-    routeMatcher.setHeadersList(matcherHeaders);
-    let matcherQueryParams: QueryParameterMatcher[] = values.queryParameters.map(
-      queryParam => {
-        const newMatcherQueryParam = new QueryParameterMatcher();
-        newMatcherQueryParam.setName(queryParam.name);
-        newMatcherQueryParam.setValue(queryParam.value);
-        newMatcherQueryParam.setRegex(queryParam.regex);
-
-        return newMatcherQueryParam;
-      }
+  const handleCreateRoute = (values: CreateRouteValuesType) => {
+    dispatch(
+      createRoute({
+        input: {
+          virtualServiceRef: {
+            name: values.virtualService!.metadata!.name,
+            namespace: values.virtualService!.metadata!.namespace
+          },
+          index: 0,
+          route: {
+            matcher: {
+              prefix: values.matchType === 'PREFIX' ? values.path : '',
+              exact: values.matchType === 'EXACT' ? values.path : '',
+              regex: values.matchType === 'REGEX' ? values.path : '',
+              methodsList: values.methods,
+              headersList: values.headers,
+              queryParametersList: values.queryParameters
+            },
+            routeAction: {
+              single: {
+                upstream: {
+                  name: values.upstream!.metadata!.name,
+                  namespace: values.upstream!.metadata!.namespace
+                },
+                destinationSpec: values.destinationSpec
+              }
+            }
+          }
+        }
+      })
     );
-    routeMatcher.setQueryParametersList(matcherQueryParams);
-    routeMatcher.setMethodsList(
-      //@ts-ignore
-      Object.keys(values.methods).filter(key => values.methods[key])
-    );
-    newRoute.setMatcher(routeMatcher);
-
-    /* Route->Destination Section */
-    let newRouteAction = new RouteAction();
-    let newDestination = new Destination();
-    const upstreamSpec = values.upstream!.upstreamSpec!;
-    let newDestinationResourceRef = new ResourceRef();
-    newDestinationResourceRef.setName(values.upstream!.metadata!.name);
-    newDestinationResourceRef.setNamespace(
-      values.upstream!.metadata!.namespace
-    );
-    newDestination.setUpstream(newDestinationResourceRef);
-    let newDestinationSpec = new DestinationSpec();
-    /* ----------------------------- AWS DESTINATION ---------------------------- */
-    if (
-      !!upstreamSpec.aws &&
-      !!values.destinationSpec &&
-      values.destinationSpec.aws
-    ) {
-      const {
-        logicalName,
-        invocationStyle,
-        responseTransformation
-      } = values.destinationSpec.aws;
-      let newAWSDestinationSpec = new AWSDestinationSpec();
-      newAWSDestinationSpec.setLogicalName(logicalName);
-      newAWSDestinationSpec.setInvocationStyle(invocationStyle);
-      newAWSDestinationSpec.setResponseTransformation(responseTransformation);
-      newDestinationSpec.setAws(newAWSDestinationSpec);
-      newDestination.setDestinationSpec(newDestinationSpec);
-      /* ---------------------------- AZURE DESTINATION --------------------------- */
-    } else if (!!upstreamSpec.azure) {
-      let newAzureDestinationSpec = new AzureDestinationSpec();
-      newDestinationSpec.setAzure(newAzureDestinationSpec);
-      newDestination.setDestinationSpec(newDestinationSpec);
-
-      /* ---------------------------- KUBE DESTINATION ---------------------------- */
-    } else if (!!upstreamSpec.kube) {
-      if (
-        values.destinationSpec &&
-        values.destinationSpec.rest &&
-        values.destinationSpec!.rest!.functionName
-      ) {
-        let kubeDestination = new RestDestinationSpec();
-        kubeDestination.setFunctionName(
-          values.destinationSpec!.rest!.functionName
-        );
-        newDestinationSpec.setRest(kubeDestination);
-        newDestination.setDestinationSpec(newDestinationSpec);
-      }
-
-      /* --------------------------- CONSUL DESTINATION --------------------------- */
-    } else if (!!upstreamSpec.consul) {
-      let newConsulServiceDestination = new ConsulServiceDestination();
-      // TODO :: I have no idea what to set the values to
-      newDestination.setConsul(newConsulServiceDestination);
-      let newConsulDestinationSpec;
-
-      newDestination.setDestinationSpec(newConsulDestinationSpec);
-    }
-
-    newRouteAction.setSingle(newDestination);
-    newRoute.setRouteAction(newRouteAction);
-
-    reqRouteInput.setRoute(newRoute);
-
-    /* --------------------------- ROUTE CREATION ENDS -------------------------- */
-
-    newRouteReq.setInput(reqRouteInput);
-    if (!!props.existingRoute) {
-      makeUpdateRequest(newRouteReq);
-    } else {
-      makeRequest(newRouteReq);
-    }
   };
 
   const isSubmittable = (
@@ -440,19 +314,6 @@ export const CreateRouteModalC = (props: Props) => {
 
   if (!!props.existingRoute) {
     const { existingRoute } = props;
-
-    let methodsList: RouteMethodsType = {
-      POST: false,
-      PUT: false,
-      GET: false,
-      PATCH: false,
-      DELETE: false,
-      HEAD: false,
-      OPTIONS: false
-    };
-    existingRoute.matcher!.methodsList.forEach(methodName => {
-      methodsList[methodName as MethodType] = true;
-    });
 
     const existingRouteUpstream = allUsableUpstreams.find(
       upstream =>
@@ -471,7 +332,7 @@ export const CreateRouteModalC = (props: Props) => {
       upstream: existingRouteUpstream,
       destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
       headers: existingRoute.matcher!.headersList,
-      methods: methodsList,
+      methods: existingRoute.matcher!.methodsList,
       path: getRouteMatcher(existingRoute).matcher,
       matchType: getRouteMatcher(existingRoute).matchType as any,
       queryParameters: existingRoute.matcher!.queryParametersList
@@ -504,7 +365,7 @@ export const CreateRouteModalC = (props: Props) => {
       initialValues={initialValues}
       enableReinitialize
       validationSchema={validationSchema}
-      onSubmit={createRoute}>
+      onSubmit={handleCreateRoute}>
       {({
         values,
         isSubmitting,
@@ -621,14 +482,12 @@ export const CreateRouteModalC = (props: Props) => {
                     name='methods'
                     title='Methods'
                     placeholder='Methods...'
-                    options={Object.keys(createRouteDefaultValues.methods).map(
-                      key => {
-                        return {
-                          key: key,
-                          value: key
-                        };
-                      }
-                    )}
+                    options={httpMethods.map(key => {
+                      return {
+                        key: key,
+                        value: key
+                      };
+                    })}
                   />
                 </InputRow>
               </InnerFormSectionContent>

@@ -4,6 +4,9 @@ import { isEqual } from 'lodash';
 import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
+import { useDispatch } from 'react-redux';
+import { updateDomains } from 'store/virtualServices/actions';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 const DomainsContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -17,7 +20,7 @@ const DomainsContainer = styled.div`
 
 interface Props {
   domains: string[];
-  domainsChanged: (newDomainsList: string[]) => any;
+  vsRef: ResourceRef.AsObject;
 }
 
 function equivalentProps(
@@ -28,6 +31,7 @@ function equivalentProps(
 }
 
 export const Domains: React.FC<Props> = React.memo(props => {
+  const dispatch = useDispatch();
   const [domains, setDomains] = React.useState(props.domains);
 
   React.useEffect(() => {
@@ -38,7 +42,7 @@ export const Domains: React.FC<Props> = React.memo(props => {
 
   // need to hook this up to api
   const addDomain = (domain: string) => {
-    props.domainsChanged([...domains, domain]);
+    dispatch(updateDomains({ ref: props.vsRef, domains }));
     setDomains([...domains, domain]);
   };
 
@@ -46,7 +50,7 @@ export const Domains: React.FC<Props> = React.memo(props => {
     let newList = [...domains];
     newList.splice(removeIndex, 1);
 
-    props.domainsChanged(newList);
+    dispatch(updateDomains({ ref: props.vsRef, domains: newList }));
     setDomains(newList);
   };
 

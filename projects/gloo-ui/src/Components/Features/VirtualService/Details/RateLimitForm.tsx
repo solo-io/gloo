@@ -5,14 +5,14 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
 import { Label } from 'Components/Common/SoloInput';
-import { Formik, FormikErrors } from 'formik';
-import {
-  IngressRateLimit,
-  RateLimit
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
+import { Formik } from 'formik';
+import { RateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
+import { RateLimitPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
+import { useDispatch } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
+import { updateRateLimit } from 'store/virtualServices/actions';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
@@ -109,73 +109,50 @@ const validationSchema = yup.object().shape({
   anonLimitTimeUnit: yup.number().nullable()
 });
 
-interface Props {
-  rates: IngressRateLimit.AsObject | undefined;
-  rateLimitsChanged: (newRateLimits: IngressRateLimit.AsObject) => any;
+interface Props
+  extends RouteComponentProps<{
+    virtualservicename: string;
+    virtualservicenamespace: string;
+  }> {
+  rateLimits?: RateLimitPlugin.AsObject;
 }
 
-export const RateLimitForm = (props: Props) => {
-  const [applyAuthorizedLimits, setApplyAuthorizedLimits] = React.useState(
-    !!props.rates && !!props.rates.authorizedLimits
-  );
-  const [applyAnonymousLimits, setApplyAnonymousLimits] = React.useState(
-    !!props.rates && !!props.rates.anonymousLimits
-  );
+export const RateLimitForm = withRouter((props: Props) => {
+  const params = props.match.params;
+
+  const dispatch = useDispatch();
 
   const initialValues: ValuesType = { ...defaultValues };
 
-  if (!!props.rates) {
-    if (!!props.rates.authorizedLimits) {
-      initialValues.authLimitNumber =
-        props.rates.authorizedLimits.requestsPerUnit;
-      initialValues.authLimitTimeUnit = props.rates.authorizedLimits.unit;
+  if (!!props.rateLimits && props.rateLimits.value) {
+    if (!!props.rateLimits.value!.authorizedLimits) {
+      initialValues.authLimitNumber = props.rateLimits.value!.authorizedLimits.requestsPerUnit;
+      initialValues.authLimitTimeUnit = props.rateLimits.value!.authorizedLimits.unit;
     }
-    if (!!props.rates.anonymousLimits) {
-      initialValues.anonLimitNumber =
-        props.rates.anonymousLimits.requestsPerUnit;
-      initialValues.anonLimitTimeUnit = props.rates.anonymousLimits.unit;
+    if (!!props.rateLimits.value!.anonymousLimits) {
+      initialValues.anonLimitNumber = props.rateLimits.value!.anonymousLimits.requestsPerUnit;
+      initialValues.anonLimitTimeUnit = props.rateLimits.value!.anonymousLimits.unit;
     }
   }
 
-  const invalid = (values: ValuesType, errors: FormikErrors<ValuesType>) => {
-    let isInvalid = false;
-
-    if (applyAnonymousLimits) {
-      isInvalid = !!errors.anonLimitNumber || !values.anonLimitTimeUnit;
-    }
-    if (applyAuthorizedLimits) {
-      isInvalid =
-        isInvalid || !!errors.authLimitNumber || !values.authLimitTimeUnit;
-    }
-
-    return isInvalid;
-  };
-
-  const updateRateLimit = (values: ValuesType) => {
-    const newRateLimits = new IngressRateLimit().toObject();
-
-    if (applyAnonymousLimits) {
-      newRateLimits.anonymousLimits = {
-        unit: values.anonLimitTimeUnit!,
-        requestsPerUnit: values.anonLimitNumber!
-      };
-    }
-    if (applyAuthorizedLimits) {
-      newRateLimits.authorizedLimits = {
-        unit: values.authLimitTimeUnit!,
-        requestsPerUnit: values.authLimitNumber!
-      };
-    }
-
-    props.rateLimitsChanged(newRateLimits);
-  };
-
-  const isDirty = (formIsDirty: boolean) => {
-    return (
-      formIsDirty ||
-      applyAuthorizedLimits !==
-        (!!props.rates && !!props.rates.authorizedLimits) ||
-      applyAnonymousLimits !== (!!props.rates && !!props.rates.anonymousLimits)
+  const handleUpdateRateLimit = (values: ValuesType) => {
+    dispatch(
+      updateRateLimit({
+        ref: {
+          name: params.virtualservicename,
+          namespace: params.virtualservicenamespace
+        },
+        rateLimit: {
+          anonymousLimits: {
+            requestsPerUnit: values.anonLimitNumber || 0,
+            unit: values.anonLimitTimeUnit || 0
+          },
+          authorizedLimits: {
+            requestsPerUnit: values.authLimitNumber || 0,
+            unit: values.authLimitTimeUnit || 0
+          }
+        }
+      })
     );
   };
 
@@ -183,7 +160,7 @@ export const RateLimitForm = (props: Props) => {
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={updateRateLimit}>
+      onSubmit={handleUpdateRateLimit}>
       {({
         isSubmitting,
         handleSubmit,
@@ -197,76 +174,37 @@ export const RateLimitForm = (props: Props) => {
         return (
           <FormContainer>
             <FormItem>
-              <StrongLabel>
-                <SoloCheckbox
-                  title={'Apply Authorized Limits '}
-                  checked={applyAuthorizedLimits}
-                  onChange={() => {
-                    if (
-                      !applyAuthorizedLimits &&
-                      values.authLimitNumber === undefined
-                    ) {
-                      setFieldValue('authLimitNumber', 1);
-                    }
-                    setApplyAuthorizedLimits(s => !s);
-                  }}
-                />
-              </StrongLabel>
-              {applyAuthorizedLimits && (
-                <InputRow>
-                  <div>
-                    <SoloFormInput
-                      name='authLimitNumber'
-                      title=''
-                      placeholder='##'
-                    />
-                  </div>
-                  <PerText>per</PerText>
-                  <div style={{ minWidth: '50%' }}>
-                    <SoloFormDropdown
-                      name='authLimitTimeUnit'
-                      title=''
-                      options={timeOptions}
-                    />
-                  </div>
-                </InputRow>
-              )}
+              <StrongLabel>Authorized Requests</StrongLabel>
+
+              <InputRow>
+                <div>
+                  <SoloFormInput name='authLimitNumber' />
+                </div>
+                <PerText>per</PerText>
+                <div style={{ minWidth: '50%' }}>
+                  <SoloFormDropdown
+                    name='authLimitTimeUnit'
+                    options={timeOptions}
+                  />
+                </div>
+              </InputRow>
             </FormItem>
             <FormItem>
-              <StrongLabel>
-                <SoloCheckbox
-                  title={'Apply Anonymous Limits '}
-                  checked={applyAnonymousLimits}
-                  onChange={() => {
-                    if (
-                      !applyAnonymousLimits &&
-                      values.anonLimitNumber === undefined
-                    ) {
-                      setFieldValue('anonLimitNumber', 1);
-                    }
-                    setApplyAnonymousLimits(s => !s);
-                  }}
-                />
-              </StrongLabel>
-              {applyAnonymousLimits && (
-                <InputRow>
-                  <div>
-                    <SoloFormInput
-                      name='anonLimitNumber'
-                      title=''
-                      placeholder='##'
-                    />
-                  </div>
-                  <PerText>per</PerText>
-                  <div style={{ minWidth: '50%' }}>
-                    <SoloFormDropdown
-                      name='anonLimitTimeUnit'
-                      title=''
-                      options={timeOptions}
-                    />
-                  </div>
-                </InputRow>
-              )}
+              <StrongLabel>Anonymous Requests</StrongLabel>
+
+              <InputRow>
+                <div>
+                  <SoloFormInput name='anonLimitNumber' title='' />
+                </div>
+                <PerText>per</PerText>
+                <div style={{ minWidth: '50%' }}>
+                  <SoloFormDropdown
+                    name='anonLimitTimeUnit'
+                    title=''
+                    options={timeOptions}
+                  />
+                </div>
+              </InputRow>
             </FormItem>
             <FormFooter>
               <SmallSoloNegativeButton onClick={handleReset} disabled={!dirty}>
@@ -275,9 +213,7 @@ export const RateLimitForm = (props: Props) => {
               <SoloButton
                 onClick={handleSubmit}
                 text='Submit'
-                disabled={
-                  isSubmitting || invalid(values, errors) || !isDirty(dirty)
-                }
+                disabled={isSubmitting}
               />
             </FormFooter>
           </FormContainer>
@@ -285,4 +221,4 @@ export const RateLimitForm = (props: Props) => {
       }}
     </Formik>
   );
-};
+});
