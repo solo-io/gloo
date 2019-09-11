@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Don't start the observability loop without a valid license
+    issueLink: https://github.com/solo-io/solo-projects/issues/1032

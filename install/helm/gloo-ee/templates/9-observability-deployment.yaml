@@ -33,6 +33,11 @@ spec:
           imagePullPolicy: {{$image.pullPolicy}}
           name: observability
           env:
+            - name: GLOO_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: license
+                  key: license-key
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
