@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix observability RBAC settings
+    issueLink: https://github.com/solo-io/solo-projects/issues/1026

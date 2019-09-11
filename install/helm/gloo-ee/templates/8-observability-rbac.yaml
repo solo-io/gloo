@@ -1,0 +1,39 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ include "gloo.roleKind" . }}
+metadata:
+  {{- if .Values.global.glooRbac.namespaced }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  name: observability-upstream-role
+  labels:
+    app: gloo
+    gloo: observability
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "10"
+rules:
+  - apiGroups: ["gloo.solo.io"]
+    resources: ["upstreams"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ include "gloo.roleKind" . }}Binding
+metadata:
+  {{- if .Values.global.glooRbac.namespaced }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  name: observability-upstream-rolebinding
+  labels:
+    app: gloo
+    gloo: observability
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ include "gloo.roleKind" . }}
+  name: observability-upstream-role
+subjects:
+  - kind: ServiceAccount
+    name: observability
+    namespace: {{ .Release.Namespace }}
