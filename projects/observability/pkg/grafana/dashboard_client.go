@@ -8,6 +8,22 @@ import (
 	"time"
 )
 
+//go:generate mockgen -destination mocks/mock_dashboard_client.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana DashboardClient
+
+type DashboardClient interface {
+	GetRawDashboard(uid string) ([]byte, BoardProperties, error)
+	GetDashboardVersions(dashboardId float64) ([]*Version, error)
+	SetRawDashboard(raw []byte) error
+	DeleteDashboard(uid string) (StatusMessage, error)
+	SearchDashboards(query string, starred bool, tags ...string) ([]FoundBoard, error)
+}
+
+type dashboardClient struct {
+	restClient RestClient
+}
+
+var _ DashboardClient = &dashboardClient{}
+
 // BoardProperties keeps metadata of a dashboard.
 type BoardProperties struct {
 	IsStarred  bool      `json:"isStarred,omitempty"`
@@ -25,13 +41,35 @@ type BoardProperties struct {
 	Version    int       `json:"version"`
 }
 
+type Version struct {
+	VersionId int
+	Message   string
+}
+
+// FoundBoard keeps result of search with metadata of a dashboard.
+type FoundBoard struct {
+	ID        uint     `json:"id"`
+	UID       string   `json:"uid"`
+	Title     string   `json:"title"`
+	URI       string   `json:"uri"`
+	Type      string   `json:"type"`
+	Tags      []string `json:"tags"`
+	IsStarred bool     `json:"isStarred"`
+}
+
+func NewDashboardClient(restClient RestClient) DashboardClient {
+	return &dashboardClient{
+		restClient: restClient,
+	}
+}
+
 // GetRawDashboard loads a dashboard JSON from Grafana instance along with metadata for a dashboard.
 // Contrary to GetDashboard() it not unpack loaded JSON to Board structure. Instead it
 // returns it as byte slice. It guarantees that data of dashboard returned untouched by conversion
 // with Board so no matter how properly fields from a current version of Grafana mapped to
 // our Board fields. It useful for backup purposes when you want a dashboard exactly with
 // same data as it exported by Grafana.
-func (r *Client) GetRawDashboard(uid string) ([]byte, BoardProperties, error) {
+func (d *dashboardClient) GetRawDashboard(uid string) ([]byte, BoardProperties, error) {
 	var (
 		raw    []byte
 		result struct {
@@ -41,8 +79,11 @@ func (r *Client) GetRawDashboard(uid string) ([]byte, BoardProperties, error) {
 		code int
 		err  error
 	)
-	if raw, code, err = r.get(fmt.Sprintf("api/dashboards/uid/%s", uid), nil); err != nil {
+	if raw, code, err = d.restClient.Get(fmt.Sprintf("api/dashboards/uid/%s", uid), nil); err != nil {
 		return nil, BoardProperties{}, err
+	}
+	if code == 404 {
+		return nil, BoardProperties{}, DashboardNotFound(uid)
 	}
 	if code != 200 {
 		return nil, BoardProperties{}, fmt.Errorf("HTTP error %d: returns %s", code, raw)
@@ -55,16 +96,39 @@ func (r *Client) GetRawDashboard(uid string) ([]byte, BoardProperties, error) {
 	return []byte(result.Board), result.Meta, err
 }
 
+// get all the versions in the history for this dashboard, ordered from newest to oldest
+func (d *dashboardClient) GetDashboardVersions(dashboardId float64) ([]*Version, error) {
+	var (
+		rawResp []byte
+		err     error
+	)
+
+	// https://grafana.com/docs/http_api/dashboard_versions/#get-all-dashboard-versions
+	rawResp, _, err = d.restClient.Get("/api/dashboards/id/"+fmt.Sprint(dashboardId)+"/versions", url.Values{"start": {"0"}, "limit": {""}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var allVersions []*Version
+	err = json.Unmarshal(rawResp, &allVersions)
+	if err != nil {
+		return nil, err
+	}
+
+	return allVersions, nil
+}
+
 // SetRawDashboard updates existing dashboard or creates a new one.
 // Contrary to SetDashboard() it accepts raw JSON instead of Board structure.
-func (r *Client) SetRawDashboard(raw []byte) error {
+func (d *dashboardClient) SetRawDashboard(raw []byte) error {
 	var (
 		rawResp []byte
 		resp    StatusMessage
 		code    int
 		err     error
 	)
-	if rawResp, code, err = r.post("api/dashboards/db", nil, raw); err != nil {
+	if rawResp, code, err = d.restClient.Post("api/dashboards/db", nil, raw); err != nil {
 		return err
 	}
 	switch code {
@@ -81,32 +145,21 @@ func (r *Client) SetRawDashboard(raw []byte) error {
 	return nil
 }
 
-func (r *Client) DeleteDashboard(uid string) (StatusMessage, error) {
+func (d *dashboardClient) DeleteDashboard(uid string) (StatusMessage, error) {
 	var (
 		raw   []byte
 		reply StatusMessage
 		err   error
 	)
 
-	if raw, _, err = r.delete(fmt.Sprintf("api/dashboards/uid/%s", uid)); err != nil {
+	if raw, _, err = d.restClient.Delete(fmt.Sprintf("api/dashboards/uid/%s", uid)); err != nil {
 		return StatusMessage{}, err
 	}
 	err = json.Unmarshal(raw, &reply)
 	return reply, err
 }
 
-// FoundBoard keeps result of search with metadata of a dashboard.
-type FoundBoard struct {
-	ID        uint     `json:"id"`
-	UID       string   `json:"uid"`
-	Title     string   `json:"title"`
-	URI       string   `json:"uri"`
-	Type      string   `json:"type"`
-	Tags      []string `json:"tags"`
-	IsStarred bool     `json:"isStarred"`
-}
-
-func (r *Client) SearchDashboards(query string, starred bool, tags ...string) ([]FoundBoard, error) {
+func (d *dashboardClient) SearchDashboards(query string, starred bool, tags ...string) ([]FoundBoard, error) {
 	var (
 		raw    []byte
 		boards []FoundBoard
@@ -124,7 +177,7 @@ func (r *Client) SearchDashboards(query string, starred bool, tags ...string) ([
 	for _, tag := range tags {
 		q.Add("tag", tag)
 	}
-	if raw, code, err = r.get("api/search", q); err != nil {
+	if raw, code, err = d.restClient.Get("api/search", q); err != nil {
 		return nil, err
 	}
 	if code != 200 {

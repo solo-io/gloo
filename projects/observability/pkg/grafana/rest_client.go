@@ -11,17 +11,29 @@ import (
 	"strings"
 )
 
+//go:generate mockgen -destination mocks/mock_grafana_client.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana RestClient
+
 // DefaultHTTPClient initialized Grafana with appropriate conditions.
 // It allows you globally redefine HTTP client.
 var DefaultHTTPClient = http.DefaultClient
 
-// Client uses Grafana REST API for interacting with Grafana server.
-type Client struct {
+type RestClient interface {
+	Get(query string, params url.Values) ([]byte, int, error)
+	Patch(query string, params url.Values, body []byte) ([]byte, int, error)
+	Put(query string, params url.Values, body []byte) ([]byte, int, error)
+	Post(query string, params url.Values, body []byte) ([]byte, int, error)
+	Delete(query string) ([]byte, int, error)
+}
+
+// RestClient uses Grafana REST API for interacting with Grafana server.
+type restClient struct {
 	baseURL   string
 	key       string
 	basicAuth bool
 	client    *http.Client
 }
+
+var _ RestClient = &restClient{}
 
 // StatusMessage reflects status message as it returned by Grafana REST API.
 type StatusMessage struct {
@@ -32,10 +44,10 @@ type StatusMessage struct {
 	Status  *string `json:"resp"`
 }
 
-// NewClient initializes client for interacting with an instance of Grafana server;
+// initialize a RestClient for interacting with an instance of Grafana's api server;
 // apiKeyOrBasicAuth accepts either 'username:password' basic authentication credentials,
 // or a Grafana API key
-func NewClient(apiURL, apiKeyOrBasicAuth string, client *http.Client) *Client {
+func NewRestClient(apiURL, apiKeyOrBasicAuth string, httpClient *http.Client) RestClient {
 	key := ""
 	basicAuth := strings.Contains(apiKeyOrBasicAuth, ":")
 	baseURL, _ := url.Parse(apiURL)
@@ -45,30 +57,30 @@ func NewClient(apiURL, apiKeyOrBasicAuth string, client *http.Client) *Client {
 		parts := strings.Split(apiKeyOrBasicAuth, ":")
 		baseURL.User = url.UserPassword(parts[0], parts[1])
 	}
-	return &Client{baseURL: baseURL.String(), basicAuth: basicAuth, key: key, client: client}
+	return &restClient{baseURL: baseURL.String(), basicAuth: basicAuth, key: key, client: httpClient}
 }
 
-func (r *Client) get(query string, params url.Values) ([]byte, int, error) {
+func (r *restClient) Get(query string, params url.Values) ([]byte, int, error) {
 	return r.doRequest("GET", query, params, nil)
 }
 
-func (r *Client) patch(query string, params url.Values, body []byte) ([]byte, int, error) {
+func (r *restClient) Patch(query string, params url.Values, body []byte) ([]byte, int, error) {
 	return r.doRequest("PATCH", query, params, bytes.NewBuffer(body))
 }
 
-func (r *Client) put(query string, params url.Values, body []byte) ([]byte, int, error) {
+func (r *restClient) Put(query string, params url.Values, body []byte) ([]byte, int, error) {
 	return r.doRequest("PUT", query, params, bytes.NewBuffer(body))
 }
 
-func (r *Client) post(query string, params url.Values, body []byte) ([]byte, int, error) {
+func (r *restClient) Post(query string, params url.Values, body []byte) ([]byte, int, error) {
 	return r.doRequest("POST", query, params, bytes.NewBuffer(body))
 }
 
-func (r *Client) delete(query string) ([]byte, int, error) {
+func (r *restClient) Delete(query string) ([]byte, int, error) {
 	return r.doRequest("DELETE", query, nil, nil)
 }
 
-func (r *Client) doRequest(method, query string, params url.Values, buf io.Reader) ([]byte, int, error) {
+func (r *restClient) doRequest(method, query string, params url.Values, buf io.Reader) ([]byte, int, error) {
 	u, _ := url.Parse(r.baseURL)
 	u.Path = path.Join(u.Path, query)
 	if params != nil {

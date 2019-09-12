@@ -2,7 +2,11 @@ package syncer
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/version"
@@ -21,7 +25,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const observability = "observability"
+const (
+	observability    = "observability"
+	GRAFANA_USERNAME = "GRAFANA_USERNAME"
+	GRAFANA_PASSWORD = "GRAFANA_PASSWORD"
+)
 
 func Main() error {
 	check.NewUsageClient().Start(observability, version.Version)
@@ -88,11 +96,23 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
-	emitter := v1.NewDashboardsEmitter(upstreamClient)
-	dashSyncer, err := NewGrafanaDashboardSyncer(http.DefaultClient)
-	if err != nil {
-		return err
+	username := os.Getenv(GRAFANA_USERNAME)
+	password := os.Getenv(GRAFANA_PASSWORD)
+	if username == "" || password == "" {
+		contextutils.LoggerFrom(opts.WatchOpts.Ctx).Fatalf("grafana username and password cannot be empty")
 	}
+	basicAuthString := fmt.Sprintf("%s:%s", username, password)
+	apiUrl := fmt.Sprintf("%s:%s", SERVICE_LINK, SERVICE_PORT)
+
+	httpClient := http.DefaultClient
+	restClient := grafana.NewRestClient(apiUrl, basicAuthString, httpClient)
+
+	dashboardClient := grafana.NewDashboardClient(restClient)
+	snapshotClient := grafana.NewSnapshotClient(restClient)
+
+	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient)
+
+	emitter := v1.NewDashboardsEmitter(upstreamClient)
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)
 	writeErrs := make(chan error)
 	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)

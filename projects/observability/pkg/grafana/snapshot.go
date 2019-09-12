@@ -6,6 +6,14 @@ import (
 	"net/url"
 )
 
+//go:generate mockgen -destination mocks/mock_snapshot_client.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana SnapshotClient
+
+type SnapshotClient interface {
+	SetRawSnapshot(raw []byte) (*SnapshotResponse, error)
+	GetSnapshots() ([]SnapshotListResponse, error)
+	DeleteSnapshot(key string) error
+}
+
 type SnapshotResponse struct {
 	DeleteKey string `json:"deleteKey"`
 	DeleteUrl string `json:"deleteUrl"`
@@ -25,7 +33,19 @@ type SnapshotListResponse struct {
 	Updated  string `json:"updated"`
 }
 
-func (r *Client) SetRawSnapshot(raw []byte) (*SnapshotResponse, error) {
+type snapshotClient struct {
+	restClient RestClient
+}
+
+var _ SnapshotClient = &snapshotClient{}
+
+func NewSnapshotClient(restClient RestClient) SnapshotClient {
+	return &snapshotClient{
+		restClient: restClient,
+	}
+}
+
+func (s *snapshotClient) SetRawSnapshot(raw []byte) (*SnapshotResponse, error) {
 	var (
 		rawResp []byte
 		resp    StatusMessage
@@ -33,7 +53,7 @@ func (r *Client) SetRawSnapshot(raw []byte) (*SnapshotResponse, error) {
 		err     error
 		sresp   = &SnapshotResponse{}
 	)
-	if rawResp, code, err = r.post("api/snapshots", nil, raw); err != nil {
+	if rawResp, code, err = s.restClient.Post("api/snapshots", nil, raw); err != nil {
 		return sresp, err
 	}
 	switch code {
@@ -55,7 +75,7 @@ func (r *Client) SetRawSnapshot(raw []byte) (*SnapshotResponse, error) {
 	}
 }
 
-func (r *Client) GetSnapshots() ([]SnapshotListResponse, error) {
+func (s *snapshotClient) GetSnapshots() ([]SnapshotListResponse, error) {
 	var (
 		rawResp   []byte
 		err       error
@@ -63,7 +83,7 @@ func (r *Client) GetSnapshots() ([]SnapshotListResponse, error) {
 		slistresp []SnapshotListResponse
 	)
 
-	if rawResp, code, err = r.get("/api/dashboard/snapshots", url.Values{}); err != nil {
+	if rawResp, code, err = s.restClient.Get("/api/dashboard/snapshots", url.Values{}); err != nil {
 		return slistresp, err
 	}
 	switch code {
@@ -79,14 +99,14 @@ func (r *Client) GetSnapshots() ([]SnapshotListResponse, error) {
 	}
 }
 
-func (r *Client) DeleteSnapshot(key string) error {
+func (s *snapshotClient) DeleteSnapshot(key string) error {
 	var (
 		err     error
 		rawResp []byte
 		code    int
 	)
 
-	if rawResp, code, err = r.delete(fmt.Sprintf("api/snapshots/%s", key)); err != nil {
+	if rawResp, code, err = s.restClient.Delete(fmt.Sprintf("api/snapshots/%s", key)); err != nil {
 		return err
 	}
 	if code != 200 {

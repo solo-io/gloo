@@ -2,6 +2,9 @@ package grafana
 
 import "fmt"
 
+// when the observability pod updates a dashboard, use this pre-canned message to indicate it was automated
+const DefaultCommitMessage = "__gloo-auto-gen-dashboard__"
+
 var (
 	dashboardTemplate string
 	snapshotTemplate  string
@@ -12,9 +15,10 @@ func init() {
 {
   "dashboard": 
 	%s,
-  "overwrite": {{.Overwrite}}
+  "overwrite": {{.Overwrite}},
+  "message": "%s"
 }
-`, jsonTemplate)
+`, jsonTemplate, DefaultCommitMessage)
 	snapshotTemplate = fmt.Sprintf(`
 {
   "dashboard": 

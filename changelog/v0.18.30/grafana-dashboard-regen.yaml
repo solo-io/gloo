@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix grafana dashboards not updating when an upstream changes
+    issueLink: https://github.com/solo-io/solo-projects/issues/1030
