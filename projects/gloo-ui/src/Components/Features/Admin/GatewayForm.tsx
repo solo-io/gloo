@@ -21,7 +21,8 @@ import { UpdateGatewayYamlRequest } from 'proto/github.com/solo-io/solo-projects
 import { getResourceRef } from 'Api/v2/helpers';
 import _ from 'lodash/fp';
 import { updateGatewayYaml } from 'store/gateway/actions';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppState } from 'store';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -218,6 +219,9 @@ export const GatewayForm = (props: FormProps) => {
 
     dispatch(updateGatewayYaml(updateGatewayYamlRequest));
   };
+  const yamlError = useSelector(
+    (state: AppState) => state.gateways.yamlParseError
+  );
 
   return (
     <GatewayFormContainer>
@@ -383,6 +387,7 @@ export const GatewayForm = (props: FormProps) => {
                 content={props.gatewayConfiguration.content}
                 whiteBacked
                 asEditor
+                yamlError={yamlError}
                 saveEdits={saveYamlChange}
               />
             )}

@@ -7,14 +7,14 @@ const { warning } = Modal;
 
 export const listEnvoyDetails = () => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await envoy.getEnvoyList();
       dispatch<ListEnvoyDetailsAction>({
         type: EnvoyAction.LIST_ENVOY_DETAILS,
         payload: response!.toObject().envoyDetailsList
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {}
   };
 };

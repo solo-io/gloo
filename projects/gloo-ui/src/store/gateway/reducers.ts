@@ -1,12 +1,15 @@
 import { GatewayActionTypes, GatewayAction } from './types';
 import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 
 export interface GatewayState {
   gatewaysList: GatewayDetails.AsObject[];
+  yamlParseError: boolean;
 }
 
 const initialState: GatewayState = {
-  gatewaysList: []
+  gatewaysList: [],
+  yamlParseError: false
 };
 
 export function gatewaysReducer(
@@ -25,7 +28,21 @@ export function gatewaysReducer(
       return {
         ...state
       };
+    case GatewayAction.UPDATE_GATEWAY_YAML_ERROR:
+      SoloWarning(
+        'There was an error updating the virtual service.',
+        action.payload
+      );
+      return {
+        ...state,
+        yamlParseError: true
+      };
+    case GatewayAction.UPDATE_GATEWAY_YAML:
+      return {
+        ...state,
+        yamlParseError: false
+      };
     default:
-      return state;
+      return { ...state, yamlParseError: false };
   }
 }

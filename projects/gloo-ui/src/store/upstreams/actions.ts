@@ -25,7 +25,7 @@ export const listUpstreams = (
   listUpstreamsRequest: ListUpstreamsRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await upstreams.getUpstreamsList(listUpstreamsRequest);
 
@@ -33,7 +33,7 @@ export const listUpstreams = (
         type: UpstreamAction.LIST_UPSTREAMS,
         payload: response.upstreamDetailsList
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       // handle error
     }
@@ -44,18 +44,18 @@ export const deleteUpstream = (
   deleteUpstreamRequest: DeleteUpstreamRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
-      guardByLicense()
+      guardByLicense();
       const response = await upstreams.deleteUpstream(deleteUpstreamRequest);
       dispatch<DeleteUpstreamAction>({
         type: UpstreamAction.DELETE_UPSTREAM,
         payload: deleteUpstreamRequest
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
-      SoloWarning('There was an error deleting the upstream.', error)
+      SoloWarning('There was an error deleting the upstream.', error);
     }
   };
 };
@@ -64,24 +64,24 @@ export const createUpstream = (
   createUpstreamRequest: CreateUpstreamRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
-      guardByLicense()
+      guardByLicense();
       const response = await upstreams.getCreateUpstream(createUpstreamRequest);
       dispatch<CreateUpstreamAction>({
         type: UpstreamAction.CREATE_UPSTREAM,
         payload: response.upstreamDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
       dispatch<SuccessMessageAction>({
         type: MessageAction.SUCCESS_MESSAGE,
         message: `Upstream ${
           response.upstreamDetails!.upstream!.metadata!.name
-          } successfully created.`
+        } successfully created.`
       });
     } catch (error) {
-      SoloWarning('There was an error creating the upstream.', error)
+      SoloWarning('There was an error creating the upstream.', error);
     }
   };
 };
@@ -90,7 +90,7 @@ export const getUpstream = (
   getUpstreamRequest: GetUpstreamRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await upstreams.getUpstream(getUpstreamRequest);
@@ -98,9 +98,9 @@ export const getUpstream = (
         type: UpstreamAction.GET_UPSTREAM,
         payload: response.upstreamDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
-      SoloWarning('There was an error retrieving the upstream.', error)
+      SoloWarning('There was an error retrieving the upstream.', error);
     }
   };
 };
@@ -110,8 +110,8 @@ export const updateUpstream = (
   updateUpstreamRequest: UpdateUpstreamRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
-    } catch (error) { }
+    } catch (error) {}
   };
 };

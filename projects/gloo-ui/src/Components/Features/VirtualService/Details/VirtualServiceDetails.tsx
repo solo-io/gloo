@@ -145,18 +145,17 @@ export const VirtualServiceDetails = (props: Props) => {
   };
 
   const saveYamlChange = (newYaml: string) => {
-    let editedYamlData = {
-      editedYaml: newYaml,
-      ref: {
-        name: virtualService!.metadata!.name,
-        namespace: virtualService!.metadata!.namespace
-      }
-    } as EditedResourceYaml.AsObject;
-    const updateVirtualServiceYamlRequest = {
-      editedYamlData
-    };
-
-    dispatch(updateVirtualServiceYaml(updateVirtualServiceYamlRequest));
+    dispatch(
+      updateVirtualServiceYaml({
+        editedYamlData: {
+          editedYaml: newYaml,
+          ref: {
+            name: virtualService!.metadata!.name,
+            namespace: virtualService!.metadata!.namespace
+          }
+        }
+      })
+    );
   };
 
   const headerInfo = [
@@ -165,7 +164,9 @@ export const VirtualServiceDetails = (props: Props) => {
       value: virtualservicenamespace
     }
   ];
-
+  const yamlError = useSelector(
+    (state: AppState) => state.virtualServices.yamlParseError
+  );
   return (
     <React.Fragment>
       <Breadcrumb />
@@ -210,6 +211,7 @@ export const VirtualServiceDetails = (props: Props) => {
               <ConfigDisplayer
                 content={raw ? raw.content : ''}
                 asEditor
+                yamlError={yamlError}
                 saveEdits={saveYamlChange}
               />
             </DetailsSection>

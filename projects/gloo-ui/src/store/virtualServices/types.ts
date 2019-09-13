@@ -10,6 +10,7 @@ export enum VirtualServiceAction {
   UPDATE_VIRTUAL_SERVICE = 'UPDATE_VIRTUAL_SERVICE',
   DELETE_VIRTUAL_SERVICE = 'DELETE_VIRTUAL_SERVICE',
   UPDATE_VIRTUAL_SERVICE_YAML = 'UPDATE_VIRTUAL_SERVICE_YAML',
+  UPDATE_VIRTUAL_SERVICE_YAML_ERROR = 'UPDATE_VIRTUAL_SERVICE_YAML_ERROR',
   CREATE_ROUTE = 'CREATE_ROUTE',
   UPDATE_ROUTE = 'UPDATE_ROUTE',
   DELETE_ROUTE = 'DELETE_ROUTE',
@@ -45,6 +46,11 @@ export interface UpdateVirtualServiceYamlAction {
   payload: VirtualServiceDetails.AsObject;
 }
 
+export interface UpdateVirtualServiceYamlErrorAction {
+  type: typeof VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML_ERROR;
+  payload: Error;
+}
+
 export interface CreateRouteAction {
   type: typeof VirtualServiceAction.CREATE_ROUTE;
   payload: VirtualServiceDetails.AsObject;
@@ -76,6 +82,7 @@ export type VirtualServiceActionTypes =
   | UpdateVirtualServiceAction
   | DeleteVirtualServiceAction
   | UpdateVirtualServiceYamlAction
+  | UpdateVirtualServiceYamlErrorAction
   | CreateRouteAction
   | UpdateRouteAction
   | DeleteRouteAction

@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Show a loading spinner when edits to the raw yaml are accepted.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1091
+  - type: FIX
+    description: After error, stay in editor context when editing raw yaml.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1092

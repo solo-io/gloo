@@ -22,7 +22,8 @@ import {
   GatewayAction,
   ListGatewaysAction,
   UpdateGatewayAction,
-  UpdateGatewayYamlAction
+  UpdateGatewayYamlAction,
+  UpdateGatewayYamlErrorAction
 } from './types';
 import { HttpListenerPlugins } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
@@ -285,7 +286,7 @@ export function getUpdateGateway(
         request.setGateway(currentGateway);
       }
     }
-    guardByLicense()
+    guardByLicense();
     client.updateGateway(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -316,7 +317,7 @@ export function getUpdateGatewayYaml(
     );
     request.setEditedYamlData(editedResourceYaml);
 
-    guardByLicense()
+    guardByLicense();
     client.updateGatewayYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -334,7 +335,7 @@ export const listGateways = (
   listGatewaysRequest: ListGatewaysRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getListGateways(listGatewaysRequest);
@@ -342,8 +343,8 @@ export const listGateways = (
         type: GatewayAction.LIST_GATEWAYS,
         payload: response.gatewayDetailsList
       });
-      dispatch(hideLoading());
-    } catch (error) { }
+      // dispatch(hideLoading());
+    } catch (error) {}
   };
 };
 
@@ -351,7 +352,7 @@ export const updateGateway = (
   updateGatewayRequest: UpdateGatewayRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await getUpdateGateway(updateGatewayRequest);
       dispatch<UpdateGatewayAction>({
@@ -363,9 +364,12 @@ export const updateGateway = (
         type: MessageAction.SUCCESS_MESSAGE,
         message: 'Gateway successfully updated.'
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
-      SoloWarning('There was an error updating the gateway configuration.', error)
+      SoloWarning(
+        'There was an error updating the gateway configuration.',
+        error
+      );
     }
   };
 };
@@ -374,7 +378,7 @@ export const updateGatewayYaml = (
   updateGatewayYamlRequest: UpdateGatewayYamlRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await getUpdateGatewayYaml(updateGatewayYamlRequest);
       dispatch<UpdateGatewayYamlAction>({
@@ -382,7 +386,14 @@ export const updateGatewayYaml = (
         payload: response.gatewayDetails!
       });
     } catch (error) {
-      SoloWarning('There was an error updating the gateway configuration.', error)
+      dispatch<UpdateGatewayYamlErrorAction>({
+        type: GatewayAction.UPDATE_GATEWAY_YAML_ERROR,
+        payload: error
+      });
+      // SoloWarning(
+      //   'There was an error updating the gateway configuration.',
+      //   error
+      // );
     }
   };
 };

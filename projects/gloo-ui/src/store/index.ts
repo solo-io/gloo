@@ -16,7 +16,7 @@ export const host = `${
   process.env.NODE_ENV === 'production'
     ? window.location.origin
     : 'http://localhost:8080'
-  }`;
+}`;
 
 const rootReducer = combineReducers({
   upstreams: upstreamsReducer,
@@ -26,7 +26,7 @@ const rootReducer = combineReducers({
   gateways: gatewaysReducer,
   proxies: proxyReducer,
   envoy: envoyReducer,
-  loadingBar: loadingBarReducer,
+  // loadingBar: loadingBarReducer,
   modal: modalReducer
 });
 
@@ -44,4 +44,4 @@ export function configureStore() {
   return store;
 }
 
-export const globalStore = configureStore()
+export const globalStore = configureStore();

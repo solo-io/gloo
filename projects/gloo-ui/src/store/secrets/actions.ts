@@ -16,14 +16,14 @@ export const listSecrets = (
   listSecretsRequest: ListSecretsRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await secrets.getSecretsList(listSecretsRequest);
       dispatch<ListSecretsAction>({
         type: SecretAction.LIST_SECRETS,
         payload: response.secretsList
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       // handle error
     }
@@ -34,7 +34,7 @@ export const createSecret = (
   createSecretRequest: CreateSecretRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
       const response = await getCreateSecret(createSecretRequest);
       dispatch<CreateSecretAction>({
@@ -42,7 +42,7 @@ export const createSecret = (
         payload: response.secret!
       });
     } catch (error) {
-      SoloWarning('There was an error creating the secret.', error)
+      SoloWarning('There was an error creating the secret.', error);
     }
   };
 };
@@ -51,16 +51,16 @@ export const deleteSecret = (
   deleteSecretRequest: DeleteSecretRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
     try {
-      guardByLicense()
+      guardByLicense();
       const response = await secrets.deleteSecret(deleteSecretRequest);
       dispatch<CreateSecretAction>({
         type: SecretAction.CREATE_SECRET,
         payload: response
       });
     } catch (error) {
-      SoloWarning('There was an error deleting the secret.', error)
+      SoloWarning('There was an error deleting the secret.', error);
     }
   };
 };

@@ -54,7 +54,8 @@ import {
   UpdateVirtualServiceYamlAction,
   UpdateVirtualServiceAction,
   CreateVirtualServiceAction,
-  CreateRouteAction
+  CreateRouteAction,
+  UpdateVirtualServiceYamlErrorAction
 } from './types';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
@@ -137,7 +138,7 @@ export function getDeleteVirtualService(
     ref.setName(deleteVirtualServiceRequest.ref!.name);
     ref.setNamespace(deleteVirtualServiceRequest.ref!.namespace);
     request.setRef(ref);
-    guardByLicense()
+    guardByLicense();
     client.deleteVirtualService(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -163,7 +164,7 @@ export function getUpdateVirtualServiceYaml(
     editedYamlData.setEditedYaml(editedYaml);
 
     request.setEditedYamlData(editedYamlData);
-    guardByLicense()
+    guardByLicense();
     client.updateVirtualServiceYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -188,7 +189,7 @@ export function getDeleteRoute(
     vsRef.setNamespace(deleteRouteRequest.virtualServiceRef!.namespace);
     request.setVirtualServiceRef(vsRef);
     request.setIndex(deleteRouteRequest.index);
-    guardByLicense()
+    guardByLicense();
     client.deleteRoute(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -214,7 +215,7 @@ export function getSwapRoutes(
     request.setVirtualServiceRef(vsRef);
     request.setIndex1(swapRoutesRequest.index1);
     request.setIndex2(swapRoutesRequest.index2);
-    guardByLicense()
+    guardByLicense();
     client.swapRoutes(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -240,7 +241,7 @@ export function getShiftRoutes(
     request.setVirtualServiceRef(vsRef);
     request.setToIndex(shiftRoutesRequest.toIndex);
     request.setFromIndex(shiftRoutesRequest.fromIndex);
-    guardByLicense()
+    guardByLicense();
     client.shiftRoutes(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -1144,7 +1145,7 @@ export const listVirtualServices = (
   listVirtualServicesRequest: ListVirtualServicesRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getListVirtualServices(listVirtualServicesRequest);
@@ -1152,9 +1153,9 @@ export const listVirtualServices = (
         type: VirtualServiceAction.LIST_VIRTUAL_SERVICES,
         payload: response.virtualServiceDetailsList!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
-      SoloWarning('There was an error retrieving virtual services.', error)
+      SoloWarning('There was an error retrieving virtual services.', error);
     }
   };
 };
@@ -1163,7 +1164,7 @@ export const createVirtualService = (
   createVirtualServiceRequest: CreateVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getCreateVirtualService(
@@ -1173,7 +1174,7 @@ export const createVirtualService = (
         type: VirtualServiceAction.CREATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error creating the virtual service.',
@@ -1187,7 +1188,7 @@ export const updateVirtualService = (
   updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getUpdateVirtualService(
@@ -1197,7 +1198,7 @@ export const updateVirtualService = (
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error updating the virtual service.',
@@ -1211,7 +1212,7 @@ export const createRoute = (
   createRouteRequest: CreateRouteRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getCreateRoute(createRouteRequest);
@@ -1219,7 +1220,7 @@ export const createRoute = (
         type: VirtualServiceAction.CREATE_ROUTE,
         payload: response.virtualServiceDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error creating the route.',
@@ -1234,7 +1235,7 @@ export const updateDomains = (updateDomainsRequest: {
   domains: string[];
 }) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getUpdateDomains(updateDomainsRequest);
@@ -1242,7 +1243,7 @@ export const updateDomains = (updateDomainsRequest: {
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error updating the virtual service domains.',
@@ -1256,10 +1257,10 @@ export const deleteVirtualService = (
   deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
-      guardByLicense()
+      guardByLicense();
       const response = await getDeleteVirtualService(
         deleteVirtualServiceRequest
       );
@@ -1267,9 +1268,9 @@ export const deleteVirtualService = (
         type: VirtualServiceAction.DELETE_VIRTUAL_SERVICE,
         payload: deleteVirtualServiceRequest
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
-      SoloWarning('There was an error deleting the virtual service.', error)
+      SoloWarning('There was an error deleting the virtual service.', error);
     }
   };
 };
@@ -1278,7 +1279,7 @@ export const updateVirtualServiceYaml = (
   updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    dispatch(showLoading());
+    // dispatch(showLoading());
 
     try {
       const response = await getUpdateVirtualServiceYaml(
@@ -1288,10 +1289,13 @@ export const updateVirtualServiceYaml = (
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML,
         payload: response.virtualServiceDetails!
       });
-      dispatch(hideLoading());
+      // dispatch(hideLoading());
     } catch (error) {
       //handle error
-      SoloWarning('There was an error updating the virtual service.', error)
+      dispatch<UpdateVirtualServiceYamlErrorAction>({
+        type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML_ERROR,
+        payload: error
+      });
     }
   };
 };
@@ -1307,7 +1311,7 @@ export const deleteRoute = (
         payload: response.virtualServiceDetails!
       });
     } catch (error) {
-      SoloWarning('There was an error deleting the route.', error)
+      SoloWarning('There was an error deleting the route.', error);
     }
   };
 };
@@ -1322,7 +1326,7 @@ export const shiftRoutes = (
         type: VirtualServiceAction.SHIFT_ROUTES,
         payload: response.virtualServiceDetails!
       });
-    } catch (error) { }
+    } catch (error) {}
   };
 };
 

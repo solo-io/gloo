@@ -10,6 +10,11 @@ import {
   SoloCancelButton,
   SoloButtonStyledComponent
 } from 'Styles/CommonEmotions/button';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
+import { Spin } from 'antd';
+import { AppState } from 'store';
 
 type ContainerProps = { whiteBacked?: boolean };
 const Container = styled.div`
@@ -117,38 +122,109 @@ const styles = {
   }
 };
 
+type ConfigDisplayState = {
+  isError: boolean;
+  isLoading: boolean;
+  isEditing: boolean;
+};
+let initialState = {
+  isError: false,
+  isLoading: false,
+  isEditing: false
+};
+
+type ConfigDisplayAction =
+  | { type: 'EDIT_MODE' }
+  | { type: 'CHANGE_START' }
+  | { type: 'CHANGE_SUCCESS' }
+  | { type: 'CHANGE_ERROR' };
+
+export function configDisplayReducer(
+  state: ConfigDisplayState,
+  action: ConfigDisplayAction
+): ConfigDisplayState {
+  switch (action.type) {
+    case 'EDIT_MODE':
+      return {
+        ...state,
+        isError: false,
+        isEditing: !state.isEditing
+      };
+    case 'CHANGE_START':
+      return {
+        ...state,
+        isLoading: true
+      };
+    case 'CHANGE_SUCCESS':
+      return {
+        ...state,
+        isLoading: false,
+        isError: false,
+        isEditing: false
+      };
+    case 'CHANGE_ERROR':
+      return {
+        ...state,
+        isLoading: false,
+        isError: true,
+        isEditing: true
+      };
+    default:
+      return state;
+  }
+}
 interface Props {
   content: string;
   isJson?: boolean;
   whiteBacked?: boolean;
   asEditor?: boolean;
   saveEdits?: (newContent: string) => void;
+  yamlError?: boolean;
 }
 
 export const ConfigDisplayer = React.memo((props: Props) => {
+  const [configState, configDispatch] = React.useReducer(
+    configDisplayReducer,
+    initialState
+  );
+
+  const dispatch = useDispatch();
+  const yamlError = useSelector(
+    (state: AppState) => state.virtualServices.yamlParseError
+  );
   const [editingContent, setEditingContent] = React.useState(props.content);
-  const [inEditingMode, setInEditingMode] = React.useState(false);
 
   React.useEffect(() => {
     if (editingContent !== props.content) {
       setEditingContent(props.content);
     }
+    configDispatch({ type: 'CHANGE_SUCCESS' });
   }, [props.content]);
+
+  React.useEffect(() => {
+    if (props.yamlError == true) {
+      configDispatch({ type: 'CHANGE_ERROR' });
+    }
+  }, [props.yamlError]);
 
   const onContentChange = (code: string): void => {
     setEditingContent(code);
   };
 
-  const saveEdits = (): void => {
+  const saveEdits = () => {
+    configDispatch({ type: 'CHANGE_START' });
     if (props.saveEdits) {
       props.saveEdits(editingContent);
+
+      if (configState.isError === false) {
+        configDispatch({ type: 'EDIT_MODE' });
+      }
     }
-    setInEditingMode(false);
   };
 
   const cancelEdits = (): void => {
     setEditingContent(props.content);
-    setInEditingMode(false);
+    configDispatch({ type: 'EDIT_MODE' });
   };
 
   const highlight = (code: string): React.ReactNode => {
@@ -161,7 +237,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
         code={code}
         language={props.isJson ? 'json' : 'yaml'}>
         {({ className, style, tokens, getLineProps, getTokenProps }) =>
-          props.asEditor && inEditingMode ? (
+          props.asEditor && configState.isEditing ? (
             <React.Fragment>
               {tokens.map((line, i) => {
                 return (
@@ -199,36 +275,39 @@ export const ConfigDisplayer = React.memo((props: Props) => {
   };
 
   return (
-    <Container whiteBacked={props.whiteBacked}>
-      {props.asEditor && (
-        <React.Fragment>
-          {inEditingMode ? (
-            <EditingActionsContainer whiteBacked={props.whiteBacked}>
-              <CancelButton onClick={cancelEdits}>Reset</CancelButton>
-              <SoloButtonStyledComponent onClick={saveEdits}>
-                Submit
-              </SoloButtonStyledComponent>
-            </EditingActionsContainer>
-          ) : (
-            <EditPencilHolder
-              inEditingMode={inEditingMode}
-              onClick={() => setInEditingMode(editing => !editing)}>
-              <EditPencil />
-            </EditPencilHolder>
-          )}
-        </React.Fragment>
-      )}
-      {props.asEditor && inEditingMode ? (
-        <Editor
-          value={editingContent}
-          onValueChange={onContentChange}
-          highlight={highlight}
-          padding={10}
-          style={styles.root}
-        />
-      ) : (
-        highlight(props.content)
-      )}
-    </Container>
+    <Spin spinning={configState.isLoading}>
+      <Container whiteBacked={props.whiteBacked}>
+        {props.asEditor && (
+          <React.Fragment>
+            {configState.isEditing ? (
+              <EditingActionsContainer whiteBacked={props.whiteBacked}>
+                <CancelButton onClick={cancelEdits}>Reset</CancelButton>
+                <SoloButton
+                  text='Apply'
+                  onClick={saveEdits}
+                  disabled={props.content === editingContent}></SoloButton>
+              </EditingActionsContainer>
+            ) : (
+              <EditPencilHolder
+                inEditingMode={configState.isEditing}
+                onClick={() => configDispatch({ type: 'EDIT_MODE' })}>
+                <EditPencil />
+              </EditPencilHolder>
+            )}
+          </React.Fragment>
+        )}
+        {props.asEditor && configState.isEditing ? (
+          <Editor
+            value={editingContent}
+            onValueChange={onContentChange}
+            highlight={highlight}
+            padding={10}
+            style={styles.root}
+          />
+        ) : (
+          highlight(props.content)
+        )}
+      </Container>
+    </Spin>
   );
 });

@@ -1,12 +1,15 @@
 import { VirtualServiceActionTypes, VirtualServiceAction } from './types';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 
 export interface VirtualServiceState {
   virtualServicesList: VirtualServiceDetails.AsObject[];
+  yamlParseError: boolean;
 }
 
 const initialState: VirtualServiceState = {
-  virtualServicesList: []
+  virtualServicesList: [],
+  yamlParseError: false
 };
 
 export function virtualServicesReducer(
@@ -30,8 +33,22 @@ export function virtualServicesReducer(
       return {
         ...state
       };
+    case VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML_ERROR:
+      SoloWarning(
+        'There was an error updating the virtual service.',
+        action.payload
+      );
+      return {
+        ...state,
+        yamlParseError: true
+      };
+    case VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML:
+      return {
+        ...state,
+        yamlParseError: false
+      };
     default:
-      return state;
+      return { ...state, yamlParseError: false };
   }
 }
 
