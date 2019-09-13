@@ -2,6 +2,7 @@ package grafana
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -33,27 +34,25 @@ func (t *templateGenerator) GenerateUid() string {
 	if len(name) > 40 {
 		name = name[len(name)-41 : len(name)-1]
 	}
-	return nameToEnvoyStats(name)
+	return strings.Replace(name, "-", "_", -1)
 }
 
 func (t *templateGenerator) GenerateDashboard() ([]byte, error) {
-	upstream := t.upstream
 	stats := upstreamStats{
-		ClusterName:  nameToEnvoyStats(upstream.Metadata.GetName()),
-		Uid:          t.GenerateUid(),
-		NameTemplate: "{{zone}} ({{host}})",
-		Overwrite:    true,
+		Uid:              t.GenerateUid(),
+		EnvoyClusterName: t.buildEnvoyClusterName(),
+		NameTemplate:     "{{zone}} ({{host}})",
+		Overwrite:        true,
 	}
 	return tmplExec(dashboardTemplate, stats)
 }
 
 func (t *templateGenerator) GenerateSnapshot() ([]byte, error) {
-	upstream := t.upstream
 	stats := upstreamStats{
-		ClusterName:  nameToEnvoyStats(upstream.Metadata.GetName()),
-		Uid:          t.GenerateUid(),
-		NameTemplate: "{{zone}} ({{host}})",
-		Overwrite:    true,
+		EnvoyClusterName: t.buildEnvoyClusterName(),
+		Uid:              t.GenerateUid(),
+		NameTemplate:     "{{zone}} ({{host}})",
+		Overwrite:        true,
 	}
 	return tmplExec(snapshotTemplate, stats)
 }
@@ -71,13 +70,24 @@ func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func nameToEnvoyStats(name string) string {
-	return strings.Replace(name, "-", "_", -1)
+func (t *templateGenerator) buildEnvoyClusterName() string {
+	us := t.upstream.GetUpstreamSpec()
+	switch us.GetUpstreamType().(type) {
+
+	// kubernetes upstreams have their prometheus statistics built using metadata about the service being represented
+	case *gloov1.UpstreamSpec_Kube:
+		kube := us.GetKube()
+		return fmt.Sprintf("%s-%s-%d_%s", kube.ServiceNamespace, kube.ServiceName, kube.ServicePort, t.upstream.Metadata.Namespace)
+
+	// all other types just use the name/namespace of the upstream itself
+	default:
+		return fmt.Sprintf("%s_%s", t.upstream.Metadata.Name, t.upstream.Metadata.Namespace)
+	}
 }
 
 type upstreamStats struct {
-	Uid          string
-	ClusterName  string
-	NameTemplate string
-	Overwrite    bool
+	Uid              string
+	EnvoyClusterName string
+	NameTemplate     string
+	Overwrite        bool
 }

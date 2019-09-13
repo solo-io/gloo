@@ -23,7 +23,7 @@ func init() {
 {
   "dashboard": 
 	%s,
-  "name": "{{.ClusterName}}"
+  "name": "{{.EnvoyClusterName}}"
 }
 `, jsonTemplate)
 }
@@ -50,7 +50,7 @@ const jsonTemplate = `
     "id": null,
     "links": [],
     "timezone": "",
-    "title": "{{.ClusterName}}",
+    "title": "{{.EnvoyClusterName}}",
     "version": 4,
     "panels": [
       {
@@ -90,7 +90,7 @@ const jsonTemplate = `
         "steppedLine": false,
         "targets": [
           {
-            "expr": "envoy_cluster_{{.ClusterName}}_upstream_cx_active",
+            "expr": "envoy_cluster_upstream_cx_active{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }",
             "format": "time_series",
             "intervalFactor": 2,
             "legendFormat": "{{.NameTemplate}}",
@@ -175,7 +175,7 @@ const jsonTemplate = `
         "steppedLine": false,
         "targets": [
           {
-            "expr": "irate(envoy_cluster_{{.ClusterName}}_upstream_rq_total[1m])",
+            "expr": "irate(envoy_cluster_upstream_rq_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }[1m])",
             "format": "time_series",
             "intervalFactor": 2,
             "legendFormat": "{{.NameTemplate}}",
@@ -260,14 +260,14 @@ const jsonTemplate = `
         "steppedLine": false,
         "targets": [
           {
-            "expr": "irate(envoy_cluster_{{.ClusterName}}_upstream_cx_rx_bytes_total[1m])",
+            "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }[1m])",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{.NameTemplate}} - in",
             "refId": "A"
           },
           {
-            "expr": "irate(envoy_cluster_{{.ClusterName}}_upstream_cx_tx_bytes_total[1m])",
+            "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }[1m])",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{.NameTemplate}} - out",

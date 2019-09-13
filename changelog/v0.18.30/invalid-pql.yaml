@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix the prometheus expressions in the auto-generated grafana dashboards
+    issueLink: https://github.com/solo-io/solo-projects/issues/1029
