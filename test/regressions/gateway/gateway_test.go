@@ -6,8 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
-
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -97,8 +95,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			Protocol:          "http",
 			Path:              "/",
 			Method:            "GET",
-			Host:              translator.GatewayProxyName,
-			Service:           translator.GatewayProxyName,
+			Host:              defaults.GatewayProxyName,
+			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 		}, helper.SimpleHttpResponse, 1, time.Minute*20)
@@ -149,8 +147,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				Protocol:          "https",
 				Path:              "/",
 				Method:            "GET",
-				Host:              translator.GatewayProxyName,
-				Service:           translator.GatewayProxyName,
+				Host:              defaults.GatewayProxyName,
+				Service:           defaults.GatewayProxyName,
 				Port:              gatewayPort,
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely

@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
-
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 
 	"github.com/gogo/protobuf/types"
@@ -94,8 +92,8 @@ var _ = Describe("Ratelimit tests", func() {
 			Protocol:          "http",
 			Path:              "/",
 			Method:            "GET",
-			Host:              translator.GatewayProxyName,
-			Service:           translator.GatewayProxyName,
+			Host:              defaults.GatewayProxyName,
+			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			Verbose:           true,

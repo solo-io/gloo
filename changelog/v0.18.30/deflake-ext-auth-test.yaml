@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: De-flake ext-auth regression test.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1098

@@ -39,8 +39,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
-// while testing cluster lock flake
-var _ = XDescribe("External auth", func() {
+var _ = Describe("External auth", func() {
 
 	var (
 		ctx        context.Context
@@ -80,6 +79,10 @@ var _ = XDescribe("External auth", func() {
 
 		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		cancel()
 	})
 
 	Describe("authenticate requests via LDAP", func() {
@@ -128,6 +131,17 @@ var _ = XDescribe("External auth", func() {
 				}, "30s", "0.5s").Should(BeNil())
 			})
 
+			// Make sure we can query the LDAP server
+			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+				Protocol:          "ldap",
+				Path:              "/",
+				Method:            "GET",
+				Service:           fmt.Sprintf("ldap.%s.svc.cluster.local", testHelper.InstallNamespace),
+				Port:              389,
+				ConnectionTimeout: 1,
+				Verbose:           true,
+			}, "OpenLDAProotDSE", 1, time.Minute)
+
 			By("create an LDAP-secured route to the test upstream", func() {
 				extAuthConfig, err := envoyutil.MessageToStruct(&extauthapi.VhostExtension{
 					Configs: []*extauthapi.AuthConfig{
@@ -163,7 +177,6 @@ var _ = XDescribe("External auth", func() {
 		})
 
 		AfterEach(func() {
-			cancel()
 
 			isNotFound := func(err error) bool {
 				return err != nil && kubeerrors.IsNotFound(err)
@@ -220,7 +233,7 @@ var _ = XDescribe("External auth", func() {
 				Port:              gatewayPort,
 				ConnectionTimeout: 10,   // this is important, as the first curl call sometimes hangs indefinitely
 				Verbose:           true, // this is important, as curl will only output status codes with verbose output
-			}, expectedResponseSubstring, 1, time.Minute)
+			}, expectedResponseSubstring, 1, 2*time.Minute)
 		}
 
 		It("works as expected", func() {
@@ -233,13 +246,14 @@ var _ = XDescribe("External auth", func() {
 				curlAndAssertResponse(buildAuthHeader("john:doe"), response401)
 			})
 
+			By("returns 200 if the user belongs to one of the allowed groups", func() {
+				curlAndAssertResponse(buildAuthHeader("rick:rickpwd"), response200)
+			})
+
 			By("returns 403 if the user does not belong to the allowed groups", func() {
 				curlAndAssertResponse(buildAuthHeader("marco:marcopwd"), response403)
 			})
 
-			By("returns 200 if the user belongs to one of the allowed groups", func() {
-				curlAndAssertResponse(buildAuthHeader("rick:rickpwd"), response200)
-			})
 		})
 	})
 })

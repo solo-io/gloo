@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 
@@ -91,8 +90,8 @@ var _ = Describe("waf tests", func() {
 			Protocol:          "http",
 			Path:              "/",
 			Method:            "GET",
-			Host:              translator.GatewayProxyName,
-			Service:           translator.GatewayProxyName,
+			Host:              defaults.GatewayProxyName,
+			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			Verbose:           true,
