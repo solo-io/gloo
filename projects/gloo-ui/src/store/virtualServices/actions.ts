@@ -379,8 +379,8 @@ export function getUpdateDomains(updateDomainsRequest: {
     let inputV2Domains = new RepeatedStrings();
     if (updateDomainsRequest.domains !== undefined) {
       inputV2Domains.setValuesList(updateDomainsRequest.domains);
-      inputV2.setDomains(inputV2Domains);
     }
+    inputV2.setDomains(inputV2Domains);
 
     updateRequest.setInputV2(inputV2);
     client.updateVirtualService(updateRequest, (error, data) => {
@@ -800,10 +800,12 @@ export function getCreateRoute(
       inputRoute.setRoute(newRoute);
     }
     inputRoute.setIndex(index);
-    let vsRef = new ResourceRef();
-    vsRef.setName(virtualServiceRef!.name);
-    vsRef.setNamespace(virtualServiceRef!.namespace);
-    inputRoute.setVirtualServiceRef(vsRef);
+    if (virtualServiceRef !== undefined) {
+      let vsRef = new ResourceRef();
+      vsRef.setName(virtualServiceRef!.name);
+      vsRef.setNamespace(virtualServiceRef!.namespace);
+      inputRoute.setVirtualServiceRef(vsRef);
+    }
 
     createRequest.setInput(inputRoute);
     client.createRoute(createRequest, (error, data) => {

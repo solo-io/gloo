@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { useCreateRoute, useUpdateRoute } from 'Api/useVirtualServiceClient';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
   SoloFormDropdown,
@@ -16,41 +15,26 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import {
-  VirtualService,
-  Route
+  Route,
+  VirtualService
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
 import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import {
-  ConsulServiceDestination,
-  Destination,
   HeaderMatcher,
-  Matcher,
-  QueryParameterMatcher,
-  RouteAction
+  QueryParameterMatcher
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import {
-  CreateRouteRequest,
-  RouteInput,
-  VirtualServiceDetails
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
+import { createRoute } from 'store/virtualServices/actions';
 import { colors, soloConstants } from 'Styles';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { getRouteMatcher } from 'utils/helpers';
 import * as yup from 'yup';
 import { DestinationForm } from './DestinationForm';
-import {
-  updateVirtualService,
-  createRoute
-} from 'store/virtualServices/actions';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -188,17 +172,13 @@ const Footer = styled.div`
 interface Props extends RouteComponentProps {
   defaultVirtualService?: VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
-  completeCreation: (newVirtualService?: VirtualService.AsObject) => any;
+  completeCreation: () => any;
   existingRoute?: Route.AsObject;
   lockVirtualService?: boolean;
 }
 
-export const CreateRouteModalC = (props: Props) => {
+export const CreateRouteModal = withRouter((props: Props) => {
   const dispatch = useDispatch();
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList
-  );
-
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
   );
@@ -206,7 +186,9 @@ export const CreateRouteModalC = (props: Props) => {
   const upstreamsList = useSelector((state: AppState) =>
     state.upstreams.upstreamsList.map(u => u.upstream!)
   );
-
+  const [fallbackVS, setFallbackVS] = React.useState<
+    VirtualServiceDetails.AsObject
+  >();
   const [
     allUsableVirtualServices,
     setAllUsableVirtualServices
@@ -215,44 +197,23 @@ export const CreateRouteModalC = (props: Props) => {
     Upstream.AsObject[]
   >([]);
 
-  const {
-    data: createdVirtualServiceData,
-    refetch: makeRequest
-  } = useCreateRoute(null);
-  const {
-    data: updatedVirtualServiceData,
-    refetch: makeUpdateRequest
-  } = useUpdateRoute(null);
-
-  React.useEffect(() => {
-    if (!!createdVirtualServiceData) {
-      props.completeCreation(createdVirtualServiceData.virtualService);
-
-      if (
-        !!createdVirtualServiceData.virtualServiceDetails &&
-        !!createdVirtualServiceData.virtualServiceDetails.virtualService
-      ) {
-        props.history.push({
-          pathname: `/virtualservices/${
-            createdVirtualServiceData.virtualServiceDetails.virtualService
-              .metadata!.namespace
-          }/${
-            createdVirtualServiceData.virtualServiceDetails.virtualService
-              .metadata!.name
-          }`
-        });
-      }
-    }
-    if (!!updatedVirtualServiceData) {
-      props.completeCreation(updatedVirtualServiceData.virtualService);
-    }
-  }, [createdVirtualServiceData, updatedVirtualServiceData]);
-
   React.useEffect(() => {
     setAllUsableVirtualServices(
       !!virtualServicesList
         ? virtualServicesList.filter(vs => !!vs.virtualService!.metadata)
         : []
+    );
+    setFallbackVS(
+      !!virtualServicesList
+        ? virtualServicesList.find(
+            vsD =>
+              !!vsD &&
+              vsD.virtualService &&
+              vsD.virtualService.virtualHost &&
+              vsD.virtualService.virtualHost.domainsList &&
+              vsD.virtualService.virtualHost.domainsList.includes('*')
+          )
+        : undefined
     );
   }, [virtualServicesList.length]);
 
@@ -274,10 +235,13 @@ export const CreateRouteModalC = (props: Props) => {
     dispatch(
       createRoute({
         input: {
-          virtualServiceRef: {
-            name: values.virtualService!.metadata!.name,
-            namespace: values.virtualService!.metadata!.namespace
-          },
+          ...(!!values.virtualService &&
+            values.virtualService.metadata && {
+              virtualServiceRef: {
+                name: values.virtualService!.metadata!.name,
+                namespace: values.virtualService!.metadata!.namespace
+              }
+            }),
           index: 0,
           route: {
             matcher: {
@@ -301,6 +265,27 @@ export const CreateRouteModalC = (props: Props) => {
         }
       })
     );
+
+    props.completeCreation();
+    if (values.virtualService && values.virtualService.metadata) {
+      props.history.push({
+        pathname: `/virtualservices/${
+          values.virtualService.metadata!.namespace
+        }/${values.virtualService.metadata!.name}`
+      });
+    } else {
+      if (!!fallbackVS && !!fallbackVS.virtualService) {
+        props.history.push({
+          pathname: `/virtualservices/${
+            fallbackVS.virtualService.metadata!.namespace
+          }/${fallbackVS.virtualService.metadata!.name}`
+        });
+      } else {
+        props.history.push({
+          pathname: `/virtualservices/gloo-system/default`
+        });
+      }
+    }
   };
 
   const isSubmittable = (
@@ -328,7 +313,7 @@ export const CreateRouteModalC = (props: Props) => {
     );
 
     existingRouteToInitialValues = {
-      virtualService: props.defaultVirtualService!,
+      virtualService: props.defaultVirtualService,
       upstream: existingRouteUpstream,
       destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
       headers: existingRoute.matcher!.headersList,
@@ -511,6 +496,4 @@ export const CreateRouteModalC = (props: Props) => {
       }}
     </Formik>
   );
-};
-
-export const CreateRouteModal = withRouter(CreateRouteModalC);
+});

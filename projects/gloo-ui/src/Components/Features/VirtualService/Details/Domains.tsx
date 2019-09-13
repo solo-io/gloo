@@ -40,10 +40,11 @@ export const Domains: React.FC<Props> = React.memo(props => {
     }
   }, [props.domains]);
 
-  // need to hook this up to api
   const addDomain = (domain: string) => {
-    dispatch(updateDomains({ ref: props.vsRef, domains }));
     setDomains([...domains, domain]);
+    dispatch(
+      updateDomains({ ref: props.vsRef, domains: [...domains, domain] })
+    );
   };
 
   const removeDomain = (removeIndex: number) => {

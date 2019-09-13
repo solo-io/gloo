@@ -87,6 +87,9 @@ export const VirtualServiceDetails = (props: Props) => {
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
   );
+  const yamlError = useSelector(
+    (state: AppState) => state.virtualServices.yamlParseError
+  );
 
   const dispatch = useDispatch();
 
@@ -164,9 +167,6 @@ export const VirtualServiceDetails = (props: Props) => {
       value: virtualservicenamespace
     }
   ];
-  const yamlError = useSelector(
-    (state: AppState) => state.virtualServices.yamlParseError
-  );
   return (
     <React.Fragment>
       <Breadcrumb />

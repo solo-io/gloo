@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Create route modal UX fixes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1106
+  - type: NEW_FEATURE
+    description: Allow creating a route without specifying a virtual service.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1096
