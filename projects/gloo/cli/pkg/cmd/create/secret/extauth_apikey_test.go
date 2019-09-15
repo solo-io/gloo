@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	glooSecret "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create/secret"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	pluginutils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/create/secret"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/testutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
@@ -60,7 +60,7 @@ var _ = Describe("ExtauthApiKey", func() {
 	It("should error when no apikey provided", func() {
 		err := testutils.GlooctlEE("create secret apikey --name user --namespace gloo-system")
 		Expect(err).To(HaveOccurred())
-		Expect(err).To(Equal(secret.MissingApiKeyError))
+		Expect(err).To(Equal(glooSecret.MissingApiKeyError))
 	})
 
 	It("should error when no name provided", func() {

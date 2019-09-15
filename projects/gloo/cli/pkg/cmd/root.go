@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/prerun"
+
 	"github.com/solo-io/go-utils/cliutils"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd"
@@ -69,5 +71,5 @@ func getOptionsFunc(opts *options.Options) cliutils.OptionsFunc {
 // pre-run functions provide you the opportunity to modify the options.Options object before commands are executed
 // this is useful for applying constraints that are input-specific and apply to multiple subcommands
 func getPreRunFuncs() []cmd.PreRunFunc {
-	return []cmd.PreRunFunc{cmd.HarmonizeDryRunAndOutputFormat}
+	return []cmd.PreRunFunc{prerun.HarmonizeDryRunAndOutputFormat}
 }

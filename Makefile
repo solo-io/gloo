@@ -63,6 +63,9 @@ init:
 	git config core.hooksPath .githooks
 
 .PHONY: update-deps
+update-all-deps: update-deps update-ui-deps
+
+.PHONY: update-deps
 update-deps:
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/gogo/protobuf/gogoproto
@@ -115,6 +118,9 @@ clean:
 #----------------------------------------------------------------------------------
 
 
+.PHONY: generate-all
+generate-all: generated-ui generated-code
+
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
@@ -143,11 +149,11 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/gogo/protobuf/gogoproto/gogo.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/*.proto
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
 	protoc $(UI_PROTOC_FLAGS) \
@@ -159,27 +165,27 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 	 	$(GOPATH)/src/github.com/solo-io/solo-kit/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-			$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v2/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v2/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh

@@ -3,6 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb";
 import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb";
@@ -269,6 +270,11 @@ export class Route extends jspb.Message {
   getRoutePlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins | undefined;
   setRoutePlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins): void;
 
+  hasRouteMetadata(): boolean;
+  clearRouteMetadata(): void;
+  getRouteMetadata(): google_protobuf_struct_pb.Struct | undefined;
+  setRouteMetadata(value?: google_protobuf_struct_pb.Struct): void;
+
   getActionCase(): Route.ActionCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Route.AsObject;
@@ -287,6 +293,7 @@ export namespace Route {
     redirectAction?: RedirectAction.AsObject,
     directResponseAction?: DirectResponseAction.AsObject,
     routePlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.AsObject,
+    routeMetadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
   export enum ActionCase {

@@ -24,6 +24,7 @@ gloo:
     create: false
   gloo:
     deployment:
+      runAsUser: 10101
       stats: true
       image:
         repository: gloo-ee
@@ -55,11 +56,13 @@ gloo:
   discovery:
     enabled: true
     deployment:
+      runAsUser: 10101
       image:
         repository: discovery
         registry: quay.io/solo-io
   gateway:
     deployment:
+      runAsUser: 10101
       image:
         repository: gateway
         registry: quay.io/solo-io
@@ -69,31 +72,37 @@ gloo:
       image:
         repository: gateway-conversion
       restartPolicy: Never
-  apiServer:
-    enterprise: true
-    enable: true
-    enableBeta: true
-    deployment:
-      stats: true
-      name: "grpcserver-ui"
-      server:
-        image:
-          name: apiserver
-          repository: grpcserver-ee
-        grpcPort: 10101
-        oauth: {}
-      ui:
-        image:
-          name: "gloo-ui"
-          repository: grpcserver-ui
-        staticPort: 8080
-      envoy:
-        image:
-          name: "grpcserver-envoy"
-          repository: grpcserver-envoy
-    service:
-      name: "apiserver-ui"
 
+
+########################################################################
+###                                                                  ###
+###                        Apiserver                                 ###
+###                                                                  ###
+########################################################################
+apiServer:
+  enterprise: true
+  enable: true
+  enableBeta: true
+  deployment:
+    stats: true
+    name: "grpcserver-ui"
+    server:
+      image:
+        name: apiserver
+        repository: grpcserver-ee
+      grpcPort: 10101
+      oauth: {}
+    ui:
+      image:
+        name: "gloo-ui"
+        repository: grpcserver-ui
+      staticPort: 8080
+    envoy:
+      image:
+        name: "grpcserver-envoy"
+        repository: grpcserver-envoy
+  service:
+    name: "apiserver-ui"
 
 ########################################################################
 ###                                                                  ###

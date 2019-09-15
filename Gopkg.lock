@@ -1378,10 +1378,11 @@
   version = "v0.5.1"
 
 [[projects]]
-  digest = "1:3118a06e556339e039e6f9602a6fd52b57e0f74e559b4e0c9abb7d1f3fa2a1e1"
+  digest = "1:c46dba6bdc11dd01fc0541da01a08a4a02f7ce94d250a90a753c02ce50347a4e"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
+    "install/test",
     "pkg/cliutil",
     "pkg/cliutil/install",
     "pkg/cliutil/testutil",
@@ -1416,6 +1417,11 @@
     "projects/gloo/cli/pkg/cmd/del",
     "projects/gloo/cli/pkg/cmd/edit",
     "projects/gloo/cli/pkg/cmd/edit/options",
+    "projects/gloo/cli/pkg/cmd/edit/route",
+    "projects/gloo/cli/pkg/cmd/edit/route/options",
+    "projects/gloo/cli/pkg/cmd/edit/route/ratelimit",
+    "projects/gloo/cli/pkg/cmd/edit/settings",
+    "projects/gloo/cli/pkg/cmd/edit/settings/ratelimit",
     "projects/gloo/cli/pkg/cmd/edit/upstream",
     "projects/gloo/cli/pkg/cmd/edit/virtualservice",
     "projects/gloo/cli/pkg/cmd/gateway",
@@ -1425,6 +1431,8 @@
     "projects/gloo/cli/pkg/cmd/remove",
     "projects/gloo/cli/pkg/cmd/route",
     "projects/gloo/cli/pkg/cmd/upgrade",
+    "projects/gloo/cli/pkg/cmd/version",
+    "projects/gloo/cli/pkg/cmdutils",
     "projects/gloo/cli/pkg/common",
     "projects/gloo/cli/pkg/constants",
     "projects/gloo/cli/pkg/flagutils",
@@ -1440,6 +1448,7 @@
     "projects/gloo/pkg/api/external/envoy/extensions/extauth",
     "projects/gloo/pkg/api/external/envoy/extensions/jwt",
     "projects/gloo/pkg/api/external/envoy/extensions/waf",
+    "projects/gloo/pkg/api/grpc/version",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/enterprise",
     "projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
@@ -1516,8 +1525,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "47261575e46dd5740437980b84ad096e585c0159"
-  version = "v0.18.40"
+  revision = "3804ebaacdc76a107a3848c13d84eafc507953c0"
+  version = "v0.18.42"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1528,7 +1537,7 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:c34498d647e0b6861429391b7da35109d764ea854885d03be2f33e43399f1c45"
+  digest = "1:9d2d1bb977ffc6728ecae271f0f6599f181dd4ba1999707670869637f86461b6"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1564,8 +1573,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "075c4b07de59a9b7b20475b7eab02dcdc6a62d64"
-  version = "v0.10.0"
+  revision = "acf7af80d72935c89b022e3c98ab68226a52eeda"
+  version = "v0.10.2"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -2733,6 +2742,7 @@
     "github.com/solo-io/ext-auth-service/pkg/config/opa",
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
+    "github.com/solo-io/gloo/install/test",
     "github.com/solo-io/gloo/pkg/cliutil",
     "github.com/solo-io/gloo/pkg/cliutil/install",
     "github.com/solo-io/gloo/pkg/cliutil/testutil",
@@ -2770,6 +2780,7 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/constants",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/prerun",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/printers",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/testutils",
@@ -2873,6 +2884,7 @@
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/types",
+    "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/apimachinery/pkg/watch",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/typed/core/v1",

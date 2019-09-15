@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb.js');
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
@@ -1805,7 +1806,8 @@ proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
     routeAction: (f = msg.getRouteAction()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && proto.gloo.solo.io.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && proto.gloo.solo.io.DirectResponseAction.toObject(includeInstance, f),
-    routePlugins: (f = msg.getRoutePlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.toObject(includeInstance, f)
+    routePlugins: (f = msg.getRoutePlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.toObject(includeInstance, f),
+    routeMetadata: (f = msg.getRouteMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1866,6 +1868,11 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.deserializeBinaryFromReader);
       msg.setRoutePlugins(value);
+      break;
+    case 6:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setRouteMetadata(value);
       break;
     default:
       reader.skipField();
@@ -1934,6 +1941,14 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       5,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getRouteMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -2086,6 +2101,36 @@ proto.gloo.solo.io.Route.prototype.clearRoutePlugins = function() {
  */
 proto.gloo.solo.io.Route.prototype.hasRoutePlugins = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct route_metadata = 6;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.gloo.solo.io.Route.prototype.getRouteMetadata = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 6));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.gloo.solo.io.Route.prototype.setRouteMetadata = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gloo.solo.io.Route.prototype.clearRouteMetadata = function() {
+  this.setRouteMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Route.prototype.hasRouteMetadata = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	glooCmdutils "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmdutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmdutils"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/testutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
@@ -41,7 +41,7 @@ var _ = Describe("CustomServerConfig", func() {
 
 	Run := func(yaml string) error {
 
-		cmdutils.EditFileForTest = func(prefix, suffix string, r io.Reader) ([]byte, string, error) {
+		glooCmdutils.EditFileForTest = func(prefix, suffix string, r io.Reader) ([]byte, string, error) {
 			return []byte(yaml), "", nil
 		}
 

@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -269,7 +271,99 @@ var _ = Describe("Helm Test", func() {
 
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 				})
+				Context("apiserver deployment", func() {
+					var deploy *appsv1.Deployment
+
+					BeforeEach(func() {
+						labels = map[string]string{
+							"gloo": "apiserver-ui",
+							"app":  "gloo",
+						}
+						selector = map[string]string{
+							"gloo": "apiserver-ui",
+						}
+						grpcPortEnvVar := v1.EnvVar{
+							Name:  "GRPC_PORT",
+							Value: "10101",
+						}
+						noAuthEnvVar := v1.EnvVar{
+							Name:  "NO_AUTH",
+							Value: "1",
+						}
+						licenseEnvVar := v1.EnvVar{
+							Name: "GLOO_LICENSE_KEY",
+							ValueFrom: &v1.EnvVarSource{
+								SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "license",
+									},
+									Key: "license-key",
+								},
+							},
+						}
+						uiContainer := v1.Container{
+							Name:            "apiserver-ui",
+							Image:           "quay.io/solo-io/grpcserver-ui:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+								{Name: "empty-run", MountPath: "/var/run"},
+							},
+							Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
+						}
+						grpcServerContainer := v1.Container{
+							Name:            "apiserver",
+							Image:           "quay.io/solo-io/grpcserver-ee:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
+							Env: []v1.EnvVar{
+								GetPodNamespaceEnvVar(),
+								grpcPortEnvVar,
+								noAuthEnvVar,
+								licenseEnvVar,
+							},
+						}
+						envoyContainer := v1.Container{
+							Name:            "gloo-grpcserver-envoy",
+							Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							ReadinessProbe: &v1.Probe{
+								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
+									Path: "/",
+									Port: intstr.IntOrString{IntVal: 8080},
+								}},
+								InitialDelaySeconds: 5,
+								PeriodSeconds:       10,
+							},
+						}
+
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "api-server",
+							Labels:    labels,
+						}
+						deploy = rb.GetDeploymentAppsv1()
+						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						}
+						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
+						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
+						deploy.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
+							{
+								Name: "solo-io-readerbot-pull-secret",
+							},
+						}
+					})
+
+					It("is there by default", func() {
+						helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+						prepareMakefile(helmFlags)
+						testManifest.ExpectDeploymentAppsV1(deploy)
+					})
+				})
 			})
+
 		})
 	})
 })

@@ -1,13 +1,10 @@
 package create_test
 
 import (
-	"fmt"
-
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/create"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	glooCreate "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create"
 
 	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -145,13 +142,13 @@ var _ = Describe("Virtualservice", func() {
 			_, err := testutils.GlooctlEEOut("create vs --name vs1 --enable-apikey-auth " +
 				"--apikey-secret-namespace ns1")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(create.ProvideNamespaceAndNameError("ns1", "").Error()))
+			Expect(err.Error()).To(Equal(glooCreate.ProvideNamespaceAndNameError("ns1", "").Error()))
 		})
 		It("throws error if name provided and namespace omitted ", func() {
 			_, err := testutils.GlooctlEEOut("create vs --name vs1 --enable-apikey-auth " +
 				"--apikey-secret-name s1")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(create.ProvideNamespaceAndNameError("", "s1").Error()))
+			Expect(err.Error()).To(Equal(glooCreate.ProvideNamespaceAndNameError("", "s1").Error()))
 		})
 	})
 
@@ -201,7 +198,7 @@ var _ = Describe("Virtualservice", func() {
 	Context("OPA virtual service errors", func() {
 		It("throws error if no query provided ", func() {
 			_, err := testutils.GlooctlEEOut("create vs --name vs1 --enable-opa-auth")
-			Expect(err).To(MatchError(create.EmptyQueryError))
+			Expect(err).To(MatchError(glooCreate.EmptyQueryError))
 		})
 	})
 
@@ -392,7 +389,6 @@ var _ = Describe("Virtualservice", func() {
 		It("can print as kube yaml in dry run", func() {
 			out, err := testutils.GlooctlEEOut("create virtualservice kube --dry-run --name vs --domains foo.bar,baz.qux")
 			Expect(err).NotTo(HaveOccurred())
-			fmt.Print(out)
 			Expect(out).To(Equal(`apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
@@ -412,17 +408,19 @@ status: {}
 		It("can print as solo-kit yaml in dry run", func() {
 			out, err := testutils.GlooctlEEOut("create virtualservice kube --dry-run -oyaml --name vs --domains foo.bar,baz.qux")
 			Expect(err).NotTo(HaveOccurred())
-			fmt.Print(out)
-			Expect(out).To(Equal(`---
-displayName: vs
+			Expect(out).To(Equal(`apiVersion: gateway.solo.io/v1
+kind: VirtualService
 metadata:
+  creationTimestamp: null
   name: vs
   namespace: gloo-system
+spec:
+  displayName: vs
+  virtualHost:
+    domains:
+    - foo.bar
+    - baz.qux
 status: {}
-virtualHost:
-  domains:
-  - foo.bar
-  - baz.qux
 `))
 		})
 	})

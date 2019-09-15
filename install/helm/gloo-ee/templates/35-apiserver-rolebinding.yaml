@@ -2,10 +2,10 @@
 kind: {{ include "gloo.roleKind" . }}Binding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ .Values.apiServer.service.name }}-role-binding{{ include "gloo.rolebindingsuffix" . }}-mutations
-  {{- if .Values.global.glooRbac.namespaced }}
+  name: {{ .Values.apiServer.service.name }}-role-binding{{ include "gloo.rolebindingsuffix" . }}
+{{- if .Values.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
-  {{- end }}
+{{- end }}
   labels:
     app: gloo
     gloo: rbac
@@ -18,6 +18,6 @@ subjects:
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: {{ include "gloo.roleKind" . }}
-  name: {{ .Values.apiServer.service.name }}-mutations
+  name: {{ .Values.apiServer.service.name }}
   apiGroup: rbac.authorization.k8s.io
-  {{- end }} # .Values.apiServer.enable
+{{- end }} # .Values.apiServer.enable

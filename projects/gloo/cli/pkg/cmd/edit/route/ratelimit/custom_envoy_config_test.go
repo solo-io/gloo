@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	glooCmdutils "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmdutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmdutils"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/testutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
@@ -60,7 +60,7 @@ var _ = Describe("CustomEnvoyConfig", func() {
 
 	It("should edit route", func() {
 
-		cmdutils.EditFileForTest = func(prefix, suffix string, r io.Reader) ([]byte, string, error) {
+		glooCmdutils.EditFileForTest = func(prefix, suffix string, r io.Reader) ([]byte, string, error) {
 			b := `
 include_vh_rate_limits: true
 rate_limits:
