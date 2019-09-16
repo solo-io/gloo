@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -27,6 +28,10 @@ func AddFileFlag(set *pflag.FlagSet, strptr *string) {
 func AddDryRunFlag(set *pflag.FlagSet, dryRun *bool) {
 	set.BoolVarP(dryRun, DryRunFlag, "", false, "print kubernetes-formatted yaml "+
 		"rather than creating or updating a resource")
+}
+
+func AddKubeConfigFlag(set *pflag.FlagSet, kubeConfig *string) {
+	set.StringVarP(kubeConfig, clientcmd.RecommendedConfigPathFlag, "", "", "kubeconfig to use, if not standard one")
 }
 
 func AddConsulConfigFlags(set *pflag.FlagSet, consul *options.Consul) {
