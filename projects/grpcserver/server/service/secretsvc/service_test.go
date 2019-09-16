@@ -3,6 +3,8 @@ package secretsvc_test
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,6 +25,7 @@ var (
 	mockCtrl      *gomock.Controller
 	secretClient  *mock_gloo.MockSecretClient
 	licenseClient *mock_license.MockClient
+	clientCache   *mocks.MockClientCache
 	scrubber      *mock_scrub.MockScrubber
 	testErr       = errors.Errorf("test-err")
 )
@@ -34,7 +37,9 @@ var _ = Describe("ServiceTest", func() {
 		secretClient = mock_gloo.NewMockSecretClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		scrubber = mock_scrub.NewMockScrubber(mockCtrl)
-		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), secretClient, scrubber, licenseClient)
+		clientCache = mocks.NewMockClientCache(mockCtrl)
+		clientCache.EXPECT().GetSecretClient().Return(secretClient).AnyTimes()
+		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), clientCache, scrubber, licenseClient)
 	})
 
 	AfterEach(func() {

@@ -3,6 +3,8 @@ package virtualservicesvc_test
 import (
 	"context"
 
+	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+
 	"google.golang.org/grpc/codes"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -36,6 +38,7 @@ var (
 	settingsValues        *mock_settings.MockValuesClient
 	detailsConverter      *mock_converter.MockVirtualServiceDetailsConverter
 	selector              *mock_selector.MockVirtualServiceSelector
+	clientCache           *clientmocks.MockClientCache
 	detailsExpectation    *gomock.Call
 	virtualService        *gatewayv1.VirtualService
 	virtualServiceDetails *v1.VirtualServiceDetails
@@ -61,10 +64,12 @@ var _ = Describe("ServiceTest", func() {
 		detailsConverter = mock_converter.NewMockVirtualServiceDetailsConverter(mockCtrl)
 		selector = mock_selector.NewMockVirtualServiceSelector(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
+		clientCache = clientmocks.NewMockClientCache(mockCtrl)
+		clientCache.EXPECT().GetVirtualServiceClient().Return(virtualServiceClient).AnyTimes()
 		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(
 			context.TODO(),
 			"",
-			virtualServiceClient,
+			clientCache,
 			licenseClient,
 			settingsValues,
 			mutator,

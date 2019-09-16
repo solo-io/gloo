@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/solo-io/go-utils/contextutils"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"go.uber.org/zap"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 //go:generate mockgen -destination mocks/mock_client.go -package mocks github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails Client
