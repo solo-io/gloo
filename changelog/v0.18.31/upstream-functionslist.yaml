@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix bug that prevented functions list component in upstreams card view to close.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1095

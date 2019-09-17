@@ -171,7 +171,7 @@ export interface CardType {
   }[];
   healthStatus?: number;
   onCreate?: () => any;
-  extraInfoComponent?: React.FC;
+  ExtraInfoComponent?: React.ReactNode;
   downloadableContent?: Raw.AsObject;
 }
 
@@ -187,7 +187,7 @@ export const Card = (props: CardType) => {
     onClick,
     healthStatus,
     onCreate,
-    extraInfoComponent,
+    ExtraInfoComponent,
     removeConfirmText,
     downloadableContent
   } = props;
@@ -203,11 +203,6 @@ export const Card = (props: CardType) => {
       setExpanded(exp => !exp);
     }
   };
-
-  let ExtraInformation = null;
-  if (!!extraInfoComponent) {
-    ExtraInformation = extraInfoComponent;
-  }
 
   return (
     <Container>
@@ -268,7 +263,7 @@ export const Card = (props: CardType) => {
                 );
               })}
           </ExpandedDetails>
-          {!!ExtraInformation && <ExtraInformation />}
+          {!!ExtraInfoComponent && ExtraInfoComponent}
           <Footer onClick={handleFooterClick}>
             <span>Hide Details</span>
             <HealthIndicator

@@ -4,6 +4,7 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import React from 'react';
 import { colors } from 'Styles';
 import { getFunctionList } from 'utils/helpers';
+import { shallowEqual } from 'react-redux';
 
 const ExtraInfoContainer = styled.div`
   margin-top: -18px;
@@ -54,50 +55,50 @@ interface Props {
   upstream: Upstream.AsObject;
 }
 
-export function ExtraInfo(props: Props) {
+export const ExtraInfo = React.memo((props: Props) => {
   const [showModal, setShowModal] = React.useState(true);
 
-  // TODO: process upstream spec to support all types
-  const [functionsList, setFunctionsList] = React.useState<
-    { key: string; value: string }[]
-  >(() => getFunctionList(props.upstream.upstreamSpec!));
+  const functionsList = getFunctionList(props.upstream.upstreamSpec!);
 
   return (
-    <ExtraInfoContainer>
-      <ToggleContainer>
-        <ShowToggle
-          onClick={() => {
-            console.log(functionsList);
-            if (functionsList.length !== 0) {
-              setShowModal(s => !s);
-            }
-          }}>
-          {`${showModal ? 'Hide' : 'Show'} Functions`}
-        </ShowToggle>
-      </ToggleContainer>
-      {showModal && (
-        <FunctionsContainer>
-          <ScrollMirror />
-          <ListBlock>
-            <List
-              size='small'
-              bordered
-              dataSource={functionsList}
-              locale={{
-                emptyText: 'No Functions'
-              }}
-              renderItem={item => (
-                <List.Item
-                  style={{
-                    padding: '0 5px'
-                  }}>
-                  <List.Item.Meta title={item.value} />
-                </List.Item>
-              )}
-            />
-          </ListBlock>
-        </FunctionsContainer>
-      )}
-    </ExtraInfoContainer>
+    <>
+      {functionsList.length > 0 ? (
+        <ExtraInfoContainer>
+          <ToggleContainer>
+            <ShowToggle
+              onClick={() => {
+                if (functionsList.length !== 0) {
+                  setShowModal(s => !s);
+                }
+              }}>
+              {`${showModal ? 'Hide' : 'Show'} Functions`}
+            </ShowToggle>
+          </ToggleContainer>
+          {showModal && (
+            <FunctionsContainer>
+              <ScrollMirror />
+              <ListBlock>
+                <List
+                  size='small'
+                  bordered
+                  dataSource={functionsList}
+                  locale={{
+                    emptyText: 'No Functions'
+                  }}
+                  renderItem={item => (
+                    <List.Item
+                      style={{
+                        padding: '0 5px'
+                      }}>
+                      <List.Item.Meta title={item.value} />
+                    </List.Item>
+                  )}
+                />
+              </ListBlock>
+            </FunctionsContainer>
+          )}
+        </ExtraInfoContainer>
+      ) : null}
+    </>
   );
-}
+}, shallowEqual);

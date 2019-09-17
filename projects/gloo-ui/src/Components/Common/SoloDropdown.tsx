@@ -3,6 +3,7 @@ import { Select } from 'antd';
 import { colors, soloConstants } from 'Styles';
 import styled from '@emotion/styled';
 import { Label } from './SoloInput';
+import { shallowEqual } from 'react-redux';
 
 export const SoloDropdownBlock = styled(Select)`
   width: 100%;
@@ -51,7 +52,7 @@ export interface DropdownProps {
   testId?: string;
 }
 
-export const SoloDropdown = (props: DropdownProps) => {
+export const SoloDropdown = React.memo((props: DropdownProps) => {
   const {
     title,
     disabled,
@@ -97,4 +98,4 @@ export const SoloDropdown = (props: DropdownProps) => {
       </SoloDropdownBlock>
     </div>
   );
-};
+}, shallowEqual);

@@ -26,7 +26,7 @@ import {
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
 import { createRoute } from 'store/virtualServices/actions';
@@ -193,9 +193,16 @@ export const CreateRouteModal = withRouter((props: Props) => {
     allUsableVirtualServices,
     setAllUsableVirtualServices
   ] = React.useState<VirtualServiceDetails.AsObject[]>([]);
-  const [allUsableUpstreams, setAllUsableUpstreams] = React.useState<
-    Upstream.AsObject[]
-  >([]);
+
+  const allUsableUpstreams = useSelector(
+    (state: AppState) =>
+      state.upstreams.upstreamsList
+        ? state.upstreams.upstreamsList
+            .map(upstreamDetails => upstreamDetails.upstream)
+            .filter(upstream => !!upstream && !!upstream.metadata)
+        : [],
+    shallowEqual
+  );
 
   React.useEffect(() => {
     setAllUsableVirtualServices(
@@ -216,14 +223,6 @@ export const CreateRouteModal = withRouter((props: Props) => {
         : undefined
     );
   }, [virtualServicesList.length]);
-
-  React.useEffect(() => {
-    setAllUsableUpstreams(
-      !!upstreamsList
-        ? upstreamsList.filter(upstream => !!upstream.metadata)
-        : []
-    );
-  }, [upstreamsList.length]);
 
   if (!upstreamsList.length || !virtualServicesList.length) {
     return <Loading />;
@@ -302,6 +301,7 @@ export const CreateRouteModal = withRouter((props: Props) => {
 
     const existingRouteUpstream = allUsableUpstreams.find(
       upstream =>
+        !!upstream &&
         !!upstream.metadata &&
         !!existingRoute.routeAction &&
         !!existingRoute.routeAction.single &&

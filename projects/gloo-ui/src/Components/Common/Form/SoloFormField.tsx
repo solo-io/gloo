@@ -3,7 +3,7 @@ import { Select } from 'antd';
 import { useField, useFormikContext } from 'formik';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { AppState } from 'store';
 import { colors } from 'Styles';
 import {
@@ -180,35 +180,39 @@ interface MetadataBasedDropdownProps extends DropdownProps {
 }
 export const SoloFormMetadataBasedDropdown: React.FC<
   MetadataBasedDropdownProps
-> = ({ ...props }) => {
+> = React.memo(props => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
-  const usedOptions = props.options
-    .sort((optionA, optionB) => {
-      const nameA = optionA.metadata.name;
-      const nameB = optionB.metadata.name;
+  const usedOptions = React.useMemo(
+    () =>
+      props.options
+        .sort((optionA, optionB) => {
+          const nameA = optionA.metadata.name;
+          const nameB = optionB.metadata.name;
 
-      const nameOrder = nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+          const nameOrder = nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 
-      if (!!optionA.upstreamSpec) {
-        const typeA = getUpstreamType(optionA);
-        const typeB = getUpstreamType(optionB);
+          if (!!optionA.upstreamSpec) {
+            const typeA = getUpstreamType(optionA);
+            const typeB = getUpstreamType(optionB);
 
-        return typeA < typeB ? -1 : typeA > typeB ? 1 : nameOrder;
-      }
+            return typeA < typeB ? -1 : typeA > typeB ? 1 : nameOrder;
+          }
 
-      return nameOrder;
-    })
-    .map(option => {
-      return {
-        key: createUpstreamId(option.metadata!), // the same as virtual service's currently
-        displayValue: option.metadata.name,
-        value: createUpstreamId(option.metadata!),
-        icon: !!option.upstreamSpec
-          ? getIcon(getUpstreamType(option))
-          : undefined
-      };
-    });
+          return nameOrder;
+        })
+        .map(option => {
+          return {
+            key: createUpstreamId(option.metadata!), // the same as virtual service's currently
+            displayValue: option.metadata.name,
+            value: createUpstreamId(option.metadata!),
+            icon: !!option.upstreamSpec
+              ? getIcon(getUpstreamType(option))
+              : undefined
+          };
+        }),
+    [props.options.length]
+  );
 
   const usedValue =
     props.value && props.value.metadata
@@ -245,7 +249,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
       </ErrorText>
     </React.Fragment>
   );
-};
+}, shallowEqual);
 
 interface VirtualServiceTypeaheadProps extends TypeaheadProps {
   value: VirtualService.AsObject | undefined;

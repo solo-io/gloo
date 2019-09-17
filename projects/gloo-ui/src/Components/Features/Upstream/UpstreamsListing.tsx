@@ -22,7 +22,7 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { LoadingBar } from 'react-redux-loading-bar';
 import { Route, RouteComponentProps } from 'react-router-dom';
 import { AppState } from 'store';
@@ -377,9 +377,7 @@ export const UpstreamsListing = (props: Props) => {
               ]
             : [])
         ],
-        ...(!!getFunctionInfo(upstream) && {
-          extraInfoComponent: () => <ExtraInfo upstream={upstream} />
-        }),
+        ExtraInfoComponent: <ExtraInfo upstream={upstream} />,
         onCreate: () => setUpstreamForRouteCreation(upstream),
         downloadableContent: upstreamDet.raw
       };
