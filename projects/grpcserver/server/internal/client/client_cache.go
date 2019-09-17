@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	consulapi "github.com/hashicorp/consul/api"
@@ -18,7 +19,6 @@ import (
 	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -167,7 +167,7 @@ func (c *clientCache) SetCacheState(virtualServiceClient gatewayv1.VirtualServic
 }
 
 // Returns a set of clients that use Kubernetes as storage
-func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Config, token setup.Token) (ClientCache, error) {
+func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Config, token setup.Token, podNamespace string) (ClientCache, error) {
 
 	// New shared cache
 	k8sCache := kube.NewKubeCache(context.TODO())
@@ -184,35 +184,39 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 		return nil, err
 	}
 
-	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, k8sCache), *token)
+	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	if err != nil {
+		return nil, err
+	}
 
 	upstreamGroupClient, err := gloov1.NewUpstreamGroupClientWithToken(opts.UpstreamGroups, *token)
 	if err != nil {
 		return nil, err
 	}
 
+	gatewayClient, err := gatewayv2.NewGatewayClientWithToken(factoryFor(gatewayv2.GatewayCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	gatewayClient, err := gatewayv2.NewGatewayClientWithToken(factoryFor(gatewayv2.GatewayCrd, *cfg, k8sCache), *token)
+	proxyClient, err := gloov1.NewProxyClientWithToken(factoryFor(gloov1.ProxyCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	proxyClient, err := gloov1.NewProxyClientWithToken(factoryFor(gloov1.ProxyCrd, *cfg, k8sCache), *token)
+	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, k8sCache), *token)
+	routeTableClient, err := gatewayv1.NewRouteTableClientWithToken(factoryFor(gatewayv1.RouteTableCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
 	// Needed only for the clients backed by the KubeResourceClientFactory
 	// so that they register with the cache they share
-	if err = registerAll(upstreamClient, vsClient, settingsClient, gatewayClient, proxyClient); err != nil {
+	if err = registerAll(upstreamClient, vsClient, upstreamGroupClient, gatewayClient, proxyClient, settingsClient, routeTableClient); err != nil {
 		return nil, err
 	}
 
@@ -223,11 +227,6 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 	}
 
 	artifactClient, err := gloov1.NewArtifactClientWithToken(opts.Artifacts, *token)
-	if err != nil {
-		return nil, err
-	}
-
-	routeTableClient, err := gatewayv1.NewRouteTableClientWithToken(factoryFor(gatewayv1.RouteTableCrd, *cfg, k8sCache), *token)
 	if err != nil {
 		return nil, err
 	}
@@ -264,12 +263,19 @@ func registerAll(clients ...registrant) error {
 	return nil
 }
 
-func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.ResourceClientFactory {
+func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache, settings *gloov1.Settings, podNamespace string) factory.ResourceClientFactory {
+	// TODO refactor this into shareable setup utility for all gloo components.
+	writeNamespace := settings.GetDiscoveryNamespace()
+	if writeNamespace == "" {
+		writeNamespace = podNamespace
+	}
+	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), settings.GetDiscoveryNamespace())
+
 	return &factory.KubeResourceClientFactory{
 		Crd:                crd,
 		Cfg:                &cfg,
 		SharedCache:        cache,
-		NamespaceWhitelist: []string{v1.NamespaceAll},
+		NamespaceWhitelist: watchNamespaces,
 		SkipCrdCreation:    settingsutil.GetSkipCrdCreation(),
 	}
 }

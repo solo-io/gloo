@@ -37,7 +37,8 @@ import (
 // Injectors from wire.go:
 
 func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcService, error) {
-	v1Settings := setup.MustSettings(ctx)
+	string2 := envutils.MustGetPodNamespace(ctx)
+	v1Settings := setup.MustSettings(ctx, string2)
 	config, err := setup.NewKubeConfig()
 	if err != nil {
 		return nil, err
@@ -46,18 +47,18 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	if err != nil {
 		return nil, err
 	}
-	clientCache, err := client.NewClientCache(ctx, v1Settings, config, token)
+	clientCache, err := client.NewClientCache(ctx, v1Settings, config, token, string2)
 	if err != nil {
 		return nil, err
 	}
 	licenseClient := license.NewClient(ctx)
-	valuesClient := settings.NewSettingsValuesClient(ctx, clientCache)
+	valuesClient := settings.NewSettingsValuesClient(ctx, clientCache, string2)
 	mutator := mutation.NewMutator(clientCache)
 	factory := mutation.NewFactory()
 	rawGetter := rawgetter.NewKubeYamlRawGetter()
-	upstreamSearcher := search.NewUpstreamSearcher(clientCache)
+	upstreamSearcher := search.NewUpstreamSearcher(clientCache, valuesClient)
 	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter, upstreamSearcher)
-	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient)
+	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient, valuesClient)
 	coreV1Interface, err := setup.GetK8sCoreInterface(config)
 	if err != nil {
 		return nil, err
@@ -66,27 +67,26 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	namespaceClient := kube.NewNamespaceClient(namespacesGetter)
 	oAuthEndpoint := setup.NewOAuthEndpoint()
 	buildVersion := setup.GetBuildVersion()
-	string2 := envutils.MustGetPodNamespace(ctx)
 	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, oAuthEndpoint, buildVersion, string2)
 	if err != nil {
 		return nil, err
 	}
 	scrubber := scrub.NewScrubber()
-	secretApiServer := secretsvc.NewSecretGrpcService(ctx, clientCache, scrubber, licenseClient)
+	secretApiServer := secretsvc.NewSecretGrpcService(ctx, clientCache, scrubber, licenseClient, valuesClient)
 	mutationMutator := mutation2.NewMutator(ctx, clientCache, licenseClient)
 	mutationFactory := mutation2.NewMutationFactory()
 	virtualServiceDetailsConverter := converter.NewVirtualServiceDetailsConverter(rawGetter)
 	virtualServiceSelector := selection.NewVirtualServiceSelector(clientCache, namespaceClient, string2)
 	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, clientCache, licenseClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
 	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
-	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, licenseClient)
-	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter)
+	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, licenseClient, valuesClient)
+	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, valuesClient)
 	podsGetter := setup.NewPodsGetter(coreV1Interface)
 	httpGetter := envoydetails.NewHttpGetter()
 	proxyStatusGetter := envoydetails.NewProxyStatusGetter(clientCache)
 	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
-	updater := client.NewClientUpdater(clientCache, config, token)
+	updater := client.NewClientUpdater(clientCache, config, token, string2)
 	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
 	return glooGrpcService, nil
 }

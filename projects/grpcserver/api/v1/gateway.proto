@@ -33,6 +33,7 @@ message GetGatewayResponse {
 }
 
 message ListGatewaysRequest {
+    // Deprecated. `List` calls will now query all WatchNamespaces.
     repeated string namespaces = 1;
 }
 

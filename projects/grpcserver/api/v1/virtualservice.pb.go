@@ -579,6 +579,7 @@ func (m *GetVirtualServiceResponse) GetVirtualServiceDetails() *VirtualServiceDe
 }
 
 type ListVirtualServicesRequest struct {
+	// Deprecated. `List` calls will now query all WatchNamespaces.
 	Namespaces           []string `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

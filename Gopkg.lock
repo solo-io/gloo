@@ -2769,13 +2769,13 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options",
-    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/virtualservice",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmdutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/common",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/constants",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils",
@@ -2891,6 +2891,7 @@
     "k8s.io/client-go/plugin/pkg/client/auth",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
+    "k8s.io/kubernetes/pkg/apis/core",
     "k8s.io/kubernetes/pkg/kubectl/cmd/util/editor",
   ]
   solver-name = "gps-cdcl"

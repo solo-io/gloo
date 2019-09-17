@@ -135,6 +135,7 @@ var _ = Describe("ServiceTest", func() {
 				VirtualService: virtualService2,
 			}
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			virtualServiceClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gatewayv1.VirtualService{virtualService1}, nil)
@@ -149,8 +150,7 @@ var _ = Describe("ServiceTest", func() {
 				GetDetails(context.TODO(), virtualService2).
 				Return(virtualServiceDetails2)
 
-			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListVirtualServices(context.TODO(), request)
+			actual, err := apiserver.ListVirtualServices(context.TODO(), &v1.ListVirtualServicesRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListVirtualServicesResponse{
 				VirtualServices:       []*gatewayv1.VirtualService{virtualService1, virtualService2},
@@ -162,13 +162,13 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the virtual service client errors", func() {
 			ns := "ns"
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			virtualServiceClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListVirtualServices(context.TODO(), request)
+			_, err := apiserver.ListVirtualServices(context.TODO(), &v1.ListVirtualServicesRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToListVirtualServicesError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

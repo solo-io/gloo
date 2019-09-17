@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
-	k8s "k8s.io/api/core/v1"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -22,14 +21,16 @@ type UpstreamSearcher interface {
 }
 
 type upstreamSearcher struct {
-	clientCache client.ClientCache
+	clientCache    client.ClientCache
+	settingsValues settings.ValuesClient
 }
 
 var _ UpstreamSearcher = &upstreamSearcher{}
 
-func NewUpstreamSearcher(clientCache client.ClientCache) UpstreamSearcher {
+func NewUpstreamSearcher(clientCache client.ClientCache, settingsValues settings.ValuesClient) UpstreamSearcher {
 	return &upstreamSearcher{
-		clientCache: clientCache,
+		clientCache:    clientCache,
+		settingsValues: settingsValues,
 	}
 }
 
@@ -45,7 +46,7 @@ func (s *upstreamSearcher) FindContainingVirtualServices(ctx context.Context, up
 
 	var results []*core.ResourceRef
 
-	for _, virtualService := range *allVirtualServices {
+	for _, virtualService := range allVirtualServices {
 		if virtualService.GetVirtualHost().GetRoutes() == nil {
 			continue
 		}
@@ -67,8 +68,8 @@ func (s *upstreamSearcher) FindContainingVirtualServices(ctx context.Context, up
 
 func (s *upstreamSearcher) searchRoutesForUpstream(
 	routes []*gatewayv1.Route,
-	allUpstreamGroups *gloov1.UpstreamGroupList,
-	allRouteTables *gatewayv1.RouteTableList,
+	allUpstreamGroups gloov1.UpstreamGroupList,
+	allRouteTables gatewayv1.RouteTableList,
 	upstreamRef *core.ResourceRef,
 ) (bool, error) {
 	var (
@@ -102,7 +103,7 @@ func (s *upstreamSearcher) searchRoutesForUpstream(
 	return found, err
 }
 
-func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *core.ResourceRef, allUpstreamGroups *gloov1.UpstreamGroupList, allRouteTables *gatewayv1.RouteTableList, upstreamRef *core.ResourceRef) (bool, error) {
+func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *core.ResourceRef, allUpstreamGroups gloov1.UpstreamGroupList, allRouteTables gatewayv1.RouteTableList, upstreamRef *core.ResourceRef) (bool, error) {
 	routeTable, err := allRouteTables.Find(routeTableRef.Namespace, routeTableRef.Name)
 	if err != nil {
 		return false, err
@@ -111,27 +112,36 @@ func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *core.Resou
 	return s.searchRoutesForUpstream(routeTable.GetRoutes(), allUpstreamGroups, allRouteTables, upstreamRef)
 }
 
-func (s *upstreamSearcher) loadResources(ctx context.Context) (*gatewayv1.VirtualServiceList, *gloov1.UpstreamGroupList, *gatewayv1.RouteTableList, error) {
+func (s *upstreamSearcher) loadResources(ctx context.Context) (gatewayv1.VirtualServiceList, gloov1.UpstreamGroupList, gatewayv1.RouteTableList, error) {
+	var allVirtualServices gatewayv1.VirtualServiceList
+	var allUpstreamGroups gloov1.UpstreamGroupList
+	var allRouteTables gatewayv1.RouteTableList
 	listOpts := clients.ListOpts{Ctx: ctx}
-	allVirtualServices, err := s.clientCache.GetVirtualServiceClient().List(k8s.NamespaceAll, listOpts)
-	if err != nil {
-		return nil, nil, nil, err
+
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
+		namespacedVirtualServices, err := s.clientCache.GetVirtualServiceClient().List(ns, listOpts)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		allVirtualServices = append(allVirtualServices, namespacedVirtualServices...)
+
+		namespacedUpstreamGroups, err := s.clientCache.GetUpstreamGroupClient().List(ns, listOpts)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		allUpstreamGroups = append(allUpstreamGroups, namespacedUpstreamGroups...)
+
+		namespacedRouteTables, err := s.clientCache.GetRouteTableClient().List(ns, listOpts)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		allRouteTables = append(allRouteTables, namespacedRouteTables...)
 	}
 
-	allUpstreamGroups, err := s.clientCache.GetUpstreamGroupClient().List(k8s.NamespaceAll, listOpts)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	allRouteTables, err := s.clientCache.GetRouteTableClient().List(k8s.NamespaceAll, listOpts)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return &allVirtualServices, &allUpstreamGroups, &allRouteTables, nil
+	return allVirtualServices, allUpstreamGroups, allRouteTables, nil
 }
 
-func (s *upstreamSearcher) searchRouteActionForUpstream(routeAction *gloov1.RouteAction, allUpstreamGroups *gloov1.UpstreamGroupList, upstreamRef *core.ResourceRef) (bool, error) {
+func (s *upstreamSearcher) searchRouteActionForUpstream(routeAction *gloov1.RouteAction, allUpstreamGroups gloov1.UpstreamGroupList, upstreamRef *core.ResourceRef) (bool, error) {
 	destination := routeAction.Destination
 
 	switch destination.(type) {

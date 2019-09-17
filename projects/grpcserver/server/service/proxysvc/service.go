@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
@@ -20,14 +21,16 @@ type proxyGrpcService struct {
 	clientCache     client.ClientCache
 	rawGetter       rawgetter.RawGetter
 	statusConverter status.InputResourceStatusGetter
+	settingsValues  settings.ValuesClient
 }
 
-func NewProxyGrpcService(ctx context.Context, clientCache client.ClientCache, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter) v1.ProxyApiServer {
+func NewProxyGrpcService(ctx context.Context, clientCache client.ClientCache, rawGetter rawgetter.RawGetter, statusConverter status.InputResourceStatusGetter, settingsValues settings.ValuesClient) v1.ProxyApiServer {
 	return &proxyGrpcService{
 		ctx:             ctx,
 		clientCache:     clientCache,
 		rawGetter:       rawGetter,
 		statusConverter: statusConverter,
+		settingsValues:  settingsValues,
 	}
 }
 
@@ -43,7 +46,7 @@ func (s *proxyGrpcService) GetProxy(ctx context.Context, request *v1.GetProxyReq
 
 func (s *proxyGrpcService) ListProxies(ctx context.Context, request *v1.ListProxiesRequest) (*v1.ListProxiesResponse, error) {
 	var proxyDetailsList []*v1.ProxyDetails
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		proxiesInNamespace, err := s.clientCache.GetProxyClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListProxiesError(err, ns)

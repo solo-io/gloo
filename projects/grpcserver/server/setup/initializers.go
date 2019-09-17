@@ -14,8 +14,8 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
-func MustSettings(ctx context.Context) *gloov1.Settings {
-	return mustGetSettings(ctx)
+func MustSettings(ctx context.Context, podNamespace string) *gloov1.Settings {
+	return mustGetSettings(ctx, podNamespace)
 }
 
 func NewOAuthEndpoint() v1.OAuthEndpoint {

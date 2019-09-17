@@ -24,18 +24,20 @@ type Updater interface {
 const clientUpdaterLogger = "clientUpdater"
 
 type updater struct {
-	clientCache ClientCache
-	token       setup.Token
-	cfg         *rest.Config
+	clientCache  ClientCache
+	token        setup.Token
+	cfg          *rest.Config
+	podNamespace string
 }
 
 var _ Updater = &updater{}
 
-func NewClientUpdater(clientCache ClientCache, cfg *rest.Config, token setup.Token) Updater {
+func NewClientUpdater(clientCache ClientCache, cfg *rest.Config, token setup.Token, podNamespace string) Updater {
 	return &updater{
-		clientCache: clientCache,
-		cfg:         cfg,
-		token:       token,
+		clientCache:  clientCache,
+		cfg:          cfg,
+		token:        token,
+		podNamespace: podNamespace,
 	}
 }
 
@@ -61,7 +63,7 @@ func (u *updater) buildReceiverFunc() setuputils.SetupFunc {
 	return func(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
 
 		// build a new cache from scratch, and update the existing one from the new one's state
-		newCache, err := NewClientCache(ctx, settings, u.cfg, u.token)
+		newCache, err := NewClientCache(ctx, settings, u.cfg, u.token, u.podNamespace)
 		if err != nil {
 			return err
 		}

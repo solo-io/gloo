@@ -27,11 +27,16 @@ spec:
           name: rate-limit
           namespace: {{ .Release.Namespace }}
 
-{{- with .Values.gloo.settings.watchNamespaces }}
+{{- if .Values.settings.singleNamespace }}
+  watchNamespaces:
+    - {{ .Release.Namespace }}
+{{- else }}
+{{- with .Values.settings.watchNamespaces }}
   watchNamespaces:
   {{- range . }}
   - {{ . }}
   {{- end }}
 {{- end }}
 
+{{- end }}
 {{- end }}

@@ -73,6 +73,8 @@ service ConfigApi {
     rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
     rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}
 
+    // Returns a list of all available namespaces on the cluster.
+    // This is NOT the same as WatchNamespaces in Settings.
     rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {}
     rpc GetPodNamespace(GetPodNamespaceRequest) returns (GetPodNamespaceResponse) {}
 }

@@ -28,4 +28,4 @@ rules:
   - apiGroups: ["gateway.solo.io"]
     resources: ["virtualservices"]
     verbs: ["create", "update", "delete"]
-  {{- end }} # .Values.apiServer.enable
+{{- end }} # .Values.apiServer.enable

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix the UI when WatchNamespaces is a subset of cluster namespaces.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1065

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
 	"github.com/solo-io/solo-projects/pkg/license"
 
@@ -23,6 +24,7 @@ type secretGrpcService struct {
 	clientCache    client.ClientCache
 	secretScrubber scrub.Scrubber
 	licenseClient  license.Client
+	settingsValues settings.ValuesClient
 }
 
 func NewSecretGrpcService(
@@ -30,12 +32,14 @@ func NewSecretGrpcService(
 	clientCache client.ClientCache,
 	secretScrubber scrub.Scrubber,
 	licenseClient license.Client,
+	settingsValues settings.ValuesClient,
 ) v1.SecretApiServer {
 	return &secretGrpcService{
 		ctx:            ctx,
 		clientCache:    clientCache,
 		secretScrubber: secretScrubber,
 		licenseClient:  licenseClient,
+		settingsValues: settingsValues,
 	}
 }
 
@@ -53,7 +57,7 @@ func (s *secretGrpcService) GetSecret(ctx context.Context, request *v1.GetSecret
 
 func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSecretsRequest) (*v1.ListSecretsResponse, error) {
 	var secretList gloov1.SecretList
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		secrets, err := s.clientCache.GetSecretClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListSecretsError(err, ns)

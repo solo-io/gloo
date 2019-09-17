@@ -131,6 +131,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			raw1, raw2 := getRaw(n1), getRaw(n2)
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			upstreamClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Upstream{upstream1}, nil)
@@ -144,8 +145,7 @@ var _ = Describe("ServiceTest", func() {
 				GetRaw(context.Background(), upstream2, gloov1.UpstreamCrd).
 				Return(raw2)
 
-			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListUpstreams(context.TODO(), request)
+			actual, err := apiserver.ListUpstreams(context.TODO(), &v1.ListUpstreamsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListUpstreamsResponse{
 				Upstreams:       []*gloov1.Upstream{upstream1, upstream2},
@@ -157,12 +157,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the upstream client errors", func() {
 			ns := "ns"
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			upstreamClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListUpstreams(context.TODO(), request)
+			_, err := apiserver.ListUpstreams(context.TODO(), &v1.ListUpstreamsRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToListUpstreamsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

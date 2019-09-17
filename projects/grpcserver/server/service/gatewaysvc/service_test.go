@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 
 	"google.golang.org/grpc/codes"
 
@@ -32,6 +33,7 @@ var (
 	gatewayClient   *mocks.MockGatewayClient
 	licenseClient   *mock_license.MockClient
 	rawGetter       *mock_rawgetter.MockRawGetter
+	settingsValues  *mock_settings.MockValuesClient
 	clientCache     *clientmocks.MockClientCache
 	statusConverter *mock_status_converter.MockInputResourceStatusGetter
 	testErr         = errors.Errorf("test-err")
@@ -63,10 +65,11 @@ var _ = Describe("ServiceTest", func() {
 		gatewayClient = mocks.NewMockGatewayClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
+		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		clientCache = clientmocks.NewMockClientCache(mockCtrl)
 		clientCache.EXPECT().GetGatewayClient().Return(gatewayClient).AnyTimes()
 		statusConverter = mock_status_converter.NewMockInputResourceStatusGetter(mockCtrl)
-		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), clientCache, rawGetter, statusConverter, licenseClient)
+		apiserver = gatewaysvc.NewGatewayGrpcService(context.TODO(), clientCache, rawGetter, statusConverter, licenseClient, settingsValues)
 	})
 
 	AfterEach(func() {
@@ -141,6 +144,7 @@ var _ = Describe("ServiceTest", func() {
 				},
 			}
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			gatewayClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gatewayv2.Gateway{gateway1}, nil)
@@ -160,8 +164,7 @@ var _ = Describe("ServiceTest", func() {
 				GetApiStatusFromResource(gateway2).
 				Return(getStatus(v1.Status_WARNING, status.ResourcePending(ns2, "")))
 
-			request := &v1.ListGatewaysRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListGateways(context.TODO(), request)
+			actual, err := apiserver.ListGateways(context.TODO(), &v1.ListGatewaysRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListGatewaysResponse{
 				GatewayDetails: []*v1.GatewayDetails{
@@ -175,12 +178,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the gateway client errors", func() {
 			ns := "ns"
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			gatewayClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListGatewaysRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListGateways(context.TODO(), request)
+			_, err := apiserver.ListGateways(context.TODO(), &v1.ListGatewaysRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := gatewaysvc.FailedToListGatewaysError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

@@ -106,6 +106,7 @@ func (m *GetArtifactResponse) GetArtifact() *v1.Artifact {
 }
 
 type ListArtifactsRequest struct {
+	// Deprecated. `List` calls will now query all WatchNamespaces.
 	Namespaces           []string `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

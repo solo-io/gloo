@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -21,13 +22,14 @@ import (
 )
 
 var (
-	apiserver     v1.SecretApiServer
-	mockCtrl      *gomock.Controller
-	secretClient  *mock_gloo.MockSecretClient
-	licenseClient *mock_license.MockClient
-	clientCache   *mocks.MockClientCache
-	scrubber      *mock_scrub.MockScrubber
-	testErr       = errors.Errorf("test-err")
+	apiserver      v1.SecretApiServer
+	mockCtrl       *gomock.Controller
+	secretClient   *mock_gloo.MockSecretClient
+	licenseClient  *mock_license.MockClient
+	clientCache    *mocks.MockClientCache
+	scrubber       *mock_scrub.MockScrubber
+	settingsValues *mock_settings.MockValuesClient
+	testErr        = errors.Errorf("test-err")
 )
 
 var _ = Describe("ServiceTest", func() {
@@ -39,7 +41,8 @@ var _ = Describe("ServiceTest", func() {
 		scrubber = mock_scrub.NewMockScrubber(mockCtrl)
 		clientCache = mocks.NewMockClientCache(mockCtrl)
 		clientCache.EXPECT().GetSecretClient().Return(secretClient).AnyTimes()
-		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), clientCache, scrubber, licenseClient)
+		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
+		apiserver = secretsvc.NewSecretGrpcService(context.TODO(), clientCache, scrubber, licenseClient, settingsValues)
 	})
 
 	AfterEach(func() {
@@ -101,6 +104,7 @@ var _ = Describe("ServiceTest", func() {
 				Metadata: core.Metadata{Namespace: ns2},
 			}
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			secretClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Secret{&secret1}, nil)
@@ -110,8 +114,7 @@ var _ = Describe("ServiceTest", func() {
 			scrubber.EXPECT().Secret(context.Background(), &secret1)
 			scrubber.EXPECT().Secret(context.Background(), &secret2)
 
-			request := &v1.ListSecretsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListSecrets(context.TODO(), request)
+			actual, err := apiserver.ListSecrets(context.TODO(), &v1.ListSecretsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListSecretsResponse{Secrets: []*gloov1.Secret{&secret1, &secret2}}
 			ExpectEqualProtoMessages(actual, expected)
@@ -120,12 +123,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the secret client errors", func() {
 			ns := "ns"
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			secretClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListSecretsRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListSecrets(context.TODO(), request)
+			_, err := apiserver.ListSecrets(context.TODO(), &v1.ListSecretsRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := secretsvc.FailedToListSecretsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

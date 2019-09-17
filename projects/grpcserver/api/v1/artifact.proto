@@ -17,6 +17,7 @@ message GetArtifactResponse {
 }
 
 message ListArtifactsRequest {
+    // Deprecated. `List` calls will now query all WatchNamespaces.
     repeated string namespaces = 1;
 }
 

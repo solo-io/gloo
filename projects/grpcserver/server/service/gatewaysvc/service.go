@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
 	"github.com/solo-io/solo-projects/pkg/license"
 
@@ -28,6 +29,7 @@ type gatewayGrpcService struct {
 	rawGetter       rawgetter.RawGetter
 	statusConverter status.InputResourceStatusGetter
 	licenseClient   license.Client
+	settingsValues  settings.ValuesClient
 }
 
 func NewGatewayGrpcService(
@@ -36,6 +38,7 @@ func NewGatewayGrpcService(
 	rawGetter rawgetter.RawGetter,
 	statusConverter status.InputResourceStatusGetter,
 	licenseClient license.Client,
+	settingsValues settings.ValuesClient,
 ) v1.GatewayApiServer {
 	return &gatewayGrpcService{
 		ctx:             ctx,
@@ -43,6 +46,7 @@ func NewGatewayGrpcService(
 		rawGetter:       rawGetter,
 		statusConverter: statusConverter,
 		licenseClient:   licenseClient,
+		settingsValues:  settingsValues,
 	}
 }
 
@@ -59,7 +63,7 @@ func (s *gatewayGrpcService) GetGateway(ctx context.Context, request *v1.GetGate
 
 func (s *gatewayGrpcService) ListGateways(ctx context.Context, request *v1.ListGatewaysRequest) (*v1.ListGatewaysResponse, error) {
 	var gatewayDetailsList []*v1.GatewayDetails
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		gatewaysInNamespace, err := s.clientCache.GetGatewayClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListGatewaysError(err, ns)

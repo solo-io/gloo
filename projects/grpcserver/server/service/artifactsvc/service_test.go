@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -24,6 +25,7 @@ var (
 	mockCtrl       *gomock.Controller
 	artifactClient *mock_gloo.MockArtifactClient
 	licenseClient  *mock_license.MockClient
+	valuesClient   *mock_settings.MockValuesClient
 	clientCache    *mocks.MockClientCache
 	testErr        = errors.Errorf("test-err")
 )
@@ -34,9 +36,10 @@ var _ = Describe("ServiceTest", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		artifactClient = mock_gloo.NewMockArtifactClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
+		valuesClient = mock_settings.NewMockValuesClient(mockCtrl)
 		clientCache = mocks.NewMockClientCache(mockCtrl)
 		clientCache.EXPECT().GetArtifactClient().Return(artifactClient).AnyTimes()
-		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), clientCache, licenseClient)
+		apiserver = artifactsvc.NewArtifactGrpcService(context.TODO(), clientCache, licenseClient, valuesClient)
 	})
 
 	AfterEach(func() {
@@ -97,6 +100,7 @@ var _ = Describe("ServiceTest", func() {
 				Metadata: core.Metadata{Namespace: ns2},
 			}
 
+			valuesClient.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			artifactClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Artifact{&artifact1}, nil)
@@ -104,8 +108,7 @@ var _ = Describe("ServiceTest", func() {
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Artifact{&artifact2}, nil)
 
-			request := &v1.ListArtifactsRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListArtifacts(context.TODO(), request)
+			actual, err := apiserver.ListArtifacts(context.TODO(), &v1.ListArtifactsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListArtifactsResponse{Artifacts: []*gloov1.Artifact{&artifact1, &artifact2}}
 			ExpectEqualProtoMessages(actual, expected)
@@ -114,12 +117,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the artifact client errors", func() {
 			ns := "ns"
 
+			valuesClient.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			artifactClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListArtifactsRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListArtifacts(context.TODO(), request)
+			_, err := apiserver.ListArtifacts(context.TODO(), &v1.ListArtifactsRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := artifactsvc.FailedToListArtifactsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

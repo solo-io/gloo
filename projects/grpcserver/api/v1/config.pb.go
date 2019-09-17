@@ -1098,6 +1098,8 @@ type ConfigApiClient interface {
 	GetIsLicenseValid(ctx context.Context, in *GetIsLicenseValidRequest, opts ...grpc.CallOption) (*GetIsLicenseValidResponse, error)
 	GetSettings(ctx context.Context, in *GetSettingsRequest, opts ...grpc.CallOption) (*GetSettingsResponse, error)
 	UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*UpdateSettingsResponse, error)
+	// Returns a list of all available namespaces on the cluster.
+	// This is NOT the same as WatchNamespaces in Settings.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
 	GetPodNamespace(ctx context.Context, in *GetPodNamespaceRequest, opts ...grpc.CallOption) (*GetPodNamespaceResponse, error)
 }
@@ -1180,6 +1182,8 @@ type ConfigApiServer interface {
 	GetIsLicenseValid(context.Context, *GetIsLicenseValidRequest) (*GetIsLicenseValidResponse, error)
 	GetSettings(context.Context, *GetSettingsRequest) (*GetSettingsResponse, error)
 	UpdateSettings(context.Context, *UpdateSettingsRequest) (*UpdateSettingsResponse, error)
+	// Returns a list of all available namespaces on the cluster.
+	// This is NOT the same as WatchNamespaces in Settings.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	GetPodNamespace(context.Context, *GetPodNamespaceRequest) (*GetPodNamespaceResponse, error)
 }

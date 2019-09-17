@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
+	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	gatewaymocks "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search/mocks"
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
-	k8s "k8s.io/api/core/v1"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -31,12 +30,14 @@ var (
 	virtualServiceClient *vsmocks.MockVirtualServiceClient
 	routeTableClient     *gatewaymocks.MockRouteTableClient
 	clientCache          *clientmocks.MockClientCache
+	settingsValues       *mock_settings.MockValuesClient
 	upstreamSearcher     search.UpstreamSearcher
 	testErr              = errors.Errorf("test-err")
 	listOpts             = clients.ListOpts{Ctx: context.TODO()}
 	allVirtualServices   gatewayv1.VirtualServiceList
 	allUpstreamGroups    gloov1.UpstreamGroupList
 	allRouteTables       gatewayv1.RouteTableList
+	testNamespace        = "test-ns"
 )
 
 var _ = Describe("Upstream Search Test", func() {
@@ -45,12 +46,16 @@ var _ = Describe("Upstream Search Test", func() {
 		upstreamGroupClient = mocks.NewMockUpstreamGroupClient(mockCtrl)
 		virtualServiceClient = vsmocks.NewMockVirtualServiceClient(mockCtrl)
 		routeTableClient = gatewaymocks.NewMockRouteTableClient(mockCtrl)
+		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		clientCache = clientmocks.NewMockClientCache(mockCtrl)
+
+		settingsValues.EXPECT().GetWatchNamespaces().Return([]string{testNamespace}).AnyTimes()
+
 		clientCache.EXPECT().GetVirtualServiceClient().Return(virtualServiceClient).AnyTimes()
 		clientCache.EXPECT().GetUpstreamGroupClient().Return(upstreamGroupClient).AnyTimes()
 		clientCache.EXPECT().GetRouteTableClient().Return(routeTableClient).AnyTimes()
 
-		upstreamSearcher = search.NewUpstreamSearcher(clientCache)
+		upstreamSearcher = search.NewUpstreamSearcher(clientCache, settingsValues)
 		allVirtualServices = nil
 		allUpstreamGroups = nil
 		allRouteTables = nil
@@ -113,15 +118,15 @@ var _ = Describe("Upstream Search Test", func() {
 			}
 
 			virtualServiceClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allVirtualServices, nil)
 
 			upstreamGroupClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allUpstreamGroups, nil)
 
 			routeTableClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allRouteTables, nil)
 
 			foundVirtualServiceRef, err := upstreamSearcher.FindContainingVirtualServices(context.TODO(), upstreamRef)
@@ -139,7 +144,7 @@ var _ = Describe("Upstream Search Test", func() {
 			virtualServiceClient.EXPECT().
 				List(gomock.Any(), gomock.Any()).
 				Return(nil, testErr)
-			upstreamGroupClient.EXPECT().List(k8s.NamespaceAll, gomock.Any()).Times(0)
+			upstreamGroupClient.EXPECT().List(testNamespace, gomock.Any()).Times(0)
 
 			foundVirtualServiceRef, err := upstreamSearcher.FindContainingVirtualServices(context.TODO(), upstreamRef)
 
@@ -154,12 +159,12 @@ var _ = Describe("Upstream Search Test", func() {
 			}
 
 			virtualServiceClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allVirtualServices, nil)
 			upstreamGroupClient.EXPECT().
 				List(gomock.Any(), gomock.Any()).
 				Return(nil, testErr)
-			upstreamGroupClient.EXPECT().List(k8s.NamespaceAll, gomock.Any()).Times(0)
+			upstreamGroupClient.EXPECT().List(testNamespace, gomock.Any()).Times(0)
 
 			foundVirtualServiceRef, err := upstreamSearcher.FindContainingVirtualServices(context.TODO(), upstreamRef)
 
@@ -223,17 +228,17 @@ var _ = Describe("Upstream Search Test", func() {
 			}
 
 			virtualServiceClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allVirtualServices, nil).
 				AnyTimes()
 
 			upstreamGroupClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allUpstreamGroups, nil).
 				AnyTimes()
 
 			routeTableClient.EXPECT().
-				List(k8s.NamespaceAll, listOpts).
+				List(testNamespace, listOpts).
 				Return(allRouteTables, nil).
 				AnyTimes()
 

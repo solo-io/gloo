@@ -71,7 +71,7 @@ func (s *upstreamGrpcService) GetUpstream(ctx context.Context, request *v1.GetUp
 
 func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.ListUpstreamsRequest) (*v1.ListUpstreamsResponse, error) {
 	var upstreamList gloov1.UpstreamList
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		upstreams, err := s.clientCache.GetUpstreamClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListUpstreamsError(err, ns)

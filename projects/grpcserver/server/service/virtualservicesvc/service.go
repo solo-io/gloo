@@ -77,7 +77,7 @@ func (s *virtualServiceGrpcService) GetVirtualService(ctx context.Context, reque
 
 func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, request *v1.ListVirtualServicesRequest) (*v1.ListVirtualServicesResponse, error) {
 	var virtualServiceList gatewayv1.VirtualServiceList
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		virtualServices, err := s.clientCache.GetVirtualServiceClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListVirtualServicesError(err, ns)

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
@@ -29,6 +30,7 @@ var (
 	rawGetter       *mock_rawgetter.MockRawGetter
 	clientCache     *clientmocks.MockClientCache
 	statusConverter *mock_status.MockInputResourceStatusGetter
+	settingsValues  *mock_settings.MockValuesClient
 	testErr         = errors.Errorf("test-err")
 )
 
@@ -60,7 +62,8 @@ var _ = Describe("ServiceTest", func() {
 		clientCache = clientmocks.NewMockClientCache(mockCtrl)
 		clientCache.EXPECT().GetProxyClient().Return(proxyClient).AnyTimes()
 		statusConverter = mock_status.NewMockInputResourceStatusGetter(mockCtrl)
-		apiserver = proxysvc.NewProxyGrpcService(context.TODO(), clientCache, rawGetter, statusConverter)
+		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
+		apiserver = proxysvc.NewProxyGrpcService(context.TODO(), clientCache, rawGetter, statusConverter, settingsValues)
 	})
 
 	AfterEach(func() {
@@ -133,6 +136,7 @@ var _ = Describe("ServiceTest", func() {
 				},
 			}
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
 			proxyClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Proxy{proxy1}, nil)
@@ -152,8 +156,7 @@ var _ = Describe("ServiceTest", func() {
 				GetApiStatusFromResource(proxy2).
 				Return(getStatus(v1.Status_WARNING, status.ResourcePending(ns2, "")))
 
-			request := &v1.ListProxiesRequest{Namespaces: []string{ns1, ns2}}
-			actual, err := apiserver.ListProxies(context.TODO(), request)
+			actual, err := apiserver.ListProxies(context.TODO(), &v1.ListProxiesRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListProxiesResponse{
 				ProxyDetails: []*v1.ProxyDetails{
@@ -167,12 +170,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the proxy client errors", func() {
 			ns := "ns"
 
+			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
 			proxyClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListProxiesRequest{Namespaces: []string{ns}}
-			_, err := apiserver.ListProxies(context.TODO(), request)
+			_, err := apiserver.ListProxies(context.TODO(), &v1.ListProxiesRequest{})
 			Expect(err).To(HaveOccurred())
 			expectedErr := proxysvc.FailedToListProxiesError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

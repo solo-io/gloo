@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
 	"github.com/solo-io/solo-projects/pkg/license"
 
@@ -18,16 +19,18 @@ import (
 )
 
 type artifactGrpcService struct {
-	ctx           context.Context
-	clientCache   client.ClientCache
-	licenseClient license.Client
+	ctx            context.Context
+	clientCache    client.ClientCache
+	licenseClient  license.Client
+	settingsValues settings.ValuesClient
 }
 
-func NewArtifactGrpcService(ctx context.Context, clientCache client.ClientCache, licenseClient license.Client) v1.ArtifactApiServer {
+func NewArtifactGrpcService(ctx context.Context, clientCache client.ClientCache, licenseClient license.Client, settingsValues settings.ValuesClient) v1.ArtifactApiServer {
 	return &artifactGrpcService{
-		ctx:           ctx,
-		clientCache:   clientCache,
-		licenseClient: licenseClient,
+		ctx:            ctx,
+		clientCache:    clientCache,
+		licenseClient:  licenseClient,
+		settingsValues: settingsValues,
 	}
 }
 
@@ -44,7 +47,7 @@ func (s *artifactGrpcService) GetArtifact(ctx context.Context, request *v1.GetAr
 
 func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.ListArtifactsRequest) (*v1.ListArtifactsResponse, error) {
 	var artifactList gloov1.ArtifactList
-	for _, ns := range request.GetNamespaces() {
+	for _, ns := range s.settingsValues.GetWatchNamespaces() {
 		artifacts, err := s.clientCache.GetArtifactClient().List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListArtifactsError(err, ns)
