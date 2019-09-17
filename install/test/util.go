@@ -103,6 +103,12 @@ func GetGlooEServiceAccountPermissions(namespace string) *manifesttestutils.Serv
 	permissions.AddExpectedPermission(
 		"gloo-system.apiserver-ui",
 		namespace,
+		[]string{"gateway.solo.io"},
+		[]string{"routetables"},
+		[]string{"list"})
+	permissions.AddExpectedPermission(
+		"gloo-system.apiserver-ui",
+		namespace,
 		[]string{"gateway.solo.io.v2"},
 		[]string{"gateways"},
 		[]string{"get", "list", "watch", "create", "update", "delete"})

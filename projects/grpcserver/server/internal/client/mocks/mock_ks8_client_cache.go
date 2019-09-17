@@ -78,6 +78,20 @@ func (mr *MockClientCacheMockRecorder) GetProxyClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyClient", reflect.TypeOf((*MockClientCache)(nil).GetProxyClient))
 }
 
+// GetRouteTableClient mocks base method
+func (m *MockClientCache) GetRouteTableClient() v1.RouteTableClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRouteTableClient")
+	ret0, _ := ret[0].(v1.RouteTableClient)
+	return ret0
+}
+
+// GetRouteTableClient indicates an expected call of GetRouteTableClient
+func (mr *MockClientCacheMockRecorder) GetRouteTableClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRouteTableClient", reflect.TypeOf((*MockClientCache)(nil).GetRouteTableClient))
+}
+
 // GetSecretClient mocks base method
 func (m *MockClientCache) GetSecretClient() v10.SecretClient {
 	m.ctrl.T.Helper()
@@ -120,6 +134,20 @@ func (mr *MockClientCacheMockRecorder) GetUpstreamClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpstreamClient", reflect.TypeOf((*MockClientCache)(nil).GetUpstreamClient))
 }
 
+// GetUpstreamGroupClient mocks base method
+func (m *MockClientCache) GetUpstreamGroupClient() v10.UpstreamGroupClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUpstreamGroupClient")
+	ret0, _ := ret[0].(v10.UpstreamGroupClient)
+	return ret0
+}
+
+// GetUpstreamGroupClient indicates an expected call of GetUpstreamGroupClient
+func (mr *MockClientCacheMockRecorder) GetUpstreamGroupClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpstreamGroupClient", reflect.TypeOf((*MockClientCache)(nil).GetUpstreamGroupClient))
+}
+
 // GetVirtualServiceClient mocks base method
 func (m *MockClientCache) GetVirtualServiceClient() v1.VirtualServiceClient {
 	m.ctrl.T.Helper()
@@ -135,13 +163,13 @@ func (mr *MockClientCacheMockRecorder) GetVirtualServiceClient() *gomock.Call {
 }
 
 // SetCacheState mocks base method
-func (m *MockClientCache) SetCacheState(arg0 v1.VirtualServiceClient, arg1 v2.GatewayClient, arg2 v10.UpstreamClient, arg3 v10.SettingsClient, arg4 v10.SecretClient, arg5 v10.ArtifactClient, arg6 v10.ProxyClient) {
+func (m *MockClientCache) SetCacheState(arg0 v1.VirtualServiceClient, arg1 v2.GatewayClient, arg2 v10.UpstreamClient, arg3 v10.SettingsClient, arg4 v10.SecretClient, arg5 v10.ArtifactClient, arg6 v10.ProxyClient, arg7 v10.UpstreamGroupClient, arg8 v1.RouteTableClient) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetCacheState", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	m.ctrl.Call(m, "SetCacheState", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }
 
 // SetCacheState indicates an expected call of SetCacheState
-func (mr *MockClientCacheMockRecorder) SetCacheState(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+func (mr *MockClientCacheMockRecorder) SetCacheState(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCacheState", reflect.TypeOf((*MockClientCache)(nil).SetCacheState), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCacheState", reflect.TypeOf((*MockClientCache)(nil).SetCacheState), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }

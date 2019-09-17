@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
 
 	"github.com/google/wire"
 	"github.com/solo-io/go-utils/envutils"
@@ -40,13 +41,13 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		setup.MustSettings,
 		setup.NewOAuthEndpoint,
 
-		// Resource clients.
 		setup.NewKubeConfig,
 		setup.GetToken,
 		setup.GetK8sCoreInterface,
 		setup.NewNamespacesGetter,
 		setup.NewPodsGetter,
 
+		// Resource clients.
 		client.NewClientCache,
 		client.NewClientUpdater,
 
@@ -57,6 +58,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		vs_mutation.NewMutator,
 		vs_mutation.NewMutationFactory,
 		rawgetter.NewKubeYamlRawGetter,
+		search.NewUpstreamSearcher,
 		converter.NewVirtualServiceDetailsConverter,
 		selection.NewVirtualServiceSelector,
 		us_mutation.NewMutator,

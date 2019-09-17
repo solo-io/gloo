@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
 
 	"github.com/solo-io/solo-projects/pkg/license"
 
@@ -21,14 +22,18 @@ import (
 )
 
 type upstreamGrpcService struct {
-	ctx             context.Context
-	clientCache     client.ClientCache
-	licenseClient   license.Client
-	settingsValues  settings.ValuesClient
-	mutator         mutation.Mutator
-	mutationFactory mutation.Factory
-	rawGetter       rawgetter.RawGetter
+	ctx              context.Context
+	clientCache      client.ClientCache
+	licenseClient    license.Client
+	settingsValues   settings.ValuesClient
+	mutator          mutation.Mutator
+	mutationFactory  mutation.Factory
+	rawGetter        rawgetter.RawGetter
+	upstreamSearcher search.UpstreamSearcher
 }
+
+// this client is not mocked by gloo, so mock it ourselves here
+//go:generate mockgen -destination mocks/upstream_group_client_mock.go -self_package github.com/solo-io/gloo/projects/gloo/pkg/api/v1 -package mocks github.com/solo-io/gloo/projects/gloo/pkg/api/v1 UpstreamGroupClient
 
 func NewUpstreamGrpcService(
 	ctx context.Context,
@@ -37,16 +42,19 @@ func NewUpstreamGrpcService(
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
 	factory mutation.Factory,
-	rawGetter rawgetter.RawGetter) v1.UpstreamApiServer {
+	rawGetter rawgetter.RawGetter,
+	upstreamSearcher search.UpstreamSearcher,
+) v1.UpstreamApiServer {
 
 	return &upstreamGrpcService{
-		ctx:             ctx,
-		clientCache:     clientCache,
-		settingsValues:  settingsValues,
-		mutator:         mutator,
-		mutationFactory: factory,
-		rawGetter:       rawGetter,
-		licenseClient:   licenseClient,
+		ctx:              ctx,
+		clientCache:      clientCache,
+		settingsValues:   settingsValues,
+		mutator:          mutator,
+		mutationFactory:  factory,
+		rawGetter:        rawGetter,
+		licenseClient:    licenseClient,
+		upstreamSearcher: upstreamSearcher,
 	}
 }
 
@@ -138,13 +146,35 @@ func (s *upstreamGrpcService) DeleteUpstream(ctx context.Context, request *v1.De
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	err := s.clientCache.GetUpstreamClient().Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
+
+	var (
+		namespace   = request.GetRef().GetNamespace()
+		name        = request.GetRef().GetName()
+		upstreamRef = request.GetRef()
+	)
+
+	// make sure we aren't trying to delete an upstream that's referenced in some virtual service
+	containingVirtualServiceRefs, err := s.upstreamSearcher.FindContainingVirtualServices(s.ctx, upstreamRef)
+
 	if err != nil {
-		wrapped := FailedToDeleteUpstreamError(err, request.GetRef())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return nil, wrapped
+		return nil, s.wrapAndLogDeletionError(FailedToCheckIsUpstreamReferencedError(err, upstreamRef), request)
+	}
+
+	if len(containingVirtualServiceRefs) > 0 {
+		return nil, s.wrapAndLogDeletionError(CannotDeleteReferencedUpstreamError(upstreamRef, containingVirtualServiceRefs), request)
+	}
+
+	err = s.clientCache.GetUpstreamClient().Delete(namespace, name, clients.DeleteOpts{Ctx: s.ctx})
+	if err != nil {
+		return nil, s.wrapAndLogDeletionError(err, request)
 	}
 	return &v1.DeleteUpstreamResponse{}, nil
+}
+
+func (s *upstreamGrpcService) wrapAndLogDeletionError(baseError error, request *v1.DeleteUpstreamRequest) error {
+	wrapped := FailedToDeleteUpstreamError(baseError, request.GetRef())
+	contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(baseError), zap.Any("request", request))
+	return wrapped
 }
 
 func (s *upstreamGrpcService) readUpstream(ref *core.ResourceRef) (*gloov1.Upstream, error) {

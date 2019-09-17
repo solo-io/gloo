@@ -25,4 +25,16 @@ var (
 	FailedToDeleteUpstreamError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to delete upstream %v.%v", ref.GetNamespace(), ref.GetName())
 	}
+
+	FailedToCheckIsUpstreamReferencedError = func(err error, ref *core.ResourceRef) error {
+		return errors.Wrapf(err, "Failed to verify that upstream %v.%v is not referenced in a virtual service", ref.GetNamespace(), ref.GetName())
+	}
+
+	CannotDeleteReferencedUpstreamError = func(upstreamRef *core.ResourceRef, virtualServiceRefs []*core.ResourceRef) error {
+		return errors.Errorf("Upstream %v.%v is referenced in virtual service(s) %v",
+			upstreamRef.GetNamespace(),
+			upstreamRef.GetName(),
+			virtualServiceRefs,
+		)
+	}
 )

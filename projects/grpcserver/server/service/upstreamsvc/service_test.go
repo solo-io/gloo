@@ -3,7 +3,8 @@ package upstreamsvc_test
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	searchmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search/mocks"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -24,16 +25,17 @@ import (
 )
 
 var (
-	apiserver      v1.UpstreamApiServer
-	mockCtrl       *gomock.Controller
-	upstreamClient *mock_gloo.MockUpstreamClient
-	licenseClient  *mock_license.MockClient
-	mutator        *mock_mutator.MockMutator
-	factory        *mock_mutator.MockFactory
-	settingsValues *mock_settings.MockValuesClient
-	clientCache    *mocks.MockClientCache
-	rawGetter      *mock_rawgetter.MockRawGetter
-	testErr        = errors.Errorf("test-err")
+	apiserver        v1.UpstreamApiServer
+	mockCtrl         *gomock.Controller
+	upstreamClient   *mock_gloo.MockUpstreamClient
+	clientCache      *clientmocks.MockClientCache
+	upstreamSearcher *searchmocks.MockUpstreamSearcher
+	licenseClient    *mock_license.MockClient
+	mutator          *mock_mutator.MockMutator
+	factory          *mock_mutator.MockFactory
+	settingsValues   *mock_settings.MockValuesClient
+	rawGetter        *mock_rawgetter.MockRawGetter
+	testErr          = errors.Errorf("test-err")
 )
 
 var _ = Describe("ServiceTest", func() {
@@ -54,14 +56,15 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		upstreamClient = mock_gloo.NewMockUpstreamClient(mockCtrl)
+		upstreamSearcher = searchmocks.NewMockUpstreamSearcher(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		mutator = mock_mutator.NewMockMutator(mockCtrl)
 		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
-		clientCache = mocks.NewMockClientCache(mockCtrl)
+		clientCache = clientmocks.NewMockClientCache(mockCtrl)
 		clientCache.EXPECT().GetUpstreamClient().Return(upstreamClient).AnyTimes()
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter, upstreamSearcher)
 	})
 
 	AfterEach(func() {
@@ -358,12 +361,16 @@ var _ = Describe("ServiceTest", func() {
 		BeforeEach(func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
+
 		It("works when the upstream client works", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
-				Name:      "name",
+				Name:      "unreferenced-name",
 			}
 
+			upstreamSearcher.EXPECT().
+				FindContainingVirtualServices(context.TODO(), &ref).
+				Return([]*core.ResourceRef{}, nil)
 			upstreamClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(nil)
@@ -378,9 +385,12 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the upstream client errors", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
-				Name:      "name",
+				Name:      "unreferenced-name",
 			}
 
+			upstreamSearcher.EXPECT().
+				FindContainingVirtualServices(context.TODO(), &ref).
+				Return([]*core.ResourceRef{}, nil)
 			upstreamClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(testErr)
@@ -390,6 +400,46 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToDeleteUpstreamError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		It("errors when the upstream is referenced in a virtual service", func() {
+			upstreamRef := &core.ResourceRef{
+				Namespace: "ns",
+				Name:      "upstream",
+			}
+			virtualServiceRefs := []*core.ResourceRef{
+				{
+					Namespace: "ns",
+					Name:      "vs",
+				},
+			}
+
+			upstreamSearcher.EXPECT().
+				FindContainingVirtualServices(context.TODO(), upstreamRef).
+				Return(virtualServiceRefs, nil)
+
+			request := &v1.DeleteUpstreamRequest{Ref: upstreamRef}
+			_, err := apiserver.DeleteUpstream(context.TODO(), request)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(upstreamsvc.CannotDeleteReferencedUpstreamError(upstreamRef, virtualServiceRefs).Error()))
+		})
+
+		It("errors when the upstream searcher errors", func() {
+			ref := &core.ResourceRef{
+				Namespace: "ns",
+				Name:      "unreferenced-name",
+			}
+
+			upstreamSearcher.EXPECT().
+				FindContainingVirtualServices(context.TODO(), ref).
+				Return([]*core.ResourceRef{}, testErr)
+
+			request := &v1.DeleteUpstreamRequest{Ref: ref}
+			_, err := apiserver.DeleteUpstream(context.TODO(), request)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(upstreamsvc.FailedToCheckIsUpstreamReferencedError(testErr, ref).Error()))
 		})
 	})
 })

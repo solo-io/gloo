@@ -1,0 +1,18 @@
+[
+  {
+    "metadata": {
+      "name": "upstream-group",
+      "namespace": "ns"
+    },
+    "destinations": [
+      {
+        "destination": {
+          "upstream": {
+            "name": "upstream3",
+            "namespace": "ns"
+          }
+        }
+      }
+    ]
+  }
+]

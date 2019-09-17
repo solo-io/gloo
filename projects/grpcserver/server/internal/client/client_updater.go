@@ -74,6 +74,8 @@ func (u *updater) buildReceiverFunc() setuputils.SetupFunc {
 			newCache.GetSecretClient(),
 			newCache.GetArtifactClient(),
 			newCache.GetProxyClient(),
+			newCache.GetUpstreamGroupClient(),
+			newCache.GetRouteTableClient(),
 		)
 
 		return nil

@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Prevent upstreams from being deleted when they are referenced in a virtual service
+    issueLink: https://github.com/solo-io/solo-projects/issues/970

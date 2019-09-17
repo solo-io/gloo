@@ -1,0 +1,74 @@
+[
+  {
+    "metadata": {
+      "name": "vs1",
+      "namespace": "ns"
+    },
+    "virtualHost": {
+      "routes": [{
+        "routeAction": {
+          "single": {
+            "upstream": {
+              "name": "upstream1",
+              "namespace": "ns"
+            }
+          }
+        }
+      }]
+    }
+  },
+  {
+    "metadata": {
+      "name": "vs2",
+      "namespace": "ns"
+    },
+    "virtualHost": {
+      "routes": [{
+        "routeAction": {
+          "multi": {
+            "destinations": [
+              {
+              "destination": {
+                  "upstream": {
+                    "name": "upstream2",
+                    "namespace": "ns"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }]
+    }
+  },
+  {
+    "metadata": {
+      "name": "vs3",
+      "namespace": "ns"
+    },
+    "virtualHost": {
+      "routes": [{
+        "routeAction": {
+          "upstreamGroup": {
+            "name": "upstream-group",
+            "namespace": "ns"
+          }
+        }
+      }]
+    }
+  },
+  {
+    "metadata": {
+      "name": "vs4",
+      "namespace": "ns"
+    },
+    "virtualHost": {
+      "routes": [{
+        "delegateAction": {
+          "name": "route-table-1",
+          "namespace": "ns"
+        }
+      }]
+    }
+  }
+]

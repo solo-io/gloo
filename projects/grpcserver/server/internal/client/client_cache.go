@@ -36,6 +36,8 @@ type ClientCache interface {
 	GetSecretClient() gloov1.SecretClient
 	GetArtifactClient() gloov1.ArtifactClient
 	GetProxyClient() gloov1.ProxyClient
+	GetUpstreamGroupClient() gloov1.UpstreamGroupClient
+	GetRouteTableClient() gatewayv1.RouteTableClient
 
 	SetCacheState(virtualServiceClient gatewayv1.VirtualServiceClient,
 		gatewayClient gatewayv2.GatewayClient,
@@ -44,6 +46,8 @@ type ClientCache interface {
 		secretClient gloov1.SecretClient,
 		artifactClient gloov1.ArtifactClient,
 		proxyClient gloov1.ProxyClient,
+		upstreamGroupClient gloov1.UpstreamGroupClient,
+		routeTableClient gatewayv1.RouteTableClient,
 	)
 }
 
@@ -55,6 +59,8 @@ type clientCache struct {
 	secretClient         gloov1.SecretClient
 	artifactClient       gloov1.ArtifactClient
 	proxyClient          gloov1.ProxyClient
+	upstreamGroupClient  gloov1.UpstreamGroupClient
+	routeTableClient     gatewayv1.RouteTableClient
 
 	// pointer updates in go are not guaranteed to be atomic, so be sure to lock and unlock when updating or getting a reference to a client
 	cacheUpdateMutex sync.RWMutex
@@ -118,6 +124,22 @@ func (c *clientCache) GetProxyClient() gloov1.ProxyClient {
 	return ret
 }
 
+func (c *clientCache) GetRouteTableClient() gatewayv1.RouteTableClient {
+	c.cacheUpdateMutex.Lock()
+	ret := c.routeTableClient
+	c.cacheUpdateMutex.Unlock()
+
+	return ret
+}
+
+func (c *clientCache) GetUpstreamGroupClient() gloov1.UpstreamGroupClient {
+	c.cacheUpdateMutex.Lock()
+	ret := c.upstreamGroupClient
+	c.cacheUpdateMutex.Unlock()
+
+	return ret
+}
+
 func (c *clientCache) SetCacheState(virtualServiceClient gatewayv1.VirtualServiceClient,
 	gatewayClient gatewayv2.GatewayClient,
 	upstreamClient gloov1.UpstreamClient,
@@ -125,6 +147,8 @@ func (c *clientCache) SetCacheState(virtualServiceClient gatewayv1.VirtualServic
 	secretClient gloov1.SecretClient,
 	artifactClient gloov1.ArtifactClient,
 	proxyClient gloov1.ProxyClient,
+	upstreamGroupClient gloov1.UpstreamGroupClient,
+	routeTableClient gatewayv1.RouteTableClient,
 ) {
 
 	c.cacheUpdateMutex.Lock()
@@ -136,6 +160,8 @@ func (c *clientCache) SetCacheState(virtualServiceClient gatewayv1.VirtualServic
 	c.secretClient = secretClient
 	c.artifactClient = artifactClient
 	c.proxyClient = proxyClient
+	c.upstreamGroupClient = upstreamGroupClient
+	c.routeTableClient = routeTableClient
 
 	c.cacheUpdateMutex.Unlock()
 }
@@ -159,6 +185,12 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 	}
 
 	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, k8sCache), *token)
+
+	upstreamGroupClient, err := gloov1.NewUpstreamGroupClientWithToken(opts.UpstreamGroups, *token)
+	if err != nil {
+		return nil, err
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +227,11 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 		return nil, err
 	}
 
+	routeTableClient, err := gatewayv1.NewRouteTableClientWithToken(factoryFor(gatewayv1.RouteTableCrd, *cfg, k8sCache), *token)
+	if err != nil {
+		return nil, err
+	}
+
 	cache := &clientCache{
 		cacheUpdateMutex: sync.RWMutex{},
 	}
@@ -207,6 +244,8 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 		secretClient,
 		artifactClient,
 		proxyClient,
+		upstreamGroupClient,
+		routeTableClient,
 	)
 
 	return cache, nil
