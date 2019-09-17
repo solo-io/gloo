@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add validation to prevent create static upstream form submission without specifying static hosts.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1131

@@ -99,12 +99,32 @@ const validationSchema = yup.object().shape({
       otherwise: yup.string()
     })
   }),
-  staticHostList: yup.array().of(
-    yup.object().shape({
-      addr: yup.string().min(1, 'Invalid host address'),
-      port: yup.number().min(10, 'Invalid port number')
+  staticHostList: yup
+    .array()
+    .of(
+      yup.object().shape({
+        addr: yup.string().min(1, 'Invalid host address'),
+        port: yup.number().min(10, 'Invalid port number')
+      })
+    )
+    .when('type', {
+      is: type => type === 'Static',
+      then: yup
+        .array()
+        .of(
+          yup.object().shape({
+            addr: yup.string().min(1, 'Invalid host address'),
+            port: yup.number().min(10, 'Invalid port number')
+          })
+        )
+        .required('You need to specify at least one host'),
+      otherwise: yup.array().of(
+        yup.object().shape({
+          addr: yup.string().min(1, 'Invalid host address'),
+          port: yup.number().min(10, 'Invalid port number')
+        })
+      )
     })
-  )
 });
 
 const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
