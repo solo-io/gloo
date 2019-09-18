@@ -454,6 +454,22 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		}()
 	}
 
+	go func() {
+		for {
+			select {
+			case err, ok := <-errs:
+				if !ok {
+					return
+				}
+				logger.Errorw("gloo main event loop", zap.Error(err))
+			case <-opts.WatchOpts.Ctx.Done():
+				// think about closing this channel
+				// close(errs)
+				return
+			}
+		}
+	}()
+
 	return nil
 }
 
