@@ -25,14 +25,17 @@ type RateLimitTranslatorSyncerExtension struct {
 	settings *ratelimit.EnvoySettings
 }
 
+// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
 type extensionsContainer struct {
 	params syncer.TranslatorSyncerExtensionParams
 }
 
+// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
 func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
 	return t.params.SettingExtensions
 }
 
+// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
 func getSettings(params syncer.TranslatorSyncerExtensionParams, settings *ratelimit.EnvoySettings) error {
 	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, settings)
 	if err != nil {
@@ -49,6 +52,10 @@ func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorS
 	err := getSettings(params, &settings)
 	if err != nil {
 		return nil, err
+	}
+
+	if params.RateLimitDescriptorSettings.GetCustomConfig() != nil {
+		settings.CustomConfig = params.RateLimitDescriptorSettings.GetCustomConfig()
 	}
 
 	return &RateLimitTranslatorSyncerExtension{
@@ -84,10 +91,12 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
-				var rateLimit ratelimit.IngressRateLimit
-				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimit)
+				var rateLimitDeprecated ratelimit.IngressRateLimit
+				rateLimit := virtualHost.GetVirtualHostPlugins().GetRatelimitGloo()
+				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimitDeprecated)
 				if err != nil {
-					if err == utils.NotFoundError {
+					if err == utils.NotFoundError && rateLimit == nil {
+						// no rate limit virtual host config found, nothing to do here
 						continue
 					}
 					return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
@@ -95,7 +104,11 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
 
-				vhostConstraint, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, rateLimit)
+				if rateLimit == nil {
+					rateLimit = &rateLimitDeprecated
+				}
+
+				vhostConstraint, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
 				if err != nil {
 					return err
 				}

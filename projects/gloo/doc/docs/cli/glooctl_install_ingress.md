@@ -26,6 +26,7 @@ glooctl install ingress [flags]
   -d, --dry-run              Dump the raw installation yaml instead of applying it to kubernetes
   -f, --file string          Install Gloo from this Helm chart archive file rather than from a release
   -i, --interactive          use interactive mode
+      --kubeconfig string    kubeconfig to use, if not standard one
       --license-key string   License key to activate GlooE features
   -n, --namespace string     namespace to install gloo into (default "gloo-system")
   -u, --upgrade              Upgrade an existing v1 gateway installation to use v2 CRDs. Set this when upgrading from v0.17.x or earlier versions of gloo

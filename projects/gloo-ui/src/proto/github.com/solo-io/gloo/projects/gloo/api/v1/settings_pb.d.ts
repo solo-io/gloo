@@ -7,6 +7,7 @@ import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../
 import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -94,6 +95,16 @@ export class Settings extends jspb.Message {
   getDiscovery(): Settings.DiscoveryOptions | undefined;
   setDiscovery(value?: Settings.DiscoveryOptions): void;
 
+  hasGloo(): boolean;
+  clearGloo(): void;
+  getGloo(): GlooOptions | undefined;
+  setGloo(value?: GlooOptions): void;
+
+  hasGateway(): boolean;
+  clearGateway(): void;
+  getGateway(): GatewayOptions | undefined;
+  setGateway(value?: GatewayOptions): void;
+
   hasConsul(): boolean;
   clearConsul(): void;
   getConsul(): Settings.ConsulConfiguration | undefined;
@@ -108,6 +119,16 @@ export class Settings extends jspb.Message {
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
   setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
+
+  hasRatelimitDescriptors(): boolean;
+  clearRatelimitDescriptors(): void;
+  getRatelimitDescriptors(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings | undefined;
+  setRatelimitDescriptors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings): void;
+
+  hasRatelimitServer(): boolean;
+  clearRatelimitServer(): void;
+  getRatelimitServer(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings | undefined;
+  setRatelimitServer(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -152,9 +173,13 @@ export namespace Settings {
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     knative?: Settings.KnativeOptions.AsObject,
     discovery?: Settings.DiscoveryOptions.AsObject,
+    gloo?: GlooOptions.AsObject,
+    gateway?: GatewayOptions.AsObject,
     consul?: Settings.ConsulConfiguration.AsObject,
     kubernetes?: Settings.KubernetesConfiguration.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
+    ratelimitDescriptors?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.AsObject,
+    ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
   }
@@ -514,6 +539,56 @@ export namespace Settings {
     KUBERNETES_ARTIFACT_SOURCE = 9,
     DIRECTORY_ARTIFACT_SOURCE = 10,
     CONSUL_KV_ARTIFACT_SOURCE = 23,
+  }
+}
+
+export class GlooOptions extends jspb.Message {
+  getXdsBindAddr(): string;
+  setXdsBindAddr(value: string): void;
+
+  getValidationBindAddr(): string;
+  setValidationBindAddr(value: string): void;
+
+  hasCircuitBreakers(): boolean;
+  clearCircuitBreakers(): void;
+  getCircuitBreakers(): github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig | undefined;
+  setCircuitBreakers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GlooOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GlooOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GlooOptions;
+  static deserializeBinaryFromReader(message: GlooOptions, reader: jspb.BinaryReader): GlooOptions;
+}
+
+export namespace GlooOptions {
+  export type AsObject = {
+    xdsBindAddr: string,
+    validationBindAddr: string,
+    circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
+  }
+}
+
+export class GatewayOptions extends jspb.Message {
+  getValidationServerAddr(): string;
+  setValidationServerAddr(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GatewayOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GatewayOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GatewayOptions;
+  static deserializeBinaryFromReader(message: GatewayOptions, reader: jspb.BinaryReader): GatewayOptions;
+}
+
+export namespace GatewayOptions {
+  export type AsObject = {
+    validationServerAddr: string,
   }
 }
 

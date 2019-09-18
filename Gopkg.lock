@@ -1378,7 +1378,7 @@
   version = "v0.5.1"
 
 [[projects]]
-  digest = "1:c46dba6bdc11dd01fc0541da01a08a4a02f7ce94d250a90a753c02ce50347a4e"
+  digest = "1:b2405bb74ff4699e672dc8d64da3cd0104f54355425f555a3376a8997eb530ff"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1448,6 +1448,7 @@
     "projects/gloo/pkg/api/external/envoy/extensions/extauth",
     "projects/gloo/pkg/api/external/envoy/extensions/jwt",
     "projects/gloo/pkg/api/external/envoy/extensions/waf",
+    "projects/gloo/pkg/api/grpc/validation",
     "projects/gloo/pkg/api/grpc/version",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/enterprise",
@@ -1521,12 +1522,14 @@
     "projects/gloo/pkg/upstreams/kubernetes",
     "projects/gloo/pkg/utils",
     "projects/gloo/pkg/utils/aws",
+    "projects/gloo/pkg/utils/validation",
+    "projects/gloo/pkg/validation",
     "projects/gloo/pkg/xds",
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "3804ebaacdc76a107a3848c13d84eafc507953c0"
-  version = "v0.18.42"
+  revision = "c4006b26f2e8e2ae3784fa8bb0ef174ce684c89e"
+  version = "v0.18.43"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"

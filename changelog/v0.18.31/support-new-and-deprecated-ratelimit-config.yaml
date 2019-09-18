@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support new rate limit API location; continue support for deprecated rate limit config in opaque extensions
+    issueLink: https://github.com/solo-io/gloo/issues/1171
+    resolvesIssue: false

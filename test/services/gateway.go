@@ -133,7 +133,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	ctx = settingsutil.WithSettings(ctx, &settings)
 
 	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
-	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
+	glooopts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooopts.Settings = &settings
 	glooopts.ControlPlane.StartGrpcServer = true
 	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
@@ -195,11 +195,10 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
 		},
-		ControlPlane: syncer.NewControlPlane(ctx, grpcServer, nil, true),
-		BindAddr: &net.TCPAddr{
+		ControlPlane: syncer.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
-		},
+		}, nil, true),
 		KubeClient: kubeclient,
 		DevMode:    true,
 	}

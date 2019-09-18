@@ -135,10 +135,10 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
-											ratelimit2.ExtensionName: getRateLimitStruct(),
+											extauth.ExtensionName: getVHostExtensionStruct(),
 										},
 									},
+									RatelimitGloo: getRateLimit(),
 								},
 							},
 						},
@@ -185,11 +185,7 @@ var _ = Describe("MutationFactory", func() {
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Extensions: &gloov1.Extensions{
-										Configs: map[string]*types.Struct{
-											ratelimit2.ExtensionName: getRateLimitStruct(),
-										},
-									},
+									RatelimitGloo: getRateLimit(),
 								},
 							},
 						},
@@ -207,10 +203,10 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
-											ratelimit2.ExtensionName: getRateLimitStruct(),
+											extauth.ExtensionName: getVHostExtensionStruct(),
 										},
 									},
+									RatelimitGloo: getRateLimit(),
 								},
 							},
 						},
@@ -344,10 +340,10 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
-											ratelimit2.ExtensionName: getRateLimitStruct(),
+											extauth.ExtensionName: getVHostExtensionStruct(),
 										},
 									},
+									RatelimitGloo: getRateLimit(),
 								},
 							},
 						},

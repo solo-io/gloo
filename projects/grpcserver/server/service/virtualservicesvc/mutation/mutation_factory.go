@@ -62,15 +62,6 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			}
 		}
 
-		// Convert rate limit config into type expected for extensions
-		var rateLimitStruct *types.Struct
-		if input.GetRateLimitConfig() != nil {
-			rateLimitStruct, err = util.MessageToStruct(input.GetRateLimitConfig())
-			if err != nil {
-				return err
-			}
-		}
-
 		// Attempt to set secret ref -- error if there is a different SSL strategy in place.
 		if input.GetSecretRef() != nil {
 			if vs.SslConfig == nil {
@@ -93,7 +84,7 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			vs.VirtualHost = &gatewayv1.VirtualHost{}
 		}
 
-		if extAuthStruct != nil || rateLimitStruct != nil {
+		if extAuthStruct != nil || input.GetRateLimitConfig() != nil {
 			if vs.GetVirtualHost().GetVirtualHostPlugins() == nil {
 				vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
 			}
@@ -107,8 +98,9 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			if extAuthStruct != nil {
 				vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = extAuthStruct
 			}
-			if rateLimitStruct != nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[ratelimit.ExtensionName] = rateLimitStruct
+			if input.GetRateLimitConfig() != nil {
+				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				vs.VirtualHost.VirtualHostPlugins.RatelimitGloo = input.GetRateLimitConfig()
 			}
 		}
 
@@ -148,15 +140,6 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 			}
 		}
 
-		// Convert rate limit config into type expected for extensions
-		var rateLimitStruct *types.Struct
-		if input.GetRateLimitConfig().GetValue() != nil {
-			rateLimitStruct, err = util.MessageToStruct(input.GetRateLimitConfig().GetValue())
-			if err != nil {
-				return err
-			}
-		}
-
 		if input.GetSslConfig() != nil {
 			vs.SslConfig = input.GetSslConfig().GetValue()
 		}
@@ -184,11 +167,8 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 				}
 			}
 			if input.GetRateLimitConfig() != nil {
-				if rateLimitStruct == nil {
-					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
-				} else {
-					vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[ratelimit.ExtensionName] = rateLimitStruct
-				}
+				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				vs.VirtualHost.VirtualHostPlugins.RatelimitGloo = input.GetRateLimitConfig().GetValue()
 			}
 		}
 

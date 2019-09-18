@@ -62,6 +62,7 @@ func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gate
 		}
 	}
 
+	// TODO(kdorosh) remove once we stop supporting opaque rate limiting config
 	if rateLimitStruct, ok := configs[ratelimit.ExtensionName]; ok {
 		details.Plugins.RateLimit = &v1.RateLimitPlugin{}
 		rateLimit := &ratelimitapi.IngressRateLimit{}
@@ -72,6 +73,11 @@ func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gate
 		} else {
 			details.Plugins.RateLimit.Value = rateLimit
 		}
+	}
+
+	rlGloo := vs.GetVirtualHost().GetVirtualHostPlugins().GetRatelimitGloo()
+	if rlGloo != nil {
+		details.Plugins.RateLimit.Value = rlGloo
 	}
 
 	return details

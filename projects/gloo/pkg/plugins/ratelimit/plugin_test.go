@@ -32,7 +32,7 @@ var _ = Describe("Plugin", func() {
 		ref        core.ResourceRef
 	)
 
-	BeforeEach(func() {
+	beforeEach := func() {
 		rlPlugin = NewPlugin()
 		ref = core.ResourceRef{
 			Name:      "test",
@@ -43,107 +43,127 @@ var _ = Describe("Plugin", func() {
 			RatelimitServerRef: &ref,
 		}
 		initParams = plugins.InitParams{}
-	})
+	}
 
-	JustBeforeEach(func() {
-		settingsStruct, err := util.MessageToStruct(rlSettings)
-		Expect(err).NotTo(HaveOccurred())
+	allTests := func() {
+		It("should fave fail mode deny off by default", func() {
 
-		glooExtensions := map[string]*types.Struct{
-			ExtensionName: settingsStruct,
-		}
-		extensions = &gloov1.Extensions{
-			Configs: glooExtensions,
-		}
-		initParams.ExtensionsSettings = extensions
-		rlPlugin.Init(initParams)
-	})
-
-	It("should fave fail mode deny off by default", func() {
-
-		filters, err := rlPlugin.HttpFilters(params, nil)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(filters).To(HaveLen(2))
-		for _, f := range filters {
-			cfg := getConfig(f.HttpFilter)
-			Expect(cfg.FailureModeDeny).To(BeFalse())
-		}
-
-		hundredms := time.Millisecond * 100
-		expectedConfig := &envoyratelimit.RateLimit{
-			Domain:          "ingress",
-			FailureModeDeny: false,
-			Stage:           0,
-			Timeout:         &hundredms,
-			RequestType:     "both",
-			RateLimitService: &rlconfig.RateLimitServiceConfig{
-				GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-					EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-						ClusterName: translator.UpstreamToClusterName(ref),
-					},
-				}},
-			},
-		}
-
-		cfg1 := getConfig(filters[1].HttpFilter)
-		Expect(cfg1).To(BeEquivalentTo(expectedConfig))
-
-		expectedConfig.Domain = "custom"
-		expectedConfig.Stage = 1
-
-		cfg2 := getConfig(filters[0].HttpFilter)
-		Expect(cfg2).To(BeEquivalentTo(expectedConfig))
-
-	})
-
-	It("default timeout is 100ms", func() {
-		filters, err := rlPlugin.HttpFilters(params, nil)
-		Expect(err).NotTo(HaveOccurred())
-		timeout := time.Millisecond * 100
-		Expect(filters).To(HaveLen(2))
-		for _, f := range filters {
-			cfg := getConfig(f.HttpFilter)
-			Expect(*cfg.Timeout).To(Equal(timeout))
-		}
-	})
-
-	Context("fail mode deny", func() {
-
-		BeforeEach(func() {
-			rlSettings.DenyOnFail = true
-		})
-
-		It("should fave fail mode deny on", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(filters).To(HaveLen(2))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
-				Expect(cfg.FailureModeDeny).To(BeTrue())
+				Expect(cfg.FailureModeDeny).To(BeFalse())
 			}
+
+			hundredms := time.Millisecond * 100
+			expectedConfig := &envoyratelimit.RateLimit{
+				Domain:          "ingress",
+				FailureModeDeny: false,
+				Stage:           0,
+				Timeout:         &hundredms,
+				RequestType:     "both",
+				RateLimitService: &rlconfig.RateLimitServiceConfig{
+					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+							ClusterName: translator.UpstreamToClusterName(ref),
+						},
+					}},
+				},
+			}
+
+			cfg1 := getConfig(filters[1].HttpFilter)
+			Expect(cfg1).To(BeEquivalentTo(expectedConfig))
+
+			expectedConfig.Domain = "custom"
+			expectedConfig.Stage = 1
+
+			cfg2 := getConfig(filters[0].HttpFilter)
+			Expect(cfg2).To(BeEquivalentTo(expectedConfig))
+
 		})
-	})
 
-	Context("timeout", func() {
-
-		BeforeEach(func() {
-			s := time.Second
-			rlSettings.RequestTimeout = &s
-		})
-
-		It("should custom timeout set", func() {
+		It("default timeout is 100ms", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
-
+			timeout := time.Millisecond * 100
 			Expect(filters).To(HaveLen(2))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
-				Expect(*cfg.Timeout).To(Equal(time.Second))
+				Expect(*cfg.Timeout).To(Equal(timeout))
 			}
 		})
+
+		Context("fail mode deny", func() {
+
+			BeforeEach(func() {
+				rlSettings.DenyOnFail = true
+			})
+
+			It("should fave fail mode deny on", func() {
+				filters, err := rlPlugin.HttpFilters(params, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(filters).To(HaveLen(2))
+				for _, f := range filters {
+					cfg := getConfig(f.HttpFilter)
+					Expect(cfg.FailureModeDeny).To(BeTrue())
+				}
+			})
+		})
+
+		Context("timeout", func() {
+
+			BeforeEach(func() {
+				s := time.Second
+				rlSettings.RequestTimeout = &s
+			})
+
+			It("should custom timeout set", func() {
+				filters, err := rlPlugin.HttpFilters(params, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(filters).To(HaveLen(2))
+				for _, f := range filters {
+					cfg := getConfig(f.HttpFilter)
+					Expect(*cfg.Timeout).To(Equal(time.Second))
+				}
+			})
+		})
+	}
+
+	// TODO(kdorosh) remove this once we stop supporting opaque rate limiting config
+	Context("deprecated config", func() {
+		BeforeEach(beforeEach)
+
+		JustBeforeEach(func() {
+			settingsStruct, err := util.MessageToStruct(rlSettings)
+			Expect(err).NotTo(HaveOccurred())
+
+			glooExtensions := map[string]*types.Struct{
+				ExtensionName: settingsStruct,
+			}
+			extensions = &gloov1.Extensions{
+				Configs: glooExtensions,
+			}
+			initParams.ExtensionsSettings = extensions
+			rlPlugin.Init(initParams)
+		})
+		allTests()
 	})
+
+	// TODO(kdorosh) clean this up and remove this higher level context when we stop supporting opaque rate-limiting config
+	Context("strongly-typed config", func() {
+		BeforeEach(beforeEach)
+
+		JustBeforeEach(func() {
+			initParams.Settings = &gloov1.Settings{RatelimitServer: rlSettings}
+			rlPlugin.Init(initParams)
+		})
+		allTests()
+	})
+
 })
 
 func getConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {

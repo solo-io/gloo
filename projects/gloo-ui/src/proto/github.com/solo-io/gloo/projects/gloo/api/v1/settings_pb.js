@@ -17,9 +17,12 @@ var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+goog.exportSymbol('proto.gloo.solo.io.GatewayOptions', null, global);
+goog.exportSymbol('proto.gloo.solo.io.GlooOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions', null, global);
@@ -167,9 +170,13 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     knative: (f = msg.getKnative()) && proto.gloo.solo.io.Settings.KnativeOptions.toObject(includeInstance, f),
     discovery: (f = msg.getDiscovery()) && proto.gloo.solo.io.Settings.DiscoveryOptions.toObject(includeInstance, f),
+    gloo: (f = msg.getGloo()) && proto.gloo.solo.io.GlooOptions.toObject(includeInstance, f),
+    gateway: (f = msg.getGateway()) && proto.gloo.solo.io.GatewayOptions.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.Settings.ConsulConfiguration.toObject(includeInstance, f),
     kubernetes: (f = msg.getKubernetes()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
+    ratelimitDescriptors: (f = msg.getRatelimitDescriptors()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.toObject(includeInstance, f),
+    ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f)
   };
@@ -293,6 +300,16 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       reader.readMessage(value,proto.gloo.solo.io.Settings.DiscoveryOptions.deserializeBinaryFromReader);
       msg.setDiscovery(value);
       break;
+    case 24:
+      var value = new proto.gloo.solo.io.GlooOptions;
+      reader.readMessage(value,proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader);
+      msg.setGloo(value);
+      break;
+    case 25:
+      var value = new proto.gloo.solo.io.GatewayOptions;
+      reader.readMessage(value,proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader);
+      msg.setGateway(value);
+      break;
     case 20:
       var value = new proto.gloo.solo.io.Settings.ConsulConfiguration;
       reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader);
@@ -307,6 +324,16 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.deserializeBinaryFromReader);
       msg.setExtensions(value);
+      break;
+    case 26:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.deserializeBinaryFromReader);
+      msg.setRatelimitDescriptors(value);
+      break;
+    case 27:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
+      msg.setRatelimitServer(value);
       break;
     case 14:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -486,6 +513,22 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       proto.gloo.solo.io.Settings.DiscoveryOptions.serializeBinaryToWriter
     );
   }
+  f = message.getGloo();
+  if (f != null) {
+    writer.writeMessage(
+      24,
+      f,
+      proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getGateway();
+  if (f != null) {
+    writer.writeMessage(
+      25,
+      f,
+      proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter
+    );
+  }
   f = message.getConsul();
   if (f != null) {
     writer.writeMessage(
@@ -508,6 +551,22 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       16,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
+    );
+  }
+  f = message.getRatelimitDescriptors();
+  if (f != null) {
+    writer.writeMessage(
+      26,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getRatelimitServer();
+  if (f != null) {
+    writer.writeMessage(
+      27,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -3348,6 +3407,66 @@ proto.gloo.solo.io.Settings.prototype.hasDiscovery = function() {
 
 
 /**
+ * optional GlooOptions gloo = 24;
+ * @return {?proto.gloo.solo.io.GlooOptions}
+ */
+proto.gloo.solo.io.Settings.prototype.getGloo = function() {
+  return /** @type{?proto.gloo.solo.io.GlooOptions} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.GlooOptions, 24));
+};
+
+
+/** @param {?proto.gloo.solo.io.GlooOptions|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setGloo = function(value) {
+  jspb.Message.setWrapperField(this, 24, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearGloo = function() {
+  this.setGloo(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasGloo = function() {
+  return jspb.Message.getField(this, 24) != null;
+};
+
+
+/**
+ * optional GatewayOptions gateway = 25;
+ * @return {?proto.gloo.solo.io.GatewayOptions}
+ */
+proto.gloo.solo.io.Settings.prototype.getGateway = function() {
+  return /** @type{?proto.gloo.solo.io.GatewayOptions} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.GatewayOptions, 25));
+};
+
+
+/** @param {?proto.gloo.solo.io.GatewayOptions|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setGateway = function(value) {
+  jspb.Message.setWrapperField(this, 25, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearGateway = function() {
+  this.setGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasGateway = function() {
+  return jspb.Message.getField(this, 25) != null;
+};
+
+
+/**
  * optional ConsulConfiguration consul = 20;
  * @return {?proto.gloo.solo.io.Settings.ConsulConfiguration}
  */
@@ -3438,6 +3557,66 @@ proto.gloo.solo.io.Settings.prototype.hasExtensions = function() {
 
 
 /**
+ * optional ratelimit.plugins.gloo.solo.io.EnvoySettings ratelimit_descriptors = 26;
+ * @return {?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings}
+ */
+proto.gloo.solo.io.Settings.prototype.getRatelimitDescriptors = function() {
+  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings, 26));
+};
+
+
+/** @param {?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setRatelimitDescriptors = function(value) {
+  jspb.Message.setWrapperField(this, 26, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearRatelimitDescriptors = function() {
+  this.setRatelimitDescriptors(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasRatelimitDescriptors = function() {
+  return jspb.Message.getField(this, 26) != null;
+};
+
+
+/**
+ * optional ratelimit.plugins.gloo.solo.io.Settings ratelimit_server = 27;
+ * @return {?proto.ratelimit.plugins.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.Settings.prototype.getRatelimitServer = function() {
+  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings, 27));
+};
+
+
+/** @param {?proto.ratelimit.plugins.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setRatelimitServer = function(value) {
+  jspb.Message.setWrapperField(this, 27, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearRatelimitServer = function() {
+  this.setRatelimitServer(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasRatelimitServer = function() {
+  return jspb.Message.getField(this, 27) != null;
+};
+
+
+/**
  * optional core.solo.io.Metadata metadata = 14;
  * @return {?proto.core.solo.io.Metadata}
  */
@@ -3494,6 +3673,361 @@ proto.gloo.solo.io.Settings.prototype.clearStatus = function() {
  */
 proto.gloo.solo.io.Settings.prototype.hasStatus = function() {
   return jspb.Message.getField(this, 15) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.GlooOptions = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.GlooOptions, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.GlooOptions.displayName = 'proto.gloo.solo.io.GlooOptions';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.GlooOptions.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.GlooOptions} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    xdsBindAddr: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    validationBindAddr: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.GlooOptions}
+ */
+proto.gloo.solo.io.GlooOptions.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.GlooOptions;
+  return proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.GlooOptions} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.GlooOptions}
+ */
+proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setXdsBindAddr(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setValidationBindAddr(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.deserializeBinaryFromReader);
+      msg.setCircuitBreakers(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.GlooOptions} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getXdsBindAddr();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getValidationBindAddr();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getCircuitBreakers();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string xds_bind_addr = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getXdsBindAddr = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.GlooOptions.prototype.setXdsBindAddr = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string validation_bind_addr = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getValidationBindAddr = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.GlooOptions.prototype.setValidationBindAddr = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional CircuitBreakerConfig circuit_breakers = 3;
+ * @return {?proto.gloo.solo.io.CircuitBreakerConfig}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getCircuitBreakers = function() {
+  return /** @type{?proto.gloo.solo.io.CircuitBreakerConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig, 3));
+};
+
+
+/** @param {?proto.gloo.solo.io.CircuitBreakerConfig|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setCircuitBreakers = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearCircuitBreakers = function() {
+  this.setCircuitBreakers(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasCircuitBreakers = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.GatewayOptions = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.GatewayOptions, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.GatewayOptions.displayName = 'proto.gloo.solo.io.GatewayOptions';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.GatewayOptions.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.GatewayOptions} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    validationServerAddr: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.GatewayOptions}
+ */
+proto.gloo.solo.io.GatewayOptions.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.GatewayOptions;
+  return proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.GatewayOptions} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.GatewayOptions}
+ */
+proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setValidationServerAddr(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.GatewayOptions} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getValidationServerAddr();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string validation_server_addr = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getValidationServerAddr = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setValidationServerAddr = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
