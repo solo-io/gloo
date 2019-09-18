@@ -1,4 +1,4 @@
-package grafana
+package template
 
 import (
 	"bytes"
@@ -9,22 +9,30 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
-//go:generate mockgen -destination mocks/mock_template_generator.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana TemplateGenerator
+//go:generate mockgen -destination mocks/mock_template_generator.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template TemplateGenerator
 
+// Render a template based on the given upstream
 type TemplateGenerator interface {
 	GenerateSnapshot() ([]byte, error)
 	GenerateDashboard() ([]byte, error)
 	GenerateUid() string
 }
 
+// when the observability pod updates a dashboard, use this pre-canned message to indicate it was automated
+const DefaultCommitMessage = "__gloo-auto-gen-dashboard__"
+
 type templateGenerator struct {
-	upstream *gloov1.Upstream
+	upstream              *gloov1.Upstream
+	dashboardJsonTemplate string
 }
 
 var _ TemplateGenerator = &templateGenerator{}
 
-func NewTemplateGenerator(upstream *gloov1.Upstream) TemplateGenerator {
-	return &templateGenerator{upstream: upstream}
+func NewTemplateGenerator(upstream *gloov1.Upstream, dashboardJsonTemplate string) TemplateGenerator {
+	return &templateGenerator{
+		upstream:              upstream,
+		dashboardJsonTemplate: dashboardJsonTemplate,
+	}
 }
 
 func (t *templateGenerator) GenerateUid() string {
@@ -44,7 +52,9 @@ func (t *templateGenerator) GenerateDashboard() ([]byte, error) {
 		NameTemplate:     "{{zone}} ({{host}})",
 		Overwrite:        true,
 	}
-	return tmplExec(dashboardTemplate, stats)
+
+	dashboardPayload := buildDashboardPayloadTemplate(t.dashboardJsonTemplate)
+	return tmplExec(dashboardPayload, stats)
 }
 
 func (t *templateGenerator) GenerateSnapshot() ([]byte, error) {
@@ -54,7 +64,9 @@ func (t *templateGenerator) GenerateSnapshot() ([]byte, error) {
 		NameTemplate:     "{{zone}} ({{host}})",
 		Overwrite:        true,
 	}
-	return tmplExec(snapshotTemplate, stats)
+
+	snapshotPayload := buildSnapshotPayloadTemplate(t.dashboardJsonTemplate)
+	return tmplExec(snapshotPayload, stats)
 }
 
 func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {
@@ -90,4 +102,25 @@ type upstreamStats struct {
 	EnvoyClusterName string
 	NameTemplate     string
 	Overwrite        bool
+}
+
+func buildDashboardPayloadTemplate(dashboardTemplate string) string {
+	return fmt.Sprintf(`
+{
+  "dashboard": 
+	%s,
+  "overwrite": {{.Overwrite}},
+  "message": "%s"
+}
+`, dashboardTemplate, DefaultCommitMessage)
+}
+
+func buildSnapshotPayloadTemplate(dashboardTemplate string) string {
+	return fmt.Sprintf(`
+{
+  "dashboard": 
+	%s,
+  "name": "{{.EnvoyClusterName}}"
+}
+`, dashboardTemplate)
 }

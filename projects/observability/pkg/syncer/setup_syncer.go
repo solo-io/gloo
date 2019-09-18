@@ -2,7 +2,7 @@ package syncer
 
 import (
 	"context"
-	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -26,16 +26,19 @@ import (
 )
 
 const (
-	observability    = "observability"
-	GRAFANA_USERNAME = "GRAFANA_USERNAME"
-	GRAFANA_PASSWORD = "GRAFANA_PASSWORD"
+	observability     = "observability"
+	grafanaUrl        = "GRAFANA_URL"
+	grafanaUsername   = "GRAFANA_USERNAME"
+	grafanaPassword   = "GRAFANA_PASSWORD"
+	grafanaApiKey     = "GRAFANA_API_KEY"
+	dashboardTemplate = "/observability/dashboard-template.json"
 )
 
 func Main() error {
 	check.NewUsageClient().Start(observability, version.Version)
 	return setuputils.Main(setuputils.SetupOpts{
 		LoggingPrefix: observability,
-		ExitOnError:   false,
+		ExitOnError:   true,
 		SetupFunc:     Setup,
 	})
 }
@@ -86,7 +89,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 
 func RunObservability(opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
-	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gateway")
+	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "observability")
 
 	upstreamClient, err := gloov1.NewUpstreamClient(opts.Upstreams)
 	if err != nil {
@@ -96,21 +99,28 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
-	username := os.Getenv(GRAFANA_USERNAME)
-	password := os.Getenv(GRAFANA_PASSWORD)
-	if username == "" || password == "" {
-		contextutils.LoggerFrom(opts.WatchOpts.Ctx).Fatalf("grafana username and password cannot be empty")
+	creds, err := buildRestCredentials(opts.WatchOpts.Ctx)
+	if err != nil {
+		return err
 	}
-	basicAuthString := fmt.Sprintf("%s:%s", username, password)
-	apiUrl := fmt.Sprintf("%s:%s", SERVICE_LINK, SERVICE_PORT)
+
+	grafanaApiUrl, err := getGrafanaApiUrl()
+	if err != nil {
+		return err
+	}
 
 	httpClient := http.DefaultClient
-	restClient := grafana.NewRestClient(apiUrl, basicAuthString, httpClient)
+	restClient := grafana.NewRestClient(grafanaApiUrl, httpClient, creds)
 
 	dashboardClient := grafana.NewDashboardClient(restClient)
 	snapshotClient := grafana.NewSnapshotClient(restClient)
 
-	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient)
+	dashboardJsonTemplate, err := getDashboardJsonTemplate(opts.WatchOpts.Ctx)
+	if err != nil {
+		return err
+	}
+
+	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate)
 
 	emitter := v1.NewDashboardsEmitter(upstreamClient)
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)
@@ -121,13 +131,11 @@ func RunObservability(opts Opts) error {
 	}
 	go errutils.AggregateErrs(opts.WatchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
 
-	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
-
 	go func() {
 		for {
 			select {
 			case err := <-writeErrs:
-				logger.Errorf("error: %v", err)
+				contextutils.LoggerFrom(opts.WatchOpts.Ctx).Errorf("error: %v", err)
 			case <-opts.WatchOpts.Ctx.Done():
 				close(writeErrs)
 				return
@@ -135,4 +143,50 @@ func RunObservability(opts Opts) error {
 		}
 	}()
 	return nil
+}
+
+func buildRestCredentials(ctx context.Context) (*grafana.Credentials, error) {
+	var (
+		username = os.Getenv(grafanaUsername)
+		password = os.Getenv(grafanaPassword)
+		apiKey   = os.Getenv(grafanaApiKey)
+		logger   = contextutils.LoggerFrom(ctx)
+	)
+
+	if apiKey != "" {
+		logger.Info("Using api key for authentication to grafana")
+		return &grafana.Credentials{
+			BasicAuth: nil,
+			ApiKey:    apiKey,
+		}, nil
+	} else if username != "" && password != "" {
+		logger.Info("Using basic auth for authentication to grafana")
+		return &grafana.Credentials{
+			BasicAuth: &grafana.BasicAuth{
+				Username: username,
+				Password: password,
+			},
+			ApiKey: "",
+		}, nil
+	} else {
+		return nil, grafana.IncompleteGrafanaCredentials
+	}
+}
+
+func getGrafanaApiUrl() (string, error) {
+	url := os.Getenv(grafanaUrl)
+	if url == "" {
+		return "", NoGrafanaUrl(grafanaUrl)
+	}
+
+	return url, nil
+}
+
+func getDashboardJsonTemplate(ctx context.Context) (string, error) {
+	bytes, err := ioutil.ReadFile(dashboardTemplate)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Error reading file %s - %s", dashboardTemplate, err.Error())
+		return "", nil
+	}
+	return string(bytes), nil
 }

@@ -10,6 +10,6 @@ dependencies:
   - name: grafana
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.25.1
-    condition: grafana.enabled
+    condition: grafana.defaultInstallationEnabled
     tags:
       - monitoring

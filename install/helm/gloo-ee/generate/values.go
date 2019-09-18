@@ -76,12 +76,22 @@ type RedisService struct {
 }
 
 type Observability struct {
-	Deployment *ObservabilityDeployment `json:"deployment,omitempty"`
+	Deployment    *ObservabilityDeployment `json:"deployment,omitempty"`
+	CustomGrafana *CustomGrafana           `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
 }
 
 type ObservabilityDeployment struct {
 	Image *glooGen.Image `json:"image,omitempty"`
 	*glooGen.DeploymentSpec
+}
+
+type CustomGrafana struct {
+	Enabled                   bool   `json:"enabled",omitempty,desc:"Set to true to indicate that the observability pod should talk to a custom grafana instance"`
+	Username                  string `json:"username",omitempty,desc:"Set this and the 'password' field to authenticate to the custom grafana instance using basic auth"`
+	Password                  string `json:"password",omitempty,desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
+	ApiKey                    string `json:"apiKey",omitempty,desc:"Authenticate to the custom grafana instance using this api key"`
+	Url                       string `json:"url",omitempty,desc:"The URL for the custom grafana instance"`
+	UpstreamDashboardTemplate string `json:"upstreamDashboardTemplate",omitempty,desc:"The template to use when auto-generating dashboards for each upstream"`
 }
 
 type ExtAuth struct {

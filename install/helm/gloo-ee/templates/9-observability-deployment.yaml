@@ -1,4 +1,4 @@
-{{- if .Values.grafana.enabled }}
+{{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 {{- $image := .Values.observability.deployment.image }}
 {{- if .Values.global  }}
 {{- $image = merge .Values.observability.deployment.image .Values.global.image }}
@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         gloo: observability
+        app: gloo
       {{- if .Values.observability.deployment.stats }}
       annotations:
         prometheus.io/path: /metrics
@@ -28,10 +29,21 @@ spec:
       {{- end}}
     spec:
       serviceAccountName: observability
+      volumes:
+        - name: upstream-dashboard-template
+          configMap:
+            name: {{ .Release.Name }}-observability-config
+            items:
+            - key: DASHBOARD_JSON_TEMPLATE
+              path: dashboard-template.json
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{$image.pullPolicy}}
           name: observability
+          volumeMounts:
+            - name: upstream-dashboard-template
+              mountPath: /observability
+              readOnly: true
           env:
             - name: GLOO_LICENSE_KEY
               valueFrom:
@@ -42,16 +54,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: GRAFANA_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{.Release.Name}}-grafana
-                  key: admin-user
-            - name: GRAFANA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{.Release.Name}}-grafana
-                  key: admin-password
+          envFrom:
+            - configMapRef:
+                name: {{.Release.Name}}-observability-config
+            - secretRef:
+                name: {{.Release.Name}}-observability-secrets
             {{- if .Values.observability.deployment.stats }}
             - name: START_STATS_SERVER
               value: "true"

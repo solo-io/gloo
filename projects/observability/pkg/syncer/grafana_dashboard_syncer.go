@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
+
 	"go.uber.org/zap"
 
 	v1 "github.com/solo-io/solo-projects/projects/observability/pkg/api/v1"
@@ -29,26 +31,25 @@ func (gs *grafanaState) containsBoard(upstreamUid string) bool {
 }
 
 const (
-	GLOO_TAG    = "gloo"
-	DYNAMIC_TAG = "dynamic"
-
-	SERVICE_LINK = "http://glooe-grafana.gloo-system.svc.cluster.local"
-	SERVICE_PORT = "80"
+	glooTag    = "gloo"
+	dynamicTag = "dynamic"
 )
 
-var TAGS = []string{GLOO_TAG, DYNAMIC_TAG}
+var TAGS = []string{glooTag, dynamicTag}
 
 type GrafanaDashboardsSyncer struct {
-	synced          bool
-	mutex           sync.Mutex
-	dashboardClient grafana.DashboardClient
-	snapshotClient  grafana.SnapshotClient
+	synced                bool
+	mutex                 sync.Mutex
+	dashboardClient       grafana.DashboardClient
+	snapshotClient        grafana.SnapshotClient
+	dashboardJsonTemplate string
 }
 
-func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient) *GrafanaDashboardsSyncer {
+func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, dashboardJsonTemplate string) *GrafanaDashboardsSyncer {
 	return &GrafanaDashboardsSyncer{
-		dashboardClient: dashboardClient,
-		snapshotClient:  snapshotClient,
+		dashboardClient:       dashboardClient,
+		snapshotClient:        snapshotClient,
+		dashboardJsonTemplate: dashboardJsonTemplate,
 	}
 }
 
@@ -102,7 +103,7 @@ func (s *GrafanaDashboardsSyncer) shouldRegenDashboard(logger *zap.SugaredLogger
 func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) {
 	for _, upstream := range snap.Upstreams {
 		upstreamName := upstream.Metadata.GetName()
-		templateGenerator := grafana.NewTemplateGenerator(upstream)
+		templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
 		upstreamUid := templateGenerator.GenerateUid()
 
 		shouldRegenDashboard, err := s.shouldRegenDashboard(logger, upstreamUid)
@@ -180,14 +181,14 @@ func (s *GrafanaDashboardsSyncer) isEditedByUser(rawDashboard []byte) (bool, err
 	mostRecentVersion := allVersions[0]
 
 	// if the version message is not one that we automatically set, then a user must have manually updated it
-	return mostRecentVersion.Message != grafana.DefaultCommitMessage, nil
+	return mostRecentVersion.Message != template.DefaultCommitMessage, nil
 }
 
 func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) {
 	for _, board := range gs.boards {
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := grafana.NewTemplateGenerator(upstream)
+			templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
 			upstreamUid := templateGenerator.GenerateUid()
 			if board.UID == upstreamUid {
 				missing = false
@@ -206,7 +207,7 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 	for _, snapshot := range gs.snapshots {
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := grafana.NewTemplateGenerator(upstream)
+			templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
 			upstreamUid := templateGenerator.GenerateUid()
 			if snapshot.Name == upstreamUid {
 				missing = false

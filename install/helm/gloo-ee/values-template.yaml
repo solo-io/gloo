@@ -154,6 +154,8 @@ observability:
     name: observability
     image:
       repository: observability-ee
+  customGrafana:
+    enabled: false
 
 ########################################################################
 ###                                                                  ###
@@ -216,7 +218,7 @@ prometheus:
 
 grafana:
   # setting to false will disable grafana, removing it from gloo's chart dependencies
-  enabled: true
+  defaultInstallationEnabled: true
   adminUser: admin
   adminPassword: admin
   persistence:

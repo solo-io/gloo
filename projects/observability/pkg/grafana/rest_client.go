@@ -8,10 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 )
 
-//go:generate mockgen -destination mocks/mock_grafana_client.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana RestClient
+//go:generate mockgen -destination mocks/mock_rest_client.go -package mocks github.com/solo-io/solo-projects/projects/observability/pkg/grafana RestClient
 
 // DefaultHTTPClient initialized Grafana with appropriate conditions.
 // It allows you globally redefine HTTP client.
@@ -27,10 +26,9 @@ type RestClient interface {
 
 // RestClient uses Grafana REST API for interacting with Grafana server.
 type restClient struct {
-	baseURL   string
-	key       string
-	basicAuth bool
-	client    *http.Client
+	client        *http.Client
+	credentials   *Credentials
+	grafanaApiUrl string
 }
 
 var _ RestClient = &restClient{}
@@ -44,20 +42,26 @@ type StatusMessage struct {
 	Status  *string `json:"resp"`
 }
 
+type BasicAuth struct {
+	Username string
+	Password string
+}
+
+// must have either the username and password set or the api key set
+type Credentials struct {
+	BasicAuth *BasicAuth
+	ApiKey    string
+}
+
 // initialize a RestClient for interacting with an instance of Grafana's api server;
 // apiKeyOrBasicAuth accepts either 'username:password' basic authentication credentials,
 // or a Grafana API key
-func NewRestClient(apiURL, apiKeyOrBasicAuth string, httpClient *http.Client) RestClient {
-	key := ""
-	basicAuth := strings.Contains(apiKeyOrBasicAuth, ":")
-	baseURL, _ := url.Parse(apiURL)
-	if !basicAuth {
-		key = fmt.Sprintf("Bearer %s", apiKeyOrBasicAuth)
-	} else {
-		parts := strings.Split(apiKeyOrBasicAuth, ":")
-		baseURL.User = url.UserPassword(parts[0], parts[1])
+func NewRestClient(grafanaApiUrl string, httpClient *http.Client, credentials *Credentials) RestClient {
+	return &restClient{
+		client:        httpClient,
+		credentials:   credentials,
+		grafanaApiUrl: grafanaApiUrl,
 	}
-	return &restClient{baseURL: baseURL.String(), basicAuth: basicAuth, key: key, client: httpClient}
 }
 
 func (r *restClient) Get(query string, params url.Values) ([]byte, int, error) {
@@ -81,14 +85,26 @@ func (r *restClient) Delete(query string) ([]byte, int, error) {
 }
 
 func (r *restClient) doRequest(method, query string, params url.Values, buf io.Reader) ([]byte, int, error) {
-	u, _ := url.Parse(r.baseURL)
+	u, _ := url.Parse(r.grafanaApiUrl)
+
 	u.Path = path.Join(u.Path, query)
 	if params != nil {
 		u.RawQuery = params.Encode()
 	}
+
+	var apiKeyHeader string
+	if r.credentials.BasicAuth != nil {
+		u.User = url.UserPassword(r.credentials.BasicAuth.Username, r.credentials.BasicAuth.Password)
+	} else if r.credentials.ApiKey != "" {
+		apiKeyHeader = fmt.Sprintf("Bearer %s", r.credentials.ApiKey)
+	} else {
+		return nil, 0, IncompleteGrafanaCredentials
+	}
+
 	req, err := http.NewRequest(method, u.String(), buf)
-	if !r.basicAuth {
-		req.Header.Set("Authorization", r.key)
+
+	if apiKeyHeader != "" {
+		req.Header.Set("Authorization", apiKeyHeader)
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
@@ -98,5 +114,6 @@ func (r *restClient) doRequest(method, query string, params url.Values, buf io.R
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
+
 	return data, resp.StatusCode, err
 }

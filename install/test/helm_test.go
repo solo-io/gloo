@@ -58,6 +58,142 @@ var _ = Describe("Helm Test", func() {
 			testManifest = NewTestManifest(manifestYaml)
 		}
 
+		Context("observability", func() {
+			var (
+				observabilityDeployment *appsv1.Deployment
+				grafanaDeployment       *appsv1.Deployment
+			)
+			BeforeEach(func() {
+				labels = map[string]string{
+					"app":  "gloo",
+					"gloo": "observability",
+				}
+				selector = map[string]string{
+					"gloo": "observability",
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "observability",
+					Labels:    labels,
+				}
+				observabilityDeployment = rb.GetDeploymentAppsv1()
+
+				observabilityDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+					{
+						Name: "upstream-dashboard-template",
+						VolumeSource: v1.VolumeSource{
+							ConfigMap: &v1.ConfigMapVolumeSource{
+								LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-config"},
+								Items: []v1.KeyToPath{
+									{
+										Key:  "DASHBOARD_JSON_TEMPLATE",
+										Path: "dashboard-template.json",
+									},
+								},
+							},
+						},
+					},
+				}
+				observabilityDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:  "observability",
+						Image: "quay.io/solo-io/observability-ee:dev",
+						EnvFrom: []v1.EnvFromSource{
+							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-config"}}},
+							{SecretRef: &v1.SecretEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-secrets"}}},
+						},
+						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "upstream-dashboard-template",
+								ReadOnly:  true,
+								MountPath: "/observability",
+							},
+						},
+						Env: []v1.EnvVar{
+							{
+								Name: "GLOO_LICENSE_KEY",
+								ValueFrom: &v1.EnvVarSource{
+									SecretKeyRef: &v1.SecretKeySelector{
+										LocalObjectReference: v1.LocalObjectReference{
+											Name: "license",
+										},
+										Key: "license-key",
+									},
+								},
+							},
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+						},
+						Resources:       v1.ResourceRequirements{},
+						ImagePullPolicy: "Always",
+					},
+				}
+				observabilityDeployment.Spec.Template.Spec.ServiceAccountName = "observability"
+				observabilityDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
+					{
+						Name: "solo-io-readerbot-pull-secret",
+					},
+				}
+				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
+				observabilityDeployment.Spec.Selector.MatchLabels = map[string]string{
+					"gloo": "observability",
+				}
+
+				grafanaBuilder := ResourceBuilder{
+					Namespace: "", // grafana installs to empty namespace during tests
+					Name:      "release-name-grafana",
+					Labels:    labels,
+				}
+				grafanaDeployment = grafanaBuilder.GetDeploymentAppsv1()
+			})
+
+			Context("observability deployemnt", func() {
+				It("is installed by default", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+					prepareMakefile(helmFlags)
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
+				It("is not installed when grafana is disabled", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set grafana.defaultInstallationEnabled=false"
+					prepareMakefile(helmFlags)
+
+					testManifest.Expect(observabilityDeployment.Kind, observabilityDeployment.Namespace, observabilityDeployment.Name).To(BeNil())
+				})
+
+				It("is installed when a custom grafana instance is present", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set observability.customGrafana.enabled=true"
+					prepareMakefile(helmFlags)
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+			})
+
+			Context("grafana deployment", func() {
+				It("is not installed when grafana is disabled", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set grafana.defaultInstallationEnabled=false"
+					prepareMakefile(helmFlags)
+
+					testManifest.Expect(grafanaDeployment.Kind, grafanaDeployment.Namespace, grafanaDeployment.Name).To(BeNil())
+				})
+
+				It("is not installed when using a custom grafana instance", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true --set grafana.defaultInstallationEnabled=false --set observability.customGrafana.enabled=true"
+					prepareMakefile(helmFlags)
+
+					testManifest.Expect(grafanaDeployment.Kind, grafanaDeployment.Namespace, grafanaDeployment.Name).To(BeNil())
+				})
+			})
+		})
+
 		Context("gateway", func() {
 			BeforeEach(func() {
 				labels = map[string]string{

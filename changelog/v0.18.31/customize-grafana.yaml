@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow the observability pod to talk to a custom grafana deployment
+    issueLink: https://github.com/solo-io/solo-projects/issues/1108
+  - type: NEW_FEATURE
+    description: Allow the upstream dashboard template to be customized through a configmap
+    issueLink: https://github.com/solo-io/solo-projects/issues/1103

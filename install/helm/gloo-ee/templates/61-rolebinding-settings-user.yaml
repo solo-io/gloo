@@ -1,4 +1,4 @@
-{{- if .Values.grafana.enabled }}
+{{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 kind: {{ include "gloo.roleKind" . }}Binding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:

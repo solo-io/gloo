@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
+	templatemocks "github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template/mocks"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +24,7 @@ var (
 	mockCtrl           *gomock.Controller
 	dashboardClient    *mocks.MockDashboardClient
 	snapshotClient     *mocks.MockSnapshotClient
-	templateGenerator  *mocks.MockTemplateGenerator
+	templateGenerator  *templatemocks.MockTemplateGenerator
 	testErr            = errors.New("test err")
 	dashboardsSnapshot *v1.DashboardsSnapshot
 	testGrafanaState   *grafanaState
@@ -34,7 +37,7 @@ var _ = Describe("Grafana Syncer", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
 		snapshotClient = mocks.NewMockSnapshotClient(mockCtrl)
-		templateGenerator = mocks.NewMockTemplateGenerator(mockCtrl)
+		templateGenerator = templatemocks.NewMockTemplateGenerator(mockCtrl)
 		dashboardsSnapshot = &v1.DashboardsSnapshot{
 			Upstreams: []*gloov1.Upstream{
 				{
@@ -49,7 +52,8 @@ var _ = Describe("Grafana Syncer", func() {
 			boards:    nil,
 			snapshots: nil,
 		}
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient)
+		dashboardJsonTemplate := "{}"
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate)
 		logger = contextutils.LoggerFrom(context.TODO())
 	})
 
@@ -64,7 +68,7 @@ var _ = Describe("Grafana Syncer", func() {
 			rawDashboard := []byte(fmt.Sprintf("{\"id\": %f}", dashboardId))
 			versions := []*grafana.Version{
 				{
-					Message: grafana.DefaultCommitMessage,
+					Message: template.DefaultCommitMessage,
 				},
 			}
 
@@ -90,7 +94,7 @@ var _ = Describe("Grafana Syncer", func() {
 					Message: "my message written by a user",
 				},
 				{
-					Message: grafana.DefaultCommitMessage,
+					Message: template.DefaultCommitMessage,
 				},
 			}
 
