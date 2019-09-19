@@ -1,3 +1,4 @@
+{{- if .Values.observability.enabled }}
 {{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 {{- $image := .Values.observability.deployment.image }}
 {{- if .Values.global  }}
@@ -68,3 +69,4 @@ spec:
         - name: {{ $image.pullSecret }}
       {{- end }}
 {{- end }}
+{{- end }} # enabled

@@ -2,6 +2,7 @@ package test
 
 import (
 	"io/ioutil"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,32 +16,67 @@ var _ = Describe("RBAC Test", func() {
 		manifestYaml string
 	)
 
-	prepareMakefile := func(helmFlags string) {
-		makefileSerializer.Lock()
-		defer makefileSerializer.Unlock()
+	Context("GlooE", func() {
+		prepareTestManifest := func(customHelmArgs ...string) {
+			makefileSerializer.Lock()
+			defer makefileSerializer.Unlock()
 
-		f, err := ioutil.TempFile("", "*.yaml")
-		Expect(err).NotTo(HaveOccurred())
-		err = f.Close()
-		Expect(err).ToNot(HaveOccurred())
-		manifestYaml = f.Name()
+			f, err := ioutil.TempFile("", "*.yaml")
+			Expect(err).NotTo(HaveOccurred())
 
-		MustMake(".", "-C", "../..", "install/glooe-gateway.yaml", "HELMFLAGS="+helmFlags, "OUTPUT_YAML="+manifestYaml)
-		testManifest = NewTestManifest(manifestYaml)
-	}
+			Expect(WriteGlooETestManifest(f, customHelmArgs...)).NotTo(HaveOccurred())
+			Expect(f.Close()).NotTo(HaveOccurred())
 
-	Context("implementation-agnostic permissions", func() {
-		It("correctly assigns permissions for single-namespace gloo", func() {
-			prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=true")
-			permissions := GetGlooEServiceAccountPermissions("gloo-system")
-			testManifest.ExpectPermissions(permissions)
-		})
+			manifestYaml = f.Name()
+			testManifest = NewTestManifest(manifestYaml)
+		}
+		prepareMakefile := func(customHelmArgs string) {
+			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
+		}
+		Context("implementation-agnostic permissions", func() {
+			It("correctly assigns permissions for single-namespace gloo", func() {
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=true")
+				permissions := GetGlooEServiceAccountPermissions("gloo-system")
+				testManifest.ExpectPermissions(permissions)
+			})
 
-		It("correctly assigns permissions for cluster-scoped gloo", func() {
-			prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
-			permissions := GetGlooEServiceAccountPermissions("")
-			testManifest.ExpectPermissions(permissions)
+			It("correctly assigns permissions for cluster-scoped gloo", func() {
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
+				permissions := GetGlooEServiceAccountPermissions("")
+				testManifest.ExpectPermissions(permissions)
+			})
 		})
 	})
-	// TODO(mitchdraft) test the Gloo read only UI permissions
+
+	Context("Gloo OS with read-only UI", func() {
+		prepareTestManifest := func(customHelmArgs ...string) {
+			makefileSerializer.Lock()
+			defer makefileSerializer.Unlock()
+
+			f, err := ioutil.TempFile("", "*.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(WriteGlooOsWithRoUiTestManifest(f, customHelmArgs...)).NotTo(HaveOccurred())
+			Expect(f.Close()).NotTo(HaveOccurred())
+
+			manifestYaml = f.Name()
+			testManifest = NewTestManifest(manifestYaml)
+		}
+		prepareMakefile := func(customHelmArgs string) {
+			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
+		}
+		Context("implementation-agnostic permissions", func() {
+			It("correctly assigns permissions for single-namespace gloo", func() {
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=true")
+				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("gloo-system")
+				testManifest.ExpectPermissions(permissions)
+			})
+
+			It("correctly assigns permissions for cluster-scoped gloo", func() {
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
+				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("")
+				testManifest.ExpectPermissions(permissions)
+			})
+		})
+	})
 })

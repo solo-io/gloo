@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Provide a Gloo distribution that includes compatible images from a read-only UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1114

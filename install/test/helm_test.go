@@ -3,12 +3,16 @@ package test
 import (
 	"io/ioutil"
 	"os"
+	"strings"
+
+	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+
+	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	. "github.com/solo-io/go-utils/manifesttestutils"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -44,18 +48,21 @@ var _ = Describe("Helm Test", func() {
 			}
 		})
 
-		prepareMakefile := func(helmFlags string) {
+		prepareTestManifest := func(customHelmArgs ...string) {
 			makefileSerializer.Lock()
 			defer makefileSerializer.Unlock()
 
 			f, err := ioutil.TempFile("", "*.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			err = f.Close()
-			Expect(err).ToNot(HaveOccurred())
-			manifestYaml = f.Name()
 
-			MustMake(".", "-C", "../..", "install/glooe-gateway.yaml", "HELMFLAGS="+helmFlags, "OUTPUT_YAML="+manifestYaml)
+			Expect(WriteGlooETestManifest(f, customHelmArgs...)).NotTo(HaveOccurred())
+			Expect(f.Close()).NotTo(HaveOccurred())
+
+			manifestYaml = f.Name()
 			testManifest = NewTestManifest(manifestYaml)
+		}
+		prepareMakefile := func(customHelmArgs string) {
+			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
 		}
 
 		Context("observability", func() {
@@ -84,7 +91,7 @@ var _ = Describe("Helm Test", func() {
 						Name: "upstream-dashboard-template",
 						VolumeSource: v1.VolumeSource{
 							ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-config"},
+								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-config"},
 								Items: []v1.KeyToPath{
 									{
 										Key:  "DASHBOARD_JSON_TEMPLATE",
@@ -100,8 +107,8 @@ var _ = Describe("Helm Test", func() {
 						Name:  "observability",
 						Image: "quay.io/solo-io/observability-ee:dev",
 						EnvFrom: []v1.EnvFromSource{
-							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-config"}}},
-							{SecretRef: &v1.SecretEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "release-name-observability-secrets"}}},
+							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-config"}}},
+							{SecretRef: &v1.SecretEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-secrets"}}},
 						},
 						VolumeMounts: []v1.VolumeMount{
 							{
@@ -198,7 +205,7 @@ var _ = Describe("Helm Test", func() {
 			BeforeEach(func() {
 				labels = map[string]string{
 					"gloo":             "gateway-proxy",
-					"gateway-proxy-id": translator.GatewayProxyName,
+					"gateway-proxy-id": defaults.GatewayProxyName,
 					"app":              "gloo",
 				}
 				selector = map[string]string{
@@ -221,11 +228,11 @@ var _ = Describe("Helm Test", func() {
 				BeforeEach(func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": translator.GatewayProxyName,
+						"gateway-proxy-id": defaults.GatewayProxyName,
 					}
 					podLabels := map[string]string{
 						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": translator.GatewayProxyName,
+						"gateway-proxy-id": defaults.GatewayProxyName,
 						"gateway-proxy":    "live",
 					}
 					podAnnotations := map[string]string{
@@ -243,12 +250,12 @@ var _ = Describe("Helm Test", func() {
 					}
 
 					container := GetQuayContainerSpec("gloo-ee-envoy-wrapper", version, GetPodNamespaceEnvVar(), podname)
-					container.Name = translator.GatewayProxyName
+					container.Name = defaults.GatewayProxyName
 					container.Args = []string{"--disable-hot-restart"}
 
 					rb := ResourceBuilder{
 						Namespace:  namespace,
-						Name:       translator.GatewayProxyName,
+						Name:       defaults.GatewayProxyName,
 						Labels:     labels,
 						Containers: []ContainerSpec{container},
 					}
@@ -490,6 +497,251 @@ var _ = Describe("Helm Test", func() {
 								Name: "solo-io-readerbot-pull-secret",
 							},
 						}
+					})
+
+					It("is there by default", func() {
+						helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+						prepareMakefile(helmFlags)
+						testManifest.ExpectDeploymentAppsV1(deploy)
+					})
+				})
+			})
+
+		})
+	})
+
+	Describe("gloo with read-only ui helm tests", func() {
+		var (
+			labels           map[string]string
+			selector         map[string]string
+			manifestYaml     string
+			glooOsVersion    string
+			glooOsPullPolicy v1.PullPolicy
+		)
+
+		BeforeEach(func() {
+
+			var err error
+			glooOsVersion, err = generate.GetGlooOsVersionFromToml("../..")
+			Expect(err).NotTo(HaveOccurred())
+			glooOsPullPolicy = v1.PullAlways
+
+			version = os.Getenv("TAGGED_VERSION")
+			if version == "" {
+				version = "dev"
+			} else {
+				version = version[1:]
+			}
+			manifestYaml = ""
+		})
+
+		AfterEach(func() {
+			if manifestYaml != "" {
+				err := os.Remove(manifestYaml)
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		prepareTestManifest := func(customHelmArgs ...string) {
+			makefileSerializer.Lock()
+			defer makefileSerializer.Unlock()
+
+			f, err := ioutil.TempFile("", "*.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(WriteGlooOsWithRoUiTestManifest(f, customHelmArgs...)).NotTo(HaveOccurred())
+			Expect(f.Close()).NotTo(HaveOccurred())
+
+			manifestYaml = f.Name()
+			testManifest = NewTestManifest(manifestYaml)
+		}
+		prepareMakefile := func(customHelmArgs string) {
+			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
+		}
+
+		Context("gateway", func() {
+			BeforeEach(func() {
+				labels = map[string]string{
+					"gloo":             "gateway-proxy",
+					"gateway-proxy-id": defaults.GatewayProxyName,
+					"app":              "gloo",
+				}
+				selector = map[string]string{
+					"gateway-proxy": "live",
+				}
+			})
+
+			Context("gateway-proxy deployment", func() {
+				var (
+					gatewayProxyDeployment *appsv1.Deployment
+				)
+
+				includeStatConfig := func() {
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-stats"] = "/stats"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-ready"] = "/ready"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-config_dump"] = "/config_dump"
+					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
+				}
+
+				BeforeEach(func() {
+					selector = map[string]string{
+						"gloo":             "gateway-proxy",
+						"gateway-proxy-id": defaults.GatewayProxyName,
+					}
+					podLabels := map[string]string{
+						"gloo":             "gateway-proxy",
+						"gateway-proxy-id": defaults.GatewayProxyName,
+						"gateway-proxy":    "live",
+					}
+					podAnnotations := map[string]string{
+						"prometheus.io/path":   "/metrics",
+						"prometheus.io/port":   "8081",
+						"prometheus.io/scrape": "true",
+					}
+					podname := v1.EnvVar{
+						Name: "POD_NAME",
+						ValueFrom: &v1.EnvVarSource{
+							FieldRef: &v1.ObjectFieldSelector{
+								FieldPath: "metadata.name",
+							},
+						},
+					}
+
+					container := GetQuayContainerSpec("gloo-envoy-wrapper", glooOsVersion, GetPodNamespaceEnvVar(), podname)
+					container.Name = defaults.GatewayProxyName
+					container.Args = []string{"--disable-hot-restart"}
+
+					rb := ResourceBuilder{
+						Namespace:  namespace,
+						Name:       defaults.GatewayProxyName,
+						Labels:     labels,
+						Containers: []ContainerSpec{container},
+					}
+					deploy := rb.GetDeploymentAppsv1()
+					deploy.Spec.Selector = &metav1.LabelSelector{
+						MatchLabels: selector,
+					}
+					deploy.Spec.Template.ObjectMeta.Labels = podLabels
+					deploy.Spec.Template.ObjectMeta.Annotations = podAnnotations
+					deploy.Spec.Template.Spec.Volumes = []v1.Volume{{
+						Name: "envoy-config",
+						VolumeSource: v1.VolumeSource{
+							ConfigMap: &v1.ConfigMapVolumeSource{
+								LocalObjectReference: v1.LocalObjectReference{
+									Name: "gateway-proxy-v2-envoy-config",
+								},
+							},
+						},
+					}}
+					deploy.Spec.Template.Spec.Containers[0].ImagePullPolicy = glooOsPullPolicy
+					deploy.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
+						{Name: "http", ContainerPort: 8080, Protocol: "TCP"},
+						{Name: "https", ContainerPort: 8443, Protocol: "TCP"},
+					}
+					deploy.Spec.Template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{{
+						Name:      "envoy-config",
+						ReadOnly:  false,
+						MountPath: "/etc/envoy",
+						SubPath:   "",
+					}}
+					truez := true
+					falsez := false
+					deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+						Capabilities: &v1.Capabilities{
+							Add:  []v1.Capability{"NET_BIND_SERVICE"},
+							Drop: []v1.Capability{"ALL"},
+						},
+						ReadOnlyRootFilesystem:   &truez,
+						AllowPrivilegeEscalation: &falsez,
+					}
+
+					deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
+
+					gatewayProxyDeployment = deploy
+				})
+
+				It("creates a deployment without envoy config annotations", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true"
+
+					prepareMakefile(helmFlags)
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
+				It("creates a deployment with envoy config annotations", func() {
+					helmFlags := "--namespace " + namespace + " --set namespace.create=true " +
+						"--set gloo.gatewayProxies.gatewayProxyV2.readConfig=true"
+
+					prepareMakefile(helmFlags)
+					includeStatConfig()
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
+				Context("apiserver deployment", func() {
+					var deploy *appsv1.Deployment
+
+					BeforeEach(func() {
+						labels = map[string]string{
+							"gloo": "apiserver-ui",
+							"app":  "gloo",
+						}
+						selector = map[string]string{
+							"gloo": "apiserver-ui",
+						}
+						grpcPortEnvVar := v1.EnvVar{
+							Name:  "GRPC_PORT",
+							Value: "10101",
+						}
+						noAuthEnvVar := v1.EnvVar{
+							Name:  "NO_AUTH",
+							Value: "1",
+						}
+						uiContainer := v1.Container{
+							Name:            "apiserver-ui",
+							Image:           "quay.io/solo-io/grpcserver-ui:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+								{Name: "empty-run", MountPath: "/var/run"},
+							},
+							Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
+						}
+						grpcServerContainer := v1.Container{
+							Name:            "apiserver",
+							Image:           "quay.io/solo-io/grpcserver-ee:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
+							Env: []v1.EnvVar{
+								GetPodNamespaceEnvVar(),
+								grpcPortEnvVar,
+								noAuthEnvVar,
+							},
+						}
+						envoyContainer := v1.Container{
+							Name:            "gloo-grpcserver-envoy",
+							Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
+							ImagePullPolicy: v1.PullAlways,
+							ReadinessProbe: &v1.Probe{
+								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
+									Path: "/",
+									Port: intstr.IntOrString{IntVal: 8080},
+								}},
+								InitialDelaySeconds: 5,
+								PeriodSeconds:       10,
+							},
+						}
+
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "api-server",
+							Labels:    labels,
+						}
+						deploy = rb.GetDeploymentAppsv1()
+						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						}
+						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
+						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
 					})
 
 					It("is there by default", func() {

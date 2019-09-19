@@ -13,6 +13,7 @@ metadata:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"
 rules:
+# Group 1: these rules apply to read-only and enterprise apiserver
   - apiGroups: [""]
     resources: ["pods", "services", "configmaps", "namespaces", "secrets"]
     verbs: ["get", "list", "watch"]
@@ -34,4 +35,22 @@ rules:
   - apiGroups: ["gateway.solo.io"]
     resources: ["virtualservices"]
     verbs: ["get", "list", "watch"]
-  {{- end }} # .Values.apiServer.enable
+  {{- if .Values.apiServer.enterprise }}
+# Group 2: these rules only apply to the enterprise apiserver (enables mutations)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "update", "delete"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create"]
+  - apiGroups: ["gloo.solo.io"]
+    resources: ["artifacts", "settings", "upstreams", "upstreamgroups", "proxies", "secrets"]
+    verbs: ["create", "update", "delete"]
+  - apiGroups: ["gateway.solo.io.v2"]
+    resources: ["gateways"]
+    verbs: ["create", "update", "delete"]
+  - apiGroups: ["gateway.solo.io"]
+    resources: ["virtualservices"]
+    verbs: ["create", "update", "delete"]
+  {{- end }} # .Values.apiServer.enterprise
+{{- end }} # .Values.apiServer.enable

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -11,6 +12,10 @@ import (
 
 	"github.com/pelletier/go-toml"
 )
+
+func GetGlooOsVersionFromToml(pathToGopkgTomlDir string) (string, error) {
+	return GetVersionFromToml(filepath.Join(pathToGopkgTomlDir, gopkgToml), glooPkg)
+}
 
 func GetVersionFromToml(filename, pkg string) (string, error) {
 	config, err := toml.LoadFile(filename)

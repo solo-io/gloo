@@ -6,3 +6,8 @@ values.yaml
 requirements.yaml
 
 glooe-*.yaml
+gloo-with-read-only-ui-release.yaml
+
+# this file is copied from the glooe helm dir during build
+helm/gloo-os-with-ui/templates/
+

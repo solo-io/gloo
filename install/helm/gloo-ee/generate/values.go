@@ -76,6 +76,7 @@ type RedisService struct {
 }
 
 type Observability struct {
+	Enabled       bool                     `json:"enabled,omitempty" desc:"if true, deploy observability service (default true)"`
 	Deployment    *ObservabilityDeployment `json:"deployment,omitempty"`
 	CustomGrafana *CustomGrafana           `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
 }
@@ -95,6 +96,7 @@ type CustomGrafana struct {
 }
 
 type ExtAuth struct {
+	Enabled      bool                      `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
 	UserIdHeader string                    `json:"userIdHeader,omitempty"`
 	Deployment   *ExtAuthDeployment        `json:"deployment,omitempty"`
 	Service      *ExtAuthService           `json:"service,omitempty"`

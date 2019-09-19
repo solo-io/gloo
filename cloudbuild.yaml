@@ -62,7 +62,7 @@ steps:
   - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   entrypoint: make
-  args: ['check-format', 'build-scripts']
+  args: ['check-format']
   waitFor: ['dep']
   id: 'check-format'
 - name: 'gcr.io/cloud-builders/yarn'
@@ -256,18 +256,6 @@ steps:
   args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
   secretEnv: ['QUAY_IO_PASSWORD']
   id: 'docker-login-again'
-
-# go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
-  args: ['distribution']
-  env:
-    - 'TAGGED_VERSION=$TAG_NAME'
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'HELM_HOME=/root/.helm' # tell helm where to find data
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  id: 'distribution'
 
   # Sync helm chart data back to google storage bucket
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'

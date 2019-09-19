@@ -90,19 +90,6 @@ check-format:
 
 
 #----------------------------------------------------------------------------------
-# Build Scripts
-#----------------------------------------------------------------------------------
-
-BUILD_SCRIPTS := install/distribution
-
-.PHONY: build-scripts
-build-scripts: $(BUILD_SCRIPTS)
-
-.PHONY: install/distribution
-install/distribution:
-	go build -o /dev/null $(ROOTDIR)/$@
-
-#----------------------------------------------------------------------------------
 # Clean
 #----------------------------------------------------------------------------------
 
@@ -111,6 +98,7 @@ install/distribution:
 clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf $(TEST_ASSET_DIR)
+	rm -rf install/helm/gloo-os-with-ui/templates/
 	git clean -xdf install
 
 #----------------------------------------------------------------------------------
@@ -343,10 +331,10 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 
 $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
 	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
-    	--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
-    	--build-arg VERSION=$(VERSION) \
-    	--build-arg GCFLAGS=$(GCFLAGS) \
-    	.
+		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		.
 	touch $@
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
@@ -462,22 +450,22 @@ $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
-HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
+HELM_SYNC_DIR_FOR_GLOO_EE := $(OUTPUT_DIR)/helm
+HELM_SYNC_DIR_RO_UI_GLOO := $(OUTPUT_DIR)/helm_gloo_os_ui
 HELM_DIR := install/helm
 MANIFEST_DIR := install/manifest
+MANIFEST_FOR_RO_UI_GLOO := gloo-with-read-only-ui-release.yaml
+MANIFEST_FOR_GLOO_EE := glooe-release.yaml
 HELMFLAGS ?= ""
 
 .PHONY: manifest
-manifest: helm-template init-helm install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml update-helm-chart
+manifest: helm-template init-helm produce-manifests update-helm-chart
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
-
-install/glooe-gateway.yaml: init-helm
-	helm template install/helm/gloo-ee $(HELMFLAGS) | tee $@ $(OUTPUT_YAML)
 
 .PHONY: init-helm
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
@@ -486,40 +474,51 @@ $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
+	# install/helm/gloo-os-with-ui/README.md
+	mkdir -p install/helm/gloo-os-with-ui/templates
+	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
+	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
+	helm dependency update install/helm/gloo-os-with-ui
 	touch $@
 
-install/manifest/glooe-release.yaml: init-helm
-	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
-
-install/manifest/glooe-distribution.yaml: init-helm
-	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe $(HELMFLAGS) > $@
+.PHONY: produce-manifests
+produce-manifests: init-helm
+	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe $(HELMFLAGS) > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
+	helm template install/helm/gloo-os-with-ui --namespace gloo-system --name=gloo $(HELMFLAGS) > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
 
 update-helm-chart:
 ifeq ($(RELEASE),"true")
-	mkdir -p $(HELM_SYNC_DIR)/charts
-	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)/gloo-ee
-	helm repo index $(HELM_SYNC_DIR)
+	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts
+	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(HELM_DIR)/gloo-ee
+	helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE)
+# same for gloo with the read-only ui
+	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)/charts
+	helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(HELM_DIR)/gloo-os-with-ui
+	helm repo index $(HELM_SYNC_DIR_RO_UI_GLOO)
 endif
-
-.PHONY: render-yaml
-render-yaml: install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml
 
 .PHONY: save-helm
 save-helm:
 ifeq ($(RELEASE),"true")
 	gsutil -m rsync -r './_output/helm' gs://gloo-ee-helm/
+	gsutil -m rsync -r './_output/helm_gloo_os_ui' gs://gloo-os-ui-helm/
 endif
 
 .PHONY: fetch-helm
 fetch-helm:
+	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
+	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
 	gsutil -m rsync -r gs://gloo-ee-helm/ './_output/helm'
+	gsutil -m rsync -r gs://gloo-os-ui-helm/ './_output/helm_gloo_os_ui'
+
+
 
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
 
 .PHONY: upload-github-release-assets
-upload-github-release-assets: build-cli render-yaml
+upload-github-release-assets: build-cli produce-manifests
 	go run ci/upload_github_release_assets.go
 
 .PHONY: push-docs
@@ -586,21 +585,6 @@ push-kind-images: docker
 	kind load docker-image quay.io/solo-io/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
-
-#----------------------------------------------------------------------------------
-# Distribution
-#----------------------------------------------------------------------------------
-
-DISTRIBUTION_DIR=install/distribution
-DISTRIBUTION_OUTPUT=$(OUTPUT_DIR)/distribution
-
-.PHONY: distribution
-distribution: $(DISTRIBUTION_OUTPUT)
-
-$(DISTRIBUTION_OUTPUT):
-ifeq ($(RELEASE),"true")
-	go run $(ROOTDIR)/$(DISTRIBUTION_DIR) $(VERSION)
-endif
 
 #----------------------------------------------------------------------------------
 # Build assets for regression tests

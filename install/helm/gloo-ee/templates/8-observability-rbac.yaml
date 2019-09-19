@@ -1,3 +1,4 @@
+{{- if .Values.observability.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: {{ include "gloo.roleKind" . }}
 metadata:
@@ -37,3 +38,4 @@ subjects:
   - kind: ServiceAccount
     name: observability
     namespace: {{ .Release.Namespace }}
+{{- end }} # enabled

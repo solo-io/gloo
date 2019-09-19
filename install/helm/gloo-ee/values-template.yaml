@@ -149,6 +149,7 @@ redis:
 ########################################################################
 
 observability:
+  enabled: true
   deployment:
     stats: true
     name: observability
@@ -172,6 +173,7 @@ global:
     create: true
   extensions:
     extAuth:
+      enabled: true
       envoySidecar: false
       serviceName: ext-auth
       userIdHeader: x-user-id

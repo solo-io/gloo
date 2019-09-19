@@ -1540,14 +1540,13 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:9d2d1bb977ffc6728ecae271f0f6599f181dd4ba1999707670869637f86461b6"
+  digest = "1:ce7f8095e87f50fb12ca44410b1fc924a5e133bda2804e192e41020abe49e11e"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
     "clicore/constants",
     "cliutils",
     "contextutils",
-    "docker",
     "docsutils",
     "envutils",
     "errors",
@@ -2679,7 +2678,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "cloud.google.com/go/storage",
     "github.com/avast/retry-go",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
@@ -2710,7 +2708,6 @@
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen/model",
-    "github.com/google/uuid",
     "github.com/google/wire",
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
@@ -2762,7 +2759,6 @@
     "github.com/solo-io/gloo/projects/gateway/pkg/defaults",
     "github.com/solo-io/gloo/projects/gateway/pkg/setup",
     "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
-    "github.com/solo-io/gloo/projects/gateway/pkg/translator",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add",
@@ -2818,7 +2814,6 @@
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/contextutils",
-    "github.com/solo-io/go-utils/docker",
     "github.com/solo-io/go-utils/docsutils",
     "github.com/solo-io/go-utils/envutils",
     "github.com/solo-io/go-utils/errors",

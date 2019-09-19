@@ -1,3 +1,4 @@
+{{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- if not $extAuth.envoySidecar }}
 {{- $image := $extAuth.deployment.image }}
@@ -59,3 +60,4 @@ spec:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
   {{- end}}
+  {{- end}} # enabled

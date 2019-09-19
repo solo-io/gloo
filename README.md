@@ -49,3 +49,8 @@ make run-apiserver
 
 - Shared projects across Solo.io.
 - This repo contains the git history for Gloo and Solo-Kit.
+
+
+# Helm Repositories
+- [GlooE](https://console.cloud.google.com/storage/browser/gloo-ee-helm)
+- [Gloo with read-only UI](https://console.cloud.google.com/storage/browser/gloo-os-ui-helm)

@@ -3,7 +3,7 @@ package main
 import "github.com/solo-io/go-utils/githubutils"
 
 func main() {
-	assets := make([]githubutils.ReleaseAssetSpec, 4)
+	assets := make([]githubutils.ReleaseAssetSpec, 5)
 	assets[0] = githubutils.ReleaseAssetSpec{
 		Name:       "glooctl-linux-amd64",
 		ParentPath: "_output",
@@ -23,6 +23,10 @@ func main() {
 		Name:       "glooe-release.yaml",
 		ParentPath: "install/manifest",
 	}
+	assets[4] = githubutils.ReleaseAssetSpec{
+		Name:       "gloo-with-read-only-ui-release.yaml",
+		ParentPath: "install/manifest",
+	}
 	spec := githubutils.UploadReleaseAssetSpec{
 		Owner:             "solo-io",
 		Repo:              "solo-projects",
@@ -31,4 +35,3 @@ func main() {
 	}
 	githubutils.UploadReleaseAssetCli(&spec)
 }
-

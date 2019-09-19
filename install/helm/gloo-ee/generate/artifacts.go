@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	gopkgToml    = "Gopkg.toml"
-	constraint   = "constraint"
-	glooPkg      = "github.com/solo-io/gloo"
-	nameConst    = "name"
-	versionConst = "version"
+	pathToGopkgTomlDir = "."
+	gopkgToml          = "Gopkg.toml"
+	constraint         = "constraint"
+	glooPkg            = "github.com/solo-io/gloo"
+	nameConst          = "name"
+	versionConst       = "version"
 
 	devPullPolicy          = string(v1.PullAlways)
 	distributionPullPolicy = string(v1.PullIfNotPresent)
@@ -43,7 +44,6 @@ type GenerationFiles struct {
 	Artifact             Artifact
 	ValuesTemplate       string
 	ValuesOutput         string
-	DistributionOutput   string
 	ChartTemplate        string
 	ChartOutput          string
 	RequirementsTemplate string
@@ -70,7 +70,7 @@ func ArtifactName(artifact Artifact) string {
 
 // Run generates the helm artifacts for the corresponding file sets
 func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
-	osGlooVersion, err := GetVersionFromToml(gopkgToml, glooPkg)
+	osGlooVersion, err := GetGlooOsVersionFromToml(pathToGopkgTomlDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")
 	}
@@ -112,7 +112,7 @@ func GetArguments(args *GenerationArguments) error {
 }
 
 func (gc *GenerationConfig) runGeneration() error {
-	osGlooVersion, err := GetVersionFromToml(gopkgToml, glooPkg)
+	osGlooVersion, err := GetGlooOsVersionFromToml(pathToGopkgTomlDir)
 	if err != nil {
 		log.Fatalf("failed to determine open source Gloo version. Cause: %v", err)
 	}
@@ -142,72 +142,60 @@ func (gc *GenerationConfig) generateValuesYamls() error {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// generate Gloo-ee values file
+////////////////////////////////////////////////////////////////////////////////
+
 func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
-	// generate two forms of artifacts for GlooE // TODO- document why we are doing this
-	type glooEArtifactSpecialization struct {
-		outputFile       string
-		repositoryPrefix string
+	config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
+	if err != nil {
+		return err
 	}
-	specializations := []glooEArtifactSpecialization{{
-		outputFile:       gc.GenerationFiles.ValuesOutput,
-		repositoryPrefix: gc.Arguments.RepoPrefixOverride,
-	}, {
-		outputFile:       gc.GenerationFiles.DistributionOutput,
-		repositoryPrefix: "",
-	}}
-	for i, specialization := range specializations {
-		outputFile := specialization.outputFile
-		repositoryPrefix := specialization.repositoryPrefix
-		version := gc.Arguments.Version
-		pullPolicy := gc.PullPolicyForVersion
-		config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
-		if err != nil {
-			return err
-		}
 
-		config.Gloo.Gloo.Deployment.Image.Tag = version
-		for _, v := range config.Gloo.GatewayProxies {
-			v.PodTemplate.Image.Tag = version
-		}
-		if config.Gloo.IngressProxy != nil {
-			config.Gloo.IngressProxy.Deployment.Image.Tag = version
-		}
-		// Use open source gloo version for discovery and gateway
-		config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
-		config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
-		config.RateLimit.Deployment.Image.Tag = version
-		config.Observability.Deployment.Image.Tag = version
-		config.ApiServer.Deployment.Server.Image.Tag = version
-		config.ApiServer.Deployment.Envoy.Image.Tag = version
-		config.ApiServer.Deployment.Ui.Image.Tag = version
+	version := gc.Arguments.Version
+	config.Gloo.Gloo.Deployment.Image.Tag = version
+	for _, v := range config.Gloo.GatewayProxies {
+		v.PodTemplate.Image.Tag = version
+	}
+	if config.Gloo.IngressProxy != nil {
+		config.Gloo.IngressProxy.Deployment.Image.Tag = version
+	}
+	// Use open source gloo version for discovery and gateway
+	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
+	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
+	config.RateLimit.Deployment.Image.Tag = version
+	config.Observability.Deployment.Image.Tag = version
+	config.ApiServer.Deployment.Server.Image.Tag = version
+	config.ApiServer.Deployment.Envoy.Image.Tag = version
+	config.ApiServer.Deployment.Ui.Image.Tag = version
 
-		config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
-		for _, v := range config.Gloo.GatewayProxies {
-			v.PodTemplate.Image.PullPolicy = pullPolicy
-		}
-		if config.Gloo.IngressProxy != nil {
-			config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
-		}
-		config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
-		config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
-		config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
-		config.Observability.Deployment.Image.PullPolicy = pullPolicy
-		config.Redis.Deployment.Image.PullPolicy = pullPolicy
-		config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
-		config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
-		config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
+	pullPolicy := gc.PullPolicyForVersion
+	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
+	for _, v := range config.Gloo.GatewayProxies {
+		v.PodTemplate.Image.PullPolicy = pullPolicy
+	}
+	if config.Gloo.IngressProxy != nil {
+		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+	}
+	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
+	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
+	config.Observability.Deployment.Image.PullPolicy = pullPolicy
+	config.Redis.Deployment.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 
-		if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
-			return err
-		}
+	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
+		return err
+	}
 
-		if repositoryPrefix != "" {
-			config.Global.Image.Registry = repositoryPrefix
-		}
+	if gc.Arguments.RepoPrefixOverride != "" {
+		config.Global.Image.Registry = gc.Arguments.RepoPrefixOverride
+	}
 
-		if err := writeYaml(&config, outputFile); err != nil {
-			return errors.Wrapf(err, "unable to generate GlooE specialization %v", i)
-		}
+	if err := writeYaml(&config, gc.GenerationFiles.ValuesOutput); err != nil {
+		return errors.Wrapf(err, "unable to generate GlooE")
 	}
 	return nil
 }
@@ -228,30 +216,34 @@ func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, version, pullP
 	return nil
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// generate Gloo-os with read-only ui values file
+////////////////////////////////////////////////////////////////////////////////
+
 func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
-	outputFile := gc.GenerationFiles.ValuesOutput
-	repositoryPrefix := gc.Arguments.RepoPrefixOverride
-	version := gc.Arguments.Version
-	pullPolicy := gc.PullPolicyForVersion
 	config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
 	if err != nil {
 		return err
 	}
 
-	config.Gloo.Gloo.Deployment.Image.Tag = version
+	glooEVersion := gc.Arguments.Version
 	for _, v := range config.Gloo.GatewayProxies {
-		v.PodTemplate.Image.Tag = version
+		v.PodTemplate.Image.Tag = gc.OsGlooVersion
 	}
 	if config.Gloo.IngressProxy != nil {
-		config.Gloo.IngressProxy.Deployment.Image.Tag = version
+		config.Gloo.IngressProxy.Deployment.Image.Tag = gc.OsGlooVersion
 	}
-	// Use open source gloo version for discovery and gateway
+	// Use open source gloo version for gloo, discovery, and gateway
+	config.Gloo.Gloo.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
-	config.ApiServer.Deployment.Server.Image.Tag = version
-	config.ApiServer.Deployment.Envoy.Image.Tag = version
-	config.ApiServer.Deployment.Ui.Image.Tag = version
+	config.Gloo.Gateway.ConversionJob.Image.Tag = gc.OsGlooVersion
+	config.Gloo.AccessLogger.Image.Tag = gc.OsGlooVersion
+	config.ApiServer.Deployment.Server.Image.Tag = glooEVersion
+	config.ApiServer.Deployment.Envoy.Image.Tag = glooEVersion
+	config.ApiServer.Deployment.Ui.Image.Tag = glooEVersion
 
+	pullPolicy := gc.PullPolicyForVersion
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	for _, v := range config.Gloo.GatewayProxies {
 		v.PodTemplate.Image.PullPolicy = pullPolicy
@@ -265,9 +257,9 @@ func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
 	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
 
-	if repositoryPrefix != "" {
-		config.Global.Image.Registry = repositoryPrefix
+	if gc.Arguments.RepoPrefixOverride != "" {
+		config.Global.Image.Registry = gc.Arguments.RepoPrefixOverride
 	}
 
-	return writeYaml(&config, outputFile)
+	return writeYaml(&config, gc.GenerationFiles.ValuesOutput)
 }

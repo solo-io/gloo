@@ -1,0 +1,129 @@
+########################################################################
+###                                                                  ###
+###                        Settings                                  ###
+###                                                                  ###
+########################################################################
+
+# Enable creation of the GlooE settings template, disable the Gloo one (see below)
+settings:
+  create: true
+
+########################################################################
+###                                                                  ###
+###                        Gloo                                      ###
+###                                                                  ###
+########################################################################
+
+license_key: ""
+gloo:
+  rbac:
+    create: true
+  settings:
+    # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
+    # which is hard. We will provide out own settings template as part of the GlooE chart.
+    create: false
+  gloo:
+    deployment:
+      runAsUser: 10101
+      stats: true
+      image:
+        repository: gloo
+      replicas: 1
+  gatewayProxies:
+    gatewayProxyV2:
+      stats: true
+      kind:
+        deployment:
+          replicas: 1
+      podTemplate:
+        httpPort: 8080
+        httpsPort: 8443
+        image:
+          repository: gloo-envoy-wrapper
+      service:
+        type: LoadBalancer
+        # clusterIP: None
+        httpPort: 80
+        httpsPort: 443
+        extraAnnotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/path: /metrics
+          prometheus.io/port: "8081"
+        extraPorts:
+          - containerPort: 8081
+            name: stats
+            protocol: TCP
+  discovery:
+    enabled: true
+    deployment:
+      runAsUser: 10101
+      image:
+        repository: discovery
+        registry: quay.io/solo-io
+  gateway:
+    deployment:
+      runAsUser: 10101
+      image:
+        repository: gateway
+        registry: quay.io/solo-io
+    enabled: true
+    updateValues: true
+    conversionJob:
+      image:
+        repository: gateway-conversion
+      restartPolicy: Never
+  accessLogger:
+    enabled: false
+    port: 8083
+    serviceName: AccessLog
+    image:
+      repository: access-logger
+    replicas: 1
+
+
+
+########################################################################
+###                                                                  ###
+###                        Apiserver                                 ###
+###                                                                  ###
+########################################################################
+apiServer:
+  enable: true
+  enableBeta: true
+  deployment:
+    stats: true
+    name: "grpcserver-ui"
+    server:
+      image:
+        name: apiserver
+        repository: grpcserver-ee
+      grpcPort: 10101
+      oauth: {}
+    ui:
+      image:
+        name: "gloo-ui"
+        repository: grpcserver-ui
+      staticPort: 8080
+    envoy:
+      image:
+        name: "grpcserver-envoy"
+        repository: grpcserver-envoy
+  service:
+    name: "apiserver-ui"
+
+
+########################################################################
+###                                                                  ###
+###                        GLOBAL                                    ###
+###                                                                  ###
+########################################################################
+
+global:
+  image:
+    registry: quay.io/solo-io
+    pullPolicy: IfNotPresent
+  glooRbac:
+    create: true
+  extensions:
+    extAuth:
+      enabled: false

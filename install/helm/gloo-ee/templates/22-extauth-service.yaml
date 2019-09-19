@@ -1,3 +1,4 @@
+{{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- if not $extAuth.envoySidecar }}
 apiVersion: v1
@@ -16,3 +17,4 @@ spec:
   selector:
     gloo: {{ $extAuth.service.name }}
 {{- end }}
+{{- end }} # enabled
