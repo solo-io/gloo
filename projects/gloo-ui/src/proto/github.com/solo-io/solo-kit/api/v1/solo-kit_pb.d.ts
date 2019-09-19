@@ -17,6 +17,9 @@ export class Resource extends jspb.Message {
   getSkipDocsGen(): boolean;
   setSkipDocsGen(value: boolean): void;
 
+  getSkipHashingAnnotations(): boolean;
+  setSkipHashingAnnotations(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Resource.AsObject;
   static toObject(includeInstance: boolean, msg: Resource): Resource.AsObject;
@@ -33,6 +36,7 @@ export namespace Resource {
     pluralName: string,
     clusterScoped: boolean,
     skipDocsGen: boolean,
+    skipHashingAnnotations: boolean,
   }
 }
 

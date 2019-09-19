@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
@@ -100,7 +99,7 @@ var _ = Describe("waf tests", func() {
 
 	Context("Core Rule Set", func() {
 
-		It("will return 200 on a standard request", func() {
+		It("will return 200 on a standard request and no custom rules", func() {
 
 			wafVhost := &waf.VhostSettings{
 				Settings: &waf.Settings{
@@ -126,12 +125,11 @@ var _ = Describe("waf tests", func() {
 
 			wafVhost := &waf.VhostSettings{
 				Settings: &waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{
-						{
-							RuleStr: ruleStr,
+					CoreRuleSet: &waf.CoreRuleSet{
+						CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+							CustomSettingsString: ruleStr,
 						},
 					},
-					CoreRuleSet: &waf.CoreRuleSet{},
 				},
 			}
 

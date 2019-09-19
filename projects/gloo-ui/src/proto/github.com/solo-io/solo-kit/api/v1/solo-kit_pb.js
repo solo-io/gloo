@@ -66,7 +66,8 @@ proto.core.solo.io.Resource.toObject = function(includeInstance, msg) {
     shortName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     pluralName: jspb.Message.getFieldWithDefault(msg, 2, ""),
     clusterScoped: jspb.Message.getFieldWithDefault(msg, 3, false),
-    skipDocsGen: jspb.Message.getFieldWithDefault(msg, 4, false)
+    skipDocsGen: jspb.Message.getFieldWithDefault(msg, 4, false),
+    skipHashingAnnotations: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -118,6 +119,10 @@ proto.core.solo.io.Resource.deserializeBinaryFromReader = function(msg, reader) 
     case 4:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setSkipDocsGen(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSkipHashingAnnotations(value);
       break;
     default:
       reader.skipField();
@@ -173,6 +178,13 @@ proto.core.solo.io.Resource.serializeBinaryToWriter = function(message, writer) 
   if (f) {
     writer.writeBool(
       4,
+      f
+    );
+  }
+  f = message.getSkipHashingAnnotations();
+  if (f) {
+    writer.writeBool(
+      5,
       f
     );
   }
@@ -240,6 +252,23 @@ proto.core.solo.io.Resource.prototype.getSkipDocsGen = function() {
 /** @param {boolean} value */
 proto.core.solo.io.Resource.prototype.setSkipDocsGen = function(value) {
   jspb.Message.setProto3BooleanField(this, 4, value);
+};
+
+
+/**
+ * optional bool skip_hashing_annotations = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.core.solo.io.Resource.prototype.getSkipHashingAnnotations = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.core.solo.io.Resource.prototype.setSkipHashingAnnotations = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

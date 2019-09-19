@@ -1378,7 +1378,7 @@
   version = "v0.5.1"
 
 [[projects]]
-  digest = "1:b2405bb74ff4699e672dc8d64da3cd0104f54355425f555a3376a8997eb530ff"
+  digest = "1:5d79956713b4f50c2fe48e4e5e7ae08bef1844beddf2f609a8e9d016ed15baff"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1414,6 +1414,7 @@
     "projects/gloo/cli/pkg/cmd/check",
     "projects/gloo/cli/pkg/cmd/create",
     "projects/gloo/cli/pkg/cmd/create/secret",
+    "projects/gloo/cli/pkg/cmd/debug",
     "projects/gloo/cli/pkg/cmd/del",
     "projects/gloo/cli/pkg/cmd/edit",
     "projects/gloo/cli/pkg/cmd/edit/options",
@@ -1528,8 +1529,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "c4006b26f2e8e2ae3784fa8bb0ef174ce684c89e"
-  version = "v0.18.43"
+  revision = "4573e6b4d5e93e6f45699618502adb50952a6080"
+  version = "v0.18.44"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1540,13 +1541,14 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:ce7f8095e87f50fb12ca44410b1fc924a5e133bda2804e192e41020abe49e11e"
+  digest = "1:e3868d3593bb3d7daf252253a345f0aaff2f2863fd305c907923ec8c8ebfe19e"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
     "clicore/constants",
     "cliutils",
     "contextutils",
+    "debugutils",
     "docsutils",
     "envutils",
     "errors",
@@ -1575,8 +1577,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "acf7af80d72935c89b022e3c98ab68226a52eeda"
-  version = "v0.10.2"
+  revision = "ea8f7110ced14c1a771d245efed2925f0a6b99cc"
+  version = "v0.10.6"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1613,7 +1615,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:41432d8e68bf62b2b4460640836cb1b7955d15a8fa22464327ee769b780a9d4b"
+  digest = "1:e465d7f1c26cc5f715adbe7e87c9737d6eed0be108fd87446d0be3174fe36db4"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1666,6 +1668,7 @@
     "pkg/code-generator/model",
     "pkg/code-generator/parser",
     "pkg/errors",
+    "pkg/stats",
     "pkg/utils/fileutils",
     "pkg/utils/kubeutils",
     "pkg/utils/protoutils",
@@ -1673,8 +1676,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "6f7e0f9898235c000129c61484d6546cba7915de"
-  version = "v0.10.17"
+  revision = "60015bef6312a5178344b53743183c846d3cc534"
+  version = "v0.10.20"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2659,6 +2662,14 @@
   revision = "c2654d5206da6b7b6ace12841e8f359bb89b443c"
 
 [[projects]]
+  digest = "1:2f0fa51896c68fb1feb7a8e49518664d6ad29dde60be660093f44a68c0dfacca"
+  name = "sigs.k8s.io/controller-runtime"
+  packages = ["pkg/client/apiutil"]
+  pruneopts = "UT"
+  revision = "477bf4f046c31c351b46fa00262bc814ac0bbca1"
+  version = "v0.1.11"
+
+[[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
   name = "sigs.k8s.io/yaml"
   packages = ["."]
@@ -2852,6 +2863,7 @@
     "github.com/solo-io/solo-kit/pkg/code-generator/cmd",
     "github.com/solo-io/solo-kit/pkg/code-generator/docgen/options",
     "github.com/solo-io/solo-kit/pkg/errors",
+    "github.com/solo-io/solo-kit/pkg/stats",
     "github.com/solo-io/solo-kit/pkg/utils/kubeutils",
     "github.com/solo-io/solo-kit/test/helpers",
     "github.com/solo-io/solo-kit/test/testutils",

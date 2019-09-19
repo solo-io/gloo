@@ -80,7 +80,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	if wafConfig.GetSettings() != nil {
 		perVhostCfg.RuleSets = wafConfig.GetSettings().GetRuleSets()
 		if coreRuleSet := getCoreRuleSet(wafConfig.GetSettings().GetCoreRuleSet()); coreRuleSet != nil {
-			perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet)
+			perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet...)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	if wafConfig.GetSettings() != nil {
 		perRouteCfg.RuleSets = wafConfig.GetSettings().GetRuleSets()
 		if coreRuleSet := getCoreRuleSet(wafConfig.GetSettings().GetCoreRuleSet()); coreRuleSet != nil {
-			perRouteCfg.RuleSets = append(perRouteCfg.RuleSets, coreRuleSet)
+			perRouteCfg.RuleSets = append(perRouteCfg.RuleSets, coreRuleSet...)
 		}
 	}
 
@@ -142,7 +142,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		modSecurityConfig.Disabled = settings.GetDisabled()
 
 		if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
-			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet)
+			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet...)
 		}
 	}
 
@@ -156,18 +156,19 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func getCoreRuleSet(crs *waf.CoreRuleSet) *RuleSet {
+func getCoreRuleSet(crs *waf.CoreRuleSet) []*RuleSet {
 	if crs == nil {
 		return nil
 	}
 	coreRuleSet := &RuleSet{
 		Files: getCoreRuleSetFiles(),
 	}
+	coreRuleSetSettings := &RuleSet{}
 	switch additionalSettings := crs.GetCustomSettingsType().(type) {
 	case *waf.CoreRuleSet_CustomSettingsString:
-		coreRuleSet.RuleStr = additionalSettings.CustomSettingsString
+		coreRuleSetSettings.RuleStr = additionalSettings.CustomSettingsString
 	case *waf.CoreRuleSet_CustomSettingsFile:
-		coreRuleSet.Files = append([]string{additionalSettings.CustomSettingsFile}, coreRuleSet.Files...)
+		coreRuleSetSettings.Files = append([]string{additionalSettings.CustomSettingsFile}, coreRuleSet.Files...)
 	}
-	return coreRuleSet
+	return []*RuleSet{coreRuleSetSettings, coreRuleSet}
 }

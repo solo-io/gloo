@@ -12,32 +12,51 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 
-	"github.com/solo-io/go-utils/errutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	skstats "github.com/solo-io/solo-kit/pkg/stats"
+
+	"github.com/solo-io/go-utils/errutils"
 )
 
 var (
-	mDashboardsSnapshotIn     = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
-	mDashboardsSnapshotOut    = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
-	mDashboardsSnapshotMissed = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_missed", "The number of snapshots missed", "1")
+	// Deprecated. See mDashboardsResourcesIn
+	mDashboardsSnapshotIn = stats.Int64("dashboards.observability.solo.io/emitter/snap_in", "Deprecated. Use dashboards.observability.solo.io/emitter/resources_in. The number of snapshots in", "1")
 
+	// metrics for emitter
+	mDashboardsResourcesIn    = stats.Int64("dashboards.observability.solo.io/emitter/resources_in", "The number of resource lists received on open watch channels", "1")
+	mDashboardsSnapshotOut    = stats.Int64("dashboards.observability.solo.io/emitter/snap_out", "The number of snapshots out", "1")
+	mDashboardsSnapshotMissed = stats.Int64("dashboards.observability.solo.io/emitter/snap_missed", "The number of snapshots missed", "1")
+
+	// views for emitter
+	// deprecated: see dashboardsResourcesInView
 	dashboardssnapshotInView = &view.View{
-		Name:        "dashboards.observability.solo.io_snap_emitter/snap_in",
+		Name:        "dashboards.observability.solo.io/emitter/snap_in",
 		Measure:     mDashboardsSnapshotIn,
-		Description: "The number of snapshots updates coming in",
+		Description: "Deprecated. Use dashboards.observability.solo.io/emitter/resources_in. The number of snapshots updates coming in.",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
+
+	dashboardsResourcesInView = &view.View{
+		Name:        "dashboards.observability.solo.io/emitter/resources_in",
+		Measure:     mDashboardsResourcesIn,
+		Description: "The number of resource lists received on open watch channels",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			skstats.NamespaceKey,
+			skstats.ResourceKey,
+		},
+	}
 	dashboardssnapshotOutView = &view.View{
-		Name:        "dashboards.observability.solo.io/snap_emitter/snap_out",
+		Name:        "dashboards.observability.solo.io/emitter/snap_out",
 		Measure:     mDashboardsSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	dashboardssnapshotMissedView = &view.View{
-		Name:        "dashboards.observability.solo.io/snap_emitter/snap_missed",
+		Name:        "dashboards.observability.solo.io/emitter/snap_missed",
 		Measure:     mDashboardsSnapshotMissed,
 		Description: "The number of snapshots updates going missed. this can happen in heavy load. missed snapshot will be re-tried after a second.",
 		Aggregation: view.Count(),
@@ -46,13 +65,22 @@ var (
 )
 
 func init() {
-	view.Register(dashboardssnapshotInView, dashboardssnapshotOutView, dashboardssnapshotMissedView)
+	view.Register(
+		dashboardssnapshotInView,
+		dashboardssnapshotOutView,
+		dashboardssnapshotMissedView,
+		dashboardsResourcesInView,
+	)
+}
+
+type DashboardsSnapshotEmitter interface {
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *DashboardsSnapshot, <-chan error, error)
 }
 
 type DashboardsEmitter interface {
+	DashboardsSnapshotEmitter
 	Register() error
 	Upstream() gloo_solo_io.UpstreamClient
-	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *DashboardsSnapshot, <-chan error, error)
 }
 
 func NewDashboardsEmitter(upstreamClient gloo_solo_io.UpstreamClient) DashboardsEmitter {
@@ -191,6 +219,13 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				record()
 
 				namespace := upstreamNamespacedList.namespace
+
+				skstats.IncrementResourceCount(
+					ctx,
+					namespace,
+					"upstream",
+					mDashboardsResourcesIn,
+				)
 
 				// merge lists by namespace
 				upstreamsByNamespace[namespace] = upstreamNamespacedList.list

@@ -27,7 +27,8 @@ var _ = Describe("waf plugin", func() {
 	)
 
 	const (
-		rulesString = "rules rules rules"
+		rulesString    = "rules rules rules"
+		crsRulesString = "crs rules rules rules"
 	)
 
 	JustBeforeEach(func() {
@@ -124,11 +125,13 @@ var _ = Describe("waf plugin", func() {
 		)
 
 		var checkRuleSets = func(rs []*envoywaf.RuleSet) {
-			Expect(rs).To(HaveLen(2))
+			Expect(rs).To(HaveLen(3))
 			Expect(rs[0].Files).To(BeNil())
 			Expect(rs[0].RuleStr).To(Equal(rulesString))
-			Expect(rs[1].Files).To(Equal(getCoreRuleSetFiles()))
-			Expect(rs[1].RuleStr).To(Equal(""))
+			Expect(rs[1].Files).To(BeNil())
+			Expect(rs[1].RuleStr).To(Equal(crsRulesString))
+			Expect(rs[2].Files).To(Equal(getCoreRuleSetFiles()))
+			Expect(rs[2].RuleStr).To(Equal(""))
 		}
 
 		JustBeforeEach(func() {
@@ -179,8 +182,12 @@ var _ = Describe("waf plugin", func() {
 					},
 				}
 				wafListener = &waf.Settings{
-					CoreRuleSet: &waf.CoreRuleSet{},
-					RuleSets:    ruleSets,
+					CoreRuleSet: &waf.CoreRuleSet{
+						CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+							CustomSettingsString: crsRulesString,
+						},
+					},
+					RuleSets: ruleSets,
 				}
 			})
 
@@ -247,15 +254,23 @@ var _ = Describe("waf plugin", func() {
 					}
 					wafRoute = &waf.RouteSettings{
 						Settings: &waf.Settings{
-							CoreRuleSet: &waf.CoreRuleSet{},
-							RuleSets:    ruleSets,
+							CoreRuleSet: &waf.CoreRuleSet{
+								CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+									CustomSettingsString: crsRulesString,
+								},
+							},
+							RuleSets: ruleSets,
 						},
 					}
 
 					wafVhost = &waf.VhostSettings{
 						Settings: &waf.Settings{
-							CoreRuleSet: &waf.CoreRuleSet{},
-							RuleSets:    ruleSets,
+							CoreRuleSet: &waf.CoreRuleSet{
+								CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+									CustomSettingsString: crsRulesString,
+								},
+							},
+							RuleSets: ruleSets,
 						},
 					}
 				})
