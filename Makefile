@@ -474,7 +474,7 @@ $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
-	# install/helm/gloo-os-with-ui/README.md
+	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
 	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
 	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
