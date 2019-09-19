@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Revamp the default envoy stats dashboard that installs with Grafana
+    issueLink: https://github.com/solo-io/solo-projects/issues/1115

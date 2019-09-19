@@ -26,7 +26,7 @@
       "fill": 1,
       "gridPos": {
         "h": 9,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 0
       },
@@ -54,10 +54,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_cluster_manager_active_clusters",
+          "expr": "sum(irate(envoy_http_downstream_rq_total[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "{{gloo}}",
+          "legendFormat": "requests",
           "refId": "A"
         }
       ],
@@ -65,7 +65,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Active Upstreams (by proxy)",
+      "title": "Requests per Second",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -103,17 +103,20 @@
       }
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "% 2xx": "#7eb26d",
+        "% 4xx": "#eab839",
+        "% 5xx": "#bf1b00"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
       "fill": 1,
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 0,
-        "y": 9
+        "x": 12,
+        "y": 0
       },
       "id": 4,
       "legend": {
@@ -139,9 +142,24 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(envoy_http_downstream_cx_active)",
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"2\"}[1m])) / sum(irate(envoy_http_downstream_rq_total[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "% 2xx",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"4\"}[1m])) / sum(irate(envoy_http_downstream_rq_total[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "% 4xx",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"5\"}[1m])) / sum(irate(envoy_http_downstream_rq_total[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "% 5xx",
           "refId": "A"
         }
       ],
@@ -149,7 +167,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total Active downstream cx",
+      "title": "Percent Response Code per Second",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -187,7 +205,11 @@
       }
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "2xx": "#7eb26d",
+        "4xx": "#eab839",
+        "5xx": "#bf1b00"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
@@ -196,7 +218,7 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
+        "x": 0,
         "y": 9
       },
       "id": 2,
@@ -223,186 +245,32 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_cx_active",
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"2\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "{{instance}}:{{envoy_http_conn_manager_prefix}}",
+          "legendFormat": "2xx",
           "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Active downstream cx by type",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
         },
         {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "gloo",
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 18
-      },
-      "id": 6,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(envoy_http_downstream_cx_total)",
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"4\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "total downstream connections",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
+          "legendFormat": "4xx",
+          "refId": "B"
         },
         {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "gloo",
-      "fill": 1,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 27
-      },
-      "id": 10,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "envoy_http_downstream_rq_active{envoy_http_conn_manager_prefix=\"http\"}",
+          "expr": "sum(irate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"5\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
-          "refId": "A"
+          "legendFormat": "5xx",
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "active downstream requests",
+      "title": "Response Codes per Second",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -450,10 +318,118 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 9
       },
       "id": 12,
       "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": true,
+        "min": true,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(envoy_cluster_upstream_rq_time_sum[1m])) / sum(rate(envoy_cluster_upstream_rq_time_count[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "average time to upstream",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(envoy_http_downstream_rq_time_sum[1m])) / sum(rate(envoy_http_downstream_rq_time_count[1m]))",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 1,
+          "legendFormat": "average round trip",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(envoy_http_downstream_rq_time_sum[1m])) / sum(rate(envoy_http_downstream_rq_time_count[1m]))\n-\nsum(rate(envoy_cluster_upstream_rq_time_sum[1m])) / sum(rate(envoy_cluster_upstream_rq_time_count[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "average proxy latency (round trip - upstream)",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Average Request Time",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "ms",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {
+        "P90": "#7eb26d",
+        "P95": "#eab839",
+        "P99": "#6ed0e0",
+        "upstream p95": "#f4d598",
+        "upstream p99": "#e5a8e2"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 16,
+      "legend": {
+        "alignAsTable": false,
         "avg": false,
         "current": false,
         "max": false,
@@ -476,22 +452,38 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_rq_completed{envoy_http_conn_manager_prefix=\"http\"}",
+          "expr": "histogram_quantile(0.90, sum(rate(envoy_cluster_upstream_rq_time_bucket[1m])) by (le))",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "P90",
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_upstream_rq_time_bucket[1m])) by (le))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "P95",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[1m])) by (le))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "P99",
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "complete downstream requests",
+      "title": "Upstream Request Time Percentiles",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
+      "transparent": false,
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -502,7 +494,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -524,19 +516,22 @@
       }
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "P90": "#7eb26d",
+        "P95": "#eab839",
+        "P99": "#6ed0e0"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
       "fill": 1,
       "gridPos": {
         "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 36
+        "w": 12,
+        "x": 12,
+        "y": 18
       },
-      "id": 8,
+      "id": 18,
       "legend": {
         "avg": false,
         "current": false,
@@ -560,17 +555,32 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_rq_total{envoy_http_conn_manager_prefix=\"http\"}",
+          "expr": "histogram_quantile(0.90, sum(rate(envoy_http_downstream_rq_time_bucket[1m])) by (le))",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "P90",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(envoy_http_downstream_rq_time_bucket[1m])) by (le))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(envoy_http_downstream_rq_time_bucket[1m])) by (le))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "P99",
+          "refId": "C"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total downstream requests",
+      "title": "Round Trip Time Percentiles",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -586,7 +596,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -644,7 +654,7 @@
     ]
   },
   "timezone": "",
-  "title": "envoy stats",
+  "title": "Envoy Statistics",
   "uid": "envoy",
   "version": 1
 }
