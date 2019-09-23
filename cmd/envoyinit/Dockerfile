@@ -1,4 +1,4 @@
-FROM soloio/envoy-gloo-ee:0.1.16
+FROM soloio/envoy-gloo-ee:0.1.17
 
 COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
 
