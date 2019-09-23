@@ -261,7 +261,7 @@ var _ = Describe("External ", func() {
 					"foo": "bar",
 					"aud": "test-clientid",
 					"sub": "user",
-					"iss": "http://127.0.0.1:5556",
+					"iss": "http://localhost:5556",
 				})
 				tokentosign.Header["kid"] = "test-123"
 				token, err = tokentosign.SignedString(privatekey)
@@ -413,7 +413,7 @@ var _ = Describe("External ", func() {
 				select {
 				case r := <-testUpstream.C:
 					ExpectWithOffset(1, r.Headers["X-User-Id"]).To(HaveLen(1))
-					ExpectWithOffset(1, r.Headers["X-User-Id"][0]).To(Equal("http://127.0.0.1:5556;user"))
+					ExpectWithOffset(1, r.Headers["X-User-Id"][0]).To(Equal("http://localhost:5556;user"))
 				case <-time.After(time.Second):
 					Fail("expected a message to be received")
 				}
@@ -605,7 +605,7 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		"foo": "bar",
 		"aud": "test-clientid",
 		"sub": "user",
-		"iss": "http://127.0.0.1:5556",
+		"iss": "http://localhost:5556",
 	})
 	tokentosign.Header["kid"] = "test-123"
 	token, err := tokentosign.SignedString(cachedPrivateKey)
@@ -625,10 +625,10 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		case "/.well-known/openid-configuration":
 			rw.Write([]byte(`
 		{
-			"issuer": "http://127.0.0.1:5556",
-			"authorization_endpoint": "http://127.0.0.1:5556/auth",
-			"token_endpoint": "http://127.0.0.1:5556/token",
-			"jwks_uri": "http://127.0.0.1:5556/keys",
+			"issuer": "http://localhost:5556",
+			"authorization_endpoint": "http://localhost:5556/auth",
+			"token_endpoint": "http://localhost:5556/token",
+			"jwks_uri": "http://localhost:5556/keys",
 			"response_types_supported": [
 			  "code"
 			],
