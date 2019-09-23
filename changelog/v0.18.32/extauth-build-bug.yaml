@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Make sure that the extauth binaries get copied from the Docker container, even when running Docker in a VM context
+    issueLink: https://github.com/solo-io/solo-projects/issues/1080

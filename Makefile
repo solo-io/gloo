@@ -338,15 +338,17 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
 	touch $@
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
+# We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	docker run -v "$(OUTPUT_DIR):/opt/mount" --rm --entrypoint cp \
-		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
-		/extauth-linux-amd64 /opt/mount/extauth-linux-amd64
+	docker create -ti --name extauth-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
+	docker cp extauth-temp-container:/extauth-linux-amd64 $(OUTPUT_DIR)/extauth-linux-amd64
+	docker rm -f extauth-temp-container
 
+# We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	docker run -v "$(OUTPUT_DIR):/opt/mount" --rm --entrypoint cp \
-		quay.io/solo-io/extauth-ee-build-container:$(VERSION) \
-		/verify-plugins-linux-amd64 /opt/mount/verify-plugins-linux-amd64
+	docker create -ti --name verify-plugins-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
+	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
+	docker rm -f verify-plugins-temp-container
 
 # Build extauth binaries
 .PHONY: extauth
