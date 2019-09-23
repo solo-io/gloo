@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Expose some ext auth stats in the built-in envoy grafana dashboard
+    issueLink: https://github.com/solo-io/solo-projects/issues/1151

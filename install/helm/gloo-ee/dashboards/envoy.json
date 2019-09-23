@@ -616,6 +616,117 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {
+        "Denied": "#eab839",
+        "Error": "#bf1b00",
+        "OK": "#7eb26d",
+        "Total": "#6ed0e0"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 20,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(increase(envoy_cluster_ext_authz_ok[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "OK",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(envoy_cluster_ext_authz_denied[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "Denied",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(increase(envoy_cluster_ext_authz_error[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "Error",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(increase(envoy_cluster_ext_authz_ok[1m])) + sum(increase(envoy_cluster_ext_authz_denied[1m])) + sum(increase(envoy_cluster_ext_authz_error[1m]))",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "Total",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "External Auth Requests",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "schemaVersion": 16,
