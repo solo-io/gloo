@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add a resource tag in the NACK stats.
+    issueLink: https://github.com/solo-io/solo-projects/issues/287
+    resolvesIssue: false

@@ -11,42 +11,43 @@ import (
 )
 
 var (
-	nodeIdKey, _ = tag.NewKey("nodeid")
+	nodeIdKey, _   = tag.NewKey("nodeid")
+	resourceKey, _ = tag.NewKey("resource")
 
 	mGlooeXdsTotalEntities = stats.Int64("glooe.solo.io/xds/total_entities", "Total number of entities", "1")
 	GlooeTotalEntities     = &view.View{
 		Name:        "glooe.solo.io/xds/total_entities",
 		Measure:     mGlooeXdsTotalEntities,
-		Description: "The of envoys out of sync",
+		Description: "The total number of XDS streams",
 		Aggregation: view.Sum(),
-		TagKeys:     []tag.Key{},
+		TagKeys:     []tag.Key{resourceKey},
 	}
 
 	mGlooeXdsOutOfSync = stats.Int64("glooe.solo.io/xds/outofsync", "The of envoys out of sync", "1")
 	GlooeOutOfSync     = &view.View{
 		Name:        "glooe.solo.io/xds/outofsync",
 		Measure:     mGlooeXdsOutOfSync,
-		Description: "The of envoys out of sync",
+		Description: "The number of envoys out of sync",
 		Aggregation: view.Sum(),
-		TagKeys:     []tag.Key{},
+		TagKeys:     []tag.Key{resourceKey},
 	}
 
 	mGlooeXdsNack = stats.Int64("glooe.solo.io/xds/nack", "The of envoys reported a nack", "1")
 	GlooeNack     = &view.View{
 		Name:        "glooe.solo.io/xds/nack",
 		Measure:     mGlooeXdsNack,
-		Description: "The of envoys out of sync",
+		Description: "The number of envoys that reported NACK",
 		Aggregation: view.Sum(),
-		TagKeys:     []tag.Key{},
+		TagKeys:     []tag.Key{resourceKey},
 	}
 
 	mGlooeXdsInSync = stats.Int64("glooe.solo.io/xds/insync", "The of envoys in sync", "1")
 	GlooeInSync     = &view.View{
 		Name:        "glooe.solo.io/xds/insync",
 		Measure:     mGlooeXdsInSync,
-		Description: "The of envoys out of sync",
+		Description: "The envoys that are in sync",
 		Aggregation: view.Sum(),
-		TagKeys:     []tag.Key{},
+		TagKeys:     []tag.Key{resourceKey},
 	}
 )
 
@@ -76,30 +77,37 @@ func (s *StatGen) Stat(id EnvoyStatusId, oldst, st State) {
 	// if ctxWithTags, err := tag.New(ctx, tag.Insert(nodeIdKey, id.NodeId)); err == nil {
 	// 	ctx = ctxWithTags
 	// }
+	record := func(metric *stats.Int64Measure, v int64) {
+		stats.RecordWithTags(ctx, tags(id), metric.M(v))
+	}
 	switch st {
 	case New:
-		stats.Record(ctx, mGlooeXdsTotalEntities.M(1))
+		record(mGlooeXdsTotalEntities, 1)
 	case InSync:
-		stats.Record(ctx, mGlooeXdsInSync.M(1))
+		record(mGlooeXdsInSync, 1)
 	case OutOfSync:
-		stats.Record(ctx, mGlooeXdsOutOfSync.M(1))
+		record(mGlooeXdsOutOfSync, 1)
 	case OutOfSyncNack:
-		stats.Record(ctx, mGlooeXdsNack.M(1))
+		record(mGlooeXdsNack, 1)
 	case Gone:
-		stats.Record(ctx, mGlooeXdsTotalEntities.M(-1))
+		record(mGlooeXdsTotalEntities, -1)
 	}
 
 	switch oldst {
 	case New:
 		// this case is handled above
 	case InSync:
-		stats.Record(ctx, mGlooeXdsInSync.M(-1))
+		record(mGlooeXdsInSync, -1)
 	case OutOfSync:
-		stats.Record(ctx, mGlooeXdsOutOfSync.M(-1))
+		record(mGlooeXdsOutOfSync, -1)
 	case OutOfSyncNack:
-		stats.Record(ctx, mGlooeXdsNack.M(-1))
+		record(mGlooeXdsNack, -1)
 	case Gone:
 		// this case should never happen
 	}
 
+}
+
+func tags(id EnvoyStatusId) []tag.Mutator {
+	return []tag.Mutator{tag.Insert(resourceKey, id.StreamId.TypeUrl)}
 }
