@@ -110,6 +110,9 @@ var _ = Describe("JWT + RBAC", func() {
 		jwksPort       uint32
 		privateKey     *rsa.PrivateKey
 		jwtksServerRef core.ResourceRef
+		envoyInstance  *services.EnvoyInstance
+		testUpstream   *v1helpers.TestUpstream
+		envoyPort      = uint32(8080)
 	)
 
 	BeforeEach(func() {
@@ -125,7 +128,11 @@ var _ = Describe("JWT + RBAC", func() {
 
 		jwksPort, privateKey = jwks(ctx)
 
-		jwtksServer := &gloov1.Upstream{
+		var err error
+		envoyInstance, err = envoyFactory.NewEnvoyInstance()
+		Expect(err).NotTo(HaveOccurred())
+
+		jwksServer := &gloov1.Upstream{
 			Metadata: core.Metadata{
 				Name:      "jwks-server",
 				Namespace: "default",
@@ -135,7 +142,7 @@ var _ = Describe("JWT + RBAC", func() {
 				UpstreamType: &gloov1.UpstreamSpec_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
-							Addr: "localhost",
+							Addr: envoyInstance.GlooAddr,
 							Port: jwksPort,
 						}},
 					},
@@ -143,8 +150,8 @@ var _ = Describe("JWT + RBAC", func() {
 			},
 		}
 
-		testClients.UpstreamClient.Write(jwtksServer, clients.WriteOpts{})
-		jwtksServerRef = jwtksServer.Metadata.Ref()
+		testClients.UpstreamClient.Write(jwksServer, clients.WriteOpts{})
+		jwtksServerRef = jwksServer.Metadata.Ref()
 		rbacSettings := &rbac.Settings{
 			RequireRbac: true,
 		}
@@ -164,304 +171,283 @@ var _ = Describe("JWT + RBAC", func() {
 		}
 
 		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+
+		err = envoyInstance.Run(testClients.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
+
+		testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+
+		var opts clients.WriteOpts
+		up := testUpstream.Upstream
+		_, err = testClients.UpstreamClient.Write(up, opts)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		cancel()
+		if envoyInstance != nil {
+			envoyInstance.Clean()
+		}
 	})
 
-	Context("With envoy", func() {
-
-		var (
-			envoyInstance *services.EnvoyInstance
-			testUpstream  *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
-		)
-
-		ExpectAccess := func(bar, fooget, foopost int, augmentRequest func(*http.Request)) {
-			query := func(method, path string) (*http.Response, error) {
-				url := fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path)
-				By("Querying " + url)
-				req, err := http.NewRequest(method, url, nil)
-				if err != nil {
-					return nil, err
-				}
-				augmentRequest(req)
-				return http.DefaultClient.Do(req)
+	ExpectAccess := func(bar, fooget, foopost int, augmentRequest func(*http.Request)) {
+		query := func(method, path string) (*http.Response, error) {
+			url := fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path)
+			By("Querying " + url)
+			req, err := http.NewRequest(method, url, nil)
+			if err != nil {
+				return nil, err
 			}
-
-			// test public route in eventually to let the proxy time to start
-			Eventually(func() (int, error) {
-				resp, err := query("GET", "/public_route")
-				if err != nil {
-					return 0, err
-				}
-				return resp.StatusCode, nil
-			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-			// No need to do eventually here as all is initialized.
-			resp, err := query("GET", "/private_route")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(http.StatusForbidden))
-
-			resp, err = query("GET", "/bar")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(bar))
-
-			resp, err = query("GET", "/foo")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(fooget))
-
-			resp, err = query("POST", "/foo")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(foopost))
+			augmentRequest(req)
+			return http.DefaultClient.Do(req)
 		}
 
+		// test public route in eventually to let the proxy time to start
+		Eventually(func() (int, error) {
+			resp, err := query("GET", "/public_route")
+			if err != nil {
+				return 0, err
+			}
+			return resp.StatusCode, nil
+		}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+		// No need to do eventually here as all is initialized.
+		resp, err := query("GET", "/private_route")
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, resp.StatusCode).To(Equal(http.StatusForbidden))
+
+		resp, err = query("GET", "/bar")
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, resp.StatusCode).To(Equal(bar))
+
+		resp, err = query("GET", "/foo")
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, resp.StatusCode).To(Equal(fooget))
+
+		resp, err = query("POST", "/foo")
+		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, resp.StatusCode).To(Equal(foopost))
+	}
+
+	getTokenFor := func(sub string) string {
+		claims := jwt.StandardClaims{
+			Issuer:   issuer,
+			Audience: audience,
+			Subject:  sub,
+		}
+		tok := getToken(claims, privateKey)
+		By("using token " + tok)
+		return tok
+	}
+
+	addBearer := func(req *http.Request, token string) {
+		req.Header.Add("Authorization", "Bearer "+token)
+	}
+	addToken := func(req *http.Request, sub string) {
+		addBearer(req, getTokenFor(sub))
+	}
+
+	Context("jwt tests", func() {
 		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
+			proxy := getProxyJwt(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			err = envoyInstance.Run(testClients.GlooPort)
-			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() (core.Status, error) {
+				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				if err != nil {
+					return core.Status{}, err
+				}
 
-			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+				return proxy.Status, nil
+			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+				"Reason": BeEmpty(),
+				"State":  Equal(core.Status_Accepted),
+			}))
 
-			var opts clients.WriteOpts
-			up := testUpstream.Upstream
-			_, err = testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
+			// wait for key service to start
+			Eventually(func() error {
+				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				return err
+			}, "5s", "0.5s").ShouldNot(HaveOccurred())
 		})
 
-		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
-		})
-		getTokenFor := func(sub string) string {
-			claims := jwt.StandardClaims{
-				Issuer:   issuer,
-				Audience: audience,
-				Subject:  sub,
-			}
-			tok := getToken(claims, privateKey)
-			By("using token " + tok)
-			return tok
-		}
+		Context("forward token", func() {
+			It("should forward token upstream", func() {
+				token := getTokenFor("user")
 
-		addBearer := func(req *http.Request, token string) {
-			req.Header.Add("Authorization", "Bearer "+token)
-		}
-		addToken := func(req *http.Request, sub string) {
-			addBearer(req, getTokenFor(sub))
-		}
-
-		Context("jwt tests", func() {
-			BeforeEach(func() {
-				envoyPort += 1
-
-				proxy := getProxyJwt(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
-
-				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(func() (core.Status, error) {
-					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				Eventually(func() (int, error) {
+					url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+					By("Querying " + url)
+					req, err := http.NewRequest("GET", url, nil)
+					Expect(err).NotTo(HaveOccurred())
+					req.Header.Add("x-jwt", "JWT "+token)
+					resp, err := http.DefaultClient.Do(req)
 					if err != nil {
-						return core.Status{}, err
+						return 0, err
 					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
-					return proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
+				select {
+				case received := <-testUpstream.C:
+					Expect(received.Headers).To(HaveKeyWithValue("X-Jwt", []string{"JWT " + token}))
+				default:
+					Fail("request didnt make it upstream")
+				}
 
-				// wait for key service to start
-				Eventually(func() error {
-					_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-					return err
-				}, "5s", "0.5s").ShouldNot(HaveOccurred())
 			})
-
-			Context("forward token", func() {
-				It("should forward token upstream", func() {
-					token := getTokenFor("user")
-
-					Eventually(func() (int, error) {
-						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
-						By("Querying " + url)
-						req, err := http.NewRequest("GET", url, nil)
-						Expect(err).NotTo(HaveOccurred())
-						req.Header.Add("x-jwt", "JWT "+token)
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-					select {
-					case received := <-testUpstream.C:
-						Expect(received.Headers).To(HaveKeyWithValue("X-Jwt", []string{"JWT " + token}))
-					default:
-						Fail("request didnt make it upstream")
-					}
-
-				})
-			})
-			Context("token source", func() {
-				BeforeEach(func() {
-					// drain channel as we dont care about it
-					go func() {
-						for range testUpstream.C {
-						}
-					}()
-				})
-				It("should get token from custom header", func() {
-					Eventually(func() (int, error) {
-						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
-						By("Querying " + url)
-						req, err := http.NewRequest("GET", url, nil)
-						Expect(err).NotTo(HaveOccurred())
-						token := getTokenFor("user")
-						req.Header.Add("x-jwt", "JWT "+token)
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-				})
-				It("should get token from custom query param", func() {
-					Eventually(func() (int, error) {
-						token := getTokenFor("user")
-
-						url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken="+token, "localhost", envoyPort)
-						By("Querying " + url)
-						resp, err := http.Get(url)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-				})
-			})
-
-			Context("claims to headers", func() {
-				It("should should move the sub claim to a header", func() {
-					Eventually(func() (int, error) {
-						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
-						By("Querying " + url)
-						req, err := http.NewRequest("GET", url, nil)
-						Expect(err).NotTo(HaveOccurred())
-						token := getTokenFor("user")
-						req.Header.Add("x-jwt", "JWT "+token)
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-					select {
-					case received := <-testUpstream.C:
-						Expect(received.Headers).To(HaveKeyWithValue("X-Sub", []string{"user", "user"}))
-					default:
-						Fail("request didnt make it upstream")
-					}
-				})
-				It("should re-route based on the new header added", func() {
-					Eventually(func() (int, error) {
-						token := getTokenFor("teatime")
-						url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken=%s", "localhost", envoyPort, token)
-						By("Querying " + url)
-						resp, err := http.Get(url)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-					select {
-					case received := <-testUpstream.C:
-						Expect(received.Headers).To(HaveKeyWithValue("X-New-Header", []string{"new"}))
-					default:
-						Fail("request didnt make it upstream")
-					}
-				})
-			})
-
 		})
-		Context("user access tests", func() {
+		Context("token source", func() {
 			BeforeEach(func() {
-
 				// drain channel as we dont care about it
 				go func() {
 					for range testUpstream.C {
 					}
 				}()
-
-				envoyPort += 1
-
-				proxy := getProxyJwtRbac(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
-
-				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(func() (core.Status, error) {
-					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
+			It("should get token from custom header", func() {
+				Eventually(func() (int, error) {
+					url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+					By("Querying " + url)
+					req, err := http.NewRequest("GET", url, nil)
+					Expect(err).NotTo(HaveOccurred())
+					token := getTokenFor("user")
+					req.Header.Add("x-jwt", "JWT "+token)
+					resp, err := http.DefaultClient.Do(req)
 					if err != nil {
-						return core.Status{}, err
+						return 0, err
 					}
-
-					return proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
-
-				// wait for key service to start
-				Eventually(func() error {
-					_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-					return err
-				}, "5s", "0.5s").ShouldNot(HaveOccurred())
-
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
+			It("should get token from custom query param", func() {
+				Eventually(func() (int, error) {
+					token := getTokenFor("user")
 
-			Context("non admin user", func() {
-				It("should allow non admin user access to GET foo", func() {
-					ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
-						func(req *http.Request) { addToken(req, "user") })
-				})
-
+					url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken="+token, "localhost", envoyPort)
+					By("Querying " + url)
+					resp, err := http.Get(url)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
+		})
 
-			Context("admin user", func() {
-				It("should allow everything", func() {
-					ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
-						func(req *http.Request) { addToken(req, "admin") })
-				})
+		Context("claims to headers", func() {
+			It("should should move the sub claim to a header", func() {
+				Eventually(func() (int, error) {
+					url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+					By("Querying " + url)
+					req, err := http.NewRequest("GET", url, nil)
+					Expect(err).NotTo(HaveOccurred())
+					token := getTokenFor("user")
+					req.Header.Add("x-jwt", "JWT "+token)
+					resp, err := http.DefaultClient.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+				select {
+				case received := <-testUpstream.C:
+					Expect(received.Headers).To(HaveKeyWithValue("X-Sub", []string{"user", "user"}))
+				default:
+					Fail("request didnt make it upstream")
+				}
 			})
+			It("should re-route based on the new header added", func() {
+				Eventually(func() (int, error) {
+					token := getTokenFor("teatime")
+					url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken=%s", "localhost", envoyPort, token)
+					By("Querying " + url)
+					resp, err := http.Get(url)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
-			Context("anonymous user", func() {
-				It("should only allow public route", func() {
-					ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
-						func(req *http.Request) {})
-				})
+				select {
+				case received := <-testUpstream.C:
+					Expect(received.Headers).To(HaveKeyWithValue("X-New-Header", []string{"new"}))
+				default:
+					Fail("request didnt make it upstream")
+				}
 			})
+		})
 
-			Context("bad token user", func() {
-				It("should only allow public route", func() {
-					token := getTokenFor("admin")
-					// remove some stuff to make the signature invalid
-					badToken := token[:len(token)-10]
-					ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
-						func(req *http.Request) { addBearer(req, badToken) })
-				})
+	})
+	Context("user access tests", func() {
+		BeforeEach(func() {
+
+			// drain channel as we dont care about it
+			go func() {
+				for range testUpstream.C {
+				}
+			}()
+
+			proxy := getProxyJwtRbac(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() (core.Status, error) {
+				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				if err != nil {
+					return core.Status{}, err
+				}
+
+				return proxy.Status, nil
+			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+				"Reason": BeEmpty(),
+				"State":  Equal(core.Status_Accepted),
+			}))
+
+			// wait for key service to start
+			Eventually(func() error {
+				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				return err
+			}, "5s", "0.5s").ShouldNot(HaveOccurred())
+
+		})
+
+		Context("non admin user", func() {
+			It("should allow non admin user access to GET foo", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
+					func(req *http.Request) { addToken(req, "user") })
 			})
 
 		})
+
+		Context("admin user", func() {
+			It("should allow everything", func() {
+				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addToken(req, "admin") })
+			})
+		})
+
+		Context("anonymous user", func() {
+			It("should only allow public route", func() {
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+					func(req *http.Request) {})
+			})
+		})
+
+		Context("bad token user", func() {
+			It("should only allow public route", func() {
+				token := getTokenFor("admin")
+				// remove some stuff to make the signature invalid
+				badToken := token[:len(token)-10]
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+					func(req *http.Request) { addBearer(req, badToken) })
+			})
+		})
+
 	})
 })
 
@@ -705,7 +691,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "127.0.0.1",
+			BindAddress: "0.0.0.0",
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{
