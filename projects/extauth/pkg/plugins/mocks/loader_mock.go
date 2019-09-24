@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	api "github.com/solo-io/ext-auth-plugins/api"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 )
 
 // MockLoader is a mock of Loader interface
@@ -37,7 +37,7 @@ func (m *MockLoader) EXPECT() *MockLoaderMockRecorder {
 }
 
 // Load mocks base method
-func (m *MockLoader) Load(arg0 context.Context, arg1 *extauth.PluginAuth) (api.AuthService, error) {
+func (m *MockLoader) Load(arg0 context.Context, arg1 *v1.PluginAuth) (api.AuthService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Load", arg0, arg1)
 	ret0, _ := ret[0].(api.AuthService)
@@ -52,7 +52,7 @@ func (mr *MockLoaderMockRecorder) Load(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // LoadAuthPlugin mocks base method
-func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *extauth.AuthPlugin) (api.AuthService, error) {
+func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *v1.AuthPlugin) (api.AuthService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadAuthPlugin", arg0, arg1)
 	ret0, _ := ret[0].(api.AuthService)

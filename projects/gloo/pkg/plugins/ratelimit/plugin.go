@@ -20,7 +20,7 @@ import (
 /*
 Background:
 
-Currently the way to created descriptors in envoy is somewhat limited.
+Currently the way to create descriptors in envoy is somewhat limited.
 Even though we can use the server configuration to express many forms of rate limits, we
 are limited to configurations that we can also express in envoy.
 

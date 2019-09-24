@@ -7,11 +7,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/go-utils/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -49,6 +52,7 @@ var _ = Describe("External auth", func() {
 
 		gatewayClient        v2.GatewayClient
 		virtualServiceClient v1.VirtualServiceClient
+		authConfigClient     extauthapi.AuthConfigClient
 
 		err error
 	)
@@ -62,17 +66,25 @@ var _ = Describe("External auth", func() {
 		kubeClient, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
-		cache := kube.NewKubeCache(ctx)
+		kubeCache := kube.NewKubeCache(ctx)
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         v2.GatewayCrd,
 			Cfg:         cfg,
-			SharedCache: cache,
+			SharedCache: kubeCache,
 		}
 		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         v1.VirtualServiceCrd,
 			Cfg:         cfg,
-			SharedCache: cache,
+			SharedCache: kubeCache,
 		}
+		authConfigClientFactory := &factory.KubeResourceClientFactory{
+			Crd:         extauthapi.AuthConfigCrd,
+			Cfg:         cfg,
+			SharedCache: kubeCache,
+		}
+
+		authConfigClient, err = extauthapi.NewAuthConfigClient(authConfigClientFactory)
+		Expect(err).NotTo(HaveOccurred())
 
 		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -97,7 +109,20 @@ var _ = Describe("External auth", func() {
 			response200                = "HTTP/1.1 200 OK"
 		)
 
-		BeforeEach(func() {
+		var (
+			extAuthConfigProto proto.Message
+			ldapConfig         = func(namespace string) *extauthapi.Ldap {
+				return &extauthapi.Ldap{
+					Address:        fmt.Sprintf("ldap.%s.svc.cluster.local:389", namespace),
+					UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io",
+					AllowedGroups: []string{
+						"cn=managers,ou=groups,dc=solo,dc=io",
+					},
+				}
+			}
+		)
+
+		JustBeforeEach(func() {
 
 			By("create a config map containing the bootstrap configuration for the LDAP server", func() {
 				err = testutils.Kubectl(
@@ -129,35 +154,21 @@ var _ = Describe("External auth", func() {
 					}
 					return nil
 				}, "30s", "0.5s").Should(BeNil())
+
+				// Make sure we can query the LDAP server
+				testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+					Protocol:          "ldap",
+					Path:              "/",
+					Method:            "GET",
+					Service:           fmt.Sprintf("ldap.%s.svc.cluster.local", testHelper.InstallNamespace),
+					Port:              389,
+					ConnectionTimeout: 1,
+					Verbose:           true,
+				}, "OpenLDAProotDSE", 1, time.Minute)
 			})
 
-			// Make sure we can query the LDAP server
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "ldap",
-				Path:              "/",
-				Method:            "GET",
-				Service:           fmt.Sprintf("ldap.%s.svc.cluster.local", testHelper.InstallNamespace),
-				Port:              389,
-				ConnectionTimeout: 1,
-				Verbose:           true,
-			}, "OpenLDAProotDSE", 1, time.Minute)
-
 			By("create an LDAP-secured route to the test upstream", func() {
-				extAuthConfig, err := envoyutil.MessageToStruct(&extauthapi.VhostExtension{
-					Configs: []*extauthapi.AuthConfig{
-						{
-							AuthConfig: &extauthapi.AuthConfig_Ldap{
-								Ldap: &extauthapi.Ldap{
-									Address:        fmt.Sprintf("ldap.%s.svc.cluster.local:389", testHelper.InstallNamespace),
-									UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io",
-									AllowedGroups: []string{
-										"cn=managers,ou=groups,dc=solo,dc=io",
-									},
-								},
-							},
-						},
-					},
-				})
+				extAuthConfig, err := envoyutil.MessageToStruct(extAuthConfigProto)
 				Expect(err).NotTo(HaveOccurred())
 
 				virtualHostExtensions := &gloov1.Extensions{
@@ -236,24 +247,85 @@ var _ = Describe("External auth", func() {
 			}, expectedResponseSubstring, 1, 2*time.Minute)
 		}
 
-		It("works as expected", func() {
+		// TODO(marco): remove when we remove the deprecated API
+		When("using the deprecated auth config format", func() {
 
-			By("returns 401 if no authentication header is provided", func() {
-				curlAndAssertResponse(nil, response401)
+			BeforeEach(func() {
+				extAuthConfigProto = &extauthapi.VhostExtension{
+					Configs: []*extauthapi.VhostExtension_AuthConfig{
+						{
+							AuthConfig: &extauthapi.VhostExtension_AuthConfig_Ldap{
+								Ldap: ldapConfig(testHelper.InstallNamespace),
+							},
+						},
+					},
+				}
 			})
 
-			By("returns 401 if the user is unknown", func() {
-				curlAndAssertResponse(buildAuthHeader("john:doe"), response401)
-			})
+			It("works as expected", func() {
 
-			By("returns 200 if the user belongs to one of the allowed groups", func() {
-				curlAndAssertResponse(buildAuthHeader("rick:rickpwd"), response200)
-			})
+				By("returns 401 if no authentication header is provided", func() {
+					curlAndAssertResponse(nil, response401)
+				})
 
-			By("returns 403 if the user does not belong to the allowed groups", func() {
-				curlAndAssertResponse(buildAuthHeader("marco:marcopwd"), response403)
-			})
+				By("returns 401 if the user is unknown", func() {
+					curlAndAssertResponse(buildAuthHeader("john:doe"), response401)
+				})
 
+				By("returns 200 if the user belongs to one of the allowed groups", func() {
+					curlAndAssertResponse(buildAuthHeader("rick:rickpwd"), response200)
+				})
+
+				By("returns 403 if the user does not belong to the allowed groups", func() {
+					curlAndAssertResponse(buildAuthHeader("marco:marcopwd"), response403)
+				})
+			})
 		})
+
+		When("using the new auth config format", func() {
+
+			BeforeEach(func() {
+
+				authConfig, err := authConfigClient.Write(&extauthapi.AuthConfig{
+					Metadata: core.Metadata{
+						Name:      "ldap",
+						Namespace: testHelper.InstallNamespace,
+					},
+					Configs: []*extauthapi.AuthConfig_Config{{
+						AuthConfig: &extauthapi.AuthConfig_Config_Ldap{
+							Ldap: ldapConfig(testHelper.InstallNamespace),
+						},
+					}},
+				}, clients.WriteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred())
+
+				authConfigRef := authConfig.Metadata.Ref()
+				extAuthConfigProto = &extauthapi.ExtAuthExtension{
+					Spec: &extauthapi.ExtAuthExtension_ConfigRef{
+						ConfigRef: &authConfigRef,
+					},
+				}
+			})
+
+			It("works as expected", func() {
+
+				By("returns 401 if no authentication header is provided", func() {
+					curlAndAssertResponse(nil, response401)
+				})
+
+				By("returns 401 if the user is unknown", func() {
+					curlAndAssertResponse(buildAuthHeader("john:doe"), response401)
+				})
+
+				By("returns 200 if the user belongs to one of the allowed groups", func() {
+					curlAndAssertResponse(buildAuthHeader("rick:rickpwd"), response200)
+				})
+
+				By("returns 403 if the user does not belong to the allowed groups", func() {
+					curlAndAssertResponse(buildAuthHeader("marco:marcopwd"), response403)
+				})
+			})
+		})
+
 	})
 })

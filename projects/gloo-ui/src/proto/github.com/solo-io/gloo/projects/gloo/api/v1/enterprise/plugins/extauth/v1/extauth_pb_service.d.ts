@@ -1,8 +1,8 @@
-// package: extauth.plugins.gloo.solo.io
-// file: github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth.proto
+// package: enterprise.gloo.solo.io
+// file: github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth.proto
 
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb from "../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb";
-import * as envoy_api_v2_discovery_pb from "../../../../../../../../../../envoy/api/v2/discovery_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
+import * as envoy_api_v2_discovery_pb from "../../../../../../../../../../../envoy/api/v2/discovery_pb";
 import {grpc} from "@improbable-eng/grpc-web";
 
 type ExtAuthDiscoveryServiceStreamExtAuthConfig = {

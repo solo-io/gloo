@@ -32,8 +32,9 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/healthcheck/healthcheck_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/jwt/jwt_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb";
@@ -81,10 +82,20 @@ export class HttpListenerPlugins extends jspb.Message {
   getHttpConnectionManagerSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings | undefined;
   setHttpConnectionManagerSettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings): void;
 
+  hasHealthCheck(): boolean;
+  clearHealthCheck(): void;
+  getHealthCheck(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb.HealthCheck | undefined;
+  setHealthCheck(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb.HealthCheck): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
   setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
+
+  hasWaf(): boolean;
+  clearWaf(): void;
+  getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings | undefined;
+  setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerPlugins.AsObject;
@@ -100,7 +111,9 @@ export namespace HttpListenerPlugins {
   export type AsObject = {
     grpcWeb?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb.AsObject,
     httpConnectionManagerSettings?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.AsObject,
+    healthCheck?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb.HealthCheck.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
+    waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings.AsObject,
   }
 }
 
@@ -167,6 +180,11 @@ export class VirtualHostPlugins extends jspb.Message {
   getRatelimitActions(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension | undefined;
   setRatelimitActions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension): void;
 
+  hasWaf(): boolean;
+  clearWaf(): void;
+  getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings | undefined;
+  setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -187,6 +205,7 @@ export namespace VirtualHostPlugins {
     transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
     ratelimitGloo?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimitActions?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
+    waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.AsObject,
   }
 }
 
@@ -261,6 +280,11 @@ export class RoutePlugins extends jspb.Message {
   getRatelimitActions(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitRouteExtension | undefined;
   setRatelimitActions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitRouteExtension): void;
 
+  hasWaf(): boolean;
+  clearWaf(): void;
+  getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings | undefined;
+  setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -287,6 +311,7 @@ export namespace RoutePlugins {
     lbHash?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
     ratelimitGloo?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimitActions?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
+    waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.AsObject,
   }
 }
 
@@ -350,6 +375,11 @@ export class WeightedDestinationPlugins extends jspb.Message {
   getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
   setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
 
+  hasExtensions(): boolean;
+  clearExtensions(): void;
+  getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
+  setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WeightedDestinationPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: WeightedDestinationPlugins): WeightedDestinationPlugins.AsObject;
@@ -364,6 +394,7 @@ export namespace WeightedDestinationPlugins {
   export type AsObject = {
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
     transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
+    extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
   }
 }
 

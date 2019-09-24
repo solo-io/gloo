@@ -13,10 +13,6 @@ import (
 const (
 	pathToGopkgTomlDir = "."
 	gopkgToml          = "Gopkg.toml"
-	constraint         = "constraint"
-	glooPkg            = "github.com/solo-io/gloo"
-	nameConst          = "name"
-	versionConst       = "version"
 
 	devPullPolicy          = string(v1.PullAlways)
 	distributionPullPolicy = string(v1.PullIfNotPresent)
@@ -70,6 +66,7 @@ func ArtifactName(artifact Artifact) string {
 
 // Run generates the helm artifacts for the corresponding file sets
 func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
+
 	osGlooVersion, err := GetGlooOsVersionFromToml(pathToGopkgTomlDir)
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")

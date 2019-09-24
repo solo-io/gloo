@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	extauthplugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/go-utils/errors"
@@ -19,11 +21,21 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 )
 
 const (
 	DefaultCallback = "/oauth-gloo-callback"
+)
+
+var (
+	MissingAuthConfigIdError    = errors.New("either [vhost] or [authConfigRefName] must be set on ExtAuthConfig")
+	GetAuthServiceForVHostError = func(err error, virtualHost string) error {
+		return errors.Wrapf(err, "failed to get auth service for auth config with virtual host [%s]", virtualHost)
+	}
+	GetAuthServiceError = func(err error, authConfigRefName string) error {
+		return errors.Wrapf(err, "failed to get auth service for auth config [%s]", authConfigRefName)
+	}
 )
 
 func NewConfigGenerator(ctx context.Context, key []byte, userIdHeader string, pluginLoader plugins.Loader) *configGenerator {
@@ -44,7 +56,7 @@ type configGenerator struct {
 	cancel context.CancelFunc
 }
 
-func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*extauthservice.Config, error) {
+func (c *configGenerator) GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*extauthservice.Config, error) {
 	cfg := extauthservice.Config{
 		UserAuthHeader: c.userIdHeader,
 		Configs:        make(map[string]api.AuthService),
@@ -55,14 +67,36 @@ func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*e
 	var startFuncs []api.StartFunc
 	for _, resource := range resources {
 
-		authService, err := c.getConfig(ctx, resource)
-		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "failed to get configuration for virtual host [%s]", resource.Vhost))
-			continue
-		}
+		// TODO(marco): remove when we get rid of the deprecated APIs
+		// Handle deprecated config
+		if resource.Vhost != "" {
+			authService, err := c.getConfig(ctx, resource)
+			if err != nil {
+				errs = multierror.Append(errs, GetAuthServiceForVHostError(err, resource.Vhost))
+				continue
+			}
 
-		startFuncs = append(startFuncs, authService.Start)
-		cfg.Configs[resource.Vhost] = authService
+			startFuncs = append(startFuncs, authService.Start)
+
+			// To avoid collisions with real AuthConfig identifiers we prepend a special prefix.
+			// See the use of `DeprecatedConfigRefPrefix` in the extauth plugin code for the other half of this workaround.
+			cfg.Configs[extauthplugin.DeprecatedConfigRefPrefix+resource.Vhost] = authService
+
+		} else {
+			if resource.AuthConfigRefName == "" {
+				errs = multierror.Append(errs, MissingAuthConfigIdError)
+				continue
+			}
+
+			authService, err := c.getConfig(ctx, resource)
+			if err != nil {
+				errs = multierror.Append(errs, GetAuthServiceError(err, resource.AuthConfigRefName))
+				continue
+			}
+
+			startFuncs = append(startFuncs, authService.Start)
+			cfg.Configs[resource.AuthConfigRefName] = authService
+		}
 	}
 
 	if err := errs.ErrorOrNil(); err != nil {
@@ -85,7 +119,7 @@ func (c *configGenerator) GenerateConfig(resources []*extauth.ExtAuthConfig) (*e
 	return &cfg, nil
 }
 
-func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAuthConfig) (svc api.AuthService, err error) {
+func (c *configGenerator) getConfig(ctx context.Context, resource *extauthv1.ExtAuthConfig) (svc api.AuthService, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			svc = nil
@@ -102,7 +136,7 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 	// handle deprecated code path
 
 	switch cfg := resource.AuthConfig.(type) {
-	case *extauth.ExtAuthConfig_BasicAuth:
+	case *extauthv1.ExtAuthConfig_BasicAuth:
 		aprCfg := apr.Config{
 			Realm:                            cfg.BasicAuth.Realm,
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
@@ -110,7 +144,7 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 
 		return &aprCfg, nil
 
-	case *extauth.ExtAuthConfig_Oauth:
+	case *extauthv1.ExtAuthConfig_Oauth:
 		stateSigner := oidc.NewStateSigner(c.key)
 		cb := cfg.Oauth.CallbackPath
 		if cb == "" {
@@ -126,20 +160,20 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauth.ExtAu
 		}
 		return iss, nil
 
-	case *extauth.ExtAuthConfig_ApiKeyAuth:
+	case *extauthv1.ExtAuthConfig_ApiKeyAuth:
 		apiKeyCfg := apikeys.Config{
 			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
 		}
 		return &apiKeyCfg, nil
 
-	case *extauth.ExtAuthConfig_PluginAuth:
+	case *extauthv1.ExtAuthConfig_PluginAuth:
 		return c.pluginLoader.Load(ctx, cfg.PluginAuth)
 	}
 
 	return nil, fmt.Errorf("config not supported")
 }
 
-func convertAprUsers(users map[string]*extauth.BasicAuth_Apr_SaltedHashedPassword) map[string]apr.SaltAndHashedPassword {
+func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword) map[string]apr.SaltAndHashedPassword {
 	ret := map[string]apr.SaltAndHashedPassword{}
 	for k, v := range users {
 		ret[k] = apr.SaltAndHashedPassword{
@@ -150,7 +184,7 @@ func convertAprUsers(users map[string]*extauth.BasicAuth_Apr_SaltedHashedPasswor
 	return ret
 }
 
-func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauth.ExtAuthConfig_AuthConfig) (svc api.AuthService, err error) {
+func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauthv1.ExtAuthConfig_Config) (svc api.AuthService, err error) {
 	services := chain.NewAuthServiceChain()
 	for i, config := range configs {
 		svc, name, err := c.authConfigToService(ctx, config)
@@ -167,9 +201,9 @@ func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauth.Ext
 	return services, nil
 }
 
-func (c *configGenerator) authConfigToService(ctx context.Context, config *extauth.ExtAuthConfig_AuthConfig) (svc api.AuthService, name string, err error) {
+func (c *configGenerator) authConfigToService(ctx context.Context, config *extauthv1.ExtAuthConfig_Config) (svc api.AuthService, name string, err error) {
 	switch cfg := config.AuthConfig.(type) {
-	case *extauth.ExtAuthConfig_AuthConfig_BasicAuth:
+	case *extauthv1.ExtAuthConfig_Config_BasicAuth:
 		aprCfg := apr.Config{
 			Realm:                            cfg.BasicAuth.Realm,
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
@@ -177,7 +211,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 
 		return &aprCfg, "", nil
 
-	case *extauth.ExtAuthConfig_AuthConfig_Oauth:
+	case *extauthv1.ExtAuthConfig_Config_Oauth:
 		stateSigner := oidc.NewStateSigner(c.key)
 		cb := cfg.Oauth.CallbackPath
 		if cb == "" {
@@ -193,22 +227,22 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		return iss, "", nil
 
-	case *extauth.ExtAuthConfig_AuthConfig_ApiKeyAuth:
+	case *extauthv1.ExtAuthConfig_Config_ApiKeyAuth:
 		apiKeyCfg := apikeys.Config{
 			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
 		}
 		return &apiKeyCfg, "", nil
 
-	case *extauth.ExtAuthConfig_AuthConfig_PluginAuth:
+	case *extauthv1.ExtAuthConfig_Config_PluginAuth:
 		p, err := c.pluginLoader.LoadAuthPlugin(ctx, cfg.PluginAuth)
 		return p, cfg.PluginAuth.Name, err
-	case *extauth.ExtAuthConfig_AuthConfig_OpaAuth:
+	case *extauthv1.ExtAuthConfig_Config_OpaAuth:
 		opaCfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
 		if err != nil {
 			return nil, "", err
 		}
 		return opaCfg, "", nil
-	case *extauth.ExtAuthConfig_AuthConfig_Ldap:
+	case *extauthv1.ExtAuthConfig_Config_Ldap:
 		ldapSvc, err := getLdapAuthService(ctx, cfg.Ldap)
 		if err != nil {
 			return nil, "", err
@@ -218,7 +252,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 	return nil, "", errors.New("unknown auth configuration")
 }
 
-func getLdapAuthService(ctx context.Context, ldapCfg *extauth.Ldap) (api.AuthService, error) {
+func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthService, error) {
 	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg)
 
 	// Connection pool will be cleaned up when the context is cancelled
@@ -242,7 +276,7 @@ func getLdapAuthService(ctx context.Context, ldapCfg *extauth.Ldap) (api.AuthSer
 	return ldapAuthService, nil
 }
 
-func getLdapConnectionPoolParams(config *extauth.Ldap) (initCap int, maxCap int) {
+func getLdapConnectionPoolParams(config *extauthv1.Ldap) (initCap int, maxCap int) {
 	initCap = 2
 	maxCap = 5
 

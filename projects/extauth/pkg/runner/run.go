@@ -24,19 +24,22 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
-	configproto "github.com/solo-io/solo-projects/projects/extauth/pkg/config"
-	plugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	configproto "github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
 	"github.com/solo-io/go-utils/stats"
 
 	"google.golang.org/grpc"
 )
 
+// The extauth server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
+// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
+// similarly to how the regular Gloo gateway-proxies do.
+const ExtAuthServerRole = "extauth"
+
 func init() {
-	view.Register(ocgrpc.DefaultServerViews...)
+	_ = view.Register(ocgrpc.DefaultServerViews...)
 }
 
 func Run() {
@@ -62,13 +65,9 @@ func Run() {
 }
 
 func RunWithSettings(ctx context.Context, clientSettings Settings) error {
-
-	service := extauth.NewServer()
-	service.VHostContextExtension = plugin.ContextExtensionVhost
-
 	ctx = contextutils.WithLogger(ctx, "extauth")
 
-	err := StartExtAuth(ctx, clientSettings, service)
+	err := StartExtAuth(ctx, clientSettings, extauth.NewServer())
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -127,7 +126,7 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 		nodeInfo.Id = "extauth-unknown"
 	}
 	nodeInfo.Cluster = "extauth"
-	role := "extauth"
+	role := ExtAuthServerRole
 	nodeInfo.Metadata = &types.Struct{
 		Fields: map[string]*types.Value{
 			"role": {

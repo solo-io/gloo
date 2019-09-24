@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
@@ -46,6 +48,7 @@ type TestClients struct {
 	SecretClient         gloov1.SecretClient
 	ArtifactClient       gloov1.ArtifactClient
 	ServiceClient        skkube.ServiceClient
+	AuthConfigClient     extauthv1.AuthConfigClient
 	GlooPort             int
 }
 
@@ -74,21 +77,23 @@ func RunGatewayWithKubeClientAndSettings(ctx context.Context, justgloo bool, ns 
 func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 
 	// construct our own resources:
-	factory := &factory.MemoryResourceClientFactory{
+	rcFactory := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 
-	gatewayClient, err := gatewayv1.NewGatewayClient(factory)
+	gatewayClient, err := gatewayv1.NewGatewayClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(factory)
+	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	upstreamClient, err := gloov1.NewUpstreamClient(factory)
+	upstreamClient, err := gloov1.NewUpstreamClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	secretClient, err := gloov1.NewSecretClient(factory)
+	secretClient, err := gloov1.NewSecretClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	artifactClient, err := gloov1.NewArtifactClient(factory)
+	artifactClient, err := gloov1.NewArtifactClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	proxyClient, err := gloov1.NewProxyClient(factory)
+	proxyClient, err := gloov1.NewProxyClient(rcFactory)
+	Expect(err).NotTo(HaveOccurred())
+	authConfigClient, err := extauthv1.NewAuthConfigClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
@@ -98,6 +103,7 @@ func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 		SecretClient:         secretClient,
 		ArtifactClient:       artifactClient,
 		ProxyClient:          proxyClient,
+		AuthConfigClient:     authConfigClient,
 	}
 }
 
@@ -132,16 +138,16 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	}
 	ctx = settingsutil.WithSettings(ctx, &settings)
 
-	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
-	glooopts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
-	glooopts.Settings = &settings
-	glooopts.ControlPlane.StartGrpcServer = true
-	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
+	glooOpts := defaultGlooOpts(ctx, cache, ns, kubeclient)
+	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
+	glooOpts.Settings = &settings
+	glooOpts.ControlPlane.StartGrpcServer = true
+	go syncer.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions())
 	if !what.DisableFds {
-		go fds_syncer.RunFDS(glooopts)
+		go fds_syncer.RunFDS(glooOpts)
 	}
 	if !what.DisableUds {
-		go uds_syncer.RunUDS(glooopts)
+		go uds_syncer.RunUDS(glooOpts)
 	}
 
 }
@@ -167,10 +173,20 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 }
 
-func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string, kubeclient kubernetes.Interface) bootstrap.Opts {
+func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string, kubeclient kubernetes.Interface) bootstrap.Opts {
 	ctx = contextutils.WithLogger(ctx, "gloo")
 	logger := contextutils.LoggerFrom(ctx)
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
+		grpc_middleware.ChainStreamServer(
+			grpc_ctxtags.StreamServerInterceptor(),
+			grpc_zap.StreamServerInterceptor(zap.NewNop()),
+			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+				logger.Infof("gRPC call: %v", info.FullMethod)
+				return handler(srv, ss)
+			},
+		)),
+	)
+	grpcServerValidation := grpc.NewServer(grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_zap.StreamServerInterceptor(zap.NewNop()),
@@ -190,6 +206,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Proxies:         f,
 		Secrets:         f,
 		Artifacts:       f,
+		AuthConfigs:     f,
 		WatchNamespaces: []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
@@ -199,6 +216,10 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, nil, true),
+		ValidationServer: syncer.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
+			IP:   net.ParseIP("0.0.0.0"),
+			Port: 8081,
+		}, true),
 		KubeClient: kubeclient,
 		DevMode:    true,
 	}

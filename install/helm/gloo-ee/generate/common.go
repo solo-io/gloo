@@ -1,48 +1,28 @@
 package generate
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
-
-	"github.com/pelletier/go-toml"
+	"github.com/solo-io/go-utils/versionutils"
+	"github.com/solo-io/solo-projects/pkg/version"
 )
 
 func GetGlooOsVersionFromToml(pathToGopkgTomlDir string) (string, error) {
-	return GetVersionFromToml(filepath.Join(pathToGopkgTomlDir, gopkgToml), glooPkg)
-}
-
-func GetVersionFromToml(filename, pkg string) (string, error) {
-	config, err := toml.LoadFile(filename)
+	tomlTree, err := versionutils.ParseFullTomlFromDir(pathToGopkgTomlDir)
 	if err != nil {
 		return "", err
 	}
 
-	tomlTree := config.Get(constraint)
-	var (
-		tree    []*toml.Tree
-		version string
-	)
-
-	switch typedTree := tomlTree.(type) {
-	case []*toml.Tree:
-		tree = typedTree
-	default:
-		return "", fmt.Errorf("unable to parse toml tree")
+	glooVersion, err := versionutils.GetDependencyVersionInfo(version.GlooPkg, tomlTree)
+	if err != nil {
+		return "", err
 	}
 
-	for _, v := range tree {
-		if v.Get(nameConst) == pkg && v.Get(versionConst) != "" {
-			version = v.Get(versionConst).(string)
-		}
-	}
-
-	return version, nil
+	return glooVersion.Version, nil
 }
 
 func readYaml(path string, obj interface{}) error {

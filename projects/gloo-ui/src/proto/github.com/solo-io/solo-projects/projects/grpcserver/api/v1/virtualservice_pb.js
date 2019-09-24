@@ -15,7 +15,7 @@ var global = Function('return this')();
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
 var github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
@@ -552,7 +552,7 @@ proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.toObject = function(opt_includeI
  */
 proto.glooeeapi.solo.io.ExtAuthPlugin.toObject = function(includeInstance, msg) {
   var f, obj = {
-    value: (f = msg.getValue()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig.toObject(includeInstance, f),
+    value: (f = msg.getValue()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig.toObject(includeInstance, f),
     error: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
@@ -591,8 +591,8 @@ proto.glooeeapi.solo.io.ExtAuthPlugin.deserializeBinaryFromReader = function(msg
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig.deserializeBinaryFromReader);
       msg.setValue(value);
       break;
     case 2:
@@ -633,7 +633,7 @@ proto.glooeeapi.solo.io.ExtAuthPlugin.serializeBinaryToWriter = function(message
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig.serializeBinaryToWriter
     );
   }
   f = message.getError();
@@ -647,16 +647,16 @@ proto.glooeeapi.solo.io.ExtAuthPlugin.serializeBinaryToWriter = function(message
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.ExtAuthConfig value = 1;
- * @return {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig}
+ * optional enterprise.gloo.solo.io.ExtAuthConfig value = 1;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig}
  */
 proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.getValue = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig, 1));
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig, 1));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig|undefined} value */
 proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.setValue = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -1728,8 +1728,8 @@ proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.ExtAuthInput.Config.toObject = function(includeInstance, msg) {
   var f, obj = {
-    oauth: (f = msg.getOauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.toObject(includeInstance, f),
-    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.toObject(includeInstance, f)
+    oauth: (f = msg.getOauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.toObject(includeInstance, f),
+    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1767,13 +1767,13 @@ proto.glooeeapi.solo.io.ExtAuthInput.Config.deserializeBinaryFromReader = functi
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.deserializeBinaryFromReader);
       msg.setOauth(value);
       break;
     case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.deserializeBinaryFromReader);
       msg.setCustomAuth(value);
       break;
     default:
@@ -1810,7 +1810,7 @@ proto.glooeeapi.solo.io.ExtAuthInput.Config.serializeBinaryToWriter = function(m
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.serializeBinaryToWriter
     );
   }
   f = message.getCustomAuth();
@@ -1818,23 +1818,23 @@ proto.glooeeapi.solo.io.ExtAuthInput.Config.serializeBinaryToWriter = function(m
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.OAuth oauth = 1;
- * @return {?proto.extauth.plugins.gloo.solo.io.OAuth}
+ * optional enterprise.gloo.solo.io.OAuth oauth = 1;
+ * @return {?proto.enterprise.gloo.solo.io.OAuth}
  */
 proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.getOauth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.OAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth, 1));
+  return /** @type{?proto.enterprise.gloo.solo.io.OAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth, 1));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.OAuth|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.OAuth|undefined} value */
 proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.setOauth = function(value) {
   jspb.Message.setOneofWrapperField(this, 1, proto.glooeeapi.solo.io.ExtAuthInput.Config.oneofGroups_[0], value);
 };
@@ -1855,16 +1855,16 @@ proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.hasOauth = function() {
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 2;
- * @return {?proto.extauth.plugins.gloo.solo.io.CustomAuth}
+ * optional enterprise.gloo.solo.io.CustomAuth custom_auth = 2;
+ * @return {?proto.enterprise.gloo.solo.io.CustomAuth}
  */
 proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.getCustomAuth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.CustomAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth, 2));
+  return /** @type{?proto.enterprise.gloo.solo.io.CustomAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth, 2));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.CustomAuth|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.CustomAuth|undefined} value */
 proto.glooeeapi.solo.io.ExtAuthInput.Config.prototype.setCustomAuth = function(value) {
   jspb.Message.setOneofWrapperField(this, 2, proto.glooeeapi.solo.io.ExtAuthInput.Config.oneofGroups_[0], value);
 };
@@ -2742,8 +2742,8 @@ proto.glooeeapi.solo.io.VirtualServiceInput.toObject = function(includeInstance,
     secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     rateLimitConfig: (f = msg.getRateLimitConfig()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(includeInstance, f),
-    oauth: (f = msg.getOauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.toObject(includeInstance, f),
-    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.toObject(includeInstance, f)
+    oauth: (f = msg.getOauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.toObject(includeInstance, f),
+    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2814,13 +2814,13 @@ proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader = functi
       msg.setBasicAuth(value);
       break;
     case 8:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.deserializeBinaryFromReader);
       msg.setOauth(value);
       break;
     case 9:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.deserializeBinaryFromReader);
       msg.setCustomAuth(value);
       break;
     default:
@@ -2911,7 +2911,7 @@ proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter = function(m
     writer.writeMessage(
       8,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.serializeBinaryToWriter
     );
   }
   f = message.getCustomAuth();
@@ -2919,7 +2919,7 @@ proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter = function(m
     writer.writeMessage(
       9,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.serializeBinaryToWriter
     );
   }
 };
@@ -3290,16 +3290,16 @@ proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasBasicAuth = function() 
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.OAuth oauth = 8;
- * @return {?proto.extauth.plugins.gloo.solo.io.OAuth}
+ * optional enterprise.gloo.solo.io.OAuth oauth = 8;
+ * @return {?proto.enterprise.gloo.solo.io.OAuth}
  */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getOauth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.OAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth, 8));
+  return /** @type{?proto.enterprise.gloo.solo.io.OAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth, 8));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.OAuth|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.OAuth|undefined} value */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setOauth = function(value) {
   jspb.Message.setOneofWrapperField(this, 8, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
 };
@@ -3320,16 +3320,16 @@ proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasOauth = function() {
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
- * @return {?proto.extauth.plugins.gloo.solo.io.CustomAuth}
+ * optional enterprise.gloo.solo.io.CustomAuth custom_auth = 9;
+ * @return {?proto.enterprise.gloo.solo.io.CustomAuth}
  */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getCustomAuth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.CustomAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth, 9));
+  return /** @type{?proto.enterprise.gloo.solo.io.CustomAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth, 9));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.CustomAuth|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.CustomAuth|undefined} value */
 proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setCustomAuth = function(value) {
   jspb.Message.setOneofWrapperField(this, 9, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
 };

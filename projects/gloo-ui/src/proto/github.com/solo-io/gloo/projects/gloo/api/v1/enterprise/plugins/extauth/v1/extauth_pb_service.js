@@ -1,13 +1,13 @@
-// package: extauth.plugins.gloo.solo.io
-// file: github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth.proto
+// package: enterprise.gloo.solo.io
+// file: github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth.proto
 
-var github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb = require("../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb");
-var envoy_api_v2_discovery_pb = require("../../../../../../../../../../envoy/api/v2/discovery_pb");
+var github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb = require("../../../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb");
+var envoy_api_v2_discovery_pb = require("../../../../../../../../../../../envoy/api/v2/discovery_pb");
 var grpc = require("@improbable-eng/grpc-web").grpc;
 
 var ExtAuthDiscoveryService = (function () {
   function ExtAuthDiscoveryService() {}
-  ExtAuthDiscoveryService.serviceName = "extauth.plugins.gloo.solo.io.ExtAuthDiscoveryService";
+  ExtAuthDiscoveryService.serviceName = "enterprise.gloo.solo.io.ExtAuthDiscoveryService";
   return ExtAuthDiscoveryService;
 }());
 

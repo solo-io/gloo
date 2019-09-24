@@ -3,6 +3,9 @@ package extauth_test
 import (
 	"context"
 
+	"github.com/gogo/protobuf/proto"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
@@ -12,7 +15,7 @@ import (
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	extauth2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
@@ -20,14 +23,16 @@ import (
 
 var _ = Describe("ExtauthTranslatorSyncer", func() {
 	var (
-		proxy       *gloov1.Proxy
-		translator  *TranslatorSyncerExtension
-		secret      *gloov1.Secret
+		proxy      *gloov1.Proxy
+		translator *TranslatorSyncerExtension
+		secret     *gloov1.Secret
+		validAuthConfig,
+		customAuthConfig *extauth.AuthConfig
 		apiSnapshot *gloov1.ApiSnapshot
 		snapCache   *mockSetSnapshot
 	)
-	BeforeEach(func() {
-		proxy = getProxy()
+
+	JustBeforeEach(func() {
 		translator = NewTranslatorSyncerExtension()
 		secret = &gloov1.Secret{
 			Metadata: skcore.Metadata{
@@ -40,49 +45,148 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 			},
 		}
 		apiSnapshot = &gloov1.ApiSnapshot{
-			Proxies: []*gloov1.Proxy{proxy},
-			Secrets: []*gloov1.Secret{secret},
+			Proxies:     []*gloov1.Proxy{proxy},
+			Secrets:     []*gloov1.Secret{secret},
+			AuthConfigs: extauth.AuthConfigList{validAuthConfig, customAuthConfig},
 		}
 		snapCache = &mockSetSnapshot{}
 	})
 
 	translate := func() envoycache.Snapshot {
-		translator.SyncAndSet(context.Background(), apiSnapshot, snapCache)
+		err := translator.SyncAndSet(context.Background(), apiSnapshot, snapCache)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(snapCache.Snapshots).To(HaveKey("extauth"))
 		return snapCache.Snapshots["extauth"]
 	}
 
-	It("should work with one listener", func() {
-		snap := translate()
-		res := snap.GetResources(extauth.ExtAuthConfigType)
-		Expect(res.Items).To(HaveLen(1))
-	})
-
-	It("should work with two listeners", func() {
-		proxy.Listeners = append(proxy.Listeners, &gloov1.Listener{
-			Name: "listener-::-8080",
-			ListenerType: &gloov1.Listener_HttpListener{
-				HttpListener: &gloov1.HttpListener{
-					VirtualHosts: []*gloov1.VirtualHost{{
-						Name: "gloo-system.default",
-					}},
-				},
-			},
+	// TODO(marco): just remove this whole block when removing deprecated API
+	Context("deprecated config format", func() {
+		BeforeEach(func() {
+			proxy = getProxy(true, skcore.ResourceRef{})
 		})
 
-		snap := translate()
-		res := snap.GetResources(extauth.ExtAuthConfigType)
-		Expect(res.Items).To(HaveLen(1))
+		It("should work with one listener", func() {
+			snap := translate()
+			res := snap.GetResources(extauth.ExtAuthConfigType)
+			Expect(res.Items).To(HaveLen(1))
+		})
+
+		It("should work with two listeners", func() {
+			proxy.Listeners = append(proxy.Listeners, &gloov1.Listener{
+				Name: "listener-::-8080",
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: []*gloov1.VirtualHost{{
+							Name: "gloo-system.default",
+						}},
+					},
+				},
+			})
+
+			snap := translate()
+			res := snap.GetResources(extauth.ExtAuthConfigType)
+			Expect(res.Items).To(HaveLen(1))
+		})
+
+		It("generates a single snapshot resource if two listeners use the same auth config", func() {
+			newListener := *proxy.Listeners[0]
+			newListener.Name = "listener2"
+			proxy.Listeners = append(proxy.Listeners, &newListener)
+
+			snap := translate()
+			res := snap.GetResources(extauth.ExtAuthConfigType)
+			Expect(res.Items).To(HaveLen(1))
+		})
 	})
 
-	It("should work with two listeners with auth config", func() {
-		newListener := *proxy.Listeners[0]
-		newListener.Name = "listener2"
-		proxy.Listeners = append(proxy.Listeners, &newListener)
+	Context("new config format", func() {
 
-		snap := translate()
-		res := snap.GetResources(extauth.ExtAuthConfigType)
-		Expect(res.Items).To(HaveLen(2))
+		BeforeEach(func() {
+			validAuthConfig = &extauth.AuthConfig{
+				Metadata: skcore.Metadata{
+					Name:      "auth",
+					Namespace: defaults.GlooSystem,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Oauth{
+						Oauth: &extauth.OAuth{
+							AppUrl:       "https://blah.example.com",
+							CallbackPath: "/CallbackPath",
+							ClientId:     "oidc.ClientId",
+							ClientSecretRef: &skcore.ResourceRef{
+								Name:      "secret",
+								Namespace: "gloo-system",
+							},
+							IssuerUrl: "https://issuer.example.com",
+						},
+					},
+				}},
+			}
+
+			customAuthConfig = &extauth.AuthConfig{
+				Metadata: skcore.Metadata{
+					Name:      "custom-auth",
+					Namespace: defaults.GlooSystem,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_CustomAuth{CustomAuth: &extauth.CustomAuth{}},
+				}},
+			}
+
+		})
+
+		Context("config that needs to be translated (non-custom)", func() {
+
+			BeforeEach(func() {
+				proxy = getProxy(false, validAuthConfig.Metadata.Ref())
+			})
+
+			It("should work with one listener", func() {
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+
+			It("should work with two listeners", func() {
+				proxy.Listeners = append(proxy.Listeners, &gloov1.Listener{
+					Name: "listener-::-8080",
+					ListenerType: &gloov1.Listener_HttpListener{
+						HttpListener: &gloov1.HttpListener{
+							VirtualHosts: []*gloov1.VirtualHost{{
+								Name: "gloo-system.default",
+							}},
+						},
+					},
+				})
+
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+
+			It("generates a single snapshot resource if two listeners use the same auth config", func() {
+				newListener := *proxy.Listeners[0]
+				newListener.Name = "listener2"
+				proxy.Listeners = append(proxy.Listeners, &newListener)
+
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+		})
+
+		Context("config that needs to be translated (non-custom)", func() {
+
+			BeforeEach(func() {
+				proxy = getProxy(false, customAuthConfig.Metadata.Ref())
+			})
+
+			It("should work with one listener", func() {
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(0))
+			})
+		})
 	})
 
 })
@@ -99,22 +203,31 @@ func oidcSecret() *gloov1.Extension {
 	}
 }
 
-func getProxy() *gloov1.Proxy {
-
-	vhostAuth := &extauth.VhostExtension{
-		AuthConfig: &extauth.VhostExtension_Oauth{
-			Oauth: &extauth.OAuth{
-				AppUrl:       "https://blah.example.com",
-				CallbackPath: "/CallbackPath",
-				ClientId:     "oidc.ClientId",
-				ClientSecretRef: &skcore.ResourceRef{
-					Name:      "secret",
-					Namespace: "gloo-system",
+func getProxy(useDeprecatedVersion bool, authConfigRef skcore.ResourceRef) *gloov1.Proxy {
+	var vhostAuth proto.Message
+	if useDeprecatedVersion {
+		vhostAuth = &extauth.VhostExtension{
+			AuthConfig: &extauth.VhostExtension_Oauth{
+				Oauth: &extauth.OAuth{
+					AppUrl:       "https://blah.example.com",
+					CallbackPath: "/CallbackPath",
+					ClientId:     "oidc.ClientId",
+					ClientSecretRef: &skcore.ResourceRef{
+						Name:      "secret",
+						Namespace: "gloo-system",
+					},
+					IssuerUrl: "https://issuer.example.com",
 				},
-				IssuerUrl: "https://issuer.example.com",
 			},
-		},
+		}
+	} else {
+		vhostAuth = &extauth.ExtAuthExtension{
+			Spec: &extauth.ExtAuthExtension_ConfigRef{
+				ConfigRef: &authConfigRef,
+			},
+		}
 	}
+
 	vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
 	Expect(err).NotTo(HaveOccurred())
 	return &gloov1.Proxy{

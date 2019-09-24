@@ -554,6 +554,11 @@ export class GlooOptions extends jspb.Message {
   getCircuitBreakers(): github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig | undefined;
   setCircuitBreakers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig): void;
 
+  hasEndpointsWarmingTimeout(): boolean;
+  clearEndpointsWarmingTimeout(): void;
+  getEndpointsWarmingTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setEndpointsWarmingTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -569,12 +574,16 @@ export namespace GlooOptions {
     xdsBindAddr: string,
     validationBindAddr: string,
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
+    endpointsWarmingTimeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 
 export class GatewayOptions extends jspb.Message {
   getValidationServerAddr(): string;
   setValidationServerAddr(value: string): void;
+
+  getDisableAutoGenGateways(): boolean;
+  setDisableAutoGenGateways(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
@@ -589,6 +598,7 @@ export class GatewayOptions extends jspb.Message {
 export namespace GatewayOptions {
   export type AsObject = {
     validationServerAddr: string,
+    disableAutoGenGateways: boolean,
   }
 }
 

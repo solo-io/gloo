@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 
 	//TODO: (Graham) handle plugins correclty once the reorg happens "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
@@ -264,8 +264,8 @@ func (*mutationFactory) ShiftRoutes(fromIndex, toIndex uint32) Mutation {
 
 func getOauthVhostExtensionStruct(oauth *extauthapi.OAuth) (*types.Struct, error) {
 	return util.MessageToStruct(&extauthapi.VhostExtension{
-		Configs: []*extauthapi.AuthConfig{{
-			AuthConfig: &extauthapi.AuthConfig_Oauth{
+		Configs: []*extauthapi.VhostExtension_AuthConfig{{
+			AuthConfig: &extauthapi.VhostExtension_AuthConfig_Oauth{
 				Oauth: oauth,
 			},
 		}},
@@ -274,8 +274,8 @@ func getOauthVhostExtensionStruct(oauth *extauthapi.OAuth) (*types.Struct, error
 
 func getCustomAuthVhostExtensionStruct(customAuth *extauthapi.CustomAuth) (*types.Struct, error) {
 	return util.MessageToStruct(&extauthapi.VhostExtension{
-		Configs: []*extauthapi.AuthConfig{{
-			AuthConfig: &extauthapi.AuthConfig_CustomAuth{
+		Configs: []*extauthapi.VhostExtension_AuthConfig{{
+			AuthConfig: &extauthapi.VhostExtension_AuthConfig_CustomAuth{
 				CustomAuth: customAuth,
 			},
 		}},

@@ -292,7 +292,7 @@
   revision = "6480d4af844c189cf5dd913db24ddd339d3a4f85"
 
 [[projects]]
-  digest = "1:780e9d4064991400e1a9a47a34ed7bac76b2227c81076db8989aae5a53abf79a"
+  digest = "1:1d7115c64401fe0fb67536e135b029f9ac2845f6afd56df29f1f38789ef19446"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -309,6 +309,7 @@
     "envoy/config/filter/fault/v2",
     "envoy/config/filter/http/ext_authz/v2",
     "envoy/config/filter/http/fault/v2",
+    "envoy/config/filter/http/health_check/v2",
     "envoy/config/filter/http/jwt_authn/v2alpha",
     "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/http/rbac/v2",
@@ -1138,7 +1139,7 @@
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:28ec8420931441ba18ea81668a7c7b52212e00a656a268dd9fa8adaa710bb12e"
+  digest = "1:b5152532915a65c7a56f27315b3b1eecb9daaf48fa69e822e36bed28a9b73498"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -1159,8 +1160,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
-  version = "v1.4.3"
+  revision = "bdebf9e0ece900259084cfa4121b97ce1a540939"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:9a70e87aec9406507749e4b933f55b66d8e4e7dd42c0a6b5274148d941773c05"
@@ -1360,7 +1361,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:1943ab9e04af3a40584cf6f63dad2ca4a075076409a13c57f4468b405b945f2a"
+  digest = "1:bea864687353d6bb2ea518d35460ab0d367f5acfe319c9e439fdd59246ec23a2"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
@@ -1374,11 +1375,11 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "c4f5971e24fa8fb0ed1a30eeacecc93bae275fe5"
-  version = "v0.5.1"
+  revision = "5578bc72f6b7dce5cccd3f6a843d7dec71e91ad0"
+  version = "v0.6.0"
 
 [[projects]]
-  digest = "1:5d79956713b4f50c2fe48e4e5e7ae08bef1844beddf2f609a8e9d016ed15baff"
+  digest = "1:921ed8194fa70851e7b6f30e208a3e0d5ca890518abb17374d318fd8c2abd702"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1388,6 +1389,7 @@
     "pkg/cliutil/testutil",
     "pkg/listers",
     "pkg/utils",
+    "pkg/utils/channelutils",
     "pkg/utils/selectionutils",
     "pkg/utils/settingsutil",
     "pkg/utils/setuputils",
@@ -1408,6 +1410,7 @@
     "projects/gateway/pkg/syncer",
     "projects/gateway/pkg/translator",
     "projects/gateway/pkg/utils",
+    "projects/gateway/pkg/validation",
     "projects/gloo/cli/pkg/argsutils",
     "projects/gloo/cli/pkg/cmd",
     "projects/gloo/cli/pkg/cmd/add",
@@ -1453,7 +1456,7 @@
     "projects/gloo/pkg/api/grpc/version",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/enterprise",
-    "projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
+    "projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1",
     "projects/gloo/pkg/api/v1/enterprise/plugins/jwt",
     "projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit",
     "projects/gloo/pkg/api/v1/enterprise/plugins/rbac",
@@ -1470,6 +1473,7 @@
     "projects/gloo/pkg/api/v1/plugins/grpc_web",
     "projects/gloo/pkg/api/v1/plugins/hcm",
     "projects/gloo/pkg/api/v1/plugins/headers",
+    "projects/gloo/pkg/api/v1/plugins/healthcheck",
     "projects/gloo/pkg/api/v1/plugins/hostrewrite",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
     "projects/gloo/pkg/api/v1/plugins/lbhash",
@@ -1498,6 +1502,7 @@
     "projects/gloo/pkg/plugins/grpc",
     "projects/gloo/pkg/plugins/hcm",
     "projects/gloo/pkg/plugins/headers",
+    "projects/gloo/pkg/plugins/healthcheck",
     "projects/gloo/pkg/plugins/internal/common",
     "projects/gloo/pkg/plugins/kubernetes",
     "projects/gloo/pkg/plugins/linkerd",
@@ -1529,8 +1534,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "4573e6b4d5e93e6f45699618502adb50952a6080"
-  version = "v0.18.44"
+  revision = "1539067a393f53a0b793106aaa4676f8ff87df99"
+  version = "v0.19.1"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1541,7 +1546,7 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:e3868d3593bb3d7daf252253a345f0aaff2f2863fd305c907923ec8c8ebfe19e"
+  digest = "1:582984e0f33cffad46bb5acefb79e9b6f75e104acd8e0d6c72638633aac95250"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1573,12 +1578,14 @@
     "testutils/helper",
     "testutils/kube",
     "versionutils",
+    "versionutils/dep",
+    "versionutils/git",
     "versionutils/kubeapi",
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "ea8f7110ced14c1a771d245efed2925f0a6b99cc"
-  version = "v0.10.6"
+  revision = "5dc802895644ff6f736b11a64e54a06f3ba1dd5e"
+  version = "v0.10.8"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -2737,7 +2744,6 @@
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/gstruct",
-    "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
@@ -2799,7 +2805,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise",
-    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac",
@@ -2841,6 +2847,8 @@
     "github.com/solo-io/go-utils/testutils/clusterlock",
     "github.com/solo-io/go-utils/testutils/helper",
     "github.com/solo-io/go-utils/versionutils",
+    "github.com/solo-io/go-utils/versionutils/dep",
+    "github.com/solo-io/go-utils/versionutils/git",
     "github.com/solo-io/licensing/pkg/defaults",
     "github.com/solo-io/licensing/pkg/keys",
     "github.com/solo-io/rate-limiter/cmd/service/runner",

@@ -14,7 +14,7 @@ import (
 func main() {
 	err := version.CheckVersions()
 	if err != nil {
-		log.Fatalf("generate failed!: %v", err)
+		log.Fatalf("generate failed!: %s", err.Error())
 	}
 	log.Printf("Starting generate...")
 

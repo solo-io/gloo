@@ -314,7 +314,7 @@ func (ei *EnvoyInstance) runContainer() error {
 		"--config-yaml", ei.envoycfg,
 	}
 
-	fmt.Fprintln(ginkgo.GinkgoWriter, args)
+	_, _ = fmt.Fprintln(ginkgo.GinkgoWriter, args)
 	cmd := exec.Command("docker", args...)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter

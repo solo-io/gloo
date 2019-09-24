@@ -79,8 +79,17 @@ var _ = BeforeSuite(func() {
 	// Install Gloo
 	values, err = ioutil.TempFile("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
-	values.Write([]byte("gloo:\n  rbac:\n    namespaced: true\n  settings:\n    singleNamespace: true\n    create: true\n"))
-	values.Close()
+	_, err = values.Write([]byte(`
+gloo:
+  rbac:    
+    namespaced: true
+  settings:
+    singleNamespace: true
+    create: true
+`))
+	Expect(err).NotTo(HaveOccurred())
+	err = values.Close()
+	Expect(err).NotTo(HaveOccurred())
 
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values.Name()))
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
@@ -93,7 +102,7 @@ var _ = AfterSuite(func() {
 
 	// glooctl should delete the namespace. we do it again just in case it failed
 	// ignore errors
-	testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
+	_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
 
 	EventuallyWithOffset(1, func() error {
 		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)

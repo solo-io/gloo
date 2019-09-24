@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
@@ -82,8 +82,8 @@ var _ = Describe("MutationFactory", func() {
 
 		getVHostExtensionStruct := func() *types.Struct {
 			vHostExtension := &extauth2.VhostExtension{
-				Configs: []*extauth2.AuthConfig{{
-					AuthConfig: &extauth2.AuthConfig_Oauth{
+				Configs: []*extauth2.VhostExtension_AuthConfig{{
+					AuthConfig: &extauth2.VhostExtension_AuthConfig_Oauth{
 						Oauth: getOAuth(),
 					},
 				}},

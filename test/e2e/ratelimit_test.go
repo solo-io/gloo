@@ -35,7 +35,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/test/services"
@@ -233,7 +233,7 @@ var _ = Describe("Rate Limit", func() {
 					}
 					proxy := rlb.getProxy()
 					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
-					vhost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = toStruct(GetBasicAuthExtension())
+					vhost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = toStruct(GetDeprecatedBasicAuthExtension())
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 

@@ -7,7 +7,7 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit.proto";
 import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
@@ -25,7 +25,7 @@ message Plugins {
 }
 
 message ExtAuthPlugin {
-    extauth.plugins.gloo.solo.io.ExtAuthConfig value = 1;
+    enterprise.gloo.solo.io.ExtAuthConfig value = 1;
     string error = 2;
 }
 
@@ -53,8 +53,8 @@ message IngressRateLimitValue {
 message ExtAuthInput {
     message Config {
         oneof value {
-            extauth.plugins.gloo.solo.io.OAuth oauth = 1;
-            extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 2;
+            enterprise.gloo.solo.io.OAuth oauth = 1;
+            enterprise.gloo.solo.io.CustomAuth custom_auth = 2;
         }
     }
 
@@ -98,8 +98,8 @@ message VirtualServiceInput {
 
     oneof ext_auth_config {
         BasicAuthInput basic_auth = 7;
-        extauth.plugins.gloo.solo.io.OAuth oauth = 8;
-        extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
+        enterprise.gloo.solo.io.OAuth oauth = 8;
+        enterprise.gloo.solo.io.CustomAuth custom_auth = 9;
     }
 }
 

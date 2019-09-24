@@ -5,7 +5,7 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb from "../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/extauth_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
@@ -76,8 +76,8 @@ export namespace Plugins {
 export class ExtAuthPlugin extends jspb.Message {
   hasValue(): boolean;
   clearValue(): void;
-  getValue(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig | undefined;
-  setValue(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig): void;
+  getValue(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig | undefined;
+  setValue(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig): void;
 
   getError(): string;
   setError(value: string): void;
@@ -94,7 +94,7 @@ export class ExtAuthPlugin extends jspb.Message {
 
 export namespace ExtAuthPlugin {
   export type AsObject = {
-    value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.ExtAuthConfig.AsObject,
+    value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthConfig.AsObject,
     error: string,
   }
 }
@@ -237,13 +237,13 @@ export namespace ExtAuthInput {
   export class Config extends jspb.Message {
     hasOauth(): boolean;
     clearOauth(): void;
-    getOauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth | undefined;
-    setOauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth): void;
+    getOauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth | undefined;
+    setOauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth): void;
 
     hasCustomAuth(): boolean;
     clearCustomAuth(): void;
-    getCustomAuth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth | undefined;
-    setCustomAuth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth): void;
+    getCustomAuth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth | undefined;
+    setCustomAuth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth): void;
 
     getValueCase(): Config.ValueCase;
     serializeBinary(): Uint8Array;
@@ -258,8 +258,8 @@ export namespace ExtAuthInput {
 
   export namespace Config {
     export type AsObject = {
-      oauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.AsObject,
-      customAuth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.AsObject,
+      oauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.AsObject,
+      customAuth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.AsObject,
     }
 
     export enum ValueCase {
@@ -406,13 +406,13 @@ export class VirtualServiceInput extends jspb.Message {
 
   hasOauth(): boolean;
   clearOauth(): void;
-  getOauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth | undefined;
-  setOauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth): void;
+  getOauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth | undefined;
+  setOauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth): void;
 
   hasCustomAuth(): boolean;
   clearCustomAuth(): void;
-  getCustomAuth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth | undefined;
-  setCustomAuth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth): void;
+  getCustomAuth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth | undefined;
+  setCustomAuth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth): void;
 
   getExtAuthConfigCase(): VirtualServiceInput.ExtAuthConfigCase;
   serializeBinary(): Uint8Array;
@@ -434,8 +434,8 @@ export namespace VirtualServiceInput {
     secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     rateLimitConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     basicAuth?: VirtualServiceInput.BasicAuthInput.AsObject,
-    oauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.OAuth.AsObject,
-    customAuth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_extauth_pb.CustomAuth.AsObject,
+    oauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.OAuth.AsObject,
+    customAuth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.CustomAuth.AsObject,
   }
 
   export class BasicAuthInput extends jspb.Message {
