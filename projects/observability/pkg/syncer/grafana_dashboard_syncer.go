@@ -35,7 +35,7 @@ const (
 	dynamicTag = "dynamic"
 )
 
-var TAGS = []string{glooTag, dynamicTag}
+var tags = []string{glooTag, dynamicTag}
 
 type GrafanaDashboardsSyncer struct {
 	synced                bool
@@ -231,7 +231,7 @@ func (s *GrafanaDashboardsSyncer) getCurrentGrafanaState() (*grafanaState, error
 		return gs, fmt.Errorf("unable to get list of current snapshots to compare against, skipping generation: %s", err)
 	}
 	gs.snapshots = snapshots
-	boards, err := s.dashboardClient.SearchDashboards("", false, TAGS...)
+	boards, err := s.dashboardClient.SearchDashboards("", false, tags...)
 	if err != nil {
 		return gs, err
 	}
