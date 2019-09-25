@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Make sure that all observability-related pods get cleaned up by glooctl uninstall
+    issueLink: https://github.com/solo-io/solo-projects/issues/1157

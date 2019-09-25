@@ -199,13 +199,18 @@ global:
 prometheus:
   # setting to false will disable prometheus, removing it from gloo's chart dependencies
   enabled: true
+  # setting these name overrides ensures that the pods get deleted when `glooctl uninstall` is run
+  nameOverride: glooe-prometheus
   pushgateway:
     enabled: false
   alertmanager:
     enabled: false
   nodeExporter:
     enabled: false
+  kubeStateMetrics:
+    fullnameOverride: glooe-prometheus-kube-state-metrics
   server:
+    fullnameOverride: glooe-prometheus-server
     persistentVolume:
       size: 16Gi
     global:
@@ -228,6 +233,9 @@ grafana:
     size: 100Mi
   rbac:
     pspUseAppArmor: false
+  # setting these name overrides ensures that the pods get deleted when `glooctl uninstall` is run
+  nameOverride: glooe-grafana
+  fullnameOverride: glooe-grafana
   datasources:
     datasources.yaml:
       # config file version

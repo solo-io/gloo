@@ -84,7 +84,7 @@ var _ = Describe("Install", func() {
 				val, ok := actualLabels[k]
 				ExpectWithOffset(1, ok).To(BeTrue())
 				// Currently all the observability stuff has custom app labels
-				if val == "grafana" || val == "prometheus" || val == "gloo-ee" {
+				if val == "glooe-grafana" || val == "glooe-prometheus" || val == "gloo-ee" {
 					continue
 				}
 				ExpectWithOffset(1, v).To(BeEquivalentTo(val))
