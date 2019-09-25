@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support strongly-typed waf config directly on listener/vhost/route
+    issueLink: https://github.com/solo-io/gloo/issues/1171
+    resolvesIssue: false

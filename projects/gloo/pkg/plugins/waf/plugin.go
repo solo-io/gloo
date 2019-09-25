@@ -2,7 +2,6 @@ package waf
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/gogo/protobuf/proto"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
@@ -65,9 +64,15 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 // Process virtual host plugin
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var wafConfig waf.VhostSettings
+	wafVhost := in.VirtualHostPlugins.GetWaf()
+	// TODO(kdorosh) remove once we stop supporting opaque config
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &wafConfig)
-	if err != nil {
+	if err != nil && wafVhost == nil {
 		return ConvertingProtoError(err, "virtual host")
+	}
+
+	if wafVhost != nil {
+		wafConfig = *wafVhost
 	}
 
 	// should never be nil
@@ -92,9 +97,15 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 // Process route plugin
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var wafConfig waf.RouteSettings
+	wafRoute := in.RoutePlugins.GetWaf()
+	// TODO(kdorosh) remove once we stop supporting opaque config
 	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &wafConfig)
-	if err != nil {
+	if err != nil && wafRoute == nil {
 		return ConvertingProtoError(err, "route")
+	}
+
+	if wafRoute != nil {
+		wafConfig = *wafRoute
 	}
 
 	p.addListener(params.Listener.GetHttpListener())
@@ -125,12 +136,18 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 
 	var settings waf.Settings
+	wafSettings := listener.ListenerPlugins.GetWaf()
+	// TODO(kdorosh) remove once we stop supporting opaque config
 	err := utils.UnmarshalExtension(listener.GetListenerPlugins(), ExtensionName, &settings)
 	if err != nil {
 		// important to check this because, on any other error this method should keep executing
 		if err != utils.NotFoundError {
 			return nil, ConvertingProtoError(err, "listener")
 		}
+	}
+
+	if wafSettings != nil {
+		settings = *wafSettings
 	}
 
 	modSecurityConfig := &ModSecurity{}
@@ -146,9 +163,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		}
 	}
 
-	var cfg proto.Message = modSecurityConfig
-
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, cfg, filterStage)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, modSecurityConfig, filterStage)
 	if err != nil {
 		return nil, err
 	}

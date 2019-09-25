@@ -2,4 +2,3 @@ changelog:
 - type: FIX
   description: Fix core rule set bug where specific config is applied after general config
   issueLink: https://github.com/solo-io/solo-projects/issues/1139
-
