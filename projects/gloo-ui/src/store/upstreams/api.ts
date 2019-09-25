@@ -1,36 +1,36 @@
-import {
-  ListUpstreamsRequest,
-  ListUpstreamsResponse,
-  GetUpstreamRequest,
-  CreateUpstreamRequest,
-  UpdateUpstreamRequest,
-  DeleteUpstreamRequest,
-  GetUpstreamResponse,
-  CreateUpstreamResponse,
-  UpdateUpstreamResponse,
-  DeleteUpstreamResponse,
-  UpstreamInput
-} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
-import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';
 import { AwsValuesType } from 'Components/Features/Upstream/Creation/AwsUpstreamForm';
-import { KubeValuesType } from 'Components/Features/Upstream/Creation/KubeUpstreamForm';
-import { StaticValuesType } from 'Components/Features/Upstream/Creation/StaticUpstreamForm';
 import { AzureValuesType } from 'Components/Features/Upstream/Creation/AzureUpstreamForm';
 import { ConsulVauesType } from 'Components/Features/Upstream/Creation/ConsulUpstreamForm';
+import { KubeValuesType } from 'Components/Features/Upstream/Creation/KubeUpstreamForm';
+import { StaticValuesType } from 'Components/Features/Upstream/Creation/StaticUpstreamForm';
+import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
 import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
 import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb';
 import {
-  UpstreamSpec as StaticUpstreamSpec,
-  Host
+  Host,
+  UpstreamSpec as StaticUpstreamSpec
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
+import { host } from 'store';
 import { guardByLicense } from 'store/config/actions';
+import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';
+import {
+  CreateUpstreamRequest,
+  CreateUpstreamResponse,
+  DeleteUpstreamRequest,
+  DeleteUpstreamResponse,
+  GetUpstreamRequest,
+  GetUpstreamResponse,
+  ListUpstreamsRequest,
+  ListUpstreamsResponse,
+  UpdateUpstreamRequest,
+  UpdateUpstreamResponse,
+  UpstreamInput
+} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 export const client = new UpstreamApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -39,17 +39,14 @@ export const client = new UpstreamApiClient(host, {
 
 export interface UpstreamSpecificValues
   extends AwsValuesType,
-  KubeValuesType,
-  StaticValuesType,
-  AzureValuesType,
-  ConsulVauesType { }
+    KubeValuesType,
+    StaticValuesType,
+    AzureValuesType,
+    ConsulVauesType {}
 
-function getUpstreamsList(
-  listUpstreamsRequest: ListUpstreamsRequest.AsObject
-): Promise<ListUpstreamsResponse.AsObject> {
+function getUpstreamsList(): Promise<ListUpstreamsResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let req = new ListUpstreamsRequest();
-    req.setNamespacesList(listUpstreamsRequest.namespacesList);
 
     client.listUpstreams(req, (error, data) => {
       if (error !== null) {
@@ -99,7 +96,7 @@ function createUpstream(params: {
     let upstreamInput = getUpstreamInput({ name, namespace, type, values });
     req.setInput(upstreamInput);
 
-    guardByLicense()
+    guardByLicense();
     client.createUpstream(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -184,7 +181,7 @@ function updateUpstream(params: {
   let updateReq = new UpdateUpstreamRequest();
   updateReq.setInput(getUpstreamInput({ name, namespace, type, values }));
   return new Promise((resolve, reject) => {
-    guardByLicense()
+    guardByLicense();
     client.updateUpstream(updateReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -207,7 +204,7 @@ function deleteUpstream(
     ref.setName(deleteUpstreamRequest.ref!.name);
     ref.setNamespace(deleteUpstreamRequest.ref!.namespace);
     request.setRef(ref);
-    guardByLicense()
+    guardByLicense();
     client.deleteUpstream(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -291,7 +288,7 @@ export function getCreateUpstream(
       usInput.setConsul(consulSpec);
     }
     request.setInput(usInput);
-    guardByLicense()
+    guardByLicense();
     client.createUpstream(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);

@@ -1,25 +1,23 @@
+import { grpc } from '@improbable-eng/grpc-web';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 import {
-  GetVersionRequest,
-  GetVersionResponse,
-  GetOAuthEndpointRequest,
-  GetOAuthEndpointResponse,
-  GetSettingsRequest,
-  GetSettingsResponse,
-  GetPodNamespaceRequest,
-  GetPodNamespaceResponse,
-  ListNamespacesRequest,
-  ListNamespacesResponse,
   GetIsLicenseValidRequest,
   GetIsLicenseValidResponse,
+  GetOAuthEndpointRequest,
+  GetOAuthEndpointResponse,
+  GetPodNamespaceRequest,
+  GetPodNamespaceResponse,
+  GetSettingsRequest,
+  GetSettingsResponse,
+  GetVersionRequest,
+  GetVersionResponse,
+  ListNamespacesRequest,
+  ListNamespacesResponse,
   UpdateSettingsRequest,
   UpdateSettingsResponse
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { ConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
-import { grpc } from '@improbable-eng/grpc-web';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
-import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

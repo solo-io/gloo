@@ -58,8 +58,7 @@ export const SettingsLanding = (props: Props) => {
   // Redux
   const dispatch = useDispatch();
   const {
-    secrets: { secretsList },
-    config: { namespacesList }
+    secrets: { secretsList }
   } = useSelector((state: AppState) => state);
   const [isLoading, setIsLoading] = React.useState(false);
   const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
@@ -69,7 +68,7 @@ export const SettingsLanding = (props: Props) => {
       setIsLoading(false);
       setAllSecrets(secretsList);
     } else {
-      dispatch(listSecrets({ namespacesList }));
+      dispatch(listSecrets());
       setIsLoading(true);
     }
     return () => {

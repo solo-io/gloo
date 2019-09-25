@@ -1,39 +1,11 @@
-import {
-  ListProxiesRequest,
-  ListProxiesResponse
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { Dispatch } from 'redux';
-import { client } from 'Api/v2/ProxyClient';
+import { proxys } from './api';
 import { ListProxiesAction, ProxyAction } from './types';
-import { Modal } from 'antd';
-const { warning } = Modal;
 
-export function getListProxies(
-  listProxiesRequest: ListProxiesRequest.AsObject
-): Promise<ListProxiesResponse.AsObject> {
-  return new Promise((resolve, reject) => {
-    let request = new ListProxiesRequest();
-    request.setNamespacesList(listProxiesRequest.namespacesList);
-    client.listProxies(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
-        // TODO: normalize
-        resolve(data!.toObject());
-      }
-    });
-  });
-}
-
-export const listProxies = (
-  listProxiesRequest: ListProxiesRequest.AsObject
-) => {
+export const listProxies = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await getListProxies(listProxiesRequest);
+      const response = await proxys.getListProxies();
       dispatch<ListProxiesAction>({
         type: ProxyAction.LIST_PROXIES,
         payload: response.proxyDetailsList

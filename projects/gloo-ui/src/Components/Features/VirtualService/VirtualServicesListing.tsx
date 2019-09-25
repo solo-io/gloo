@@ -185,14 +185,12 @@ export const VirtualServicesListing = (props: Props) => {
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
   );
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList
-  );
+
   React.useEffect(() => {
     if (virtualServicesList.length) {
       setIsLoading(false);
     } else {
-      dispatch(listVirtualServices({ namespacesList }));
+      dispatch(listVirtualServices());
     }
   }, [virtualServicesList.length]);
 

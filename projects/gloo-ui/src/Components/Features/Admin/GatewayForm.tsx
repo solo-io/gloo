@@ -11,18 +11,15 @@ import { Formik, FormikErrors } from 'formik';
 import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
 import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
 import {
-  Raw,
-  EditedResourceYaml
+  EditedResourceYaml,
+  Raw
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import React from 'react';
-import { colors, soloConstants } from 'Styles';
-import * as yup from 'yup';
-import { UpdateGatewayYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import { getResourceRef } from 'Api/v2/helpers';
-import _ from 'lodash/fp';
-import { updateGatewayYaml } from 'store/gateway/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';
+import { updateGatewayYaml } from 'store/gateway/actions';
+import { colors, soloConstants } from 'Styles';
+import * as yup from 'yup';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};

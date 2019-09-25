@@ -19,7 +19,6 @@ import {
   TlsSecret,
   AzureSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { getResourceRef } from './helpers';
 import { guardByLicense } from 'store/config/actions';
 
 const client = new SecretApiClient(host, {
@@ -27,12 +26,9 @@ const client = new SecretApiClient(host, {
   debug: true
 });
 
-function getSecretsList(
-  listSecretsRequest: ListSecretsRequest.AsObject
-): Promise<ListSecretsResponse.AsObject> {
+function getSecretsList(): Promise<ListSecretsResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let req = new ListSecretsRequest();
-    req.setNamespacesList(listSecretsRequest.namespacesList);
     client.listSecrets(req, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -93,7 +89,7 @@ function setSecretRequest(params: {
 }
 
 // TODO: Support other secrets
-export function getCreateSecret(
+function getCreateSecret(
   createSecretRequest: CreateSecretRequest.AsObject
 ): Promise<CreateSecretResponse.AsObject> {
   return new Promise((resolve, reject) => {
@@ -120,7 +116,7 @@ export function getCreateSecret(
       request.setTls(tlsSecret);
     }
 
-    guardByLicense()
+    guardByLicense();
     client.createSecret(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -142,9 +138,12 @@ function createSecret(params: {
 }) {
   const { name, namespace, values, secretKind } = params;
   let newSecretReq = setSecretRequest({ secretKind, values });
-  newSecretReq.setRef(getResourceRef(name, namespace));
+  let newSecretRef = new ResourceRef();
+  newSecretRef.setName(name);
+  newSecretRef.setNamespace(namespace);
+  newSecretReq.setRef(newSecretRef);
   return new Promise((resolve, reject) => {
-    guardByLicense()
+    guardByLicense();
     client.createSecret(newSecretReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -163,11 +162,14 @@ function deleteSecret(
 ): Promise<DeleteSecretResponse.AsObject> {
   const { name, namespace } = deleteSecretRequest.ref!;
   let deleteSecretReq = new DeleteSecretRequest();
-  let ref = getResourceRef(name, namespace);
+
+  let ref = new ResourceRef();
+  ref.setName(name);
+  ref.setNamespace(namespace);
 
   deleteSecretReq.setRef(ref);
   return new Promise((resolve, reject) => {
-    guardByLicense()
+    guardByLicense();
     client.deleteSecret(deleteSecretReq, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -184,5 +186,6 @@ export const secrets = {
   getSecretsList,
   getSecret,
   createSecret,
-  deleteSecret
+  deleteSecret,
+  getCreateSecret
 };

@@ -35,7 +35,6 @@ const AppContainer = styled.div`
 const App = () => {
   const dispatch = useDispatch();
 
-  // TODO: make a generalized action in reducer
   React.useEffect(() => {
     dispatch(listNamespaces());
     dispatch(getSettings());
@@ -43,36 +42,27 @@ const App = () => {
     dispatch(getIsLicenseValid());
     dispatch(getVersion());
     dispatch(listEnvoyDetails());
+    dispatch(listUpstreams());
+    dispatch(listVirtualServices());
+    dispatch(listSecrets());
+    dispatch(listGateways());
+    dispatch(listProxies());
   }, []);
 
-  const { namespacesList } = useSelector((store: AppState) => store.config);
+  useInterval(() => {
+    dispatch(listUpstreams());
+    dispatch(listVirtualServices());
+    dispatch(listSecrets());
+    dispatch(listGateways());
+    dispatch(listProxies());
+    dispatch(listNamespaces());
+    dispatch(getSettings());
+    dispatch(getPodNamespace());
+    dispatch(getIsLicenseValid());
+    dispatch(getVersion());
+    dispatch(listEnvoyDetails());
+  }, 3000);
 
-  React.useEffect(() => {
-    dispatch(listUpstreams({ namespacesList }));
-    dispatch(listVirtualServices({ namespacesList }));
-    dispatch(listSecrets({ namespacesList }));
-    dispatch(listGateways({ namespacesList }));
-    dispatch(listProxies({ namespacesList }));
-  }, [namespacesList.length]);
-
-  useInterval(
-    () => {
-      if (namespacesList) {
-        dispatch(listUpstreams({ namespacesList }));
-        dispatch(listVirtualServices({ namespacesList }));
-        dispatch(listSecrets({ namespacesList }));
-        dispatch(listGateways({ namespacesList }));
-        dispatch(listProxies({ namespacesList }));
-        dispatch(listNamespaces());
-        dispatch(getSettings());
-        dispatch(getPodNamespace());
-        dispatch(getIsLicenseValid());
-        dispatch(getVersion());
-        dispatch(listEnvoyDetails());
-      }
-    },
-    namespacesList.length > 0 ? 3000 : null
-  );
   const showModal = useSelector((state: AppState) => state.modal.showModal);
   const modalMessage = useSelector((state: AppState) => state.modal.message);
   return (

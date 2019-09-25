@@ -1,9 +1,7 @@
 import { Dispatch } from 'redux';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
-import { envoy } from 'Api/v2/EnvoyClient';
+import { envoy } from './api';
 import { ListEnvoyDetailsAction, EnvoyAction } from './types';
-import { Modal } from 'antd';
-const { warning } = Modal;
 
 export const listEnvoyDetails = () => {
   return async (dispatch: Dispatch) => {

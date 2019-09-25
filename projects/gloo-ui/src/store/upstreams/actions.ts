@@ -1,13 +1,14 @@
-import { upstreams } from 'Api/v2/UpstreamClient';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
 import {
   CreateUpstreamRequest,
   DeleteUpstreamRequest,
   GetUpstreamRequest,
-  ListUpstreamsRequest,
   UpdateUpstreamRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Dispatch } from 'redux';
+import { guardByLicense } from 'store/config/actions';
+import { MessageAction, SuccessMessageAction } from 'store/modal/types';
+import { upstreams } from './api';
 import {
   CreateUpstreamAction,
   DeleteUpstreamAction,
@@ -15,20 +16,12 @@ import {
   ListUpstreamsAction,
   UpstreamAction
 } from './types';
-import { Modal } from 'antd';
-import { SuccessMessageAction, MessageAction } from 'store/modal/types';
-import { guardByLicense } from 'store/config/actions';
-import { SoloWarning } from 'Components/Common/SoloWarningContent';
-const { warning } = Modal;
 
-export const listUpstreams = (
-  listUpstreamsRequest: ListUpstreamsRequest.AsObject
-) => {
+export const listUpstreams = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await upstreams.getUpstreamsList(listUpstreamsRequest);
-
+      const response = await upstreams.getUpstreamsList();
       dispatch<ListUpstreamsAction>({
         type: UpstreamAction.LIST_UPSTREAMS,
         payload: response.upstreamDetailsList

@@ -193,11 +193,6 @@ interface Props extends RouteComponentProps {
 export const UpstreamsListing = (props: Props) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(false);
-
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList
-  );
-
   const upstreamsList = useSelector(
     (state: AppState) => state.upstreams.upstreamsList
   );
@@ -206,7 +201,7 @@ export const UpstreamsListing = (props: Props) => {
     if (upstreamsList.length) {
       setIsLoading(false);
     } else {
-      dispatch(listUpstreams({ namespacesList }));
+      dispatch(listUpstreams());
     }
   }, [upstreamsList.length]);
 

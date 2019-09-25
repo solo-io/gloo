@@ -1,29 +1,22 @@
-import * as React from 'react';
-import {
-  GetVersionRequest,
-  UpdateSettingsRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { Dispatch, AnyAction } from 'redux';
-import { showLoading, hideLoading } from 'react-redux-loading-bar';
-import { config } from 'Api/v2/ConfigClient';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { UpdateSettingsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { Dispatch } from 'redux';
+import { globalStore } from 'store';
+import { MessageAction, SuccessMessageAction } from 'store/modal/types';
+import { config } from './api';
 import {
   ConfigAction,
-  GetVersionAction,
-  GetSettingsAction,
-  ListNamespacesAction,
-  GetOAuthEndpointAction,
   GetIsLicenseValidAction,
+  GetOAuthEndpointAction,
   GetPodNamespaceAction,
+  GetSettingsAction,
+  GetVersionAction,
+  ListNamespacesAction,
+  UpdateRefreshRateAction,
   UpdateSettingsAction,
-  UpdateWatchNamespacesAction,
-  UpdateRefreshRateAction
+  UpdateWatchNamespacesAction
 } from './types';
-import { Modal } from 'antd';
-import { SoloWarning } from 'Components/Common/SoloWarningContent';
-import { SuccessMessageAction, MessageAction } from 'store/modal/types';
-import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
-import { globalStore } from 'store';
-const { warning } = Modal;
 
 export const getVersion = () => {
   return async (dispatch: Dispatch) => {

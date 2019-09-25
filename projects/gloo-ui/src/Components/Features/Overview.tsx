@@ -241,12 +241,11 @@ const HealthStatus = (props: Props) => {
 const VirtualServicesOverview = () => {
   const dispatch = useDispatch();
   const {
-    config: { namespacesList },
     virtualServices: { virtualServicesList }
   } = useSelector((state: AppState) => state);
   React.useEffect(() => {
     if (!virtualServicesList.length) {
-      dispatch(listVirtualServices({ namespacesList }));
+      dispatch(listVirtualServices());
     }
   }, [virtualServicesList.length]);
 
@@ -273,7 +272,7 @@ const VirtualServicesOverview = () => {
         exploreMoreLink={{
           prompt: 'View Virtual Services',
           link: '/virtualservices/',
-          testId:'view-virtual-services-link' 
+          testId: 'view-virtual-services-link'
         }}>
         {!!virtualServicesList.length ? (
           <React.Fragment>
@@ -356,7 +355,7 @@ const UpstreamsOverview = () => {
   );
   React.useEffect(() => {
     if (!upstreamsList.length) {
-      dispatch(listUpstreams({ namespacesList }));
+      dispatch(listUpstreams());
     }
   }, [upstreamsList.length]);
 
