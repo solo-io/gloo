@@ -114,10 +114,13 @@ var _ = Describe("Ratelimit tests", func() {
 			ratelimit2.ExtensionName: rateLimitStruct,
 		}
 
-		extensions := &gloov1.Extensions{
-			Configs: protos,
+		virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			Extensions: &gloov1.Extensions{
+				Configs: protos,
+			},
 		}
-		writeVhost(virtualServiceClient, extensions, nil, nil)
+
+		writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
 		checkRateLimited()
 	})
 
@@ -183,11 +186,13 @@ var _ = Describe("Ratelimit tests", func() {
 				ratelimit2.EnvoyExtensionName: rateLimitStruct,
 			}
 
-			extensions := &gloov1.Extensions{
-				Configs: protos,
+			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
 			}
 
-			writeVhost(virtualServiceClient, extensions, nil, nil)
+			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkRateLimited()
 		})
 
@@ -211,11 +216,13 @@ var _ = Describe("Ratelimit tests", func() {
 				ratelimit2.EnvoyExtensionName: rateLimitStruct,
 			}
 
-			extensions := &gloov1.Extensions{
-				Configs: protos,
+			routePlugins := &gloov1.RoutePlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
 			}
 
-			writeVhost(virtualServiceClient, nil, extensions, nil)
+			writeVirtualService(virtualServiceClient, nil, routePlugins, nil)
 			checkRateLimited()
 		})
 
@@ -239,10 +246,6 @@ var _ = Describe("Ratelimit tests", func() {
 				ratelimit2.EnvoyExtensionName: rateLimitStruct,
 			}
 
-			vhostExtensions := &gloov1.Extensions{
-				Configs: protos,
-			}
-
 			ratelimitExtension := &ratelimitpb.RateLimitRouteExtension{
 				IncludeVhRateLimits: true,
 			}
@@ -253,11 +256,19 @@ var _ = Describe("Ratelimit tests", func() {
 				ratelimit2.EnvoyExtensionName: rateLimitStruct,
 			}
 
-			extensions := &gloov1.Extensions{
-				Configs: protos,
+			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
 			}
 
-			writeVhost(virtualServiceClient, vhostExtensions, extensions, nil)
+			routePlugins := &gloov1.RoutePlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
+			}
+
+			writeVirtualService(virtualServiceClient, virtualHostPlugins, routePlugins, nil)
 			checkRateLimited()
 		})
 

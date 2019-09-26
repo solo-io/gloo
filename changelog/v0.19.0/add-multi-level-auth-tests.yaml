@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Add regression tests that test multiple combinations of auth configs defined on virtual hosts, routes, and weighted destinations.

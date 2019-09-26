@@ -113,11 +113,13 @@ var _ = Describe("waf tests", func() {
 				wafplugin.ExtensionName: wafCfg,
 			}
 
-			extensions := &gloov1.Extensions{
-				Configs: protos,
+			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
 			}
 
-			writeVhost(virtualServiceClient, extensions, nil, nil)
+			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection("200")
 		})
 
@@ -139,11 +141,13 @@ var _ = Describe("waf tests", func() {
 				wafplugin.ExtensionName: wafCfg,
 			}
 
-			extensions := &gloov1.Extensions{
-				Configs: protos,
+			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				Extensions: &gloov1.Extensions{
+					Configs: protos,
+				},
 			}
 
-			writeVhost(virtualServiceClient, extensions, nil, nil)
+			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection("403")
 		})
 

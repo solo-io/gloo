@@ -82,7 +82,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	It("can route request to upstream", func() {
 
-		writeVhost(virtualServiceClient, nil, nil, nil)
+		writeVirtualService(virtualServiceClient, nil, nil, nil)
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -127,7 +127,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				},
 			}
 
-			writeVhost(virtualServiceClient, nil, nil, sslConfig)
+			writeVirtualService(virtualServiceClient, nil, nil, sslConfig)
 
 			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 			// wait for default gateway to be created

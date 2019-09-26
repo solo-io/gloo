@@ -109,7 +109,7 @@ var _ = AfterSuite(func() {
 	}, "60s", "1s").Should(HaveOccurred())
 })
 
-var writeVhost = func(vsClient v1.VirtualServiceClient, vhostextensions *gloov1.Extensions, routeExtensions *gloov1.Extensions, sslConfig *gloov1.SslConfig) {
+var writeVirtualService = func(vsClient v1.VirtualServiceClient, virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins, sslConfig *gloov1.SslConfig) {
 	_, err := vsClient.Write(&v1.VirtualService{
 
 		Metadata: core.Metadata{
@@ -118,14 +118,10 @@ var writeVhost = func(vsClient v1.VirtualServiceClient, vhostextensions *gloov1.
 		},
 		SslConfig: sslConfig,
 		VirtualHost: &v1.VirtualHost{
-			VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-				Extensions: vhostextensions,
-			},
-			Domains: []string{"*"},
+			VirtualHostPlugins: virtualHostPlugins,
+			Domains:            []string{"*"},
 			Routes: []*v1.Route{{
-				RoutePlugins: &gloov1.RoutePlugins{
-					Extensions: routeExtensions,
-				},
+				RoutePlugins: routePlugins,
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/",
