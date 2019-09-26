@@ -185,6 +185,16 @@ export class VirtualHostPlugins extends jspb.Message {
   getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings | undefined;
   setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings): void;
 
+  hasJwt(): boolean;
+  clearJwt(): void;
+  getJwt(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension | undefined;
+  setJwt(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension): void;
+
+  hasRbac(): boolean;
+  clearRbac(): void;
+  getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension | undefined;
+  setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -206,6 +216,8 @@ export namespace VirtualHostPlugins {
     ratelimitGloo?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimitActions?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.AsObject,
+    jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension.AsObject,
+    rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension.AsObject,
   }
 }
 
@@ -285,6 +297,16 @@ export class RoutePlugins extends jspb.Message {
   getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings | undefined;
   setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings): void;
 
+  hasJwt(): boolean;
+  clearJwt(): void;
+  getJwt(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension | undefined;
+  setJwt(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension): void;
+
+  hasRbac(): boolean;
+  clearRbac(): void;
+  getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension | undefined;
+  setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -312,6 +334,8 @@ export namespace RoutePlugins {
     ratelimitGloo?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimitActions?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.AsObject,
+    jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.AsObject,
+    rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension.AsObject,
   }
 }
 

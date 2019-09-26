@@ -18,11 +18,13 @@ var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../..
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.GatewayOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.GlooOptions', null, global);
+goog.exportSymbol('proto.gloo.solo.io.GlooOptions.AWSOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions', null, global);
@@ -177,6 +179,7 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     ratelimitDescriptors: (f = msg.getRatelimitDescriptors()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.toObject(includeInstance, f),
     ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
+    rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f)
   };
@@ -334,6 +337,11 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
       msg.setRatelimitServer(value);
+      break;
+    case 28:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.deserializeBinaryFromReader);
+      msg.setRbac(value);
       break;
     case 14:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -567,6 +575,14 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       27,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
+    );
+  }
+  f = message.getRbac();
+  if (f != null) {
+    writer.writeMessage(
+      28,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -3617,6 +3633,36 @@ proto.gloo.solo.io.Settings.prototype.hasRatelimitServer = function() {
 
 
 /**
+ * optional rbac.plugins.gloo.solo.io.Settings rbac = 28;
+ * @return {?proto.rbac.plugins.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.Settings.prototype.getRbac = function() {
+  return /** @type{?proto.rbac.plugins.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings, 28));
+};
+
+
+/** @param {?proto.rbac.plugins.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setRbac = function(value) {
+  jspb.Message.setWrapperField(this, 28, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearRbac = function() {
+  this.setRbac(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasRbac = function() {
+  return jspb.Message.getField(this, 28) != null;
+};
+
+
+/**
  * optional core.solo.io.Metadata metadata = 14;
  * @return {?proto.core.solo.io.Metadata}
  */
@@ -3726,7 +3772,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     xdsBindAddr: jspb.Message.getFieldWithDefault(msg, 1, ""),
     validationBindAddr: jspb.Message.getFieldWithDefault(msg, 2, ""),
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
-    endpointsWarmingTimeout: (f = msg.getEndpointsWarmingTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    endpointsWarmingTimeout: (f = msg.getEndpointsWarmingTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    awsOptions: (f = msg.getAwsOptions()) && proto.gloo.solo.io.GlooOptions.AWSOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3780,6 +3827,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setEndpointsWarmingTimeout(value);
+      break;
+    case 5:
+      var value = new proto.gloo.solo.io.GlooOptions.AWSOptions;
+      reader.readMessage(value,proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinaryFromReader);
+      msg.setAwsOptions(value);
       break;
     default:
       reader.skipField();
@@ -3840,6 +3892,158 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
+  f = message.getAwsOptions();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.gloo.solo.io.GlooOptions.AWSOptions.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.GlooOptions.AWSOptions, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.GlooOptions.AWSOptions.displayName = 'proto.gloo.solo.io.GlooOptions.AWSOptions';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.GlooOptions.AWSOptions.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.GlooOptions.AWSOptions} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    enableCredentialsDiscovey: jspb.Message.getFieldWithDefault(msg, 1, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.GlooOptions.AWSOptions}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.GlooOptions.AWSOptions;
+  return proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.GlooOptions.AWSOptions} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.GlooOptions.AWSOptions}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableCredentialsDiscovey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.GlooOptions.AWSOptions.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.GlooOptions.AWSOptions} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getEnableCredentialsDiscovey();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool enable_credentials_discovey = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.getEnableCredentialsDiscovey = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.setEnableCredentialsDiscovey = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
 };
 
 
@@ -3930,6 +4134,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearEndpointsWarmingTimeout = function
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasEndpointsWarmingTimeout = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional AWSOptions aws_options = 5;
+ * @return {?proto.gloo.solo.io.GlooOptions.AWSOptions}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getAwsOptions = function() {
+  return /** @type{?proto.gloo.solo.io.GlooOptions.AWSOptions} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.GlooOptions.AWSOptions, 5));
+};
+
+
+/** @param {?proto.gloo.solo.io.GlooOptions.AWSOptions|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setAwsOptions = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearAwsOptions = function() {
+  this.setAwsOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasAwsOptions = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

@@ -8,6 +8,7 @@ import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../..
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -130,6 +131,11 @@ export class Settings extends jspb.Message {
   getRatelimitServer(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings | undefined;
   setRatelimitServer(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings): void;
 
+  hasRbac(): boolean;
+  clearRbac(): void;
+  getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings | undefined;
+  setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings): void;
+
   hasMetadata(): boolean;
   clearMetadata(): void;
   getMetadata(): github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata | undefined;
@@ -180,6 +186,7 @@ export namespace Settings {
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     ratelimitDescriptors?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.AsObject,
     ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.AsObject,
+    rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
   }
@@ -559,6 +566,11 @@ export class GlooOptions extends jspb.Message {
   getEndpointsWarmingTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setEndpointsWarmingTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasAwsOptions(): boolean;
+  clearAwsOptions(): void;
+  getAwsOptions(): GlooOptions.AWSOptions | undefined;
+  setAwsOptions(value?: GlooOptions.AWSOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -575,6 +587,27 @@ export namespace GlooOptions {
     validationBindAddr: string,
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     endpointsWarmingTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    awsOptions?: GlooOptions.AWSOptions.AsObject,
+  }
+
+  export class AWSOptions extends jspb.Message {
+    getEnableCredentialsDiscovey(): boolean;
+    setEnableCredentialsDiscovey(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AWSOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: AWSOptions): AWSOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AWSOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AWSOptions;
+    static deserializeBinaryFromReader(message: AWSOptions, reader: jspb.BinaryReader): AWSOptions;
+  }
+
+  export namespace AWSOptions {
+    export type AsObject = {
+      enableCredentialsDiscovey: boolean,
+    }
   }
 }
 

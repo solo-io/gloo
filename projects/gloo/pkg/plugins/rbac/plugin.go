@@ -42,10 +42,15 @@ func NewPlugin() *Plugin {
 
 func GetSettings(params plugins.InitParams) (*rbac.Settings, error) {
 	var settings rbac.Settings
+	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
 	ok, err := sputils.GetSettings(params, ExtensionName, &settings)
-	if err != nil {
+	if err != nil && params.Settings.GetRbac() == nil {
 		return nil, err
 	}
+	if rbac := params.Settings.GetRbac(); rbac != nil {
+		settings = *rbac
+	}
+
 	if ok {
 		return &settings, nil
 	}
@@ -60,12 +65,17 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var rbacConfig rbac.VhostExtension
+	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rbacConfig)
-	if err != nil {
+	if err != nil && in.VirtualHostPlugins.GetRbac() == nil {
 		if err == utils.NotFoundError {
 			return nil
 		}
 		return errors.Wrapf(err, "Error converting proto to rbac plugin")
+	}
+
+	if rbac := in.VirtualHostPlugins.GetRbac(); rbac != nil {
+		rbacConfig = *rbac
 	}
 
 	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConfig.Config)
@@ -79,12 +89,17 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var rbacConfig rbac.RouteExtension
+	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
 	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &rbacConfig)
-	if err != nil {
+	if err != nil && in.RoutePlugins.GetRbac() == nil {
 		if err == utils.NotFoundError {
 			return nil
 		}
 		return errors.Wrapf(err, "Error converting proto to rbac plugin")
+	}
+
+	if rbac := in.RoutePlugins.GetRbac(); rbac != nil {
+		rbacConfig = *rbac
 	}
 
 	var perRouteRbac *envoyauthz.RBACPerRoute
@@ -267,7 +282,7 @@ func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *
 
 	if len(jwtPrincipals) == 0 {
 		logger := contextutils.LoggerFrom(ctx)
-		logger.Info("RBAC JWT Principal with zero clains - ignoring")
+		logger.Info("RBAC JWT Principal with zero claims - ignoring")
 		return nil
 	} else if len(jwtPrincipals) == 1 {
 		return jwtPrincipals[0]

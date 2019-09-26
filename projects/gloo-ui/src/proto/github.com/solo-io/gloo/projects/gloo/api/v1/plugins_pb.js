@@ -812,7 +812,9 @@ proto.gloo.solo.io.VirtualHostPlugins.toObject = function(includeInstance, msg) 
     transformations: (f = msg.getTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
     ratelimitGloo: (f = msg.getRatelimitGloo()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     ratelimitActions: (f = msg.getRatelimitActions()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension.toObject(includeInstance, f),
-    waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.toObject(includeInstance, f)
+    waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension.toObject(includeInstance, f),
+    rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -893,6 +895,16 @@ proto.gloo.solo.io.VirtualHostPlugins.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.deserializeBinaryFromReader);
       msg.setWaf(value);
+      break;
+    case 9:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension.deserializeBinaryFromReader);
+      msg.setJwt(value);
+      break;
+    case 11:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension.deserializeBinaryFromReader);
+      msg.setRbac(value);
       break;
     default:
       reader.skipField();
@@ -993,6 +1005,22 @@ proto.gloo.solo.io.VirtualHostPlugins.serializeBinaryToWriter = function(message
       8,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.VhostSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension.serializeBinaryToWriter
+    );
+  }
+  f = message.getRbac();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension.serializeBinaryToWriter
     );
   }
 };
@@ -1268,6 +1296,66 @@ proto.gloo.solo.io.VirtualHostPlugins.prototype.hasWaf = function() {
 };
 
 
+/**
+ * optional jwt.plugins.gloo.solo.io.VhostExtension jwt = 9;
+ * @return {?proto.jwt.plugins.gloo.solo.io.VhostExtension}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.getJwt = function() {
+  return /** @type{?proto.jwt.plugins.gloo.solo.io.VhostExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension, 9));
+};
+
+
+/** @param {?proto.jwt.plugins.gloo.solo.io.VhostExtension|undefined} value */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.setJwt = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostPlugins.prototype.clearJwt = function() {
+  this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional rbac.plugins.gloo.solo.io.VhostExtension rbac = 11;
+ * @return {?proto.rbac.plugins.gloo.solo.io.VhostExtension}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.getRbac = function() {
+  return /** @type{?proto.rbac.plugins.gloo.solo.io.VhostExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.VhostExtension, 11));
+};
+
+
+/** @param {?proto.rbac.plugins.gloo.solo.io.VhostExtension|undefined} value */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.setRbac = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostPlugins.prototype.clearRbac = function() {
+  this.setRbac(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostPlugins.prototype.hasRbac = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -1329,7 +1417,9 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
     lbHash: (f = msg.getLbHash()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f),
     ratelimitGloo: (f = msg.getRatelimitGloo()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     ratelimitActions: (f = msg.getRatelimitActions()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitRouteExtension.toObject(includeInstance, f),
-    waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.toObject(includeInstance, f)
+    waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.toObject(includeInstance, f),
+    rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1440,6 +1530,16 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.deserializeBinaryFromReader);
       msg.setWaf(value);
+      break;
+    case 16:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.deserializeBinaryFromReader);
+      msg.setJwt(value);
+      break;
+    case 17:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension.deserializeBinaryFromReader);
+      msg.setRbac(value);
       break;
     default:
       reader.skipField();
@@ -1588,6 +1688,22 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
       15,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.RouteSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      16,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.serializeBinaryToWriter
+    );
+  }
+  f = message.getRbac();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension.serializeBinaryToWriter
     );
   }
 };
@@ -2040,6 +2156,66 @@ proto.gloo.solo.io.RoutePlugins.prototype.clearWaf = function() {
  */
 proto.gloo.solo.io.RoutePlugins.prototype.hasWaf = function() {
   return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
+ * optional jwt.plugins.gloo.solo.io.RouteExtension jwt = 16;
+ * @return {?proto.jwt.plugins.gloo.solo.io.RouteExtension}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getJwt = function() {
+  return /** @type{?proto.jwt.plugins.gloo.solo.io.RouteExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension, 16));
+};
+
+
+/** @param {?proto.jwt.plugins.gloo.solo.io.RouteExtension|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setJwt = function(value) {
+  jspb.Message.setWrapperField(this, 16, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearJwt = function() {
+  this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 16) != null;
+};
+
+
+/**
+ * optional rbac.plugins.gloo.solo.io.RouteExtension rbac = 17;
+ * @return {?proto.rbac.plugins.gloo.solo.io.RouteExtension}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getRbac = function() {
+  return /** @type{?proto.rbac.plugins.gloo.solo.io.RouteExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.RouteExtension, 17));
+};
+
+
+/** @param {?proto.rbac.plugins.gloo.solo.io.RouteExtension|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setRbac = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearRbac = function() {
+  this.setRbac(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasRbac = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 

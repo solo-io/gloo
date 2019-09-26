@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support new jwt/rbac API location; continue support for deprecated jwt/rbac config in opaque extensions
+    issueLink: https://github.com/solo-io/gloo/issues/1171
+    resolvesIssue: false

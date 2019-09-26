@@ -66,12 +66,17 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var jwtRoute jwt.RouteExtension
+	// TODO(kdorosh) remove this unmarshal codepath when we stop supporting opaque jwt config
 	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &jwtRoute)
-	if err != nil {
+	if err != nil && in.GetRoutePlugins().GetJwt() == nil {
 		if err == utils.NotFoundError {
 			return nil
 		}
 		return errors.Wrapf(err, "Error converting proto any to jwt plugin")
+	}
+
+	if jwt := in.GetRoutePlugins().GetJwt(); jwt != nil {
+		jwtRoute = *jwt
 	}
 
 	if jwtRoute.Disable {
@@ -83,25 +88,28 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	// get the jwt config from the vhost
 	var jwtExt jwt.VhostExtension
+	// TODO(kdorosh) remove this unmarshal codepath when we stop supporting opaque jwt config
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &jwtExt)
-	if err != nil {
+	if err != nil && in.GetVirtualHostPlugins().GetJwt() == nil {
 		if err == utils.NotFoundError {
 			return nil
 		}
 		return errors.Wrapf(err, "Error converting proto any to jwt plugin")
 	}
 
-	cfgName := in.Name
+	if jwt := in.GetVirtualHostPlugins().GetJwt(); jwt != nil {
+		jwtExt = *jwt
+	}
 
 	claimsToHeader := make(map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders)
 
 	err = p.translateProviders(in.Name, jwtExt, claimsToHeader)
 	if err != nil {
-		return errors.Wrapf(err, "Error translating provider for "+cfgName)
+		return errors.Wrapf(err, "Error translating provider for "+in.Name)
 	}
 	clearRouteCache := len(claimsToHeader) != 0
 	cfg := &SoloJwtAuthnPerRoute{
-		Requirement:       cfgName,
+		Requirement:       in.Name,
 		PayloadInMetadata: PayloadInMetadata,
 		ClaimsToHeaders:   claimsToHeader,
 		ClearRouteCache:   clearRouteCache,
@@ -160,7 +168,7 @@ func (p *Plugin) getRequirement(name string, providers []string) *envoyauth.JwtR
 		reqs = append(reqs, r)
 	}
 
-	// sort for idempotancy
+	// sort for idempotency
 	sort.Slice(reqs, func(i, j int) bool { return reqs[i].GetProviderName() < reqs[j].GetProviderName() })
 	return &envoyauth.JwtRequirement{
 		RequiresType: &envoyauth.JwtRequirement_RequiresAny{
@@ -175,10 +183,12 @@ func (p *Plugin) getRequirement(name string, providers []string) *envoyauth.JwtR
 }
 
 func translateDefaultProvider(j jwt.VhostExtension) (*envoyauth.JwtProvider, error) {
+	// TODO(kdorosh) remove this codepath as part of v1.0 release?
 	if j.Jwks == nil {
 		return nil, errors.New("JWKS source not provided")
 	}
 
+	// TODO(kdorosh) remove this codepath as part of v1.0 release?
 	provider := &envoyauth.JwtProvider{
 		Issuer:    j.Issuer,
 		Audiences: j.Audiences,
