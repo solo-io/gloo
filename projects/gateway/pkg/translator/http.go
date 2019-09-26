@@ -302,6 +302,8 @@ func (rv *routeVisitor) convertRoute(ownerResource resources.InputResource, ours
 
 var (
 	missingPrefixErr    = errors.Errorf("invalid route: routes with delegate actions must specify a prefix matcher")
+	invalidPrefixErr    = errors.Errorf("invalid route: routes within the route table must begin with the prefix of their parent")
+	invalidMatcherErr   = errors.Errorf("invalid route: matcher cannot be missing")
 	hasHeaderMatcherErr = errors.Errorf("invalid route: routes with delegate actions cannot use header matchers")
 	hasMethodMatcherErr = errors.Errorf("invalid route: routes with delegate actions cannot use method matchers")
 	hasQueryMatcherErr  = errors.Errorf("invalid route: routes with delegate actions cannot use query matchers")
@@ -310,19 +312,18 @@ var (
 	noDelegateActionErr = errors.Errorf("internal error: convertDelegateAction() called on route without delegate action")
 )
 
-func (rv *routeVisitor) convertDelegateAction(sourceResource resources.InputResource, ours *v1.Route, resourceErrs reporter.ResourceErrors) ([]*gloov1.Route, error) {
-	action := ours.GetDelegateAction()
+func (rv *routeVisitor) convertDelegateAction(routingResource resources.InputResource, route *v1.Route, resourceErrs reporter.ResourceErrors) ([]*gloov1.Route, error) {
+	action := route.GetDelegateAction()
 	if action == nil {
 		return nil, noDelegateActionErr
 	}
 
-	matcher := ours.GetMatcher()
+	matcher := route.GetMatcher()
 
 	prefix := matcher.GetPrefix()
 	if prefix == "" {
 		return nil, missingPrefixErr
 	}
-	prefix = strings.TrimSuffix("/"+strings.Trim(prefix, "/"), "/")
 
 	if len(matcher.GetHeaders()) > 0 {
 		return nil, hasHeaderMatcherErr
@@ -333,12 +334,14 @@ func (rv *routeVisitor) convertDelegateAction(sourceResource resources.InputReso
 	if len(matcher.GetQueryParameters()) > 0 {
 		return nil, hasQueryMatcherErr
 	}
+
 	routeTable, err := rv.tables.Find(action.Strings())
 	if err != nil {
 		err = errors.Wrapf(err, "invalid delegate action")
-		resourceErrs.AddError(sourceResource, err)
+		resourceErrs.AddError(routingResource, err)
 		return nil, err
 	}
+
 	for _, visited := range rv.visited {
 		if routeTable == visited {
 			return nil, delegationCycleErr
@@ -349,26 +352,39 @@ func (rv *routeVisitor) convertDelegateAction(sourceResource resources.InputReso
 	for _, vis := range rv.visited {
 		subRv.visited = append(subRv.visited, vis)
 	}
+
+	plugins := route.GetRoutePlugins()
+
 	var delegatedRoutes []*gloov1.Route
-	for _, route := range routeTable.Routes {
-		route := proto.Clone(route).(*v1.Route)
-		subRoutes, err := subRv.convertRoute(routeTable, route, resourceErrs)
+	for _, routeTableRoute := range routeTable.Routes {
+		// clone route since we mutate
+		routeTableRoute := proto.Clone(routeTableRoute).(*v1.Route)
+
+		merged, err := mergeRoutePlugins(routeTableRoute.GetRoutePlugins(), plugins)
+		if err != nil {
+			// should never happen
+			return nil, errors.Wrapf(err, "internal error: merging route plugins from parent to delegated route")
+		}
+		routeTableRoute.RoutePlugins = merged
+
+		match := routeTableRoute.GetMatcher()
+		if match == nil {
+			resourceErrs.AddError(routingResource, invalidMatcherErr)
+			continue
+		}
+
+		// ensure all subroutes in the delegated route table match the parent prefix
+		if pathString := glooutils.PathAsString(match); !strings.HasPrefix(pathString, prefix) {
+			err = errors.Wrapf(invalidPrefixErr, "required prefix: %v, path: %v", prefix, pathString)
+			resourceErrs.AddError(routingResource, err)
+			continue
+		}
+
+		subRoutes, err := subRv.convertRoute(routeTable, routeTableRoute, resourceErrs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "converting sub-route")
 		}
 		for _, sub := range subRoutes {
-			switch path := sub.Matcher.PathSpecifier.(type) {
-			case *gloov1.Matcher_Exact:
-				path.Exact = prefix + "/" + strings.TrimPrefix(path.Exact, "/")
-			case *gloov1.Matcher_Regex:
-				path.Regex = prefix + "/" + strings.TrimPrefix(path.Regex, "/")
-			case *gloov1.Matcher_Prefix:
-				path.Prefix = prefix + "/" + strings.TrimPrefix(path.Prefix, "/")
-			}
-			// inherit route plugins from parent
-			if sub.RoutePlugins == nil {
-				sub.RoutePlugins = proto.Clone(ours.RoutePlugins).(*gloov1.RoutePlugins)
-			}
 			if err := appendSource(sub, routeTable); err != nil {
 				// should never happen
 				return nil, err
