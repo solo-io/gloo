@@ -93,7 +93,7 @@ const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
   const FormComponent = formComponent;
 
   return (
-    <React.Fragment>
+    <>
       {isLastRow && !!formComponent ? (
         <tr>
           <FormComponent />
@@ -101,7 +101,7 @@ const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
       ) : (
         <tr {...props} />
       )}
-    </React.Fragment>
+    </>
   );
 };
 

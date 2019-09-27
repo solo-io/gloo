@@ -10,9 +10,9 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { useField } from 'formik';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
-import { RouterProps, withRouter } from 'react-router';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
+import { useHistory } from 'react-router';
 
 export interface AwsValuesType {
   awsRegion: string;
@@ -27,8 +27,6 @@ export const awsInitialValues: AwsValuesType = {
   }
 };
 
-interface Props {}
-
 export const awsValidationSchema = yup.object().shape({
   awsRegion: yup.string(),
   awsSecretRef: yup.object().shape({
@@ -37,14 +35,13 @@ export const awsValidationSchema = yup.object().shape({
   })
 });
 
-const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
-  history
-}) => {
+export const AwsUpstreamForm = () => {
+  let history = useHistory();
   const awsRegions = AWS_REGIONS.map(item => item.name);
   const [_, meta] = useField('awsSecretRef');
 
   return (
-    <React.Fragment>
+    <>
       <SoloFormTemplate formHeader='AWS Upstream Settings'>
         <InputRow style={{ justifyContent: 'spaceAround' }}>
           <div>
@@ -69,8 +66,6 @@ const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
           )}
         </InputRow>
       </SoloFormTemplate>
-    </React.Fragment>
+    </>
   );
 };
-
-export const AwsUpstreamForm = withRouter(AwsUpstreamFormComponent);

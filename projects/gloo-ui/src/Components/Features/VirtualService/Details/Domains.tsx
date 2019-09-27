@@ -66,7 +66,7 @@ export const Domains: React.FC<Props> = React.memo(props => {
   };
 
   return (
-    <React.Fragment>
+    <>
       <DetailsSectionTitle>Domains</DetailsSectionTitle>
       <DomainsContainer>
         <StringCardsList
@@ -77,6 +77,6 @@ export const Domains: React.FC<Props> = React.memo(props => {
           valueIsValid={isValidDomain}
         />
       </DomainsContainer>
-    </React.Fragment>
+    </>
   );
 }, equivalentProps);

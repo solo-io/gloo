@@ -55,7 +55,7 @@ export const SuccessModal = (props: Props) => {
   }, [visible]);
 
   return (
-    <React.Fragment>
+    <>
       <Modal
         visible={showModal}
         footer={null}
@@ -70,6 +70,6 @@ export const SuccessModal = (props: Props) => {
           <ContentText>{successMessage}</ContentText>
         </ContentContainer>
       </Modal>
-    </React.Fragment>
+    </>
   );
 };

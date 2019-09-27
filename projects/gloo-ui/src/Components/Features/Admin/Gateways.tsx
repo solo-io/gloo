@@ -67,7 +67,7 @@ export const Gateways = (props: Props) => {
     );
   };
   return (
-    <React.Fragment>
+    <>
       {gatewaysList.map((gateway, ind) => {
         return (
           <SectionCard
@@ -121,6 +121,6 @@ export const Gateways = (props: Props) => {
           </SectionCard>
         );
       })}
-    </React.Fragment>
+    </>
   );
 };

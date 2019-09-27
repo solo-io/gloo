@@ -43,17 +43,17 @@ export const CreateVirtualServiceModal = (props: Props) => {
     <ModalContainer>
       {props.withoutDivider ? (
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
-          <React.Fragment>
+          <>
             {props.promptText || 'Create Virtual Service'}
             <StyledGreenPlus style={{ marginLeft: '7px', width: '18px' }} />
-          </React.Fragment>
+          </>
         </ModalTrigger>
       ) : (
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
-          <React.Fragment>
+          <>
             <StyledGreenPlus />
             {props.promptText || 'Create Virtual Service'}
-          </React.Fragment>
+          </>
           <Divider type='vertical' style={{ height: '1.5em' }} />
         </ModalTrigger>
       )}
@@ -62,13 +62,13 @@ export const CreateVirtualServiceModal = (props: Props) => {
         width={650}
         title='Create a Virtual Service'
         onClose={() => setShowModal(false)}>
-        <React.Fragment>
+        <>
           <Legend>
             Virtual Services define a set of route rules, an optional SNI
             configuration for a given domain or set of domains.
           </Legend>
           <CreateVirtualServiceForm toggleModal={setShowModal} />
-        </React.Fragment>
+        </>
       </SoloModal>
     </ModalContainer>
   );

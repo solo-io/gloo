@@ -23,7 +23,7 @@ const EnvoyContainer = styled.div`
 `;
 export const Admin: React.FC<RouteProps> = props => {
   return (
-    <React.Fragment>
+    <>
       <Container>
         <Header>
           <div>Enterprise Gloo Administration</div>
@@ -33,6 +33,6 @@ export const Admin: React.FC<RouteProps> = props => {
         <ProxyContainer>proxy</ProxyContainer>
         <EnvoyContainer>envoy</EnvoyContainer>
       </Container>
-    </React.Fragment>
+    </>
   );
 };

@@ -50,7 +50,7 @@ export const Proxys = (props: Props) => {
   }
 
   return (
-    <React.Fragment>
+    <>
       {allProxies.map((proxy, ind) => {
         return (
           <SectionCard
@@ -86,6 +86,6 @@ export const Proxys = (props: Props) => {
           </SectionCard>
         );
       })}
-    </React.Fragment>
+    </>
   );
 };

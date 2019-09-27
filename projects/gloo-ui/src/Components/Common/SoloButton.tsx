@@ -30,7 +30,7 @@ export const SoloButton = (props: SoloButtonProps) => {
   } = props;
 
   return (
-    <React.Fragment>
+    <>
       <SoloButtonStyledComponent
         {...rest}
         loading={loading}
@@ -42,6 +42,6 @@ export const SoloButton = (props: SoloButtonProps) => {
         <ButtonProgress />
         {loading ? inProgressText : error ? errorText : text}
       </SoloButtonStyledComponent>
-    </React.Fragment>
+    </>
   );
 };

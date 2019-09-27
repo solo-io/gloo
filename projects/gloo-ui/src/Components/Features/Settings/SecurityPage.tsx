@@ -174,7 +174,7 @@ export const SecurityPage: React.FunctionComponent<Props> = React.memo(
     ];
 
     return (
-      <React.Fragment>
+      <>
         <SectionCard cardName={'TLS'} logoIcon={<KeyRing />}>
           {tlsTableData.length ? (
             <SoloTable
@@ -207,7 +207,7 @@ export const SecurityPage: React.FunctionComponent<Props> = React.memo(
             <div>No Secrets</div>
           )}
         </SectionCard>
-      </React.Fragment>
+      </>
     );
   },
   equivalentProps

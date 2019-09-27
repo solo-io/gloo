@@ -69,7 +69,7 @@ export const UninstallConfirmationModal = (props: Props) => {
   const { confirmationText, doUninstall } = props;
 
   return (
-    <React.Fragment>
+    <>
       <Modal
         visible={props.visible}
         footer={null}
@@ -101,6 +101,6 @@ export const UninstallConfirmationModal = (props: Props) => {
           </ButtonGroup>
         </ContentContainer>
       </Modal>
-    </React.Fragment>
+    </>
   );
 };

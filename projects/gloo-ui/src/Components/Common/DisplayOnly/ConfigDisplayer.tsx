@@ -238,7 +238,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
         language={props.isJson ? 'json' : 'yaml'}>
         {({ className, style, tokens, getLineProps, getTokenProps }) =>
           props.asEditor && configState.isEditing ? (
-            <React.Fragment>
+            <>
               {tokens.map((line, i) => {
                 return (
                   <div {...getLineProps({ line, key: i })}>
@@ -256,7 +256,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
                   </div>
                 );
               })}
-            </React.Fragment>
+            </>
           ) : (
             <Pre className={className} style={style}>
               {tokens.map((line, i) => (
@@ -278,7 +278,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
     <Spin spinning={configState.isLoading}>
       <Container whiteBacked={props.whiteBacked}>
         {props.asEditor && (
-          <React.Fragment>
+          <>
             {configState.isEditing ? (
               <EditingActionsContainer whiteBacked={props.whiteBacked}>
                 <CancelButton onClick={cancelEdits}>Reset</CancelButton>
@@ -294,7 +294,7 @@ export const ConfigDisplayer = React.memo((props: Props) => {
                 <EditPencil />
               </EditPencilHolder>
             )}
-          </React.Fragment>
+          </>
         )}
         {props.asEditor && configState.isEditing ? (
           <Editor

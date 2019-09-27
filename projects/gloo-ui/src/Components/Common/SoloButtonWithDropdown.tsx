@@ -132,7 +132,7 @@ export const SoloButtonWithDropdown = (props: ButtonProps) => {
       </SoloButton>
 
       {!inProgress && (
-        <React.Fragment>
+        <>
           <OptionsPrompt onClick={openOptions} disabled={disabled}>
             <Dots>. . .</Dots>
             {optionsOpen &&
@@ -140,7 +140,7 @@ export const SoloButtonWithDropdown = (props: ButtonProps) => {
                 return <Option key={ind}>{option}</Option>;
               })}
           </OptionsPrompt>
-        </React.Fragment>
+        </>
       )}
     </Container>
   );

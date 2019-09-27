@@ -8,12 +8,12 @@ import { Formik, FormikErrors } from 'formik';
 import { ExtAuthPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router';
 import { AppState } from 'store';
 import { updateExtAuth } from 'store/virtualServices/actions';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
+import { useParams } from 'react-router';
 
 const FormContainer = styled.div`
   display: grid;
@@ -74,15 +74,12 @@ const validationSchema = yup.object().shape({
   callbackPath: yup.string().required('A callback path is required.')
 });
 
-interface Props
-  extends RouteComponentProps<{
-    virtualservicename: string;
-    virtualservicenamespace: string;
-  }> {
+interface Props {
   externalAuth: ExtAuthPlugin.AsObject | undefined;
 }
 
-export const ExtAuthForm = withRouter((props: Props) => {
+export const ExtAuthForm = (props: Props) => {
+  let { virtualservicename, virtualservicenamespace } = useParams();
   const dispatch = useDispatch();
   const { externalAuth } = props;
   const {
@@ -111,8 +108,8 @@ export const ExtAuthForm = withRouter((props: Props) => {
     dispatch(
       updateExtAuth({
         ref: {
-          name: props.match.params.virtualservicename,
-          namespace: props.match.params.virtualservicenamespace
+          name: virtualservicename!,
+          namespace: virtualservicenamespace!
         },
         extAuthConfig: {
           config: {
@@ -209,4 +206,4 @@ export const ExtAuthForm = withRouter((props: Props) => {
       }}
     </Formik>
   );
-});
+};

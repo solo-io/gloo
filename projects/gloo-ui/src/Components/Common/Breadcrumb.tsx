@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { Breadcrumb as AntdBreadcrumb } from 'antd';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { useHistory, useLocation, useParams } from 'react-router';
 import { colors } from 'Styles';
 
 const BreadcrumbContainer = styled(AntdBreadcrumb)`
@@ -39,14 +39,14 @@ export interface RouteParams {
   sublocation?: string;
 }
 
-function BreadcrumbC({
-  history,
-  match,
-  location
-}: RouteComponentProps<RouteParams>) {
+export const Breadcrumb = () => {
+  let location = useLocation();
+  let history = useHistory();
+  let { virtualservicename, sublocation } = useParams();
+
   const goToRoot = () => {
     history.push({
-      pathname: `/${match.path.split('/')[1]}/`
+      pathname: `/${location.pathname.split('/')[1]}/`
     });
   };
 
@@ -54,7 +54,7 @@ function BreadcrumbC({
     <BreadcrumbContainer separator='>'>
       <AntdBreadcrumb.Item onClick={goToRoot}>
         <CrumbLink clickable={true}>
-          {rootNameMap[match.path.split('/')[1]] as string}
+          {rootNameMap[location.pathname.split('/')[1]] as string}
         </CrumbLink>
       </AntdBreadcrumb.Item>
       {!!location.search && (
@@ -62,20 +62,16 @@ function BreadcrumbC({
           <CrumbLink>{location.search.split('=')[1]}</CrumbLink>
         </AntdBreadcrumb.Item>
       )}
-      {!!match.params.virtualservicename && (
+      {!!virtualservicename && (
         <AntdBreadcrumb.Item>
-          <CrumbLink>{match.params.virtualservicename}</CrumbLink>
+          <CrumbLink>{virtualservicename}</CrumbLink>
         </AntdBreadcrumb.Item>
       )}
-      {!!match.params.sublocation && (
+      {!!sublocation && (
         <AntdBreadcrumb.Item>
-          <CapitalizedCrumbLink>
-            {match.params.sublocation}
-          </CapitalizedCrumbLink>
+          <CapitalizedCrumbLink>{sublocation}</CapitalizedCrumbLink>
         </AntdBreadcrumb.Item>
       )}
     </BreadcrumbContainer>
   );
-}
-
-export const Breadcrumb = withRouter(BreadcrumbC);
+};

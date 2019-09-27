@@ -23,7 +23,13 @@ import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Route, RouteComponentProps } from 'react-router';
+import {
+  Route,
+  RouteComponentProps,
+  useHistory,
+  useRouteMatch,
+  useLocation
+} from 'react-router';
 import { AppState } from 'store';
 import {
   deleteVirtualService,
@@ -171,11 +177,14 @@ const EmptyPrompt = styled.div`
   font-size: 14px;
 `;
 
-interface Props extends RouteComponentProps {}
-
-export const VirtualServicesListing = (props: Props) => {
-  const { history, match } = props;
-  let params = new URLSearchParams(props.location.search);
+export const VirtualServicesListing = () => {
+  let history = useHistory();
+  let location = useLocation();
+  let match = useRouteMatch({
+    path: '/virtualservices/'
+  })!;
+  console.log('match', match);
+  let params = new URLSearchParams(location.search);
 
   const [catalogNotTable, setCatalogNotTable] = React.useState(true);
 
@@ -258,7 +267,7 @@ export const VirtualServicesListing = (props: Props) => {
               pathname: `${match.path}${virtualService.metadata!.namespace}/${
                 virtualService.metadata!.name
               }`,
-              search: props.location.search
+              search: location.search
             });
           }
         },
@@ -294,7 +303,7 @@ export const VirtualServicesListing = (props: Props) => {
     return (
       <div>
         <Route
-          path={`${props.match.path}`}
+          path={`${match.path}`}
           exact
           render={() => (
             <SectionCard
@@ -322,7 +331,7 @@ export const VirtualServicesListing = (props: Props) => {
           )}
         />
         <Route
-          path={`${props.match.path}table`}
+          path={`${match.path}table`}
           exact
           render={() => (
             <SoloTable
@@ -353,8 +362,8 @@ export const VirtualServicesListing = (props: Props) => {
     radios: RadioFilterProps[]
   ) {
     params.set('status', radios[0].choice || '');
-    props.history.replace({
-      pathname: `${props.location.pathname}`,
+    history.replace({
+      pathname: `${location.pathname}`,
       search: radios[0].choice
         ? `?${'status'}=${radios[0].choice}`
         : params.get('status') || ''
@@ -369,9 +378,9 @@ export const VirtualServicesListing = (props: Props) => {
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {
-              props.history.push({
-                pathname: `${props.match.path}${
-                  props.location.pathname.includes('table') ? '' : 'table'
+              history.push({
+                pathname: `${match.path}${
+                  location.pathname.includes('table') ? '' : 'table'
                 }`
               });
               setCatalogNotTable(cNt => !cNt);

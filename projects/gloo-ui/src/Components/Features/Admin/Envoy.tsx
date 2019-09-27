@@ -96,7 +96,7 @@ export const Envoy = (props: Props) => {
 
 
   return (
-    <React.Fragment>
+    <>
       {allEnvoys.map((envoy, ind) => {
         const hasConfigDump = !!envoy.raw && envoy.raw.content.length > 0
         return (
@@ -122,7 +122,7 @@ export const Envoy = (props: Props) => {
               ) : (<div>---</div>)}
             </InsideHeader>
             {hasConfigDump ? (
-              <React.Fragment>
+              <>
                 <ExpandableSection isExpanded={envoysOpen[ind]}>
                   {' '}
                   <ConfigDisplayer content={envoy.raw!.content} isJson />
@@ -130,13 +130,13 @@ export const Envoy = (props: Props) => {
                 <Link onClick={() => toggleExpansion(ind)}>
                   {envoysOpen[ind] ? 'Hide' : 'View'} Envoy Config
                 </Link>
-              </React.Fragment>
+              </>
             ) : (
                 <div><i>Install Gloo with </i><code>gatewayProxies.gatewayProxyV2.readConfig</code> <i>enabled to view Envoy config.</i></div>
               )}
           </SectionCard>
         );
       })}
-    </React.Fragment>
+    </>
   );
 };

@@ -165,7 +165,7 @@ export const SecretsPage = React.memo((props: Props) => {
   ];
 
   return (
-    <React.Fragment>
+    <>
       <SectionCard cardName={'AWS Secrets'} logoIcon={getIcon('Aws')}>
         {awsTableData.length ? (
           <SoloTable
@@ -194,6 +194,6 @@ export const SecretsPage = React.memo((props: Props) => {
           )}
         />
       </SectionCard>
-    </React.Fragment>
+    </>
   );
 }, equivalentProps);

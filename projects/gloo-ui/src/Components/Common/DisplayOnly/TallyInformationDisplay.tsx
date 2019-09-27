@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
-import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
-import { colors } from 'Styles';
 import { Divider } from 'antd';
+import * as React from 'react';
+import { useHistory } from 'react-router';
+import { colors } from 'Styles';
 
 type TallyContainerProps = { color: 'orange' | 'blue' };
 export const TallyContainer = styled.div`
@@ -49,7 +49,7 @@ const TallyDetail = styled<'div', { showLink: boolean }>('div')`
   align-items: center;
 `;
 
-interface Props extends RouteComponentProps {
+interface Props {
   tallyCount: number | null;
   tallyDescription: string | null;
   moreInfoLink?: {
@@ -59,9 +59,10 @@ interface Props extends RouteComponentProps {
   color: 'orange' | 'blue';
 }
 
-const TallyInformationDisplayC = (props: Props) => {
+export const TallyInformationDisplay = (props: Props) => {
+  let history = useHistory();
   const goToMoreInfo = (): void => {
-    props.history.push(props.moreInfoLink!.link);
+    history.push(props.moreInfoLink!.link);
   };
 
   const countDisplay = (): string | number => {
@@ -84,7 +85,7 @@ const TallyInformationDisplayC = (props: Props) => {
       <TallyDetail showLink={!!props.moreInfoLink}>
         <TallyDescription>{props.tallyDescription}</TallyDescription>
         {!!props.moreInfoLink && (
-          <React.Fragment>
+          <>
             <Divider
               style={{
                 height: '20px',
@@ -98,11 +99,9 @@ const TallyInformationDisplayC = (props: Props) => {
             <MoreInfoLink onClick={goToMoreInfo}>
               {props.moreInfoLink.prompt}
             </MoreInfoLink>
-          </React.Fragment>
+          </>
         )}
       </TallyDetail>
     </TallyContainer>
   );
 };
-
-export const TallyInformationDisplay = withRouter(TallyInformationDisplayC);

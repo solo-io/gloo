@@ -1,9 +1,10 @@
 import styled from '@emotion/styled';
 import { Select } from 'antd';
 import { useField, useFormikContext } from 'formik';
+import _ from 'lodash';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { AppState } from 'store';
 import { colors } from 'Styles';
 import {
@@ -28,7 +29,6 @@ import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
-import _ from 'lodash';
 
 const { Option, OptGroup } = Select;
 
@@ -45,7 +45,7 @@ export const SoloFormInput = ({ ...props }) => {
   const [field, meta] = useField(props.name);
 
   return (
-    <React.Fragment>
+    <>
       <SoloInput
         {...field}
         {...props}
@@ -57,7 +57,7 @@ export const SoloFormInput = ({ ...props }) => {
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -71,7 +71,7 @@ export const SoloFormDurationEditor: React.FC<FormDurationProps> = ({
   const form = useFormikContext<any>();
 
   return (
-    <React.Fragment>
+    <>
       <SoloDurationEditor
         {...field}
         {...props}
@@ -88,7 +88,7 @@ export const SoloFormDurationEditor: React.FC<FormDurationProps> = ({
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -101,7 +101,7 @@ export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
-    <React.Fragment>
+    <>
       <SoloTypeahead
         {...props}
         {...field}
@@ -110,7 +110,7 @@ export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
         onChange={value => form.setFieldValue(props.name, value)}
       />
       <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -118,7 +118,7 @@ export const SoloFormDropdown = (props: any) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
-    <React.Fragment>
+    <>
       <SoloDropdown
         {...field}
         {...props}
@@ -129,7 +129,7 @@ export const SoloFormDropdown = (props: any) => {
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -137,7 +137,7 @@ export const SoloFormCheckbox = (props: any) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
-    <React.Fragment>
+    <>
       <SoloCheckbox
         {...props}
         {...field}
@@ -149,7 +149,7 @@ export const SoloFormCheckbox = (props: any) => {
       <ErrorText errorExists={!!meta.touched && !!meta.error}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -157,7 +157,7 @@ export const SoloFormMultiselect = (props: any) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
-    <React.Fragment>
+    <>
       <SoloMultiSelect
         {...field}
         {...props}
@@ -168,7 +168,7 @@ export const SoloFormMultiselect = (props: any) => {
       <ErrorText errorExists={!!meta.touched && !!meta.error}>
         {meta.error}
       </ErrorText>{' '}
-    </React.Fragment>
+    </>
   );
 };
 
@@ -236,7 +236,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
   };
 
   return (
-    <React.Fragment>
+    <>
       <SoloDropdown
         {...field}
         {...props}
@@ -247,7 +247,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 }, shallowEqual);
 
@@ -315,7 +315,7 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
   };
 
   return (
-    <React.Fragment>
+    <>
       <SoloTypeahead
         {...field}
         {...props}
@@ -326,7 +326,7 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -337,7 +337,7 @@ export const SoloFormMultipartStringCardsList: React.FC<
   const form = useFormikContext<any>();
 
   return (
-    <React.Fragment>
+    <>
       <MultipartStringCardsList
         {...field}
         {...props}
@@ -364,7 +364,7 @@ export const SoloFormMultipartStringCardsList: React.FC<
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -421,7 +421,7 @@ export const SoloFormSecretRefInput: React.FC<{
   }, [selectedNS]);
 
   return (
-    <React.Fragment>
+    <>
       <div>
         <SoloTypeahead
           {...namespaceField}
@@ -447,7 +447,7 @@ export const SoloFormSecretRefInput: React.FC<{
           {namespaceMeta.error}
         </ErrorText>
       </div>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -517,11 +517,11 @@ export const SoloAWSSecretsList: React.FC<{
 
 export const TableFormWrapper: React.FC = props => {
   return (
-    <React.Fragment>
+    <>
       {React.Children.map(props.children, child => (
         <td>{child}</td>
       ))}
-    </React.Fragment>
+    </>
   );
 };
 
@@ -540,7 +540,7 @@ export const SoloFormStringsList: React.FC<any> = ({
   };
 
   return (
-    <React.Fragment>
+    <>
       <StringCardsList
         {...props}
         {...field}
@@ -553,6 +553,6 @@ export const SoloFormStringsList: React.FC<any> = ({
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}
       </ErrorText>
-    </React.Fragment>
+    </>
   );
 };

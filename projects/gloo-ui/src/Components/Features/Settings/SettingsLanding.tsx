@@ -15,7 +15,7 @@ import {
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect, Route, RouteComponentProps, Switch } from 'react-router';
+import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router';
 import { AppState } from 'store';
 import { createSecret, deleteSecret, listSecrets } from 'store/secrets/actions';
 import { SecretValuesType } from './SecretForm';
@@ -45,9 +45,9 @@ const Heading = styled.div`
   margin-bottom: 20px;
 `;
 
-interface Props extends RouteComponentProps {}
-
-export const SettingsLanding = (props: Props) => {
+export const SettingsLanding = () => {
+  let location = useLocation();
+  let history = useHistory();
   const [awsSecrets, setAwsSecrets] = React.useState<Secret.AsObject[]>([]);
   const [azureSecrets, setAzureSecrets] = React.useState<Secret.AsObject[]>([]);
   const [tlsSecrets, setTlsSecrets] = React.useState<Secret.AsObject[]>([]);
@@ -90,9 +90,7 @@ export const SettingsLanding = (props: Props) => {
   }
 
   // Get subpage without the / at the end
-  const locationEnding = props.location.pathname
-    .split('/settings/')[1]
-    .slice(0, -1);
+  const locationEnding = location.pathname.split('/settings/')[1].slice(0, -1);
 
   const startingChoice =
     locationEnding && locationEnding.length
@@ -113,7 +111,7 @@ export const SettingsLanding = (props: Props) => {
         ? 'namespaces'
         : newChoice.toLowerCase();
 
-    props.history.replace({
+    history.replace({
       pathname: `/settings/${newPageLocation}/`
     });
   };
@@ -125,7 +123,7 @@ export const SettingsLanding = (props: Props) => {
     radios: RadioFilterProps[]
   ): React.ReactNode => {
     return (
-      <React.Fragment>
+      <>
         <Switch>
           <Route
             path='/settings/security/'
@@ -156,7 +154,7 @@ export const SettingsLanding = (props: Props) => {
 
           <Redirect exact from='/settings/' to='/settings/security/' />
         </Switch>
-      </React.Fragment>
+      </>
     );
   };
 

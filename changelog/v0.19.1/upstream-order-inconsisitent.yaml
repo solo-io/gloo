@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix inconsistent ordering of upstreams between renders.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1171

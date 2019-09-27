@@ -8,10 +8,9 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb';
 import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
-import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps } from 'react-router';
+import { useHistory, useLocation, useParams } from 'react-router';
 import { AppState } from 'store';
 import {
   updateVirtualService,
@@ -19,9 +18,9 @@ import {
 } from 'store/virtualServices/actions';
 import { colors, healthConstants, soloConstants } from 'Styles';
 import { Domains } from './Domains';
-import { Routes } from './Routes';
 import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
+import { Routes } from './Routes';
 
 const ConfigContainer = styled.div`
   display: grid;
@@ -72,15 +71,9 @@ export const DetailsSectionTitle = styled.div`
   margin-bottom: 10px;
 `;
 
-interface Props
-  extends RouteComponentProps<{
-    virtualservicename: string;
-    virtualservicenamespace: string;
-  }> {}
-
-export const VirtualServiceDetails = (props: Props) => {
-  const { match, history, location } = props;
-  let { virtualservicename, virtualservicenamespace } = match.params;
+export const VirtualServiceDetails = () => {
+  let history = useHistory();
+  let { virtualservicename, virtualservicenamespace } = useParams();
 
   const [showConfiguration, setShowConfiguration] = React.useState(false);
 
@@ -103,11 +96,11 @@ export const VirtualServiceDetails = (props: Props) => {
     !virtualServiceDetails.virtualService.virtualHost
   ) {
     return (
-      <React.Fragment>
+      <>
         <Breadcrumb />
 
         <Spin size='large' />
-      </React.Fragment>
+      </>
     );
   }
 
@@ -138,7 +131,10 @@ export const VirtualServiceDetails = (props: Props) => {
         inputV2: {
           domains: { valuesList: newInfo.newDomainsList as string[] },
           rateLimitConfig: { value: newInfo.newRateLimits },
-          ref: { name: virtualservicename, namespace: virtualservicenamespace },
+          ref: {
+            name: virtualservicename!,
+            namespace: virtualservicenamespace!
+          },
           routes: {
             valuesList: newInfo.newRoutesList!
           }
@@ -164,19 +160,19 @@ export const VirtualServiceDetails = (props: Props) => {
   const headerInfo = [
     {
       title: 'namespace',
-      value: virtualservicenamespace
+      value: virtualservicenamespace!
     }
   ];
   return (
-    <React.Fragment>
+    <>
       <Breadcrumb />
 
       <SectionCard
         cardName={
           virtualService!.displayName.length
             ? virtualService!.displayName
-            : match.params
-            ? match.params.virtualservicename
+            : virtualservicename
+            ? virtualservicename
             : 'Error'
         }
         logoIcon={<GlooIcon />}
@@ -220,8 +216,8 @@ export const VirtualServiceDetails = (props: Props) => {
             <Domains
               domains={domainsList}
               vsRef={{
-                name: virtualservicename,
-                namespace: virtualservicenamespace
+                name: virtualservicename!,
+                namespace: virtualservicenamespace!
               }}
             />
           </DetailsSection>
@@ -229,7 +225,7 @@ export const VirtualServiceDetails = (props: Props) => {
             <Routes routes={routesList} virtualService={virtualService!} />
           </DetailsSection>
           <DetailsSection>
-            <React.Fragment>
+            <>
               <DetailsSectionTitle>Configuration</DetailsSectionTitle>
               <ConfigContainer>
                 <ConfigItem>
@@ -239,10 +235,10 @@ export const VirtualServiceDetails = (props: Props) => {
                   <RateLimit rateLimits={rateLimits} />
                 </ConfigItem>
               </ConfigContainer>
-            </React.Fragment>
+            </>
           </DetailsSection>
         </DetailsContent>
       </SectionCard>
-    </React.Fragment>
+    </>
   );
 };

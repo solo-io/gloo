@@ -49,7 +49,7 @@ export const CardsListing = (props: Props) => {
           })}
         </ListContainer>
       ) : (
-        <React.Fragment>{props.emptyContent}</React.Fragment>
+        <>{props.emptyContent}</>
       )}
     </Container>
   );

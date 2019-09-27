@@ -13,8 +13,7 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps } from 'react-router';
-import { withRouter } from 'react-router-dom';
+import { useHistory } from 'react-router';
 import { AppState } from 'store';
 import { createUpstream } from 'store/upstreams/actions';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
@@ -127,7 +126,8 @@ const validationSchema = yup.object().shape({
     })
 });
 
-const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
+export const CreateUpstreamForm: React.FC<Props> = props => {
+  let history = useHistory();
   const {
     config: { namespace, namespacesList }
   } = useSelector((state: AppState) => state);
@@ -221,7 +221,7 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     }
 
     props.toggleModal(s => !s);
-    props.history.push('/upstreams');
+    history.push('/upstreams');
   }
 
   return (
@@ -288,5 +288,3 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
     </Formik>
   );
 };
-
-export const CreateUpstreamForm = withRouter(CreateUpstreamFormC);

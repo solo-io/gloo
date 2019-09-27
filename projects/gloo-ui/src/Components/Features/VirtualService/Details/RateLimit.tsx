@@ -114,7 +114,7 @@ export const RateLimit = (props: Props) => {
           width={650}
           title='Update Rate Limit'
           onClose={() => setShowRateLimitModal(false)}>
-          <React.Fragment>
+          <>
             <Legend>
               You can set different limits for both authorized and anonymous
               users.
@@ -128,7 +128,7 @@ export const RateLimit = (props: Props) => {
               </a>
             </Legend>
             <RateLimitForm rateLimits={rateLimits} />
-          </React.Fragment>
+          </>
         </SoloModal>
       </div>
     </div>

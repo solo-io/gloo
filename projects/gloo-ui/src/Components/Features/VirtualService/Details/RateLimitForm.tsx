@@ -11,7 +11,7 @@ import { RateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/en
 import { RateLimitPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { useParams } from 'react-router';
 import { updateRateLimit } from 'store/virtualServices/actions';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
@@ -109,17 +109,12 @@ const validationSchema = yup.object().shape({
   anonLimitTimeUnit: yup.number().nullable()
 });
 
-interface Props
-  extends RouteComponentProps<{
-    virtualservicename: string;
-    virtualservicenamespace: string;
-  }> {
+interface Props {
   rateLimits?: RateLimitPlugin.AsObject;
 }
 
-export const RateLimitForm = withRouter((props: Props) => {
-  const params = props.match.params;
-
+export const RateLimitForm = (props: Props) => {
+  let { virtualservicename, virtualservicenamespace } = useParams();
   const dispatch = useDispatch();
 
   const initialValues: ValuesType = { ...defaultValues };
@@ -139,8 +134,8 @@ export const RateLimitForm = withRouter((props: Props) => {
     dispatch(
       updateRateLimit({
         ref: {
-          name: params.virtualservicename,
-          namespace: params.virtualservicenamespace
+          name: virtualservicename!,
+          namespace: virtualservicenamespace!
         },
         rateLimit: {
           anonymousLimits: {
@@ -221,4 +216,4 @@ export const RateLimitForm = withRouter((props: Props) => {
       }}
     </Formik>
   );
-});
+};

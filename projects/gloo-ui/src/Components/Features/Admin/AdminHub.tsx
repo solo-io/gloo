@@ -8,7 +8,7 @@ import {
   TypeFilterProps
 } from 'Components/Common/ListingFilter';
 import * as React from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router';
+import { Route, Switch, useHistory, useParams } from 'react-router';
 import { Envoy } from './Envoy';
 import { Gateways } from './Gateways';
 import { Proxys } from './Proxy';
@@ -35,14 +35,13 @@ const Heading = styled.div`
   margin-bottom: 20px;
 `;
 
-interface Props extends RouteComponentProps<{ sublocation: string }> {}
-
-export const AdminHub = (props: Props) => {
+export const AdminHub = () => {
+  let history = useHistory();
+  let { sublocation } = useParams();
   const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
   const locationChoice =
-    props.match.params.sublocation.charAt(0).toUpperCase() +
-    props.match.params.sublocation.slice(1);
+    sublocation!.charAt(0).toUpperCase() + sublocation!.slice(1);
 
   const pageChanged = (
     strings: StringFilterProps[],
@@ -51,7 +50,7 @@ export const AdminHub = (props: Props) => {
     radios: RadioFilterProps[]
   ) => {
     const newChoice = types.find(type => type.id === 'pageChoice')!.choice!;
-    props.history.replace({
+    history.replace({
       pathname: `/admin/${newChoice.toLowerCase()}`
     });
   };
@@ -63,13 +62,13 @@ export const AdminHub = (props: Props) => {
     radios: RadioFilterProps[]
   ): React.ReactNode => {
     return (
-      <React.Fragment>
+      <>
         <Switch>
           <Route path='/admin/gateways/' component={Gateways} />
           <Route path='/admin/proxy/' component={Proxys} />
           <Route path='/admin/envoy/' component={Envoy} />
         </Switch>
-      </React.Fragment>
+      </>
     );
   };
 

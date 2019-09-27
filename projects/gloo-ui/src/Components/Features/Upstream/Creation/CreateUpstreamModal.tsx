@@ -41,10 +41,10 @@ export const CreateUpstreamModal = (props: Props) => {
   return (
     <ModalContainer>
       <ModalTrigger onClick={() => setShowModal(s => !s)}>
-        <React.Fragment>
+        <>
           <StyledGreenPlus />
           Create Upstream
-        </React.Fragment>
+        </>
         <Divider type='vertical' style={{ height: '1.5em' }} />
       </ModalTrigger>
       <SoloModal
@@ -52,7 +52,7 @@ export const CreateUpstreamModal = (props: Props) => {
         width={650}
         title='Create an Upstream'
         onClose={() => setShowModal(false)}>
-        <React.Fragment>
+        <>
           <Legend>
             Upstreams define destinations for routes. Upstreams tell Gloo what
             to route to and how to route to them. Gloo determines how to handle
@@ -61,7 +61,7 @@ export const CreateUpstreamModal = (props: Props) => {
             information to Gloo.
           </Legend>
           <CreateUpstreamForm toggleModal={setShowModal} />
-        </React.Fragment>
+        </>
       </SoloModal>
     </ModalContainer>
   );

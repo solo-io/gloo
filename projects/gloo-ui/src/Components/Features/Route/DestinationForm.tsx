@@ -25,9 +25,9 @@ export function DestinationForm(props: DestiantionFormProps) {
   }
 
   return (
-    <React.Fragment>
+    <>
       {!!upstreamSpec && upstreamSpec.aws && (
-        <React.Fragment>
+        <>
           <HalfColumn>
             <SoloFormDropdown
               name={`${field.name}.aws.logicalName`}
@@ -53,11 +53,11 @@ export function DestinationForm(props: DestiantionFormProps) {
               </div>
             </InputRow>
           </HalfColumn>
-        </React.Fragment>
+        </>
       )}
 
       {!!upstreamSpec && upstreamSpec.kube && (
-        <React.Fragment>
+        <>
           <HalfColumn>
             <SoloFormDropdown
               name={`${field.name}.rest.functionName`}
@@ -66,8 +66,8 @@ export function DestinationForm(props: DestiantionFormProps) {
               options={functionsList}
             />
           </HalfColumn>
-        </React.Fragment>
+        </>
       )}
-    </React.Fragment>
+    </>
   );
 }

@@ -115,7 +115,7 @@ export const ExtAuth = (props: Props) => {
           width={650}
           title='Update Authorization'
           onClose={() => setShowExtAuthModal(false)}>
-          <React.Fragment>
+          <>
             <Legend>
               Prior to creating an OAuth config, you must create a client
               secret.
@@ -129,7 +129,7 @@ export const ExtAuth = (props: Props) => {
               </a>
             </Legend>
             <ExtAuthForm externalAuth={externalAuth} />
-          </React.Fragment>
+          </>
         </SoloModal>
       </div>
     </div>

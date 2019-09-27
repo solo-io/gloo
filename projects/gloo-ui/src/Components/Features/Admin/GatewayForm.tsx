@@ -248,7 +248,7 @@ export const GatewayForm = (props: FormProps) => {
           }}>
           {({ isSubmitting, handleSubmit, isValid, errors, dirty, values }) => {
             return (
-              <React.Fragment>
+              <>
                 <InnerSectionTitle>
                   Http Connection Manager Settings
                 </InnerSectionTitle>
@@ -369,7 +369,7 @@ export const GatewayForm = (props: FormProps) => {
                     }
                   />
                 </FormFooter>
-              </React.Fragment>
+              </>
             );
           }}
         </Formik>

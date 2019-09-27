@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { useHistory } from 'react-router';
 import { colors, soloConstants } from 'Styles';
 import { HealthIndicator } from '../HealthIndicator';
 
@@ -96,7 +96,7 @@ const Link = styled.div`
   font-size: 14px;
 `;
 
-interface Props extends RouteComponentProps {
+interface Props {
   titleText?: string;
   titleIcon?: Element | React.ReactElement;
   description?: string;
@@ -111,16 +111,17 @@ interface Props extends RouteComponentProps {
   descriptionMinHeight?: string;
 }
 
-const StatusTileC = (props: Props) => {
+export const StatusTile = (props: Props) => {
+  let history = useHistory();
   const goToLink = (): void => {
-    props.history.push(props.exploreMoreLink!.link);
+    history.push(props.exploreMoreLink!.link);
   };
 
   return (
     <StatusTileContainer>
       <StatusTileInformation horizontal={props.horizontal}>
         {!props.horizontal ? (
-          <React.Fragment>
+          <>
             <Title>
               <div>
                 {props.titleText}
@@ -136,11 +137,15 @@ const StatusTileC = (props: Props) => {
             </Description>
             <Content>{props.children}</Content>
             {!!props.exploreMoreLink && (
-              <Link data-testid={props.exploreMoreLink.testId} onClick={goToLink}>{props.exploreMoreLink.prompt}</Link>
+              <Link
+                data-testid={props.exploreMoreLink.testId}
+                onClick={goToLink}>
+                {props.exploreMoreLink.prompt}
+              </Link>
             )}
-          </React.Fragment>
+          </>
         ) : (
-          <React.Fragment>
+          <>
             <HorizontalTitle>
               {props.titleText}
               {props.titleIcon}
@@ -151,11 +156,9 @@ const StatusTileC = (props: Props) => {
                 <Link onClick={goToLink}>{props.exploreMoreLink.prompt}</Link>
               )}
             </HorizontalContent>
-          </React.Fragment>
+          </>
         )}
       </StatusTileInformation>
     </StatusTileContainer>
   );
 };
-
-export const StatusTile = withRouter(StatusTileC);

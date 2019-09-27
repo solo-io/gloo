@@ -20,38 +20,32 @@ export const Content = () => {
   return (
     <Container>
       <Switch>
-        <Route path='/overview' render={props => <Overview {...props} />} />
+        <Route path='/overview'>
+          <Overview />
+        </Route>
         <Route
           path='/virtualservices/:virtualservicenamespace/:virtualservicename'
-          exact
-          render={(props: any) => <VirtualServiceDetails {...props} />}
-        />
-        <Route
-          path='/virtualservices/'
-          render={(props: any) => <VirtualServicesListing {...props} />}
-        />
-        <Route
-          path='/upstreams/'
-          render={(props: any) => <UpstreamsListing {...props} />}
-        />
-        <Route
-          path='/admin'
-          exact
-          render={props => <AdminLanding {...props} />}
-        />
-        <Route
-          path='/admin/:sublocation'
-          render={props => <AdminHub {...props} />}
-        />
-        <Route
-          path='/stats/'
-          exact
-          render={(props: any) => <StatsLanding {...props} />}
-        />
-        <Route
-          path='/settings/'
-          render={(props: any) => <SettingsLanding {...props} />}
-        />
+          exact>
+          <VirtualServiceDetails />
+        </Route>
+        <Route path='/virtualservices/'>
+          <VirtualServicesListing />
+        </Route>
+        <Route path='/upstreams/'>
+          <UpstreamsListing />
+        </Route>
+        <Route path='/admin' exact>
+          <AdminLanding />
+        </Route>
+        <Route path='/admin/:sublocation'>
+          <AdminHub />
+        </Route>
+        <Route path='/stats/' exact>
+          <StatsLanding />
+        </Route>
+        <Route path='/settings/'>
+          <SettingsLanding />
+        </Route>
         <Redirect exact from='/' to='/overview/' />
       </Switch>
     </Container>

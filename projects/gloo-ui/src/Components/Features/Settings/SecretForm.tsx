@@ -67,12 +67,12 @@ export const SecretForm: React.FC<Props> = props => {
   };
 
   return (
-    <React.Fragment>
+    <>
       <Formik<SecretValuesType>
         initialValues={initialValues}
         onSubmit={createSecret}>
         {({ handleSubmit }) => (
-          <React.Fragment>
+          <>
             <TableFormWrapper>
               <SoloFormInput name='secretResourceRef.name' placeholder='Name' />
               <SoloFormTypeahead
@@ -94,10 +94,10 @@ export const SecretForm: React.FC<Props> = props => {
                 onClick={() => handleSubmit()}
               />
             </TableFormWrapper>
-          </React.Fragment>
+          </>
         )}
       </Formik>
-    </React.Fragment>
+    </>
   );
 };
 

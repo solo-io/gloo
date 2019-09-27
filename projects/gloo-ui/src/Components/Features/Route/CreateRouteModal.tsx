@@ -26,8 +26,8 @@ import {
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router';
 import { AppState } from 'store';
 import { createRoute } from 'store/virtualServices/actions';
 import { colors, soloConstants } from 'Styles';
@@ -169,7 +169,7 @@ const Footer = styled.div`
   margin-top: 28px;
 `;
 
-interface Props extends RouteComponentProps {
+interface Props {
   defaultVirtualService?: VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
   completeCreation: () => any;
@@ -177,7 +177,8 @@ interface Props extends RouteComponentProps {
   lockVirtualService?: boolean;
 }
 
-export const CreateRouteModal = withRouter((props: Props) => {
+export const CreateRouteModal = (props: Props) => {
+  let history = useHistory();
   const dispatch = useDispatch();
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
@@ -267,20 +268,20 @@ export const CreateRouteModal = withRouter((props: Props) => {
 
     props.completeCreation();
     if (values.virtualService && values.virtualService.metadata) {
-      props.history.push({
+      history.push({
         pathname: `/virtualservices/${
           values.virtualService.metadata!.namespace
         }/${values.virtualService.metadata!.name}`
       });
     } else {
       if (!!fallbackVS && !!fallbackVS.virtualService) {
-        props.history.push({
+        history.push({
           pathname: `/virtualservices/${
             fallbackVS.virtualService.metadata!.namespace
           }/${fallbackVS.virtualService.metadata!.name}`
         });
       } else {
-        props.history.push({
+        history.push({
           pathname: `/virtualservices/gloo-system/default`
         });
       }
@@ -364,7 +365,7 @@ export const CreateRouteModal = withRouter((props: Props) => {
           <FormContainer data-testid='create-route-form'>
             <SoloFormTemplate>
               <InputRow>
-                <React.Fragment>
+                <>
                   <HalfColumn>
                     <SoloFormVirtualServiceTypeahead
                       name='virtualService'
@@ -404,7 +405,7 @@ export const CreateRouteModal = withRouter((props: Props) => {
                       />
                     </HalfColumn>
                   )}
-                </React.Fragment>
+                </>
               </InputRow>
               {allUsableUpstreams.length && (
                 <InputRow>
@@ -496,4 +497,4 @@ export const CreateRouteModal = withRouter((props: Props) => {
       }}
     </Formik>
   );
-});
+};

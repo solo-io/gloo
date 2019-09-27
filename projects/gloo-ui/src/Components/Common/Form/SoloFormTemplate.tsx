@@ -40,10 +40,10 @@ export const SoloFormTemplate: React.FC<Props> = props => {
   return (
     <div>
       {props.formHeader && (
-        <React.Fragment>
+        <>
           <SectionHeader>{props.formHeader}</SectionHeader>
           <StyledDivider />
-        </React.Fragment>
+        </>
       )}
       <InputContainer>{props.children}</InputContainer>
     </div>

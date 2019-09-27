@@ -193,16 +193,16 @@ export const Routes: React.FC<Props> = props => {
   };
 
   return (
-    <React.Fragment>
+    <>
       <RouteSectionTitle>
         Routes
         <ModalTrigger
           data-testid='create-new-route-modal'
           onClick={() => setShowCreateRouteModal(true)}>
-          <React.Fragment>
+          <>
             <StyledGreenPlus />
             Create Route
-          </React.Fragment>
+          </>
         </ModalTrigger>
       </RouteSectionTitle>
 
@@ -234,6 +234,6 @@ export const Routes: React.FC<Props> = props => {
           completeCreation={finishRouteEditiing}
         />
       </SoloModal>
-    </React.Fragment>
+    </>
   );
 };

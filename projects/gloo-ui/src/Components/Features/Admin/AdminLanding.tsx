@@ -101,7 +101,7 @@ const HealthScoreContainer = styled.div`
 
 export const AdminLanding: React.FC<RouteProps> = props => {
   return (
-    <React.Fragment>
+    <>
       <Container>
         <Header>
           <div>
@@ -121,7 +121,7 @@ export const AdminLanding: React.FC<RouteProps> = props => {
           <EnvoyOverview />
         </Row>
       </Container>
-    </React.Fragment>
+    </>
   );
 };
 
@@ -182,7 +182,7 @@ const GatewayOverview = () => {
         }
         descriptionMinHeight={'95px'}>
         {!!allGateways.length ? (
-          <React.Fragment>
+          <>
             {!!gatewayErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={gatewayErrorCount}
@@ -205,7 +205,7 @@ const GatewayOverview = () => {
                 } `}
               color='blue'
             />
-          </React.Fragment>
+          </>
         ) : (
             <div>You have no gateways configured yet.</div>
           )}
@@ -261,7 +261,7 @@ const ProxyOverview = () => {
         }
         descriptionMinHeight={'95px'}>
         {!!allProxies.length ? (
-          <React.Fragment>
+          <>
             {!!proxyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={proxyErrorCount}
@@ -284,7 +284,7 @@ const ProxyOverview = () => {
                 } `}
               color='blue'
             />
-          </React.Fragment>
+          </>
         ) : (
             <div>You have no proxy configured yet.</div>
           )}
@@ -351,7 +351,7 @@ const EnvoyOverview = () => {
         {!envoysList.length ? (
           <div>Loading...</div>
         ) : !!envoysList.length ? (
-          <React.Fragment>
+          <>
             {!!envoyErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={envoyErrorCount}
@@ -374,7 +374,7 @@ const EnvoyOverview = () => {
                 } configured`}
               color='blue'
             />
-          </React.Fragment>
+          </>
         ) : (
               <div>You have no envoy configured yet.</div>
             )}

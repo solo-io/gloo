@@ -3,7 +3,6 @@ import { Popconfirm } from 'antd';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
-import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { HealthInformation } from 'Components/Common/HealthInformation';
@@ -22,9 +21,10 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { LoadingBar } from 'react-redux-loading-bar';
-import { Route, RouteComponentProps } from 'react-router-dom';
+import { useHistory, useLocation, useRouteMatch } from 'react-router';
+import { Route } from 'react-router-dom';
 import { AppState } from 'store';
 import { deleteUpstream, listUpstreams } from 'store/upstreams/actions';
 import {
@@ -186,11 +186,13 @@ interface UpstreamCardData {
   }[];
   healthStatus: number;
 }
-interface Props extends RouteComponentProps {
-  //... eg, virtualservice?: string
-}
 
-export const UpstreamsListing = (props: Props) => {
+export const UpstreamsListing = () => {
+  let location = useLocation();
+  let match = useRouteMatch({
+    path: '/upstreams/'
+  })!;
+  let history = useHistory();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(false);
   const upstreamsList = useSelector(
@@ -205,10 +207,10 @@ export const UpstreamsListing = (props: Props) => {
     }
   }, [upstreamsList.length]);
 
-  let params = new URLSearchParams(props.location.search);
+  let params = new URLSearchParams(location.search);
 
   const [catalogNotTable, setCatalogNotTable] = React.useState(
-    !props.location.pathname.includes('table')
+    !location.pathname.includes('table')
   );
   const [
     upstreamForRouteCreation,
@@ -216,8 +218,8 @@ export const UpstreamsListing = (props: Props) => {
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
 
   React.useEffect(() => {
-    if (props.location.state && props.location.state.showSuccess) {
-      props.location.state.showSuccess = false;
+    if (location.state && location.state.showSuccess) {
+      location.state.showSuccess = false;
     }
   }, []);
 
@@ -238,15 +240,16 @@ export const UpstreamsListing = (props: Props) => {
     params.set('status', selectedRadio);
     // group by type
 
-    let upstreamsByType = groupBy(upstreamsList, u =>
-      getUpstreamType(u.upstream!)
+    let upstreamsByType = React.useMemo(
+      () => groupBy(upstreamsList, u => getUpstreamType(u.upstream!)),
+      [upstreamsList.length]
     );
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
       <div>
         <Route
-          path={props.match.path}
+          path={match.path}
           exact
           render={() =>
             upstreamsByTypeArr.map(([type, upstreams]) => {
@@ -298,7 +301,7 @@ export const UpstreamsListing = (props: Props) => {
           }
         />
         <Route
-          path={`${props.match.path}table`}
+          path={`${match.path}table`}
           render={() => (
             <SoloTable
               dataSource={getUsableTableData(
@@ -429,8 +432,8 @@ export const UpstreamsListing = (props: Props) => {
     radios: RadioFilterProps[]
   ) {
     params.set('status', radios[0].choice || '');
-    props.history.replace({
-      pathname: `${props.location.pathname}`,
+    history.replace({
+      pathname: `${location.pathname}`,
       search: radios[0].choice
         ? `?${'status'}=${radios[0].choice}`
         : params.get('status') || ''
@@ -447,8 +450,6 @@ export const UpstreamsListing = (props: Props) => {
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {
-              const { location, match, history } = props;
-
               history.push({
                 pathname: `${match.path}${
                   location.pathname.includes('table') ? '' : 'table'

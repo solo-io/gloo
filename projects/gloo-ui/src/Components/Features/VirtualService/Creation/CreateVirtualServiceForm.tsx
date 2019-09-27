@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';
 import { createVirtualService } from 'store/virtualServices/actions';
 import * as yup from 'yup';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router';
 
 const Footer = styled.div`
   display: flex;
@@ -42,11 +42,13 @@ const validationSchema = yup.object().shape({
     .matches(/[a-z0-9]+[-.a-z0-9]*[a-z0-9]/, 'Namespace is invalid')
 });
 
-interface Props extends RouteComponentProps {
+interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const CreateVirtualServiceForm = withRouter((props: Props) => {
+export const CreateVirtualServiceForm = (props: Props) => {
+  let history = useHistory();
+  let location = useLocation();
   const {
     config: { namespacesList, namespace: podNamespace }
   } = useSelector((state: AppState) => state);
@@ -71,8 +73,8 @@ export const CreateVirtualServiceForm = withRouter((props: Props) => {
       })
     );
     setTimeout(() => {
-      props.history.push({
-        pathname: `${props.match.path}${values.namespace}/${values.virtualServiceName}`
+      history.push({
+        pathname: `${location.pathname}${values.namespace}/${values.virtualServiceName}`
       });
     }, 500);
     props.toggleModal(s => !s);
@@ -122,4 +124,4 @@ export const CreateVirtualServiceForm = withRouter((props: Props) => {
       )}
     </Formik>
   );
-});
+};

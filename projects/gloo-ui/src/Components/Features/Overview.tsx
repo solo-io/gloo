@@ -10,7 +10,7 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RouteComponentProps } from 'react-router-dom';
+import { useHistory } from 'react-router';
 import { AppState } from 'store';
 import { listUpstreams } from 'store/upstreams/actions';
 import { listVirtualServices } from 'store/virtualServices/actions';
@@ -130,11 +130,9 @@ const HealthScoreContainer = styled.div`
   }
 `;
 
-interface Props extends RouteComponentProps {}
-
-export const Overview = (props: Props) => {
+export const Overview = () => {
   return (
-    <React.Fragment>
+    <>
       <Container>
         <Header>
           <div>
@@ -148,17 +146,18 @@ export const Overview = (props: Props) => {
             {/*Health Score: <span>92</span>*/}
           </HealthScoreContainer>
         </Header>
-        <HealthStatus {...props} />
+        <HealthStatus />
         <Row>
           <VirtualServicesOverview />
           <UpstreamsOverview />
         </Row>
       </Container>
-    </React.Fragment>
+    </>
   );
 };
 
-const HealthStatus = (props: Props) => {
+const HealthStatus = () => {
+  let history = useHistory();
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
   );
@@ -176,7 +175,7 @@ const HealthStatus = (props: Props) => {
   }
 
   const goToAdmin = (): void => {
-    props.history.push('/admin/');
+    history.push('/admin/');
   };
 
   return (
@@ -275,7 +274,7 @@ const VirtualServicesOverview = () => {
           testId: 'view-virtual-services-link'
         }}>
         {!!virtualServicesList.length ? (
-          <React.Fragment>
+          <>
             {!!virtualServiceErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={virtualServiceErrorCount}
@@ -298,7 +297,7 @@ const VirtualServicesOverview = () => {
               } configured`}
               color='blue'
             />
-          </React.Fragment>
+          </>
         ) : (
           <div>You have no virtual services configured yet.</div>
         )}
@@ -382,7 +381,7 @@ const UpstreamsOverview = () => {
           testId: 'view-upstreams-link'
         }}>
         {!!upstreamsList.length ? (
-          <React.Fragment>
+          <>
             {!!upstreamErrorCount ? (
               <TallyInformationDisplay
                 tallyCount={upstreamErrorCount}
@@ -406,7 +405,7 @@ const UpstreamsOverview = () => {
               color='blue'
             />
             <UpstreamDetails upstreamsList={upstreamsList} />
-          </React.Fragment>
+          </>
         ) : (
           <div>You have no upstreams configured yet.</div>
         )}
