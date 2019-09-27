@@ -63,8 +63,10 @@ export const Proxys = (props: Props) => {
                 value: proxy.proxy!.metadata!.namespace
               },
               {
-                title: 'BindPort',
-                value: proxy.proxy!.listenersList[0].bindPort.toString()
+                title: 'Listener Ports',
+                value:
+                  proxy.proxy!.listenersList.map(l => l.bindPort).join(', ') ||
+                  ''
               }
             ]}
             health={

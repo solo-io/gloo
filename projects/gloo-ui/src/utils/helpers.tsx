@@ -103,8 +103,29 @@ export function getRouteMethods(route: Route.AsObject) {
 
 export function getRouteSingleUpstream(route: Route.AsObject) {
   if (route.routeAction) {
+    let functionName = '';
     if (route.routeAction.single && route.routeAction.single.upstream) {
-      return route.routeAction.single.upstream;
+      if (!!route.routeAction.single.destinationSpec) {
+        if (route.routeAction.single.destinationSpec.aws) {
+          functionName =
+            route.routeAction.single.destinationSpec.aws.logicalName;
+        }
+        if (route.routeAction.single.destinationSpec.azure) {
+          functionName =
+            route.routeAction.single.destinationSpec.azure.functionName;
+        }
+        if (route.routeAction.single.destinationSpec.grpc) {
+          functionName =
+            route.routeAction.single.destinationSpec.grpc.pb_function;
+        }
+        if (route.routeAction.single.destinationSpec.rest) {
+          functionName =
+            route.routeAction.single.destinationSpec.rest.functionName;
+        }
+      }
+      return `${route.routeAction.single.upstream.name}${
+        !functionName ? '' : ':' + functionName
+      }`;
     }
   }
   return {} as ResourceRef.AsObject;

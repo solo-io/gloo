@@ -133,10 +133,10 @@ export const Routes: React.FC<Props> = props => {
 
   const getRouteData = () => {
     const existingRoutes = routesList.map(route => {
-      const upstreamName = getRouteSingleUpstream(route).name || '';
+      const upstreamName = getRouteSingleUpstream(route) || '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
-        key: matcher,
+        key: `${matcher}-${upstreamName}`,
         matcher: matcher,
         pathMatch: matchType,
         method: getRouteMethods(route),

@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Fix route duplication bug when attempting to reorder routes with the same path name.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1113
+  - type: FIX
+    description: Fix bug that prevented proxy page from loading when proxy had no listeners.
+    issueLink: https://github.com/solo-io/gloo/issues/1276
