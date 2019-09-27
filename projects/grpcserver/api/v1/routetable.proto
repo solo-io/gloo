@@ -1,0 +1,65 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gateway/api/v1/route_table.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+
+message RouteTableDetails {
+    gateway.solo.io.RouteTable route_table = 1;
+    Raw raw = 2;
+}
+
+message GetRouteTableRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetRouteTableResponse {
+    RouteTableDetails route_table_details = 1;
+}
+
+message ListRouteTablesRequest {
+}
+
+message ListRouteTablesResponse {
+    repeated RouteTableDetails route_table_details = 1;
+}
+
+message CreateRouteTableRequest {
+    gateway.solo.io.RouteTable route_table = 1;
+}
+
+message CreateRouteTableResponse {
+    RouteTableDetails route_table_details = 1;
+}
+
+message UpdateRouteTableRequest {
+    gateway.solo.io.RouteTable route_table = 1;
+}
+
+message UpdateRouteTableYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
+}
+
+message UpdateRouteTableResponse {
+    RouteTableDetails route_table_details = 1;
+}
+
+message DeleteRouteTableRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message DeleteRouteTableResponse {}
+
+service RouteTableApi {
+    rpc GetRouteTable(GetRouteTableRequest) returns (GetRouteTableResponse) {}
+    rpc ListRouteTables(ListRouteTablesRequest) returns (ListRouteTablesResponse) {}
+    rpc CreateRouteTable(CreateRouteTableRequest) returns (CreateRouteTableResponse) {}
+    rpc UpdateRouteTable(UpdateRouteTableRequest) returns (UpdateRouteTableResponse) {}
+    rpc UpdateRouteTableYaml(UpdateRouteTableYamlRequest) returns (UpdateRouteTableResponse) {}
+    rpc DeleteRouteTable(DeleteRouteTableRequest) returns (DeleteRouteTableResponse) {}
+}

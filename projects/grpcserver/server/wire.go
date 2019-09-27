@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/routetablesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
@@ -75,6 +76,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		configsvc.NewConfigGrpcService,
 		secretsvc.NewSecretGrpcService,
 		virtualservicesvc.NewVirtualServiceGrpcService,
+		routetablesvc.NewRouteTableGrpcService,
 		gatewaysvc.NewGatewayGrpcService,
 		proxysvc.NewProxyGrpcService,
 		envoysvc.NewEnvoyGrpcService,

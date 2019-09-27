@@ -24,6 +24,7 @@ func NewGlooGrpcService(
 	configService v1.ConfigApiServer,
 	secretService v1.SecretApiServer,
 	virtualService v1.VirtualServiceApiServer,
+	routeTable v1.RouteTableApiServer,
 	gatewayService v1.GatewayApiServer,
 	proxyService v1.ProxyApiServer,
 	envoyService v1.EnvoyApiServer,
@@ -38,6 +39,7 @@ func NewGlooGrpcService(
 	v1.RegisterConfigApiServer(server.server, configService)
 	v1.RegisterSecretApiServer(server.server, secretService)
 	v1.RegisterVirtualServiceApiServer(server.server, virtualService)
+	v1.RegisterRouteTableApiServer(server.server, routeTable)
 	v1.RegisterGatewayApiServer(server.server, gatewayService)
 	v1.RegisterProxyApiServer(server.server, proxyService)
 	v1.RegisterEnvoyApiServer(server.server, envoyService)

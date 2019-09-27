@@ -86,7 +86,7 @@ func (c *client) getEnvoyDetails(ctx context.Context, pod kubev1.Pod) *v1.EnvoyD
 func (c *client) getEnvoyConfig(ctx context.Context, pod kubev1.Pod) (string, string) {
 	port, ok := pod.Annotations[ReadConfigPortAnnotationKey]
 	if !ok {
-		contextutils.LoggerFrom(ctx).Infow(
+		contextutils.LoggerFrom(ctx).Debugw(
 			fmt.Sprintf("missing admin port label for gateway proxy pod %v.%v, will not show config dump", pod.Namespace, pod.Name),
 			zap.String("namespace", pod.Namespace),
 			zap.String("name", pod.Name))
@@ -95,7 +95,7 @@ func (c *client) getEnvoyConfig(ctx context.Context, pod kubev1.Pod) (string, st
 
 	path, ok := pod.Annotations[ReadConfigConfigDumpAnnotationKey]
 	if !ok {
-		contextutils.LoggerFrom(ctx).Infow(
+		contextutils.LoggerFrom(ctx).Debugw(
 			fmt.Sprintf("missing admin config_dump path label for gateway proxy pod %v.%v, will not show config dump", pod.Namespace, pod.Name),
 			zap.String("namespace", pod.Namespace),
 			zap.String("name", pod.Name))

@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/envoysvc/envoydetails"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/gatewaysvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/proxysvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/routetablesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
@@ -78,6 +79,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	virtualServiceDetailsConverter := converter.NewVirtualServiceDetailsConverter(rawGetter)
 	virtualServiceSelector := selection.NewVirtualServiceSelector(clientCache, namespaceClient, string2)
 	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, clientCache, licenseClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
+	routeTableApiServer := routetablesvc.NewRouteTableGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter)
 	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
 	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, licenseClient, valuesClient)
 	proxyApiServer := proxysvc.NewProxyGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, valuesClient)
@@ -87,6 +89,6 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
 	updater := client.NewClientUpdater(clientCache, config, token, string2)
-	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
+	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, routeTableApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
 	return glooGrpcService, nil
 }
