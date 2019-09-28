@@ -20,6 +20,7 @@ func NewGlooGrpcService(
 	ctx context.Context,
 	listener net.Listener,
 	upstreamService v1.UpstreamApiServer,
+	upstreamGroupService v1.UpstreamGroupApiServer,
 	artifactService v1.ArtifactApiServer,
 	configService v1.ConfigApiServer,
 	secretService v1.SecretApiServer,
@@ -35,6 +36,7 @@ func NewGlooGrpcService(
 	}
 
 	v1.RegisterUpstreamApiServer(server.server, upstreamService)
+	v1.RegisterUpstreamGroupApiServer(server.server, upstreamGroupService)
 	v1.RegisterArtifactApiServer(server.server, artifactService)
 	v1.RegisterConfigApiServer(server.server, configService)
 	v1.RegisterSecretApiServer(server.server, secretService)

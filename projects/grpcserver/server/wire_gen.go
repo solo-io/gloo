@@ -25,6 +25,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/routetablesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamgroupsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
@@ -59,6 +60,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	rawGetter := rawgetter.NewKubeYamlRawGetter()
 	upstreamSearcher := search.NewUpstreamSearcher(clientCache, valuesClient)
 	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter, upstreamSearcher)
+	upstreamGroupApiServer := upstreamgroupsvc.NewUpstreamGroupGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter, upstreamSearcher)
 	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient, valuesClient)
 	coreV1Interface, err := setup.GetK8sCoreInterface(config)
 	if err != nil {
@@ -89,6 +91,6 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
 	updater := client.NewClientUpdater(clientCache, config, token, string2)
-	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, routeTableApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
+	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, upstreamGroupApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, routeTableApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
 	return glooGrpcService, nil
 }

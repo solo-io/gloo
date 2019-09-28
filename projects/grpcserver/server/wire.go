@@ -25,6 +25,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/routetablesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamgroupsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	us_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
@@ -72,6 +73,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 
 		// Services
 		upstreamsvc.NewUpstreamGrpcService,
+		upstreamgroupsvc.NewUpstreamGroupGrpcService,
 		artifactsvc.NewArtifactGrpcService,
 		configsvc.NewConfigGrpcService,
 		secretsvc.NewSecretGrpcService,

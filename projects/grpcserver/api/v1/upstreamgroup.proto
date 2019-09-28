@@ -1,0 +1,60 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+
+message UpstreamGroupDetails {
+    gloo.solo.io.UpstreamGroup upstream_group = 1;
+    Raw raw = 2;
+}
+
+message GetUpstreamGroupRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetUpstreamGroupResponse {
+    UpstreamGroupDetails upstream_group_details = 1;
+}
+
+message ListUpstreamGroupsRequest {
+}
+
+message ListUpstreamGroupsResponse {
+    repeated UpstreamGroupDetails upstream_group_details = 1;
+}
+
+message CreateUpstreamGroupRequest {
+    gloo.solo.io.UpstreamGroup upstream_group = 1;
+}
+
+message CreateUpstreamGroupResponse {
+    UpstreamGroupDetails upstream_group_details = 1;
+}
+
+message UpdateUpstreamGroupRequest {
+    gloo.solo.io.UpstreamGroup upstream_group = 1;
+}
+
+message UpdateUpstreamGroupResponse {
+    UpstreamGroupDetails upstream_group_details = 1;
+}
+
+message DeleteUpstreamGroupRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message DeleteUpstreamGroupResponse {}
+
+service UpstreamGroupApi {
+    rpc GetUpstreamGroup(GetUpstreamGroupRequest) returns (GetUpstreamGroupResponse) {}
+    rpc ListUpstreamGroups(ListUpstreamGroupsRequest) returns (ListUpstreamGroupsResponse) {}
+    rpc CreateUpstreamGroup(CreateUpstreamGroupRequest) returns (CreateUpstreamGroupResponse) {}
+    rpc UpdateUpstreamGroup(UpdateUpstreamGroupRequest) returns (UpdateUpstreamGroupResponse) {}
+    rpc DeleteUpstreamGroup(DeleteUpstreamGroupRequest) returns (DeleteUpstreamGroupResponse) {}
+}
