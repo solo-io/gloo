@@ -799,7 +799,7 @@ var _ = Describe("External auth", func() {
 						}
 					})
 
-					By("consistently allowing admin:password both destinations", func() {
+					By("consistently allowing admin:password on both destinations", func() {
 						for i := 0; i < 5; i++ {
 							// Just look for the substring that is common to the responses from both services
 							curlAndAssertResponse("/", buildAuthHeader("admin:password"), "test-app-")

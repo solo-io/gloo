@@ -1037,6 +1037,7 @@ func ExpectDisabled(e envoyPerFilterConfig) {
 	Expect(IsDisabled(e)).To(BeTrue())
 }
 
+// Returns true if the ext_authz filter is explicitly disabled
 func IsDisabled(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return false
@@ -1049,4 +1050,32 @@ func IsDisabled(e envoyPerFilterConfig) bool {
 	Expect(err).NotTo(HaveOccurred())
 
 	return cfg.GetDisabled()
+}
+
+// Returns true if the ext_authz filter is enabled and if the ContextExtensions have the expected number of entries.
+func IsEnabled(e envoyPerFilterConfig) bool {
+	if e.GetPerFilterConfig() == nil {
+		return false
+	}
+	if _, ok := e.GetPerFilterConfig()[FilterName]; !ok {
+		return false
+	}
+	var cfg envoyauth.ExtAuthzPerRoute
+	err := util.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	if cfg.GetCheckSettings() == nil {
+		return false
+	}
+
+	return len(cfg.GetCheckSettings().ContextExtensions) == 3
+}
+
+// Returns true if no PerFilterConfig is set for the ext_authz filter
+func IsNotSet(e envoyPerFilterConfig) bool {
+	if e.GetPerFilterConfig() == nil {
+		return true
+	}
+	_, ok := e.GetPerFilterConfig()[FilterName]
+	return !ok
 }

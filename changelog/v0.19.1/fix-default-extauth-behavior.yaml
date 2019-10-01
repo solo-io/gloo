@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Fix bug that causes weighted destinations to disable auth if no extauth config is provided.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1183

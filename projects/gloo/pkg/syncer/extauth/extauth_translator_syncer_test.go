@@ -6,7 +6,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -252,11 +251,6 @@ func getProxy(useDeprecatedVersion bool, authConfigRef skcore.ResourceRef) *gloo
 		}},
 	}
 }
-
-type nodeHash struct{}
-
-// ID function defines a unique string identifier for the remote Envoy node.
-func (nodeHash) ID(node *core.Node) string { return "foo" }
 
 type mockSetSnapshot struct {
 	Snapshots map[string]envoycache.Snapshot
