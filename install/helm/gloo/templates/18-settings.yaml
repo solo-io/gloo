@@ -32,6 +32,15 @@ spec:
 {{- end }}
 {{- end }}
 
+{{- if .Values.gateway.validation }}
+  gateway:
+    validation:
+      proxyValidationServerAddr: gloo:{{ .Values.gloo.deployment.validationPort }}
+{{- if .Values.gateway.validation.alwaysAcceptResources }}
+      alwaysAccept: {{ .Values.gateway.validation.alwaysAcceptResources }}
+{{- end }}
+{{- end }}
+
 {{- if ne .Values.discovery.fdsMode "" }}
   discovery:
     fdsMode: {{.Values.discovery.fdsMode}}
