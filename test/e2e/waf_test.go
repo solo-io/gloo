@@ -493,7 +493,7 @@ var _ = Describe("waf", func() {
 			}
 		}
 
-		var getProxyWaf = func(envoyPort uint32, upstream core.ResourceRef, wafListenerSettings *waf.Settings, wafVhostSettings *waf.VhostSettings, wafRouteSettings *waf.RouteSettings) *gloov1.Proxy {
+		var getProxyWaf = func(envoyPort uint32, upstream core.ResourceRef, wafListenerSettings *waf.Settings, wafVhostSettings *waf.Settings, wafRouteSettings *waf.Settings) *gloov1.Proxy {
 			var vhosts []*gloov1.VirtualHost
 
 			vhost := &gloov1.VirtualHost{
@@ -577,14 +577,13 @@ var _ = Describe("waf", func() {
 			return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil)
 		}
 
-		var getProxyWafDisruptiveVhost = func(envoyPort uint32, upstream core.ResourceRef, wafVhostSettings *waf.VhostSettings) *gloov1.Proxy {
+		var getProxyWafDisruptiveVhost = func(envoyPort uint32, upstream core.ResourceRef, wafVhostSettings *waf.Settings) *gloov1.Proxy {
 			return getProxyWaf(envoyPort, upstream, nil, wafVhostSettings, nil)
 		}
 
-		var getProxyWafDisruptiveRoute = func(envoyPort uint32, upstream core.ResourceRef, wafRouteSettings *waf.RouteSettings) *gloov1.Proxy {
-			vhostSettings := &waf.VhostSettings{
+		var getProxyWafDisruptiveRoute = func(envoyPort uint32, upstream core.ResourceRef, wafRouteSettings *waf.Settings) *gloov1.Proxy {
+			vhostSettings := &waf.Settings{
 				Disabled: true,
-				Settings: nil,
 			}
 			return getProxyWaf(envoyPort, upstream, nil, vhostSettings, wafRouteSettings)
 		}
@@ -712,10 +711,8 @@ var _ = Describe("waf", func() {
 				)
 
 				BeforeEach(func() {
-					wafCfg := &waf.VhostSettings{
-						Settings: &waf.Settings{
-							RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
-						},
+					wafCfg := &waf.Settings{
+						RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
 					}
 					proxy = getProxyWafDisruptiveVhost(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
 
@@ -781,10 +778,8 @@ var _ = Describe("waf", func() {
 				)
 
 				BeforeEach(func() {
-					wafCfg := &waf.RouteSettings{
-						Settings: &waf.Settings{
-							RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
-						},
+					wafCfg := &waf.Settings{
+						RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
 					}
 					proxy = getProxyWafDisruptiveRoute(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
 

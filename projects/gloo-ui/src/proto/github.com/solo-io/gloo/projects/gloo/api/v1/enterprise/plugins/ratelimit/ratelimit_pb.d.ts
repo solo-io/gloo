@@ -181,6 +181,28 @@ export namespace EnvoySettings {
   }
 }
 
+export class ServiceSettings extends jspb.Message {
+  clearDescriptorsList(): void;
+  getDescriptorsList(): Array<Descriptor>;
+  setDescriptorsList(value: Array<Descriptor>): void;
+  addDescriptors(value?: Descriptor, index?: number): Descriptor;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ServiceSettings.AsObject;
+  static toObject(includeInstance: boolean, msg: ServiceSettings): ServiceSettings.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ServiceSettings, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ServiceSettings;
+  static deserializeBinaryFromReader(message: ServiceSettings, reader: jspb.BinaryReader): ServiceSettings;
+}
+
+export namespace ServiceSettings {
+  export type AsObject = {
+    descriptorsList: Array<Descriptor.AsObject>,
+  }
+}
+
 export class RateLimitActions extends jspb.Message {
   clearActionsList(): void;
   getActionsList(): Array<Action>;

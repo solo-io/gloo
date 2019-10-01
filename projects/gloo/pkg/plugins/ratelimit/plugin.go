@@ -37,28 +37,29 @@ actions:
 Two actions, where the first one is the negation of the other. Since a failed entry causes the
 whole action to not be generated, only one action (descriptor?) will be sent to the server.
 
-The first action check checks if the Authorization is present. if it is we assume we can trust it, as the request
-should have pass an auth filter first.
-If the header is present, the second one get the header so we can rate limit on a per user basis.
+The first action check checks if the Authorization header is present. If it is we assume we can trust it, as the request
+should have passed an auth filter first.
 
-If not (the second actions\descriptor), then the remote address is retrieved so we can limit per IP.
+If the header is present, the second one gets the header so we can rate limit on a per user basis.
 
-Given this envoy configuraiton, the appropriate server configuration would be:
+If not (the second action/generated descriptor), then the remote address is retrieved so we can limit per IP.
 
-constraints:
+Given this envoy configuration, the appropriate server configuration would be:
+
+descriptors:
 - key: generic_key
   value: <vhost_name>
-  constraints:
+  descriptors:
   - key: header_match
     value: not-authenticated
-    constraints:
+    descriptors:
     - key: remote_address
       rate_limit:
         unit: MINUTE
         requests_per_unit: 3
   - key: header_match
     value: is-authenticated
-    constraints:
+    descriptors:
     - key: userid
       rate_limit:
         unit: MINUTE
@@ -83,9 +84,7 @@ const (
 	headerMatch   = "header_match"
 	genericKey    = "generic_key"
 	remoteAddress = "remote_address"
-)
 
-const (
 	filterName = "envoy.rate_limit"
 )
 
@@ -178,8 +177,8 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 		return err
 	}
 
-	if in.GetVirtualHostPlugins().GetRatelimitGloo() != nil {
-		rateLimit = in.GetVirtualHostPlugins().GetRatelimitGloo()
+	if rl := in.GetVirtualHostPlugins().GetRatelimitBasic(); rl != nil {
+		rateLimit = rl
 	}
 
 	if rateLimit == nil {
@@ -192,9 +191,7 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 		return err
 	}
 
-	vhost := generateEnvoyConfigForVhost(in.Name, p.authUserIdHeader)
-	out.RateLimits = vhost
-
+	out.RateLimits = generateEnvoyConfigForVhost(in.Name, p.authUserIdHeader)
 	return nil
 }
 
@@ -217,8 +214,8 @@ func (p *Plugin) ProcessVirtualHostCustom(params plugins.VirtualHostParams, in *
 		return err
 	}
 
-	if in.GetVirtualHostPlugins().GetRatelimitActions() != nil {
-		rateLimit = in.GetVirtualHostPlugins().GetRatelimitActions()
+	if rl := in.GetVirtualHostPlugins().GetRatelimit(); rl != nil {
+		rateLimit = rl
 	}
 
 	if rateLimit == nil {
@@ -250,8 +247,8 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return err
 	}
 
-	if in.GetRoutePlugins().GetRatelimitActions() != nil {
-		rateLimit = in.GetRoutePlugins().GetRatelimitActions()
+	if rl := in.GetRoutePlugins().GetRatelimit(); rl != nil {
+		rateLimit = rl
 	}
 
 	if rateLimit == nil {

@@ -75,7 +75,7 @@ func (c virtualServiceDetailsConverter) GetDetails(ctx context.Context, vs *gate
 		}
 	}
 
-	rlGloo := vs.GetVirtualHost().GetVirtualHostPlugins().GetRatelimitGloo()
+	rlGloo := vs.GetVirtualHost().GetVirtualHostPlugins().GetRatelimitBasic()
 	if rlGloo != nil {
 		details.Plugins.RateLimit.Value = rlGloo
 	}

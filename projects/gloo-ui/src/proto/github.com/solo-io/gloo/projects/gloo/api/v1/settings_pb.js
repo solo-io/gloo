@@ -18,6 +18,7 @@ var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../..
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
@@ -177,9 +178,10 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.Settings.ConsulConfiguration.toObject(includeInstance, f),
     kubernetes: (f = msg.getKubernetes()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
-    ratelimitDescriptors: (f = msg.getRatelimitDescriptors()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.toObject(includeInstance, f),
+    ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.toObject(includeInstance, f),
     ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.toObject(includeInstance, f),
+    extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f)
   };
@@ -329,9 +331,9 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       msg.setExtensions(value);
       break;
     case 26:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.deserializeBinaryFromReader);
-      msg.setRatelimitDescriptors(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.deserializeBinaryFromReader);
+      msg.setRatelimit(value);
       break;
     case 27:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings;
@@ -342,6 +344,11 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.deserializeBinaryFromReader);
       msg.setRbac(value);
+      break;
+    case 29:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.deserializeBinaryFromReader);
+      msg.setExtauth(value);
       break;
     case 14:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -561,12 +568,12 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
     );
   }
-  f = message.getRatelimitDescriptors();
+  f = message.getRatelimit();
   if (f != null) {
     writer.writeMessage(
       26,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.serializeBinaryToWriter
     );
   }
   f = message.getRatelimitServer();
@@ -583,6 +590,14 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       28,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtauth();
+  if (f != null) {
+    writer.writeMessage(
+      29,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -3573,23 +3588,23 @@ proto.gloo.solo.io.Settings.prototype.hasExtensions = function() {
 
 
 /**
- * optional ratelimit.plugins.gloo.solo.io.EnvoySettings ratelimit_descriptors = 26;
- * @return {?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings}
+ * optional ratelimit.plugins.gloo.solo.io.ServiceSettings ratelimit = 26;
+ * @return {?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings}
  */
-proto.gloo.solo.io.Settings.prototype.getRatelimitDescriptors = function() {
-  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings, 26));
+proto.gloo.solo.io.Settings.prototype.getRatelimit = function() {
+  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings, 26));
 };
 
 
-/** @param {?proto.ratelimit.plugins.gloo.solo.io.EnvoySettings|undefined} value */
-proto.gloo.solo.io.Settings.prototype.setRatelimitDescriptors = function(value) {
+/** @param {?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setRatelimit = function(value) {
   jspb.Message.setWrapperField(this, 26, value);
 };
 
 
-proto.gloo.solo.io.Settings.prototype.clearRatelimitDescriptors = function() {
-  this.setRatelimitDescriptors(undefined);
+proto.gloo.solo.io.Settings.prototype.clearRatelimit = function() {
+  this.setRatelimit(undefined);
 };
 
 
@@ -3597,7 +3612,7 @@ proto.gloo.solo.io.Settings.prototype.clearRatelimitDescriptors = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Settings.prototype.hasRatelimitDescriptors = function() {
+proto.gloo.solo.io.Settings.prototype.hasRatelimit = function() {
   return jspb.Message.getField(this, 26) != null;
 };
 
@@ -3659,6 +3674,36 @@ proto.gloo.solo.io.Settings.prototype.clearRbac = function() {
  */
 proto.gloo.solo.io.Settings.prototype.hasRbac = function() {
   return jspb.Message.getField(this, 28) != null;
+};
+
+
+/**
+ * optional enterprise.gloo.solo.io.Settings extauth = 29;
+ * @return {?proto.enterprise.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.Settings.prototype.getExtauth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings, 29));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setExtauth = function(value) {
+  jspb.Message.setWrapperField(this, 29, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearExtauth = function() {
+  this.setExtauth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasExtauth = function() {
+  return jspb.Message.getField(this, 29) != null;
 };
 
 

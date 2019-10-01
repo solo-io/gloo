@@ -22,7 +22,7 @@ import (
 )
 
 type RateLimitTranslatorSyncerExtension struct {
-	settings *ratelimit.EnvoySettings
+	settings *ratelimit.ServiceSettings
 }
 
 // TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
@@ -36,26 +36,27 @@ func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
 }
 
 // TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
-func getSettings(params syncer.TranslatorSyncerExtensionParams, settings *ratelimit.EnvoySettings) error {
-	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, settings)
+func getDeprecatedSettings(params syncer.TranslatorSyncerExtensionParams) (ratelimit.ServiceSettings, error) {
+	var settings ratelimit.EnvoySettings
+	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, &settings)
 	if err != nil {
 		if err == utils.NotFoundError {
-			return nil
+			return ratelimit.ServiceSettings{}, nil
 		}
-		return err
+		return ratelimit.ServiceSettings{}, err
 	}
-	return nil
+	return ratelimit.ServiceSettings{Descriptors: settings.GetCustomConfig().GetDescriptors()}, nil
 }
 
 func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
-	var settings ratelimit.EnvoySettings
-	err := getSettings(params, &settings)
+	var settings ratelimit.ServiceSettings
+	settings, err := getDeprecatedSettings(params)
 	if err != nil {
 		return nil, err
 	}
 
-	if params.RateLimitDescriptorSettings.GetCustomConfig() != nil {
-		settings.CustomConfig = params.RateLimitDescriptorSettings.GetCustomConfig()
+	if params.RateLimitDescriptorSettings.GetDescriptors() != nil {
+		settings.Descriptors = params.RateLimitDescriptorSettings.Descriptors
 	}
 
 	return &RateLimitTranslatorSyncerExtension{
@@ -71,10 +72,10 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 	defer logger.Infof("end sync %v", snap.Hash())
 
 	var customrl *v1.RateLimitConfig
-	if s.settings.CustomConfig != nil {
+	if s.settings.GetDescriptors() != nil {
 		customrl = &v1.RateLimitConfig{
 			Domain:      rateLimitPlugin.CustomDomain,
-			Descriptors: s.settings.CustomConfig.Descriptors,
+			Descriptors: s.settings.Descriptors,
 		}
 	}
 
@@ -92,7 +93,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
 				var rateLimitDeprecated ratelimit.IngressRateLimit
-				rateLimit := virtualHost.GetVirtualHostPlugins().GetRatelimitGloo()
+				rateLimit := virtualHost.GetVirtualHostPlugins().GetRatelimitBasic()
 				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimitDeprecated)
 				if err != nil {
 					if err == utils.NotFoundError && rateLimit == nil {

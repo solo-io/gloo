@@ -72,7 +72,14 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	}
 
 	if wafVhost != nil {
-		wafConfig = *wafVhost
+		wafConfig = waf.VhostSettings{
+			Disabled: wafVhost.Disabled,
+			Settings: &waf.Settings{
+				Disabled:    wafVhost.Disabled,
+				CoreRuleSet: wafVhost.CoreRuleSet,
+				RuleSets:    wafVhost.RuleSets,
+			},
+		}
 	}
 
 	// should never be nil
@@ -105,7 +112,14 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	}
 
 	if wafRoute != nil {
-		wafConfig = *wafRoute
+		wafConfig = waf.RouteSettings{
+			Disabled: wafRoute.Disabled,
+			Settings: &waf.Settings{
+				Disabled:    wafRoute.Disabled,
+				CoreRuleSet: wafRoute.CoreRuleSet,
+				RuleSets:    wafRoute.RuleSets,
+			},
+		}
 	}
 
 	p.addListener(params.Listener.GetHttpListener())

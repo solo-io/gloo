@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support flattened strongly-typed ratelimit, rbac, and waf configs
+    issueLink: https://github.com/solo-io/gloo/issues/1171
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.20.2
+    description: Update gloo to version 0.20.2.

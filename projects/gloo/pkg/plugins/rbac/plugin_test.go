@@ -26,43 +26,39 @@ const (
 
 var _ = Describe("Plugin", func() {
 
-	// TODO(kdorosh) remove this when we stop supporting the opaque config
-	Context("deprecated opaque config", func() {
+	// TODO(kdorosh) remove this outer context when we stop supporting the opaque config
+	Context("strongly-typed config", func() {
 		var (
 			plugin      *Plugin
 			params      plugins.Params
 			vhostParams plugins.VirtualHostParams
 			virtualHost *v1.VirtualHost
 			route       *v1.Route
-			rbacVhost   *rbac.VhostExtension
-			rbacRoute   *rbac.RouteExtension
+			rbacVhost   *rbac.ExtensionSettings
+			rbacRoute   *rbac.ExtensionSettings
 		)
 
 		BeforeEach(func() {
 			plugin = NewPlugin()
 			plugin.Init(plugins.InitParams{})
 
-			rbacRoute = &rbac.RouteExtension{
-				Route: &rbac.RouteExtension_Disable{
-					Disable: true,
-				},
+			rbacRoute = &rbac.ExtensionSettings{
+				Disable: true,
 			}
-			rbacVhost = &rbac.VhostExtension{
-				Config: &rbac.Config{
-					Policies: map[string]*rbac.Policy{
-						"user": {
-							Principals: []*rbac.Principal{{
-								JwtPrincipal: &rbac.JWTPrincipal{
-									Claims: map[string]string{
-										"iss": issuer,
-										"sub": user,
-									},
+			rbacVhost = &rbac.ExtensionSettings{
+				Policies: map[string]*rbac.Policy{
+					"user": {
+						Principals: []*rbac.Principal{{
+							JwtPrincipal: &rbac.JWTPrincipal{
+								Claims: map[string]string{
+									"iss": issuer,
+									"sub": user,
 								},
-							}},
-							Permissions: &rbac.Permissions{
-								PathPrefix: "/foo",
-								Methods:    []string{"GET"},
 							},
+						}},
+						Permissions: &rbac.Permissions{
+							PathPrefix: "/foo",
+							Methods:    []string{"GET"},
 						},
 					},
 				},
@@ -240,7 +236,7 @@ var _ = Describe("Plugin", func() {
 				Expect(policy).To(Equal(expectedPolicy))
 			})
 
-			It("should process route", func() {
+			It("should process disabled route", func() {
 				pfc := outRoute.PerFilterConfig[FilterName]
 				Expect(pfc).NotTo(BeNil())
 
@@ -254,9 +250,28 @@ var _ = Describe("Plugin", func() {
 				Expect(outFilters).To(HaveLen(1))
 			})
 
+			Context("disabled vhost", func() {
+
+				BeforeEach(func() {
+					rbacVhost = &rbac.ExtensionSettings{
+						Disable: true,
+					}
+				})
+
+				It("should process disabled vhost", func() {
+					pfc := outVhost.PerFilterConfig[FilterName]
+					Expect(pfc).NotTo(BeNil())
+
+					var perVhostRbac envoyauthz.RBACPerRoute
+					err := util.StructToMessage(pfc, &perVhostRbac)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(perVhostRbac.Rbac).To(BeNil())
+				})
+			})
+
 			Context("with provider", func() {
 				BeforeEach(func() {
-					rbacVhost.Config.Policies["user"].Principals[0].GetJwtPrincipal().Provider = "test"
+					rbacVhost.Policies["user"].Principals[0].GetJwtPrincipal().Provider = "test"
 				})
 
 				It("should process virtual host", func() {
@@ -281,7 +296,7 @@ var _ = Describe("Plugin", func() {
 		})
 	})
 
-	// TODO(kdorosh) remove this outer context when we stop supporting the opaque config
+	// TODO(kdorosh) remove this when we stop supporting the opaque config
 	Context("deprecated opaque config", func() {
 		var (
 			plugin      *Plugin

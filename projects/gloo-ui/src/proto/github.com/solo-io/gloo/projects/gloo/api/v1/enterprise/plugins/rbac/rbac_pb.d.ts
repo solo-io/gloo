@@ -142,6 +142,29 @@ export namespace Config {
   }
 }
 
+export class ExtensionSettings extends jspb.Message {
+  getDisable(): boolean;
+  setDisable(value: boolean): void;
+
+  getPoliciesMap(): jspb.Map<string, Policy>;
+  clearPoliciesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExtensionSettings.AsObject;
+  static toObject(includeInstance: boolean, msg: ExtensionSettings): ExtensionSettings.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExtensionSettings, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExtensionSettings;
+  static deserializeBinaryFromReader(message: ExtensionSettings, reader: jspb.BinaryReader): ExtensionSettings;
+}
+
+export namespace ExtensionSettings {
+  export type AsObject = {
+    disable: boolean,
+    policiesMap: Array<[string, Policy.AsObject]>,
+  }
+}
+
 export class VhostExtension extends jspb.Message {
   hasConfig(): boolean;
   clearConfig(): void;

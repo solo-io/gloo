@@ -100,7 +100,7 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			}
 			if input.GetRateLimitConfig() != nil {
 				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
-				vs.VirtualHost.VirtualHostPlugins.RatelimitGloo = input.GetRateLimitConfig()
+				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig()
 			}
 		}
 
@@ -168,7 +168,7 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 			}
 			if input.GetRateLimitConfig() != nil {
 				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
-				vs.VirtualHost.VirtualHostPlugins.RatelimitGloo = input.GetRateLimitConfig().GetValue()
+				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig().GetValue()
 			}
 		}
 

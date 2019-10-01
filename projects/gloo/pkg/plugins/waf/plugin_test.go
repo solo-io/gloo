@@ -306,6 +306,7 @@ var _ = Describe("waf plugin", func() {
 		allTests()
 	})
 
+	// TODO(kdorosh) remove this outer context when we stop supporting the opaque config
 	Context("strongly-typed config", func() {
 		BeforeEach(func() {
 			wafListener = &waf.Settings{}
@@ -328,7 +329,11 @@ var _ = Describe("waf plugin", func() {
 					},
 				},
 				RoutePlugins: &v1.RoutePlugins{
-					Waf: wafRoute,
+					Waf: &waf.Settings{
+						Disabled:    wafRoute.Disabled,
+						CoreRuleSet: wafRoute.Settings.CoreRuleSet,
+						RuleSets:    wafRoute.Settings.RuleSets,
+					},
 				},
 			}
 
@@ -340,7 +345,11 @@ var _ = Describe("waf plugin", func() {
 				Name:    "virt1",
 				Domains: []string{"*"},
 				VirtualHostPlugins: &v1.VirtualHostPlugins{
-					Waf: wafVhost,
+					Waf: &waf.Settings{
+						Disabled:    wafVhost.Disabled,
+						CoreRuleSet: wafVhost.Settings.CoreRuleSet,
+						RuleSets:    wafVhost.Settings.RuleSets,
+					},
 				},
 				Routes: []*v1.Route{route},
 			}

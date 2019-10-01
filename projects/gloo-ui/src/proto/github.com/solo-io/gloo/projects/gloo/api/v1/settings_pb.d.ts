@@ -8,6 +8,7 @@ import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../..
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
@@ -121,10 +122,10 @@ export class Settings extends jspb.Message {
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
   setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
 
-  hasRatelimitDescriptors(): boolean;
-  clearRatelimitDescriptors(): void;
-  getRatelimitDescriptors(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings | undefined;
-  setRatelimitDescriptors(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings): void;
+  hasRatelimit(): boolean;
+  clearRatelimit(): void;
+  getRatelimit(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings | undefined;
+  setRatelimit(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings): void;
 
   hasRatelimitServer(): boolean;
   clearRatelimitServer(): void;
@@ -135,6 +136,11 @@ export class Settings extends jspb.Message {
   clearRbac(): void;
   getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings | undefined;
   setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings): void;
+
+  hasExtauth(): boolean;
+  clearExtauth(): void;
+  getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings | undefined;
+  setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -184,9 +190,10 @@ export namespace Settings {
     consul?: Settings.ConsulConfiguration.AsObject,
     kubernetes?: Settings.KubernetesConfiguration.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
-    ratelimitDescriptors?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.EnvoySettings.AsObject,
+    ratelimit?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.AsObject,
     ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.AsObject,
+    extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
   }

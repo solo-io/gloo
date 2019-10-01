@@ -4461,7 +4461,8 @@ proto.gloo.solo.io.WeightedDestination.toObject = function(includeInstance, msg)
   var f, obj = {
     destination: (f = msg.getDestination()) && proto.gloo.solo.io.Destination.toObject(includeInstance, f),
     weight: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    weighedDestinationPlugins: (f = msg.getWeighedDestinationPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.toObject(includeInstance, f)
+    weighedDestinationPlugins: (f = msg.getWeighedDestinationPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.toObject(includeInstance, f),
+    weightedDestinationPlugins: (f = msg.getWeightedDestinationPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4512,6 +4513,11 @@ proto.gloo.solo.io.WeightedDestination.deserializeBinaryFromReader = function(ms
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.deserializeBinaryFromReader);
       msg.setWeighedDestinationPlugins(value);
       break;
+    case 4:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.deserializeBinaryFromReader);
+      msg.setWeightedDestinationPlugins(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4560,6 +4566,14 @@ proto.gloo.solo.io.WeightedDestination.serializeBinaryToWriter = function(messag
   if (f != null) {
     writer.writeMessage(
       3,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getWeightedDestinationPlugins();
+  if (f != null) {
+    writer.writeMessage(
+      4,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.serializeBinaryToWriter
     );
@@ -4639,6 +4653,36 @@ proto.gloo.solo.io.WeightedDestination.prototype.clearWeighedDestinationPlugins 
  */
 proto.gloo.solo.io.WeightedDestination.prototype.hasWeighedDestinationPlugins = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional WeightedDestinationPlugins weighted_destination_plugins = 4;
+ * @return {?proto.gloo.solo.io.WeightedDestinationPlugins}
+ */
+proto.gloo.solo.io.WeightedDestination.prototype.getWeightedDestinationPlugins = function() {
+  return /** @type{?proto.gloo.solo.io.WeightedDestinationPlugins} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins, 4));
+};
+
+
+/** @param {?proto.gloo.solo.io.WeightedDestinationPlugins|undefined} value */
+proto.gloo.solo.io.WeightedDestination.prototype.setWeightedDestinationPlugins = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.gloo.solo.io.WeightedDestination.prototype.clearWeightedDestinationPlugins = function() {
+  this.setWeightedDestinationPlugins(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.WeightedDestination.prototype.hasWeightedDestinationPlugins = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

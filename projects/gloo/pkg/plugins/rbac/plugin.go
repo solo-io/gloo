@@ -74,11 +74,21 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return errors.Wrapf(err, "Error converting proto to rbac plugin")
 	}
 
-	if rbac := in.VirtualHostPlugins.GetRbac(); rbac != nil {
-		rbacConfig = *rbac
+	if rbacConf := in.VirtualHostPlugins.GetRbac(); rbacConf != nil {
+		if rbacConf.Disable == true {
+			perRouteRbac := &envoyauthz.RBACPerRoute{}
+			pluginutils.SetVhostPerFilterConfig(out, FilterName, perRouteRbac)
+			return nil
+		} else {
+			rbacConfig = rbac.VhostExtension{
+				Config: &rbac.Config{
+					Policies: rbacConf.GetPolicies(),
+				},
+			}
+		}
 	}
 
-	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConfig.Config)
+	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConfig.Config.GetPolicies())
 	if err != nil {
 		return err
 	}
@@ -98,8 +108,22 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return errors.Wrapf(err, "Error converting proto to rbac plugin")
 	}
 
-	if rbac := in.RoutePlugins.GetRbac(); rbac != nil {
-		rbacConfig = *rbac
+	if rbacConf := in.RoutePlugins.GetRbac(); rbacConf != nil {
+		if rbacConf.GetDisable() {
+			rbacConfig = rbac.RouteExtension{
+				Route: &rbac.RouteExtension_Disable{
+					Disable: rbacConf.GetDisable(),
+				},
+			}
+		} else {
+			rbacConfig = rbac.RouteExtension{
+				Route: &rbac.RouteExtension_Config{
+					Config: &rbac.Config{
+						Policies: rbacConf.GetPolicies(),
+					},
+				},
+			}
+		}
 	}
 
 	var perRouteRbac *envoyauthz.RBACPerRoute
@@ -110,7 +134,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			perRouteRbac = &envoyauthz.RBACPerRoute{}
 		}
 	case *rbac.RouteExtension_Config:
-		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, route.Config)
+		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, route.Config.GetPolicies())
 		if err != nil {
 			return err
 		}
@@ -143,7 +167,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func translateRbac(ctx context.Context, vhostname string, j *rbac.Config) (*envoyauthz.RBACPerRoute, error) {
+func translateRbac(ctx context.Context, vhostname string, userPolicies map[string]*rbac.Policy) (*envoyauthz.RBACPerRoute, error) {
 	ctx = contextutils.WithLogger(ctx, "rbac")
 	policies := make(map[string]*envoycfgauthz.Policy)
 	res := &envoyauthz.RBACPerRoute{
@@ -154,7 +178,6 @@ func translateRbac(ctx context.Context, vhostname string, j *rbac.Config) (*envo
 			},
 		},
 	}
-	userPolicies := j.GetPolicies()
 	if userPolicies != nil {
 		for k, v := range userPolicies {
 			policies[k] = translatePolicy(contextutils.WithLogger(ctx, k), vhostname, v)
