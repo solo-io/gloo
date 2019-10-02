@@ -293,7 +293,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:fe9e9f3c3b8fd35b5e1ed990ce28c26709bcc38ed605a2b5a483650c9df3bfd1"
+  digest = "1:180a8b7ca453d64029fcfc964291c957a70c1997f29b213bdd6404d6caed793a"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -319,6 +319,7 @@
     "envoy/data/accesslog/v2",
     "envoy/service/accesslog/v2",
     "envoy/service/discovery/v2",
+    "envoy/service/metrics/v2",
     "envoy/type",
     "envoy/type/matcher",
     "pkg/util",
@@ -2039,9 +2040,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:525e411c9476f1a201efc22d7c4878002b001f20f241221c226a83ba654975e4"
+  digest = "1:cb1518c8b771f09b1fa0a6722601460e0c0262f564340bf2fb24947b9f662194"
   name = "istio.io/gogo-genproto"
-  packages = ["opencensus/proto/trace/v1"]
+  packages = [
+    "opencensus/proto/trace/v1",
+    "prometheus",
+  ]
   pruneopts = "UT"
   revision = "e88dc8b0e4dba2caf977ab9ec040cc2081db103f"
 
@@ -2698,6 +2702,7 @@
     "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2",
+    "github.com/envoyproxy/go-control-plane/envoy/service/metrics/v2",
     "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/envoyproxy/protoc-gen-validate/validate",
@@ -2828,6 +2833,7 @@
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
+    "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
@@ -2835,6 +2841,7 @@
     "gopkg.in/AlecAivazis/survey.v1/terminal",
     "k8s.io/api/admission/v1beta1",
     "k8s.io/api/admissionregistration/v1beta1",
+    "istio.io/gogo-genproto/prometheus",
     "k8s.io/api/apps/v1",
     "k8s.io/api/batch/v1",
     "k8s.io/api/core/v1",
