@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/solo-io/go-utils/contextutils"
 
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
@@ -49,6 +51,9 @@ var (
 	MalformedConfigError    = func(err error) error {
 		return errors.Wrapf(err, "failed to parse ext auth config")
 	}
+	NamedExtensionError = func(err error, extensionContainerName string) error {
+		return errors.Wrapf(err, "error on [%s]", extensionContainerName)
+	}
 )
 
 const (
@@ -71,8 +76,10 @@ type Plugin struct {
 	extAuthSettings *extauthapi.Settings
 }
 
-type ExtensionContainer interface {
+type ConfigContainer interface {
+	// TODO(marco): remove when opaque config is removed
 	GetExtensions() *v1.Extensions
+	GetExtauth() *extauthapi.ExtAuthExtension
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -86,14 +93,19 @@ func BuildVirtualHostName(proxy *v1.Proxy, listener *v1.Listener, virtualHost *v
 }
 
 func GetSettings(params plugins.InitParams) (*extauthapi.Settings, error) {
-	var settings extauthapi.Settings
-	ok, err := sputils.GetSettings(params, ExtensionName, &settings)
-	if err != nil {
-		return nil, err
+	if stronglyTypedSettings := params.Settings.GetExtauth(); stronglyTypedSettings != nil {
+		return stronglyTypedSettings, nil
+	} else {
+		var settings extauthapi.Settings
+		ok, err := sputils.GetSettings(params, ExtensionName, &settings)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return &settings, nil
+		}
 	}
-	if ok {
-		return &settings, nil
-	}
+
 	return nil, nil
 }
 
@@ -158,36 +170,45 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 // Since the ext_authz filter is always enabled on the listener, we need this to disable authentication by default on
 // a virtual host and its child resources (routes, weighted destinations). Extauth should be opt-in.
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
-	tryNewFormat, err := p.processOldVirtualHostExtension(params, in, out)
+	var extAuthConfig *extauthapi.ExtAuthExtension
+
+	// If we have the strongly-typed config, just use that and skip extension parsing
+	if extAuth := in.GetVirtualHostPlugins().GetExtauth(); extAuth != nil {
+		extAuthConfig = extAuth
+
+	} else {
+
+		// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
+		nothingLeftToDo, err := p.processOldVirtualHostExtension(params, in, out)
+		if err != nil {
+			return err
+		}
+		if nothingLeftToDo {
+			return nil
+		}
+
+		// Check if resource is using new configuration format
+		extAuthConfig, err = p.parseExtension(in.VirtualHostPlugins, params.Params)
+		if err != nil {
+			return err
+		}
+	}
+
+	// No config was defined, explicitly disable the filter for this virtual host
+	if extAuthConfig == nil || extAuthConfig.GetDisable() {
+		return markVirtualHostNoAuth(out)
+	}
+
+	config, err := buildFilterConfig(
+		SourceTypeVirtualHost,
+		BuildVirtualHostName(params.Proxy, params.Listener, in),
+		extAuthConfig.GetConfigRef().Key(),
+	)
 	if err != nil {
 		return err
 	}
 
-	if tryNewFormat {
-		extAuthConfig, err := p.parseExtension(in.VirtualHostPlugins, params.Params)
-		if err != nil {
-			return err
-		}
-
-		// No config was defined, explicitly disable the filter for this virtual host
-		if extAuthConfig == nil || extAuthConfig.GetDisable() {
-			return markVirtualHostNoAuth(out)
-		}
-
-		config, err := buildFilterConfig(
-			SourceTypeVirtualHost,
-			BuildVirtualHostName(params.Proxy, params.Listener, in),
-			extAuthConfig.GetConfigRef().Key(),
-		)
-		if err != nil {
-			return err
-		}
-
-		return pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
-	}
-
-	return nil
+	return pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
 }
 
 // This function generates the ext_authz PerFilterConfig for this route:
@@ -195,36 +216,46 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 // - if auth is explicitly disabled, disable the filter (will apply by default also to WeightedDestinations);
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host).
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
-	mustTryNewFormat, err := processOldRouteExtension(params.Ctx, in, out)
+	var extAuthConfig *extauthapi.ExtAuthExtension
+
+	// If we have the strongly-typed config, just use that and skip extension parsing
+	if extAuth := in.GetRoutePlugins().GetExtauth(); extAuth != nil {
+		extAuthConfig = extAuth
+
+	} else {
+
+		// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
+		nothingLeftToDo, err := processOldRouteExtension(params.Ctx, in, out)
+		if err != nil {
+			return err
+		}
+		if nothingLeftToDo {
+			return nil
+		}
+
+		// Check if resource is using new configuration format
+		extAuthConfig, err = p.parseExtension(in.RoutePlugins, params.Params)
+		if err != nil {
+			return err
+		}
+	}
+
+	// No config was defined, just return
+	if extAuthConfig == nil {
+		return nil
+	}
+
+	// Explicitly disable the filter for this route
+	if extAuthConfig.GetDisable() {
+		return markRouteNoAuth(out)
+	}
+
+	config, err := buildFilterConfig(SourceTypeRoute, "", extAuthConfig.GetConfigRef().Key())
 	if err != nil {
 		return err
 	}
 
-	if mustTryNewFormat {
-		extAuthConfig, err := p.parseExtension(in.RoutePlugins, params.Params)
-		if err != nil {
-			return err
-		}
-
-		// No config was defined, just return
-		if extAuthConfig == nil {
-			return nil
-		}
-
-		// Explicitly disable the filter for this route
-		if extAuthConfig.GetDisable() {
-			return markRouteNoAuth(out)
-		}
-
-		config, err := buildFilterConfig(SourceTypeRoute, "", extAuthConfig.GetConfigRef().Key())
-		if err != nil {
-			return err
-		}
-
-		return pluginutils.SetRoutePerFilterConfig(out, FilterName, config)
-	}
-	return nil
+	return pluginutils.SetRoutePerFilterConfig(out, FilterName, config)
 }
 
 // This function generates the ext_authz PerFilterConfig for this weightedDestination:
@@ -232,9 +263,37 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 // - if auth is explicitly disabled, disable the filter;
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host and/or route).
 func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.WeightedDestination, out *envoyroute.WeightedCluster_ClusterWeight) error {
-	extAuthConfig, err := p.parseExtension(in.WeighedDestinationPlugins, params.Params)
-	if err != nil {
-		return err
+	var extAuthConfig *extauthapi.ExtAuthExtension
+
+	// If we have the strongly-typed config, just use that and skip extension parsing
+	if extAuth := in.GetWeightedDestinationPlugins().GetExtauth(); extAuth != nil {
+		extAuthConfig = extAuth
+
+	} else if extAuth := in.GetWeighedDestinationPlugins().GetExtauth(); extAuth != nil {
+		// Handle deprecated field
+		extAuthConfig = extAuth
+
+	} else {
+
+		var errs *multierror.Error
+		var newFmtErr, oldFmtErr error
+
+		// Check whether resource is using extension. Will be removed with v1.0.0.
+		extAuthConfig, newFmtErr = p.parseExtension(in.WeightedDestinationPlugins, params.Params)
+		if extAuthConfig == nil { // this indicates that either there was an error or no config was found
+
+			// Don't swallow error, if present
+			if newFmtErr != nil {
+				errs = multierror.Append(errs, NamedExtensionError(newFmtErr, "WeightedDestinationPlugins"))
+			}
+
+			// Try deprecated field
+			extAuthConfig, oldFmtErr = p.parseExtension(in.WeighedDestinationPlugins, params.Params)
+			if oldFmtErr != nil {
+				errs = multierror.Append(errs, NamedExtensionError(oldFmtErr, "WeighedDestinationPlugins"))
+				return errs
+			}
+		}
 	}
 
 	// No config was defined, just return
@@ -256,8 +315,8 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 }
 
 // If the input resource does not contain an extauth config, then the first return value will be nil.
-// If the return value is not nil, then the return object is guaranteed to be valid.
-func (p *Plugin) parseExtension(resource ExtensionContainer, params plugins.Params) (*extauthapi.ExtAuthExtension, error) {
+// If the returned ExtAuthExtension is not nil, then it is guaranteed to be valid.
+func (p *Plugin) parseExtension(resource ConfigContainer, params plugins.Params) (*extauthapi.ExtAuthExtension, error) {
 	var config extauthapi.ExtAuthExtension
 	if err := utils.UnmarshalExtension(resource, ExtensionName, &config); err != nil {
 
@@ -315,31 +374,31 @@ func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth
 	}, nil
 }
 
-func processOldRouteExtension(ctx context.Context, in *v1.Route, out *envoyroute.Route) (tryNewFormat bool, err error) {
+func processOldRouteExtension(ctx context.Context, in *v1.Route, out *envoyroute.Route) (nothingLeftToDo bool, err error) {
 	var extAuth extauthapi.RouteExtension
 	if err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &extAuth); err != nil {
 		if err == utils.NotFoundError {
-			return false, nil
+			return true, nil
 		}
-		return true, nil
+		return false, nil
 	}
 	logDeprecatedWarning(ctx)
 
 	if extAuth.Disable {
-		return false, markRouteNoAuth(out)
+		return true, markRouteNoAuth(out)
 	}
-	return false, nil
+	return true, nil
 }
 
-func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) (tryNewFormat bool, err error) {
+func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) (nothingLeftToDo bool, err error) {
 	var deprecatedExtAuth extauthapi.VhostExtension
 	if err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &deprecatedExtAuth); err != nil {
 		if err == utils.NotFoundError {
 			// No extauth config, disable extauth on this virtual host
-			return false, markVirtualHostNoAuth(out)
+			return true, markVirtualHostNoAuth(out)
 		}
 		// This is not the old format, try the new
-		return true, nil
+		return false, nil
 	}
 	logDeprecatedWarning(params.Ctx)
 
@@ -347,14 +406,14 @@ func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams
 	// If it fails or returns nil, it means that the filter was not added, so we do not update the resource to avoid
 	// compromising the current Envoy configuration.
 	if cfg, err := p.generateEnvoyConfigForFilter(params.Params); err != nil {
-		return false, err
+		return true, err
 	} else if cfg == nil {
-		return false, NoAuthSettingsError
+		return true, NoAuthSettingsError
 	}
 
 	// Do not set the filter if the config is invalid
 	if _, err = TranslateDeprecatedExtAuthConfig(params.Ctx, params.Proxy, params.Listener, in, params.Snapshot, deprecatedExtAuth); err != nil {
-		return false, err
+		return true, err
 	}
 
 	config, err := buildFilterConfig(
@@ -366,10 +425,10 @@ func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams
 		DeprecatedConfigRefPrefix+BuildVirtualHostName(params.Proxy, params.Listener, in),
 	)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
-	return false, pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
+	return true, pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
 }
 
 func markVirtualHostNoAuth(out *envoyroute.VirtualHost) error {

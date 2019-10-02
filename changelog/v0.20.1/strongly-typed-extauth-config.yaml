@@ -1,0 +1,9 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+      Support new external auth API location (directly on `*Plugins` messages instead of nested under `*Plugins.Extensions`).
+      The new APIs maintain the same structure as the existing ones but are strongly-typed, meaning that you can now access
+      the configuration without having to marshal generic protobuf types to the relevant structs, e.g. you can just do
+      `virtualHost.GetVirtualHostPlugins().GetExtauth()`. The deprecated configuration format via opaque extensions is still supported.
+  issueLink: https://github.com/solo-io/gloo/issues/1171
+  resolvesIssue: false

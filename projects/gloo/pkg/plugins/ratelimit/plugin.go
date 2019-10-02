@@ -140,10 +140,10 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 		return err
 	}
 
-	if params.Settings != nil && params.Settings.RatelimitServer != nil {
-		p.upstreamRef = params.Settings.RatelimitServer.RatelimitServerRef
-		p.timeout = params.Settings.RatelimitServer.RequestTimeout
-		p.denyOnFail = params.Settings.RatelimitServer.DenyOnFail
+	if rlServer := params.Settings.GetRatelimitServer(); rlServer != nil {
+		p.upstreamRef = rlServer.RatelimitServerRef
+		p.timeout = rlServer.RequestTimeout
+		p.denyOnFail = rlServer.DenyOnFail
 	}
 
 	return nil

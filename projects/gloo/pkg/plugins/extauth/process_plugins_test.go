@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	. "github.com/solo-io/solo-projects/test/extauth/helpers"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -54,11 +56,11 @@ var validationFuncForConfigValue = map[ConfigState]func(e envoyPerFilterConfig) 
 // should the need ever arise in the future.
 var _ = Describe("Processing Extauth Plugins", func() {
 
-	Context("latest configuration format", func() {
+	Context("strongly typed configuration format", func() {
 
 		DescribeTable("virtual host extauth filter configuration",
 			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(input, Undefined, Undefined, false)
+				pluginContext := getPluginContext(input, Undefined, Undefined, StronglyTyped)
 
 				var out envoyv2.VirtualHost
 				err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
@@ -72,7 +74,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 
 		DescribeTable("route extauth filter configuration",
 			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(Undefined, input, Undefined, false)
+				pluginContext := getPluginContext(Undefined, input, Undefined, StronglyTyped)
 
 				var out envoyv2.Route
 				err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
@@ -86,7 +88,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 
 		DescribeTable("weighted destination extauth filter configuration",
 			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(Undefined, Undefined, input, false)
+				pluginContext := getPluginContext(Undefined, Undefined, input, StronglyTyped)
 
 				var out envoyv2.WeightedCluster_ClusterWeight
 				err := pluginContext.PluginInstance.ProcessWeightedDestination(pluginContext.RouteParams, pluginContext.WeightedDestination, &out)
@@ -99,11 +101,58 @@ var _ = Describe("Processing Extauth Plugins", func() {
 		)
 	})
 
+	// TODO(marco): remove with v1.0.0
+	Context("latest extension configuration format", func() {
+
+		DescribeTable("virtual host extauth filter configuration",
+			func(input, expected ConfigState) {
+				pluginContext := getPluginContext(input, Undefined, Undefined, NewExtensionsFormat)
+
+				var out envoyv2.VirtualHost
+				err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+			},
+			Entry("undefined -> disable", Undefined, Disabled), // This is a special case for virtual hosts
+			Entry("disabled -> disable", Disabled, Disabled),
+			Entry("enabled -> enable", Enabled, Enabled),
+		)
+
+		DescribeTable("route extauth filter configuration",
+			func(input, expected ConfigState) {
+				pluginContext := getPluginContext(Undefined, input, Undefined, NewExtensionsFormat)
+
+				var out envoyv2.Route
+				err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+			},
+			Entry("undefined -> don't set", Undefined, Undefined),
+			Entry("disabled -> disable", Disabled, Disabled),
+			Entry("enabled -> enable", Enabled, Enabled),
+		)
+
+		DescribeTable("weighted destination extauth filter configuration",
+			func(input, expected ConfigState) {
+				pluginContext := getPluginContext(Undefined, Undefined, input, NewExtensionsFormat)
+
+				var out envoyv2.WeightedCluster_ClusterWeight
+				err := pluginContext.PluginInstance.ProcessWeightedDestination(pluginContext.RouteParams, pluginContext.WeightedDestination, &out)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+			},
+			Entry("undefined -> don't set", Undefined, Undefined),
+			Entry("disabled -> disable", Disabled, Disabled),
+			Entry("enabled -> enable", Enabled, Enabled),
+		)
+	})
+
+	// TODO(marco): remove with v1.0.0
 	Context("deprecated configuration format", func() {
 
 		DescribeTable("virtual host extauth filter configuration",
 			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(input, Undefined, Undefined, true)
+				pluginContext := getPluginContext(input, Undefined, Undefined, DeprecatedExtensionsFormat)
 
 				var out envoyv2.VirtualHost
 				err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
@@ -116,7 +165,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 
 		DescribeTable("route extauth filter configuration",
 			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(Undefined, input, Undefined, true)
+				pluginContext := getPluginContext(Undefined, input, Undefined, DeprecatedExtensionsFormat)
 
 				var out envoyv2.Route
 				err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
@@ -138,7 +187,7 @@ type pluginContext struct {
 	WeightedDestination *gloov1.WeightedDestination
 }
 
-func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigState, useOldConfigFormat bool) *pluginContext {
+func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigState, configFormat ConfigFormatType) *pluginContext {
 	ctx := context.TODO()
 
 	extAuthServerUpstream := &gloov1.Upstream{
@@ -166,18 +215,20 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	// is determined by the arguments passed to this function.
 	// ----------------------------------------------------------------------------
 	authConfigRef := basicAuthConfig.Metadata.Ref()
-	enableAuthNewFormat, err := skutils.MessageToStruct(&extauthv1.ExtAuthExtension{
+	enableAuthNewFormat := &extauthv1.ExtAuthExtension{
 		Spec: &extauthv1.ExtAuthExtension_ConfigRef{
 			ConfigRef: &authConfigRef,
 		},
-	})
+	}
+	enableAuthNewFormatStruct, err := skutils.MessageToStruct(enableAuthNewFormat)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	disableAuthNewFormat, err := skutils.MessageToStruct(&extauthv1.ExtAuthExtension{
+	disableAuthNewFormat := &extauthv1.ExtAuthExtension{
 		Spec: &extauthv1.ExtAuthExtension_Disable{
 			Disable: true,
 		},
-	})
+	}
+	disableAuthNewFormatStruct, err := skutils.MessageToStruct(disableAuthNewFormat)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	enableVHostAuthOldFormat, err := skutils.MessageToStruct(&extauthv1.VhostExtension{
@@ -262,7 +313,9 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	// ----------------------------------------------------------------------------
 	// Set extauth plugins based on the input arguments
 	// ----------------------------------------------------------------------------
-	if useOldConfigFormat {
+	// TODO(marco): remove this switch v1.0.0
+	switch configFormat {
+	case DeprecatedExtensionsFormat:
 
 		switch authOnWeightedDest {
 		case Enabled:
@@ -285,28 +338,55 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 			panic("deprecated extauth plugin config format does not support explicitly disabling extauth on a virtual host")
 		}
 
-	} else {
+	case NewExtensionsFormat:
 
 		switch authOnWeightedDest {
 		case Enabled:
-			weightedDestination.WeighedDestinationPlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormat
+			weightedDestination.WeighedDestinationPlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormatStruct
 		case Disabled:
-			weightedDestination.WeighedDestinationPlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormat
+			weightedDestination.WeighedDestinationPlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormatStruct
 		}
 
 		switch authOnRoute {
 		case Enabled:
-			route.RoutePlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormat
+			route.RoutePlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormatStruct
 		case Disabled:
-			route.RoutePlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormat
+			route.RoutePlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormatStruct
 		}
 
 		switch authOnVirtualHost {
 		case Enabled:
-			virtualHost.VirtualHostPlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormat
+			virtualHost.VirtualHostPlugins.Extensions.Configs[ExtensionName] = enableAuthNewFormatStruct
 		case Disabled:
-			virtualHost.VirtualHostPlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormat
+			virtualHost.VirtualHostPlugins.Extensions.Configs[ExtensionName] = disableAuthNewFormatStruct
 		}
+
+	case StronglyTyped:
+
+		switch authOnWeightedDest {
+		case Enabled:
+			// Use the renamed field to test this case as well (other tests use the deprecated one)
+			weightedDestination.WeightedDestinationPlugins = &gloov1.WeightedDestinationPlugins{Extauth: enableAuthNewFormat}
+		case Disabled:
+			weightedDestination.WeightedDestinationPlugins = &gloov1.WeightedDestinationPlugins{Extauth: disableAuthNewFormat}
+		}
+
+		switch authOnRoute {
+		case Enabled:
+			route.RoutePlugins.Extauth = enableAuthNewFormat
+		case Disabled:
+			route.RoutePlugins.Extauth = disableAuthNewFormat
+		}
+
+		switch authOnVirtualHost {
+		case Enabled:
+			virtualHost.VirtualHostPlugins.Extauth = enableAuthNewFormat
+		case Disabled:
+			virtualHost.VirtualHostPlugins.Extauth = disableAuthNewFormat
+		}
+
+	default:
+		panic("unknown config format type!")
 	}
 
 	// ----------------------------------------------------------------------------
@@ -350,10 +430,15 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	}
 
 	plugin := NewPlugin()
-	err = plugin.Init(plugins.InitParams{
-		Ctx:                ctx,
-		ExtensionsSettings: buildExtAuthSettings(extAuthServerUpstream),
-	})
+	initParams := plugins.InitParams{Ctx: ctx}
+	settings := buildExtAuthSettings(extAuthServerUpstream)
+	// test both types of settings
+	if configFormat == StronglyTyped {
+		initParams.Settings = &gloov1.Settings{Extauth: settings}
+	} else {
+		initParams.ExtensionsSettings = toExtensions(settings)
+	}
+	err = plugin.Init(initParams)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 	return &pluginContext{
@@ -366,11 +451,11 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	}
 }
 
-func buildExtAuthSettings(extAuthServerUs *gloov1.Upstream) *gloov1.Extensions {
+func buildExtAuthSettings(extAuthServerUs *gloov1.Upstream) *extauthv1.Settings {
 	second := time.Second
 	extAuthRef := extAuthServerUs.Metadata.Ref()
 
-	extAuthSettings := &extauthv1.Settings{
+	return &extauthv1.Settings{
 		ExtauthzServerRef: &extAuthRef,
 		FailureModeAllow:  true,
 		RequestBody: &extauthv1.BufferSettings{
@@ -379,7 +464,10 @@ func buildExtAuthSettings(extAuthServerUs *gloov1.Upstream) *gloov1.Extensions {
 		},
 		RequestTimeout: &second,
 	}
-	settingsStruct, err := skutils.MessageToStruct(extAuthSettings)
+}
+
+func toExtensions(settings *extauthv1.Settings) *gloov1.Extensions {
+	settingsStruct, err := skutils.MessageToStruct(settings)
 	Expect(err).NotTo(HaveOccurred())
 
 	return &gloov1.Extensions{

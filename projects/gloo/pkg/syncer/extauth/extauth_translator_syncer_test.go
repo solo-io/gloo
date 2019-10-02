@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+	. "github.com/solo-io/solo-projects/test/extauth/helpers"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -61,7 +62,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	// TODO(marco): just remove this whole block when removing deprecated API
 	Context("deprecated config format", func() {
 		BeforeEach(func() {
-			proxy = getProxy(true, skcore.ResourceRef{})
+			proxy = getProxy(DeprecatedExtensionsFormat, skcore.ResourceRef{})
 		})
 
 		It("should work with one listener", func() {
@@ -98,6 +99,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		})
 	})
 
+	// TODO(marco): just remove this whole block when removing deprecated API
 	Context("new config format", func() {
 
 		BeforeEach(func() {
@@ -137,7 +139,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		Context("config that needs to be translated (non-custom)", func() {
 
 			BeforeEach(func() {
-				proxy = getProxy(false, validAuthConfig.Metadata.Ref())
+				proxy = getProxy(NewExtensionsFormat, validAuthConfig.Metadata.Ref())
 			})
 
 			It("should work with one listener", func() {
@@ -177,7 +179,97 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		Context("config that needs to be translated (non-custom)", func() {
 
 			BeforeEach(func() {
-				proxy = getProxy(false, customAuthConfig.Metadata.Ref())
+				proxy = getProxy(NewExtensionsFormat, customAuthConfig.Metadata.Ref())
+			})
+
+			It("should work with one listener", func() {
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(0))
+			})
+		})
+	})
+
+	Context("strongly typed config", func() {
+
+		BeforeEach(func() {
+			validAuthConfig = &extauth.AuthConfig{
+				Metadata: skcore.Metadata{
+					Name:      "auth",
+					Namespace: defaults.GlooSystem,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Oauth{
+						Oauth: &extauth.OAuth{
+							AppUrl:       "https://blah.example.com",
+							CallbackPath: "/CallbackPath",
+							ClientId:     "oidc.ClientId",
+							ClientSecretRef: &skcore.ResourceRef{
+								Name:      "secret",
+								Namespace: "gloo-system",
+							},
+							IssuerUrl: "https://issuer.example.com",
+						},
+					},
+				}},
+			}
+
+			customAuthConfig = &extauth.AuthConfig{
+				Metadata: skcore.Metadata{
+					Name:      "custom-auth",
+					Namespace: defaults.GlooSystem,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_CustomAuth{CustomAuth: &extauth.CustomAuth{}},
+				}},
+			}
+
+		})
+
+		Context("config that needs to be translated (non-custom)", func() {
+
+			BeforeEach(func() {
+				proxy = getProxy(StronglyTyped, validAuthConfig.Metadata.Ref())
+			})
+
+			It("should work with one listener", func() {
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+
+			It("should work with two listeners", func() {
+				proxy.Listeners = append(proxy.Listeners, &gloov1.Listener{
+					Name: "listener-::-8080",
+					ListenerType: &gloov1.Listener_HttpListener{
+						HttpListener: &gloov1.HttpListener{
+							VirtualHosts: []*gloov1.VirtualHost{{
+								Name: "gloo-system.default",
+							}},
+						},
+					},
+				})
+
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+
+			It("generates a single snapshot resource if two listeners use the same auth config", func() {
+				newListener := *proxy.Listeners[0]
+				newListener.Name = "listener2"
+				proxy.Listeners = append(proxy.Listeners, &newListener)
+
+				snap := translate()
+				res := snap.GetResources(extauth.ExtAuthConfigType)
+				Expect(res.Items).To(HaveLen(1))
+			})
+		})
+
+		Context("config that needs to be translated (non-custom)", func() {
+
+			BeforeEach(func() {
+				proxy = getProxy(StronglyTyped, customAuthConfig.Metadata.Ref())
 			})
 
 			It("should work with one listener", func() {
@@ -202,34 +294,8 @@ func oidcSecret() *gloov1.Extension {
 	}
 }
 
-func getProxy(useDeprecatedVersion bool, authConfigRef skcore.ResourceRef) *gloov1.Proxy {
-	var vhostAuth proto.Message
-	if useDeprecatedVersion {
-		vhostAuth = &extauth.VhostExtension{
-			AuthConfig: &extauth.VhostExtension_Oauth{
-				Oauth: &extauth.OAuth{
-					AppUrl:       "https://blah.example.com",
-					CallbackPath: "/CallbackPath",
-					ClientId:     "oidc.ClientId",
-					ClientSecretRef: &skcore.ResourceRef{
-						Name:      "secret",
-						Namespace: "gloo-system",
-					},
-					IssuerUrl: "https://issuer.example.com",
-				},
-			},
-		}
-	} else {
-		vhostAuth = &extauth.ExtAuthExtension{
-			Spec: &extauth.ExtAuthExtension_ConfigRef{
-				ConfigRef: &authConfigRef,
-			},
-		}
-	}
-
-	vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
-	Expect(err).NotTo(HaveOccurred())
-	return &gloov1.Proxy{
+func getProxy(configFormat ConfigFormatType, authConfigRef skcore.ResourceRef) *gloov1.Proxy {
+	proxy := &gloov1.Proxy{
 		Metadata: skcore.Metadata{
 			Name:      "proxy",
 			Namespace: "gloo-system",
@@ -239,17 +305,66 @@ func getProxy(useDeprecatedVersion bool, authConfigRef skcore.ResourceRef) *gloo
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{
 					VirtualHosts: []*gloov1.VirtualHost{{
-						Name: "gloo-system.default",
-						VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-							Extensions: &gloov1.Extensions{
-								Configs: map[string]*types.Struct{extauth2.ExtensionName: vhostAuthStruct},
-							},
-						},
+						Name:               "gloo-system.default",
+						VirtualHostPlugins: nil,
 					}},
 				},
 			},
 		}},
 	}
+
+	var plugins *gloov1.VirtualHostPlugins
+	if configFormat == StronglyTyped {
+		plugins = &gloov1.VirtualHostPlugins{
+			Extauth: &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: &authConfigRef,
+				},
+			},
+		}
+
+	} else {
+
+		var vhostAuth proto.Message
+
+		if configFormat == DeprecatedExtensionsFormat {
+			vhostAuth = &extauth.VhostExtension{
+				AuthConfig: &extauth.VhostExtension_Oauth{
+					Oauth: &extauth.OAuth{
+						AppUrl:       "https://blah.example.com",
+						CallbackPath: "/CallbackPath",
+						ClientId:     "oidc.ClientId",
+						ClientSecretRef: &skcore.ResourceRef{
+							Name:      "secret",
+							Namespace: "gloo-system",
+						},
+						IssuerUrl: "https://issuer.example.com",
+					},
+				},
+			}
+		} else if configFormat == NewExtensionsFormat {
+			vhostAuth = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: &authConfigRef,
+				},
+			}
+		} else {
+			panic("unknown extauth config format!")
+		}
+
+		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
+		Expect(err).NotTo(HaveOccurred())
+		plugins = &gloov1.VirtualHostPlugins{
+			Extensions: &gloov1.Extensions{
+				Configs: map[string]*types.Struct{extauth2.ExtensionName: vhostAuthStruct},
+			},
+		}
+
+	}
+
+	proxy.Listeners[0].GetHttpListener().VirtualHosts[0].VirtualHostPlugins = plugins
+
+	return proxy
 }
 
 type mockSetSnapshot struct {

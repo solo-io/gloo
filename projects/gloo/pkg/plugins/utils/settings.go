@@ -15,11 +15,12 @@ func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
 	return t.extensions
 }
 
+// Deprecated: remove this once we stop supporting opaque config
 func GetSettings(params plugins.InitParams, name string, settings proto.Message) (bool, error) {
-	return UnmarshalExtension(params.ExtensionsSettings, name, settings)
+	return unmarshalExtension(params.ExtensionsSettings, name, settings)
 }
 
-func UnmarshalExtension(ext *v1.Extensions, name string, settings proto.Message) (bool, error) {
+func unmarshalExtension(ext *v1.Extensions, name string, settings proto.Message) (found bool, error error) {
 	err := utils.UnmarshalExtension(&tmpPluginContainer{extensions: ext}, name, settings)
 	if err != nil {
 		if err == utils.NotFoundError {

@@ -109,17 +109,25 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, extensions extAuthPlugin.ExtensionContainer) error {
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, configContainer extAuthPlugin.ConfigContainer) error {
 	var config extauth.ExtAuthExtension
-	if err := utils.UnmarshalExtension(extensions, extAuthPlugin.ExtensionName, &config); err != nil {
 
-		// Do nothing if there is no extauth extension
-		if err == utils.NotFoundError {
-			return nil
+	// TODO(marco): get rid of this conditional when we remove the opaque config
+	if typedConfig := configContainer.GetExtauth(); typedConfig != nil {
+		// If we have a typed config, use it and ignore the extension
+		config = *typedConfig
+
+	} else {
+		if err := utils.UnmarshalExtension(configContainer, extAuthPlugin.ExtensionName, &config); err != nil {
+
+			// Do nothing if there is no extauth extension
+			if err == utils.NotFoundError {
+				return nil
+			}
+
+			// If we get here, then the extension is malformed
+			return extAuthPlugin.MalformedConfigError(err)
 		}
-
-		// If we get here, then the extension is malformed
-		return extAuthPlugin.MalformedConfigError(err)
 	}
 
 	configRef := config.GetConfigRef()
@@ -157,6 +165,11 @@ func (h *helper) processVirtualHostAuthExtension(
 	proxy *gloov1.Proxy,
 	listener *gloov1.Listener,
 	virtualHost *gloov1.VirtualHost) error {
+
+	// Handle strongly-typed configurations with the generic function
+	if virtualHost.GetVirtualHostPlugins().GetExtauth() != nil {
+		return h.processAuthExtension(ctx, snap, virtualHost.VirtualHostPlugins)
+	}
 
 	// Try to see if this is an old config first
 	var oldExtensionFormat extauth.VhostExtension
