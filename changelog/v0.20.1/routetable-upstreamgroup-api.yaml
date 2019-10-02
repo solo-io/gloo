@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Remove uses of input upstreams in api.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1025
+  - type: NON_USER_FACING
+    description: Add RouteTable api to redux store.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1185
+  - type: NON_USER_FACING
+    description: Add UpstreamGroup api to redux store.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1186

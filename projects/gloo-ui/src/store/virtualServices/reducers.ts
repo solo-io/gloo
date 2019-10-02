@@ -15,7 +15,7 @@ const initialState: VirtualServiceState = {
 export function virtualServicesReducer(
   state = initialState,
   action: VirtualServiceActionTypes
-) {
+): VirtualServiceState {
   switch (action.type) {
     case VirtualServiceAction.LIST_VIRTUAL_SERVICES:
       return {

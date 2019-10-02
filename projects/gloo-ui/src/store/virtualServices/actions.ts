@@ -53,7 +53,7 @@ export const createVirtualService = (
 ) => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
-
+    guardByLicense();
     try {
       const response = await virtualServices.getCreateVirtualService(
         createVirtualServiceRequest

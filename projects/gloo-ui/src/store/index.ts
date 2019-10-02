@@ -11,6 +11,7 @@ import { envoyReducer } from './envoy/reducers';
 import { gatewaysReducer } from './gateway/reducers';
 import { proxyReducer } from './proxy/reducers';
 import { modalReducer } from './modal/reducers';
+import { routeTablesReducer } from './routeTables/reducers';
 
 export const host = `${
   process.env.NODE_ENV === 'production'
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   gateways: gatewaysReducer,
   proxies: proxyReducer,
   envoy: envoyReducer,
+  routeTables: routeTablesReducer,
   // loadingBar: loadingBarReducer,
   modal: modalReducer
 });
