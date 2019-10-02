@@ -79,7 +79,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[override]]
   name = "github.com/solo-io/go-utils"
-  version = "0.10.8"
+  version = "0.10.15"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"

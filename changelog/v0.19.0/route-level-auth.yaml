@@ -13,7 +13,7 @@ changelog:
   dependencyOwner: solo-io
   dependencyRepo: go-utils
   dependencyTag: v0.10.8
-  description: Update Gloo to version 0.10.8.
+  description: Update go-utils to version 0.10.8.
 - type: BREAKING_CHANGE
   description: >
     Implement the [new external auth API](https://github.com/solo-io/gloo/pull/1186) to support configuring

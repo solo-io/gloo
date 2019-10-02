@@ -1,1 +1,0 @@
-this directory is a big todo for glooctl

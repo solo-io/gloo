@@ -114,7 +114,6 @@ SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code:
 	CGO_ENABLED=0 go generate ./...
-	(rm projects/gloo/doc/docs/cli/*;mkdir -p projects/gloo/doc/docs/cli/; cd projects/gloo/doc && CGO_ENABLED=0 go run gen_docs.go)
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)
@@ -191,40 +190,7 @@ generated-ui:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: grpcserver gloo glooctl extauth rate-limit observability
-
-#----------------------------------------------------------------------------------
-# glooctl
-#----------------------------------------------------------------------------------
-
-CLI_DIR=projects/gloo/cli
-
-$(OUTPUT_DIR)/glooctl: $(SOURCES)
-	go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
-
-
-$(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
-
-
-$(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
-
-
-$(OUTPUT_DIR)/glooctl-windows-amd64.exe: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
-
-.PHONY: glooctl
-glooctl: $(OUTPUT_DIR)/glooctl
-.PHONY: glooctl-linux-amd64
-glooctl-linux-amd64: $(OUTPUT_DIR)/glooctl-linux-amd64
-.PHONY: glooctl-darwin-amd64
-glooctl-darwin-amd64: $(OUTPUT_DIR)/glooctl-darwin-amd64
-.PHONY: glooctl-windows-amd64
-glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
-
-.PHONY: build-cli
-build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
+allprojects: grpcserver gloo extauth rate-limit observability
 
 #----------------------------------------------------------------------------------
 # grpcserver
@@ -522,7 +488,7 @@ fetch-helm:
 #----------------------------------------------------------------------------------
 
 .PHONY: upload-github-release-assets
-upload-github-release-assets: build-cli produce-manifests
+upload-github-release-assets: produce-manifests
 	go run ci/upload_github_release_assets.go
 
 .PHONY: push-docs
@@ -604,10 +570,10 @@ push-kind-images: docker
 #
 # The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
 
-.PHONY: build-test-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+.PHONY: build-test-assets
 build-test-assets: docker push-test-images build-test-chart
 
-.PHONY: build-kind-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+.PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-kind-chart
 
 TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test

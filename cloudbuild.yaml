@@ -159,8 +159,9 @@ steps:
   waitFor: ['-']
   id: 'docker-login'
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
-  args: ['--jobs=2', 'build-cli']
+- name: 'gcr.io/cloud-builders/gsutil'
+  entrypoint: 'bash'
+  args: ['-c', 'curl -sL https://run.solo.io/gloo/install | sh && mkdir _output && mv ~/.gloo/bin/glooctl _output/glooctl-linux-amd64']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -170,7 +171,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   waitFor: ['dep']
-  id: 'build-cli'
+  id: 'download-cli'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
   args: ['--jobs=2', 'docker']
@@ -196,7 +197,7 @@ steps:
     - 'HELM_HOME=/root/.helm'
     - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['build-cli', 'build-images', 'docker-login', 'test']
+  waitFor: ['download-cli', 'build-images', 'docker-login', 'test']
   id: 'build-test-assets'
 - name: gcr.io/cloud-builders/gcloud
   args: ['config', 'set', 'compute/zone', 'us-central1-a']
