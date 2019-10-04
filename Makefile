@@ -491,10 +491,6 @@ fetch-helm:
 upload-github-release-assets: produce-manifests
 	go run ci/upload_github_release_assets.go
 
-.PHONY: push-docs
-push-docs:
-	go run ci/push_docs.go
-
 DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPENDENCIES_BUCKET=gloo-ee-dependencies
 

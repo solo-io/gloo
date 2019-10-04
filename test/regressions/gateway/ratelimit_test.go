@@ -226,7 +226,7 @@ var _ = Describe("Ratelimit tests", func() {
 			checkRateLimited()
 		})
 
-		It("can rate limit to upstream route", func() {
+		It("can rate limit to upstream route when config is inherited by parent virtual host", func() {
 
 			vhostRateLimitExtension := &ratelimitpb.RateLimitVhostExtension{
 				RateLimits: []*ratelimitpb.RateLimitActions{{

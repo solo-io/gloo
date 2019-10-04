@@ -1431,13 +1431,11 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:ece98fcfe3f781b72f29d12f80e758f39165970993665d4fb27c4b136b7c6870"
+  digest = "1:9926bd01cc12f9444aecbc38aec63956bcbcdcd9b4315288c735bb0c28112393"
   name = "github.com/solo-io/go-utils"
   packages = [
-    "changelogutils",
     "clicore/constants",
     "contextutils",
-    "docsutils",
     "envutils",
     "errors",
     "errutils",
@@ -1451,7 +1449,6 @@
     "log",
     "manifesttestutils",
     "protoutils",
-    "randutils",
     "stats",
     "stringutils",
     "tarutils",
@@ -2658,7 +2655,6 @@
     "github.com/solo-io/gloo/test/helpers",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/contextutils",
-    "github.com/solo-io/go-utils/docsutils",
     "github.com/solo-io/go-utils/envutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/errutils",
@@ -2696,7 +2692,6 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources/core",
     "github.com/solo-io/solo-kit/pkg/code-generator/cmd",
-    "github.com/solo-io/solo-kit/pkg/code-generator/docgen/options",
     "github.com/solo-io/solo-kit/pkg/errors",
     "github.com/solo-io/solo-kit/pkg/stats",
     "github.com/solo-io/solo-kit/pkg/utils/kubeutils",
