@@ -213,7 +213,7 @@ steps:
     - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
     - 'RUN_KUBE2E_TESTS=1'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  args: ['-r', 'test/regressions', '-failFast', '-trace', '-progress']
+  args: ['-r', '-failFast', '-trace', '-progress', 'test/regressions']
   waitFor: ['build-test-assets', 'get-credentials-regression']
   id: 'regression-tests'
 

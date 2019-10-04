@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  description: Fix rate limiting regression test.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1189
+  resolvesIssue: false

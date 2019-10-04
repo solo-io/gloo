@@ -228,7 +228,7 @@ var _ = Describe("Ratelimit tests", func() {
 
 		It("can rate limit to upstream route", func() {
 
-			vhostRatelimitExtension := &ratelimitpb.RateLimitVhostExtension{
+			vhostRateLimitExtension := &ratelimitpb.RateLimitVhostExtension{
 				RateLimits: []*ratelimitpb.RateLimitActions{{
 					Actions: []*ratelimitpb.Action{{
 						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
@@ -240,31 +240,31 @@ var _ = Describe("Ratelimit tests", func() {
 				}},
 			}
 
-			rateLimitStruct, err := envoyutil.MessageToStruct(vhostRatelimitExtension)
+			vHostRateLimitStruct, err := envoyutil.MessageToStruct(vhostRateLimitExtension)
 			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: rateLimitStruct,
-			}
-
-			ratelimitExtension := &ratelimitpb.RateLimitRouteExtension{
-				IncludeVhRateLimits: true,
-			}
-
-			rateLimitStruct, err = envoyutil.MessageToStruct(ratelimitExtension)
-			Expect(err).NotTo(HaveOccurred())
-			protos = map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: rateLimitStruct,
+			vHostExtensionMap := map[string]*types.Struct{
+				ratelimit2.EnvoyExtensionName: vHostRateLimitStruct,
 			}
 
 			virtualHostPlugins := &gloov1.VirtualHostPlugins{
 				Extensions: &gloov1.Extensions{
-					Configs: protos,
+					Configs: vHostExtensionMap,
 				},
+			}
+
+			routeRateLimitExtension := &ratelimitpb.RateLimitRouteExtension{
+				IncludeVhRateLimits: true,
+			}
+
+			routeRateLimitStruct, err := envoyutil.MessageToStruct(routeRateLimitExtension)
+			Expect(err).NotTo(HaveOccurred())
+			routeExtensionMap := map[string]*types.Struct{
+				ratelimit2.EnvoyExtensionName: routeRateLimitStruct,
 			}
 
 			routePlugins := &gloov1.RoutePlugins{
 				Extensions: &gloov1.Extensions{
-					Configs: protos,
+					Configs: routeExtensionMap,
 				},
 			}
 
