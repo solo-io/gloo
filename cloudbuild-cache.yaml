@@ -52,3 +52,5 @@ steps:
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'solo-projects-dep.tar.gz', 'gs://gloo-ee-cache/solo-projects']
   id: 'upload-cache'
+
+timeout: 1800s
