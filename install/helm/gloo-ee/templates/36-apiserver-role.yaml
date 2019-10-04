@@ -28,7 +28,7 @@ rules:
     verbs: ["get", "list", "watch", "create"]
   - apiGroups: ["gateway.solo.io"]
     resources: ["routetables"]
-    verbs: ["list"]
+    verbs: ["list", "get", "watch"]
   - apiGroups: ["gateway.solo.io.v2"]
     resources: ["gateways"]
     verbs: ["get", "list", "watch"]
@@ -51,6 +51,9 @@ rules:
     verbs: ["create", "update", "delete"]
   - apiGroups: ["gateway.solo.io"]
     resources: ["virtualservices"]
+    verbs: ["create", "update", "delete"]
+  - apiGroups: ["gateway.solo.io"]
+    resources: ["routetables"]
     verbs: ["create", "update", "delete"]
   {{- end }} # .Values.apiServer.enterprise
 {{- end }} # .Values.apiServer.enable
