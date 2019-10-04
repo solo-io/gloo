@@ -93,7 +93,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		gatewayPort := int(80)
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              "/",
+			Path:              testMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,
@@ -145,7 +145,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 				Protocol:          "https",
-				Path:              "/",
+				Path:              testMatcherPrefix,
 				Method:            "GET",
 				Host:              defaults.GatewayProxyName,
 				Service:           defaults.GatewayProxyName,

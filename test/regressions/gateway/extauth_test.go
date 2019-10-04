@@ -280,19 +280,19 @@ var _ = Describe("External auth", func() {
 			It("works as expected", func() {
 
 				By("returns 401 if no authentication header is provided", func() {
-					curlAndAssertResponse("/", nil, response401)
+					curlAndAssertResponse(testMatcherPrefix, nil, response401)
 				})
 
 				By("returns 401 if the user is unknown", func() {
-					curlAndAssertResponse("/", buildAuthHeader("john:doe"), response401)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("john:doe"), response401)
 				})
 
 				By("returns 200 if the user belongs to one of the allowed groups", func() {
-					curlAndAssertResponse("/", buildAuthHeader("rick:rickpwd"), response200)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
 				})
 
 				By("returns 403 if the user does not belong to the allowed groups", func() {
-					curlAndAssertResponse("/", buildAuthHeader("marco:marcopwd"), response403)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
 				})
 			})
 		})
@@ -324,19 +324,19 @@ var _ = Describe("External auth", func() {
 			It("works as expected", func() {
 
 				By("returns 401 if no authentication header is provided", func() {
-					curlAndAssertResponse("/", nil, response401)
+					curlAndAssertResponse(testMatcherPrefix, nil, response401)
 				})
 
 				By("returns 401 if the user is unknown", func() {
-					curlAndAssertResponse("/", buildAuthHeader("john:doe"), response401)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("john:doe"), response401)
 				})
 
 				By("returns 200 if the user belongs to one of the allowed groups", func() {
-					curlAndAssertResponse("/", buildAuthHeader("rick:rickpwd"), response200)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
 				})
 
 				By("returns 403 if the user does not belong to the allowed groups", func() {
-					curlAndAssertResponse("/", buildAuthHeader("marco:marcopwd"), response403)
+					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
 				})
 			})
 		})
@@ -520,7 +520,7 @@ var _ = Describe("External auth", func() {
 								RoutePlugins: pluginsForRoute1,
 								Matcher: &gloov1.Matcher{
 									PathSpecifier: &gloov1.Matcher_Prefix{
-										Prefix: "/1",
+										Prefix: testMatcherPrefix + "/1",
 									},
 								},
 								Action: &gatewayv1.Route_RouteAction{
@@ -545,7 +545,7 @@ var _ = Describe("External auth", func() {
 								RoutePlugins: pluginsForRoute2,
 								Matcher: &gloov1.Matcher{
 									PathSpecifier: &gloov1.Matcher_Prefix{
-										Prefix: "/2",
+										Prefix: testMatcherPrefix + "/2",
 									},
 								},
 								Action: &gatewayv1.Route_RouteAction{
@@ -592,8 +592,8 @@ var _ = Describe("External auth", func() {
 			When("no auth is configured", func() {
 
 				It("can reach both services without providing credentials", func() {
-					curlAndAssertResponse("/1", nil, appName1)
-					curlAndAssertResponse("/2", nil, appName2)
+					curlAndAssertResponse(testMatcherPrefix+"/1", nil, appName1)
+					curlAndAssertResponse(testMatcherPrefix+"/2", nil, appName2)
 				})
 			})
 
@@ -610,13 +610,13 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on both routes", func() {
-						curlAndAssertResponse("/1", nil, response401)
-						curlAndAssertResponse("/2", nil, response401)
+						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
+						curlAndAssertResponse(testMatcherPrefix+"/2", nil, response401)
 					})
 
 					By("allowing authenticated requests on both routes", func() {
-						curlAndAssertResponse("/1", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse("/2", buildAuthHeader("user:password"), appName2)
+						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("user:password"), appName2)
 					})
 				})
 			})
@@ -636,15 +636,15 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on the first route", func() {
-						curlAndAssertResponse("/1", nil, response401)
+						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
 					})
 
 					By("allowing unauthenticated requests on the second route", func() {
-						curlAndAssertResponse("/2", nil, appName2)
+						curlAndAssertResponse(testMatcherPrefix+"/2", nil, appName2)
 					})
 
 					By("allowing authenticated requests on the first route", func() {
-						curlAndAssertResponse("/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
 					})
 				})
 			})
@@ -668,18 +668,18 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on both routes", func() {
-						curlAndAssertResponse("/1", nil, response401)
-						curlAndAssertResponse("/2", nil, response401)
+						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
+						curlAndAssertResponse(testMatcherPrefix+"/2", nil, response401)
 					})
 
 					By("allowing user:password on the first route, but denying it on the second", func() {
-						curlAndAssertResponse("/1", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse("/2", buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("user:password"), response401)
 					})
 
 					By("allowing admin:password on both routes", func() {
-						curlAndAssertResponse("/1", buildAuthHeader("admin:password"), appName1)
-						curlAndAssertResponse("/2", buildAuthHeader("admin:password"), appName2)
+						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("admin:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("admin:password"), appName2)
 					})
 				})
 			})
@@ -707,7 +707,7 @@ var _ = Describe("External auth", func() {
 							{
 								Matcher: &gloov1.Matcher{
 									PathSpecifier: &gloov1.Matcher_Prefix{
-										Prefix: "/",
+										Prefix: testMatcherPrefix,
 									},
 								},
 								RoutePlugins: routePlugins,
@@ -795,21 +795,21 @@ var _ = Describe("External auth", func() {
 
 					By("consistently denying unauthenticated requests on both routes", func() {
 						for i := 0; i < 5; i++ {
-							curlAndAssertResponse("/", nil, response401)
+							curlAndAssertResponse(testMatcherPrefix, nil, response401)
 						}
 					})
 
 					By("consistently allowing admin:password on both destinations", func() {
 						for i := 0; i < 5; i++ {
 							// Just look for the substring that is common to the responses from both services
-							curlAndAssertResponse("/", buildAuthHeader("admin:password"), "test-app-")
+							curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), "test-app-")
 						}
 					})
 
 					By("allowing user:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 1 and a 401
-						curlAndAssertResponse("/", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse("/", buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), response401)
 					})
 				})
 			})
@@ -834,20 +834,20 @@ var _ = Describe("External auth", func() {
 
 					By("consistently denying unauthenticated requests on both routes", func() {
 						for i := 0; i < 5; i++ {
-							curlAndAssertResponse("/", nil, response401)
+							curlAndAssertResponse(testMatcherPrefix, nil, response401)
 						}
 					})
 
 					By("allowing user:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 1 and a 401
-						curlAndAssertResponse("/", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse("/", buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), response401)
 					})
 
 					By("allowing admin:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 2 and a 401
-						curlAndAssertResponse("/", buildAuthHeader("admin:password"), appName2)
-						curlAndAssertResponse("/", buildAuthHeader("admin:password"), response401)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), appName2)
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), response401)
 					})
 				})
 			})

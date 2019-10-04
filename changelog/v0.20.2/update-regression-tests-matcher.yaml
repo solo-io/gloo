@@ -1,0 +1,7 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Our regression tests currently use a virtual service that matches all domains and all routes. This causes the extauth
+    server to be continuously hit by FDS requests. This makes the logs very noisy and puts unnecessary load on the system.
+    This change restricts the scope of the matcher on the virtual service.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1202

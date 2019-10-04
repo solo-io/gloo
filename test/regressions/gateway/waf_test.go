@@ -87,7 +87,7 @@ var _ = Describe("waf tests", func() {
 		gatewayPort := int(80)
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              "/",
+			Path:              testMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,

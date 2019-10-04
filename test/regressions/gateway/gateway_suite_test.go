@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
+
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
@@ -109,7 +111,19 @@ var _ = AfterSuite(func() {
 	}, "60s", "1s").Should(HaveOccurred())
 })
 
+const testMatcherPrefix = "/test"
+
 var writeVirtualService = func(vsClient v1.VirtualServiceClient, virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins, sslConfig *gloov1.SslConfig) {
+
+	if routePlugins.GetPrefixRewrite() == nil {
+		if routePlugins == nil {
+			routePlugins = &gloov1.RoutePlugins{}
+		}
+		routePlugins.PrefixRewrite = &transformation.PrefixRewrite{
+			PrefixRewrite: "/",
+		}
+	}
+
 	_, err := vsClient.Write(&v1.VirtualService{
 
 		Metadata: core.Metadata{
@@ -124,7 +138,7 @@ var writeVirtualService = func(vsClient v1.VirtualServiceClient, virtualHostPlug
 				RoutePlugins: routePlugins,
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{
-						Prefix: "/",
+						Prefix: testMatcherPrefix,
 					},
 				},
 				Action: &v1.Route_RouteAction{

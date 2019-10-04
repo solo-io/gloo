@@ -28,19 +28,20 @@ func RunContainer(containerName string, args []string) error {
 	return nil
 }
 
-func ContainerExistsWithName(containerName string) bool {
+// Returns an empty string if the container does not exist
+func ContainerExistsWithName(containerName string) string {
 	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+containerName+"$")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cmd.Run() [%s %s] failed with %s\n", cmd.Path, cmd.Args, err)
 	}
-	return string(out) != ""
+	return string(out)
 }
 
 func MustStopContainer(containerName string) {
 	err := StopContainer(containerName)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(ContainerExistsWithName(containerName), "10s", "1s").Should(BeFalse())
+	Eventually(ContainerExistsWithName(containerName), "10s", "1s").Should(BeEmpty())
 }
 
 func StopContainer(containerName string) error {
