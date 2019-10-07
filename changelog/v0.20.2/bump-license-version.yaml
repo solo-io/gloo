@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Update licensing to version v0.1.13 from v0.1.1
+    dependencyOwner: solo-io
+    dependencyRepo: licensing
+    dependencyTag: v0.1.13

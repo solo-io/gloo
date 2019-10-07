@@ -1468,7 +1468,7 @@
   version = "v0.10.16"
 
 [[projects]]
-  digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
+  digest = "1:6a840f34800e61cd8fb26f5503b344d635a24744d9b5512576b250c0fa3d11af"
   name = "github.com/solo-io/licensing"
   packages = [
     "pkg/db",
@@ -1481,8 +1481,8 @@
     "pkg/notify/hubspot",
   ]
   pruneopts = "UT"
-  revision = "ca75ca48aa320ecb732000361aaac22bc692e133"
-  version = "v0.1.1"
+  revision = "683df096e8715eb5bbfd95dffdcdb009c4f2f319"
+  version = "v0.1.13"
 
 [[projects]]
   digest = "1:d1e1a508f3ed20d043c4cb0f3861c2398b6b93edf45604fbb5b4f6ae04876ddd"

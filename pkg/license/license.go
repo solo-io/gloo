@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/solo-io/licensing/pkg/defaults"
-	"github.com/solo-io/licensing/pkg/keys"
 )
 
 func LicenseStatus(ctx context.Context) error {
@@ -17,18 +16,20 @@ func LicenseStatus(ctx context.Context) error {
 }
 
 func IsLicenseValid(ctx context.Context, license string) error {
-
+	if license == "" {
+		return fmt.Errorf("license is empty")
+	}
 	km, err := defaults.GetKeyManager()
 	if err != nil {
 		return err
 	}
 
 	validator := km.KeyValidator()
-	ki, err := validator.ValidateKey(ctx, license)
+	decryptedLicense, err := validator.ValidateKey(ctx, license)
 	if err != nil {
 		return err
 	}
-	if keys.IsExpired(ki) {
+	if decryptedLicense.IsExpired() {
 		return fmt.Errorf("license expired")
 	}
 
