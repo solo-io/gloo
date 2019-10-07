@@ -57,13 +57,7 @@ func ApplyPermissionsForReadOnlyApiserver(namespace string, permissions *manifes
 		"gloo-system.apiserver-ui",
 		namespace,
 		[]string{"gateway.solo.io"},
-		[]string{"virtualservices"},
-		[]string{"get", "list", "watch"})
-	permissions.AddExpectedPermission(
-		"gloo-system.apiserver-ui",
-		namespace,
-		[]string{"gateway.solo.io"},
-		[]string{"routetables"},
+		[]string{"virtualservices, routetables"},
 		[]string{"get", "list", "watch"})
 }
 
@@ -103,13 +97,7 @@ func ApplyPermissionsAddedForMutableApiserver(namespace string, permissions *man
 		"gloo-system.apiserver-ui",
 		namespace,
 		[]string{"gateway.solo.io"},
-		[]string{"virtualservices"},
-		[]string{"create", "update", "delete"})
-	permissions.AddExpectedPermission(
-		"gloo-system.apiserver-ui",
-		namespace,
-		[]string{"gateway.solo.io"},
-		[]string{"routetables"},
+		[]string{"virtualservices, routetables"},
 		[]string{"create", "update", "delete"})
 
 }
