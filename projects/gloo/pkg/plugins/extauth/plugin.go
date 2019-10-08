@@ -40,7 +40,9 @@ const (
 var (
 	defaultTimeout      = 200 * time.Millisecond
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
-	filterStage         = plugins.DuringStage(plugins.AuthNStage)
+	// note that although this configures the "envoy.ext_authz" filter, we still want the ordering to be within the
+	// AuthNStage because we are using this filter for authentication purposes
+	filterStage = plugins.DuringStage(plugins.AuthNStage)
 
 	NoMatchesForGroupError = func(labelSelector map[string]string) error {
 		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)

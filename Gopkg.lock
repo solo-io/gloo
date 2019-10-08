@@ -2673,7 +2673,6 @@
     "github.com/solo-io/go-utils/versionutils/dep",
     "github.com/solo-io/go-utils/versionutils/git",
     "github.com/solo-io/licensing/pkg/defaults",
-    "github.com/solo-io/licensing/pkg/keys",
     "github.com/solo-io/rate-limiter/cmd/service/runner",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/service",
