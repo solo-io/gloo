@@ -329,8 +329,8 @@ var _ = Describe("Kube2e: gateway", func() {
 					Protocol:          "https",
 					Path:              "/",
 					Method:            "GET",
-					Host:              translator.GatewayProxyName,
-					Service:           translator.GatewayProxyName,
+					Host:              defaults.GatewayProxyName,
+					Service:           defaults.GatewayProxyName,
 					Port:              gatewayPort,
 					CaFile:            "/tmp/ca.crt",
 					ConnectionTimeout: 1,
@@ -880,11 +880,11 @@ var _ = Describe("Kube2e: gateway", func() {
 					Domains: []string{"*"},
 					Routes: []*gatewayv1.Route{
 						{
-							Matcher: &gloov1.Matcher{
+							Matchers: []*gloov1.Matcher{{
 								PathSpecifier: &gloov1.Matcher_Prefix{
 									Prefix: "/red",
 								},
-							},
+							}},
 							Action: &gatewayv1.Route_RouteAction{
 								RouteAction: &gloov1.RouteAction{
 									Destination: &gloov1.RouteAction_Single{
@@ -900,11 +900,6 @@ var _ = Describe("Kube2e: gateway", func() {
 								},
 							},
 						}, {
-							Matcher: &gloov1.Matcher{
-								PathSpecifier: &gloov1.Matcher_Prefix{
-									Prefix: "/",
-								},
-							},
 							Action: &gatewayv1.Route_RouteAction{
 								RouteAction: &gloov1.RouteAction{
 									Destination: &gloov1.RouteAction_UpstreamGroup{
@@ -1135,11 +1130,11 @@ func getRouteTable(name string, route *gatewayv1.Route) *gatewayv1.RouteTable {
 
 func getRouteWithDest(dest *gloov1.Destination, path string) *gatewayv1.Route {
 	return &gatewayv1.Route{
-		Matcher: &gloov1.Matcher{
+		Matchers: []*gloov1.Matcher{{
 			PathSpecifier: &gloov1.Matcher_Prefix{
 				Prefix: path,
 			},
-		},
+		}},
 		Action: &gatewayv1.Route_RouteAction{
 			RouteAction: &gloov1.RouteAction{
 				Destination: &gloov1.RouteAction_Single{
@@ -1152,11 +1147,11 @@ func getRouteWithDest(dest *gloov1.Destination, path string) *gatewayv1.Route {
 
 func getRouteWithDelegate(delegate string, path string) *gatewayv1.Route {
 	return &gatewayv1.Route{
-		Matcher: &gloov1.Matcher{
+		Matchers: []*gloov1.Matcher{{
 			PathSpecifier: &gloov1.Matcher_Prefix{
 				Prefix: path,
 			},
-		},
+		}},
 		Action: &gatewayv1.Route_DelegateAction{
 			DelegateAction: &core.ResourceRef{
 				Namespace: testHelper.InstallNamespace,
