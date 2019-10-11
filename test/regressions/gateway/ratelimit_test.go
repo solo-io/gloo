@@ -120,7 +120,7 @@ var _ = Describe("Ratelimit tests", func() {
 			},
 		}
 
-		writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
+		writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
 		checkRateLimited()
 	})
 
@@ -192,7 +192,7 @@ var _ = Describe("Ratelimit tests", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
+			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkRateLimited()
 		})
 
@@ -222,7 +222,7 @@ var _ = Describe("Ratelimit tests", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, nil, routePlugins, nil)
+			writeVirtualService(ctx, virtualServiceClient, nil, routePlugins, nil)
 			checkRateLimited()
 		})
 
@@ -268,7 +268,7 @@ var _ = Describe("Ratelimit tests", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, virtualHostPlugins, routePlugins, nil)
+			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, routePlugins, nil)
 			checkRateLimited()
 		})
 

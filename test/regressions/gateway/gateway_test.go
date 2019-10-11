@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -82,7 +84,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	It("can route request to upstream", func() {
 
-		writeVirtualService(virtualServiceClient, nil, nil, nil)
+		writeVirtualService(ctx, virtualServiceClient, nil, nil, nil)
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -115,8 +117,17 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		})
 
 		It("can route https request to upstream", func() {
-			createdSecret, err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Create(helpers.GetKubeSecret("secret", testHelper.InstallNamespace))
+			sslSecret := helpers.GetKubeSecret("secret", testHelper.InstallNamespace)
+			createdSecret, err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Create(sslSecret)
 			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() error {
+				_, err := kubeClient.CoreV1().Secrets(sslSecret.Namespace).Get(sslSecret.Name, metav1.GetOptions{
+					IncludeUninitialized: false,
+				})
+				return err
+			}, "10s", "0.5s").Should(BeNil())
+			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail
 
 			sslConfig := &gloov1.SslConfig{
 				SslSecrets: &gloov1.SslConfig_SecretRef{
@@ -127,7 +138,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, nil, nil, sslConfig)
+			writeVirtualService(ctx, virtualServiceClient, nil, nil, sslConfig)
 
 			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 			// wait for default gateway to be created

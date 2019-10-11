@@ -8,14 +8,31 @@ metadata:
     gloo: settings
   name: default
   namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "5"
 spec:
-  bindAddr: 0.0.0.0:{{ .Values.gloo.gloo.deployment.xdsPort }}
+  gloo:
+    xdsBindAddr: "0.0.0.0:{{ .Values.gloo.gloo.deployment.xdsPort }}"
   {{- $releasenamespace := .Release.Namespace}}
   discoveryNamespace: {{ .Values.settings.writeNamespace | default $releasenamespace }}
   kubernetesArtifactSource: {}
   kubernetesConfigSource: {}
   kubernetesSecretSource: {}
   refreshRate: 60s
+
+{{- if .Values.gloo.gateway.validation }}
+  gateway:
+    validation:
+      proxyValidationServerAddr: "gloo:{{ .Values.gloo.gloo.deployment.validationPort }}"
+      alwaysAccept: {{ .Values.gloo.gateway.validation.alwaysAcceptResources }}
+{{- end }}
+
+{{- if .Values.gloo.discovery.fdsMode }}
+  discovery:
+    fdsMode: {{.Values.gloo.discovery.fdsMode}}
+{{- end }}
+
   extensions:
     configs:
       extauth:

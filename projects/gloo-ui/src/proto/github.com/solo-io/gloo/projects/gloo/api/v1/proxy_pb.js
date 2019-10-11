@@ -806,7 +806,8 @@ proto.gloo.solo.io.TcpListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     tcpHostsList: jspb.Message.toObjectList(msg.getTcpHostsList(),
     proto.gloo.solo.io.TcpHost.toObject, includeInstance),
-    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.toObject(includeInstance, f)
+    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.toObject(includeInstance, f),
+    statPrefix: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -853,6 +854,10 @@ proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader = function(msg, reade
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.deserializeBinaryFromReader);
       msg.setPlugins(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStatPrefix(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -896,6 +901,13 @@ proto.gloo.solo.io.TcpListener.serializeBinaryToWriter = function(message, write
       8,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -959,6 +971,21 @@ proto.gloo.solo.io.TcpListener.prototype.clearPlugins = function() {
  */
 proto.gloo.solo.io.TcpListener.prototype.hasPlugins = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional string stat_prefix = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.TcpListener.prototype.getStatPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.TcpListener.prototype.setStatPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -1248,7 +1275,8 @@ proto.gloo.solo.io.HttpListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     virtualHostsList: jspb.Message.toObjectList(msg.getVirtualHostsList(),
     proto.gloo.solo.io.VirtualHost.toObject, includeInstance),
-    listenerPlugins: (f = msg.getListenerPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.toObject(includeInstance, f)
+    listenerPlugins: (f = msg.getListenerPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.toObject(includeInstance, f),
+    statPrefix: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1295,6 +1323,10 @@ proto.gloo.solo.io.HttpListener.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.deserializeBinaryFromReader);
       msg.setListenerPlugins(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStatPrefix(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1338,6 +1370,13 @@ proto.gloo.solo.io.HttpListener.serializeBinaryToWriter = function(message, writ
       2,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -1401,6 +1440,21 @@ proto.gloo.solo.io.HttpListener.prototype.clearListenerPlugins = function() {
  */
 proto.gloo.solo.io.HttpListener.prototype.hasListenerPlugins = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string stat_prefix = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.HttpListener.prototype.getStatPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.HttpListener.prototype.setStatPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

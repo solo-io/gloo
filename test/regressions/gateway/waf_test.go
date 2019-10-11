@@ -119,7 +119,7 @@ var _ = Describe("waf tests", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
+			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection("200")
 		})
 
@@ -147,7 +147,7 @@ var _ = Describe("waf tests", func() {
 				},
 			}
 
-			writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
+			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection("403")
 		})
 

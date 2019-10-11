@@ -24,6 +24,8 @@ gloo:
     create: false
   gloo:
     deployment:
+      xdsPort: 9977
+      validationPort: 9988
       runAsUser: 10101
       stats: true
       image:
@@ -72,7 +74,15 @@ gloo:
       image:
         repository: gateway-conversion
       restartPolicy: Never
-
+    validation:
+      failurePolicy: "Ignore"
+      secretName: gateway-validation-certs
+      alwaysAcceptResources: true
+    certGenJob:
+      image:
+        repository: certgen
+        registry: quay.io/solo-io
+      restartPolicy: OnFailure
 
 ########################################################################
 ###                                                                  ###

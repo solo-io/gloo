@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -20,7 +19,6 @@ import (
 	"github.com/solo-io/go-utils/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/solo-io/go-utils/testutils"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/solo-io/go-utils/testutils/helper"
@@ -142,12 +140,6 @@ var _ = Describe("External auth", func() {
 
 	Describe("authenticate requests via LDAP", func() {
 
-		const (
-			ldapAssetDir               = "./../assets/ldap"
-			ldapServerConfigDirName    = "ldif"
-			ldapServerManifestFilename = "ldap-server-manifest.yaml"
-		)
-
 		var (
 			extAuthConfigProto proto.Message
 			ldapConfig         = func(namespace string) *extauthapi.Ldap {
@@ -163,37 +155,7 @@ var _ = Describe("External auth", func() {
 
 		JustBeforeEach(func() {
 
-			By("create a config map containing the bootstrap configuration for the LDAP server", func() {
-				err = testutils.Kubectl(
-					"create", "configmap", "ldap", "-n", testHelper.InstallNamespace, "--from-file", filepath.Join(ldapAssetDir, ldapServerConfigDirName))
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(func() error {
-					_, err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-					return err
-				}, "15s", "0.5s").Should(BeNil())
-			})
-
-			By("deploy an the LDAP server with the correspondent service", func() {
-				err = testutils.Kubectl("apply", "-n", testHelper.InstallNamespace, "-f", filepath.Join(ldapAssetDir, ldapServerManifestFilename))
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(func() error {
-					_, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-					return err
-				}, "15s", "0.5s").Should(BeNil())
-
-				Eventually(func() error {
-					deployment, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-					if err != nil {
-						return err
-					}
-					if deployment.Status.AvailableReplicas == 0 {
-						return errors.New("no available replicas for LDAP server deployment")
-					}
-					return nil
-				}, "30s", "0.5s").Should(BeNil())
-
+			By("make sure we can still reach the LDAP server", func() {
 				// Make sure we can query the LDAP server
 				testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 					Protocol:          "ldap",
@@ -218,7 +180,7 @@ var _ = Describe("External auth", func() {
 					},
 				}
 
-				writeVirtualService(virtualServiceClient, virtualHostPlugins, nil, nil)
+				writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
 
 				defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 				// wait for default gateway to be created
@@ -229,26 +191,6 @@ var _ = Describe("External auth", func() {
 		})
 
 		AfterEach(func() {
-
-			// Delete config map
-			err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Delete("ldap", &metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(func() bool {
-				_, err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-				return isNotFound(err)
-			}, "15s", "0.5s").Should(BeTrue())
-
-			// Delete LDAP server deployment and service
-			err = testutils.Kubectl("delete", "-n", testHelper.InstallNamespace, "-f", filepath.Join(ldapAssetDir, ldapServerManifestFilename))
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(func() bool {
-				_, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-				return isNotFound(err)
-			}, "15s", "0.5s").Should(BeTrue())
-			Eventually(func() bool {
-				_, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
-				return isNotFound(err)
-			}, "15s", "0.5s").Should(BeTrue())
 
 			// Delete virtual service
 			err = virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx})
@@ -365,12 +307,19 @@ var _ = Describe("External auth", func() {
 		)
 
 		writeAuthConfig := func(authConfig *extauthapi.AuthConfig) (*core.ResourceRef, cleanupFunc) {
-			authConfig, err := authConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+			ac, err := authConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			authConfigRef := authConfig.Metadata.Ref()
+			// Wait for auth config to be created
+			EventuallyWithOffset(1, func() error {
+				_, err := authConfigClient.Read(testHelper.InstallNamespace, ac.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+				return err
+			}, "15s", "0.5s").Should(BeNil())
+			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the auth config, otherwise the webhook validation might fail
+
+			authConfigRef := ac.Metadata.Ref()
 			return &authConfigRef, func() {
-				err := authConfigClient.Delete(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+				err := authConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 				Expect(err).NotTo(HaveOccurred())
 			}
 		}
@@ -410,11 +359,16 @@ var _ = Describe("External auth", func() {
 		}
 
 		writeVs := func(vs *gatewayv1.VirtualService) cleanupFunc {
-			_, err := virtualServiceClient.Write(vs, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
-			Expect(err).NotTo(HaveOccurred())
+
+			// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the
+			// resources the VS depends on is not yet available.
+			EventuallyWithOffset(1, func() error {
+				_, err := virtualServiceClient.Write(vs, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+				return err
+			}, "30s", "1s").Should(BeNil())
 
 			// Wait for proxy to be accepted
-			Eventually(func() error {
+			EventuallyWithOffset(1, func() error {
 				proxy, err := proxyClient.Read(testHelper.InstallNamespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
 				if err != nil {
 					return err

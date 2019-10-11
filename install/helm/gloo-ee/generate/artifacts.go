@@ -160,6 +160,7 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	// Use open source gloo version for discovery and gateway
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
+	config.Gloo.Gateway.CertGenJob.Image.Tag = gc.OsGlooVersion
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
@@ -176,6 +177,7 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	}
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy

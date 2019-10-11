@@ -123,6 +123,9 @@ export class TcpListener extends jspb.Message {
   getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins | undefined;
   setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TcpListener.AsObject;
   static toObject(includeInstance: boolean, msg: TcpListener): TcpListener.AsObject;
@@ -137,6 +140,7 @@ export namespace TcpListener {
   export type AsObject = {
     tcpHostsList: Array<TcpHost.AsObject>,
     plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.AsObject,
+    statPrefix: string,
   }
 }
 
@@ -183,6 +187,9 @@ export class HttpListener extends jspb.Message {
   getListenerPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins | undefined;
   setListenerPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListener.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListener): HttpListener.AsObject;
@@ -197,6 +204,7 @@ export namespace HttpListener {
   export type AsObject = {
     virtualHostsList: Array<VirtualHost.AsObject>,
     listenerPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.AsObject,
+    statPrefix: string,
   }
 }
 

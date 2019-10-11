@@ -1,0 +1,11 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: >
+    Update Gloo to version v0.20.6 from v0.20.2. This adds the validation admission controller for Gateway, Virtual Service,
+    and Route Table resources that was introduced with OS Gloo v0.20.3.
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v0.20.6
+- type: FIX
+  description: Add new gateway validation and FDS mode configuration parameters to Settings CRD Helm template.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1211

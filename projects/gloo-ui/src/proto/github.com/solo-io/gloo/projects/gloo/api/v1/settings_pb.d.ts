@@ -625,6 +625,11 @@ export class GatewayOptions extends jspb.Message {
   getDisableAutoGenGateways(): boolean;
   setDisableAutoGenGateways(value: boolean): void;
 
+  hasValidation(): boolean;
+  clearValidation(): void;
+  getValidation(): GatewayOptions.ValidationOptions | undefined;
+  setValidation(value?: GatewayOptions.ValidationOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -639,6 +644,45 @@ export namespace GatewayOptions {
   export type AsObject = {
     validationServerAddr: string,
     disableAutoGenGateways: boolean,
+    validation?: GatewayOptions.ValidationOptions.AsObject,
+  }
+
+  export class ValidationOptions extends jspb.Message {
+    getProxyValidationServerAddr(): string;
+    setProxyValidationServerAddr(value: string): void;
+
+    getValidationWebhookTlsCert(): string;
+    setValidationWebhookTlsCert(value: string): void;
+
+    getValidationWebhookTlsKey(): string;
+    setValidationWebhookTlsKey(value: string): void;
+
+    getIgnoreGlooValidationFailure(): boolean;
+    setIgnoreGlooValidationFailure(value: boolean): void;
+
+    hasAlwaysAccept(): boolean;
+    clearAlwaysAccept(): void;
+    getAlwaysAccept(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setAlwaysAccept(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ValidationOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: ValidationOptions): ValidationOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ValidationOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ValidationOptions;
+    static deserializeBinaryFromReader(message: ValidationOptions, reader: jspb.BinaryReader): ValidationOptions;
+  }
+
+  export namespace ValidationOptions {
+    export type AsObject = {
+      proxyValidationServerAddr: string,
+      validationWebhookTlsCert: string,
+      validationWebhookTlsKey: string,
+      ignoreGlooValidationFailure: boolean,
+      alwaysAccept?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    }
   }
 }
 

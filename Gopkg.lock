@@ -276,7 +276,7 @@
   revision = "6480d4af844c189cf5dd913db24ddd339d3a4f85"
 
 [[projects]]
-  digest = "1:1d7115c64401fe0fb67536e135b029f9ac2845f6afd56df29f1f38789ef19446"
+  digest = "1:52e874611189dd8ea64e4fd605cabf733b700f44b23fd117317d3a153d1e492d"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -308,6 +308,7 @@
     "envoy/config/trace/v2",
     "envoy/service/auth/v2",
     "envoy/service/discovery/v2",
+    "envoy/service/metrics/v2",
     "envoy/service/ratelimit/v2",
     "envoy/type",
     "envoy/type/matcher",
@@ -1303,7 +1304,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:a81c9aeb19a878154d4f18ca0f7638657354e6a7f666cca38c9e02997a7bae23"
+  digest = "1:15b4b068347505c1b759b31e1d75cf6778b7c109ee4c010a603606a8a4e46f5f"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1326,6 +1327,7 @@
     "projects/gateway/pkg/api/v2",
     "projects/gateway/pkg/defaults",
     "projects/gateway/pkg/propagator",
+    "projects/gateway/pkg/services/k8sadmisssion",
     "projects/gateway/pkg/setup",
     "projects/gateway/pkg/syncer",
     "projects/gateway/pkg/translator",
@@ -1416,11 +1418,13 @@
     "projects/gloo/pkg/utils/validation",
     "projects/gloo/pkg/validation",
     "projects/gloo/pkg/xds",
+    "projects/metrics/pkg/metricsservice",
+    "projects/metrics/pkg/runner",
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "2baeb8b540b949fdd5de94dda37a1b7da1ee201c"
-  version = "v0.20.2"
+  revision = "1cfd444a8c2274b5834f0d7e0414c18f2b6574a0"
+  version = "v0.20.6"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1998,9 +2002,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:525e411c9476f1a201efc22d7c4878002b001f20f241221c226a83ba654975e4"
+  digest = "1:cb1518c8b771f09b1fa0a6722601460e0c0262f564340bf2fb24947b9f662194"
   name = "istio.io/gogo-genproto"
-  packages = ["opencensus/proto/trace/v1"]
+  packages = [
+    "opencensus/proto/trace/v1",
+    "prometheus",
+  ]
   pruneopts = "UT"
   revision = "e88dc8b0e4dba2caf977ab9ec040cc2081db103f"
 
