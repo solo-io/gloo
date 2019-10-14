@@ -30,7 +30,7 @@ rules:
     resources: ["gateways"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["gateway.solo.io"]
-    resources: ["virtualservices, routetables"]
+    resources: ["virtualservices", "routetables"]
     verbs: ["get", "list", "watch"]
   {{- if .Values.apiServer.enterprise }}
 # Group 2: these rules only apply to the enterprise apiserver (enables mutations)
@@ -47,7 +47,7 @@ rules:
     resources: ["gateways"]
     verbs: ["create", "update", "delete"]
   - apiGroups: ["gateway.solo.io"]
-    resources: ["virtualservices, routetables"]
+    resources: ["virtualservices", "routetables"]
     verbs: ["create", "update", "delete"]
   {{- end }} # .Values.apiServer.enterprise
 {{- end }} # .Values.apiServer.enable
