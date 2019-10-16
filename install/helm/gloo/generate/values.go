@@ -92,12 +92,19 @@ type KnativeProxy struct {
 }
 
 type Settings struct {
-	WatchNamespaces []string      `json:"watchNamespaces,omitempty" desc:"whitelist of namespaces for gloo to watch for services and CRDs. Empty list means all namespaces"`
-	WriteNamespace  string        `json:"writeNamespace,omitempty" desc:"namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Discovery."`
-	Integrations    *Integrations `json:"integrations,omitempty"`
-	Create          bool          `json:"create" desc:"create a Settings CRD which provides bootstrap configuration to Gloo controllers"`
-	Extensions      interface{}   `json:"extensions,omitempty"`
-	SingleNamespace bool          `json:"singleNamespace" desc:"Enable to use install namespace as WatchNamespace and WriteNamespace"`
+	WatchNamespaces     []string             `json:"watchNamespaces,omitempty" desc:"whitelist of namespaces for gloo to watch for services and CRDs. Empty list means all namespaces"`
+	WriteNamespace      string               `json:"writeNamespace,omitempty" desc:"namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Discovery."`
+	Integrations        *Integrations        `json:"integrations,omitempty"`
+	Create              bool                 `json:"create" desc:"create a Settings CRD which provides bootstrap configuration to Gloo controllers"`
+	Extensions          interface{}          `json:"extensions,omitempty"`
+	SingleNamespace     bool                 `json:"singleNamespace" desc:"Enable to use install namespace as WatchNamespace and WriteNamespace"`
+	InvalidConfigPolicy *InvalidConfigPolicy `json:"invalidConfigPolicy" desc:"Define policies for Gloo to handle invalid configuration"`
+}
+
+type InvalidConfigPolicy struct {
+	ReplaceInvalidRoutes     bool   `json:"replaceInvalidRoutes,omitempty" desc:"Rather than pausing configuration updates, in the event of an invalid Route defined on a virtual service or route table, Gloo will serve the route with a predefined direct response action. This allows valid routes to be updated when other routes are invalid."`
+	InvalidRouteResponseCode int64  `json:"invalidRouteResponseCode,omitempty" desc:"the response code for the direct response"`
+	InvalidRouteResponseBody string `json:"invalidRouteResponseBody,omitempty" desc:"the response body for the direct response"`
 }
 
 type Gloo struct {
