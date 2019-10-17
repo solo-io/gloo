@@ -128,6 +128,11 @@ export class ExtAuthExtension extends jspb.Message {
   getConfigRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setConfigRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
+  hasCustomAuth(): boolean;
+  clearCustomAuth(): void;
+  getCustomAuth(): CustomAuth | undefined;
+  setCustomAuth(value?: CustomAuth): void;
+
   getSpecCase(): ExtAuthExtension.SpecCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthExtension.AsObject;
@@ -143,12 +148,14 @@ export namespace ExtAuthExtension {
   export type AsObject = {
     disable: boolean,
     configRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    customAuth?: CustomAuth.AsObject,
   }
 
   export enum SpecCase {
     SPEC_NOT_SET = 0,
     DISABLE = 1,
     CONFIG_REF = 2,
+    CUSTOM_AUTH = 3,
   }
 }
 
@@ -470,6 +477,8 @@ export namespace BufferSettings {
 }
 
 export class CustomAuth extends jspb.Message {
+  getContextExtensionsMap(): jspb.Map<string, string>;
+  clearContextExtensionsMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CustomAuth.AsObject;
   static toObject(includeInstance: boolean, msg: CustomAuth): CustomAuth.AsObject;
@@ -482,6 +491,7 @@ export class CustomAuth extends jspb.Message {
 
 export namespace CustomAuth {
   export type AsObject = {
+    contextExtensionsMap: Array<[string, string]>,
   }
 }
 

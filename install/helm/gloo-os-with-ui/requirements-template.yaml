@@ -1,4 +1,4 @@
 dependencies:
   - name: gloo
     repository: https://storage.googleapis.com/solo-public-tagged-helm
-    version: v0.20.2-25-g349953bc
+    version: v0.20.2-38-gfe098fac

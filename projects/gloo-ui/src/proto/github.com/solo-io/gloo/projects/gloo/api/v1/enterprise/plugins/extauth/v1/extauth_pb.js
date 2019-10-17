@@ -787,7 +787,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthExtension.oneofGroups_ = [[1,2]];
+proto.enterprise.gloo.solo.io.ExtAuthExtension.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -795,7 +795,8 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.oneofGroups_ = [[1,2]];
 proto.enterprise.gloo.solo.io.ExtAuthExtension.SpecCase = {
   SPEC_NOT_SET: 0,
   DISABLE: 1,
-  CONFIG_REF: 2
+  CONFIG_REF: 2,
+  CUSTOM_AUTH: 3
 };
 
 /**
@@ -835,7 +836,8 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.toObject = function(opt
 proto.enterprise.gloo.solo.io.ExtAuthExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
     disable: jspb.Message.getFieldWithDefault(msg, 1, false),
-    configRef: (f = msg.getConfigRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+    configRef: (f = msg.getConfigRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    customAuth: (f = msg.getCustomAuth()) && proto.enterprise.gloo.solo.io.CustomAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -881,6 +883,11 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.deserializeBinaryFromReader = fun
       reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setConfigRef(value);
       break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.CustomAuth;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.CustomAuth.deserializeBinaryFromReader);
+      msg.setCustomAuth(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -923,6 +930,14 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.serializeBinaryToWriter = functio
       2,
       f,
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getCustomAuth();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.CustomAuth.serializeBinaryToWriter
     );
   }
 };
@@ -986,6 +1001,36 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.clearConfigRef = functi
  */
 proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.hasConfigRef = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional CustomAuth custom_auth = 3;
+ * @return {?proto.enterprise.gloo.solo.io.CustomAuth}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.getCustomAuth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.CustomAuth} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.CustomAuth, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.CustomAuth|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.setCustomAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.ExtAuthExtension.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.clearCustomAuth = function() {
+  this.setCustomAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.hasCustomAuth = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -3251,7 +3296,7 @@ proto.enterprise.gloo.solo.io.CustomAuth.prototype.toObject = function(opt_inclu
  */
 proto.enterprise.gloo.solo.io.CustomAuth.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    contextExtensionsMap: (f = msg.getContextExtensionsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -3288,6 +3333,12 @@ proto.enterprise.gloo.solo.io.CustomAuth.deserializeBinaryFromReader = function(
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = msg.getContextExtensionsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -3317,6 +3368,28 @@ proto.enterprise.gloo.solo.io.CustomAuth.prototype.serializeBinary = function() 
  */
 proto.enterprise.gloo.solo.io.CustomAuth.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getContextExtensionsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * map<string, string> context_extensions = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.CustomAuth.prototype.getContextExtensionsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.CustomAuth.prototype.clearContextExtensionsMap = function() {
+  this.getContextExtensionsMap().clear();
 };
 
 

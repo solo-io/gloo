@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: 349953bcd3bf807ecd10abe127033ebc978b65ab
+    description: Update gloo to revision 349953bcd3bf807ecd10abe127033ebc978b65ab.
+  - type: BREAKING_CHANGE
+    description: Use Gloo release candidate branch as dependency.
+    issueLink: https://github.com/solo-io/gloo/issues/1171
+    resolvesIssue: false

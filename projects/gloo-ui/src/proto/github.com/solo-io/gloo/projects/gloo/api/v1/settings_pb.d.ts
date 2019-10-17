@@ -578,6 +578,11 @@ export class GlooOptions extends jspb.Message {
   getAwsOptions(): GlooOptions.AWSOptions | undefined;
   setAwsOptions(value?: GlooOptions.AWSOptions): void;
 
+  hasInvalidConfigPolicy(): boolean;
+  clearInvalidConfigPolicy(): void;
+  getInvalidConfigPolicy(): GlooOptions.InvalidConfigPolicy | undefined;
+  setInvalidConfigPolicy(value?: GlooOptions.InvalidConfigPolicy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -595,6 +600,7 @@ export namespace GlooOptions {
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     endpointsWarmingTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     awsOptions?: GlooOptions.AWSOptions.AsObject,
+    invalidConfigPolicy?: GlooOptions.InvalidConfigPolicy.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {
@@ -614,6 +620,34 @@ export namespace GlooOptions {
   export namespace AWSOptions {
     export type AsObject = {
       enableCredentialsDiscovey: boolean,
+    }
+  }
+
+  export class InvalidConfigPolicy extends jspb.Message {
+    getReplaceInvalidRoutes(): boolean;
+    setReplaceInvalidRoutes(value: boolean): void;
+
+    getInvalidRouteResponseCode(): number;
+    setInvalidRouteResponseCode(value: number): void;
+
+    getInvalidRouteResponseBody(): string;
+    setInvalidRouteResponseBody(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InvalidConfigPolicy.AsObject;
+    static toObject(includeInstance: boolean, msg: InvalidConfigPolicy): InvalidConfigPolicy.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InvalidConfigPolicy, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InvalidConfigPolicy;
+    static deserializeBinaryFromReader(message: InvalidConfigPolicy, reader: jspb.BinaryReader): InvalidConfigPolicy;
+  }
+
+  export namespace InvalidConfigPolicy {
+    export type AsObject = {
+      replaceInvalidRoutes: boolean,
+      invalidRouteResponseCode: number,
+      invalidRouteResponseBody: string,
     }
   }
 }

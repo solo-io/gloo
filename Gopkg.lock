@@ -507,7 +507,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:dec81f0b3382876dc2653d2b812fe8383c7f984f666e5e95064f4f9408ac8256"
+  digest = "1:cb7fd72eebea28092f49a7a5bc9bf69413e740e9d3fd65c22884b0fc5c8d53ab"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -522,8 +522,8 @@
     "ptypes/wrappers",
   ]
   pruneopts = "UT"
-  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
-  version = "v1.2.0"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
   branch = "master"
@@ -1320,7 +1320,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:5f9e774ba8c20f8ae641f8172e4238b08fda885261ad9a6fda01929d4973ee94"
+  digest = "1:bcfd47b2c4c4b5dcb4e15b8f2705dd2cbec41cd303387e4bd4098c96c28f042e"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1331,6 +1331,7 @@
     "pkg/utils/channelutils",
     "pkg/utils/settingsutil",
     "pkg/utils/setuputils",
+    "pkg/utils/usage",
     "pkg/version",
     "projects/discovery/pkg/fds",
     "projects/discovery/pkg/fds/discoveries/aws",
@@ -1407,6 +1408,7 @@
     "projects/gloo/pkg/plugins/basicroute",
     "projects/gloo/pkg/plugins/consul",
     "projects/gloo/pkg/plugins/cors",
+    "projects/gloo/pkg/plugins/extauth",
     "projects/gloo/pkg/plugins/faultinjection",
     "projects/gloo/pkg/plugins/grpc",
     "projects/gloo/pkg/plugins/hcm",
@@ -1418,6 +1420,7 @@
     "projects/gloo/pkg/plugins/loadbalancer",
     "projects/gloo/pkg/plugins/pipe",
     "projects/gloo/pkg/plugins/pluginutils",
+    "projects/gloo/pkg/plugins/ratelimit",
     "projects/gloo/pkg/plugins/registry",
     "projects/gloo/pkg/plugins/rest",
     "projects/gloo/pkg/plugins/shadowing",
@@ -1431,6 +1434,7 @@
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/plugins/utils/transformation",
     "projects/gloo/pkg/syncer",
+    "projects/gloo/pkg/syncer/sanitizer",
     "projects/gloo/pkg/translator",
     "projects/gloo/pkg/upstreams",
     "projects/gloo/pkg/upstreams/consul",
@@ -1445,7 +1449,7 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "349953bcd3bf807ecd10abe127033ebc978b65ab"
+  revision = "fe098fac2803d2cfb0a399301be0cf65ac03676d"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1528,7 +1532,18 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:cb5a0ecb834e30b61029d8309db4aaf48d50f6b499040cece40e8f62c2424550"
+  digest = "1:f35421a8443efa2170aa6dadad19ba11cfc52f72fb0bb04f8eace6b60cb29ef9"
+  name = "github.com/solo-io/reporting-client"
+  packages = [
+    "pkg/api/v1",
+    "pkg/client",
+  ]
+  pruneopts = "UT"
+  revision = "36dd39d2795b04bae1e8a3482da6c4a27ce721b7"
+  version = "v0.0.3"
+
+[[projects]]
+  digest = "1:5afac3c08ee9280f6560308b459ea7861feb1627631006ada7b21155822d743c"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1590,8 +1605,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "f73a630e3957f0643ddab630a1c7b0ab9d2130ba"
-  version = "v0.10.25"
+  revision = "d91e21c0b9708a02e6e436fdae2d14f67491e847"
+  version = "v0.11.0"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"

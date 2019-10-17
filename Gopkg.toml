@@ -45,7 +45,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
   version = "v2.13.0"
 
 [[override]]
-  version = "1.2.0"
+  version = "1.3.0"
   name = "github.com/golang/protobuf"
 
 [[constraint]]
@@ -58,11 +58,11 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.10.19"
+  version = "0.11.0"
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  revision = "349953bcd3bf807ecd10abe127033ebc978b65ab" # a commit from the `feature-rc1` branch
+  revision = "fe098fac2803d2cfb0a399301be0cf65ac03676d" # a commit from the `feature-rc1` branch
 
 [[override]]
   name = "github.com/hashicorp/consul"
