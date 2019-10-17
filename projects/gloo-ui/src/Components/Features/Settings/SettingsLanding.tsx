@@ -201,9 +201,42 @@ export const SettingsLanding = () => {
       />
       <ListingFilter
         types={[{ ...PageChoiceFilter, choice: startingChoice }]}
-        filterFunction={listDisplay}
-        onChange={pageChanged}
-      />
+        onChange={pageChanged}>
+        {() => (
+          <>
+            <Switch>
+              <Route
+                path='/settings/security/'
+                render={() => (
+                  <SecurityPage
+                    tlsSecrets={tlsSecrets}
+                    oAuthSecrets={oAuthSecrets}
+                    onCreateSecret={handleCreateSecret}
+                    onDeleteSecret={handleDeleteSecret}
+                  />
+                )}
+              />
+              <Route
+                path='/settings/namespaces/'
+                render={() => <WatchedNamespacesPage />}
+              />
+              <Route
+                path='/settings/secrets/'
+                render={() => (
+                  <SecretsPage
+                    awsSecrets={awsSecrets}
+                    azureSecrets={azureSecrets}
+                    onCreateSecret={handleCreateSecret}
+                    onDeleteSecret={handleDeleteSecret}
+                  />
+                )}
+              />
+
+              <Redirect exact from='/settings/' to='/settings/security/' />
+            </Switch>
+          </>
+        )}
+      </ListingFilter>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/go-utils/errors"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -18,7 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -89,7 +90,22 @@ var _ = BeforeSuite(func() {
 	defer cleanup()
 
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() error {
+		opts := &options.Options{
+			Metadata: core.Metadata{
+				Namespace: testHelper.InstallNamespace,
+			},
+		}
+		ok, err := check.CheckResources(opts)
+		if err != nil {
+			return errors.Wrapf(err, "unable to run glooctl check")
+		}
+		if ok {
+			return nil
+		}
+		return errors.New("glooctl check detected a problem with the installation")
+	}, 2*time.Minute, "5s").Should(BeNil())
 
 	// TODO(marco): explicitly enable strict validation, this can be removed once we enable validation by default
 	// See https://github.com/solo-io/gloo/issues/1374
@@ -205,7 +221,7 @@ func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.So
 				return errors.New("no available replicas for LDAP server deployment")
 			}
 			return nil
-		}, "30s", "0.5s").Should(BeNil())
+		}, time.Minute, "0.5s").Should(BeNil())
 
 		// Make sure we can query the LDAP server
 		soloTestHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
@@ -223,16 +239,17 @@ func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.So
 func cleanupLdapServer(kubeClient kubernetes.Interface) {
 
 	// Delete config map
-	err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Delete("ldap", &metav1.DeleteOptions{})
-	Expect(err).NotTo(HaveOccurred())
+	// Ignore the error on deletion (as it might have never been created if something went wrong in the suite setup),
+	// all we care about is that the config map does not exist
+	_ = kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Delete("ldap", &metav1.DeleteOptions{})
 	Eventually(func() bool {
 		_, err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
 		return isNotFound(err)
 	}, "15s", "0.5s").Should(BeTrue())
 
 	// Delete LDAP server deployment and service
-	err = testutils.Kubectl("delete", "-n", testHelper.InstallNamespace, "-f", filepath.Join(ldapAssetDir, ldapServerManifestFilename))
-	Expect(err).NotTo(HaveOccurred())
+	// We ignore the error on the deletion call for the same reason as above
+	_ = testutils.Kubectl("delete", "-n", testHelper.InstallNamespace, "-f", filepath.Join(ldapAssetDir, ldapServerManifestFilename))
 	Eventually(func() bool {
 		_, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
 		return isNotFound(err)
@@ -245,13 +262,11 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 
 var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceClient, virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins, sslConfig *gloov1.SslConfig) {
 
-	if routePlugins.GetPrefixRewrite() == nil {
+	if routePlugins.GetPrefixRewrite() == "" {
 		if routePlugins == nil {
 			routePlugins = &gloov1.RoutePlugins{}
 		}
-		routePlugins.PrefixRewrite = &transformation.PrefixRewrite{
-			PrefixRewrite: "/",
-		}
+		routePlugins.PrefixRewrite = "/"
 	}
 
 	// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the
@@ -269,11 +284,11 @@ var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceCl
 				Domains:            []string{"*"},
 				Routes: []*v1.Route{{
 					RoutePlugins: routePlugins,
-					Matcher: &gloov1.Matcher{
+					Matchers: []*gloov1.Matcher{{
 						PathSpecifier: &gloov1.Matcher_Prefix{
 							Prefix: testMatcherPrefix,
 						},
-					},
+					}},
 					Action: &v1.Route_RouteAction{
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{

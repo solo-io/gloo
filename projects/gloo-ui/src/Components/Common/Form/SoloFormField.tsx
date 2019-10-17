@@ -29,6 +29,8 @@ import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
 
 const { Option, OptGroup } = Select;
 
@@ -39,7 +41,6 @@ export const ErrorText = styled.div`
     props.errorExists ? 'visible' : 'hidden'};
   min-height: 19px;
 `;
-// TODO: find best way to type the components
 
 export const SoloFormInput = ({ ...props }) => {
   const [field, meta] = useField(props.name);
@@ -176,7 +177,7 @@ interface MetadataBasedDropdownProps extends DropdownProps {
   value: any;
   options: any[];
   name: string;
-  onChange?: (newValue: any) => any;
+  onChange?: (newValue: any) => void;
 }
 export const SoloFormMetadataBasedDropdown: React.FC<
   MetadataBasedDropdownProps
@@ -252,8 +253,8 @@ export const SoloFormMetadataBasedDropdown: React.FC<
 }, shallowEqual);
 
 interface VirtualServiceTypeaheadProps extends TypeaheadProps {
-  value: VirtualService.AsObject | undefined;
-  options: VirtualService.AsObject[];
+  value: RouteParent | undefined;
+  options: RouteParent[];
   name: string;
   onChange?: (newValue: any) => any;
 }
@@ -514,6 +515,79 @@ export const SoloAWSSecretsList: React.FC<{
     </div>
   );
 }, compareFn);
+
+const compare = (
+  prevProps: Readonly<{ name: string; title: string; defaultValue: string }>,
+  newProps: Readonly<{ name: string; title: string; defaultValue: string }>
+) => {
+  return _.isEqual(prevProps, newProps);
+};
+type RouteParentType = RouteTable.AsObject | VirtualService.AsObject;
+export const SoloRouteParentDropdown: React.FC<{
+  name: string;
+  title: string;
+  defaultValue: string;
+}> = React.memo(props => {
+  const routeTablesList = useSelector((state: AppState) =>
+    state.routeTables.routeTablesList.map(rtd => !!rtd && rtd.routeTable!)
+  );
+  const groupedRouteTables = React.useMemo(
+    () => Array.from(groupBy(routeTablesList, () => 'Route Table')),
+    [routeTablesList.length]
+  );
+
+  const virtualServicesList = useSelector((state: AppState) =>
+    state.virtualServices.virtualServicesList.map(
+      vsd => !!vsd && vsd.virtualService!
+    )
+  );
+  const groupedVirtualServices = React.useMemo(
+    () => Array.from(groupBy(virtualServicesList, () => 'Virtual Service')),
+    [virtualServicesList.length]
+  );
+
+  const routeParents: [string, RouteParentType[]][] = [
+    ...groupedRouteTables,
+    ...groupedVirtualServices
+  ];
+
+  const { name, title } = props;
+  const [field, meta] = useField(name);
+  const form = useFormikContext<any>();
+
+  return (
+    <div style={{ width: '100%' }}>
+      {title && <Label>{title}</Label>}
+      <SoloDropdownBlock
+        disabled={!!props.defaultValue}
+        value={props.defaultValue}
+        onChange={(value: any) => {
+
+          let [name, namespace] = value.split('::');
+          // find the correct one in the list
+          let selectedRouteParent;
+          form.setFieldValue(`${field.name}.name`, name);
+          // set it in the form
+          form.setFieldValue(`${field.name}.namespace`, namespace);
+        }}>
+        {routeParents.map(([namespace, secrets]) => {
+          return (
+            <OptGroup key={namespace} label={namespace}>
+              {secrets.map(s => (
+                <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
+                  {s.metadata!.name}
+                </Option>
+              ))}
+            </OptGroup>
+          );
+        })}
+      </SoloDropdownBlock>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
+    </div>
+  );
+}, compare);
 
 export const TableFormWrapper: React.FC = props => {
   return (

@@ -85,6 +85,7 @@ export interface TableProps {
   columns: any[];
   dataSource: any[];
   formComponent?: React.FC;
+  title?: string;
 }
 
 // TODO: figure out if edit row should always be shown or always be last row
@@ -120,6 +121,7 @@ export const SoloTable = (props: TableProps) => {
   return (
     <TableContainer>
       <Table
+        title={props.title ? () => <b>{props.title}</b> : undefined}
         dataSource={props.dataSource}
         columns={props.columns}
         components={components}

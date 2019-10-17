@@ -15,11 +15,6 @@ export class UpstreamSpec extends jspb.Message {
   getUseTls(): boolean;
   setUseTls(value: boolean): void;
 
-  hasAutoHostRewrite(): boolean;
-  clearAutoHostRewrite(): void;
-  getAutoHostRewrite(): google_protobuf_wrappers_pb.BoolValue | undefined;
-  setAutoHostRewrite(value?: google_protobuf_wrappers_pb.BoolValue): void;
-
   hasServiceSpec(): boolean;
   clearServiceSpec(): void;
   getServiceSpec(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec | undefined;
@@ -39,7 +34,6 @@ export namespace UpstreamSpec {
   export type AsObject = {
     hostsList: Array<Host.AsObject>,
     useTls: boolean,
-    autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     serviceSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.AsObject,
   }
 }

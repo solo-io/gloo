@@ -22,7 +22,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
@@ -65,18 +64,10 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	var jwtRoute jwt.RouteExtension
-	// TODO(kdorosh) remove this unmarshal codepath when we stop supporting opaque jwt config
-	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &jwtRoute)
-	if err != nil && in.GetRoutePlugins().GetJwt() == nil {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return errors.Wrapf(err, "Error converting proto any to jwt plugin")
-	}
-
-	if jwt := in.GetRoutePlugins().GetJwt(); jwt != nil {
-		jwtRoute = *jwt
+	jwtRoute := in.GetRoutePlugins().GetJwt()
+	if jwtRoute == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
 	if jwtRoute.Disable {
@@ -86,24 +77,15 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	// get the jwt config from the vhost
-	var jwtExt jwt.VhostExtension
-	// TODO(kdorosh) remove this unmarshal codepath when we stop supporting opaque jwt config
-	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &jwtExt)
-	if err != nil && in.GetVirtualHostPlugins().GetJwt() == nil {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return errors.Wrapf(err, "Error converting proto any to jwt plugin")
-	}
-
-	if jwt := in.GetVirtualHostPlugins().GetJwt(); jwt != nil {
-		jwtExt = *jwt
+	var jwtExt = in.GetVirtualHostPlugins().GetJwt()
+	if jwtExt == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
 	claimsToHeader := make(map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders)
 
-	err = p.translateProviders(in.Name, jwtExt, claimsToHeader)
+	err := p.translateProviders(in.Name, *jwtExt, claimsToHeader)
 	if err != nil {
 		return errors.Wrapf(err, "Error translating provider for "+in.Name)
 	}
@@ -182,22 +164,6 @@ func (p *Plugin) getRequirement(name string, providers []string) *envoyauth.JwtR
 
 }
 
-func translateDefaultProvider(j jwt.VhostExtension) (*envoyauth.JwtProvider, error) {
-	// TODO(kdorosh) remove this codepath as part of v1.0 release?
-	if j.Jwks == nil {
-		return nil, errors.New("JWKS source not provided")
-	}
-
-	// TODO(kdorosh) remove this codepath as part of v1.0 release?
-	provider := &envoyauth.JwtProvider{
-		Issuer:    j.Issuer,
-		Audiences: j.Audiences,
-	}
-	provider.PayloadInMetadata = PayloadInMetadata
-
-	err := translateJwks(&j, provider)
-	return provider, err
-}
 func translateProvider(j *jwt.Provider) (*envoyauth.JwtProvider, error) {
 	provider := &envoyauth.JwtProvider{
 		Issuer:    j.Issuer,
@@ -227,20 +193,6 @@ func ProviderName(vhostname, providername string) string {
 }
 
 func (p *Plugin) translateProviders(vhostname string, j jwt.VhostExtension, claimsToHeader map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders) error {
-	if len(j.GetProviders()) == 0 {
-		// TODO(yuval-k): This is to support fieldsw on the VhostExtensions that were there before
-		// providers were added. remove the fields in the VhostExtensions and then remove this code,
-		// when they are not in used any more.
-		provider, err := translateDefaultProvider(j)
-		if err != nil {
-			return err
-		}
-		name := ProviderName(vhostname, "default")
-		p.uniqProviders[name] = provider
-		p.perVhostProviders[vhostname] = append(p.perVhostProviders[vhostname], name)
-		return nil
-	}
-
 	for name, provider := range j.GetProviders() {
 		envoyProvider, err := translateProvider(provider)
 		if err != nil {

@@ -6,34 +6,28 @@ import (
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 
-	"github.com/gogo/protobuf/types"
-
 	"github.com/solo-io/go-utils/testutils/helper"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
-	"github.com/solo-io/go-utils/kubeutils"
-	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/go-utils/kubeutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
-	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 
 	"k8s.io/client-go/rest"
 )
 
-var _ = Describe("Ratelimit tests", func() {
+var _ = Describe("RateLimit tests", func() {
 
 	var (
 		ctx    context.Context
@@ -108,16 +102,9 @@ var _ = Describe("Ratelimit tests", func() {
 				Unit:            ratelimit.RateLimit_HOUR,
 			},
 		}
-		rateLimitStruct, err := envoyutil.MessageToStruct(ingressRateLimit)
-		Expect(err).NotTo(HaveOccurred())
-		protos := map[string]*types.Struct{
-			ratelimit2.ExtensionName: rateLimitStruct,
-		}
 
 		virtualHostPlugins := &gloov1.VirtualHostPlugins{
-			Extensions: &gloov1.Extensions{
-				Configs: protos,
-			},
+			RatelimitBasic: ingressRateLimit,
 		}
 
 		writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
@@ -146,8 +133,7 @@ var _ = Describe("Ratelimit tests", func() {
 			settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			var rlSettings ratelimitpb.EnvoySettings
-			rlSettings.CustomConfig = &ratelimitpb.EnvoySettings_RateLimitCustomConfig{
+			rlSettings := ratelimitpb.ServiceSettings{
 				Descriptors: []*ratelimitpb.Descriptor{{
 					Key:   "generic_key",
 					Value: value,
@@ -158,10 +144,7 @@ var _ = Describe("Ratelimit tests", func() {
 				}},
 			}
 
-			rlStruct, err := protoutils.MarshalStruct(&rlSettings)
-			Expect(err).NotTo(HaveOccurred())
-
-			settings.Extensions.Configs[ratelimit2.EnvoyExtensionName] = rlStruct
+			settings.Ratelimit = &rlSettings
 			_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
 
 		})
@@ -180,16 +163,8 @@ var _ = Describe("Ratelimit tests", func() {
 				}},
 			}
 
-			rateLimitStruct, err := envoyutil.MessageToStruct(ratelimitExtension)
-			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: rateLimitStruct,
-			}
-
 			virtualHostPlugins := &gloov1.VirtualHostPlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: protos,
-				},
+				Ratelimit: ratelimitExtension,
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
@@ -210,16 +185,8 @@ var _ = Describe("Ratelimit tests", func() {
 				}},
 			}
 
-			rateLimitStruct, err := envoyutil.MessageToStruct(ratelimitExtension)
-			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: rateLimitStruct,
-			}
-
 			routePlugins := &gloov1.RoutePlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: protos,
-				},
+				Ratelimit: ratelimitExtension,
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, nil, routePlugins, nil)
@@ -240,32 +207,16 @@ var _ = Describe("Ratelimit tests", func() {
 				}},
 			}
 
-			vHostRateLimitStruct, err := envoyutil.MessageToStruct(vhostRateLimitExtension)
-			Expect(err).NotTo(HaveOccurred())
-			vHostExtensionMap := map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: vHostRateLimitStruct,
-			}
-
 			virtualHostPlugins := &gloov1.VirtualHostPlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: vHostExtensionMap,
-				},
+				Ratelimit: vhostRateLimitExtension,
 			}
 
 			routeRateLimitExtension := &ratelimitpb.RateLimitRouteExtension{
 				IncludeVhRateLimits: true,
 			}
 
-			routeRateLimitStruct, err := envoyutil.MessageToStruct(routeRateLimitExtension)
-			Expect(err).NotTo(HaveOccurred())
-			routeExtensionMap := map[string]*types.Struct{
-				ratelimit2.EnvoyExtensionName: routeRateLimitStruct,
-			}
-
 			routePlugins := &gloov1.RoutePlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: routeExtensionMap,
-				},
+				Ratelimit: routeRateLimitExtension,
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, routePlugins, nil)

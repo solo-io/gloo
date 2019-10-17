@@ -74,7 +74,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
     hostsList: jspb.Message.toObjectList(msg.getHostsList(),
     proto.static.plugins.gloo.solo.io.Host.toObject, includeInstance),
     useTls: jspb.Message.getFieldWithDefault(msg, 3, false),
-    autoHostRewrite: (f = msg.getAutoHostRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     serviceSpec: (f = msg.getServiceSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.toObject(includeInstance, f)
   };
 
@@ -120,11 +119,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setUseTls(value);
-      break;
-    case 6:
-      var value = new google_protobuf_wrappers_pb.BoolValue;
-      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
-      msg.setAutoHostRewrite(value);
       break;
     case 5:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec;
@@ -173,14 +167,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
     writer.writeBool(
       3,
       f
-    );
-  }
-  f = message.getAutoHostRewrite();
-  if (f != null) {
-    writer.writeMessage(
-      6,
-      f,
-      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getServiceSpec();
@@ -239,36 +225,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.getUseTls = function() 
 /** @param {boolean} value */
 proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.setUseTls = function(value) {
   jspb.Message.setProto3BooleanField(this, 3, value);
-};
-
-
-/**
- * optional google.protobuf.BoolValue auto_host_rewrite = 6;
- * @return {?proto.google.protobuf.BoolValue}
- */
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.getAutoHostRewrite = function() {
-  return /** @type{?proto.google.protobuf.BoolValue} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 6));
-};
-
-
-/** @param {?proto.google.protobuf.BoolValue|undefined} value */
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.setAutoHostRewrite = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
-};
-
-
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.clearAutoHostRewrite = function() {
-  this.setAutoHostRewrite(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.hasAutoHostRewrite = function() {
-  return jspb.Message.getField(this, 6) != null;
 };
 
 

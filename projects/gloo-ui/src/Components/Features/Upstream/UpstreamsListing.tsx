@@ -42,8 +42,8 @@ import {
   groupBy,
   RadioFilters
 } from 'utils/helpers';
-import { CreateRouteModal } from '../Route/CreateRouteModal';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
+import { CreateRouteModal } from '../VirtualService/Creation/CreateRouteModal';
 
 const TypeHolder = styled.div`
   display: flex;
@@ -176,7 +176,7 @@ const Action = styled.div`
 `;
 interface UpstreamCardData {
   cardTitle: string;
-  cardSubtitle: string;
+  cardSubtitle: { key: string; value: string }[];
   onRemoveCard?: () => any;
   onExpand: () => void;
   details: {
@@ -227,97 +227,6 @@ export const UpstreamsListing = () => {
     return <div>Loading...</div>;
   }
 
-  const listDisplay = (
-    strings: StringFilterProps[],
-    types: TypeFilterProps[],
-    checkboxes: CheckboxFilterProps[],
-    radios: RadioFilterProps[]
-  ) => {
-    const nameFilterValue: string = strings.find(
-      s => s.displayName === 'Filter By Name...'
-    )!.value!;
-    const selectedRadio = params.get('status') || '';
-    params.set('status', selectedRadio);
-    // group by type
-
-    let upstreamsByType = React.useMemo(
-      () => groupBy(upstreamsList, u => getUpstreamType(u.upstream!)),
-      [upstreamsList.length]
-    );
-    let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
-    let checkboxesNotSet = checkboxes.every(c => !c.value!);
-    return (
-      <div>
-        <Route
-          path={match.path}
-          exact
-          render={() =>
-            upstreamsByTypeArr.map(([type, upstreams]) => {
-              // show section according to type filter
-              let groupedByNamespaces = Array.from(
-                groupBy(
-                  upstreams,
-                  u => u.upstream!.metadata!.namespace
-                ).entries()
-              );
-
-              if (
-                checkboxesNotSet ||
-                checkboxes.find(c => c.displayName === type)!.value!
-              ) {
-                const cardListingsData = groupedByNamespaces
-                  .map(([namespace, upstreams]) => {
-                    return {
-                      namespace,
-                      cardsData: getUsableCatalogData(
-                        nameFilterValue,
-                        upstreams,
-                        selectedRadio
-                      )
-                    };
-                  })
-                  .filter(data => !!data.cardsData.length);
-
-                if (!cardListingsData.length) {
-                  return null;
-                }
-
-                return (
-                  <SectionCard
-                    cardName={type}
-                    logoIcon={getIcon(type)}
-                    key={type}>
-                    {cardListingsData.map(data => (
-                      <CardsListing
-                        key={data.namespace}
-                        title={data.namespace}
-                        cardsData={data.cardsData}
-                      />
-                    ))}
-                  </SectionCard>
-                );
-              }
-            })
-          }
-        />
-        <Route
-          path={`${match.path}table`}
-          render={() => (
-            <SoloTable
-              dataSource={getUsableTableData(
-                nameFilterValue,
-                upstreamsList,
-                checkboxes,
-                selectedRadio
-              )}
-              columns={getTableColumns(setUpstreamForRouteCreation)}
-            />
-          )}
-        />
-      </div>
-    );
-  };
-
   const getUsableCatalogData = (
     nameFilter: string,
     data: UpstreamDetails.AsObject[],
@@ -331,7 +240,9 @@ export const UpstreamsListing = () => {
           ? upstream.status.state
           : healthConstants.Pending.value,
         cardTitle: upstream.metadata!.name,
-        cardSubtitle: upstream.metadata!.namespace,
+        cardSubtitle: [
+          { key: 'Namespace', value: upstream.metadata!.namespace }
+        ],
         onRemoveCard: () =>
           dispatch(
             deleteUpstream({
@@ -471,9 +382,98 @@ export const UpstreamsListing = () => {
             choice: params.has('status') ? params.get('status')! : undefined
           }
         ]}
-        onChange={handleFilterChange}
-        filterFunction={listDisplay}
-      />
+        onChange={handleFilterChange}>
+        {(
+          strings: StringFilterProps[],
+          types: TypeFilterProps[],
+          checkboxes: CheckboxFilterProps[],
+          radios: RadioFilterProps[]
+        ) => {
+          const nameFilterValue: string = strings.find(
+            s => s.displayName === 'Filter By Name...'
+          )!.value!;
+          const selectedRadio = params.get('status') || '';
+          params.set('status', selectedRadio);
+          // group by type
+
+          let upstreamsByType = React.useMemo(
+            () => groupBy(upstreamsList, u => getUpstreamType(u.upstream!)),
+            [upstreamsList.length]
+          );
+          let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
+          let checkboxesNotSet = checkboxes.every(c => !c.value!);
+          return (
+            <div>
+              <Route
+                path={match.path}
+                exact
+                render={() =>
+                  upstreamsByTypeArr.map(([type, upstreams]) => {
+                    // show section according to type filter
+                    let groupedByNamespaces = Array.from(
+                      groupBy(
+                        upstreams,
+                        u => u.upstream!.metadata!.namespace
+                      ).entries()
+                    );
+
+                    if (
+                      checkboxesNotSet ||
+                      checkboxes.find(c => c.displayName === type)!.value!
+                    ) {
+                      const cardListingsData = groupedByNamespaces
+                        .map(([namespace, upstreams]) => {
+                          return {
+                            namespace,
+                            cardsData: getUsableCatalogData(
+                              nameFilterValue,
+                              upstreams,
+                              selectedRadio
+                            )
+                          };
+                        })
+                        .filter(data => !!data.cardsData.length);
+
+                      if (!cardListingsData.length) {
+                        return null;
+                      }
+
+                      return (
+                        <SectionCard
+                          cardName={type}
+                          logoIcon={getIcon(type)}
+                          key={type}>
+                          {cardListingsData.map(data => (
+                            <CardsListing
+                              key={data.namespace}
+                              title={data.namespace}
+                              cardsData={data.cardsData}
+                            />
+                          ))}
+                        </SectionCard>
+                      );
+                    }
+                  })
+                }
+              />
+              <Route
+                path={`${match.path}table`}
+                render={() => (
+                  <SoloTable
+                    dataSource={getUsableTableData(
+                      nameFilterValue,
+                      upstreamsList,
+                      checkboxes,
+                      selectedRadio
+                    )}
+                    columns={getTableColumns(setUpstreamForRouteCreation)}
+                  />
+                )}
+              />
+            </div>
+          );
+        }}
+      </ListingFilter>
       <SoloModal
         visible={!!upstreamForRouteCreation}
         width={500}

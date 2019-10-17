@@ -124,7 +124,7 @@ var _ = Describe("External auth", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions, nil)
 		go func(testCtx context.Context) {
 			defer GinkgoRecover()
 			err := extauthrunner.RunWithSettings(testCtx, settings)
@@ -902,11 +902,6 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg pro
 		Domains:            []string{"*"},
 		VirtualHostPlugins: &gloov1.VirtualHostPlugins{},
 		Routes: []*gloov1.Route{{
-			Matcher: &gloov1.Matcher{
-				PathSpecifier: &gloov1.Matcher_Prefix{
-					Prefix: "/",
-				},
-			},
 			Action: &gloov1.Route_RouteAction{
 				RouteAction: &gloov1.RouteAction{
 					Destination: &gloov1.RouteAction_Single{

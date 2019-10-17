@@ -58,11 +58,11 @@ func (m *QuoteUnquoteMesh) getSelfListener(svcIndex int) *gloov1.Listener {
 					Name:    "virt-self",
 					Domains: []string{"*"},
 					Routes: []*gloov1.Route{{
-						Matcher: &gloov1.Matcher{
+						Matchers: []*gloov1.Matcher{{
 							PathSpecifier: &gloov1.Matcher_Prefix{
 								Prefix: "/",
 							},
-						},
+						}},
 						Action: &gloov1.Route_RouteAction{
 							RouteAction: &gloov1.RouteAction{
 								Destination: &gloov1.RouteAction_Single{
@@ -202,11 +202,11 @@ func (m *QuoteUnquoteMesh) Start(ef *EnvoyFactory, testClients TestClients, serv
 							Name:    fmt.Sprintf("virt-%d-to-%d", i, j),
 							Domains: []string{"*"},
 							Routes: []*gloov1.Route{{
-								Matcher: &gloov1.Matcher{
+								Matchers: []*gloov1.Matcher{{
 									PathSpecifier: &gloov1.Matcher_Prefix{
 										Prefix: "/",
 									},
-								},
+								}},
 								Action: &gloov1.Route_RouteAction{
 									RouteAction: &gloov1.RouteAction{
 										Destination: &gloov1.RouteAction_Single{

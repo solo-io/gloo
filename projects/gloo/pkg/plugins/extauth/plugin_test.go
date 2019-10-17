@@ -65,11 +65,11 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			route = &v1.Route{
-				Matcher: &v1.Matcher{
+				Matchers: []*v1.Matcher{{
 					PathSpecifier: &v1.Matcher_Prefix{
 						Prefix: "/",
 					},
-				},
+				}},
 				Action: &v1.Route_RouteAction{
 					RouteAction: &v1.RouteAction{
 						Destination: &v1.RouteAction_Single{
@@ -551,11 +551,11 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			route = &v1.Route{
-				Matcher: &v1.Matcher{
+				Matchers: []*v1.Matcher{{
 					PathSpecifier: &v1.Matcher_Prefix{
 						Prefix: "/",
 					},
-				},
+				}},
 				Action: &v1.Route_RouteAction{
 					RouteAction: &v1.RouteAction{
 						Destination: &v1.RouteAction_Single{

@@ -51,8 +51,8 @@ const CardTitleText = styled.div`
 const CardSubtitle = styled.div`
   color: ${colors.novemberGrey};
   font-size: 12px;
-  min-height: 18px;
-  max-height: 18px;
+  min-height: 45px;
+  max-height: 55px;
   line-height: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -158,7 +158,7 @@ const ArrowToggle = styled.div`
 
 export interface CardType {
   cardTitle: string;
-  cardSubtitle?: string;
+  cardSubtitle?: { key: string; value: string }[];
   onRemoveCard?: () => any;
   removeConfirmText?: string;
   id?: string;
@@ -236,7 +236,13 @@ export const Card = (props: CardType) => {
           </Actions>
         </CardTitle>
         <CardSubtitle>
-          {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}
+          {!!cardSubtitle && cardSubtitle.length
+            ? cardSubtitle.map(({ key, value }, v) => (
+                <div key={v}>
+                  {key}: {value}
+                </div>
+              ))
+            : null}
         </CardSubtitle>
       </MainSection>
       <Footer onClick={handleFooterClick} data-testid='view-details-link'>

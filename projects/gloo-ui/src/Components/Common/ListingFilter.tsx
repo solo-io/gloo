@@ -79,7 +79,7 @@ interface FilterProps {
   types?: TypeFilterProps[];
   checkboxes?: CheckboxFilterProps[];
   radios?: RadioFilterProps[];
-  filterFunction: (
+  children: (
     strings: StringFilterProps[],
     types: TypeFilterProps[],
     checkboxes: CheckboxFilterProps[],
@@ -169,11 +169,11 @@ export const ListingFilter = (filterProps: FilterProps) => {
               );
             })}
           </FilterInput>
-          <React.Fragment>
+          <>
             {radioFilters.length > 0 && filterProps.showLabels && (
               <StyledHeader>Status Filter</StyledHeader>
             )}
-          </React.Fragment>
+          </>
           {radioFilters.map((filter, ind) => {
             return (
               <SoloRadioGroup
@@ -238,7 +238,7 @@ export const ListingFilter = (filterProps: FilterProps) => {
         </Filters>
       )}
       <Content>
-        {filterProps.filterFunction(
+        {filterProps.children(
           stringFilters,
           typesFilters,
           checkboxFilters,

@@ -14,10 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/errors"
-	sputils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
@@ -40,55 +37,25 @@ func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
-func GetSettings(params plugins.InitParams) (*rbac.Settings, error) {
-	var settings rbac.Settings
-	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
-	ok, err := sputils.GetSettings(params, ExtensionName, &settings)
-	if err != nil && params.Settings.GetRbac() == nil {
-		return nil, err
-	}
-	if rbac := params.Settings.GetRbac(); rbac != nil {
-		settings = *rbac
-	}
-
-	if ok {
-		return &settings, nil
-	}
-	return nil, nil
-}
-
 func (p *Plugin) Init(params plugins.InitParams) error {
-	settings, err := GetSettings(params)
-	p.settings = settings
-	return err
+	p.settings = params.Settings.GetRbac()
+	return nil
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	var rbacConfig rbac.VhostExtension
-	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
-	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rbacConfig)
-	if err != nil && in.VirtualHostPlugins.GetRbac() == nil {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return errors.Wrapf(err, "Error converting proto to rbac plugin")
+	rbacConf := in.VirtualHostPlugins.GetRbac()
+	if rbacConf == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
-	if rbacConf := in.VirtualHostPlugins.GetRbac(); rbacConf != nil {
-		if rbacConf.Disable == true {
-			perRouteRbac := &envoyauthz.RBACPerRoute{}
-			pluginutils.SetVhostPerFilterConfig(out, FilterName, perRouteRbac)
-			return nil
-		} else {
-			rbacConfig = rbac.VhostExtension{
-				Config: &rbac.Config{
-					Policies: rbacConf.GetPolicies(),
-				},
-			}
-		}
+	if rbacConf.Disable == true {
+		perRouteRbac := &envoyauthz.RBACPerRoute{}
+		pluginutils.SetVhostPerFilterConfig(out, FilterName, perRouteRbac)
+		return nil
 	}
 
-	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConfig.Config.GetPolicies())
+	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConf.GetPolicies())
 	if err != nil {
 		return err
 	}
@@ -98,43 +65,19 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	var rbacConfig rbac.RouteExtension
-	// TODO(kdorosh) remove this once we stop supporting opaque rbac config
-	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &rbacConfig)
-	if err != nil && in.RoutePlugins.GetRbac() == nil {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return errors.Wrapf(err, "Error converting proto to rbac plugin")
-	}
-
-	if rbacConf := in.RoutePlugins.GetRbac(); rbacConf != nil {
-		if rbacConf.GetDisable() {
-			rbacConfig = rbac.RouteExtension{
-				Route: &rbac.RouteExtension_Disable{
-					Disable: rbacConf.GetDisable(),
-				},
-			}
-		} else {
-			rbacConfig = rbac.RouteExtension{
-				Route: &rbac.RouteExtension_Config{
-					Config: &rbac.Config{
-						Policies: rbacConf.GetPolicies(),
-					},
-				},
-			}
-		}
+	rbacConfig := in.RoutePlugins.GetRbac()
+	if rbacConfig == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
 	var perRouteRbac *envoyauthz.RBACPerRoute
 
-	switch route := rbacConfig.Route.(type) {
-	case *rbac.RouteExtension_Disable:
-		if route.Disable == true {
-			perRouteRbac = &envoyauthz.RBACPerRoute{}
-		}
-	case *rbac.RouteExtension_Config:
-		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, route.Config.GetPolicies())
+	if rbacConfig.Disable {
+		perRouteRbac = &envoyauthz.RBACPerRoute{}
+	} else {
+		var err error
+		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, rbacConfig.GetPolicies())
 		if err != nil {
 			return err
 		}

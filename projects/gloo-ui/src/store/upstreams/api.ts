@@ -114,13 +114,6 @@ function listUpstreams(): Promise<ListUpstreamsResponse.AsObject> {
   });
 }
 
-export interface UpstreamSpecificValues
-  extends AwsValuesType,
-    KubeValuesType,
-    StaticValuesType,
-    AzureValuesType,
-    ConsulVauesType {}
-
 function setUpstreamValues(
   upstream: Upstream.AsObject,
   upstreamToUpdate = new Upstream()
@@ -337,7 +330,7 @@ function setUpstreamValues(
 
     if (pb_static !== undefined) {
       let newStatic = new StaticUpstreamSpec();
-      let { hostsList, useTls, autoHostRewrite, serviceSpec } = pb_static!;
+      let { hostsList, useTls, serviceSpec } = pb_static!;
       let newHostsList = hostsList.map(host => {
         let newHost = new Host();
         newHost.setAddr(host.addr);
@@ -348,12 +341,6 @@ function setUpstreamValues(
 
       if (useTls !== undefined) {
         newStatic.setUseTls(useTls);
-      }
-
-      if (autoHostRewrite !== undefined) {
-        let boolVal = new BoolValue();
-        boolVal.setValue(autoHostRewrite.value);
-        newStatic.setAutoHostRewrite(boolVal);
       }
 
       if (serviceSpec !== undefined) {
@@ -435,7 +422,6 @@ function setUpstreamValues(
       newUpstreamSpec.setConsul(consulSpec);
     }
 
-    // TODO
     if (awsEc2 !== undefined) {
       let ec2Spec = new Ec2UpstreamSpec();
       let {
@@ -569,67 +555,6 @@ function createUpstream(
   });
 }
 
-function getUpstreamInput(params: {
-  name: string;
-  namespace: string;
-  type: string;
-  values: UpstreamSpecificValues;
-}): UpstreamInput {
-  const { name, namespace, type, values } = params;
-  let newUpstream = new UpstreamInput();
-  // set the resource ref
-  let ref = new ResourceRef();
-  ref.setName(name);
-  ref.setNamespace(namespace);
-  newUpstream.setRef(ref);
-  // upstream specific values
-  switch (type) {
-    case UPSTREAM_SPEC_TYPES.AWS:
-      const awsSpec = new AwsUpstreamSpec();
-      awsSpec.setRegion(values.awsRegion);
-      const awsSecretRef = new ResourceRef();
-      awsSecretRef.setName(values.awsSecretRef.name);
-      awsSecretRef.setNamespace(values.awsSecretRef.namespace);
-      awsSpec.setSecretRef(awsSecretRef);
-      newUpstream.setAws(awsSpec);
-      break;
-    case UPSTREAM_SPEC_TYPES.AZURE:
-      const azureSpec = new AzureUpstreamSpec();
-      const azureSecretRef = new ResourceRef();
-      azureSecretRef.setName(values.azureSecretRef.name);
-      azureSecretRef.setNamespace(values.azureSecretRef.namespace);
-      azureSpec.setSecretRef(azureSecretRef);
-      azureSpec.setFunctionAppName(values.azureFunctionAppName);
-      newUpstream.setAzure(azureSpec);
-      break;
-    case UPSTREAM_SPEC_TYPES.KUBE:
-      const kubeSpec = new KubeUpstreamSpec();
-      kubeSpec.setServiceName(values.kubeServiceName);
-      kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
-      kubeSpec.setServicePort(values.kubeServicePort);
-      newUpstream.setKube(kubeSpec);
-      break;
-    case UPSTREAM_SPEC_TYPES.STATIC:
-      const staticSpec = new StaticUpstreamSpec();
-      staticSpec.setUseTls(values.staticUseTls);
-      newUpstream.setStatic(staticSpec);
-      break;
-    case UPSTREAM_SPEC_TYPES.CONSUL:
-      const consulSpec = new ConsulUpstreamSpec();
-      consulSpec.setServiceName(values.consulServiceName);
-      consulSpec.setServiceTagsList(values.consulServiceTagsList);
-      consulSpec.setConnectEnabled(values.consulConnectEnabled);
-      consulSpec.setDataCentersList(values.consulDataCentersList);
-      const consulServiceSpec = new ServiceSpec();
-      consulSpec.setServiceSpec(consulServiceSpec);
-      newUpstream.setConsul(consulSpec);
-      break;
-    default:
-      throw new Error('not supported');
-  }
-  return newUpstream;
-}
-
 function updateUpstream(
   updateUpstreamRequest: UpdateUpstreamRequest.AsObject
 ): Promise<UpdateUpstreamResponse.AsObject> {
@@ -682,90 +607,6 @@ function deleteUpstream(
         reject(error);
       } else {
         resolve(data!);
-      }
-    });
-  });
-}
-
-function getCreateUpstream(
-  createUpstreamRequest: CreateUpstreamRequest.AsObject
-): Promise<CreateUpstreamResponse.AsObject> {
-  return new Promise((resolve, reject) => {
-    const { input } = createUpstreamRequest;
-    let ref = new ResourceRef();
-    let request = new CreateUpstreamRequest();
-    let usInput = new UpstreamInput();
-
-    request.setInput();
-    ref.setName(input!.ref!.name);
-    ref.setNamespace(input!.ref!.namespace);
-
-    usInput.setRef(ref);
-    let awsSpec = new AwsUpstreamSpec();
-    let azureSpec = new AzureUpstreamSpec();
-    let staticSpec = new StaticUpstreamSpec();
-    let kubeSpec = new KubeUpstreamSpec();
-    let consulSpec = new ConsulUpstreamSpec();
-
-    if (input!.aws) {
-      const { region, secretRef } = input!.aws;
-      let awsSecretRef = new ResourceRef();
-      awsSecretRef.setName(secretRef!.name);
-      awsSecretRef.setNamespace(secretRef!.namespace);
-      awsSpec.setRegion(region);
-      awsSpec.setSecretRef(awsSecretRef);
-      usInput.setAws(awsSpec);
-    } else if (input!.pb_static) {
-      const { useTls, hostsList /*serviceSpec*/ } = input!.pb_static!;
-      staticSpec.setUseTls(useTls);
-      let hosts = hostsList.map(host => {
-        let hostAdded = new Host();
-        hostAdded.setAddr(host.addr);
-        hostAdded.setPort(host.port);
-        return hostAdded;
-      });
-      staticSpec.setHostsList(hosts);
-      usInput.setStatic(staticSpec);
-    } else if (input!.kube) {
-      const { serviceName, serviceNamespace, servicePort } = input!.kube!;
-      kubeSpec.setServiceName(serviceName);
-      kubeSpec.setServiceNamespace(serviceNamespace);
-      kubeSpec.setServicePort(servicePort);
-      usInput.setKube(kubeSpec);
-    } else if (input!.azure) {
-      const { functionAppName, secretRef } = input!.azure!;
-      const azureSecretRef = new ResourceRef();
-      azureSecretRef.setName(secretRef!.name);
-      azureSecretRef.setNamespace(secretRef!.namespace);
-      azureSpec.setSecretRef(azureSecretRef);
-      azureSpec.setFunctionAppName(functionAppName);
-      usInput.setAzure(azureSpec);
-    } else if (input!.consul) {
-      const {
-        connectEnabled,
-        dataCentersList,
-        serviceName,
-        //serviceSpec,
-        serviceTagsList
-      } = input!.consul!;
-      consulSpec.setServiceName(serviceName);
-      consulSpec.setServiceTagsList(serviceTagsList);
-      consulSpec.setConnectEnabled(connectEnabled);
-      consulSpec.setDataCentersList(dataCentersList);
-      const consulServiceSpec = new ServiceSpec();
-      consulSpec.setServiceSpec(consulServiceSpec);
-      usInput.setConsul(consulSpec);
-    }
-    request.setInput(usInput);
-    guardByLicense();
-    client.createUpstream(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
-        resolve(data!.toObject());
       }
     });
   });

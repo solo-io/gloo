@@ -9,6 +9,7 @@ import { VirtualServicesListing } from 'Components/Features/VirtualService/Virtu
 import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
+import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -27,6 +28,9 @@ export const Content = () => {
           path='/virtualservices/:virtualservicenamespace/:virtualservicename'
           exact>
           <VirtualServiceDetails />
+        </Route>
+        <Route path='/routetables/:routetablenamespace/:routetablename' exact>
+          <RouteTableDetails />
         </Route>
         <Route path='/virtualservices/'>
           <VirtualServicesListing />

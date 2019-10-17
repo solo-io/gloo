@@ -29,11 +29,10 @@ const Link = styled.div`
   cursor: pointer;
   color: ${colors.seaBlue};
   font-size: 14px;
+  padding-right: 10px;
 `;
 
-interface Props {}
-
-export const Gateways = (props: Props) => {
+export const Gateways = () => {
   const dispatch = useDispatch();
   const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
   const gatewaysList = useSelector(
@@ -93,12 +92,17 @@ export const Gateways = (props: Props) => {
             healthMessage={'Gateway Status'}>
             <InsideHeader>
               <div>Configuration Settings</div>{' '}
-              {!!gateway.raw && (
-                <FileDownloadLink
-                  fileName={gateway.raw.fileName}
-                  fileContent={gateway.raw.content}
-                />
-              )}
+              <div style={{ display: 'flex' }}>
+                <Link onClick={() => toggleExpansion(ind)}>
+                  {gatewaysOpen[ind] ? 'Hide' : 'View'} Settings
+                </Link>
+                {!!gateway.raw && (
+                  <FileDownloadLink
+                    fileName={gateway.raw.fileName}
+                    fileContent={gateway.raw.content}
+                  />
+                )}
+              </div>
             </InsideHeader>
             <GatewayForm
               doUpdate={(values: HttpConnectionManagerSettingsForm) => {
@@ -115,9 +119,6 @@ export const Gateways = (props: Props) => {
               gatewayConfiguration={gateway.raw}
               isExpanded={gatewaysOpen[ind]}
             />
-            <Link onClick={() => toggleExpansion(ind)}>
-              {gatewaysOpen[ind] ? 'Hide' : 'View'} Settings
-            </Link>
           </SectionCard>
         );
       })}

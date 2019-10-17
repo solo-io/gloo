@@ -1566,19 +1566,12 @@ proto.jwt.plugins.gloo.solo.io.Provider.prototype.clearClaimsToHeadersList = fun
  * @constructor
  */
 proto.jwt.plugins.gloo.solo.io.VhostExtension = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.jwt.plugins.gloo.solo.io.VhostExtension.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.jwt.plugins.gloo.solo.io.VhostExtension, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.jwt.plugins.gloo.solo.io.VhostExtension.displayName = 'proto.jwt.plugins.gloo.solo.io.VhostExtension';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.repeatedFields_ = [2];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1608,9 +1601,6 @@ proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.toObject = function(opt_
  */
 proto.jwt.plugins.gloo.solo.io.VhostExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jwks: (f = msg.getJwks()) && proto.jwt.plugins.gloo.solo.io.Jwks.toObject(includeInstance, f),
-    audiencesList: jspb.Message.getRepeatedField(msg, 2),
-    issuer: jspb.Message.getFieldWithDefault(msg, 3, ""),
     providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.jwt.plugins.gloo.solo.io.Provider.toObject) : []
   };
 
@@ -1648,19 +1638,6 @@ proto.jwt.plugins.gloo.solo.io.VhostExtension.deserializeBinaryFromReader = func
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new proto.jwt.plugins.gloo.solo.io.Jwks;
-      reader.readMessage(value,proto.jwt.plugins.gloo.solo.io.Jwks.deserializeBinaryFromReader);
-      msg.setJwks(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAudiences(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setIssuer(value);
-      break;
     case 4:
       var value = msg.getProvidersMap();
       reader.readMessage(value, function(message, reader) {
@@ -1696,106 +1673,10 @@ proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.serializeBinary = functi
  */
 proto.jwt.plugins.gloo.solo.io.VhostExtension.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getJwks();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      proto.jwt.plugins.gloo.solo.io.Jwks.serializeBinaryToWriter
-    );
-  }
-  f = message.getAudiencesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      2,
-      f
-    );
-  }
-  f = message.getIssuer();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
   f = message.getProvidersMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.jwt.plugins.gloo.solo.io.Provider.serializeBinaryToWriter);
   }
-};
-
-
-/**
- * optional Jwks jwks = 1;
- * @return {?proto.jwt.plugins.gloo.solo.io.Jwks}
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.getJwks = function() {
-  return /** @type{?proto.jwt.plugins.gloo.solo.io.Jwks} */ (
-    jspb.Message.getWrapperField(this, proto.jwt.plugins.gloo.solo.io.Jwks, 1));
-};
-
-
-/** @param {?proto.jwt.plugins.gloo.solo.io.Jwks|undefined} value */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.setJwks = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.clearJwks = function() {
-  this.setJwks(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.hasJwks = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * repeated string audiences = 2;
- * @return {!Array<string>}
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.getAudiencesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
-};
-
-
-/** @param {!Array<string>} value */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.setAudiencesList = function(value) {
-  jspb.Message.setField(this, 2, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.addAudiences = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
-};
-
-
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.clearAudiencesList = function() {
-  this.setAudiencesList([]);
-};
-
-
-/**
- * optional string issuer = 3;
- * @return {string}
- */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.getIssuer = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/** @param {string} value */
-proto.jwt.plugins.gloo.solo.io.VhostExtension.prototype.setIssuer = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

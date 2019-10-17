@@ -961,6 +961,14 @@
   version = "v0.0.3"
 
 [[projects]]
+  digest = "1:0356f3312c9bd1cbeda81505b7fd437501d8e778ab66998ef69f00d7f9b3a0d7"
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
+  version = "v0.0.4"
+
+[[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
@@ -1034,6 +1042,14 @@
   pruneopts = "UT"
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
+
+[[projects]]
+  digest = "1:abcdbf03ca6ca13d3697e2186edc1f33863bbdac2b3a44dfa39015e8903f7409"
+  name = "github.com/olekukonko/tablewriter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e6d60cf7ba1f42d86d54cdf5508611c4aafb3970"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:9dd8858ae7fa91d2477ec05605b000d3c1ad65e3a1e36f9bf8f97a170c05ea05"
@@ -1304,12 +1320,13 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:15b4b068347505c1b759b31e1d75cf6778b7c109ee4c010a603606a8a4e46f5f"
+  digest = "1:5f9e774ba8c20f8ae641f8172e4238b08fda885261ad9a6fda01929d4973ee94"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
     "install/test",
     "pkg/cliutil",
+    "pkg/listers",
     "pkg/utils",
     "pkg/utils/channelutils",
     "pkg/utils/settingsutil",
@@ -1333,6 +1350,13 @@
     "projects/gateway/pkg/translator",
     "projects/gateway/pkg/utils",
     "projects/gateway/pkg/validation",
+    "projects/gloo/cli/pkg/cmd/check",
+    "projects/gloo/cli/pkg/cmd/options",
+    "projects/gloo/cli/pkg/constants",
+    "projects/gloo/cli/pkg/flagutils",
+    "projects/gloo/cli/pkg/helpers",
+    "projects/gloo/cli/pkg/printers",
+    "projects/gloo/cli/pkg/xdsinspection",
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/external/envoy/extensions/aws",
@@ -1360,7 +1384,6 @@
     "projects/gloo/pkg/api/v1/plugins/hcm",
     "projects/gloo/pkg/api/v1/plugins/headers",
     "projects/gloo/pkg/api/v1/plugins/healthcheck",
-    "projects/gloo/pkg/api/v1/plugins/hostrewrite",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
     "projects/gloo/pkg/api/v1/plugins/lbhash",
     "projects/gloo/pkg/api/v1/plugins/pipe",
@@ -1372,7 +1395,6 @@
     "projects/gloo/pkg/api/v1/plugins/tcp",
     "projects/gloo/pkg/api/v1/plugins/tracing",
     "projects/gloo/pkg/api/v1/plugins/transformation",
-    "projects/gloo/pkg/api/v2/enterprise/plugins/ratelimit",
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
     "projects/gloo/pkg/discovery",
@@ -1423,8 +1445,7 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "1cfd444a8c2274b5834f0d7e0414c18f2b6574a0"
-  version = "v0.20.6"
+  revision = "349953bcd3bf807ecd10abe127033ebc978b65ab"
 
 [[projects]]
   digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
@@ -1435,10 +1456,11 @@
   version = "0.1.0"
 
 [[projects]]
-  digest = "1:9926bd01cc12f9444aecbc38aec63956bcbcdcd9b4315288c735bb0c28112393"
+  digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
   name = "github.com/solo-io/go-utils"
   packages = [
     "clicore/constants",
+    "cliutils",
     "contextutils",
     "envutils",
     "errors",
@@ -1506,7 +1528,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:773a98e329fa15dd4fc078a19e69a892d4f220228db3a5dc4c1451801d5a2d9f"
+  digest = "1:cb5a0ecb834e30b61029d8309db4aaf48d50f6b499040cece40e8f62c2424550"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1568,8 +1590,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "43b06f6a734ec0ae67e2943976bf3a6f55418733"
-  version = "v0.10.23"
+  revision = "f73a630e3957f0643ddab630a1c7b0ab9d2130ba"
+  version = "v0.10.25"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2632,6 +2654,8 @@
     "github.com/solo-io/gloo/projects/gateway/pkg/defaults",
     "github.com/solo-io/gloo/projects/gateway/pkg/setup",
     "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf",

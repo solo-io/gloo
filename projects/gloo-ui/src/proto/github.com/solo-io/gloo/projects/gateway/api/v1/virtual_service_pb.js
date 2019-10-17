@@ -677,12 +677,19 @@ proto.gateway.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
  * @constructor
  */
 proto.gateway.solo.io.Route = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gateway.solo.io.Route.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.Route.repeatedFields_, proto.gateway.solo.io.Route.oneofGroups_);
 };
 goog.inherits(proto.gateway.solo.io.Route, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gateway.solo.io.Route.displayName = 'proto.gateway.solo.io.Route';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gateway.solo.io.Route.repeatedFields_ = [1];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -740,7 +747,8 @@ proto.gateway.solo.io.Route.prototype.toObject = function(opt_includeInstance) {
  */
 proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
   var f, obj = {
-    matcher: (f = msg.getMatcher()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.toObject(includeInstance, f),
+    matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
+    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.toObject, includeInstance),
     routeAction: (f = msg.getRouteAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
@@ -785,7 +793,7 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
     case 1:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.deserializeBinaryFromReader);
-      msg.setMatcher(value);
+      msg.addMatchers(value);
       break;
     case 2:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction;
@@ -841,9 +849,9 @@ proto.gateway.solo.io.Route.prototype.serializeBinary = function() {
  */
 proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getMatcher();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getMatchersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
       1,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.serializeBinaryToWriter
@@ -893,32 +901,33 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
 
 
 /**
- * optional gloo.solo.io.Matcher matcher = 1;
- * @return {?proto.gloo.solo.io.Matcher}
+ * repeated gloo.solo.io.Matcher matchers = 1;
+ * @return {!Array<!proto.gloo.solo.io.Matcher>}
  */
-proto.gateway.solo.io.Route.prototype.getMatcher = function() {
-  return /** @type{?proto.gloo.solo.io.Matcher} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher, 1));
+proto.gateway.solo.io.Route.prototype.getMatchersList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.Matcher>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher, 1));
 };
 
 
-/** @param {?proto.gloo.solo.io.Matcher|undefined} value */
-proto.gateway.solo.io.Route.prototype.setMatcher = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.gateway.solo.io.Route.prototype.clearMatcher = function() {
-  this.setMatcher(undefined);
+/** @param {!Array<!proto.gloo.solo.io.Matcher>} value */
+proto.gateway.solo.io.Route.prototype.setMatchersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * Returns whether this field is set.
- * @return {!boolean}
+ * @param {!proto.gloo.solo.io.Matcher=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.Matcher}
  */
-proto.gateway.solo.io.Route.prototype.hasMatcher = function() {
-  return jspb.Message.getField(this, 1) != null;
+proto.gateway.solo.io.Route.prototype.addMatchers = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Matcher, opt_index);
+};
+
+
+proto.gateway.solo.io.Route.prototype.clearMatchersList = function() {
+  this.setMatchersList([]);
 };
 
 

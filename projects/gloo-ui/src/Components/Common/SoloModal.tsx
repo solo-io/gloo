@@ -71,7 +71,7 @@ export const SoloModal = (props: ModalProps) => {
 
   if (!visible) {
     document.body.style.overflow = 'auto';
-    return <React.Fragment />;
+    return null;
   }
 
   document.body.style.overflow = 'hidden';

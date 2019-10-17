@@ -115,7 +115,7 @@ type What struct {
 
 func RunGlooGatewayUdsFds(ctx context.Context, cache memory.InMemoryResourceCache, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) int {
 	port := AllocateGlooPort()
-	RunGlooGatewayUdsFdsOnPort(ctx, cache, port, what, ns, kubeclient, extensions)
+	RunGlooGatewayUdsFdsOnPort(ctx, cache, port, what, ns, kubeclient, extensions, nil)
 	return int(port)
 }
 
@@ -124,18 +124,22 @@ func AllocateGlooPort() int32 {
 
 }
 
-func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResourceCache, localglooPort int32, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) {
+func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResourceCache, localglooPort int32, what What,
+	ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions, s *gloov1.Settings) {
 
 	// no gateway for now
 	opts := DefaultTestConstructOpts(ctx, cache, ns)
 	if !what.DisableGateway {
 		go gatewaysyncer.RunGateway(opts)
 	}
-	settings := v1.Settings{
-		Extensions:         extensions,
-		WatchNamespaces:    opts.WatchNamespaces,
-		DiscoveryNamespace: opts.WriteNamespace,
+	settings := v1.Settings{}
+	if s != nil {
+		settings = *s
 	}
+	settings.Extensions = extensions
+	settings.WatchNamespaces = opts.WatchNamespaces
+	settings.DiscoveryNamespace = opts.WriteNamespace
+
 	ctx = settingsutil.WithSettings(ctx, &settings)
 
 	glooOpts := defaultGlooOpts(ctx, cache, ns, kubeclient)

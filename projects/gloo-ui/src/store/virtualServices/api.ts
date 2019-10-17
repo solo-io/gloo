@@ -10,7 +10,6 @@ import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-i
 import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
 import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
 import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb';
-import { PrefixRewrite } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb';
 import {
   DestinationSpec,
   RoutePlugins
@@ -63,6 +62,7 @@ import { guardByLicense } from 'store/config/actions';
 import { VirtualServiceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
 import { grpc } from '@improbable-eng/grpc-web';
 import { host } from 'store';
+import { setInputRouteValues } from 'store/routeTables/api';
 
 const client = new VirtualServiceApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({
@@ -72,8 +72,8 @@ const client = new VirtualServiceApiClient(host, {
 });
 
 function getListVirtualServices(): Promise<
-  ListVirtualServicesResponse.AsObject
-> {
+    ListVirtualServicesResponse.AsObject
+    > {
   return new Promise((resolve, reject) => {
     let request = new ListVirtualServicesRequest();
     client.listVirtualServices(request, (error, data) => {
@@ -90,7 +90,7 @@ function getListVirtualServices(): Promise<
 }
 
 function getGetVirtualService(
-  getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
+    getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
 ): Promise<GetVirtualServiceResponse> {
   return new Promise((resolve, reject) => {
     let request = new GetVirtualServiceRequest();
@@ -112,7 +112,7 @@ function getGetVirtualService(
 }
 
 function getDeleteVirtualService(
-  deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
+    deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
 ): Promise<DeleteVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new DeleteVirtualServiceRequest();
@@ -135,7 +135,7 @@ function getDeleteVirtualService(
 }
 
 function getUpdateVirtualServiceYaml(
-  updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
+    updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
 ): Promise<UpdateVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new UpdateVirtualServiceYamlRequest();
@@ -164,7 +164,7 @@ function getUpdateVirtualServiceYaml(
 }
 
 function getDeleteRoute(
-  deleteRouteRequest: DeleteRouteRequest.AsObject
+    deleteRouteRequest: DeleteRouteRequest.AsObject
 ): Promise<DeleteRouteResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new DeleteRouteRequest();
@@ -188,7 +188,7 @@ function getDeleteRoute(
 }
 
 function getSwapRoutes(
-  swapRoutesRequest: SwapRoutesRequest.AsObject
+    swapRoutesRequest: SwapRoutesRequest.AsObject
 ): Promise<SwapRoutesResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new SwapRoutesRequest();
@@ -214,7 +214,7 @@ function getSwapRoutes(
 }
 
 function getShiftRoutes(
-  shiftRoutesRequest: ShiftRoutesRequest.AsObject
+    shiftRoutesRequest: ShiftRoutesRequest.AsObject
 ): Promise<ShiftRoutesResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new ShiftRoutesRequest();
@@ -240,7 +240,7 @@ function getShiftRoutes(
 }
 
 function getVirtualServiceForUpdate(
-  virtualServiceRef: ResourceRef.AsObject
+    virtualServiceRef: ResourceRef.AsObject
 ): Promise<VirtualServiceInputV2> {
   return new Promise(async (resolve, reject) => {
     // input V2
@@ -388,7 +388,7 @@ function getUpdateDisplayName(updateDisplayNameRequest: {
     let updateRequest = new UpdateVirtualServiceRequest();
 
     let inputV2 = await getVirtualServiceForUpdate(
-      updateDisplayNameRequest.ref
+        updateDisplayNameRequest.ref
     );
     let inputV2DisplayName = new StringValue();
 
@@ -408,205 +408,6 @@ function getUpdateDisplayName(updateDisplayNameRequest: {
       }
     });
   });
-}
-
-function setInputRouteValues(route: Route.AsObject) {
-  let updatedRoute = new Route();
-
-  if (route !== undefined) {
-    // matcher
-    if (route.matcher !== undefined) {
-      let {
-        prefix,
-        exact,
-        regex,
-        headersList,
-        queryParametersList,
-        methodsList
-      } = route.matcher!;
-      let newMatcher = new Matcher();
-      if (prefix !== undefined && prefix !== '') {
-        newMatcher.setPrefix(prefix);
-      }
-      if (exact !== undefined && exact !== '') {
-        newMatcher.setExact(exact);
-      }
-      if (regex !== undefined && regex !== '') {
-        newMatcher.setRegex(regex);
-      }
-
-      if (headersList !== undefined) {
-        let newHeaderMatcherList = headersList.map(header => {
-          let newHeaderMatcher = new HeaderMatcher();
-          newHeaderMatcher.setName(header.value);
-          newHeaderMatcher.setRegex(header.regex);
-          newHeaderMatcher.setValue(header.value);
-          return newHeaderMatcher;
-        });
-        newMatcher.setHeadersList(newHeaderMatcherList);
-      }
-      if (queryParametersList !== undefined) {
-        let newQueryParamsList = queryParametersList.map(qp => {
-          let newQueryParams = new QueryParameterMatcher();
-          newQueryParams.setName(qp.name);
-          newQueryParams.setRegex(qp.regex);
-          newQueryParams.setValue(qp.value);
-          return newQueryParams;
-        });
-
-        newMatcher.setQueryParametersList(newQueryParamsList);
-      }
-      newMatcher.setMethodsList(methodsList);
-      updatedRoute.setMatcher(newMatcher);
-    }
-    // route action
-    if (route.routeAction !== undefined) {
-      let updatedRouteAction = new RouteAction();
-
-      if (route.routeAction.single) {
-        let updatedDestination = new Destination();
-        if (route.routeAction.single.upstream !== undefined) {
-          let updatedUpstreamRef = new ResourceRef();
-          updatedUpstreamRef.setName(route.routeAction.single.upstream.name);
-          updatedUpstreamRef.setNamespace(
-            route.routeAction.single.upstream.namespace
-          );
-          updatedDestination.setUpstream(updatedUpstreamRef);
-        }
-
-        if (route.routeAction.single.destinationSpec !== undefined) {
-          let updatedDestinationSpec = new DestinationSpec();
-
-          /* ----------------------------------- AWS ---------------------------------- */
-
-          if (route.routeAction.single.destinationSpec.aws !== undefined) {
-            let {
-              logicalName,
-              invocationStyle,
-              responseTransformation
-            } = route.routeAction.single.destinationSpec.aws;
-            let updatedAwsDestinationSpec = new AwsDestinationSpec();
-            updatedAwsDestinationSpec.setLogicalName(logicalName);
-            updatedAwsDestinationSpec.setInvocationStyle(invocationStyle);
-            updatedAwsDestinationSpec.setResponseTransformation(
-              responseTransformation
-            );
-            updatedDestinationSpec.setAws(updatedAwsDestinationSpec);
-          }
-
-          /* ---------------------------------- AZURE --------------------------------- */
-
-          if (route.routeAction.single.destinationSpec.azure !== undefined) {
-            let {
-              functionName
-            } = route.routeAction.single.destinationSpec.azure;
-            let updatedAzureDestinationSpec = new AzureDestinationSpec();
-            updatedAzureDestinationSpec.setFunctionName(functionName);
-            updatedDestinationSpec.setAzure(updatedAzureDestinationSpec);
-          }
-
-          /* ---------------------------------- REST ---------------------------------- */
-
-          if (route.routeAction.single.destinationSpec.rest !== undefined) {
-            let {
-              functionName,
-              parameters,
-              responseTransformation
-            } = route.routeAction.single.destinationSpec.rest;
-            let updatedRestDestinationSpec = new RestDestinationSpec();
-            updatedRestDestinationSpec.setFunctionName(functionName);
-
-            if (parameters !== undefined) {
-              let updatedParams = new Parameters();
-
-              if (parameters.path !== undefined) {
-                let pathValue = new StringValue();
-                pathValue.setValue(parameters.path.value);
-                updatedParams.setPath(pathValue);
-              }
-              // TODO
-              if (parameters.headersMap !== undefined) {
-              }
-              updatedRestDestinationSpec.setParameters(updatedParams);
-            }
-            // TODO
-            // updatedRestDestinationSpec.setResponseTransformation()
-            updatedDestinationSpec.setRest(updatedRestDestinationSpec);
-          }
-
-          /* ---------------------------------- GRPC ---------------------------------- */
-
-          if (route.routeAction.single.destinationSpec.grpc !== undefined) {
-            let {
-              pb_function,
-              pb_package,
-              service,
-              parameters
-            } = route.routeAction.single.destinationSpec.grpc;
-            let updatedGrpcDestinationSpec = new GrpcDestinationSpec();
-            updatedGrpcDestinationSpec.setFunction(pb_function);
-            updatedGrpcDestinationSpec.setPackage(pb_package);
-            updatedGrpcDestinationSpec.setService(service);
-            if (parameters !== undefined) {
-              let grpcParams = new Parameters();
-              if (parameters.path !== undefined) {
-                let grpcPath = new StringValue();
-                grpcPath.setValue(parameters.path!.value);
-                grpcParams.setPath(grpcPath);
-              }
-              updatedGrpcDestinationSpec.setParameters(grpcParams);
-            }
-            updatedDestinationSpec.setGrpc(updatedGrpcDestinationSpec);
-          }
-
-          // TODO
-          // if (route.routeAction.single.kube !== undefined) {}
-          // TODO
-          // if (route.routeAction.single.consul !== undefined) {}
-          // TODO
-          // if (route.routeAction.single.subset !== undefined) {}
-          updatedDestination.setDestinationSpec(updatedDestinationSpec);
-        }
-
-        updatedRouteAction.setSingle(updatedDestination);
-      }
-
-      // TODO
-      // if (route.routeAction.multi !== undefined) {}
-      // TODO
-      // if (route.routeAction.upstreamGroup !== undefined) {}
-      updatedRoute.setRouteAction(updatedRouteAction);
-    }
-
-    // updatedRoute.setRedirectAction();
-    // updatedRoute.setDirectResponseAction();
-    // updatedRoute.setDelegateAction();
-
-    if (route.routePlugins !== undefined) {
-      let updatedRoutePlugins = new RoutePlugins();
-      let {
-        transformations,
-        faults,
-        prefixRewrite,
-        timeout,
-        retries,
-        extensions,
-        tracing,
-        shadowing,
-        headerManipulation,
-        hostRewrite,
-        cors,
-        lbHash
-      } = route.routePlugins;
-      if (prefixRewrite !== undefined) {
-        let updatedPrefixRewrite = new PrefixRewrite();
-        updatedPrefixRewrite.setPrefixRewrite(prefixRewrite.prefixRewrite);
-        updatedRoutePlugins.setPrefixRewrite(updatedPrefixRewrite);
-      }
-      updatedRoute.setRoutePlugins(updatedRoutePlugins);
-    }
-  }
-  return updatedRoute;
 }
 
 function getUpdateRoutes(updateRoutesRequest: {
@@ -636,35 +437,6 @@ function getUpdateRoutes(updateRoutesRequest: {
     });
   });
 }
-
-//  function getUpdateRoute(updateRouteRequest: {
-//   ref: ResourceRef.AsObject;
-//   route: Route.AsObject[];
-// }): Promise<UpdateVirtualServiceResponse.AsObject> {
-//   return new Promise(async (resolve, reject) => {
-//     let updateRequest = new UpdateVirtualServiceRequest();
-
-//     let inputV2 = await getVirtualServiceForUpdate(updateRouteRequest.ref);
-//     let inputV2Routes = inputV2.getRoutes()
-
-//     let inputRoutesList = updateRouteRequest.route!.map(setInputRouteValues);
-//     inputV2Routes.setValuesList(inputRoutesList);
-
-//     inputV2.setRoutes(inputV2Routes);
-
-//     updateRequest.setInputV2(inputV2);
-//     client.updateVirtualService(updateRequest, (error, data) => {
-//       if (error !== null) {
-//         console.error('Error:', error.message);
-//         console.error('Code:', error.code);
-//         console.error('Metadata:', error.metadata);
-//         reject(error);
-//       } else {
-//         resolve(data!.toObject());
-//       }
-//     });
-//   });
-// }
 
 function setInputSslConfigValues(sslConfig: SslConfig.AsObject) {
   let inputV2SslConfig = new SslConfigValue();
@@ -703,10 +475,10 @@ function setInputSslConfigValues(sslConfig: SslConfig.AsObject) {
         let newCallCreds = new CallCredentials();
         let newCallCredsSource = new CallCredentials.FileCredentialSource();
         newCallCredsSource.setHeader(
-          callCredentials.fileCredentialSource!.header
+            callCredentials.fileCredentialSource!.header
         );
         newCallCredsSource.setTokenFileName(
-          callCredentials.fileCredentialSource!.tokenFileName
+            callCredentials.fileCredentialSource!.tokenFileName
         );
         newCallCreds.setFileCredentialSource(newCallCredsSource);
         updatedSds.setCallCredentials(newCallCreds);
@@ -751,7 +523,7 @@ function getUpdateSslConfig(updateSslConfigRequest: {
 
     let inputV2 = await getVirtualServiceForUpdate(updateSslConfigRequest.ref);
     let inputV2SslConfig = setInputSslConfigValues(
-      updateSslConfigRequest.sslConfig!
+        updateSslConfigRequest.sslConfig!
     );
 
     inputV2.setSslConfig(inputV2SslConfig);
@@ -770,12 +542,12 @@ function getUpdateSslConfig(updateSslConfigRequest: {
 }
 
 function getCreateRoute(
-  createRouteRequest: CreateRouteRequest.AsObject
+    createRouteRequest: CreateRouteRequest.AsObject
 ): Promise<CreateRouteResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let createRequest = new CreateRouteRequest();
     let inputRoute = new RouteInput();
-    console.log('createRouteRequest', createRouteRequest);
+
     let { virtualServiceRef, index, route } = createRouteRequest.input!;
 
     if (route !== undefined) {
@@ -806,7 +578,7 @@ function getCreateRoute(
 }
 
 function getUpdateVirtualService(
-  updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
+    updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
 ): Promise<UpdateVirtualServiceResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
     let updateRequest = new UpdateVirtualServiceRequest();
@@ -826,7 +598,7 @@ function getUpdateVirtualService(
       // ref
       inputV2Ref.setName(updateVirtualServiceRequest.inputV2!.ref!.name);
       inputV2Ref.setNamespace(
-        updateVirtualServiceRequest.inputV2!.ref!.namespace
+          updateVirtualServiceRequest.inputV2!.ref!.namespace
       );
       inputV2.setRef(inputV2Ref);
       // display name
@@ -844,14 +616,14 @@ function getUpdateVirtualService(
       let inputRoutes = updateVirtualServiceRequest.inputV2!.routes;
       if (inputRoutes !== undefined) {
         inputV2Routes.setValuesList(
-          inputRoutes!.valuesList.map(setInputRouteValues)
+            inputRoutes!.valuesList.map(setInputRouteValues)
         );
         inputV2.setRoutes(inputV2Routes);
       }
       //extAuth
       if (updateVirtualServiceRequest.inputV2!.extAuthConfig !== undefined) {
         inputV2ExtAuthConfig = setInputExtAuthValues(
-          updateVirtualServiceRequest.inputV2!.extAuthConfig
+            updateVirtualServiceRequest.inputV2!.extAuthConfig
         );
         inputV2.setExtAuthConfig(inputV2ExtAuthConfig);
       }
@@ -859,7 +631,7 @@ function getUpdateVirtualService(
       // rate limit
       if (updateVirtualServiceRequest.inputV2!.rateLimitConfig !== undefined) {
         inputV2RateLimitConfig = setInputRateLimitValues(
-          updateVirtualServiceRequest.inputV2!.rateLimitConfig.value!
+            updateVirtualServiceRequest.inputV2!.rateLimitConfig.value!
         );
         inputV2.setRateLimitConfig(inputV2RateLimitConfig);
       }
@@ -896,7 +668,7 @@ function getUpdateVirtualService(
 }
 
 function getCreateVirtualService(
-  createVirtualSeviceRequest: CreateVirtualServiceRequest.AsObject
+    createVirtualSeviceRequest: CreateVirtualServiceRequest.AsObject
 ): Promise<CreateVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let createRequest = new CreateVirtualServiceRequest();
@@ -952,7 +724,7 @@ function getCreateVirtualService(
       //routes
       if (routes !== undefined) {
         inputV2Routes.setValuesList(
-          routes!.valuesList.map(setInputRouteValues)
+            routes!.valuesList.map(setInputRouteValues)
         );
         inputV2.setRoutes(inputV2Routes);
       }
@@ -965,7 +737,7 @@ function getCreateVirtualService(
       // rate limit
       if (rateLimitConfig !== undefined) {
         inputV2RateLimitConfig = setInputRateLimitValues(
-          rateLimitConfig.value!
+            rateLimitConfig.value!
         );
         inputV2.setRateLimitConfig(inputV2RateLimitConfig);
       }
@@ -1051,7 +823,7 @@ function getUpdateExtAuth(updateExtAuthRequest: {
     let inputV2 = await getVirtualServiceForUpdate(updateExtAuthRequest.ref);
 
     let inputV2ExtAuthConfig = setInputExtAuthValues(
-      updateExtAuthRequest.extAuthConfig
+        updateExtAuthRequest.extAuthConfig
     );
     inputV2.setExtAuthConfig(inputV2ExtAuthConfig);
     updateRequest.setInputV2(inputV2);
@@ -1079,7 +851,7 @@ function setInputRateLimitValues(rateLimitConfig: IngressRateLimit.AsObject) {
     if (authorizedLimits !== undefined) {
       let inputAuthorizedRateLimit = new RateLimit();
       inputAuthorizedRateLimit.setRequestsPerUnit(
-        authorizedLimits.requestsPerUnit
+          authorizedLimits.requestsPerUnit
       );
       inputAuthorizedRateLimit.setUnit(authorizedLimits.unit);
       newIngressRateLimit.setAuthorizedLimits(inputAuthorizedRateLimit);
@@ -1088,7 +860,7 @@ function setInputRateLimitValues(rateLimitConfig: IngressRateLimit.AsObject) {
     if (anonymousLimits !== undefined) {
       let inputAnonymousRateLimit = new RateLimit();
       inputAnonymousRateLimit.setRequestsPerUnit(
-        anonymousLimits.requestsPerUnit
+          anonymousLimits.requestsPerUnit
       );
       inputAnonymousRateLimit.setUnit(anonymousLimits.unit);
       newIngressRateLimit.setAnonymousLimits(inputAnonymousRateLimit);
@@ -1107,7 +879,7 @@ function getUpdateRateLimit(updateRateLimitRequest: {
     let inputV2 = await getVirtualServiceForUpdate(updateRateLimitRequest.ref);
 
     let inputV2RateLimitConfig = setInputRateLimitValues(
-      updateRateLimitRequest.rateLimitConfig
+        updateRateLimitRequest.rateLimitConfig
     );
 
     inputV2.setRateLimitConfig(inputV2RateLimitConfig);

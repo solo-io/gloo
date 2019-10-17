@@ -289,7 +289,7 @@ var _ = Describe("Rate Limit", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions, nil)
 	}
 
 	Context("Redis-backed rate limiting", func() {
@@ -471,11 +471,11 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 			Domains: []string{hostname},
 			Routes: []*gloov1.Route{
 				{
-					Matcher: &gloov1.Matcher{
+					Matchers: []*gloov1.Matcher{{
 						PathSpecifier: &gloov1.Matcher_Prefix{
 							Prefix: "/noauth",
 						},
-					},
+					}},
 					Action: &gloov1.Route_RouteAction{
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
@@ -498,11 +498,6 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 					},
 				},
 				{
-					Matcher: &gloov1.Matcher{
-						PathSpecifier: &gloov1.Matcher_Prefix{
-							Prefix: "/",
-						},
-					},
 					Action: &gloov1.Route_RouteAction{
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{

@@ -137,50 +137,6 @@ export namespace Settings {
   }
 }
 
-export class EnvoySettings extends jspb.Message {
-  hasCustomConfig(): boolean;
-  clearCustomConfig(): void;
-  getCustomConfig(): EnvoySettings.RateLimitCustomConfig | undefined;
-  setCustomConfig(value?: EnvoySettings.RateLimitCustomConfig): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): EnvoySettings.AsObject;
-  static toObject(includeInstance: boolean, msg: EnvoySettings): EnvoySettings.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: EnvoySettings, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): EnvoySettings;
-  static deserializeBinaryFromReader(message: EnvoySettings, reader: jspb.BinaryReader): EnvoySettings;
-}
-
-export namespace EnvoySettings {
-  export type AsObject = {
-    customConfig?: EnvoySettings.RateLimitCustomConfig.AsObject,
-  }
-
-  export class RateLimitCustomConfig extends jspb.Message {
-    clearDescriptorsList(): void;
-    getDescriptorsList(): Array<Descriptor>;
-    setDescriptorsList(value: Array<Descriptor>): void;
-    addDescriptors(value?: Descriptor, index?: number): Descriptor;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): RateLimitCustomConfig.AsObject;
-    static toObject(includeInstance: boolean, msg: RateLimitCustomConfig): RateLimitCustomConfig.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: RateLimitCustomConfig, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): RateLimitCustomConfig;
-    static deserializeBinaryFromReader(message: RateLimitCustomConfig, reader: jspb.BinaryReader): RateLimitCustomConfig;
-  }
-
-  export namespace RateLimitCustomConfig {
-    export type AsObject = {
-      descriptorsList: Array<Descriptor.AsObject>,
-    }
-  }
-}
-
 export class ServiceSettings extends jspb.Message {
   clearDescriptorsList(): void;
   getDescriptorsList(): Array<Descriptor>;

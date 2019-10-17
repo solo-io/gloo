@@ -24,11 +24,11 @@ var (
 var _ = Describe("MutationFactory", func() {
 	getRoute := func(exactValue string) *gatewayv1.Route {
 		return &gatewayv1.Route{
-			Matcher: &gloov1.Matcher{
+			Matchers: []*gloov1.Matcher{{
 				PathSpecifier: &gloov1.Matcher_Exact{
 					Exact: exactValue,
 				},
-			},
+			}},
 		}
 	}
 
@@ -499,8 +499,8 @@ var _ = Describe("MutationFactory", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(tc.expectedErr))
 					// Hopefully nothing changed!!!
-					Expect(tc.existing.VirtualHost.Routes[0].Matcher.GetExact()).To(Equal("a"))
-					Expect(tc.existing.VirtualHost.Routes[1].Matcher.GetExact()).To(Equal("b"))
+					Expect(tc.existing.VirtualHost.Routes[0].Matchers[0].GetExact()).To(Equal("a"))
+					Expect(tc.existing.VirtualHost.Routes[1].Matchers[0].GetExact()).To(Equal("b"))
 				} else {
 					Expect(err).NotTo(HaveOccurred())
 					ExpectEqualProtoMessages(tc.existing, tc.expected)
@@ -543,8 +543,8 @@ var _ = Describe("MutationFactory", func() {
 				if tc.expectedErr != nil {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(tc.expectedErr))
-					Expect(tc.existing.VirtualHost.Routes[0].Matcher.GetExact()).To(Equal("a"))
-					Expect(tc.existing.VirtualHost.Routes[1].Matcher.GetExact()).To(Equal("b"))
+					Expect(tc.existing.VirtualHost.Routes[0].Matchers[0].GetExact()).To(Equal("a"))
+					Expect(tc.existing.VirtualHost.Routes[1].Matchers[0].GetExact()).To(Equal("b"))
 				} else {
 					Expect(err).NotTo(HaveOccurred())
 					ExpectEqualProtoMessages(tc.existing, tc.expected)
@@ -583,8 +583,8 @@ var _ = Describe("MutationFactory", func() {
 				if tc.expectedErr != nil {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(tc.expectedErr))
-					Expect(tc.existing.VirtualHost.Routes[0].Matcher.GetExact()).To(Equal("a"))
-					Expect(tc.existing.VirtualHost.Routes[1].Matcher.GetExact()).To(Equal("b"))
+					Expect(tc.existing.VirtualHost.Routes[0].Matchers[0].GetExact()).To(Equal("a"))
+					Expect(tc.existing.VirtualHost.Routes[1].Matchers[0].GetExact()).To(Equal("b"))
 				} else {
 					Expect(err).NotTo(HaveOccurred())
 					ExpectEqualProtoMessages(tc.existing, tc.expected)
@@ -631,9 +631,9 @@ var _ = Describe("MutationFactory", func() {
 				if tc.expectedErr != nil {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(tc.expectedErr))
-					Expect(tc.existing.VirtualHost.Routes[0].Matcher.GetExact()).To(Equal("a"))
-					Expect(tc.existing.VirtualHost.Routes[1].Matcher.GetExact()).To(Equal("b"))
-					Expect(tc.existing.VirtualHost.Routes[2].Matcher.GetExact()).To(Equal("c"))
+					Expect(tc.existing.VirtualHost.Routes[0].Matchers[0].GetExact()).To(Equal("a"))
+					Expect(tc.existing.VirtualHost.Routes[1].Matchers[0].GetExact()).To(Equal("b"))
+					Expect(tc.existing.VirtualHost.Routes[2].Matchers[0].GetExact()).To(Equal("c"))
 				} else {
 					Expect(err).NotTo(HaveOccurred())
 					ExpectEqualProtoMessages(tc.existing, tc.expected)
@@ -698,9 +698,9 @@ var _ = Describe("MutationFactory", func() {
 				if tc.expectedErr != nil {
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(tc.expectedErr))
-					Expect(tc.existing.VirtualHost.Routes[0].Matcher.GetExact()).To(Equal("a"))
-					Expect(tc.existing.VirtualHost.Routes[1].Matcher.GetExact()).To(Equal("b"))
-					Expect(tc.existing.VirtualHost.Routes[2].Matcher.GetExact()).To(Equal("c"))
+					Expect(tc.existing.VirtualHost.Routes[0].Matchers[0].GetExact()).To(Equal("a"))
+					Expect(tc.existing.VirtualHost.Routes[1].Matchers[0].GetExact()).To(Equal("b"))
+					Expect(tc.existing.VirtualHost.Routes[2].Matchers[0].GetExact()).To(Equal("c"))
 				} else {
 					Expect(err).NotTo(HaveOccurred())
 					ExpectEqualProtoMessages(tc.existing, tc.expected)

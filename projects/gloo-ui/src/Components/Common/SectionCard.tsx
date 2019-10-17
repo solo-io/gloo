@@ -34,8 +34,8 @@ const HeaderImageHolder = styled.div`
 
   img,
   svg {
-    width: 20px;
-    max-height: 25px;
+    width: 30px;
+    max-height: 30px;
   }
 `;
 
@@ -91,8 +91,9 @@ const CloseIcon = styled.div`
   cursor: pointer;
 `;
 
+type BodyContainerProps = { noPadding: boolean };
 const BodyContainer = styled.div`
-  padding: 20px;
+  padding: ${(props: BodyContainerProps) => (props.noPadding ? '' : '20px;')};
 `;
 
 interface Props {
@@ -106,6 +107,7 @@ interface Props {
   healthMessage?: string;
   onClose?: () => any;
   secondaryComponent?: React.ReactNode;
+  noPadding?: boolean;
 }
 
 export const SectionCard: React.FunctionComponent<Props> = props => {
@@ -117,7 +119,8 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
     health,
     healthMessage,
     onClose,
-    secondaryComponent
+    secondaryComponent,
+    noPadding
   } = props;
 
   return (
@@ -158,7 +161,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
         )}
         {onClose && <CloseIcon onClick={onClose}>X</CloseIcon>}
       </Header>
-      <BodyContainer>{children}</BodyContainer>
+      <BodyContainer noPadding={noPadding}>{children}</BodyContainer>
     </CardBlock>
   );
 };

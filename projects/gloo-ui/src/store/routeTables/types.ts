@@ -1,6 +1,7 @@
 import {
   RouteTableDetails,
-  DeleteRouteTableResponse
+  DeleteRouteTableResponse,
+  DeleteRouteTableRequest
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 
 export enum RouteTableAction {
@@ -45,7 +46,7 @@ export interface UpdateRouteTableYamlErrorAction {
 
 export interface DeleteRouteTableAction {
   type: typeof RouteTableAction.DELETE_ROUTE_TABLE;
-  payload: DeleteRouteTableResponse.AsObject;
+  payload: DeleteRouteTableRequest.AsObject;
 }
 
 export type RouteTableActionTypes =

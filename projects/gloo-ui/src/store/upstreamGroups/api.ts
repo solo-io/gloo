@@ -76,6 +76,7 @@ function setWeightedDestinationValues(
   if (destination !== undefined) {
     let newDest = new Destination();
     let { upstream, kube, consul, destinationSpec, subset } = destination!;
+
     if (upstream !== undefined) {
       let upstreamRef = new ResourceRef();
       upstreamRef.setName(upstream.name);
@@ -97,6 +98,7 @@ function setWeightedDestinationValues(
     }
     weightedDestToUpdate.setDestination(newDest);
   }
+
   if (weight !== undefined) {
     weightedDestToUpdate.setWeight(weight);
   }

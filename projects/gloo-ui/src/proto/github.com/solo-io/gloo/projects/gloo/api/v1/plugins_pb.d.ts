@@ -28,12 +28,10 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/stats/stats_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/healthcheck/healthcheck_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/jwt/jwt_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
@@ -42,6 +40,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class ListenerPlugins extends jspb.Message {
   hasAccessLoggingService(): boolean;
@@ -238,10 +237,8 @@ export class RoutePlugins extends jspb.Message {
   getFaults(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults | undefined;
   setFaults(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults): void;
 
-  hasPrefixRewrite(): boolean;
-  clearPrefixRewrite(): void;
-  getPrefixRewrite(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite | undefined;
-  setPrefixRewrite(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite): void;
+  getPrefixRewrite(): string;
+  setPrefixRewrite(value: string): void;
 
   hasTimeout(): boolean;
   clearTimeout(): void;
@@ -275,8 +272,13 @@ export class RoutePlugins extends jspb.Message {
 
   hasHostRewrite(): boolean;
   clearHostRewrite(): void;
-  getHostRewrite(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite | undefined;
-  setHostRewrite(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite): void;
+  getHostRewrite(): string;
+  setHostRewrite(value: string): void;
+
+  hasAutoHostRewrite(): boolean;
+  clearAutoHostRewrite(): void;
+  getAutoHostRewrite(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAutoHostRewrite(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasCors(): boolean;
   clearCors(): void;
@@ -318,6 +320,7 @@ export class RoutePlugins extends jspb.Message {
   getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension | undefined;
   setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension): void;
 
+  getHostRewriteTypeCase(): RoutePlugins.HostRewriteTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -332,14 +335,15 @@ export namespace RoutePlugins {
   export type AsObject = {
     transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
     faults?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults.AsObject,
-    prefixRewrite?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite.AsObject,
+    prefixRewrite: string,
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.AsObject,
     shadowing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.AsObject,
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
-    hostRewrite?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.AsObject,
+    hostRewrite: string,
+    autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
     lbHash?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
     ratelimitBasic?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
@@ -348,6 +352,12 @@ export namespace RoutePlugins {
     jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.ExtensionSettings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
+  }
+
+  export enum HostRewriteTypeCase {
+    HOST_REWRITE_TYPE_NOT_SET = 0,
+    HOST_REWRITE = 10,
+    AUTO_HOST_REWRITE = 19,
   }
 }
 

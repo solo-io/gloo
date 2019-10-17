@@ -3,7 +3,6 @@ package waf
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
@@ -21,8 +20,8 @@ var _ = Describe("waf plugin", func() {
 		virtualHost  *v1.VirtualHost
 		route        *v1.Route
 		httpListener *v1.HttpListener
-		wafVhost     *waf.VhostSettings
-		wafRoute     *waf.RouteSettings
+		wafVhost     *waf.Settings
+		wafRoute     *waf.Settings
 		wafListener  *waf.Settings
 	)
 
@@ -123,20 +122,16 @@ var _ = Describe("waf plugin", func() {
 			Context("per route/vhost", func() {
 				Context("nil", func() {
 					BeforeEach(func() {
-						wafRoute = &waf.RouteSettings{
-							Disabled: true,
-							Settings: &waf.Settings{
-								CoreRuleSet: nil,
-								RuleSets:    nil,
-							},
+						wafRoute = &waf.Settings{
+							Disabled:    true,
+							CoreRuleSet: nil,
+							RuleSets:    nil,
 						}
 
-						wafVhost = &waf.VhostSettings{
-							Disabled: true,
-							Settings: &waf.Settings{
-								CoreRuleSet: nil,
-								RuleSets:    nil,
-							},
+						wafVhost = &waf.Settings{
+							Disabled:    true,
+							CoreRuleSet: nil,
+							RuleSets:    nil,
 						}
 					})
 
@@ -167,26 +162,22 @@ var _ = Describe("waf plugin", func() {
 								RuleStr: rulesString,
 							},
 						}
-						wafRoute = &waf.RouteSettings{
-							Settings: &waf.Settings{
-								CoreRuleSet: &waf.CoreRuleSet{
-									CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
-										CustomSettingsString: crsRulesString,
-									},
+						wafRoute = &waf.Settings{
+							CoreRuleSet: &waf.CoreRuleSet{
+								CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+									CustomSettingsString: crsRulesString,
 								},
-								RuleSets: ruleSets,
 							},
+							RuleSets: ruleSets,
 						}
 
-						wafVhost = &waf.VhostSettings{
-							Settings: &waf.Settings{
-								CoreRuleSet: &waf.CoreRuleSet{
-									CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
-										CustomSettingsString: crsRulesString,
-									},
+						wafVhost = &waf.Settings{
+							CoreRuleSet: &waf.CoreRuleSet{
+								CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+									CustomSettingsString: crsRulesString,
 								},
-								RuleSets: ruleSets,
 							},
+							RuleSets: ruleSets,
 						}
 					})
 
@@ -215,175 +206,81 @@ var _ = Describe("waf plugin", func() {
 		})
 	}
 
-	// TODO(kdorosh) remove this context and move functions from allTests back into single strongly typed config context
-	Context("deprecated config", func() {
-		BeforeEach(func() {
-			wafListener = &waf.Settings{}
-		})
-
-		JustBeforeEach(func() {
-			if wafRoute == nil {
-				wafRoute = &waf.RouteSettings{}
-			}
-			wafRouteSt, err := util.MessageToStruct(wafRoute)
-			Expect(err).NotTo(HaveOccurred())
-			route = &v1.Route{
-				Matcher: &v1.Matcher{
-					PathSpecifier: &v1.Matcher_Prefix{
-						Prefix: "/",
-					},
-				},
-				Action: &v1.Route_DirectResponseAction{
-					DirectResponseAction: &v1.DirectResponseAction{
-						Status: 200,
-						Body:   "test",
-					},
-				},
-				RoutePlugins: &v1.RoutePlugins{
-					Extensions: &v1.Extensions{
-						Configs: map[string]*types.Struct{
-							ExtensionName: wafRouteSt,
-						},
-					},
-				},
-			}
-
-			if wafVhost == nil {
-				wafVhost = &waf.VhostSettings{}
-			}
-			wafVhostSt, err := util.MessageToStruct(wafVhost)
-			Expect(err).NotTo(HaveOccurred())
-
-			virtualHost = &v1.VirtualHost{
-				Name:    "virt1",
-				Domains: []string{"*"},
-				VirtualHostPlugins: &v1.VirtualHostPlugins{
-					Extensions: &v1.Extensions{
-						Configs: map[string]*types.Struct{
-							ExtensionName: wafVhostSt,
-						},
-					},
-				},
-				Routes: []*v1.Route{route},
-			}
-
-			wafListenerSt, err := util.MessageToStruct(wafListener)
-			Expect(err).NotTo(HaveOccurred())
-
-			httpListener = &v1.HttpListener{
-				VirtualHosts: []*v1.VirtualHost{virtualHost},
-				ListenerPlugins: &v1.HttpListenerPlugins{
-					Extensions: &v1.Extensions{
-						Configs: map[string]*types.Struct{
-							ExtensionName: wafListenerSt,
-						},
-					},
-				},
-			}
-			proxy := &v1.Proxy{
-				Metadata: core.Metadata{
-					Name:      "secret",
-					Namespace: "default",
-				},
-				Listeners: []*v1.Listener{{
-					Name: "default",
-					ListenerType: &v1.Listener_HttpListener{
-						HttpListener: httpListener,
-					},
-				}},
-			}
-
-			params.Snapshot = &v1.ApiSnapshot{
-				Proxies: v1.ProxyList{proxy},
-			}
-			vhostParams = plugins.VirtualHostParams{
-				Params:   params,
-				Proxy:    proxy,
-				Listener: proxy.Listeners[0],
-			}
-
-		})
-		allTests()
+	BeforeEach(func() {
+		wafListener = &waf.Settings{}
 	})
 
-	// TODO(kdorosh) remove this outer context when we stop supporting the opaque config
-	Context("strongly-typed config", func() {
-		BeforeEach(func() {
-			wafListener = &waf.Settings{}
-		})
-
-		JustBeforeEach(func() {
-			if wafRoute == nil {
-				wafRoute = &waf.RouteSettings{}
-			}
-			route = &v1.Route{
-				Matcher: &v1.Matcher{
-					PathSpecifier: &v1.Matcher_Prefix{
-						Prefix: "/",
-					},
+	JustBeforeEach(func() {
+		if wafRoute == nil {
+			wafRoute = &waf.Settings{}
+		}
+		route = &v1.Route{
+			Matchers: []*v1.Matcher{{
+				PathSpecifier: &v1.Matcher_Prefix{
+					Prefix: "/",
 				},
-				Action: &v1.Route_DirectResponseAction{
-					DirectResponseAction: &v1.DirectResponseAction{
-						Status: 200,
-						Body:   "test",
-					},
+			}},
+			Action: &v1.Route_DirectResponseAction{
+				DirectResponseAction: &v1.DirectResponseAction{
+					Status: 200,
+					Body:   "test",
 				},
-				RoutePlugins: &v1.RoutePlugins{
-					Waf: &waf.Settings{
-						Disabled:    wafRoute.Disabled,
-						CoreRuleSet: wafRoute.Settings.CoreRuleSet,
-						RuleSets:    wafRoute.Settings.RuleSets,
-					},
+			},
+			RoutePlugins: &v1.RoutePlugins{
+				Waf: &waf.Settings{
+					Disabled:    wafRoute.Disabled,
+					CoreRuleSet: wafRoute.CoreRuleSet,
+					RuleSets:    wafRoute.RuleSets,
 				},
-			}
+			},
+		}
 
-			if wafVhost == nil {
-				wafVhost = &waf.VhostSettings{}
-			}
+		if wafVhost == nil {
+			wafVhost = &waf.Settings{}
+		}
 
-			virtualHost = &v1.VirtualHost{
-				Name:    "virt1",
-				Domains: []string{"*"},
-				VirtualHostPlugins: &v1.VirtualHostPlugins{
-					Waf: &waf.Settings{
-						Disabled:    wafVhost.Disabled,
-						CoreRuleSet: wafVhost.Settings.CoreRuleSet,
-						RuleSets:    wafVhost.Settings.RuleSets,
-					},
+		virtualHost = &v1.VirtualHost{
+			Name:    "virt1",
+			Domains: []string{"*"},
+			VirtualHostPlugins: &v1.VirtualHostPlugins{
+				Waf: &waf.Settings{
+					Disabled:    wafVhost.Disabled,
+					CoreRuleSet: wafVhost.CoreRuleSet,
+					RuleSets:    wafVhost.RuleSets,
 				},
-				Routes: []*v1.Route{route},
-			}
+			},
+			Routes: []*v1.Route{route},
+		}
 
-			httpListener = &v1.HttpListener{
-				VirtualHosts: []*v1.VirtualHost{virtualHost},
-				ListenerPlugins: &v1.HttpListenerPlugins{
-					Waf: wafListener,
+		httpListener = &v1.HttpListener{
+			VirtualHosts: []*v1.VirtualHost{virtualHost},
+			ListenerPlugins: &v1.HttpListenerPlugins{
+				Waf: wafListener,
+			},
+		}
+		proxy := &v1.Proxy{
+			Metadata: core.Metadata{
+				Name:      "secret",
+				Namespace: "default",
+			},
+			Listeners: []*v1.Listener{{
+				Name: "default",
+				ListenerType: &v1.Listener_HttpListener{
+					HttpListener: httpListener,
 				},
-			}
-			proxy := &v1.Proxy{
-				Metadata: core.Metadata{
-					Name:      "secret",
-					Namespace: "default",
-				},
-				Listeners: []*v1.Listener{{
-					Name: "default",
-					ListenerType: &v1.Listener_HttpListener{
-						HttpListener: httpListener,
-					},
-				}},
-			}
+			}},
+		}
 
-			params.Snapshot = &v1.ApiSnapshot{
-				Proxies: v1.ProxyList{proxy},
-			}
-			vhostParams = plugins.VirtualHostParams{
-				Params:   params,
-				Proxy:    proxy,
-				Listener: proxy.Listeners[0],
-			}
+		params.Snapshot = &v1.ApiSnapshot{
+			Proxies: v1.ProxyList{proxy},
+		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
 
-		})
-		allTests()
 	})
+	allTests()
 
 })

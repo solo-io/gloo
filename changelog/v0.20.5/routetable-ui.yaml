@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add Route Tables to the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1214

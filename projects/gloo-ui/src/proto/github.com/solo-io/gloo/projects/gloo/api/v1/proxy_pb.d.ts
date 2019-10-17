@@ -82,6 +82,11 @@ export class Listener extends jspb.Message {
   getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins | undefined;
   setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins): void;
 
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): google_protobuf_struct_pb.Struct | undefined;
+  setMetadata(value?: google_protobuf_struct_pb.Struct): void;
+
   getListenertypeCase(): Listener.ListenertypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Listener.AsObject;
@@ -103,6 +108,7 @@ export namespace Listener {
     sslConfigurationsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.AsObject,
+    metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
   export enum ListenertypeCase {
@@ -232,6 +238,11 @@ export class VirtualHost extends jspb.Message {
   getCorsPolicy(): CorsPolicy | undefined;
   setCorsPolicy(value?: CorsPolicy): void;
 
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): google_protobuf_struct_pb.Struct | undefined;
+  setMetadata(value?: google_protobuf_struct_pb.Struct): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHost.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHost): VirtualHost.AsObject;
@@ -249,14 +260,15 @@ export namespace VirtualHost {
     routesList: Array<Route.AsObject>,
     virtualHostPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.AsObject,
     corsPolicy?: CorsPolicy.AsObject,
+    metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 }
 
 export class Route extends jspb.Message {
-  hasMatcher(): boolean;
-  clearMatcher(): void;
-  getMatcher(): Matcher | undefined;
-  setMatcher(value?: Matcher): void;
+  clearMatchersList(): void;
+  getMatchersList(): Array<Matcher>;
+  setMatchersList(value: Array<Matcher>): void;
+  addMatchers(value?: Matcher, index?: number): Matcher;
 
   hasRouteAction(): boolean;
   clearRouteAction(): void;
@@ -278,10 +290,10 @@ export class Route extends jspb.Message {
   getRoutePlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins | undefined;
   setRoutePlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins): void;
 
-  hasRouteMetadata(): boolean;
-  clearRouteMetadata(): void;
-  getRouteMetadata(): google_protobuf_struct_pb.Struct | undefined;
-  setRouteMetadata(value?: google_protobuf_struct_pb.Struct): void;
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): google_protobuf_struct_pb.Struct | undefined;
+  setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
   getActionCase(): Route.ActionCase;
   serializeBinary(): Uint8Array;
@@ -296,12 +308,12 @@ export class Route extends jspb.Message {
 
 export namespace Route {
   export type AsObject = {
-    matcher?: Matcher.AsObject,
+    matchersList: Array<Matcher.AsObject>,
     routeAction?: RouteAction.AsObject,
     redirectAction?: RedirectAction.AsObject,
     directResponseAction?: DirectResponseAction.AsObject,
     routePlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.AsObject,
-    routeMetadata?: google_protobuf_struct_pb.Struct.AsObject,
+    metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
   export enum ActionCase {

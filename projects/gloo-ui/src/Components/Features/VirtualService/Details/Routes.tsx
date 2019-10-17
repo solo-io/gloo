@@ -4,12 +4,10 @@ import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
-import { deleteRoute, shiftRoutes } from 'store/virtualServices/actions';
+import { shiftRoutes, deleteRoute } from 'store/virtualServices/actions';
 import { colors, TableActionCircle, TableActions } from 'Styles';
 import {
   getRouteHeaders,
@@ -18,6 +16,8 @@ import {
   getRouteQueryParams,
   getRouteSingleUpstream
 } from 'utils/helpers';
+import { RouteParent } from '../RouteTableDetails';
+import { CreateRouteModal } from '../Creation/CreateRouteModal';
 
 const RouteMatch = styled.div`
   max-width: 200px;
@@ -71,7 +71,8 @@ const getRouteColumns = (
     },
     {
       title: 'Destination',
-      dataIndex: 'upstreamName'
+      dataIndex: 'destinationName',
+      render: (destinationName: string) => <a>{destinationName}</a>
     },
     {
       title: 'Headers',
@@ -111,7 +112,7 @@ const getRouteColumns = (
 
 interface Props {
   routes: Route.AsObject[];
-  virtualService: VirtualService.AsObject;
+  routeParent?: RouteParent;
 }
 
 export const Routes: React.FC<Props> = props => {
@@ -122,11 +123,11 @@ export const Routes: React.FC<Props> = props => {
   const [showCreateRouteModal, setShowCreateRouteModal] = React.useState(false);
   const dispatch = useDispatch();
 
-  let virtualServiceRef = {
-    name: props.virtualService.metadata!.name,
-    namespace: props.virtualService.metadata!.namespace
+  let routeParentRef = {
+    name: props.routeParent ? props.routeParent.metadata!.name : '',
+    namespace: props.routeParent ? props.routeParent.metadata!.namespace : ''
   };
-
+  console.log('routeParentRef', routeParentRef);
   React.useEffect(() => {
     setRoutesList([...props.routes]);
   }, [props.routes]);
@@ -134,12 +135,14 @@ export const Routes: React.FC<Props> = props => {
   const getRouteData = () => {
     const existingRoutes = routesList.map(route => {
       const upstreamName = getRouteSingleUpstream(route) || '';
+      const destinationName = getRouteSingleUpstream(route);
       const { matcher, matchType } = getRouteMatcher(route);
       return {
         key: `${matcher}-${upstreamName}`,
         matcher: matcher,
         pathMatch: matchType,
         method: getRouteMethods(route),
+        destinationName: destinationName,
         upstreamName: upstreamName,
         header: getRouteHeaders(route),
         queryParams: getRouteQueryParams(route),
@@ -157,9 +160,12 @@ export const Routes: React.FC<Props> = props => {
     const newList = routesList.filter(
       route => getRouteMatcher(route).matcher !== matcherToDelete
     );
+    console.log('index', index);
+    console.log('newList', newList);
+
     dispatch(
       deleteRoute({
-        virtualServiceRef,
+        virtualServiceRef: routeParentRef,
         index
       })
     );
@@ -184,7 +190,7 @@ export const Routes: React.FC<Props> = props => {
 
     dispatch(
       shiftRoutes({
-        virtualServiceRef,
+        virtualServiceRef: routeParentRef,
         fromIndex: dragIndex,
         toIndex: hoverIndex
       })
@@ -218,7 +224,7 @@ export const Routes: React.FC<Props> = props => {
         title={'Create Route'}
         onClose={() => setShowCreateRouteModal(false)}>
         <CreateRouteModal
-          defaultVirtualService={props.virtualService}
+          defaultRouteParent={props.routeParent!}
           completeCreation={() => setShowCreateRouteModal(false)}
           lockVirtualService
         />
@@ -229,7 +235,7 @@ export const Routes: React.FC<Props> = props => {
         title={'Edit Route'}
         onClose={() => setRouteBeingEdited(undefined)}>
         <CreateRouteModal
-          defaultVirtualService={props.virtualService}
+          defaultRouteParent={props.routeParent!}
           existingRoute={routeBeingEdited}
           completeCreation={finishRouteEditiing}
         />

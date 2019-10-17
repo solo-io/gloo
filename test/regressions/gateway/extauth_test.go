@@ -472,11 +472,11 @@ var _ = Describe("External auth", func() {
 						Routes: []*gatewayv1.Route{
 							{
 								RoutePlugins: pluginsForRoute1,
-								Matcher: &gloov1.Matcher{
+								Matchers: []*gloov1.Matcher{{
 									PathSpecifier: &gloov1.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/1",
 									},
-								},
+								}},
 								Action: &gatewayv1.Route_RouteAction{
 									RouteAction: &gloov1.RouteAction{
 										Destination: &gloov1.RouteAction_Single{
@@ -497,11 +497,11 @@ var _ = Describe("External auth", func() {
 							},
 							{
 								RoutePlugins: pluginsForRoute2,
-								Matcher: &gloov1.Matcher{
+								Matchers: []*gloov1.Matcher{{
 									PathSpecifier: &gloov1.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/2",
 									},
-								},
+								}},
 								Action: &gatewayv1.Route_RouteAction{
 									RouteAction: &gloov1.RouteAction{
 										Destination: &gloov1.RouteAction_Single{
@@ -659,11 +659,11 @@ var _ = Describe("External auth", func() {
 						Domains: []string{"*"},
 						Routes: []*gatewayv1.Route{
 							{
-								Matcher: &gloov1.Matcher{
+								Matchers: []*gloov1.Matcher{{
 									PathSpecifier: &gloov1.Matcher_Prefix{
 										Prefix: testMatcherPrefix,
 									},
-								},
+								}},
 								RoutePlugins: routePlugins,
 								Action: &gatewayv1.Route_RouteAction{
 									RouteAction: &gloov1.RouteAction{

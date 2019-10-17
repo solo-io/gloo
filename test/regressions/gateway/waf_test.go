@@ -8,18 +8,13 @@ import (
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 
-	"github.com/gogo/protobuf/types"
-
 	"github.com/solo-io/go-utils/testutils/helper"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	wafplugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
-
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -101,22 +96,12 @@ var _ = Describe("waf tests", func() {
 
 		It("will return 200 on a standard request and no custom rules", func() {
 
-			wafVhost := &waf.VhostSettings{
-				Settings: &waf.Settings{
-					CoreRuleSet: &waf.CoreRuleSet{},
-				},
-			}
-
-			wafCfg, err := envoyutil.MessageToStruct(wafVhost)
-			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				wafplugin.ExtensionName: wafCfg,
+			wafVhost := &waf.Settings{
+				CoreRuleSet: &waf.CoreRuleSet{},
 			}
 
 			virtualHostPlugins := &gloov1.VirtualHostPlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: protos,
-				},
+				Waf: wafVhost,
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
@@ -125,26 +110,16 @@ var _ = Describe("waf tests", func() {
 
 		It("will reject an http 1.0 request", func() {
 
-			wafVhost := &waf.VhostSettings{
-				Settings: &waf.Settings{
-					CoreRuleSet: &waf.CoreRuleSet{
-						CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
-							CustomSettingsString: ruleStr,
-						},
+			wafVhost := &waf.Settings{
+				CoreRuleSet: &waf.CoreRuleSet{
+					CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
+						CustomSettingsString: ruleStr,
 					},
 				},
 			}
 
-			wafCfg, err := envoyutil.MessageToStruct(wafVhost)
-			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				wafplugin.ExtensionName: wafCfg,
-			}
-
 			virtualHostPlugins := &gloov1.VirtualHostPlugins{
-				Extensions: &gloov1.Extensions{
-					Configs: protos,
-				},
+				Waf: wafVhost,
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)

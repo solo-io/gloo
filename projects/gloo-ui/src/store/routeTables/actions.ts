@@ -107,7 +107,7 @@ export const deleteRouteTable = (
       );
       dispatch<DeleteRouteTableAction>({
         type: RouteTableAction.DELETE_ROUTE_TABLE,
-        payload: response!
+        payload: deleteRouteTableRequest
       });
     } catch (error) {
       SoloWarning('There was an error deleting the route table.', error);

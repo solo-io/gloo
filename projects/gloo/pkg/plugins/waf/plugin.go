@@ -63,23 +63,10 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 
 // Process virtual host plugin
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	var wafConfig waf.VhostSettings
-	wafVhost := in.VirtualHostPlugins.GetWaf()
-	// TODO(kdorosh) remove once we stop supporting opaque config
-	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &wafConfig)
-	if err != nil && wafVhost == nil {
-		return ConvertingProtoError(err, "virtual host")
-	}
-
-	if wafVhost != nil {
-		wafConfig = waf.VhostSettings{
-			Disabled: wafVhost.Disabled,
-			Settings: &waf.Settings{
-				Disabled:    wafVhost.Disabled,
-				CoreRuleSet: wafVhost.CoreRuleSet,
-				RuleSets:    wafVhost.RuleSets,
-			},
-		}
+	wafConfig := in.VirtualHostPlugins.GetWaf()
+	if wafConfig == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
 	// should never be nil
@@ -89,11 +76,9 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		Disabled: wafConfig.Disabled,
 	}
 
-	if wafConfig.GetSettings() != nil {
-		perVhostCfg.RuleSets = wafConfig.GetSettings().GetRuleSets()
-		if coreRuleSet := getCoreRuleSet(wafConfig.GetSettings().GetCoreRuleSet()); coreRuleSet != nil {
-			perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet...)
-		}
+	perVhostCfg.RuleSets = wafConfig.GetRuleSets()
+	if coreRuleSet := getCoreRuleSet(wafConfig.GetCoreRuleSet()); coreRuleSet != nil {
+		perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet...)
 	}
 
 	pluginutils.SetVhostPerFilterConfig(out, FilterName, perVhostCfg)
@@ -103,23 +88,10 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 // Process route plugin
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	var wafConfig waf.RouteSettings
-	wafRoute := in.RoutePlugins.GetWaf()
-	// TODO(kdorosh) remove once we stop supporting opaque config
-	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &wafConfig)
-	if err != nil && wafRoute == nil {
-		return ConvertingProtoError(err, "route")
-	}
-
-	if wafRoute != nil {
-		wafConfig = waf.RouteSettings{
-			Disabled: wafRoute.Disabled,
-			Settings: &waf.Settings{
-				Disabled:    wafRoute.Disabled,
-				CoreRuleSet: wafRoute.CoreRuleSet,
-				RuleSets:    wafRoute.RuleSets,
-			},
-		}
+	wafConfig := in.RoutePlugins.GetWaf()
+	if wafConfig == nil {
+		// no config found, nothing to do here
+		return nil
 	}
 
 	p.addListener(params.Listener.GetHttpListener())
@@ -128,11 +100,9 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		Disabled: wafConfig.Disabled,
 	}
 
-	if wafConfig.GetSettings() != nil {
-		perRouteCfg.RuleSets = wafConfig.GetSettings().GetRuleSets()
-		if coreRuleSet := getCoreRuleSet(wafConfig.GetSettings().GetCoreRuleSet()); coreRuleSet != nil {
-			perRouteCfg.RuleSets = append(perRouteCfg.RuleSets, coreRuleSet...)
-		}
+	perRouteCfg.RuleSets = wafConfig.GetRuleSets()
+	if coreRuleSet := getCoreRuleSet(wafConfig.GetCoreRuleSet()); coreRuleSet != nil {
+		perRouteCfg.RuleSets = append(perRouteCfg.RuleSets, coreRuleSet...)
 	}
 
 	pluginutils.SetRoutePerFilterConfig(out, FilterName, perRouteCfg)

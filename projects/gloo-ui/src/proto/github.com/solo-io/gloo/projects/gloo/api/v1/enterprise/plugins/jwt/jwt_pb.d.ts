@@ -222,19 +222,6 @@ export namespace Provider {
 }
 
 export class VhostExtension extends jspb.Message {
-  hasJwks(): boolean;
-  clearJwks(): void;
-  getJwks(): Jwks | undefined;
-  setJwks(value?: Jwks): void;
-
-  clearAudiencesList(): void;
-  getAudiencesList(): Array<string>;
-  setAudiencesList(value: Array<string>): void;
-  addAudiences(value: string, index?: number): string;
-
-  getIssuer(): string;
-  setIssuer(value: string): void;
-
   getProvidersMap(): jspb.Map<string, Provider>;
   clearProvidersMap(): void;
   serializeBinary(): Uint8Array;
@@ -249,9 +236,6 @@ export class VhostExtension extends jspb.Message {
 
 export namespace VhostExtension {
   export type AsObject = {
-    jwks?: Jwks.AsObject,
-    audiencesList: Array<string>,
-    issuer: string,
     providersMap: Array<[string, Provider.AsObject]>,
   }
 }

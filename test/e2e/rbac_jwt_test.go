@@ -9,14 +9,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
-	jwt2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
-	rbac2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
-
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-
-	"github.com/gogo/protobuf/types"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
@@ -155,14 +149,8 @@ var _ = Describe("JWT + RBAC", func() {
 		rbacSettings := &rbac.Settings{
 			RequireRbac: true,
 		}
-		settingsStruct, err := envoyutil.MessageToStruct(rbacSettings)
-		Expect(err).NotTo(HaveOccurred())
 
-		extensions := &gloov1.Extensions{
-			Configs: map[string]*types.Struct{
-				rbac2.ExtensionName: settingsStruct,
-			},
-		}
+		settings := &gloov1.Settings{Rbac: rbacSettings}
 
 		what := services.What{
 			DisableGateway: true,
@@ -170,7 +158,7 @@ var _ = Describe("JWT + RBAC", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, settings)
 
 		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
@@ -454,46 +442,47 @@ var _ = Describe("JWT + RBAC", func() {
 func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
 
 	jwtCfg := &jwtplugin.VhostExtension{
-		Jwks: &jwtplugin.Jwks{
-			Jwks: &jwtplugin.Jwks_Remote{
-				Remote: &jwtplugin.RemoteJwks{
-					Url:         "http://test/keys",
-					UpstreamRef: &jwtksServerRef,
-				},
-			},
-		},
-		Issuer:    issuer,
-		Audiences: []string{audience},
-	}
-
-	rbacCfg := &rbac.VhostExtension{
-		Config: &rbac.Config{
-			Policies: map[string]*rbac.Policy{
-				"user": {
-					Principals: []*rbac.Principal{{
-						JwtPrincipal: &rbac.JWTPrincipal{
-							Claims: map[string]string{
-								"iss": issuer,
-								"sub": user,
-							},
+		Providers: map[string]*jwtplugin.Provider{
+			"testprovider": {
+				Jwks: &jwtplugin.Jwks{
+					Jwks: &jwtplugin.Jwks_Remote{
+						Remote: &jwtplugin.RemoteJwks{
+							Url:         "http://test/keys",
+							UpstreamRef: &jwtksServerRef,
 						},
-					}},
-					Permissions: &rbac.Permissions{
-						PathPrefix: "/foo",
-						Methods:    []string{"GET"},
 					},
 				},
-				"admin": {
-					Principals: []*rbac.Principal{{
-						JwtPrincipal: &rbac.JWTPrincipal{
-							Claims: map[string]string{
-								"iss": issuer,
-								"sub": admin,
-							},
+				Audiences: []string{audience},
+				Issuer:    issuer,
+			}},
+	}
+
+	rbacCfg := &rbac.ExtensionSettings{
+		Policies: map[string]*rbac.Policy{
+			"user": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"iss": issuer,
+							"sub": user,
 						},
-					}},
-					Permissions: &rbac.Permissions{},
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/foo",
+					Methods:    []string{"GET"},
 				},
+			},
+			"admin": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"iss": issuer,
+							"sub": admin,
+						},
+					},
+				}},
+				Permissions: &rbac.Permissions{},
 			},
 		},
 	}
@@ -538,40 +527,27 @@ func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *g
 	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, nil)
 }
 
-func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef, jwtCfg *jwtplugin.VhostExtension, rbacCfg *rbac.VhostExtension) *gloov1.Proxy {
-	var extensions *gloov1.Extensions
-
-	jwtStruct, err := envoyutil.MessageToStruct(jwtCfg)
-	Expect(err).NotTo(HaveOccurred())
-
-	protos := map[string]*types.Struct{
-		jwt2.ExtensionName: jwtStruct,
-	}
-	if rbacCfg != nil {
-		rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
-		Expect(err).NotTo(HaveOccurred())
-		protos[rbac2.ExtensionName] = rbacStruct
-	}
-	extensions = &gloov1.Extensions{
-		Configs: protos,
-	}
-
+func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef, jwtCfg *jwtplugin.VhostExtension, rbacCfg *rbac.ExtensionSettings) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
-		Name:               "virt1",
-		Domains:            []string{"*"},
-		VirtualHostPlugins: &gloov1.VirtualHostPlugins{},
+		Name:    "virt1",
+		Domains: []string{"*"},
+		VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+			Rbac: rbacCfg,
+			Jwt:  jwtCfg,
+		},
 		Routes: []*gloov1.Route{
 			{
 				RoutePlugins: &gloov1.RoutePlugins{
-					Extensions: getDisabled(),
+					Jwt:  getDisabledJwt(),
+					Rbac: getDisabledRbac(),
 				},
-				Matcher: &gloov1.Matcher{
+				Matchers: []*gloov1.Matcher{{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/public_route",
 					},
-				},
+				}},
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
@@ -586,13 +562,13 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 			}, {
 				RoutePlugins: &gloov1.RoutePlugins{
 					// Disable JWT and not RBAC, so that no one can get here
-					Extensions: getDisabledJwt(),
+					Jwt: getDisabledJwt(),
 				},
-				Matcher: &gloov1.Matcher{
+				Matchers: []*gloov1.Matcher{{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/private_route",
 					},
-				},
+				}},
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
@@ -617,9 +593,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						},
 					},
 					// Disable RBAC and not JWT, for authn only tests
-					Extensions: getDisabledRbac(),
+					Rbac: getDisabledRbac(),
 				},
-				Matcher: &gloov1.Matcher{
+				Matchers: []*gloov1.Matcher{{
 					Headers: []*gloov1.HeaderMatcher{{
 						Name:  "x-sub",
 						Value: "teatime",
@@ -627,7 +603,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/authnonly",
 					},
-				},
+				}},
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
@@ -642,13 +618,13 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 			}, {
 				RoutePlugins: &gloov1.RoutePlugins{
 					// Disable RBAC and not JWT, for authn only tests
-					Extensions: getDisabledRbac(),
+					Rbac: getDisabledRbac(),
 				},
-				Matcher: &gloov1.Matcher{
+				Matchers: []*gloov1.Matcher{{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/authnonly",
 					},
-				},
+				}},
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
@@ -661,11 +637,11 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
-				Matcher: &gloov1.Matcher{
+				Matchers: []*gloov1.Matcher{{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/",
 					},
-				},
+				}},
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
@@ -679,8 +655,6 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 				},
 			}},
 	}
-
-	vhost.VirtualHostPlugins.Extensions = extensions
 
 	vhosts = append(vhosts, vhost)
 
@@ -704,41 +678,14 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 	return p
 }
 
-func getDisabledJwt() *gloov1.Extensions {
-
-	jwtCfg := &jwtplugin.RouteExtension{
+func getDisabledJwt() *jwtplugin.RouteExtension {
+	return &jwtplugin.RouteExtension{
 		Disable: true,
 	}
-	jwtStruct, err := envoyutil.MessageToStruct(jwtCfg)
-	Expect(err).NotTo(HaveOccurred())
-	protos := map[string]*types.Struct{
-		jwt2.ExtensionName: jwtStruct,
-	}
-	return &gloov1.Extensions{
-		Configs: protos,
-	}
 }
 
-func getDisabled() *gloov1.Extensions {
-	extensions := getDisabledJwt()
-	for k, v := range getDisabledRbac().Configs {
-		extensions.Configs[k] = v
-	}
-	return extensions
-}
-
-func getDisabledRbac() *gloov1.Extensions {
-	rbacCfg := &rbac.RouteExtension{
-		Route: &rbac.RouteExtension_Disable{
-			Disable: true,
-		},
-	}
-	rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
-	Expect(err).NotTo(HaveOccurred())
-	protos := map[string]*types.Struct{
-		rbac2.ExtensionName: rbacStruct,
-	}
-	return &gloov1.Extensions{
-		Configs: protos,
+func getDisabledRbac() *rbac.ExtensionSettings {
+	return &rbac.ExtensionSettings{
+		Disable: true,
 	}
 }

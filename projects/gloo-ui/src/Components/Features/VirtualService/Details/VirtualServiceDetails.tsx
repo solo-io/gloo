@@ -5,24 +5,19 @@ import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb';
-import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory, useLocation, useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import { AppState } from 'store';
-import {
-  updateVirtualService,
-  updateVirtualServiceYaml
-} from 'store/virtualServices/actions';
+import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
 import { colors, healthConstants, soloConstants } from 'Styles';
 import { Domains } from './Domains';
 import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
 import { Routes } from './Routes';
+import { RouteParent } from '../RouteTableDetails';
 
-const ConfigContainer = styled.div`
+export const ConfigContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: ${colors.januaryGrey};
@@ -30,7 +25,7 @@ const ConfigContainer = styled.div`
   border-radius: ${soloConstants.smallRadius}px;
 `;
 
-const ConfigItem = styled.div`
+export const ConfigItem = styled.div`
   margin: 20px;
   padding: 10px;
   justify-items: center;
@@ -38,7 +33,7 @@ const ConfigItem = styled.div`
 `;
 
 type DetailsContentProps = { configurationShowing?: boolean };
-const DetailsContent = styled.div`
+export const DetailsContent = styled.div`
   position: relative;
   display: grid;
   grid-template-rows: ${(props: DetailsContentProps) =>
@@ -47,22 +42,24 @@ const DetailsContent = styled.div`
   grid-column-gap: 30px;
 `;
 
-const YamlLink = styled.div`
+export const YamlLink = styled.div`
   position: absolute;
   top: 10px;
   right: 0;
   display: flex;
 `;
-const ConfigurationToggle = styled.div`
+
+export const ConfigurationToggle = styled.div`
   cursor: pointer;
   color: ${colors.seaBlue};
   font-size: 14px;
   margin-right: 8px;
 `;
 
-const DetailsSection = styled.div`
+export const DetailsSection = styled.div`
   width: 100%;
 `;
+
 export const DetailsSectionTitle = styled.div`
   font-size: 18px;
   font-weight: bold;
@@ -80,6 +77,7 @@ export const VirtualServiceDetails = () => {
   const virtualServicesList = useSelector(
     (state: AppState) => state.virtualServices.virtualServicesList
   );
+
   const yamlError = useSelector(
     (state: AppState) => state.virtualServices.yamlParseError
   );
@@ -98,7 +96,6 @@ export const VirtualServiceDetails = () => {
     return (
       <>
         <Breadcrumb />
-
         <Spin size='large' />
       </>
     );
@@ -119,29 +116,6 @@ export const VirtualServiceDetails = () => {
     rateLimits = plugins.rateLimit;
     externalAuth = plugins.extAuth;
   }
-
-  const handleUpdateVirtualService = (newInfo: {
-    newDomainsList?: string[];
-    newRoutesList?: Route.AsObject[];
-    newRateLimits?: IngressRateLimit.AsObject;
-    newOAuth?: OAuth.AsObject;
-  }) => {
-    dispatch(
-      updateVirtualService({
-        inputV2: {
-          domains: { valuesList: newInfo.newDomainsList as string[] },
-          rateLimitConfig: { value: newInfo.newRateLimits },
-          ref: {
-            name: virtualservicename!,
-            namespace: virtualservicenamespace!
-          },
-          routes: {
-            valuesList: newInfo.newRoutesList!
-          }
-        }
-      })
-    );
-  };
 
   const saveYamlChange = (newYaml: string) => {
     dispatch(
@@ -193,7 +167,7 @@ export const VirtualServiceDetails = () => {
             <YamlLink>
               <ConfigurationToggle
                 onClick={() => setShowConfiguration(s => !s)}>
-                {showConfiguration ? 'Hide' : 'View'} Raw Configuration
+                {showConfiguration ? 'Hide' : 'View'} YAML Configuration
               </ConfigurationToggle>
               <FileDownloadLink
                 fileContent={raw.content}
@@ -203,7 +177,7 @@ export const VirtualServiceDetails = () => {
           )}
           {showConfiguration && (
             <DetailsSection>
-              <DetailsSectionTitle>Raw Configuration</DetailsSectionTitle>
+              <DetailsSectionTitle>YAML Configuration</DetailsSectionTitle>
               <ConfigDisplayer
                 content={raw ? raw.content : ''}
                 asEditor
@@ -222,7 +196,10 @@ export const VirtualServiceDetails = () => {
             />
           </DetailsSection>
           <DetailsSection>
-            <Routes routes={routesList} virtualService={virtualService!} />
+            <Routes
+              routes={routesList}
+              routeParent={virtualService as RouteParent}
+            />
           </DetailsSection>
           <DetailsSection>
             <>

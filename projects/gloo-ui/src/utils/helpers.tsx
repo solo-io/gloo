@@ -8,8 +8,10 @@ import GRPCLogo from 'assets/grpc-logo.png';
 import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
 import { ReactComponent as RESTLogo } from 'assets/rest-logo.svg';
 import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
+  VirtualService,
+  Route
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
@@ -90,20 +92,20 @@ export function getVSDomains(virtualService: VirtualService.AsObject) {
 /* -------------------------------------------------------------------------- */
 
 export function getRouteMethods(route: Route.AsObject) {
-  if (route.matcher && route.matcher.methodsList) {
-    if (route.matcher.methodsList.length === 7) {
+  if (route.matchersList[0] && route.matchersList[0].methodsList) {
+    if (route.matchersList[0].methodsList.length === 7) {
       // all options selected
       return '*';
     }
 
-    return route.matcher.methodsList.join(', ');
+    return route.matchersList[0].methodsList.join(', ');
   }
   return '*';
 }
 
 export function getRouteSingleUpstream(route: Route.AsObject) {
+  let functionName = '';
   if (route.routeAction) {
-    let functionName = '';
     if (route.routeAction.single && route.routeAction.single.upstream) {
       if (!!route.routeAction.single.destinationSpec) {
         if (route.routeAction.single.destinationSpec.aws) {
@@ -127,6 +129,9 @@ export function getRouteSingleUpstream(route: Route.AsObject) {
         !functionName ? '' : ':' + functionName
       }`;
     }
+  } else if (route.delegateAction) {
+    functionName = route.delegateAction.name;
+    return functionName;
   }
   return {} as ResourceRef.AsObject;
 }
@@ -137,17 +142,17 @@ export function getRouteMultiUpstream(route: Route.AsObject) {}
 export function getRouteMatcher(route: Route.AsObject) {
   let matcher = '';
   let matchType = 'PATH_SPECIFIER_NOT_SET';
-  if (route.matcher) {
-    if (route.matcher.prefix) {
-      matcher = route.matcher.prefix;
+  if (route.matchersList[0]) {
+    if (route.matchersList[0].prefix) {
+      matcher = route.matchersList[0].prefix;
       matchType = 'PREFIX';
     }
-    if (route.matcher.exact) {
-      matcher = route.matcher.exact;
+    if (route.matchersList[0].exact) {
+      matcher = route.matchersList[0].exact;
       matchType = 'EXACT';
     }
-    if (route.matcher.regex) {
-      matcher = route.matcher.regex;
+    if (route.matchersList[0].regex) {
+      matcher = route.matchersList[0].regex;
       matchType = 'REGEX';
     }
   }
@@ -158,8 +163,8 @@ export function getRouteMatcher(route: Route.AsObject) {
 }
 
 export function getRouteHeaders(route: Route.AsObject) {
-  if (route.matcher && route.matcher.headersList) {
-    return route.matcher.headersList.map(header => (
+  if (route.matchersList[0] && route.matchersList[0].headersList) {
+    return route.matchersList[0].headersList.map(header => (
       <div>
         {header.name}: {header.value}
       </div>
@@ -169,8 +174,8 @@ export function getRouteHeaders(route: Route.AsObject) {
 }
 
 export function getRouteQueryParams(route: Route.AsObject) {
-  if (route.matcher && route.matcher.queryParametersList) {
-    return route.matcher.queryParametersList.map(param => (
+  if (route.matchersList[0] && route.matchersList[0].queryParametersList) {
+    return route.matchersList[0].queryParametersList.map(param => (
       <div>
         {param.name}: {param.value}
       </div>

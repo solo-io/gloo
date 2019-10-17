@@ -144,7 +144,7 @@ var _ = Describe("External http", func() {
 			DisableUds:     true,
 			DisableFds:     true,
 		}
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions, nil)
 	})
 
 	AfterEach(func() {

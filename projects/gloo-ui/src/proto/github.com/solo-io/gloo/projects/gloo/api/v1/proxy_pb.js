@@ -387,7 +387,8 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     sslConfigurationsList: jspb.Message.toObjectList(msg.getSslConfigurationsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.toObject, includeInstance),
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f)
+    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -460,6 +461,11 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.deserializeBinaryFromReader);
       msg.setPlugins(value);
+      break;
+    case 9:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setMetadata(value);
       break;
     default:
       reader.skipField();
@@ -549,6 +555,14 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       8,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -747,6 +761,36 @@ proto.gloo.solo.io.Listener.prototype.clearPlugins = function() {
  */
 proto.gloo.solo.io.Listener.prototype.hasPlugins = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct metadata = 9;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.gloo.solo.io.Listener.prototype.getMetadata = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 9));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setMetadata = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearMetadata = function() {
+  this.setMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasMetadata = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
@@ -1517,7 +1561,8 @@ proto.gloo.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gloo.solo.io.Route.toObject, includeInstance),
     virtualHostPlugins: (f = msg.getVirtualHostPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.toObject(includeInstance, f),
-    corsPolicy: (f = msg.getCorsPolicy()) && proto.gloo.solo.io.CorsPolicy.toObject(includeInstance, f)
+    corsPolicy: (f = msg.getCorsPolicy()) && proto.gloo.solo.io.CorsPolicy.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1576,6 +1621,11 @@ proto.gloo.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, reade
       var value = new proto.gloo.solo.io.CorsPolicy;
       reader.readMessage(value,proto.gloo.solo.io.CorsPolicy.deserializeBinaryFromReader);
       msg.setCorsPolicy(value);
+      break;
+    case 6:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setMetadata(value);
       break;
     default:
       reader.skipField();
@@ -1642,6 +1692,14 @@ proto.gloo.solo.io.VirtualHost.serializeBinaryToWriter = function(message, write
       5,
       f,
       proto.gloo.solo.io.CorsPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -1782,6 +1840,36 @@ proto.gloo.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
 };
 
 
+/**
+ * optional google.protobuf.Struct metadata = 6;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.gloo.solo.io.VirtualHost.prototype.getMetadata = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 6));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.gloo.solo.io.VirtualHost.prototype.setMetadata = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gloo.solo.io.VirtualHost.prototype.clearMetadata = function() {
+  this.setMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHost.prototype.hasMetadata = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -1794,12 +1882,19 @@ proto.gloo.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
  * @constructor
  */
 proto.gloo.solo.io.Route = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.Route.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.Route.repeatedFields_, proto.gloo.solo.io.Route.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.Route, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.Route.displayName = 'proto.gloo.solo.io.Route';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.Route.repeatedFields_ = [1];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -1856,12 +1951,13 @@ proto.gloo.solo.io.Route.prototype.toObject = function(opt_includeInstance) {
  */
 proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
   var f, obj = {
-    matcher: (f = msg.getMatcher()) && proto.gloo.solo.io.Matcher.toObject(includeInstance, f),
+    matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
+    proto.gloo.solo.io.Matcher.toObject, includeInstance),
     routeAction: (f = msg.getRouteAction()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && proto.gloo.solo.io.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && proto.gloo.solo.io.DirectResponseAction.toObject(includeInstance, f),
     routePlugins: (f = msg.getRoutePlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.toObject(includeInstance, f),
-    routeMetadata: (f = msg.getRouteMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1901,7 +1997,7 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
     case 1:
       var value = new proto.gloo.solo.io.Matcher;
       reader.readMessage(value,proto.gloo.solo.io.Matcher.deserializeBinaryFromReader);
-      msg.setMatcher(value);
+      msg.addMatchers(value);
       break;
     case 2:
       var value = new proto.gloo.solo.io.RouteAction;
@@ -1926,7 +2022,7 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
     case 6:
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
-      msg.setRouteMetadata(value);
+      msg.setMetadata(value);
       break;
     default:
       reader.skipField();
@@ -1957,9 +2053,9 @@ proto.gloo.solo.io.Route.prototype.serializeBinary = function() {
  */
 proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getMatcher();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getMatchersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
       1,
       f,
       proto.gloo.solo.io.Matcher.serializeBinaryToWriter
@@ -1997,7 +2093,7 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.serializeBinaryToWriter
     );
   }
-  f = message.getRouteMetadata();
+  f = message.getMetadata();
   if (f != null) {
     writer.writeMessage(
       6,
@@ -2009,32 +2105,33 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional Matcher matcher = 1;
- * @return {?proto.gloo.solo.io.Matcher}
+ * repeated Matcher matchers = 1;
+ * @return {!Array<!proto.gloo.solo.io.Matcher>}
  */
-proto.gloo.solo.io.Route.prototype.getMatcher = function() {
-  return /** @type{?proto.gloo.solo.io.Matcher} */ (
-    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Matcher, 1));
+proto.gloo.solo.io.Route.prototype.getMatchersList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.Matcher>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gloo.solo.io.Matcher, 1));
 };
 
 
-/** @param {?proto.gloo.solo.io.Matcher|undefined} value */
-proto.gloo.solo.io.Route.prototype.setMatcher = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.gloo.solo.io.Route.prototype.clearMatcher = function() {
-  this.setMatcher(undefined);
+/** @param {!Array<!proto.gloo.solo.io.Matcher>} value */
+proto.gloo.solo.io.Route.prototype.setMatchersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * Returns whether this field is set.
- * @return {!boolean}
+ * @param {!proto.gloo.solo.io.Matcher=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.Matcher}
  */
-proto.gloo.solo.io.Route.prototype.hasMatcher = function() {
-  return jspb.Message.getField(this, 1) != null;
+proto.gloo.solo.io.Route.prototype.addMatchers = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Matcher, opt_index);
+};
+
+
+proto.gloo.solo.io.Route.prototype.clearMatchersList = function() {
+  this.setMatchersList([]);
 };
 
 
@@ -2159,23 +2256,23 @@ proto.gloo.solo.io.Route.prototype.hasRoutePlugins = function() {
 
 
 /**
- * optional google.protobuf.Struct route_metadata = 6;
+ * optional google.protobuf.Struct metadata = 6;
  * @return {?proto.google.protobuf.Struct}
  */
-proto.gloo.solo.io.Route.prototype.getRouteMetadata = function() {
+proto.gloo.solo.io.Route.prototype.getMetadata = function() {
   return /** @type{?proto.google.protobuf.Struct} */ (
     jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 6));
 };
 
 
 /** @param {?proto.google.protobuf.Struct|undefined} value */
-proto.gloo.solo.io.Route.prototype.setRouteMetadata = function(value) {
+proto.gloo.solo.io.Route.prototype.setMetadata = function(value) {
   jspb.Message.setWrapperField(this, 6, value);
 };
 
 
-proto.gloo.solo.io.Route.prototype.clearRouteMetadata = function() {
-  this.setRouteMetadata(undefined);
+proto.gloo.solo.io.Route.prototype.clearMetadata = function() {
+  this.setMetadata(undefined);
 };
 
 
@@ -2183,7 +2280,7 @@ proto.gloo.solo.io.Route.prototype.clearRouteMetadata = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Route.prototype.hasRouteMetadata = function() {
+proto.gloo.solo.io.Route.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 6) != null;
 };
 

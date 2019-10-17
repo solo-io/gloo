@@ -38,12 +38,10 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb = re
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/stats/stats_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/healthcheck/healthcheck_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/jwt/jwt_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
@@ -52,6 +50,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb =
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DestinationSpec', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HttpListenerPlugins', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ListenerPlugins', null, global);
@@ -1412,12 +1411,38 @@ proto.gloo.solo.io.VirtualHostPlugins.prototype.hasExtauth = function() {
  * @constructor
  */
 proto.gloo.solo.io.RoutePlugins = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.RoutePlugins.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.RoutePlugins, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.RoutePlugins.displayName = 'proto.gloo.solo.io.RoutePlugins';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.RoutePlugins.oneofGroups_ = [[10,19]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.RoutePlugins.HostRewriteTypeCase = {
+  HOST_REWRITE_TYPE_NOT_SET: 0,
+  HOST_REWRITE: 10,
+  AUTO_HOST_REWRITE: 19
+};
+
+/**
+ * @return {proto.gloo.solo.io.RoutePlugins.HostRewriteTypeCase}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getHostRewriteTypeCase = function() {
+  return /** @type {proto.gloo.solo.io.RoutePlugins.HostRewriteTypeCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.RoutePlugins.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1449,14 +1474,15 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
     transformations: (f = msg.getTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
     faults: (f = msg.getFaults()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults.toObject(includeInstance, f),
-    prefixRewrite: (f = msg.getPrefixRewrite()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite.toObject(includeInstance, f),
+    prefixRewrite: jspb.Message.getFieldWithDefault(msg, 3, ""),
     timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     retries: (f = msg.getRetries()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.toObject(includeInstance, f),
     shadowing: (f = msg.getShadowing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.toObject(includeInstance, f),
     headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
-    hostRewrite: (f = msg.getHostRewrite()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.toObject(includeInstance, f),
+    hostRewrite: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    autoHostRewrite: (f = msg.getAutoHostRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
     lbHash: (f = msg.getLbHash()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f),
     ratelimitBasic: (f = msg.getRatelimitBasic()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
@@ -1512,8 +1538,7 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       msg.setFaults(value);
       break;
     case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite.deserializeBinaryFromReader);
+      var value = /** @type {string} */ (reader.readString());
       msg.setPrefixRewrite(value);
       break;
     case 4:
@@ -1547,9 +1572,13 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       msg.setHeaderManipulation(value);
       break;
     case 10:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.deserializeBinaryFromReader);
+      var value = /** @type {string} */ (reader.readString());
       msg.setHostRewrite(value);
+      break;
+    case 19:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAutoHostRewrite(value);
       break;
     case 11:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy;
@@ -1637,11 +1666,10 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
     );
   }
   f = message.getPrefixRewrite();
-  if (f != null) {
-    writer.writeMessage(
+  if (f.length > 0) {
+    writer.writeString(
       3,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite.serializeBinaryToWriter
+      f
     );
   }
   f = message.getTimeout();
@@ -1692,12 +1720,19 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.serializeBinaryToWriter
     );
   }
-  f = message.getHostRewrite();
+  f = /** @type {string} */ (jspb.Message.getField(message, 10));
+  if (f != null) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
+  f = message.getAutoHostRewrite();
   if (f != null) {
     writer.writeMessage(
-      10,
+      19,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.serializeBinaryToWriter
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getCors();
@@ -1828,32 +1863,17 @@ proto.gloo.solo.io.RoutePlugins.prototype.hasFaults = function() {
 
 
 /**
- * optional transformation.plugins.gloo.solo.io.PrefixRewrite prefix_rewrite = 3;
- * @return {?proto.transformation.plugins.gloo.solo.io.PrefixRewrite}
+ * optional string prefix_rewrite = 3;
+ * @return {string}
  */
 proto.gloo.solo.io.RoutePlugins.prototype.getPrefixRewrite = function() {
-  return /** @type{?proto.transformation.plugins.gloo.solo.io.PrefixRewrite} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite, 3));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
-/** @param {?proto.transformation.plugins.gloo.solo.io.PrefixRewrite|undefined} value */
+/** @param {string} value */
 proto.gloo.solo.io.RoutePlugins.prototype.setPrefixRewrite = function(value) {
-  jspb.Message.setWrapperField(this, 3, value);
-};
-
-
-proto.gloo.solo.io.RoutePlugins.prototype.clearPrefixRewrite = function() {
-  this.setPrefixRewrite(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.RoutePlugins.prototype.hasPrefixRewrite = function() {
-  return jspb.Message.getField(this, 3) != null;
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -2038,23 +2058,22 @@ proto.gloo.solo.io.RoutePlugins.prototype.hasHeaderManipulation = function() {
 
 
 /**
- * optional hostrewrite.plugins.gloo.solo.io.HostRewrite host_rewrite = 10;
- * @return {?proto.hostrewrite.plugins.gloo.solo.io.HostRewrite}
+ * optional string host_rewrite = 10;
+ * @return {string}
  */
 proto.gloo.solo.io.RoutePlugins.prototype.getHostRewrite = function() {
-  return /** @type{?proto.hostrewrite.plugins.gloo.solo.io.HostRewrite} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite, 10));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
 };
 
 
-/** @param {?proto.hostrewrite.plugins.gloo.solo.io.HostRewrite|undefined} value */
+/** @param {string} value */
 proto.gloo.solo.io.RoutePlugins.prototype.setHostRewrite = function(value) {
-  jspb.Message.setWrapperField(this, 10, value);
+  jspb.Message.setOneofField(this, 10, proto.gloo.solo.io.RoutePlugins.oneofGroups_[0], value);
 };
 
 
 proto.gloo.solo.io.RoutePlugins.prototype.clearHostRewrite = function() {
-  this.setHostRewrite(undefined);
+  jspb.Message.setOneofField(this, 10, proto.gloo.solo.io.RoutePlugins.oneofGroups_[0], undefined);
 };
 
 
@@ -2064,6 +2083,36 @@ proto.gloo.solo.io.RoutePlugins.prototype.clearHostRewrite = function() {
  */
 proto.gloo.solo.io.RoutePlugins.prototype.hasHostRewrite = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue auto_host_rewrite = 19;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getAutoHostRewrite = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 19));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setAutoHostRewrite = function(value) {
+  jspb.Message.setOneofWrapperField(this, 19, proto.gloo.solo.io.RoutePlugins.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearAutoHostRewrite = function() {
+  this.setAutoHostRewrite(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasAutoHostRewrite = function() {
+  return jspb.Message.getField(this, 19) != null;
 };
 
 

@@ -11,7 +11,22 @@ import (
 	"github.com/solo-io/solo-projects/pkg/version"
 )
 
-func GetGlooOsVersionFromToml(pathToGopkgTomlDir string) (string, error) {
+func GetGlooOsVersion(pathToGopkgTomlDir string, filesets ...*GenerationFiles) (string, error) {
+	var dl DependencyList
+	for _, fs := range filesets {
+		if err := readYaml(fs.RequirementsTemplate, &dl); err != nil {
+			return "", err
+		}
+		for _, v := range dl.Dependencies {
+			if v.Name == "gloo" && v.Version != "" {
+				return v.Version, nil
+			}
+		}
+	}
+	return getGlooOsVersionFromToml(pathToGopkgTomlDir)
+}
+
+func getGlooOsVersionFromToml(pathToGopkgTomlDir string) (string, error) {
 	tomlTree, err := versionutils.ParseFullTomlFromDir(pathToGopkgTomlDir)
 	if err != nil {
 		return "", err
@@ -59,14 +74,14 @@ func readConfig(path string) (HelmConfig, error) {
 	return config, nil
 }
 
-func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGLooVersion string) error {
+func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string) error {
 	var dl DependencyList
 	if err := readYaml(requirementsTemplatePath, &dl); err != nil {
 		return err
 	}
 	for i, v := range dl.Dependencies {
-		if v.Name == "gloo" {
-			dl.Dependencies[i].Version = osGLooVersion
+		if v.Name == "gloo" && v.Version == "" {
+			dl.Dependencies[i].Version = osGlooVersion
 		}
 	}
 	return writeYaml(dl, outputPath)

@@ -226,167 +226,181 @@ export const GatewayForm = (props: FormProps) => {
         visible={showSuccessModal}
         successMessage='Gateway updated successfully'
       />
-      <div>
-        Below are gateway configuration settings you can update here. For more
-        information on these settings, please visit our{' '}
-        <a
-          href='https://gloo.solo.io/v1/github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto.sk/'
-          target='_blank'
-          rel='noopener noreferrer'>
-          hcm plugin documentation
-        </a>
-        .
-      </div>
       <ExpandableSection isExpanded={props.isExpanded}>
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={values => {
-            setShowSuccessModal(true);
-            props.doUpdate(values);
-            setShowSuccessModal(false);
-          }}>
-          {({ isSubmitting, handleSubmit, isValid, errors, dirty, values }) => {
-            return (
-              <>
-                <InnerSectionTitle>
-                  Http Connection Manager Settings
-                </InnerSectionTitle>
-                <InnerFormSectionContent>
-                  <FormItem>
-                    <SoloFormInput
-                      name={'maxRequestHeadersKb.value'}
-                      title={'maxRequestHeadersKb'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormDurationEditor
-                      value={values.streamIdleTimeout}
-                      name={'streamIdleTimeout'}
-                      title={'streamIdleTimeout'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormInput name={'via'} title={'via'} />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormDurationEditor
-                      value={values.requestTimeout}
-                      name={'requestTimeout'}
-                      title={'requestTimeout'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormDurationEditor
-                      value={values.idleTimeout}
-                      name={'idleTimeout'}
-                      title={'idleTimeout'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormInput
-                      type='number'
-                      name={'xffNumTrustedHops'}
-                      title={'xffNumTrustedHops'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormDurationEditor
-                      value={values.drainTimeout}
-                      name={'drainTimeout'}
-                      title={'drainTimeout'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormInput
-                      name={'defaultHostForHttp10'}
-                      title={'defaultHostForHttp10'}
-                    />
-                  </FormItem>
-
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name={'useRemoteAddress.value'}
-                      title={'useRemoteAddress'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormDurationEditor
-                      value={values.delayedCloseTimeout}
-                      name={'delayedCloseTimeout'}
-                      title={'delayedCloseTimeout'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name={'acceptHttp10'}
-                      title={'acceptHttp10'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name={'generateRequestId.value'}
-                      title={'generateRequestId'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormInput name={'serverName'} title={'serverName'} />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name={'proxy100Continue'}
-                      title={'proxy100Continue'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name={'skipXffAppend'}
-                      title={'skipXffAppend'}
-                    />
-                  </FormItem>
-                </InnerFormSectionContent>
-                <InnerSectionTitle>Tracing Settings</InnerSectionTitle>
-                <InnerFormSectionContent>
-                  <FormItem>
-                    <SoloFormInput
-                      name={'tracing.requestHeadersForTagsList'}
-                      title={'requestHeadersForTags'}
-                    />
-                  </FormItem>
-                  <FormItem>
-                    <SoloFormCheckbox
-                      name='tracing.verbose'
-                      title={'verbose'}
-                    />
-                  </FormItem>
-                </InnerFormSectionContent>
-                <FormFooter>
-                  <SoloButton
-                    onClick={handleSubmit}
-                    text='Update Configuration'
-                    disabled={
-                      isSubmitting || invalid(values, errors) || !isDirty(dirty)
-                    }
-                  />
-                </FormFooter>
-              </>
-            );
-          }}
-        </Formik>
+        <ConfigDisplayer
+          content={props.gatewayConfiguration!.content}
+          whiteBacked
+          asEditor
+          yamlError={yamlError}
+          saveEdits={saveYamlChange}
+        />
 
         {!!props.gatewayConfiguration && (
           <ConfigurationSection>
             <Link onClick={() => setShowConfiguration(s => !s)}>
-              {showConfiguration ? 'Hide' : 'View'} Configuration
+              {showConfiguration ? 'Hide' : 'View'} Configuration Form
             </Link>
             {showConfiguration && (
-              <ConfigDisplayer
-                content={props.gatewayConfiguration.content}
-                whiteBacked
-                asEditor
-                yamlError={yamlError}
-                saveEdits={saveYamlChange}
-              />
+              <>
+                <div>
+                  Below are gateway configuration settings you can update here.
+                  For more information on these settings, please visit our{' '}
+                  <a
+                    href='https://gloo.solo.io/v1/github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto.sk/'
+                    target='_blank'
+                    rel='noopener noreferrer'>
+                    hcm plugin documentation
+                  </a>
+                  .
+                </div>
+                <Formik
+                  initialValues={initialValues}
+                  validationSchema={validationSchema}
+                  onSubmit={values => {
+                    setShowSuccessModal(true);
+                    props.doUpdate(values);
+                    setShowSuccessModal(false);
+                  }}>
+                  {({
+                    isSubmitting,
+                    handleSubmit,
+                    isValid,
+                    errors,
+                    dirty,
+                    values
+                  }) => {
+                    return (
+                      <>
+                        <InnerSectionTitle>
+                          Http Connection Manager Settings
+                        </InnerSectionTitle>
+                        <InnerFormSectionContent>
+                          <FormItem>
+                            <SoloFormInput
+                              name={'maxRequestHeadersKb.value'}
+                              title={'maxRequestHeadersKb'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormDurationEditor
+                              value={values.streamIdleTimeout}
+                              name={'streamIdleTimeout'}
+                              title={'streamIdleTimeout'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormInput name={'via'} title={'via'} />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormDurationEditor
+                              value={values.requestTimeout}
+                              name={'requestTimeout'}
+                              title={'requestTimeout'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormDurationEditor
+                              value={values.idleTimeout}
+                              name={'idleTimeout'}
+                              title={'idleTimeout'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormInput
+                              type='number'
+                              name={'xffNumTrustedHops'}
+                              title={'xffNumTrustedHops'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormDurationEditor
+                              value={values.drainTimeout}
+                              name={'drainTimeout'}
+                              title={'drainTimeout'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormInput
+                              name={'defaultHostForHttp10'}
+                              title={'defaultHostForHttp10'}
+                            />
+                          </FormItem>
+
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name={'useRemoteAddress.value'}
+                              title={'useRemoteAddress'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormDurationEditor
+                              value={values.delayedCloseTimeout}
+                              name={'delayedCloseTimeout'}
+                              title={'delayedCloseTimeout'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name={'acceptHttp10'}
+                              title={'acceptHttp10'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name={'generateRequestId.value'}
+                              title={'generateRequestId'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormInput
+                              name={'serverName'}
+                              title={'serverName'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name={'proxy100Continue'}
+                              title={'proxy100Continue'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name={'skipXffAppend'}
+                              title={'skipXffAppend'}
+                            />
+                          </FormItem>
+                        </InnerFormSectionContent>
+                        <InnerSectionTitle>Tracing Settings</InnerSectionTitle>
+                        <InnerFormSectionContent>
+                          <FormItem>
+                            <SoloFormInput
+                              name={'tracing.requestHeadersForTagsList'}
+                              title={'requestHeadersForTags'}
+                            />
+                          </FormItem>
+                          <FormItem>
+                            <SoloFormCheckbox
+                              name='tracing.verbose'
+                              title={'verbose'}
+                            />
+                          </FormItem>
+                        </InnerFormSectionContent>
+                        <FormFooter>
+                          <SoloButton
+                            onClick={handleSubmit}
+                            text='Update Configuration'
+                            disabled={
+                              isSubmitting ||
+                              invalid(values, errors) ||
+                              !isDirty(dirty)
+                            }
+                          />
+                        </FormFooter>
+                      </>
+                    );
+                  }}
+                </Formik>
+              </>
             )}
           </ConfigurationSection>
         )}

@@ -123,25 +123,6 @@ export namespace Settings {
   }
 }
 
-export class Config extends jspb.Message {
-  getPoliciesMap(): jspb.Map<string, Policy>;
-  clearPoliciesMap(): void;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Config.AsObject;
-  static toObject(includeInstance: boolean, msg: Config): Config.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Config, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Config;
-  static deserializeBinaryFromReader(message: Config, reader: jspb.BinaryReader): Config;
-}
-
-export namespace Config {
-  export type AsObject = {
-    policiesMap: Array<[string, Policy.AsObject]>,
-  }
-}
-
 export class ExtensionSettings extends jspb.Message {
   getDisable(): boolean;
   setDisable(value: boolean): void;
@@ -162,63 +143,6 @@ export namespace ExtensionSettings {
   export type AsObject = {
     disable: boolean,
     policiesMap: Array<[string, Policy.AsObject]>,
-  }
-}
-
-export class VhostExtension extends jspb.Message {
-  hasConfig(): boolean;
-  clearConfig(): void;
-  getConfig(): Config | undefined;
-  setConfig(value?: Config): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): VhostExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: VhostExtension): VhostExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: VhostExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): VhostExtension;
-  static deserializeBinaryFromReader(message: VhostExtension, reader: jspb.BinaryReader): VhostExtension;
-}
-
-export namespace VhostExtension {
-  export type AsObject = {
-    config?: Config.AsObject,
-  }
-}
-
-export class RouteExtension extends jspb.Message {
-  hasDisable(): boolean;
-  clearDisable(): void;
-  getDisable(): boolean;
-  setDisable(value: boolean): void;
-
-  hasConfig(): boolean;
-  clearConfig(): void;
-  getConfig(): Config | undefined;
-  setConfig(value?: Config): void;
-
-  getRouteCase(): RouteExtension.RouteCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RouteExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: RouteExtension): RouteExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RouteExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RouteExtension;
-  static deserializeBinaryFromReader(message: RouteExtension, reader: jspb.BinaryReader): RouteExtension;
-}
-
-export namespace RouteExtension {
-  export type AsObject = {
-    disable: boolean,
-    config?: Config.AsObject,
-  }
-
-  export enum RouteCase {
-    ROUTE_NOT_SET = 0,
-    DISABLE = 1,
-    CONFIG = 2,
   }
 }
 

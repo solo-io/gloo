@@ -22,7 +22,15 @@ export function routeTablesReducer(
         ...state,
         routeTablesList: action.payload
       };
-
+    case RouteTableAction.DELETE_ROUTE_TABLE:
+      return {
+        ...state,
+        routeTablesList: state.routeTablesList.filter(
+          rt =>
+            rt.routeTable &&
+            rt.routeTable.metadata!.name !== action.payload!.ref!.name
+        )
+      };
     case RouteTableAction.UPDATE_ROUTE_TABLE_YAML_ERROR:
       SoloWarning(
         'There was an error updating the route table.',

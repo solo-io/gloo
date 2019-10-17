@@ -442,7 +442,7 @@ init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
@@ -606,7 +606,7 @@ build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
@@ -616,7 +616,7 @@ build-kind-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)

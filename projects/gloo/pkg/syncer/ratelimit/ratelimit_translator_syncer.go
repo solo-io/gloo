@@ -37,7 +37,7 @@ func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
 
 // TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
 func getDeprecatedSettings(params syncer.TranslatorSyncerExtensionParams) (ratelimit.ServiceSettings, error) {
-	var settings ratelimit.EnvoySettings
+	var settings ratelimit.ServiceSettings
 	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, &settings)
 	if err != nil {
 		if err == utils.NotFoundError {
@@ -45,7 +45,7 @@ func getDeprecatedSettings(params syncer.TranslatorSyncerExtensionParams) (ratel
 		}
 		return ratelimit.ServiceSettings{}, err
 	}
-	return ratelimit.ServiceSettings{Descriptors: settings.GetCustomConfig().GetDescriptors()}, nil
+	return ratelimit.ServiceSettings{Descriptors: settings.GetDescriptors()}, nil
 }
 
 func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
@@ -55,8 +55,8 @@ func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorS
 		return nil, err
 	}
 
-	if params.RateLimitDescriptorSettings.GetDescriptors() != nil {
-		settings.Descriptors = params.RateLimitDescriptorSettings.Descriptors
+	if params.RateLimitServiceSettings.GetDescriptors() != nil {
+		settings.Descriptors = params.RateLimitServiceSettings.Descriptors
 	}
 
 	return &RateLimitTranslatorSyncerExtension{

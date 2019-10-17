@@ -55,23 +55,6 @@ export const AdminHub = () => {
     });
   };
 
-  const listDisplay = (
-    strings: StringFilterProps[],
-    types: TypeFilterProps[],
-    checkboxes: CheckboxFilterProps[],
-    radios: RadioFilterProps[]
-  ): React.ReactNode => {
-    return (
-      <>
-        <Switch>
-          <Route path='/admin/gateways/' component={Gateways} />
-          <Route path='/admin/proxy/' component={Proxys} />
-          <Route path='/admin/envoy/' component={Envoy} />
-        </Switch>
-      </>
-    );
-  };
-
   return (
     <div>
       <Heading>
@@ -79,9 +62,17 @@ export const AdminHub = () => {
       </Heading>
       <ListingFilter
         types={[{ ...PageChoiceFilter, choice: locationChoice }]}
-        filterFunction={listDisplay}
-        onChange={pageChanged}
-      />
+        onChange={pageChanged}>
+        {() => (
+          <>
+            <Switch>
+              <Route path='/admin/gateways/' component={Gateways} />
+              <Route path='/admin/proxy/' component={Proxys} />
+              <Route path='/admin/envoy/' component={Envoy} />
+            </Switch>
+          </>
+        )}
+      </ListingFilter>
     </div>
   );
 };

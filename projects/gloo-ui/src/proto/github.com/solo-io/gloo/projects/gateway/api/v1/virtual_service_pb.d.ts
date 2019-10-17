@@ -100,10 +100,10 @@ export namespace VirtualHost {
 }
 
 export class Route extends jspb.Message {
-  hasMatcher(): boolean;
-  clearMatcher(): void;
-  getMatcher(): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher | undefined;
-  setMatcher(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher): void;
+  clearMatchersList(): void;
+  getMatchersList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher>;
+  setMatchersList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher>): void;
+  addMatchers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher;
 
   hasRouteAction(): boolean;
   clearRouteAction(): void;
@@ -143,7 +143,7 @@ export class Route extends jspb.Message {
 
 export namespace Route {
   export type AsObject = {
-    matcher?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.AsObject,
+    matchersList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.AsObject>,
     routeAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.AsObject,
     redirectAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,

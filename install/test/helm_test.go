@@ -522,7 +522,15 @@ var _ = Describe("Helm Test", func() {
 		BeforeEach(func() {
 
 			var err error
-			glooOsVersion, err = generate.GetGlooOsVersionFromToml("../..")
+			var glooEGenerationFiles = &generate.GenerationFiles{
+				Artifact:             generate.GlooE,
+				RequirementsTemplate: "../../install/helm/gloo-ee/requirements-template.yaml",
+			}
+			var glooOsWithReadOnlyUiGenerationFiles = &generate.GenerationFiles{
+				Artifact:             generate.GlooWithRoUi,
+				RequirementsTemplate: "../../install/helm/gloo-os-with-ui/requirements-template.yaml",
+			}
+			glooOsVersion, err = generate.GetGlooOsVersion("../..", glooEGenerationFiles, glooOsWithReadOnlyUiGenerationFiles)
 			Expect(err).NotTo(HaveOccurred())
 			glooOsPullPolicy = v1.PullAlways
 

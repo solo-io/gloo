@@ -30,7 +30,6 @@ import {
   RoutePlugins,
   DestinationSpec
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import { PrefixRewrite } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb';
 import { DestinationSpec as AwsDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
@@ -38,6 +37,7 @@ import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 
 const client = new RouteTableApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -94,6 +94,12 @@ function createRouteTable(
     if (routeTable !== undefined) {
       let newRoutes = routeTable.routesList.map(setInputRouteValues);
       newRouteTable.setRoutesList(newRoutes);
+      if (routeTable.metadata !== undefined) {
+        let newMetadata = new Metadata();
+        newMetadata.setName(routeTable.metadata.name);
+        newMetadata.setNamespace(routeTable.metadata.namespace);
+        newRouteTable.setMetadata(newMetadata);
+      }
     }
 
     request.setRouteTable(newRouteTable);
@@ -110,12 +116,12 @@ function createRouteTable(
   });
 }
 
-function setInputRouteValues(route: Route.AsObject) {
+export function setInputRouteValues(route: Route.AsObject) {
   let updatedRoute = new Route();
 
   if (route !== undefined) {
     // matcher
-    if (route.matcher !== undefined) {
+    if (route.matchersList[0] !== undefined) {
       let {
         prefix,
         exact,
@@ -123,7 +129,7 @@ function setInputRouteValues(route: Route.AsObject) {
         headersList,
         queryParametersList,
         methodsList
-      } = route.matcher!;
+      } = route.matchersList[0]!;
       let newMatcher = new Matcher();
       if (prefix !== undefined && prefix !== '') {
         newMatcher.setPrefix(prefix);
@@ -158,7 +164,7 @@ function setInputRouteValues(route: Route.AsObject) {
         newMatcher.setQueryParametersList(newQueryParamsList);
       }
       newMatcher.setMethodsList(methodsList);
-      updatedRoute.setMatcher(newMatcher);
+      updatedRoute.setMatchersList([newMatcher]);
     }
     // route action
     if (route.routeAction !== undefined) {
@@ -310,12 +316,16 @@ function setInputRouteValues(route: Route.AsObject) {
         headerManipulation,
         hostRewrite,
         cors,
-        lbHash
+        lbHash,
+        ratelimitBasic,
+        ratelimit,
+        waf,
+        jwt,
+        rbac,
+        extauth
       } = route.routePlugins;
       if (prefixRewrite !== undefined) {
-        let updatedPrefixRewrite = new PrefixRewrite();
-        updatedPrefixRewrite.setPrefixRewrite(prefixRewrite.prefixRewrite);
-        updatedRoutePlugins.setPrefixRewrite(updatedPrefixRewrite);
+        updatedRoutePlugins.setPrefixRewrite(prefixRewrite);
       }
       updatedRoute.setRoutePlugins(updatedRoutePlugins);
     }
