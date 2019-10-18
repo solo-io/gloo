@@ -9,8 +9,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
-	"github.com/solo-io/gloo/pkg/version"
-	check "github.com/solo-io/go-checkpoint"
 
 	"github.com/gogo/protobuf/types"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -35,7 +33,6 @@ const (
 )
 
 func Main() error {
-	check.NewUsageClient().Start(observability, version.Version)
 	return setuputils.Main(setuputils.SetupOpts{
 		LoggingPrefix: observability,
 		ExitOnError:   true,

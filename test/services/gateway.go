@@ -146,7 +146,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
-	go syncer.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions())
+	go syncer.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx))
 	if !what.DisableFds {
 		go fds_syncer.RunFDS(glooOpts)
 	}

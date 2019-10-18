@@ -1,0 +1,9 @@
+changelog:
+  - dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.20.8
+    description: Update Gloo to version 0.20.8.
+    type: DEPENDENCY_BUMP
+  - type: NON_USER_FACING
+    description: Transition to using the new usage client and new reporting service
+    issueLink: https://github.com/solo-io/solo-projects/issues/1199

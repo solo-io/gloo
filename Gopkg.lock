@@ -743,14 +743,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f14364057165381ea296e49f8870a9ffce2b8a95e34d6ae06c759106aaef428c"
-  name = "github.com/hashicorp/go-uuid"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "4f571afc59f3043a65f8fe6bf46d887b10a01d43"
-
-[[projects]]
-  branch = "master"
   digest = "1:cf296baa185baae04a9a7004efee8511d08e2f5f51d4cbe5375da89722d681db"
   name = "github.com/hashicorp/golang-lru"
   packages = [
@@ -1450,14 +1442,6 @@
   ]
   pruneopts = "UT"
   revision = "fe098fac2803d2cfb0a399301be0cf65ac03676d"
-
-[[projects]]
-  digest = "1:c5673cbf44dc752b282c962f514b0cc1b64d0d253cc64dba53b123a8e4bc3c4f"
-  name = "github.com/solo-io/go-checkpoint"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b56cd9c812e84da93eb577054ebdf60a27487acb"
-  version = "0.1.0"
 
 [[projects]]
   digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
@@ -2659,6 +2643,7 @@
     "github.com/solo-io/gloo/pkg/utils",
     "github.com/solo-io/gloo/pkg/utils/settingsutil",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
+    "github.com/solo-io/gloo/pkg/utils/usage",
     "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer",
@@ -2698,8 +2683,8 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/gloo/projects/gloo/pkg/translator",
     "github.com/solo-io/gloo/projects/gloo/pkg/utils",
+    "github.com/solo-io/gloo/projects/metrics/pkg/metricsservice",
     "github.com/solo-io/gloo/test/helpers",
-    "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/contextutils",
     "github.com/solo-io/go-utils/envutils",
     "github.com/solo-io/go-utils/errors",
@@ -2722,6 +2707,7 @@
     "github.com/solo-io/rate-limiter/cmd/service/runner",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/service",
+    "github.com/solo-io/reporting-client/pkg/client",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube",
