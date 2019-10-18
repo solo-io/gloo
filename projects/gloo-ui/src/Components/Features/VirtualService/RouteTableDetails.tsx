@@ -174,7 +174,9 @@ export const RouteTableDetails = () => {
       rtD.routeTable.metadata!.name === routetablename
   )!;
 
-  const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
+  const [routesList, setRoutesList] = React.useState<Route.AsObject[]>(
+    routeTablesList.flatMap(rtd => rtd!.routeTable!.routesList)
+  );
 
   React.useEffect(() => {
     if (
@@ -184,7 +186,8 @@ export const RouteTableDetails = () => {
     ) {
       setRoutesList(routeTableDetails.routeTable.routesList);
     }
-  }, [routeTablesList.length]);
+  }, [routeTablesList.length, routesList.length]);
+
   if (!routeTablesList || !routeTableDetails || !routeTableDetails.routeTable) {
     return (
       <>
@@ -209,8 +212,9 @@ export const RouteTableDetails = () => {
     );
   };
 
-  const getRouteData = () => {
-    const existingRoutes = routesList.map(route => {
+  const existingRoutes = routeTablesList
+    .flatMap(rtd => rtd!.routeTable!.routesList)
+    .map(route => {
       const upstreamName = getRouteSingleUpstream(route) || '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
@@ -225,20 +229,15 @@ export const RouteTableDetails = () => {
       };
     });
 
-    return existingRoutes;
-  };
-
   const handleDeleteRoute = (matcherToDelete: string) => {
-    let index = routesList.findIndex(
-      route => getRouteMatcher(route).matcher === matcherToDelete
-    );
-    const newList = routesList.filter(
-      route => getRouteMatcher(route).matcher !== matcherToDelete
-    );
+    const newList = routeTablesList
+      .flatMap(rtd => rtd!.routeTable!.routesList)
+      .filter(route => getRouteMatcher(route).matcher !== matcherToDelete);
 
     dispatch(
       updateRouteTable({
         routeTable: {
+          ...routeTable,
           routesList: newList
         }
       })
@@ -260,17 +259,20 @@ export const RouteTableDetails = () => {
     dispatch(
       updateRouteTable({
         routeTable: {
+          ...routeTable,
           routesList: [
             ...routeTable.routesList,
             {
-              matchersList: [{
-                prefix: values.matchType === 'PREFIX' ? values.path : '',
-                exact: values.matchType === 'EXACT' ? values.path : '',
-                regex: values.matchType === 'REGEX' ? values.path : '',
-                methodsList: values.methods,
-                headersList: values.headers,
-                queryParametersList: values.queryParameters
-              }],
+              matchersList: [
+                {
+                  prefix: values.matchType === 'PREFIX' ? values.path : '',
+                  exact: values.matchType === 'EXACT' ? values.path : '',
+                  regex: values.matchType === 'REGEX' ? values.path : '',
+                  methodsList: values.methods,
+                  headersList: values.headers,
+                  queryParametersList: values.queryParameters
+                }
+              ],
               routeAction: {
                 single: {
                   upstream: {
@@ -285,6 +287,7 @@ export const RouteTableDetails = () => {
         }
       })
     );
+    setShowCreateRouteModal(false);
   };
 
   const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
@@ -296,6 +299,7 @@ export const RouteTableDetails = () => {
     dispatch(
       updateRouteTable({
         routeTable: {
+          ...routeTable,
           routesList: newRoutesList
         }
       })
@@ -379,7 +383,7 @@ export const RouteTableDetails = () => {
             <>
               <SoloDragSortableTable
                 columns={getRouteColumns(beginRouteEditing, handleDeleteRoute)}
-                dataSource={getRouteData()}
+                dataSource={existingRoutes}
                 moveRow={reorderRoutes}
               />
 
@@ -392,7 +396,6 @@ export const RouteTableDetails = () => {
                   defaultRouteParent={routeTable! as RouteParent}
                   completeCreation={() => setShowCreateRouteModal(false)}
                   createRouteFn={handleCreateRoute}
-                  lockVirtualService
                 />
               </SoloModal>
               <SoloModal

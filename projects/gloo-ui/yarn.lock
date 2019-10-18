@@ -5380,7 +5380,7 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-formik@^2.0.1-rc.12:
+formik@^2.0.1-rc.13:
   version "2.0.1-rc.13"
   resolved "https://registry.yarnpkg.com/formik/-/formik-2.0.1-rc.13.tgz#4d06119a186ed5b754dfeabe72fcbf81157b849d"
   integrity sha512-WrIP9Rvsx7trfUAnvpHVrMmIqI6N8fQvK9GWHbP6UTAyyur33g/wEaz+ddhtjZ2JfupQ0Sdl4nVC3Z0tZtVM8w==

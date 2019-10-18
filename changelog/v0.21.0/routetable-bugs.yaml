@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Widen the upstream selector in the route form to show full names.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1227
+  - type: FIX
+    description: Fix bug preventing adding routes to a Route Table.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1228

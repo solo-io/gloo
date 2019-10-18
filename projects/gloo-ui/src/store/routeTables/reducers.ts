@@ -20,7 +20,7 @@ export function routeTablesReducer(
     case RouteTableAction.LIST_ROUTE_TABLES:
       return {
         ...state,
-        routeTablesList: action.payload
+        routeTablesList: [...action.payload]
       };
     case RouteTableAction.DELETE_ROUTE_TABLE:
       return {
@@ -30,6 +30,28 @@ export function routeTablesReducer(
             rt.routeTable &&
             rt.routeTable.metadata!.name !== action.payload!.ref!.name
         )
+      };
+
+    case RouteTableAction.UPDATE_ROUTE_TABLE:
+      let updatedRT = state.routeTablesList.find(
+        rtd =>
+          rtd.routeTable!.metadata!.name ===
+          action.payload!.routeTable!.metadata!.name
+      );
+
+      return {
+        ...state,
+        routeTablesList: [
+          ...state.routeTablesList.map(rtd => {
+            if (
+              rtd.routeTable!.metadata!.name ===
+              action.payload!.routeTable!.metadata!.name
+            ) {
+              return action.payload;
+            }
+            return rtd;
+          })
+        ]
       };
     case RouteTableAction.UPDATE_ROUTE_TABLE_YAML_ERROR:
       SoloWarning(

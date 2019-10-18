@@ -226,7 +226,6 @@ export const Routes: React.FC<Props> = props => {
         <CreateRouteModal
           defaultRouteParent={props.routeParent!}
           completeCreation={() => setShowCreateRouteModal(false)}
-          lockVirtualService
         />
       </SoloModal>
       <SoloModal

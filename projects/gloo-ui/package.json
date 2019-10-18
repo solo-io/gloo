@@ -52,7 +52,7 @@
     "eslint-plugin-react": "7.14.3",
     "eslint-plugin-react-hooks": "^1.6.1",
     "file-loader": "4.2.0",
-    "formik": "^2.0.1-rc.12",
+    "formik": "^2.0.1-rc.13",
     "fs-extra": "8.1.0",
     "google-protobuf": "^3.9.2",
     "grpc-web": "^1.0.6",

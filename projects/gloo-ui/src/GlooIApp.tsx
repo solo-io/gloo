@@ -25,6 +25,7 @@ import { globalStyles } from './Styles';
 import './Styles/styles.css';
 import { hot } from 'react-hot-loader/root';
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
+import { listRouteTables } from 'store/routeTables/actions';
 
 const AppContainer = styled.div`
   display: grid;
@@ -47,6 +48,7 @@ const App = () => {
     dispatch(listSecrets());
     dispatch(listGateways());
     dispatch(listProxies());
+    dispatch(listRouteTables());
   }, []);
 
   useInterval(() => {
@@ -61,6 +63,7 @@ const App = () => {
     dispatch(getIsLicenseValid());
     dispatch(getVersion());
     dispatch(listEnvoyDetails());
+    dispatch(listRouteTables());
   }, 3000);
 
   const showModal = useSelector((state: AppState) => state.modal.showModal);

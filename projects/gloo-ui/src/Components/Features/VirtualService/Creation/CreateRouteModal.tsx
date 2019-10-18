@@ -98,25 +98,25 @@ const validationSchema = yup.object().shape({
   region: yup.string(),
   virtualService: yup.object(),
   upstream: yup
-      .object()
-      .test(
-          'Valid upstream',
-          'Upstream must be set',
-          upstream => !!upstream && !!upstream.metadata
-      ),
+    .object()
+    .test(
+      'Valid upstream',
+      'Upstream must be set',
+      upstream => !!upstream && !!upstream.metadata
+    ),
   destinationSpec: yup.object().when('upstream', {
     is: upstream =>
-        !!upstream && !!upstream.upstreamSpec && !!upstream.upstreamSpec.aws,
+      !!upstream && !!upstream.upstreamSpec && !!upstream.upstreamSpec.aws,
     then: yup.object().shape({
       aws: yup.object().shape({
         logicalName: yup
-            .string()
-            .required()
-            .test(
-                'len',
-                'A lambda function must be selected',
-                val => !!val && val.length > 0
-            ),
+          .string()
+          .required()
+          .test(
+            'len',
+            'A lambda function must be selected',
+            val => !!val && val.length > 0
+          ),
         invocationStyle: yup.boolean(),
         responseTransformation: yup.boolean()
       })
@@ -124,22 +124,22 @@ const validationSchema = yup.object().shape({
     otherwise: yup.object()
   }),
   path: yup
-      .string()
-      .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
+    .string()
+    .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
   matchType: yup.string(),
   headers: yup.array().of(
-      yup.object().shape({
-        name: yup.string(),
-        value: yup.string(),
-        regex: yup.boolean()
-      })
+    yup.object().shape({
+      name: yup.string(),
+      value: yup.string(),
+      regex: yup.boolean()
+    })
   ),
   queryParameters: yup.array().of(
-      yup.object().shape({
-        name: yup.string(),
-        value: yup.string(),
-        regex: yup.boolean()
-      })
+    yup.object().shape({
+      name: yup.string(),
+      value: yup.string(),
+      regex: yup.boolean()
+    })
   ),
   methods: yup.array().of(yup.string())
 });
@@ -188,7 +188,6 @@ interface Props {
   defaultUpstream?: Upstream.AsObject;
   completeCreation: () => any;
   existingRoute?: Route.AsObject;
-  lockVirtualService?: boolean;
   createRouteFn?: (values: CreateRouteValuesType) => void;
 }
 
@@ -196,52 +195,52 @@ export const CreateRouteModal = (props: Props) => {
   let history = useHistory();
   const dispatch = useDispatch();
   const virtualServicesList = useSelector(
-      (state: AppState) => state.virtualServices.virtualServicesList
+    (state: AppState) => state.virtualServices.virtualServicesList
   );
   const upstreamsList = useSelector((state: AppState) =>
-      state.upstreams.upstreamsList.map(u => u.upstream!)
+    state.upstreams.upstreamsList.map(u => u.upstream!)
   );
   const [fallbackVS, setFallbackVS] = React.useState<
-      VirtualServiceDetails.AsObject
-      >();
+    VirtualServiceDetails.AsObject
+  >();
   const [
     allUsableVirtualServices,
     setAllUsableVirtualServices
   ] = React.useState<VirtualServiceDetails.AsObject[]>([]);
 
   const allUsableUpstreams = useSelector(
-      (state: AppState) =>
-          state.upstreams.upstreamsList
-              ? state.upstreams.upstreamsList
-                  .map(upstreamDetails => upstreamDetails.upstream)
-                  .filter(upstream => !!upstream && !!upstream.metadata)
-              : [],
-      shallowEqual
+    (state: AppState) =>
+      state.upstreams.upstreamsList
+        ? state.upstreams.upstreamsList
+            .map(upstreamDetails => upstreamDetails.upstream)
+            .filter(upstream => !!upstream && !!upstream.metadata)
+        : [],
+    shallowEqual
   );
 
   const routeTableDestinations = useSelector((state: AppState) =>
-      state.routeTables.routeTablesList.map(
-          routeTableDetails => routeTableDetails.routeTable
-      )
+    state.routeTables.routeTablesList.map(
+      routeTableDetails => routeTableDetails.routeTable
+    )
   );
 
   React.useEffect(() => {
     setAllUsableVirtualServices(
-        !!virtualServicesList
-            ? virtualServicesList.filter(vs => !!vs.virtualService!.metadata)
-            : []
+      !!virtualServicesList
+        ? virtualServicesList.filter(vs => !!vs.virtualService!.metadata)
+        : []
     );
     setFallbackVS(
-        !!virtualServicesList
-            ? virtualServicesList.find(
+      !!virtualServicesList
+        ? virtualServicesList.find(
             vsD =>
-                !!vsD &&
-                vsD.virtualService &&
-                vsD.virtualService.virtualHost &&
-                vsD.virtualService.virtualHost.domainsList &&
-                vsD.virtualService.virtualHost.domainsList.includes('*')
-            )
-            : undefined
+              !!vsD &&
+              vsD.virtualService &&
+              vsD.virtualService.virtualHost &&
+              vsD.virtualService.virtualHost.domainsList &&
+              vsD.virtualService.virtualHost.domainsList.includes('*')
+          )
+        : undefined
     );
   }, [virtualServicesList.length]);
 
@@ -256,65 +255,66 @@ export const CreateRouteModal = (props: Props) => {
       props.createRouteFn(values);
     } else {
       dispatch(
-          createRoute({
-            input: {
-              ...(!!values.virtualService &&
-                  values.virtualService.metadata && {
-                    virtualServiceRef: {
-                      name: values.virtualService!.metadata!.name,
-                      namespace: values.virtualService!.metadata!.namespace
-                    }
-                  }),
-              index: 0,
-              route: {
-                matchersList: [{
+        createRoute({
+          input: {
+            ...(!!values.virtualService &&
+              values.virtualService.metadata && {
+                virtualServiceRef: {
+                  name: values.virtualService!.metadata!.name,
+                  namespace: values.virtualService!.metadata!.namespace
+                }
+              }),
+            index: 0,
+            route: {
+              matchersList: [
+                {
                   prefix: values.matchType === 'PREFIX' ? values.path : '',
                   exact: values.matchType === 'EXACT' ? values.path : '',
                   regex: values.matchType === 'REGEX' ? values.path : '',
                   methodsList: values.methods,
                   headersList: values.headers,
                   queryParametersList: values.queryParameters
-                }],
-                routeAction: {
-                  single: {
-                    upstream: {
-                      name: values.upstream!.metadata!.name,
-                      namespace: values.upstream!.metadata!.namespace
-                    },
-                    destinationSpec: values.destinationSpec
-                  }
+                }
+              ],
+              routeAction: {
+                single: {
+                  upstream: {
+                    name: values.upstream!.metadata!.name,
+                    namespace: values.upstream!.metadata!.namespace
+                  },
+                  destinationSpec: values.destinationSpec
                 }
               }
             }
-          })
+          }
+        })
       );
-    }
-
-    props.completeCreation();
-    if (values.virtualService && values.virtualService.metadata) {
-      history.push({
-        pathname: `/virtualservices/${
-            values.virtualService.metadata!.namespace
-        }/${values.virtualService.metadata!.name}`
-      });
-    } else {
-      if (!!fallbackVS && !!fallbackVS.virtualService) {
+      props.completeCreation();
+      if (values.virtualService && values.virtualService.metadata) {
         history.push({
           pathname: `/virtualservices/${
-              fallbackVS.virtualService.metadata!.namespace
-          }/${fallbackVS.virtualService.metadata!.name}`
+            values.virtualService.metadata!.namespace
+          }/${values.virtualService.metadata!.name}`
         });
       } else {
-        history.push({
-          pathname: `/virtualservices/gloo-system/default`
-        });
+        if (!!fallbackVS && !!fallbackVS.virtualService) {
+          history.push({
+            pathname: `/virtualservices/${
+              fallbackVS.virtualService.metadata!.namespace
+            }/${fallbackVS.virtualService.metadata!.name}`
+          });
+        } else {
+          history.push({
+            pathname: `/virtualservices/gloo-system/default`
+          });
+        }
       }
     }
   };
 
   const isSubmittable = (
-      errors: FormikErrors<CreateRouteValuesType>,
-      isChanged: boolean
+    errors: FormikErrors<CreateRouteValuesType>,
+    isChanged: boolean
   ) => {
     return isChanged && !Object.keys(errors).length;
   };
@@ -325,22 +325,22 @@ export const CreateRouteModal = (props: Props) => {
     const { existingRoute } = props;
 
     const existingRouteUpstream = allUsableUpstreams.find(
-        upstream =>
-            !!upstream &&
-            !!upstream.metadata &&
-            !!existingRoute.routeAction &&
-            !!existingRoute.routeAction.single &&
-            !!existingRoute.routeAction.single.upstream &&
-            upstream.metadata!.name ===
-            existingRoute.routeAction!.single!.upstream!.name &&
-            upstream.metadata!.namespace ===
-            existingRoute.routeAction!.single!.upstream!.namespace
+      upstream =>
+        !!upstream &&
+        !!upstream.metadata &&
+        !!existingRoute.routeAction &&
+        !!existingRoute.routeAction.single &&
+        !!existingRoute.routeAction.single.upstream &&
+        upstream.metadata!.name ===
+          existingRoute.routeAction!.single!.upstream!.name &&
+        upstream.metadata!.namespace ===
+          existingRoute.routeAction!.single!.upstream!.namespace
     );
 
     existingRouteToInitialValues = {
       routeParent: props.defaultRouteParent
-          ? props.defaultRouteParent!.metadata!.name
-          : '',
+        ? props.defaultRouteParent!.metadata!.name
+        : '',
       virtualService: props.defaultRouteParent,
       upstream: existingRouteUpstream,
       destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
@@ -354,189 +354,186 @@ export const CreateRouteModal = (props: Props) => {
   }
 
   const initialValues: CreateRouteValuesType = !!existingRouteToInitialValues
-      ? existingRouteToInitialValues
-      : {
+    ? existingRouteToInitialValues
+    : {
         ...createRouteDefaultValues,
         routeParent: props.defaultRouteParent
-            ? props.defaultRouteParent!.metadata!.name
-            : '',
+          ? props.defaultRouteParent!.metadata!.name
+          : '',
         destinationSpec: defaultUpstream
-            ? {
+          ? {
               aws: {
                 logicalName: '',
                 invocationStyle: 0,
                 responseTransformation: false
               }
             }
-            : undefined,
+          : undefined,
         virtualService: defaultRouteParent
-            ? defaultRouteParent
-            : createRouteDefaultValues.virtualService,
+          ? defaultRouteParent
+          : createRouteDefaultValues.virtualService,
         upstream: defaultUpstream
-            ? defaultUpstream
-            : createRouteDefaultValues.upstream
+          ? defaultUpstream
+          : createRouteDefaultValues.upstream
       };
 
   return (
-      <Formik
-          initialValues={initialValues}
-          enableReinitialize
-          validationSchema={validationSchema}
-          onSubmit={handleCreateRoute}>
-        {({
-            values,
-            isSubmitting,
-            handleSubmit,
-            isValid,
-            errors,
-            dirty,
-            setFieldValue
-          }) => {
-          return (
-              <FormContainer data-testid='create-route-form'>
-                <SoloFormTemplate>
-                  <InputRow>
-                    <>
-                      <Thirds>
-                        <div>
-                          <SoloRouteParentDropdown
-                              title='Route Container'
-                              name='routeParent'
-                              defaultValue={values.routeParent}
-                          />
-                        </div>
-                      </Thirds>
-                      <Thirds>
-                        <SoloFormDropdown
-                            name='destinationType'
-                            title='Destination Type'
-                            defaultValue={'Upstream'}
-                            options={['Upstream', 'Route Table'].map(region => {
-                              return { key: region, value: region };
-                            })}
-                        />
-                      </Thirds>
-                      {allUsableUpstreams.length && (
-                          <Thirds>
-                            <SoloFormMetadataBasedDropdown
-                                testId='upstream-dropdown'
-                                name='upstream'
-                                title='Destination'
-                                value={values.upstream}
-                                placeholder='Upstream...'
-                                options={
-                                  values.destinationType === 'Route Table'
-                                      ? routeTableDestinations
-                                      : allUsableUpstreams
-                                }
-                                onChange={newUpstream => {
-                                  if (
-                                      newUpstream.upstreamSpec &&
-                                      newUpstream.upstreamSpec.aws
-                                  ) {
-                                    setFieldValue('destinationSpec', {
-                                      aws: {
-                                        logicalName: '',
-                                        invocationStyle: 0,
-                                        responseTransformation: false
-                                      }
-                                    });
-                                  }
-                                }}
-                            />
-                          </Thirds>
-                      )}
-                    </>
-                  </InputRow>
-                  {allUsableUpstreams.length && (
-                      <InputRow>
-                        {!!values.upstream && (
-                            <DestinationForm
-                                name='destinationSpec'
-                                upstreamSpec={values.upstream.upstreamSpec!}
-                            />
-                        )}
-                      </InputRow>
+    <Formik
+      initialValues={initialValues}
+      enableReinitialize
+      validationSchema={validationSchema}
+      onSubmit={handleCreateRoute}>
+      {({
+        values,
+        isSubmitting,
+        handleSubmit,
+        isValid,
+        errors,
+        dirty,
+        setFieldValue
+      }) => {
+        return (
+          <FormContainer data-testid='create-route-form'>
+            <SoloFormTemplate>
+              <InputRow>
+                <Thirds>
+                  <div>
+                    <SoloRouteParentDropdown
+                      title='Route Container'
+                      name='routeParent'
+                      defaultValue={values.routeParent}
+                    />
+                  </div>
+                </Thirds>
+                <Thirds>
+                  <SoloFormDropdown
+                    name='destinationType'
+                    title='Destination Type'
+                    defaultValue={'Upstream'}
+                    options={['Upstream', 'Route Table'].map(region => {
+                      return { key: region, value: region };
+                    })}
+                  />
+                </Thirds>
+                {allUsableUpstreams.length && (
+                  <Thirds>
+                    <SoloFormMetadataBasedDropdown
+                      testId='upstream-dropdown'
+                      name='upstream'
+                      title='Destination'
+                      value={values.upstream}
+                      placeholder='Upstream...'
+                      options={
+                        values.destinationType === 'Route Table'
+                          ? routeTableDestinations
+                          : allUsableUpstreams
+                      }
+                      onChange={newUpstream => {
+                        if (
+                          newUpstream.upstreamSpec &&
+                          newUpstream.upstreamSpec.aws
+                        ) {
+                          setFieldValue('destinationSpec', {
+                            aws: {
+                              logicalName: '',
+                              invocationStyle: 0,
+                              responseTransformation: false
+                            }
+                          });
+                        }
+                      }}
+                    />
+                  </Thirds>
+                )}
+              </InputRow>
+              {allUsableUpstreams.length && (
+                <InputRow>
+                  {!!values.upstream && (
+                    <DestinationForm
+                      name='destinationSpec'
+                      upstreamSpec={values.upstream.upstreamSpec!}
+                    />
                   )}
-                  <InputRow>
-                    <HalfColumn>
-                      <SoloFormInput
-                          name='path'
-                          title='Path'
-                          placeholder='Path...'
-                      />
-                    </HalfColumn>
-                    <HalfColumn>
-                      <SoloFormDropdown
-                          name='matchType'
-                          title='Match Type'
-                          defaultValue={'PREFIX'}
-                          options={PATH_SPECIFIERS}
-                      />
-                    </HalfColumn>
-                  </InputRow>
+                </InputRow>
+              )}
+              <InputRow>
+                <HalfColumn>
+                  <SoloFormInput
+                    name='path'
+                    title='Path'
+                    placeholder='Path...'
+                  />
+                </HalfColumn>
+                <HalfColumn>
+                  <SoloFormDropdown
+                    name='matchType'
+                    title='Match Type'
+                    defaultValue={'PREFIX'}
+                    options={PATH_SPECIFIERS}
+                  />
+                </HalfColumn>
+              </InputRow>
 
-                  <InnerSectionTitle>
-                    <div>Match Options</div>
-                  </InnerSectionTitle>
-                  <InnerFormSectionContent>
-                    <InputRow>
-                      <SoloFormMultipartStringCardsList
-                          name='headers'
-                          title='Headers'
-                          values={values.headers}
-                          valuesMayBeEmpty={true}
-                          createNewNamePromptText={'Name...'}
-                          createNewValuePromptText={'Value...'}
-                          booleanFieldText={'Regex'}
-                          boolSlotTitle={'regex'}
-                      />
-                    </InputRow>
-                    <InputRow>
-                      <SoloFormMultipartStringCardsList
-                          name='queryParameters'
-                          title='Query Parameters'
-                          values={values.queryParameters}
-                          valuesMayBeEmpty={true}
-                          createNewNamePromptText={'Name...'}
-                          createNewValuePromptText={'Value...'}
-                          booleanFieldText={'Regex'}
-                          boolSlotTitle={'regex'}
-                      />
-                    </InputRow>
-                    <InputRow>
-                      <SoloFormMultiselect
-                          name='methods'
-                          title='Methods'
-                          placeholder='Methods...'
-                          options={httpMethods.map(key => {
-                            return {
-                              key: key,
-                              value: key
-                            };
-                          })}
-                      />
-                    </InputRow>
-                  </InnerFormSectionContent>
-                  {/* <pre>{JSON.stringify(values, null, 2)}</pre> */}
-                </SoloFormTemplate>
-                <Footer>
-                  <SoloButton
-                      onClick={handleSubmit}
-                      text={!!props.existingRoute ? 'Save Edits' : 'Create Route'}
-                      disabled={!isSubmittable(errors, dirty)}
-                      loading={isSubmitting}
-                      inProgressText={
-                        !!props.existingRoute
-                            ? 'Saving Routes...'
-                            : 'Creating Route...'
-                      }>
-                    <ButtonProgress />
-                  </SoloButton>
-                </Footer>
-              </FormContainer>
-          );
-        }}
-      </Formik>
+              <InnerSectionTitle>
+                <div>Match Options</div>
+              </InnerSectionTitle>
+              <InnerFormSectionContent>
+                <InputRow>
+                  <SoloFormMultipartStringCardsList
+                    name='headers'
+                    title='Headers'
+                    values={values.headers}
+                    valuesMayBeEmpty={true}
+                    createNewNamePromptText={'Name...'}
+                    createNewValuePromptText={'Value...'}
+                    booleanFieldText={'Regex'}
+                    boolSlotTitle={'regex'}
+                  />
+                </InputRow>
+                <InputRow>
+                  <SoloFormMultipartStringCardsList
+                    name='queryParameters'
+                    title='Query Parameters'
+                    values={values.queryParameters}
+                    valuesMayBeEmpty={true}
+                    createNewNamePromptText={'Name...'}
+                    createNewValuePromptText={'Value...'}
+                    booleanFieldText={'Regex'}
+                    boolSlotTitle={'regex'}
+                  />
+                </InputRow>
+                <InputRow>
+                  <SoloFormMultiselect
+                    name='methods'
+                    title='Methods'
+                    placeholder='Methods...'
+                    options={httpMethods.map(key => {
+                      return {
+                        key: key,
+                        value: key
+                      };
+                    })}
+                  />
+                </InputRow>
+              </InnerFormSectionContent>
+            </SoloFormTemplate>
+            <Footer>
+              <SoloButton
+                onClick={handleSubmit}
+                text={!!props.existingRoute ? 'Save Edits' : 'Create Route'}
+                disabled={!isSubmittable(errors, dirty)}
+                loading={isSubmitting}
+                inProgressText={
+                  !!props.existingRoute
+                    ? 'Saving Routes...'
+                    : 'Creating Route...'
+                }>
+                <ButtonProgress />
+              </SoloButton>
+            </Footer>
+          </FormContainer>
+        );
+      }}
+    </Formik>
   );
 };

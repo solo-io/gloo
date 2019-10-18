@@ -6,7 +6,7 @@ import { Label } from './SoloInput';
 import { shallowEqual } from 'react-redux';
 
 export const SoloDropdownBlock = styled(Select)`
-  width: 100%;
+  width: fit-content;
   /* margin-bottom: 15px; */
   line-height: 16px;
 
@@ -80,15 +80,15 @@ export const SoloDropdown = React.memo((props: DropdownProps) => {
         data-testid={testId}
         dropdownClassName={testId}
         value={value}
-        defaultValue={getDefaultValue() /**
-      //@ts-ignore */}
-        onChange={onChange /**
-        //@ts-ignore */}
+        dropdownMatchSelectWidth={false}
+        defaultValue={getDefaultValue()}
+        onChange={onChange}
         onBlur={onBlur}
         disabled={disabled}
         placeholder={placeholder}>
         {options.map((opt: OptionType) => (
           <Select.Option
+            style={{ width: 'fitContent' }}
             key={opt.key}
             value={opt.value}
             disabled={opt.disabled}>
