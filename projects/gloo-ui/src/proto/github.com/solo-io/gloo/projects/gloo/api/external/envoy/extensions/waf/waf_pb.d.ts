@@ -13,6 +13,9 @@ export class ModSecurity extends jspb.Message {
   setRuleSetsList(value: Array<RuleSet>): void;
   addRuleSets(value?: RuleSet, index?: number): RuleSet;
 
+  getCustomInterventionMessage(): string;
+  setCustomInterventionMessage(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModSecurity.AsObject;
   static toObject(includeInstance: boolean, msg: ModSecurity): ModSecurity.AsObject;
@@ -27,6 +30,7 @@ export namespace ModSecurity {
   export type AsObject = {
     disabled: boolean,
     ruleSetsList: Array<RuleSet.AsObject>,
+    customInterventionMessage: string,
   }
 }
 
@@ -65,6 +69,9 @@ export class ModSecurityPerRoute extends jspb.Message {
   setRuleSetsList(value: Array<RuleSet>): void;
   addRuleSets(value?: RuleSet, index?: number): RuleSet;
 
+  getCustomInterventionMessage(): string;
+  setCustomInterventionMessage(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModSecurityPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: ModSecurityPerRoute): ModSecurityPerRoute.AsObject;
@@ -79,6 +86,7 @@ export namespace ModSecurityPerRoute {
   export type AsObject = {
     disabled: boolean,
     ruleSetsList: Array<RuleSet.AsObject>,
+    customInterventionMessage: string,
   }
 }
 

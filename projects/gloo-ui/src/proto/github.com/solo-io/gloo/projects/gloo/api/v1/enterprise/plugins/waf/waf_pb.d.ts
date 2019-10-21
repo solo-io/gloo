@@ -9,6 +9,9 @@ export class Settings extends jspb.Message {
   getDisabled(): boolean;
   setDisabled(value: boolean): void;
 
+  getCustomInterventionMessage(): string;
+  setCustomInterventionMessage(value: string): void;
+
   hasCoreRuleSet(): boolean;
   clearCoreRuleSet(): void;
   getCoreRuleSet(): CoreRuleSet | undefined;
@@ -32,6 +35,7 @@ export class Settings extends jspb.Message {
 export namespace Settings {
   export type AsObject = {
     disabled: boolean,
+    customInterventionMessage: string,
     coreRuleSet?: CoreRuleSet.AsObject,
     ruleSetsList: Array<github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.AsObject>,
   }

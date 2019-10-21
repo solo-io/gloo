@@ -38,6 +38,7 @@ var _ = Describe("waf", func() {
             SecRuleEngine On
             SecRule %s:User-Agent "nikto" "%s,id:107,%s,msg:'blocked nikto scammer'"
  `
+		customInterventionMessage = "It's a custom intervention message"
 	)
 
 	var getRulesTemplate = func(deny, request, phase1 bool) *envoywaf.RuleSet {
@@ -137,7 +138,8 @@ var _ = Describe("waf", func() {
 
 	var getProxyWafDisruptiveListener = func(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 		wafCfg := &waf.Settings{
-			RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+			RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+			CustomInterventionMessage: customInterventionMessage,
 		}
 		return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil)
 	}
@@ -249,7 +251,7 @@ var _ = Describe("waf", func() {
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 				bodyStr, err := ioutil.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(bodyStr).To(ContainSubstring("ModSecurity"))
+				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
 			It("will not get rejected by waf", func() {
@@ -277,7 +279,8 @@ var _ = Describe("waf", func() {
 
 			BeforeEach(func() {
 				wafCfg := &waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					CustomInterventionMessage: customInterventionMessage,
 				}
 				proxy = getProxyWafDisruptiveVhost(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
 
@@ -316,7 +319,7 @@ var _ = Describe("waf", func() {
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 				bodyStr, err := ioutil.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(bodyStr).To(ContainSubstring("ModSecurity"))
+				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
 			It("will not get rejected by waf", func() {
@@ -344,7 +347,8 @@ var _ = Describe("waf", func() {
 
 			BeforeEach(func() {
 				wafCfg := &waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					CustomInterventionMessage: customInterventionMessage,
 				}
 				proxy = getProxyWafDisruptiveRoute(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
 
@@ -383,7 +387,7 @@ var _ = Describe("waf", func() {
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 				bodyStr, err := ioutil.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(bodyStr).To(ContainSubstring("ModSecurity"))
+				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
 			It("will not get rejected by waf", func() {

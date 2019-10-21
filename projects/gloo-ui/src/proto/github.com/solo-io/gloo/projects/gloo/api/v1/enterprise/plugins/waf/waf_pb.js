@@ -39,7 +39,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.waf.plugins.gloo.solo.io.Settings.repeatedFields_ = [3];
+proto.waf.plugins.gloo.solo.io.Settings.repeatedFields_ = [4];
 
 
 
@@ -71,6 +71,7 @@ proto.waf.plugins.gloo.solo.io.Settings.prototype.toObject = function(opt_includ
 proto.waf.plugins.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
   var f, obj = {
     disabled: jspb.Message.getFieldWithDefault(msg, 1, false),
+    customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 2, ""),
     coreRuleSet: (f = msg.getCoreRuleSet()) && proto.waf.plugins.gloo.solo.io.CoreRuleSet.toObject(includeInstance, f),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
     github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.toObject, includeInstance)
@@ -115,11 +116,15 @@ proto.waf.plugins.gloo.solo.io.Settings.deserializeBinaryFromReader = function(m
       msg.setDisabled(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCustomInterventionMessage(value);
+      break;
+    case 3:
       var value = new proto.waf.plugins.gloo.solo.io.CoreRuleSet;
       reader.readMessage(value,proto.waf.plugins.gloo.solo.io.CoreRuleSet.deserializeBinaryFromReader);
       msg.setCoreRuleSet(value);
       break;
-    case 3:
+    case 4:
       var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.deserializeBinaryFromReader);
       msg.addRuleSets(value);
@@ -160,10 +165,17 @@ proto.waf.plugins.gloo.solo.io.Settings.serializeBinaryToWriter = function(messa
       f
     );
   }
+  f = message.getCustomInterventionMessage();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getCoreRuleSet();
   if (f != null) {
     writer.writeMessage(
-      2,
+      3,
       f,
       proto.waf.plugins.gloo.solo.io.CoreRuleSet.serializeBinaryToWriter
     );
@@ -171,7 +183,7 @@ proto.waf.plugins.gloo.solo.io.Settings.serializeBinaryToWriter = function(messa
   f = message.getRuleSetsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      3,
+      4,
       f,
       github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.serializeBinaryToWriter
     );
@@ -197,18 +209,33 @@ proto.waf.plugins.gloo.solo.io.Settings.prototype.setDisabled = function(value) 
 
 
 /**
- * optional CoreRuleSet core_rule_set = 2;
+ * optional string custom_intervention_message = 2;
+ * @return {string}
+ */
+proto.waf.plugins.gloo.solo.io.Settings.prototype.getCustomInterventionMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.waf.plugins.gloo.solo.io.Settings.prototype.setCustomInterventionMessage = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional CoreRuleSet core_rule_set = 3;
  * @return {?proto.waf.plugins.gloo.solo.io.CoreRuleSet}
  */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.getCoreRuleSet = function() {
   return /** @type{?proto.waf.plugins.gloo.solo.io.CoreRuleSet} */ (
-    jspb.Message.getWrapperField(this, proto.waf.plugins.gloo.solo.io.CoreRuleSet, 2));
+    jspb.Message.getWrapperField(this, proto.waf.plugins.gloo.solo.io.CoreRuleSet, 3));
 };
 
 
 /** @param {?proto.waf.plugins.gloo.solo.io.CoreRuleSet|undefined} value */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.setCoreRuleSet = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
+  jspb.Message.setWrapperField(this, 3, value);
 };
 
 
@@ -222,23 +249,23 @@ proto.waf.plugins.gloo.solo.io.Settings.prototype.clearCoreRuleSet = function() 
  * @return {!boolean}
  */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.hasCoreRuleSet = function() {
-  return jspb.Message.getField(this, 2) != null;
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * repeated envoy.config.filter.http.modsecurity.v2.RuleSet rule_sets = 3;
+ * repeated envoy.config.filter.http.modsecurity.v2.RuleSet rule_sets = 4;
  * @return {!Array<!proto.envoy.config.filter.http.modsecurity.v2.RuleSet>}
  */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.getRuleSetsList = function() {
   return /** @type{!Array<!proto.envoy.config.filter.http.modsecurity.v2.RuleSet>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet, 3));
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet, 4));
 };
 
 
 /** @param {!Array<!proto.envoy.config.filter.http.modsecurity.v2.RuleSet>} value */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.setRuleSetsList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 3, value);
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
 
@@ -248,7 +275,7 @@ proto.waf.plugins.gloo.solo.io.Settings.prototype.setRuleSetsList = function(val
  * @return {!proto.envoy.config.filter.http.modsecurity.v2.RuleSet}
  */
 proto.waf.plugins.gloo.solo.io.Settings.prototype.addRuleSets = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.envoy.config.filter.http.modsecurity.v2.RuleSet, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.envoy.config.filter.http.modsecurity.v2.RuleSet, opt_index);
 };
 
 

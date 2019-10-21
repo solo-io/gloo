@@ -72,7 +72,8 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.toObject = function(in
   var f, obj = {
     disabled: jspb.Message.getFieldWithDefault(msg, 1, false),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
-    proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance)
+    proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance),
+    customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -118,6 +119,10 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.deserializeBinaryFromR
       reader.readMessage(value,proto.envoy.config.filter.http.modsecurity.v2.RuleSet.deserializeBinaryFromReader);
       msg.addRuleSets(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCustomInterventionMessage(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -160,6 +165,13 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.serializeBinaryToWrite
       2,
       f,
       proto.envoy.config.filter.http.modsecurity.v2.RuleSet.serializeBinaryToWriter
+    );
+  }
+  f = message.getCustomInterventionMessage();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -210,6 +222,21 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.addRuleSets 
 
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.clearRuleSetsList = function() {
   this.setRuleSetsList([]);
+};
+
+
+/**
+ * optional string custom_intervention_message = 3;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.getCustomInterventionMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.setCustomInterventionMessage = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -459,7 +486,8 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.toObject = fun
   var f, obj = {
     disabled: jspb.Message.getFieldWithDefault(msg, 1, false),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
-    proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance)
+    proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance),
+    customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -505,6 +533,10 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.deserializeBin
       reader.readMessage(value,proto.envoy.config.filter.http.modsecurity.v2.RuleSet.deserializeBinaryFromReader);
       msg.addRuleSets(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCustomInterventionMessage(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -547,6 +579,13 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.serializeBinar
       2,
       f,
       proto.envoy.config.filter.http.modsecurity.v2.RuleSet.serializeBinaryToWriter
+    );
+  }
+  f = message.getCustomInterventionMessage();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -597,6 +636,21 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.addR
 
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.clearRuleSetsList = function() {
   this.setRuleSetsList([]);
+};
+
+
+/**
+ * optional string custom_intervention_message = 3;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.getCustomInterventionMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.setCustomInterventionMessage = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

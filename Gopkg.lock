@@ -1312,7 +1312,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:bcfd47b2c4c4b5dcb4e15b8f2705dd2cbec41cd303387e4bd4098c96c28f042e"
+  digest = "1:3fb46f89b2b4c77c6eb25f542b86dc7634883e84dd496ae602e465bcf755ba65"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1337,6 +1337,8 @@
     "projects/gateway/pkg/api/v2",
     "projects/gateway/pkg/defaults",
     "projects/gateway/pkg/propagator",
+    "projects/gateway/pkg/reconciler",
+    "projects/gateway/pkg/reporting",
     "projects/gateway/pkg/services/k8sadmisssion",
     "projects/gateway/pkg/setup",
     "projects/gateway/pkg/syncer",
@@ -1441,7 +1443,7 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "fe098fac2803d2cfb0a399301be0cf65ac03676d"
+  revision = "bd596e40fbba52bf6071c9aac05706bc5fa19836"
 
 [[projects]]
   digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"

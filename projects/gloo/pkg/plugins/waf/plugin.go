@@ -73,7 +73,8 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	p.addListener(params.Listener.GetHttpListener())
 
 	perVhostCfg := &ModSecurityPerRoute{
-		Disabled: wafConfig.Disabled,
+		Disabled:                  wafConfig.GetDisabled(),
+		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
 	}
 
 	perVhostCfg.RuleSets = wafConfig.GetRuleSets()
@@ -97,7 +98,8 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	p.addListener(params.Listener.GetHttpListener())
 
 	perRouteCfg := &ModSecurityPerRoute{
-		Disabled: wafConfig.Disabled,
+		Disabled:                  wafConfig.GetDisabled(),
+		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
 	}
 
 	perRouteCfg.RuleSets = wafConfig.GetRuleSets()
@@ -141,6 +143,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	} else {
 		modSecurityConfig.RuleSets = settings.GetRuleSets()
 		modSecurityConfig.Disabled = settings.GetDisabled()
+		modSecurityConfig.CustomInterventionMessage = settings.GetCustomInterventionMessage()
 
 		if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
 			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet...)

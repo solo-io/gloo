@@ -26,8 +26,9 @@ var _ = Describe("waf plugin", func() {
 	)
 
 	const (
-		rulesString    = "rules rules rules"
-		crsRulesString = "crs rules rules rules"
+		rulesString               = "rules rules rules"
+		crsRulesString            = "crs rules rules rules"
+		customInterventionMessage = "custom intervention message"
 	)
 
 	allTests := func() {
@@ -101,7 +102,8 @@ var _ = Describe("waf plugin", func() {
 								CustomSettingsString: crsRulesString,
 							},
 						},
-						RuleSets: ruleSets,
+						RuleSets:                  ruleSets,
+						CustomInterventionMessage: customInterventionMessage,
 					}
 				})
 
@@ -168,7 +170,8 @@ var _ = Describe("waf plugin", func() {
 									CustomSettingsString: crsRulesString,
 								},
 							},
-							RuleSets: ruleSets,
+							RuleSets:                  ruleSets,
+							CustomInterventionMessage: customInterventionMessage,
 						}
 
 						wafVhost = &waf.Settings{
@@ -177,7 +180,8 @@ var _ = Describe("waf plugin", func() {
 									CustomSettingsString: crsRulesString,
 								},
 							},
-							RuleSets: ruleSets,
+							RuleSets:                  ruleSets,
+							CustomInterventionMessage: customInterventionMessage,
 						}
 					})
 
@@ -228,9 +232,10 @@ var _ = Describe("waf plugin", func() {
 			},
 			RoutePlugins: &v1.RoutePlugins{
 				Waf: &waf.Settings{
-					Disabled:    wafRoute.Disabled,
-					CoreRuleSet: wafRoute.CoreRuleSet,
-					RuleSets:    wafRoute.RuleSets,
+					Disabled:                  wafRoute.Disabled,
+					CoreRuleSet:               wafRoute.CoreRuleSet,
+					RuleSets:                  wafRoute.RuleSets,
+					CustomInterventionMessage: wafRoute.CustomInterventionMessage,
 				},
 			},
 		}
@@ -244,9 +249,10 @@ var _ = Describe("waf plugin", func() {
 			Domains: []string{"*"},
 			VirtualHostPlugins: &v1.VirtualHostPlugins{
 				Waf: &waf.Settings{
-					Disabled:    wafVhost.Disabled,
-					CoreRuleSet: wafVhost.CoreRuleSet,
-					RuleSets:    wafVhost.RuleSets,
+					Disabled:                  wafVhost.Disabled,
+					CoreRuleSet:               wafVhost.CoreRuleSet,
+					RuleSets:                  wafVhost.RuleSets,
+					CustomInterventionMessage: wafVhost.CustomInterventionMessage,
 				},
 			},
 			Routes: []*v1.Route{route},
