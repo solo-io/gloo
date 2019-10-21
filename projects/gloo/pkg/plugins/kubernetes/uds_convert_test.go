@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes/serviceconverter"
+
 	kubev1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/ginkgo"
@@ -32,6 +34,8 @@ func UpstreamNameOld(serviceNamespace, serviceName string, servicePort int32, ex
 }
 
 var _ = Describe("UdsConvert", func() {
+	createUpstream := DefaultUpstreamConverter().CreateUpstream
+
 	It("should get uniq label set", func() {
 
 		svcSelector := map[string]string{"app": "foo"}
@@ -47,7 +51,9 @@ var _ = Describe("UdsConvert", func() {
 			{"app": "foo", "env": "dev"},
 		}
 		Expect(result).To(Equal(expected))
+
 	})
+
 	It("should truncate long names", func() {
 		name := UpstreamName(strings.Repeat("y", 120), "gloo-system", 12, nil)
 		Expect(name).To(HaveLen(63))
@@ -104,7 +110,7 @@ var _ = Describe("UdsConvert", func() {
 				Spec: kubev1.ServiceSpec{},
 			}
 			svc.Annotations = make(map[string]string)
-			svc.Annotations[GlooH2Annotation] = "true"
+			svc.Annotations[serviceconverter.GlooH2Annotation] = "true"
 			svc.Name = "test"
 			svc.Namespace = "test"
 
