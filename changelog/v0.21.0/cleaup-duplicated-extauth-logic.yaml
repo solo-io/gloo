@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Clean up Gloo extauth plugin logic to reconcile behavior with the new OS custom auth plugin.
+  issueLink: https://github.com/solo-io/gloo/issues/1396

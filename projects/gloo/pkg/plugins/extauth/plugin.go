@@ -3,21 +3,16 @@ package extauth
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
 	"github.com/solo-io/go-utils/contextutils"
 
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
 
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
-	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
-	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
-	"github.com/gogo/protobuf/types"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/go-utils/errors"
@@ -26,7 +21,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	sputils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 )
 
@@ -38,16 +32,11 @@ const (
 )
 
 var (
-	defaultTimeout      = 200 * time.Millisecond
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
-	// note that although this configures the "envoy.ext_authz" filter, we still want the ordering to be within the
-	// AuthNStage because we are using this filter for authentication purposes
-	filterStage = plugins.DuringStage(plugins.AuthNStage)
 
 	NoMatchesForGroupError = func(labelSelector map[string]string) error {
 		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
 	}
-	NoAuthSettingsError     = errors.Errorf("no auth settings were defined")
 	NilConfigReferenceError = errors.New("config_ref cannot be nil")
 	UnknownConfigTypeError  = errors.New("unknown extauth configuration")
 	MalformedConfigError    = func(err error) error {
@@ -74,8 +63,9 @@ const (
 )
 
 type Plugin struct {
-	userIdHeader    string
-	extAuthSettings *extauthapi.Settings
+	userIdHeader             string
+	extAuthSettings          *extauthapi.Settings
+	areSettingsStronglyTyped bool
 }
 
 type ConfigContainer interface {
@@ -94,21 +84,21 @@ func BuildVirtualHostName(proxy *v1.Proxy, listener *v1.Listener, virtualHost *v
 	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, virtualHost.Name)
 }
 
-func GetSettings(params plugins.InitParams) (*extauthapi.Settings, error) {
+func GetSettings(params plugins.InitParams) (settings *extauthapi.Settings, stronglyTyped bool, err error) {
 	if stronglyTypedSettings := params.Settings.GetExtauth(); stronglyTypedSettings != nil {
-		return stronglyTypedSettings, nil
+		return stronglyTypedSettings, true, nil
 	} else {
 		var settings extauthapi.Settings
 		ok, err := sputils.GetSettings(params, ExtensionName, &settings)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		if ok {
-			return &settings, nil
+			return &settings, false, nil
 		}
 	}
 
-	return nil, nil
+	return nil, false, nil
 }
 
 func GetAuthHeader(e *extauthapi.Settings) string {
@@ -124,16 +114,19 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	p.userIdHeader = ""
 	p.extAuthSettings = nil
 
-	settings, err := GetSettings(params)
+	settings, stronglyTyped, err := GetSettings(params)
 	if err != nil {
 		return err
 	}
 	p.extAuthSettings = settings
+	p.areSettingsStronglyTyped = stronglyTyped
 
 	p.userIdHeader = GetAuthHeader(settings)
 	return nil
 }
 
+// This function just needs to add the sanitize filter. If extauth has been configured in the settings,
+// the ext_authz will already have been created by the extauth plugin in OS Gloo.
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 
@@ -146,24 +139,20 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		if err != nil {
 			return nil, err
 		}
-		filters = []plugins.StagedHttpFilter{
-			stagedFilter,
+		filters = append(filters, stagedFilter)
+	}
+
+	// If extauth settings are defined, but they are not strongly typed, the open source plugin will not have picked
+	// them up, so we need to configure the ext_authz filter ourselves. This is horrific.
+	// TODO(marco): remove when we get rid of the opaque settings
+	if p.extAuthSettings != nil && !p.areSettingsStronglyTyped {
+		extAuthFilter, err := extauth.BuildHttpFilters(p.extAuthSettings, params.Snapshot.Upstreams)
+		if err != nil {
+			return nil, err
 		}
+		filters = append(filters, extAuthFilter...)
 	}
 
-	extAuthCfg, err := p.generateEnvoyConfigForFilter(params)
-	if err != nil {
-		return nil, err
-	}
-	if extAuthCfg == nil {
-		return filters, nil
-	}
-
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, extAuthCfg, filterStage)
-	if err != nil {
-		return nil, err
-	}
-	filters = append(filters, stagedFilter)
 	return filters, nil
 }
 
@@ -172,6 +161,12 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 // Since the ext_authz filter is always enabled on the listener, we need this to disable authentication by default on
 // a virtual host and its child resources (routes, weighted destinations). Extauth should be opt-in.
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+
+	// Ext_authz filter is not configured, do nothing
+	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+		return nil
+	}
+
 	var extAuthConfig *extauthapi.ExtAuthExtension
 
 	// If we have the strongly-typed config, just use that and skip extension parsing
@@ -218,6 +213,12 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 // - if auth is explicitly disabled, disable the filter (will apply by default also to WeightedDestinations);
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host).
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
+
+	// Ext_authz filter is not configured, do nothing
+	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+		return nil
+	}
+
 	var extAuthConfig *extauthapi.ExtAuthExtension
 
 	// If we have the strongly-typed config, just use that and skip extension parsing
@@ -265,6 +266,12 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 // - if auth is explicitly disabled, disable the filter;
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host and/or route).
 func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.WeightedDestination, out *envoyroute.WeightedCluster_ClusterWeight) error {
+
+	// Ext_authz filter is not configured, do nothing
+	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+		return nil
+	}
+
 	var extAuthConfig *extauthapi.ExtAuthExtension
 
 	// If we have the strongly-typed config, just use that and skip extension parsing
@@ -328,15 +335,6 @@ func (p *Plugin) parseExtension(resource ConfigContainer, params plugins.Params)
 		}
 
 		return nil, MalformedConfigError(err)
-	}
-
-	// This same function is called by the `HttpFilters` function to add the `ext_authz` filter to the listener.
-	// If it fails or returns nil, it means that the filter was not added, so we do not update the resource to avoid
-	// compromising the current Envoy configuration.
-	if cfg, err := p.generateEnvoyConfigForFilter(params); err != nil {
-		return nil, err
-	} else if cfg == nil {
-		return nil, NoAuthSettingsError
 	}
 
 	switch config.Spec.(type) {
@@ -404,15 +402,6 @@ func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams
 	}
 	logDeprecatedWarning(params.Ctx)
 
-	// This same function is called by the `HttpFilters` function to add the `ext_authz` filter to the listener.
-	// If it fails or returns nil, it means that the filter was not added, so we do not update the resource to avoid
-	// compromising the current Envoy configuration.
-	if cfg, err := p.generateEnvoyConfigForFilter(params.Params); err != nil {
-		return true, err
-	} else if cfg == nil {
-		return true, NoAuthSettingsError
-	}
-
 	// Do not set the filter if the config is invalid
 	if _, err = TranslateDeprecatedExtAuthConfig(params.Ctx, params.Proxy, params.Listener, in, params.Snapshot, deprecatedExtAuth); err != nil {
 		return true, err
@@ -453,151 +442,25 @@ func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
 	}
 }
 
-func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth.ExtAuthz, error) {
-	if p.extAuthSettings == nil {
-		return nil, nil
-	}
-	upstreamRef := p.extAuthSettings.GetExtauthzServerRef()
-	if upstreamRef == nil {
-		return nil, errors.New("no ext auth server configured")
-	}
-
-	// make sure the server exists:
-	_, err := params.Snapshot.Upstreams.Find(upstreamRef.Namespace, upstreamRef.Name)
-	if err != nil {
-		return nil, errors.Wrapf(err, "external auth upstream not found %s", upstreamRef.String())
-	}
-
-	cfg := &envoyauth.ExtAuthz{}
-
-	httpService := p.extAuthSettings.GetHttpService()
-	if httpService == nil {
-		svc := &envoycore.GrpcService{
-			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-				EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-					ClusterName: translator.UpstreamToClusterName(*upstreamRef),
-				},
-			}}
-
-		timeout := p.extAuthSettings.GetRequestTimeout()
-		if timeout == nil {
-			timeout = &defaultTimeout
-		}
-		svc.Timeout = types.DurationProto(*timeout)
-
-		cfg.Services = &envoyauth.ExtAuthz_GrpcService{
-			GrpcService: svc,
-		}
-	} else {
-		httpURI := &envoycore.HttpUri{
-			// this uri is not used by the filter but is required because of envoy validation.
-			Uri:     "http://not-used.example.com/",
-			Timeout: p.extAuthSettings.GetRequestTimeout(),
-			HttpUpstreamType: &envoycore.HttpUri_Cluster{
-				Cluster: translator.UpstreamToClusterName(*upstreamRef),
-			},
-		}
-		if httpURI.Timeout == nil {
-			// set to the default. this is required by envoy validation.
-			httpURI.Timeout = &defaultTimeout
-		}
-
-		cfg.Services = &envoyauth.ExtAuthz_HttpService{
-			HttpService: &envoyauth.HttpService{
-				ServerUri: httpURI,
-				// Trim suffix, as request path always starts with /, and we want to avoid a double /
-				PathPrefix:            strings.TrimSuffix(httpService.PathPrefix, "/"),
-				AuthorizationRequest:  translateRequest(httpService.Request),
-				AuthorizationResponse: translateResponse(httpService.Response),
-			},
-		}
-	}
-
-	cfg.FailureModeAllow = p.extAuthSettings.FailureModeAllow
-	cfg.WithRequestBody = translateRequestBody(p.extAuthSettings.RequestBody)
-	cfg.ClearRouteCache = p.extAuthSettings.ClearRouteCache
-	cfg.StatusOnError, err = translateStatusOnError(p.extAuthSettings.StatusOnError)
-	if err != nil {
-		return nil, err
-	}
-
-	return cfg, nil
-}
-
-func translateRequestBody(in *extauthapi.BufferSettings) *envoyauth.BufferSettings {
-	if in == nil {
-		return nil
-	}
-	maxBytes := in.MaxRequestBytes
-	if maxBytes <= 0 {
-		maxBytes = 4 * 1024
-	}
-	return &envoyauth.BufferSettings{
-		AllowPartialMessage: in.AllowPartialMessage,
-		MaxRequestBytes:     maxBytes,
-	}
-}
-func translateRequest(in *extauthapi.HttpService_Request) *envoyauth.AuthorizationRequest {
-	if in == nil {
-		return nil
-	}
-
-	return &envoyauth.AuthorizationRequest{
-		AllowedHeaders: translateListMatcher(in.AllowedHeaders),
-		HeadersToAdd:   convertHeadersToAdd(in.HeadersToAdd),
-	}
-}
-func convertHeadersToAdd(headersToAddMap map[string]string) []*envoycore.HeaderValue {
-	var headersToAdd []*envoycore.HeaderValue
-	for k, v := range headersToAddMap {
-		headersToAdd = append(headersToAdd, &envoycore.HeaderValue{
-			Key:   k,
-			Value: v,
-		})
-	}
-	return headersToAdd
-}
-func translateResponse(in *extauthapi.HttpService_Response) *envoyauth.AuthorizationResponse {
-	if in == nil {
-		return nil
-	}
-
-	return &envoyauth.AuthorizationResponse{
-		AllowedUpstreamHeaders: translateListMatcher(in.AllowedUpstreamHeaders),
-		AllowedClientHeaders:   translateListMatcher(in.AllowedClientHeaders),
-	}
-}
-
-func translateListMatcher(in []string) *envoymatcher.ListStringMatcher {
-	if len(in) == 0 {
-		return nil
-	}
-	var lsm envoymatcher.ListStringMatcher
-
-	for _, pattern := range in {
-		lsm.Patterns = append(lsm.Patterns, convertPattern(pattern))
-	}
-
-	return &lsm
-}
-
-func convertPattern(pattern string) *envoymatcher.StringMatcher {
-	return &envoymatcher.StringMatcher{MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: pattern}}
-}
-
-func translateStatusOnError(statusOnError uint32) (*envoytype.HttpStatus, error) {
-	if statusOnError == 0 {
-		return nil, nil
-	}
-
-	// make sure it is allowed:
-	if _, ok := envoytype.StatusCode_name[int32(statusOnError)]; !ok {
-		return nil, errors.Errorf("invalid statusOnError code")
-	}
-
-	return &envoytype.HttpStatus{Code: envoytype.StatusCode(int32(statusOnError))}, nil
-}
-
 func logDeprecatedWarning(ctx context.Context) {
 	contextutils.LoggerFrom(contextutils.WithLogger(ctx, "extauth")).Warnf("Deprecated extauth config format detected. Please consider using the new 'AuthConfig' CRD.")
+}
+
+func (p *Plugin) isExtAuthzFilterConfigured(upstreams v1.UpstreamList) bool {
+
+	// Call the same function called by HttpFilters to verify whether the filter was created
+	filters, err := extauth.BuildHttpFilters(p.extAuthSettings, upstreams)
+	if err != nil {
+		// If it returned an error, the filter was not configured
+		return false
+	}
+
+	// Check for a filter called "envoy.ext_authz"
+	for _, filter := range filters {
+		if filter.HttpFilter.GetName() == FilterName {
+			return true
+		}
+	}
+
+	return false
 }

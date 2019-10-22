@@ -2683,6 +2683,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/defaults",
     "github.com/solo-io/gloo/projects/gloo/pkg/mocks",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins",
+    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
