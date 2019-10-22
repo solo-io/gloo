@@ -17,8 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
-	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-
 	"github.com/gogo/protobuf/types"
 
 	. "github.com/onsi/ginkgo"
@@ -36,6 +34,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	rlCustomPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/test/services"
@@ -275,7 +274,7 @@ var _ = Describe("Rate Limit", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		glooExtensions = map[string]*types.Struct{
-			ratelimit2.ExtensionName: settingsStruct,
+			rlCustomPlugin.ExtensionName: settingsStruct,
 		}
 
 		rlService = ratelimitservice.RunRatelimit(ctx, cancel, testClients.GlooPort)
@@ -456,7 +455,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	rateLimitStruct, err := envoyutil.MessageToStruct(b.ingressRateLimit)
 	Expect(err).NotTo(HaveOccurred())
 	protos := map[string]*types.Struct{
-		ratelimit2.ExtensionName: rateLimitStruct,
+		rlCustomPlugin.ExtensionName: rateLimitStruct,
 	}
 
 	extensions = &gloov1.Extensions{

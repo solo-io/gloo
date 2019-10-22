@@ -15,10 +15,11 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	rlCustomPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	rlIngressPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 
 type RateLimitTranslatorSyncerExtension struct {
@@ -38,7 +39,7 @@ func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
 // TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
 func getDeprecatedSettings(params syncer.TranslatorSyncerExtensionParams) (ratelimit.ServiceSettings, error) {
 	var settings ratelimit.ServiceSettings
-	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, &settings)
+	err := utils.UnmarshalExtension(&extensionsContainer{params}, rlCustomPlugin.EnvoyExtensionName, &settings)
 	if err != nil {
 		if err == utils.NotFoundError {
 			return ratelimit.ServiceSettings{}, nil
@@ -74,13 +75,13 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 	var customrl *v1.RateLimitConfig
 	if s.settings.GetDescriptors() != nil {
 		customrl = &v1.RateLimitConfig{
-			Domain:      rateLimitPlugin.CustomDomain,
+			Domain:      rlCustomPlugin.CustomDomain,
 			Descriptors: s.settings.Descriptors,
 		}
 	}
 
 	rl := &v1.RateLimitConfig{
-		Domain: rateLimitPlugin.IngressDomain,
+		Domain: rlIngressPlugin.IngressDomain,
 	}
 
 	for _, proxy := range snap.Proxies {
@@ -94,7 +95,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 			for _, virtualHost := range virtualHosts {
 				var rateLimitDeprecated ratelimit.IngressRateLimit
 				rateLimit := virtualHost.GetVirtualHostPlugins().GetRatelimitBasic()
-				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimitDeprecated)
+				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rlCustomPlugin.ExtensionName, &rateLimitDeprecated)
 				if err != nil {
 					if err == utils.NotFoundError && rateLimit == nil {
 						// no rate limit virtual host config found, nothing to do here
@@ -109,7 +110,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 					rateLimit = &rateLimitDeprecated
 				}
 
-				vhostConstraint, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
+				vhostConstraint, err := rlIngressPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
 				if err != nil {
 					return err
 				}

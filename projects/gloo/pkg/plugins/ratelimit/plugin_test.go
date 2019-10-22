@@ -52,7 +52,7 @@ var _ = Describe("Plugin", func() {
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(filters).To(HaveLen(2))
+		Expect(filters).To(HaveLen(1))
 		for _, f := range filters {
 			cfg := getConfig(f.HttpFilter)
 			Expect(cfg.FailureModeDeny).To(BeFalse())
@@ -74,14 +74,8 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
-		cfg1 := getConfig(filters[1].HttpFilter)
-		Expect(cfg1).To(BeEquivalentTo(expectedConfig))
-
-		expectedConfig.Domain = "custom"
-		expectedConfig.Stage = 1
-
-		cfg2 := getConfig(filters[0].HttpFilter)
-		Expect(cfg2).To(BeEquivalentTo(expectedConfig))
+		cfg := getConfig(filters[0].HttpFilter)
+		Expect(cfg).To(BeEquivalentTo(expectedConfig))
 
 	})
 
@@ -89,7 +83,7 @@ var _ = Describe("Plugin", func() {
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
 		timeout := time.Millisecond * 100
-		Expect(filters).To(HaveLen(2))
+		Expect(filters).To(HaveLen(1))
 		for _, f := range filters {
 			cfg := getConfig(f.HttpFilter)
 			Expect(*cfg.Timeout).To(Equal(timeout))
@@ -106,7 +100,7 @@ var _ = Describe("Plugin", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(filters).To(HaveLen(2))
+			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
 				Expect(cfg.FailureModeDeny).To(BeTrue())
@@ -125,7 +119,7 @@ var _ = Describe("Plugin", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(filters).To(HaveLen(2))
+			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
 				Expect(*cfg.Timeout).To(Equal(time.Second))

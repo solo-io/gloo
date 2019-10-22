@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Refactor out shared logic after adding custom rate limit server support to OS Gloo
+    issueLink: https://github.com/solo-io/gloo/issues/1398

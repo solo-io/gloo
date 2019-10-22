@@ -8,9 +8,9 @@ import (
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	//TODO: (Graham) handle plugins correclty once the reorg happens "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
