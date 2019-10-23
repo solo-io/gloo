@@ -448,8 +448,14 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		opts.ValidationServer.Server.SetValidator(validator)
 	}
 
+	routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
+	if err != nil {
+		return err
+	}
+
 	xdsSanitizer := sanitizer.XdsSanitizers{
-		sanitizer.NewInvalidUpstreamRemovingSanitizer(),
+		sanitizer.NewUpstreamRemovingSanitizer(),
+		routeReplacingSanitizer,
 	}
 
 	translationSync := NewTranslatorSyncer(t, opts.ControlPlane.SnapshotCache, xdsHasher, xdsSanitizer, rpt, opts.DevMode, syncerExtensions)
