@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Correctly update a route inside a route table.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1238

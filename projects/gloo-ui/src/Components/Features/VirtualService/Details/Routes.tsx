@@ -72,7 +72,7 @@ const getRouteColumns = (
     {
       title: 'Destination',
       dataIndex: 'destinationName',
-      render: (destinationName: string) => <a>{destinationName}</a>
+      render: (destinationName: string) => destinationName
     },
     {
       title: 'Headers',

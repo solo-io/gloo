@@ -70,6 +70,7 @@ let httpMethods = ['POST', 'PUT', 'GET', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 export interface CreateRouteValuesType {
   routeParent: string;
+  routeTable: RouteTable.AsObject | undefined;
   virtualService: RouteParent | undefined;
   upstream: Upstream.AsObject | undefined;
   destinationType: string;
@@ -83,6 +84,7 @@ export interface CreateRouteValuesType {
 
 export const createRouteDefaultValues: CreateRouteValuesType = {
   routeParent: '',
+  routeTable: new RouteTable().toObject() as RouteParent,
   virtualService: new VirtualService().toObject() as RouteParent,
   upstream: new Upstream().toObject(),
   destinationSpec: undefined,
@@ -251,7 +253,7 @@ export const CreateRouteModal = (props: Props) => {
   const { defaultUpstream, defaultRouteParent } = props;
 
   const handleCreateRoute = (values: CreateRouteValuesType) => {
-    if (props.createRouteFn) {
+    if (!!props.createRouteFn) {
       props.createRouteFn(values);
     } else {
       dispatch(
@@ -342,6 +344,7 @@ export const CreateRouteModal = (props: Props) => {
         ? props.defaultRouteParent!.metadata!.name
         : '',
       virtualService: props.defaultRouteParent,
+      routeTable: props.defaultRouteParent,
       upstream: existingRouteUpstream,
       destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
       destinationType: 'Upstream', // TODO: add other types
@@ -369,6 +372,7 @@ export const CreateRouteModal = (props: Props) => {
               }
             }
           : undefined,
+        routeTable: createRouteDefaultValues.routeTable,
         virtualService: defaultRouteParent
           ? defaultRouteParent
           : createRouteDefaultValues.virtualService,
@@ -469,6 +473,7 @@ export const CreateRouteModal = (props: Props) => {
                     name='matchType'
                     title='Match Type'
                     defaultValue={'PREFIX'}
+                    disabled={!!props.createRouteFn}
                     options={PATH_SPECIFIERS}
                   />
                 </HalfColumn>

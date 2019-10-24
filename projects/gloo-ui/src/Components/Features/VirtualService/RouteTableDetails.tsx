@@ -256,12 +256,20 @@ export const RouteTableDetails = () => {
   };
 
   const handleCreateRoute = (values: CreateRouteValuesType) => {
+    let newRoutesList = routeTable.routesList;
+
+    if (routeBeingEdited !== undefined) {
+      newRoutesList = routeTable.routesList.filter(
+        route => route.matchersList[0]!.prefix !== routeBeingEdited!.matchersList[0]!.prefix
+      );
+    }
+
     dispatch(
       updateRouteTable({
         routeTable: {
           ...routeTable,
           routesList: [
-            ...routeTable.routesList,
+            ...newRoutesList,
             {
               matchersList: [
                 {
@@ -288,6 +296,7 @@ export const RouteTableDetails = () => {
       })
     );
     setShowCreateRouteModal(false);
+    setRouteBeingEdited(undefined);
   };
 
   const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
