@@ -99,7 +99,7 @@ clean:
 #----------------------------------------------------------------------------------
 
 .PHONY: generated-code
-generated-code: $(OUTPUT_DIR)/.generated-code verify-enterprise-protos
+generated-code: $(OUTPUT_DIR)/.generated-code verify-enterprise-protos update-licenses
 
 # Note: currently we generate CLI docs, but don't push them to the consolidated docs repo (gloo-docs). Instead, the
 # Glooctl enterprise docs are pushed from the private repo.
@@ -307,6 +307,7 @@ $(OUTPUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
 gloo: $(OUTPUT_DIR)/gloo-linux-amd64
 
 $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
+	cp hack/utils/oss_compliance/third_party_licenses.txt $(OUTPUT_DIR)/third_party_licenses.txt
 	cp $< $@
 
 gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
@@ -570,3 +571,10 @@ save-tagged-helm:
 fetch-tagged-helm:
 	mkdir -p $(HELM_SYNC_DIR)
 	gsutil -m rsync -r gs://solo-public-tagged-helm/ './_output/helm'
+
+#----------------------------------------------------------------------------------
+# Third Party License Management
+#----------------------------------------------------------------------------------
+.PHONY: update-licenses
+update-licenses:
+	cd hack/utils/oss_compliance && go run main.go
