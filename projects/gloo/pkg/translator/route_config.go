@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 
 	"github.com/gogo/protobuf/proto"
@@ -162,26 +163,31 @@ func initRoutes(in *v1.Route, routeReport *validationapi.RouteReport) []envoyrou
 				"no path specifier provided",
 			)
 		}
-		match := envoyroute.RouteMatch{
-			Headers:         envoyHeaderMatcher(matcher.Headers),
-			QueryParameters: envoyQueryMatcher(matcher.QueryParameters),
-		}
-		if len(matcher.Methods) > 0 {
-			match.Headers = append(match.Headers, &envoyroute.HeaderMatcher{
-				Name: ":method",
-				HeaderMatchSpecifier: &envoyroute.HeaderMatcher_RegexMatch{
-					RegexMatch: strings.Join(matcher.Methods, "|"),
-				},
-			})
-		}
-		// need to do this because Go's proto implementation makes oneofs private
-		// which genius thought of that?
-		setEnvoyPathMatcher(matcher, &match)
-
+		match := GlooMatcherToEnvoyMatcher(matcher)
 		out[i].Match = match
 	}
 
 	return out
+}
+
+// utility function to transform gloo matcher to envoy route matcher
+func GlooMatcherToEnvoyMatcher(matcher *matchers.Matcher) envoyroute.RouteMatch {
+	match := envoyroute.RouteMatch{
+		Headers:         envoyHeaderMatcher(matcher.GetHeaders()),
+		QueryParameters: envoyQueryMatcher(matcher.GetQueryParameters()),
+	}
+	if len(matcher.GetMethods()) > 0 {
+		match.Headers = append(match.Headers, &envoyroute.HeaderMatcher{
+			Name: ":method",
+			HeaderMatchSpecifier: &envoyroute.HeaderMatcher_RegexMatch{
+				RegexMatch: strings.Join(matcher.Methods, "|"),
+			},
+		})
+	}
+	// need to do this because Go's proto implementation makes oneofs private
+	// which genius thought of that?
+	setEnvoyPathMatcher(matcher, &match)
+	return match
 }
 
 func (t *translator) setAction(params plugins.RouteParams, routeReport *validationapi.RouteReport, in *v1.Route, out *envoyroute.Route) {
@@ -442,24 +448,24 @@ func getSubsets(upstream *v1.Upstream) *v1plugins.SubsetSpec {
 
 }
 
-func setEnvoyPathMatcher(in *v1.Matcher, out *envoyroute.RouteMatch) {
-	switch path := in.PathSpecifier.(type) {
-	case *v1.Matcher_Exact:
+func setEnvoyPathMatcher(in *matchers.Matcher, out *envoyroute.RouteMatch) {
+	switch path := in.GetPathSpecifier().(type) {
+	case *matchers.Matcher_Exact:
 		out.PathSpecifier = &envoyroute.RouteMatch_Path{
 			Path: path.Exact,
 		}
-	case *v1.Matcher_Regex:
+	case *matchers.Matcher_Regex:
 		out.PathSpecifier = &envoyroute.RouteMatch_Regex{
 			Regex: path.Regex,
 		}
-	case *v1.Matcher_Prefix:
+	case *matchers.Matcher_Prefix:
 		out.PathSpecifier = &envoyroute.RouteMatch_Prefix{
 			Prefix: path.Prefix,
 		}
 	}
 }
 
-func envoyHeaderMatcher(in []*v1.HeaderMatcher) []*envoyroute.HeaderMatcher {
+func envoyHeaderMatcher(in []*matchers.HeaderMatcher) []*envoyroute.HeaderMatcher {
 	var out []*envoyroute.HeaderMatcher
 	for _, matcher := range in {
 
@@ -491,7 +497,7 @@ func envoyHeaderMatcher(in []*v1.HeaderMatcher) []*envoyroute.HeaderMatcher {
 	return out
 }
 
-func envoyQueryMatcher(in []*v1.QueryParameterMatcher) []*envoyroute.QueryParameterMatcher {
+func envoyQueryMatcher(in []*matchers.QueryParameterMatcher) []*envoyroute.QueryParameterMatcher {
 	var out []*envoyroute.QueryParameterMatcher
 	for _, matcher := range in {
 		envoyMatch := &envoyroute.QueryParameterMatcher{

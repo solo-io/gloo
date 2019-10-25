@@ -9,6 +9,7 @@ import (
 	"time"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -150,8 +151,8 @@ func makeDesiredProxy(upstreams v1.UpstreamList) *v1.Proxy {
 			// and send it to the upstream for this domain
 			Routes: []*v1.Route{{
 				// use a basic catch-all matcher
-				Matcher: &v1.Matcher{
-					PathSpecifier: &v1.Matcher_Prefix{
+				Matcher: &matchers.Matcher{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/",
 					},
 				},

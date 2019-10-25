@@ -50,6 +50,21 @@ apis:
   cors.plugins.gloo.solo.io.CorsPolicy:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/cors/cors.proto.sk/#CorsPolicy
     package: cors.plugins.gloo.solo.io
+  dlp.plugins.gloo.solo.io.Action:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp.proto.sk/#Action
+    package: dlp.plugins.gloo.solo.io
+  dlp.plugins.gloo.solo.io.Config:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp.proto.sk/#Config
+    package: dlp.plugins.gloo.solo.io
+  dlp.plugins.gloo.solo.io.CustomAction:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp.proto.sk/#CustomAction
+    package: dlp.plugins.gloo.solo.io
+  dlp.plugins.gloo.solo.io.DlpRule:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp.proto.sk/#DlpRule
+    package: dlp.plugins.gloo.solo.io
+  dlp.plugins.gloo.solo.io.FilterConfig:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp.proto.sk/#FilterConfig
+    package: dlp.plugins.gloo.solo.io
   enterprise.gloo.solo.io.ApiKeyAuth:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth.proto.sk/#ApiKeyAuth
     package: enterprise.gloo.solo.io
@@ -263,6 +278,24 @@ apis:
   envoy.config.filter.http.solo_jwt_authn.v2.SoloJwtAuthnPerRoute:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/jwt/solo_jwt_authn.proto.sk/#SoloJwtAuthnPerRoute
     package: envoy.config.filter.http.solo_jwt_authn.v2
+  envoy.config.filter.http.transformation_ee.v2.Action:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#Action
+    package: envoy.config.filter.http.transformation_ee.v2
+  envoy.config.filter.http.transformation_ee.v2.DlpTransformation:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#DlpTransformation
+    package: envoy.config.filter.http.transformation_ee.v2
+  envoy.config.filter.http.transformation_ee.v2.FilterTransformations:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#FilterTransformations
+    package: envoy.config.filter.http.transformation_ee.v2
+  envoy.config.filter.http.transformation_ee.v2.RouteTransformations:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#RouteTransformations
+    package: envoy.config.filter.http.transformation_ee.v2
+  envoy.config.filter.http.transformation_ee.v2.Transformation:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#Transformation
+    package: envoy.config.filter.http.transformation_ee.v2
+  envoy.config.filter.http.transformation_ee.v2.TransformationRule:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto.sk/#TransformationRule
+    package: envoy.config.filter.http.transformation_ee.v2
   envoy.type.DoubleRange:
     relativepath: api/envoy/type/range.proto.sk/#DoubleRange
     package: envoy.type
@@ -362,9 +395,6 @@ apis:
   gloo.solo.io.GlooOptions:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk/#GlooOptions
     package: gloo.solo.io
-  gloo.solo.io.HeaderMatcher:
-    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#HeaderMatcher
-    package: gloo.solo.io
   gloo.solo.io.HttpListener:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#HttpListener
     package: gloo.solo.io
@@ -392,9 +422,6 @@ apis:
   gloo.solo.io.LoadBalancerConfig:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto.sk/#LoadBalancerConfig
     package: gloo.solo.io
-  gloo.solo.io.Matcher:
-    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#Matcher
-    package: gloo.solo.io
   gloo.solo.io.MultiDestination:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#MultiDestination
     package: gloo.solo.io
@@ -409,9 +436,6 @@ apis:
     package: gloo.solo.io
   gloo.solo.io.ProxyValidationServiceResponse:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/grpc/validation/proxy_validation.proto.sk/#ProxyValidationServiceResponse
-    package: gloo.solo.io
-  gloo.solo.io.QueryParameterMatcher:
-    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#QueryParameterMatcher
     package: gloo.solo.io
   gloo.solo.io.RedirectAction:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk/#RedirectAction
@@ -692,6 +716,15 @@ apis:
   lbhash.plugins.gloo.solo.io.RouteActionHashConfig:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/lbhash/lbhash.proto.sk/#RouteActionHashConfig
     package: lbhash.plugins.gloo.solo.io
+  matchers.core.gloo.solo.io.HeaderMatcher:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto.sk/#HeaderMatcher
+    package: matchers.core.gloo.solo.io
+  matchers.core.gloo.solo.io.Matcher:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto.sk/#Matcher
+    package: matchers.core.gloo.solo.io
+  matchers.core.gloo.solo.io.QueryParameterMatcher:
+    relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto.sk/#QueryParameterMatcher
+    package: matchers.core.gloo.solo.io
   pipe.plugins.gloo.solo.io.UpstreamSpec:
     relativepath: api/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe.proto.sk/#UpstreamSpec
     package: pipe.plugins.gloo.solo.io
