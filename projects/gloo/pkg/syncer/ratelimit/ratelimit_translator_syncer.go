@@ -100,8 +100,13 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 					if err == utils.NotFoundError && rateLimit == nil {
 						// no rate limit virtual host config found, nothing to do here
 						continue
+					} else if rateLimit == nil {
+						// if we have nothing to fall back to, error out
+						return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
+					} else if err != utils.NotFoundError {
+						// if the error was real (ie, it wasn't a NotFoundError) but we do have something to fall back to, log a warning
+						logger.Warnw("Deprecated rate limit plugin is malformed, defaulting to non-deprecated settings", zap.Error(err))
 					}
-					return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
 				}
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")

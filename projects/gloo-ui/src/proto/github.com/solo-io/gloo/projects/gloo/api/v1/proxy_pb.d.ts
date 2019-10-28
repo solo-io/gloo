@@ -394,6 +394,9 @@ export class HeaderMatcher extends jspb.Message {
   getRegex(): boolean;
   setRegex(value: boolean): void;
 
+  getInvertMatch(): boolean;
+  setInvertMatch(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HeaderMatcher.AsObject;
   static toObject(includeInstance: boolean, msg: HeaderMatcher): HeaderMatcher.AsObject;
@@ -409,6 +412,7 @@ export namespace HeaderMatcher {
     name: string,
     value: string,
     regex: boolean,
+    invertMatch: boolean,
   }
 }
 

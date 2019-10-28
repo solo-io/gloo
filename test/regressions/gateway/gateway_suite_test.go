@@ -262,11 +262,11 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 
 var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceClient, virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins, sslConfig *gloov1.SslConfig) {
 
-	if routePlugins.GetPrefixRewrite() == "" {
+	if routePlugins.GetPrefixRewrite() == nil {
 		if routePlugins == nil {
 			routePlugins = &gloov1.RoutePlugins{}
 		}
-		routePlugins.PrefixRewrite = "/"
+		routePlugins.PrefixRewrite = &types.StringValue{Value: "/"}
 	}
 
 	// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the

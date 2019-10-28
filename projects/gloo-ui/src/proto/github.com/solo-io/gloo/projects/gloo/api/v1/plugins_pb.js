@@ -1474,7 +1474,7 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
     transformations: (f = msg.getTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
     faults: (f = msg.getFaults()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults.toObject(includeInstance, f),
-    prefixRewrite: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    prefixRewrite: (f = msg.getPrefixRewrite()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     retries: (f = msg.getRetries()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
@@ -1538,7 +1538,8 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       msg.setFaults(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setPrefixRewrite(value);
       break;
     case 4:
@@ -1666,10 +1667,11 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
     );
   }
   f = message.getPrefixRewrite();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getTimeout();
@@ -1863,17 +1865,32 @@ proto.gloo.solo.io.RoutePlugins.prototype.hasFaults = function() {
 
 
 /**
- * optional string prefix_rewrite = 3;
- * @return {string}
+ * optional google.protobuf.StringValue prefix_rewrite = 3;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.gloo.solo.io.RoutePlugins.prototype.getPrefixRewrite = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 3));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.gloo.solo.io.RoutePlugins.prototype.setPrefixRewrite = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearPrefixRewrite = function() {
+  this.setPrefixRewrite(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasPrefixRewrite = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

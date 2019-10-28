@@ -39,6 +39,10 @@ var _ = Describe("RateLimit tests", func() {
 		virtualServiceClient v1.VirtualServiceClient
 	)
 
+	const (
+		response429 = "HTTP/1.1 429 Too Many Requests"
+	)
+
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 
@@ -91,7 +95,7 @@ var _ = Describe("RateLimit tests", func() {
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			Verbose:           true,
-		}, "429", 1, time.Minute*5)
+		}, response429, 1, time.Minute*5)
 	}
 
 	It("can rate limit to upstream", func() {
@@ -129,7 +133,7 @@ var _ = Describe("RateLimit tests", func() {
 		})
 
 		BeforeEach(func() {
-			// Write extension to settings
+			// Write rate limit service config to settings
 			settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
 			Expect(err).NotTo(HaveOccurred())
 

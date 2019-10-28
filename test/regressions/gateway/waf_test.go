@@ -36,6 +36,11 @@ var _ = Describe("waf tests", func() {
 		virtualServiceClient v1.VirtualServiceClient
 	)
 
+	const (
+		response200 = "HTTP/1.1 200 OK"
+		response403 = "HTTP/1.1 403 Forbidden"
+	)
+
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 
@@ -105,7 +110,7 @@ var _ = Describe("waf tests", func() {
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
-			checkConnection("200")
+			checkConnection(response200)
 		})
 
 		It("will reject an http 1.0 request", func() {
@@ -123,7 +128,7 @@ var _ = Describe("waf tests", func() {
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
-			checkConnection("403")
+			checkConnection(response403)
 		})
 
 	})

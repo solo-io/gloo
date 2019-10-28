@@ -487,6 +487,14 @@ fetch-helm:
 # Release
 #----------------------------------------------------------------------------------
 
+CHANGELOGS_BUCKET=gloo-ee-changelogs
+
+.PHONY: upload-changelog
+upload-changelog:
+ifeq ($(RELEASE),"true")
+	gsutil -m cp -r './changelog' gs://$(CHANGELOGS_BUCKET)/$(VERSION)
+endif
+
 .PHONY: upload-github-release-assets
 upload-github-release-assets: produce-manifests
 	go run ci/upload_github_release_assets.go

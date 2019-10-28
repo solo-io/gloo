@@ -1,4 +1,9 @@
 changelog:
+  - type: DEPENDENCY_BUMP
+    description: Update Gloo to version v0.20.7 from v0.20.6
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.20.7
   - type: NON_USER_FACING
     description: Refactor out shared logic after adding custom rate limit server support to OS Gloo
     issueLink: https://github.com/solo-io/gloo/issues/1398

@@ -1,0 +1,20 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: bc2f53ef0e89bbd1d27003ac142ab5f36323fae3
+    description: Update gloo to revision bc2f53ef0e89bbd1d27003ac142ab5f36323fae3.
+  - type: NON_USER_FACING
+    description: Upload changelogs to GCP bucket so Gloo can download them and generate proper docs.
+    issueLink: https://github.com/solo-io/gloo/issues/1482
+  - type: NON_USER_FACING
+    description: Fix changelogs that were put in the wrong directory so generated rc1 release changelog looks correct.
+  - type: FIX
+    description: >
+      Fix a bug where if the strongly typed rate limit config was provided and the deprecated untyped config
+      was NOT provided, then gloo would return an error
+    issueLink: https://github.com/solo-io/gloo/issues/1518
+  - type: NON_USER_FACING
+    description: Prevent false positives in regression tests.
+    issueLink: https://github.com/solo-io/go-utils/issues/328
+    resolvesIssue: false

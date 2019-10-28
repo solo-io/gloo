@@ -1312,7 +1312,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:3fb46f89b2b4c77c6eb25f542b86dc7634883e84dd496ae602e465bcf755ba65"
+  digest = "1:b708c834696f6397696a6147ea6abcdb2b6db275af3a974defe64f5cc8223f34"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1410,6 +1410,7 @@
     "projects/gloo/pkg/plugins/healthcheck",
     "projects/gloo/pkg/plugins/internal/common",
     "projects/gloo/pkg/plugins/kubernetes",
+    "projects/gloo/pkg/plugins/kubernetes/serviceconverter",
     "projects/gloo/pkg/plugins/linkerd",
     "projects/gloo/pkg/plugins/loadbalancer",
     "projects/gloo/pkg/plugins/pipe",
@@ -1443,7 +1444,7 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "bd596e40fbba52bf6071c9aac05706bc5fa19836"
+  revision = "bc2f53ef0e89bbd1d27003ac142ab5f36323fae3"
 
 [[projects]]
   digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
@@ -1518,15 +1519,16 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:f35421a8443efa2170aa6dadad19ba11cfc52f72fb0bb04f8eace6b60cb29ef9"
+  digest = "1:792aa5d91a415b803d0e64834fed0c730050fd93707709a5e55b68937510ce00"
   name = "github.com/solo-io/reporting-client"
   packages = [
     "pkg/api/v1",
     "pkg/client",
+    "pkg/signature",
   ]
   pruneopts = "UT"
-  revision = "36dd39d2795b04bae1e8a3482da6c4a27ce721b7"
-  version = "v0.0.3"
+  revision = "53c000c6023e718380ded876e15c2ec0eebc34e5"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:22085dbe8e42b95e67bcde205fbd23199228cd12a8794d0a2955d3b281d99b93"
@@ -2600,7 +2602,6 @@
     "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/envoy/type/matcher",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fgrosse/zaptest",

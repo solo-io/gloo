@@ -3821,7 +3821,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     endpointsWarmingTimeout: (f = msg.getEndpointsWarmingTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     awsOptions: (f = msg.getAwsOptions()) && proto.gloo.solo.io.GlooOptions.AWSOptions.toObject(includeInstance, f),
-    invalidConfigPolicy: (f = msg.getInvalidConfigPolicy()) && proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.toObject(includeInstance, f)
+    invalidConfigPolicy: (f = msg.getInvalidConfigPolicy()) && proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.toObject(includeInstance, f),
+    disableKubernetesDestinations: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -3885,6 +3886,10 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy;
       reader.readMessage(value,proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.deserializeBinaryFromReader);
       msg.setInvalidConfigPolicy(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisableKubernetesDestinations(value);
       break;
     default:
       reader.skipField();
@@ -3959,6 +3964,13 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       6,
       f,
       proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisableKubernetesDestinations();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
     );
   }
 };
@@ -4453,6 +4465,23 @@ proto.gloo.solo.io.GlooOptions.prototype.clearInvalidConfigPolicy = function() {
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasInvalidConfigPolicy = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional bool disable_kubernetes_destinations = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getDisableKubernetesDestinations = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.GlooOptions.prototype.setDisableKubernetesDestinations = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

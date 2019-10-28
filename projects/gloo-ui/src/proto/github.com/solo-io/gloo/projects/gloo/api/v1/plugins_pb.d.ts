@@ -237,8 +237,10 @@ export class RoutePlugins extends jspb.Message {
   getFaults(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults | undefined;
   setFaults(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults): void;
 
-  getPrefixRewrite(): string;
-  setPrefixRewrite(value: string): void;
+  hasPrefixRewrite(): boolean;
+  clearPrefixRewrite(): void;
+  getPrefixRewrite(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setPrefixRewrite(value?: google_protobuf_wrappers_pb.StringValue): void;
 
   hasTimeout(): boolean;
   clearTimeout(): void;
@@ -335,7 +337,7 @@ export namespace RoutePlugins {
   export type AsObject = {
     transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
     faults?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults.AsObject,
-    prefixRewrite: string,
+    prefixRewrite?: google_protobuf_wrappers_pb.StringValue.AsObject,
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,

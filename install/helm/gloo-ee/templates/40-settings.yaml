@@ -39,10 +39,10 @@ spec:
         extauthzServerRef:
           name: extauth
           namespace: {{ .Release.Namespace }}
-      rate-limit:
-        ratelimit_server_ref:
-          name: rate-limit
-          namespace: {{ .Release.Namespace }}
+  ratelimitServer:
+    ratelimit_server_ref:
+      name: rate-limit
+      namespace: {{ .Release.Namespace }}
 
 {{- if .Values.settings.singleNamespace }}
   watchNamespaces:

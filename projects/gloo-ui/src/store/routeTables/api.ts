@@ -325,7 +325,9 @@ export function setInputRouteValues(route: Route.AsObject) {
         extauth
       } = route.routePlugins;
       if (prefixRewrite !== undefined) {
-        updatedRoutePlugins.setPrefixRewrite(prefixRewrite);
+        let updatedPrefixRewrite = new StringValue();
+        updatedPrefixRewrite.setValue(prefixRewrite.value)
+        updatedRoutePlugins.setPrefixRewrite(updatedPrefixRewrite);
       }
       updatedRoute.setRoutePlugins(updatedRoutePlugins);
     }

@@ -583,6 +583,9 @@ export class GlooOptions extends jspb.Message {
   getInvalidConfigPolicy(): GlooOptions.InvalidConfigPolicy | undefined;
   setInvalidConfigPolicy(value?: GlooOptions.InvalidConfigPolicy): void;
 
+  getDisableKubernetesDestinations(): boolean;
+  setDisableKubernetesDestinations(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -601,6 +604,7 @@ export namespace GlooOptions {
     endpointsWarmingTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     awsOptions?: GlooOptions.AWSOptions.AsObject,
     invalidConfigPolicy?: GlooOptions.InvalidConfigPolicy.AsObject,
+    disableKubernetesDestinations: boolean,
   }
 
   export class AWSOptions extends jspb.Message {

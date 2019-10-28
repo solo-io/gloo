@@ -2739,7 +2739,8 @@ proto.gloo.solo.io.HeaderMatcher.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     value: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    regex: jspb.Message.getFieldWithDefault(msg, 3, false)
+    regex: jspb.Message.getFieldWithDefault(msg, 3, false),
+    invertMatch: jspb.Message.getFieldWithDefault(msg, 4, false)
   };
 
   if (includeInstance) {
@@ -2787,6 +2788,10 @@ proto.gloo.solo.io.HeaderMatcher.deserializeBinaryFromReader = function(msg, rea
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setRegex(value);
+      break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setInvertMatch(value);
       break;
     default:
       reader.skipField();
@@ -2838,6 +2843,13 @@ proto.gloo.solo.io.HeaderMatcher.serializeBinaryToWriter = function(message, wri
       f
     );
   }
+  f = message.getInvertMatch();
+  if (f) {
+    writer.writeBool(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -2885,6 +2897,23 @@ proto.gloo.solo.io.HeaderMatcher.prototype.getRegex = function() {
 /** @param {boolean} value */
 proto.gloo.solo.io.HeaderMatcher.prototype.setRegex = function(value) {
   jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional bool invert_match = 4;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.HeaderMatcher.prototype.getInvertMatch = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 4, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.HeaderMatcher.prototype.setInvertMatch = function(value) {
+  jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
 
