@@ -320,7 +320,7 @@ which we include here since all of it is relevant. You can use it as a starting 
 you use [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/) to keep the size of 
 your final image to a minimum. See the comments for an explanation of each build layer:
 
-```Dockerfile
+{{< highlight yaml >}}
 # This stage is parametrized to replicate the same environment GlooE was built in.
 # All ARGs need to be set via the docker `--build-arg` flags.
 ARG GO_BUILD_IMAGE
@@ -374,7 +374,7 @@ COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugin-examples/plugin
 # This is the command that will be executed when the container is run. 
 # It has to copy the compiled plugin file(s) to a directory.
 CMD cp /compiled-auth-plugins/* /auth-plugins/
-```
+{{< /highlight >}}
 
 The two `GO_BUILD_IMAGE`, `VERIFY_SCRIPT`, and `GC_FLAGS` arguments have to be passed to docker via the `--build-arg` flag(s):
 
