@@ -179,16 +179,25 @@ secret/upstream-tls created
 
 Now we've got to configure the `default-example-tls-server-8080` upstream to reference this secret in its `sslConfig`.
 
-This can be done easily with `glooctl`:
+This can be done using either `glooctl` to modify the Upstream directly, or adding an annotation to the the service:
 
-
-```bash
+{{< tabs >}}
+{{< tab name="glooctl" codelang="bash">}}
 glooctl edit upstream \
     --name default-example-tls-server-8080 \
     --namespace gloo-system \
     --ssl-secret-name upstream-tls \
     --ssl-secret-namespace default
-```
+{{< /tab >}}
+{{< tab name="kubectl" codelang="bash">}}
+kubectl annotate service -n default example-tls-server gloo.solo.io/sslService.secret=upstream-tls
+{{< /tab >}}
+{{< /tabs >}}
+
+{{% notice note %}}
+See the [guide on using Service annotations to configure SSL]({{< ref "/gloo_routing/tls/client_tls_service_annotations.md">}}) for 
+the full set of options when using Service annotations to configure upstream SSL.
+{{% /notice %}}
 
 Now if we get the `default-example-tls-server-8080` Upstream, we should see the new SSL configuration:
 
