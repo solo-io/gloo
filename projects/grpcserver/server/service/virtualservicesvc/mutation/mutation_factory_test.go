@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
@@ -24,8 +25,8 @@ var (
 var _ = Describe("MutationFactory", func() {
 	getRoute := func(exactValue string) *gatewayv1.Route {
 		return &gatewayv1.Route{
-			Matchers: []*gloov1.Matcher{{
-				PathSpecifier: &gloov1.Matcher_Exact{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Exact{
 					Exact: exactValue,
 				},
 			}},

@@ -1,0 +1,4 @@
+changelog:
+- type: NEW_FEATURE
+  description: Implement data loss prevention (DLP) filter.
+  issueLink: https://github.com/solo-io/gloo/issues/1500

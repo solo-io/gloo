@@ -5,12 +5,13 @@ import (
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rbac/v2"
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
-	"github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 
@@ -63,8 +64,8 @@ var _ = Describe("Plugin", func() {
 
 	JustBeforeEach(func() {
 		route = &v1.Route{
-			Matchers: []*v1.Matcher{{
-				PathSpecifier: &v1.Matcher_Prefix{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Prefix{
 					Prefix: "/",
 				},
 			}},

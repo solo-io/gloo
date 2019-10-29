@@ -14,6 +14,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
@@ -470,8 +471,8 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 			Domains: []string{hostname},
 			Routes: []*gloov1.Route{
 				{
-					Matchers: []*gloov1.Matcher{{
-						PathSpecifier: &gloov1.Matcher_Prefix{
+					Matchers: []*matchers.Matcher{{
+						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: "/noauth",
 						},
 					}},

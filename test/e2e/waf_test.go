@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -73,8 +74,8 @@ var _ = Describe("waf", func() {
 					RoutePlugins: &gloov1.RoutePlugins{
 						Waf: wafRouteSettings,
 					},
-					Matchers: []*gloov1.Matcher{{
-						PathSpecifier: &gloov1.Matcher_Prefix{
+					Matchers: []*matchers.Matcher{{
+						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: "/hello",
 						},
 					}},
@@ -91,8 +92,8 @@ var _ = Describe("waf", func() {
 					},
 				},
 				{
-					Matchers: []*gloov1.Matcher{{
-						PathSpecifier: &gloov1.Matcher_Prefix{
+					Matchers: []*matchers.Matcher{{
+						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: "/world",
 						},
 					}},

@@ -119,6 +119,9 @@ export class Settings extends jspb.Message {
   getDenyOnFail(): boolean;
   setDenyOnFail(value: boolean): void;
 
+  getRateLimitBeforeAuth(): boolean;
+  setRateLimitBeforeAuth(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -134,6 +137,7 @@ export namespace Settings {
     ratelimitServerRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     requestTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     denyOnFail: boolean,
+    rateLimitBeforeAuth: boolean,
   }
 }
 

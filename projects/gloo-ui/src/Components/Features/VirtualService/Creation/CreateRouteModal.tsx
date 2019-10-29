@@ -24,7 +24,7 @@ import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api
 import {
   HeaderMatcher,
   QueryParameterMatcher
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';

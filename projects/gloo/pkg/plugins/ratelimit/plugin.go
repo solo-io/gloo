@@ -80,9 +80,10 @@ const (
 )
 
 type Plugin struct {
-	upstreamRef *core.ResourceRef
-	timeout     *time.Duration
-	denyOnFail  bool
+	upstreamRef         *core.ResourceRef
+	timeout             *time.Duration
+	denyOnFail          bool
+	rateLimitBeforeAuth bool
 
 	authUserIdHeader string
 }
@@ -91,7 +92,7 @@ func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
-//// TODO(yuval-k): Copied from ext auth. the real solution is to add it to upstream Gloo
+// // TODO(yuval-k): Copied from ext auth. the real solution is to add it to upstream Gloo
 type tmpPluginContainer struct {
 	params plugins.InitParams
 }
@@ -100,7 +101,7 @@ func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
 	return t.params.ExtensionsSettings
 }
 
-//TODO(kdorosh) delete once support for old config is dropped
+// TODO(kdorosh) delete once support for old config is dropped
 func (p *Plugin) handleDeprecatedPluginConfig(params plugins.InitParams) error {
 	var settings ratelimit.Settings
 	p.upstreamRef = nil
@@ -130,6 +131,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 		p.upstreamRef = rlServer.RatelimitServerRef
 		p.timeout = rlServer.RequestTimeout
 		p.denyOnFail = rlServer.DenyOnFail
+		p.rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
 	}
 
 	return nil
@@ -139,7 +141,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return p.ProcessVirtualHostSimple(params, in, out)
 }
 
-//TODO(kdorosh) delete once support for old config is dropped
+// TODO(kdorosh) delete once support for old config is dropped
 func (p *Plugin) handleDeprecatedVirtualHostSimple(params plugins.VirtualHostParams, in *v1.VirtualHost) (*ratelimit.IngressRateLimit, error) {
 	var rateLimit ratelimit.IngressRateLimit
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, rlplugin.ExtensionName, &rateLimit)
@@ -181,8 +183,13 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, nil
 	}
 
+	filterStage := rlplugin.DefaultFilterStage
+	if p.rateLimitBeforeAuth {
+		filterStage = rlplugin.BeforeAuthStage
+	}
+
 	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, rlplugin.FilterStage)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, filterStage)
 	if err != nil {
 		return nil, err
 	}

@@ -3,13 +3,13 @@ package converter
 import (
 	"context"
 
-	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	ratelimitapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"

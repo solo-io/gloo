@@ -1,8 +1,60 @@
 // package: envoy.api.v2.filter.http
-// file: github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation.proto
+// file: github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto
 
 import * as jspb from "google-protobuf";
-import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
+import * as envoy_api_v2_route_route_pb from "../../../../../../../../../../envoy/api/v2/route/route_pb";
+import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
+import * as gogoproto_gogo_pb from "../../../../../../../../../../gogoproto/gogo_pb";
+
+export class FilterTransformations extends jspb.Message {
+  clearTransformationsList(): void;
+  getTransformationsList(): Array<TransformationRule>;
+  setTransformationsList(value: Array<TransformationRule>): void;
+  addTransformations(value?: TransformationRule, index?: number): TransformationRule;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): FilterTransformations.AsObject;
+  static toObject(includeInstance: boolean, msg: FilterTransformations): FilterTransformations.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: FilterTransformations, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): FilterTransformations;
+  static deserializeBinaryFromReader(message: FilterTransformations, reader: jspb.BinaryReader): FilterTransformations;
+}
+
+export namespace FilterTransformations {
+  export type AsObject = {
+    transformationsList: Array<TransformationRule.AsObject>,
+  }
+}
+
+export class TransformationRule extends jspb.Message {
+  hasMatch(): boolean;
+  clearMatch(): void;
+  getMatch(): envoy_api_v2_route_route_pb.RouteMatch | undefined;
+  setMatch(value?: envoy_api_v2_route_route_pb.RouteMatch): void;
+
+  hasRouteTransformations(): boolean;
+  clearRouteTransformations(): void;
+  getRouteTransformations(): RouteTransformations | undefined;
+  setRouteTransformations(value?: RouteTransformations): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransformationRule.AsObject;
+  static toObject(includeInstance: boolean, msg: TransformationRule): TransformationRule.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransformationRule, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransformationRule;
+  static deserializeBinaryFromReader(message: TransformationRule, reader: jspb.BinaryReader): TransformationRule;
+}
+
+export namespace TransformationRule {
+  export type AsObject = {
+    match?: envoy_api_v2_route_route_pb.RouteMatch.AsObject,
+    routeTransformations?: RouteTransformations.AsObject,
+  }
+}
 
 export class RouteTransformations extends jspb.Message {
   hasRequestTransformation(): boolean;

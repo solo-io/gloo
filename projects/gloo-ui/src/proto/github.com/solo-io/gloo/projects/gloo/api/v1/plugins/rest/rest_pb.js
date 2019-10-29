@@ -13,7 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_parameters_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb.js');
 goog.exportSymbol('proto.rest.plugins.gloo.solo.io.DestinationSpec', null, global);
 goog.exportSymbol('proto.rest.plugins.gloo.solo.io.ServiceSpec', null, global);
@@ -478,7 +478,7 @@ proto.rest.plugins.gloo.solo.io.DestinationSpec.toObject = function(includeInsta
   var f, obj = {
     functionName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     parameters: (f = msg.getParameters()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_parameters_pb.Parameters.toObject(includeInstance, f),
-    responseTransformation: (f = msg.getResponseTransformation()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate.toObject(includeInstance, f)
+    responseTransformation: (f = msg.getResponseTransformation()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -525,8 +525,8 @@ proto.rest.plugins.gloo.solo.io.DestinationSpec.deserializeBinaryFromReader = fu
       msg.setParameters(value);
       break;
     case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
     default:
@@ -578,7 +578,7 @@ proto.rest.plugins.gloo.solo.io.DestinationSpec.serializeBinaryToWriter = functi
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.serializeBinaryToWriter
     );
   }
 };
@@ -635,7 +635,7 @@ proto.rest.plugins.gloo.solo.io.DestinationSpec.prototype.hasParameters = functi
  */
 proto.rest.plugins.gloo.solo.io.DestinationSpec.prototype.getResponseTransformation = function() {
   return /** @type{?proto.envoy.api.v2.filter.http.TransformationTemplate} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate, 3));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate, 3));
 };
 
 

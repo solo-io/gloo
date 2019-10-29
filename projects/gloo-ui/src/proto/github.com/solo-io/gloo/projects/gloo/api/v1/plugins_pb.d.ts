@@ -28,15 +28,16 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/stats/stats_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/healthcheck/healthcheck_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/jwt/jwt_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/waf/waf_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/dlp/dlp_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
@@ -96,6 +97,11 @@ export class HttpListenerPlugins extends jspb.Message {
   getWaf(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings | undefined;
   setWaf(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings): void;
 
+  hasDlp(): boolean;
+  clearDlp(): void;
+  getDlp(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.FilterConfig | undefined;
+  setDlp(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.FilterConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerPlugins): HttpListenerPlugins.AsObject;
@@ -113,6 +119,7 @@ export namespace HttpListenerPlugins {
     healthCheck?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_healthcheck_healthcheck_pb.HealthCheck.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings.AsObject,
+    dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.FilterConfig.AsObject,
   }
 }
 
@@ -166,8 +173,8 @@ export class VirtualHostPlugins extends jspb.Message {
 
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
+  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
 
   hasRatelimitBasic(): boolean;
   clearRatelimitBasic(): void;
@@ -199,6 +206,11 @@ export class VirtualHostPlugins extends jspb.Message {
   getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension | undefined;
   setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension): void;
 
+  hasDlp(): boolean;
+  clearDlp(): void;
+  getDlp(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config | undefined;
+  setDlp(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -216,21 +228,22 @@ export namespace VirtualHostPlugins {
     stats?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats.AsObject,
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
     cors?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_cors_cors_pb.CorsPolicy.AsObject,
-    transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
     ratelimitBasic?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimit?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_waf_waf_pb.Settings.AsObject,
     jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.VhostExtension.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.ExtensionSettings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
+    dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config.AsObject,
   }
 }
 
 export class RoutePlugins extends jspb.Message {
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
+  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
 
   hasFaults(): boolean;
   clearFaults(): void;
@@ -322,6 +335,11 @@ export class RoutePlugins extends jspb.Message {
   getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension | undefined;
   setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension): void;
 
+  hasDlp(): boolean;
+  clearDlp(): void;
+  getDlp(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config | undefined;
+  setDlp(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config): void;
+
   getHostRewriteTypeCase(): RoutePlugins.HostRewriteTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
@@ -335,7 +353,7 @@ export class RoutePlugins extends jspb.Message {
 
 export namespace RoutePlugins {
   export type AsObject = {
-    transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
     faults?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb.RouteFaults.AsObject,
     prefixRewrite?: google_protobuf_wrappers_pb.StringValue.AsObject,
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
@@ -354,6 +372,7 @@ export namespace RoutePlugins {
     jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_jwt_jwt_pb.RouteExtension.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.ExtensionSettings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
+    dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_dlp_dlp_pb.Config.AsObject,
   }
 
   export enum HostRewriteTypeCase {
@@ -420,8 +439,8 @@ export class WeightedDestinationPlugins extends jspb.Message {
 
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
+  setTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
 
   hasExtensions(): boolean;
   clearExtensions(): void;
@@ -446,7 +465,7 @@ export class WeightedDestinationPlugins extends jspb.Message {
 export namespace WeightedDestinationPlugins {
   export type AsObject = {
     headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
-    transformations?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
   }

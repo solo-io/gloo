@@ -7,9 +7,9 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
-	"github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"gopkg.in/square/go-jose.v2"
 
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
@@ -18,6 +18,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
@@ -66,8 +67,8 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		}
 
 		route = &v1.Route{
-			Matchers: []*v1.Matcher{{
-				PathSpecifier: &v1.Matcher_Prefix{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Prefix{
 					Prefix: "/",
 				},
 			}},

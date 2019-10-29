@@ -160,6 +160,8 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*.proto

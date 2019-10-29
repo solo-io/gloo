@@ -19,11 +19,13 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 import {
   Destination,
+  RouteAction
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
   HeaderMatcher,
   Matcher,
   QueryParameterMatcher,
-  RouteAction
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import {
@@ -325,9 +327,9 @@ export function setInputRouteValues(route: Route.AsObject) {
         extauth
       } = route.routePlugins;
       if (prefixRewrite !== undefined) {
-        let updatedPrefixRewrite = new StringValue();
-        updatedPrefixRewrite.setValue(prefixRewrite.value)
-        updatedRoutePlugins.setPrefixRewrite(updatedPrefixRewrite);
+        let stringValue = new StringValue();
+        stringValue.setValue(prefixRewrite.value);
+        updatedRoutePlugins.setPrefixRewrite(stringValue);
       }
       updatedRoute.setRoutePlugins(updatedRoutePlugins);
     }

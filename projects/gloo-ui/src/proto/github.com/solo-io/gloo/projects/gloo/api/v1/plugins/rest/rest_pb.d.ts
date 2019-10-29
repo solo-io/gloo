@@ -3,11 +3,11 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_parameters_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb";
 
 export class ServiceSpec extends jspb.Message {
-  getTransformationsMap(): jspb.Map<string, github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate>;
+  getTransformationsMap(): jspb.Map<string, github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate>;
   clearTransformationsMap(): void;
   hasSwaggerInfo(): boolean;
   clearSwaggerInfo(): void;
@@ -26,7 +26,7 @@ export class ServiceSpec extends jspb.Message {
 
 export namespace ServiceSpec {
   export type AsObject = {
-    transformationsMap: Array<[string, github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate.AsObject]>,
+    transformationsMap: Array<[string, github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.AsObject]>,
     swaggerInfo?: ServiceSpec.SwaggerInfo.AsObject,
   }
 
@@ -77,8 +77,8 @@ export class DestinationSpec extends jspb.Message {
 
   hasResponseTransformation(): boolean;
   clearResponseTransformation(): void;
-  getResponseTransformation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate | undefined;
-  setResponseTransformation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate): void;
+  getResponseTransformation(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate | undefined;
+  setResponseTransformation(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DestinationSpec.AsObject;
@@ -94,7 +94,7 @@ export namespace DestinationSpec {
   export type AsObject = {
     functionName: string,
     parameters?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_parameters_pb.Parameters.AsObject,
-    responseTransformation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb.TransformationTemplate.AsObject,
+    responseTransformation?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.AsObject,
   }
 }
 

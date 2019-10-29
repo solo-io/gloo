@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -58,8 +59,8 @@ func (m *QuoteUnquoteMesh) getSelfListener(svcIndex int) *gloov1.Listener {
 					Name:    "virt-self",
 					Domains: []string{"*"},
 					Routes: []*gloov1.Route{{
-						Matchers: []*gloov1.Matcher{{
-							PathSpecifier: &gloov1.Matcher_Prefix{
+						Matchers: []*matchers.Matcher{{
+							PathSpecifier: &matchers.Matcher_Prefix{
 								Prefix: "/",
 							},
 						}},
@@ -202,8 +203,8 @@ func (m *QuoteUnquoteMesh) Start(ef *EnvoyFactory, testClients TestClients, serv
 							Name:    fmt.Sprintf("virt-%d-to-%d", i, j),
 							Domains: []string{"*"},
 							Routes: []*gloov1.Route{{
-								Matchers: []*gloov1.Matcher{{
-									PathSpecifier: &gloov1.Matcher_Prefix{
+								Matchers: []*matchers.Matcher{{
+									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: "/",
 									},
 								}},

@@ -733,7 +733,8 @@ proto.ratelimit.plugins.gloo.solo.io.Settings.toObject = function(includeInstanc
   var f, obj = {
     ratelimitServerRef: (f = msg.getRatelimitServerRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    denyOnFail: jspb.Message.getFieldWithDefault(msg, 3, false)
+    denyOnFail: jspb.Message.getFieldWithDefault(msg, 3, false),
+    rateLimitBeforeAuth: jspb.Message.getFieldWithDefault(msg, 9, false)
   };
 
   if (includeInstance) {
@@ -784,6 +785,10 @@ proto.ratelimit.plugins.gloo.solo.io.Settings.deserializeBinaryFromReader = func
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setDenyOnFail(value);
       break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRateLimitBeforeAuth(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -833,6 +838,13 @@ proto.ratelimit.plugins.gloo.solo.io.Settings.serializeBinaryToWriter = function
   if (f) {
     writer.writeBool(
       3,
+      f
+    );
+  }
+  f = message.getRateLimitBeforeAuth();
+  if (f) {
+    writer.writeBool(
+      9,
       f
     );
   }
@@ -913,6 +925,23 @@ proto.ratelimit.plugins.gloo.solo.io.Settings.prototype.getDenyOnFail = function
 /** @param {boolean} value */
 proto.ratelimit.plugins.gloo.solo.io.Settings.prototype.setDenyOnFail = function(value) {
   jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional bool rate_limit_before_auth = 9;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.ratelimit.plugins.gloo.solo.io.Settings.prototype.getRateLimitBeforeAuth = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 9, false));
+};
+
+
+/** @param {boolean} value */
+proto.ratelimit.plugins.gloo.solo.io.Settings.prototype.setRateLimitBeforeAuth = function(value) {
+  jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 

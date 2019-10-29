@@ -16,11 +16,13 @@ import {
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import {
   Destination,
+  RouteAction
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
   HeaderMatcher,
   Matcher,
   QueryParameterMatcher,
-  RouteAction
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 import {
   CallCredentials,
   SDSConfig,

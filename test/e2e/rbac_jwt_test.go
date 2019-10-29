@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -25,9 +26,9 @@ import (
 
 	"github.com/fgrosse/zaptest"
 	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -543,8 +544,8 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					Jwt:  getDisabledJwt(),
 					Rbac: getDisabledRbac(),
 				},
-				Matchers: []*gloov1.Matcher{{
-					PathSpecifier: &gloov1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/public_route",
 					},
 				}},
@@ -564,8 +565,8 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					// Disable JWT and not RBAC, so that no one can get here
 					Jwt: getDisabledJwt(),
 				},
-				Matchers: []*gloov1.Matcher{{
-					PathSpecifier: &gloov1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/private_route",
 					},
 				}},
@@ -595,12 +596,12 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					// Disable RBAC and not JWT, for authn only tests
 					Rbac: getDisabledRbac(),
 				},
-				Matchers: []*gloov1.Matcher{{
-					Headers: []*gloov1.HeaderMatcher{{
+				Matchers: []*matchers.Matcher{{
+					Headers: []*matchers.HeaderMatcher{{
 						Name:  "x-sub",
 						Value: "teatime",
 					}},
-					PathSpecifier: &gloov1.Matcher_Prefix{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/authnonly",
 					},
 				}},
@@ -620,8 +621,8 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					// Disable RBAC and not JWT, for authn only tests
 					Rbac: getDisabledRbac(),
 				},
-				Matchers: []*gloov1.Matcher{{
-					PathSpecifier: &gloov1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/authnonly",
 					},
 				}},
@@ -637,8 +638,8 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
-				Matchers: []*gloov1.Matcher{{
-					PathSpecifier: &gloov1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/",
 					},
 				}},

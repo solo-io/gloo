@@ -20,6 +20,7 @@ var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.Route', null, global);
 goog.exportSymbol('proto.gateway.solo.io.VirtualHost', null, global);
 goog.exportSymbol('proto.gateway.solo.io.VirtualService', null, global);
@@ -748,7 +749,7 @@ proto.gateway.solo.io.Route.prototype.toObject = function(opt_includeInstance) {
 proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
   var f, obj = {
     matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
-    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.toObject, includeInstance),
+    github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.toObject, includeInstance),
     routeAction: (f = msg.getRouteAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
@@ -791,8 +792,8 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.deserializeBinaryFromReader);
       msg.addMatchers(value);
       break;
     case 2:
@@ -854,7 +855,7 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
     writer.writeRepeatedMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.serializeBinaryToWriter
     );
   }
   f = message.getRouteAction();
@@ -901,28 +902,28 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
 
 
 /**
- * repeated gloo.solo.io.Matcher matchers = 1;
- * @return {!Array<!proto.gloo.solo.io.Matcher>}
+ * repeated matchers.core.gloo.solo.io.Matcher matchers = 1;
+ * @return {!Array<!proto.matchers.core.gloo.solo.io.Matcher>}
  */
 proto.gateway.solo.io.Route.prototype.getMatchersList = function() {
-  return /** @type{!Array<!proto.gloo.solo.io.Matcher>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Matcher, 1));
+  return /** @type{!Array<!proto.matchers.core.gloo.solo.io.Matcher>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher, 1));
 };
 
 
-/** @param {!Array<!proto.gloo.solo.io.Matcher>} value */
+/** @param {!Array<!proto.matchers.core.gloo.solo.io.Matcher>} value */
 proto.gateway.solo.io.Route.prototype.setMatchersList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.gloo.solo.io.Matcher=} opt_value
+ * @param {!proto.matchers.core.gloo.solo.io.Matcher=} opt_value
  * @param {number=} opt_index
- * @return {!proto.gloo.solo.io.Matcher}
+ * @return {!proto.matchers.core.gloo.solo.io.Matcher}
  */
 proto.gateway.solo.io.Route.prototype.addMatchers = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Matcher, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.matchers.core.gloo.solo.io.Matcher, opt_index);
 };
 
 

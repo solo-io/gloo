@@ -59,7 +59,7 @@ import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import {
   TransformationTemplate,
   InjaTemplate
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb';
 import {
   SubsetSpec,
   Selector

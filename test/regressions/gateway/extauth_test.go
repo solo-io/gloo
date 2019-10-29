@@ -7,6 +7,7 @@ import (
 	"time"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -472,8 +473,8 @@ var _ = Describe("External auth", func() {
 						Routes: []*gatewayv1.Route{
 							{
 								RoutePlugins: pluginsForRoute1,
-								Matchers: []*gloov1.Matcher{{
-									PathSpecifier: &gloov1.Matcher_Prefix{
+								Matchers: []*matchers.Matcher{{
+									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/1",
 									},
 								}},
@@ -497,8 +498,8 @@ var _ = Describe("External auth", func() {
 							},
 							{
 								RoutePlugins: pluginsForRoute2,
-								Matchers: []*gloov1.Matcher{{
-									PathSpecifier: &gloov1.Matcher_Prefix{
+								Matchers: []*matchers.Matcher{{
+									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/2",
 									},
 								}},
@@ -659,8 +660,8 @@ var _ = Describe("External auth", func() {
 						Domains: []string{"*"},
 						Routes: []*gatewayv1.Route{
 							{
-								Matchers: []*gloov1.Matcher{{
-									PathSpecifier: &gloov1.Matcher_Prefix{
+								Matchers: []*matchers.Matcher{{
+									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: testMatcherPrefix,
 									},
 								}},

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/go-utils/errors"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -260,13 +261,28 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 	}, "15s", "0.5s").Should(BeTrue())
 }
 
-var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceClient, virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins, sslConfig *gloov1.SslConfig) {
+func writeVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
+	virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins,
+	sslConfig *gloov1.SslConfig) {
+
+	upstreamRef := &core.ResourceRef{
+		Namespace: testHelper.InstallNamespace,
+		Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort),
+	}
+	writeCustomVirtualService(ctx, vsClient, virtualHostPlugins, routePlugins, sslConfig, upstreamRef)
+}
+
+func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
+	virtualHostPlugins *gloov1.VirtualHostPlugins, routePlugins *gloov1.RoutePlugins,
+	sslConfig *gloov1.SslConfig, upstreamRef *core.ResourceRef) {
 
 	if routePlugins.GetPrefixRewrite() == nil {
 		if routePlugins == nil {
 			routePlugins = &gloov1.RoutePlugins{}
 		}
-		routePlugins.PrefixRewrite = &types.StringValue{Value: "/"}
+		routePlugins.PrefixRewrite = &types.StringValue{
+			Value: "/",
+		}
 	}
 
 	// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the
@@ -284,8 +300,8 @@ var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceCl
 				Domains:            []string{"*"},
 				Routes: []*v1.Route{{
 					RoutePlugins: routePlugins,
-					Matchers: []*gloov1.Matcher{{
-						PathSpecifier: &gloov1.Matcher_Prefix{
+					Matchers: []*matchers.Matcher{{
+						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: testMatcherPrefix,
 						},
 					}},
@@ -294,9 +310,7 @@ var writeVirtualService = func(ctx context.Context, vsClient v1.VirtualServiceCl
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: &core.ResourceRef{
-											Namespace: testHelper.InstallNamespace,
-											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
+										Upstream: upstreamRef,
 									},
 								},
 							},

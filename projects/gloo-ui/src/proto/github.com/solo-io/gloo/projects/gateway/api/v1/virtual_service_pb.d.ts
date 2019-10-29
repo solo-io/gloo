@@ -10,6 +10,7 @@ import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb";
 
 export class VirtualService extends jspb.Message {
   hasVirtualHost(): boolean;
@@ -101,9 +102,9 @@ export namespace VirtualHost {
 
 export class Route extends jspb.Message {
   clearMatchersList(): void;
-  getMatchersList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher>;
-  setMatchersList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher>): void;
-  addMatchers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher;
+  getMatchersList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher>;
+  setMatchersList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher>): void;
+  addMatchers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher;
 
   hasRouteAction(): boolean;
   clearRouteAction(): void;
@@ -143,7 +144,7 @@ export class Route extends jspb.Message {
 
 export namespace Route {
   export type AsObject = {
-    matchersList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Matcher.AsObject>,
+    matchersList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.AsObject>,
     routeAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.AsObject,
     redirectAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,

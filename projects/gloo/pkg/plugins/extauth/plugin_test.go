@@ -5,18 +5,19 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
-	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -60,8 +61,8 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			route = &v1.Route{
-				Matchers: []*v1.Matcher{{
-					PathSpecifier: &v1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/",
 					},
 				}},
@@ -303,8 +304,8 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			route = &v1.Route{
-				Matchers: []*v1.Matcher{{
-					PathSpecifier: &v1.Matcher_Prefix{
+				Matchers: []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/",
 					},
 				}},

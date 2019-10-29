@@ -2,13 +2,14 @@ package waf
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -219,8 +220,8 @@ var _ = Describe("waf plugin", func() {
 			wafRoute = &waf.Settings{}
 		}
 		route = &v1.Route{
-			Matchers: []*v1.Matcher{{
-				PathSpecifier: &v1.Matcher_Prefix{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Prefix{
 					Prefix: "/",
 				},
 			}},

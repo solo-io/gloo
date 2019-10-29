@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/reporting-client/pkg/client"
 	"go.uber.org/zap"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
@@ -60,6 +61,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 			rbac.NewPlugin(),
 			jwt.NewPlugin(),
 			waf.NewPlugin(),
+			dlp.NewPlugin(),
 		},
 	}
 }
