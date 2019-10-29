@@ -1,6 +1,6 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
-{{- if not $extAuth.envoySidecar }}
+{{- if $extAuth.standaloneDeployment }}
 apiVersion: v1
 kind: Service
 metadata:

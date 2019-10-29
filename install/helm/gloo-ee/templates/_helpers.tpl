@@ -9,18 +9,47 @@ Expand the name of the chart.
 {{- if .Values.global.extensions.extAuth.envoySidecar -}}
 {{- range $proxyName, $proxy := .Values.gatewayProxies -}}
 {{- $_ := set (index $.Values.gatewayProxies $proxyName) "extraContainersHelper" "gloo.extauthcontainer" -}}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.extauthinitcontainers" -}}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraVolumeHelper" "gloo.extauthpluginvolume" -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 
+{{/* Volume definition needed for ext auth plugin setup */}}
+{{- define "gloo.extauthpluginvolume" -}}
+- emptyDir: {}
+  name: auth-plugins
+{{- end -}}
+
+{{/* Init container definition for extauth plugin setup */}}
+{{- define "gloo.extauthinitcontainers" -}}
+{{- $extAuth := .Values.global.extensions.extAuth -}}
+{{- range $name, $plugin := $extAuth.plugins -}}
+{{- $pluginImage := merge $plugin.image $.Values.global.image -}}
+- image: {{template "gloo.image" $pluginImage}}
+  {{- if $pluginImage.pullPolicy }}
+  imagePullPolicy: {{ $pluginImage.pullPolicy }}
+  {{- end}}
+  name: plugin-{{ $name }}
+  volumeMounts:
+    - name: auth-plugins
+      mountPath: /auth-plugins
+{{- end}}
+{{- end}}
+
 {{/* Container definition for extauth, used in extauth deployment and
-     gateway-proxy (envoy) sidecar over unix domain socket */}}
+     gateway-proxy (envoy) sidecar over unix domain socket
+
+     Expects both the keys Values and ExtAuthMode in its root context, with the latter
+     taking either the value "sidecar" or "standalone". It will default to "sidecar"
+     if the value is not provided. */}}
 {{- define "gloo.extauthcontainer" -}}
 {{- $extAuth := .Values.global.extensions.extAuth -}}
 {{- $image := $extAuth.deployment.image -}}
 {{- if .Values.global -}}
 {{- $image = merge $extAuth.deployment.image .Values.global.image -}}
 {{- end -}}
+{{- $extAuthMode := default "sidecar" .ExtAuthMode -}}
 - image: {{template "gloo.image" $image}}
   imagePullPolicy: {{ $image.pullPolicy }}
   name: {{ $extAuth.deployment.name }}
@@ -54,7 +83,7 @@ Expand the name of the chart.
     - name: SERVER_PORT
       value: {{ $extAuth.deployment.port  | quote }}
     {{- end }}
-    {{- if $extAuth.envoySidecar }}
+    {{- if eq $extAuthMode "sidecar" }}
     - name: UDS_ADDR
       value: "/usr/share/shared-data/.sock"
     {{- end }}
@@ -66,9 +95,9 @@ Expand the name of the chart.
     - name: START_STATS_SERVER
       value: "true"
     {{- end}}
-  {{- if or $extAuth.plugins $extAuth.envoySidecar }}
+  {{- if or $extAuth.plugins (eq $extAuthMode "sidecar") }}
   volumeMounts:
-  {{- if $extAuth.envoySidecar }}
+  {{- if eq $extAuthMode "sidecar" }}
   - name: shared-data
     mountPath: /usr/share/shared-data
   {{- end }}

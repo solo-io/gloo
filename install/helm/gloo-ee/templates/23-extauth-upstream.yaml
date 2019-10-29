@@ -1,5 +1,23 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
+
+{{- if $extAuth.envoySidecar }}
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  labels:
+    app: gloo
+    gloo: {{ $extAuth.service.name }}
+  name: {{ $extAuth.service.name }}-sidecar
+  namespace: {{ .Release.Namespace }}
+spec:
+  upstreamSpec:
+    use_http2: true
+    pipe:
+      path: "/usr/share/shared-data/.sock"
+{{- end }}
+---
+{{- if $extAuth.standaloneDeployment }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
@@ -11,10 +29,6 @@ metadata:
 spec:
   upstreamSpec:
     use_http2: true
-    {{- if $extAuth.envoySidecar }}
-    pipe:
-      path: "/usr/share/shared-data/.sock"
-    {{- else }}
     healthChecks:
     - timeout: 5s
       interval: 1m
@@ -28,5 +42,5 @@ spec:
       servicePort:  {{ $extAuth.service.port }}
       serviceSpec:
         grpc: {}
-    {{- end }}
-{{- end }} # enabled
+{{- end }}
+{{- end }}

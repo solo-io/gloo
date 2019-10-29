@@ -29,6 +29,11 @@ const (
 	SanitizeFilterName = "io.solo.filters.http.sanitize"
 	FilterName         = "envoy.ext_authz"
 	DefaultAuthHeader  = "x-user-id"
+
+	// when extauth is deployed into a sidecar in the envoy pod, an upstream should
+	// be created that points to that sidecar and has this name. A regression test
+	// attempts to talk to that upstream
+	SidecarUpstreamName = "extauth-sidecar"
 )
 
 var (

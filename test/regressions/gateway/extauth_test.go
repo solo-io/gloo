@@ -64,6 +64,7 @@ var _ = Describe("External auth", func() {
 		proxyClient          gloov1.ProxyClient
 		virtualServiceClient gatewayv1.VirtualServiceClient
 		authConfigClient     extauthapi.AuthConfigClient
+		settingsClient       gloov1.SettingsClient
 
 		err error
 	)
@@ -121,6 +122,11 @@ var _ = Describe("External auth", func() {
 			Cfg:         cfg,
 			SharedCache: kubeCache,
 		}
+		settingsClientFactory := &factory.KubeResourceClientFactory{
+			Crd:         gloov1.SettingsCrd,
+			Cfg:         cfg,
+			SharedCache: kubeCache,
+		}
 
 		authConfigClient, err = extauthapi.NewAuthConfigClient(authConfigClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -133,6 +139,9 @@ var _ = Describe("External auth", func() {
 
 		proxyClient, err = gloov1.NewProxyClient(proxyClientFactory)
 		Expect(err).NotTo(HaveOccurred())
+
+		settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
+		Expect(err).NotTo(HaveOccurred(), "Should be able to build a settings client")
 	})
 
 	AfterEach(func() {
@@ -241,6 +250,25 @@ var _ = Describe("External auth", func() {
 		})
 
 		When("using the new auth config format", func() {
+			allTests := func() {
+				It("works as expected ", func() {
+					By("returns 401 if no authentication header is provided", func() {
+						curlAndAssertResponse(testMatcherPrefix, nil, response401)
+					})
+
+					By("returns 401 if the user is unknown", func() {
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("john:doe"), response401)
+					})
+
+					By("returns 200 if the user belongs to one of the allowed groups", func() {
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
+					})
+
+					By("returns 403 if the user does not belong to the allowed groups", func() {
+						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
+					})
+				})
+			}
 
 			BeforeEach(func() {
 				authConfig, err := authConfigClient.Write(&extauthapi.AuthConfig{
@@ -264,23 +292,40 @@ var _ = Describe("External auth", func() {
 				}
 			})
 
-			It("works as expected", func() {
+			AfterEach(func() {
+				err := authConfigClient.Delete(testHelper.InstallNamespace, "ldap", clients.DeleteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-				By("returns 401 if no authentication header is provided", func() {
-					curlAndAssertResponse(testMatcherPrefix, nil, response401)
+			Context("as a standalone deployment", func() {
+				// no extra setup to do, just run the tests
+				allTests()
+			})
+
+			Context("as a sidecar", func() {
+				JustBeforeEach(func() {
+					settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth mode")
+
+					newRef := core.ResourceRef{
+						Name:      extauth.SidecarUpstreamName,
+						Namespace: testHelper.InstallNamespace,
+					}
+					extauthSettings := &extauthapi.Settings{
+						ExtauthzServerRef: &newRef,
+					}
+					settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
+					settings.Extensions = &gloov1.Extensions{
+						Configs: map[string]*types.Struct{
+							extauth.ExtensionName: settingsStruct,
+						},
+					}
+
+					_, err = settingsClient.Write(settings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
 				})
 
-				By("returns 401 if the user is unknown", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("john:doe"), response401)
-				})
-
-				By("returns 200 if the user belongs to one of the allowed groups", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
-				})
-
-				By("returns 403 if the user does not belong to the allowed groups", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
-				})
+				allTests()
 			})
 		})
 

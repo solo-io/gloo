@@ -153,6 +153,11 @@ gloo:
   settings:
     singleNamespace: true
     create: true
+global:
+  extensions:
+    extAuth:
+      # we want to deploy extauth as both a standalone deployment (the default) and as a sidecar in the envoy pod, so we can test both
+      envoySidecar: true
 `))
 	Expect(err).NotTo(HaveOccurred())
 	err = values.Close()

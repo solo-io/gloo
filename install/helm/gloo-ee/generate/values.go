@@ -95,14 +95,15 @@ type CustomGrafana struct {
 }
 
 type ExtAuth struct {
-	Enabled      bool                      `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
-	UserIdHeader string                    `json:"userIdHeader,omitempty"`
-	Deployment   *ExtAuthDeployment        `json:"deployment,omitempty"`
-	Service      *ExtAuthService           `json:"service,omitempty"`
-	SigningKey   *ExtAuthSigningKey        `json:"signingKey,omitempty"`
-	Plugins      map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
-	EnvoySidecar bool                      `json:"envoySidecar"`
-	ServiceName  string                    `json:"serviceName,omitempty"`
+	Enabled              bool                      `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
+	UserIdHeader         string                    `json:"userIdHeader,omitempty"`
+	Deployment           *ExtAuthDeployment        `json:"deployment,omitempty"`
+	Service              *ExtAuthService           `json:"service,omitempty"`
+	SigningKey           *ExtAuthSigningKey        `json:"signingKey,omitempty"`
+	Plugins              map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
+	EnvoySidecar         bool                      `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
+	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
+	ServiceName          string                    `json:"serviceName,omitempty"`
 }
 
 type ExtAuthDeployment struct {

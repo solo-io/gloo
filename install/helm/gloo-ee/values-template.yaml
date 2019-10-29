@@ -184,6 +184,7 @@ global:
   extensions:
     extAuth:
       enabled: true
+      standaloneDeployment: true
       envoySidecar: false
       serviceName: ext-auth
       userIdHeader: x-user-id
