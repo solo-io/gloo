@@ -116,6 +116,7 @@ func (p *Plugin) handleDeprecatedPluginConfig(params plugins.InitParams) error {
 	p.upstreamRef = settings.RatelimitServerRef
 	p.timeout = settings.RequestTimeout
 	p.denyOnFail = settings.DenyOnFail
+	p.rateLimitBeforeAuth = settings.RateLimitBeforeAuth
 	return nil
 }
 
@@ -169,6 +170,11 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 		return nil
 	}
 
+	if p.rateLimitBeforeAuth {
+		// IngressRateLimits are based on auth state, which is invalid if we have been told to do rate limiting before auth happens
+		return RateLimitAuthOrderingConflict
+	}
+
 	_, err = TranslateUserConfigToRateLimitServerConfig(in.Name, *rateLimit)
 	if err != nil {
 		return err
@@ -190,6 +196,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, filterStage)
+
 	if err != nil {
 		return nil, err
 	}

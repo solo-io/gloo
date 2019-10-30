@@ -112,7 +112,7 @@ func NewEnvoyFactory() (*EnvoyFactory, error) {
 
 		envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
 		if envoyImageTag == "" {
-			envoyImageTag = "latest"
+			panic("The ENVOY_IMAGE_TAG env var is not set. Find valid tag names here https://quay.io/repository/solo-io/gloo-ee-envoy-wrapper?tab=tags")
 		}
 		log.Printf("Using envoy docker image tag: %s", envoyImageTag)
 
@@ -300,7 +300,7 @@ func (ei *EnvoyInstance) Clean() error {
 func (ei *EnvoyInstance) runContainer() error {
 	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
 	if envoyImageTag == "" {
-		envoyImageTag = "latest"
+		panic("The ENVOY_IMAGE_TAG env var is not set. Find valid tag names here https://quay.io/repository/solo-io/gloo-ee-envoy-wrapper?tab=tags")
 	}
 
 	image := "quay.io/solo-io/gloo-ee-envoy-wrapper:" + envoyImageTag

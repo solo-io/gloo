@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 
 	"github.com/solo-io/go-utils/testutils/helper"
@@ -34,23 +37,33 @@ var _ = Describe("RateLimit tests", func() {
 		cancel context.CancelFunc
 		cfg    *rest.Config
 
-		cache                kube.SharedCache
-		gatewayClient        v2.GatewayClient
-		virtualServiceClient v1.VirtualServiceClient
+		cache                 kube.SharedCache
+		gatewayClient         v2.GatewayClient
+		virtualServiceClient  v1.VirtualServiceClient
+		settingsClient        gloov1.SettingsClient
+		uniqueDescriptorValue string
 	)
 
 	const (
+		response401 = "HTTP/1.1 401 Unauthorized"
 		response429 = "HTTP/1.1 429 Too Many Requests"
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-
 		var err error
 		cfg, err = kubeutils.GetConfig("", "")
 		Expect(err).NotTo(HaveOccurred())
-
 		cache = kube.NewKubeCache(ctx)
+		settingsClientFactory := &factory.KubeResourceClientFactory{
+			Crd:         gloov1.SettingsCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
+		}
+		settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+		uniqueDescriptorValue = uniqueDescriptorValue + "1"
+
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         v2.GatewayCrd,
 			Cfg:         cfg,
@@ -82,6 +95,22 @@ var _ = Describe("RateLimit tests", func() {
 		}, "15s", "0.5s").Should(Not(BeNil()))
 	}
 
+	checkAuthDenied := func() {
+		waitForGateway()
+
+		gatewayPort := 80
+		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+			Protocol:          "http",
+			Path:              testMatcherPrefix,
+			Method:            "GET",
+			Host:              defaults.GatewayProxyName,
+			Service:           defaults.GatewayProxyName,
+			Port:              gatewayPort,
+			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+			Verbose:           true,
+		}, response401, 1, time.Minute*5)
+	}
+
 	checkRateLimited := func() {
 		waitForGateway()
 
@@ -98,40 +127,26 @@ var _ = Describe("RateLimit tests", func() {
 		}, response429, 1, time.Minute*5)
 	}
 
-	It("can rate limit to upstream", func() {
+	Context("simple rate limiting", func() {
+		var (
+			ingressRateLimit = &ratelimit.IngressRateLimit{
+				AnonymousLimits: &ratelimit.RateLimit{
+					RequestsPerUnit: 1,
+					Unit:            ratelimit.RateLimit_HOUR,
+				},
+			}
+			virtualHostPlugins = &gloov1.VirtualHostPlugins{
+				RatelimitBasic: ingressRateLimit,
+			}
+		)
 
-		ingressRateLimit := &ratelimit.IngressRateLimit{
-			AnonymousLimits: &ratelimit.RateLimit{
-				RequestsPerUnit: 1,
-				Unit:            ratelimit.RateLimit_HOUR,
-			},
-		}
-
-		virtualHostPlugins := &gloov1.VirtualHostPlugins{
-			RatelimitBasic: ingressRateLimit,
-		}
-
-		writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
-		checkRateLimited()
+		It("can rate limit to upstream", func() {
+			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+			checkRateLimited()
+		})
 	})
 
 	Context("raw rate limit", func() {
-		var (
-			settingsClient gloov1.SettingsClient
-			value          string
-		)
-		BeforeEach(func() {
-			settingsClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         gloov1.SettingsCrd,
-				Cfg:         cfg,
-				SharedCache: cache,
-			}
-			var err error
-			settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
-			Expect(err).NotTo(HaveOccurred())
-			value = value + "1"
-		})
-
 		BeforeEach(func() {
 			// Write rate limit service config to settings
 			settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
@@ -140,7 +155,7 @@ var _ = Describe("RateLimit tests", func() {
 			rlSettings := ratelimitpb.ServiceSettings{
 				Descriptors: []*ratelimitpb.Descriptor{{
 					Key:   "generic_key",
-					Value: value,
+					Value: uniqueDescriptorValue,
 					RateLimit: &ratelimitpb.RateLimit{
 						RequestsPerUnit: 0,
 						Unit:            ratelimitpb.RateLimit_SECOND,
@@ -153,6 +168,107 @@ var _ = Describe("RateLimit tests", func() {
 
 		})
 
+		Context("with ext auth also configured", func() {
+			BeforeEach(func() {
+				kubeCache := kube.NewKubeCache(ctx)
+				authConfigClientFactory := &factory.KubeResourceClientFactory{
+					Crd:         extauthv1.AuthConfigCrd,
+					Cfg:         cfg,
+					SharedCache: kubeCache,
+				}
+				authConfigClient, err := extauthv1.NewAuthConfigClient(authConfigClientFactory)
+				Expect(err).NotTo(HaveOccurred(), "Should create auth config client")
+				authConfig, err := authConfigClient.Write(&extauthv1.AuthConfig{
+					Metadata: core.Metadata{
+						Name:      "basic-auth",
+						Namespace: testHelper.InstallNamespace,
+					},
+					Configs: []*extauthv1.AuthConfig_Config{{
+						AuthConfig: &extauthv1.AuthConfig_Config_BasicAuth{
+							BasicAuth: &extauthv1.BasicAuth{
+								Realm: "",
+								Apr: &extauthv1.BasicAuth_Apr{
+									Users: map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword{
+										"user": {
+											// garbage salt and hash- we want all requests to come back as unauthorized when they hit extauth
+											Salt:           "intentionally-garbage-password-salt",
+											HashedPassword: "intentionally-garbage-password-hash",
+										},
+									},
+								},
+							},
+						},
+					}},
+				}, clients.WriteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred(), "Should write auth config")
+
+				authConfigRef := authConfig.Metadata.Ref()
+				extAuthConfigProto := &extauthv1.ExtAuthExtension{
+					Spec: &extauthv1.ExtAuthExtension_ConfigRef{
+						ConfigRef: &authConfigRef,
+					},
+				}
+
+				ratelimitExtension := &ratelimitpb.RateLimitVhostExtension{
+					RateLimits: []*ratelimitpb.RateLimitActions{{
+						Actions: []*ratelimitpb.Action{{
+							ActionSpecifier: &ratelimitpb.Action_GenericKey_{
+								GenericKey: &ratelimitpb.Action_GenericKey{
+									DescriptorValue: uniqueDescriptorValue,
+								},
+							},
+						}},
+					}},
+				}
+
+				virtualHostPlugins := &gloov1.VirtualHostPlugins{
+					Ratelimit: ratelimitExtension,
+					Extauth:   extAuthConfigProto,
+				}
+
+				settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
+				Expect(err).NotTo(HaveOccurred(), "Should read settings")
+
+				timeout := time.Second
+				settings.RatelimitServer = &ratelimit.Settings{
+					RatelimitServerRef: &core.ResourceRef{
+						Name:      "rate-limit",
+						Namespace: testHelper.InstallNamespace,
+					},
+					RequestTimeout:      &timeout,
+					RateLimitBeforeAuth: false, // start as false to make sure that we correctly get denied by authZ before rate limited
+				}
+				settings.Extauth = &extauthv1.Settings{
+					ExtauthzServerRef: &core.ResourceRef{
+						Name:      "extauth",
+						Namespace: testHelper.InstallNamespace,
+					},
+				}
+				_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
+				Expect(err).NotTo(HaveOccurred(), "Should write settings")
+				writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+
+				// should hit auth before getting rate limited by default
+				checkAuthDenied()
+
+				settings, err = settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
+				Expect(err).NotTo(HaveOccurred(), "Should read settings to set RateLimitBeforeAuth")
+
+				settings.RatelimitServer.RateLimitBeforeAuth = true
+
+				_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
+				Expect(err).NotTo(HaveOccurred(), "Should write settings with RateLimitBeforeAuth set")
+			})
+
+			It("can rate limit before hitting the auth server when so configured", func() {
+				// normally, ext auth runs before rate limiting. So since we've set up ext auth to block every request that comes in,
+				// we would normally expect all requests to come back with a 401. But we've *also* set `RateLimitBeforeAuth` on the rate
+				// limit settings, which means that now we expect rate limit to run before ext auth. So eventually, this next function
+				// call will result in curl eventually NOT receiving a 401 and instead receiving a 429, as expected
+				checkRateLimited()
+			})
+		})
+
 		It("can rate limit to upstream vhost", func() {
 
 			ratelimitExtension := &ratelimitpb.RateLimitVhostExtension{
@@ -160,7 +276,7 @@ var _ = Describe("RateLimit tests", func() {
 					Actions: []*ratelimitpb.Action{{
 						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
 							GenericKey: &ratelimitpb.Action_GenericKey{
-								DescriptorValue: value,
+								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
 					}},
@@ -182,7 +298,7 @@ var _ = Describe("RateLimit tests", func() {
 					Actions: []*ratelimitpb.Action{{
 						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
 							GenericKey: &ratelimitpb.Action_GenericKey{
-								DescriptorValue: value,
+								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
 					}},
@@ -204,7 +320,7 @@ var _ = Describe("RateLimit tests", func() {
 					Actions: []*ratelimitpb.Action{{
 						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
 							GenericKey: &ratelimitpb.Action_GenericKey{
-								DescriptorValue: value,
+								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
 					}},
