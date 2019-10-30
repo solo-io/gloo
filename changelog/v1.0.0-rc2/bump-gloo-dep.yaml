@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: cd82e4e556153462b57135876db0c695998ebcbf
+    description: Update gloo to revision cd82e4e556153462b57135876db0c695998ebcbf.

@@ -1312,7 +1312,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:d1439c1ac273cddd86cf5c0ddf0be2d7277e9973b2d208fe67075c5ffb8a1462"
+  digest = "1:68c734d0226147b4381bc6705ba52255196be8a8b48a6f3558d13e66e88632fd"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1452,7 +1452,7 @@
     "test/v1helpers/test_grpc_service/glootest/protos",
   ]
   pruneopts = "UT"
-  revision = "aecc817f3ebb782befdbd9ba2ea8cd0219118d1b"
+  revision = "cd82e4e556153462b57135876db0c695998ebcbf"
 
 [[projects]]
   digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
