@@ -76,9 +76,10 @@ type RedisService struct {
 }
 
 type Observability struct {
-	Enabled       bool                     `json:"enabled,omitempty" desc:"if true, deploy observability service (default true)"`
-	Deployment    *ObservabilityDeployment `json:"deployment,omitempty"`
-	CustomGrafana *CustomGrafana           `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
+	Enabled                   bool                     `json:"enabled,omitempty" desc:"if true, deploy observability service (default true)"`
+	Deployment                *ObservabilityDeployment `json:"deployment,omitempty"`
+	CustomGrafana             *CustomGrafana           `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
+	UpstreamDashboardTemplate string                   `json:"upstreamDashboardTemplate" desc:"Provide a custom dashboard template to use when generating per-upstream dashboards. The only variables available for use in this template are: {{.Uid}} and {{.EnvoyClusterName}}. Recommended to use Helm's --set-file to provide this value."`
 }
 
 type ObservabilityDeployment struct {

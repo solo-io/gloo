@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Allow customization of the template used to generate per-upstream dashboards. This is accomplished through
+      the addition of the new Helm setting observability.upstreamDashboardTemplate. When used, that field should
+      be set to a valid Go template, where the variables {{.Uid}} and {{.EnvoyClusterName}} may be used. The
+      former is derived from the upstream name (cap at 40 chars, replace "-" with "_") and the latter is
+      $serviceNamespace-$serviceName-$servicePort_$upstreamNamespace if the upstream is a k8s service, and
+      $upstreamName_$upstreamNamespace otherwise. The recommended way to set this new Helm field is by using
+      "--set-file observability.upstreamDashboardTemplate=./path/to/your/template/file" in your Helm invocation.
+    issueLink: https://github.com/solo-io/gloo/issues/1553
