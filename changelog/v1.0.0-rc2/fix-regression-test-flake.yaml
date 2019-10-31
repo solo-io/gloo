@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Make Gloo `Settings` use in regression tests idempotent to prevent test flakes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1272

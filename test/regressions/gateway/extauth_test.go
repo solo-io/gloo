@@ -65,6 +65,7 @@ var _ = Describe("External auth", func() {
 		virtualServiceClient gatewayv1.VirtualServiceClient
 		authConfigClient     extauthapi.AuthConfigClient
 		settingsClient       gloov1.SettingsClient
+		origSettings         *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
 
 		err error
 	)
@@ -144,7 +145,20 @@ var _ = Describe("External auth", func() {
 		Expect(err).NotTo(HaveOccurred(), "Should be able to build a settings client")
 	})
 
+	BeforeEach(func() {
+		origSettings, err = settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred(), "Should be able to read initial settings")
+	})
+
 	AfterEach(func() {
+		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
+
+		if origSettings.Metadata.ResourceVersion != currentSettings.Metadata.ResourceVersion {
+			origSettings.Metadata.ResourceVersion = currentSettings.Metadata.ResourceVersion // so we can overwrite settings
+			_, err = settingsClient.Write(origSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+			Expect(err).ToNot(HaveOccurred())
+		}
 		cancel()
 	})
 

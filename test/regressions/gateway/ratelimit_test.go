@@ -41,6 +41,7 @@ var _ = Describe("RateLimit tests", func() {
 		gatewayClient         v2.GatewayClient
 		virtualServiceClient  v1.VirtualServiceClient
 		settingsClient        gloov1.SettingsClient
+		origSettings          *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
 		uniqueDescriptorValue string
 	)
 
@@ -81,10 +82,25 @@ var _ = Describe("RateLimit tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	BeforeEach(func() {
+		var err error
+		origSettings, err = settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred(), "Should be able to read initial settings")
+	})
+
 	AfterEach(func() {
-		cancel()
 		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
+
+		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
+
+		if origSettings.Metadata.ResourceVersion != currentSettings.Metadata.ResourceVersion {
+			origSettings.Metadata.ResourceVersion = currentSettings.Metadata.ResourceVersion // so we can overwrite settings
+			_, err = settingsClient.Write(origSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+			Expect(err).ToNot(HaveOccurred())
+		}
+		cancel()
 	})
 
 	waitForGateway := func() {
