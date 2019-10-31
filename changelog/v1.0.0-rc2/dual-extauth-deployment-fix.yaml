@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >
+      Fix a bug where the gloo.updatevalues template is setting the plugin templates on gloo
+      regardless of if plugins are being used or not
+    issueLink: https://github.com/solo-io/gloo/issues/1537
+    resolvesIssue: false

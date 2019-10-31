@@ -7,13 +7,16 @@ Expand the name of the chart.
      values and renaming them to gloo's expected format without leaking implementation details */}}
 {{- define "gloo.updatevalues" -}}
 {{- if .Values.global.extensions.extAuth.envoySidecar -}}
+{{- $plugins := .Values.global.extensions.extAuth.plugins -}}
 {{- range $proxyName, $proxy := .Values.gatewayProxies -}}
 {{- $_ := set (index $.Values.gatewayProxies $proxyName) "extraContainersHelper" "gloo.extauthcontainer" -}}
+{{- if $plugins -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.extauthinitcontainers" -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraVolumeHelper" "gloo.extauthpluginvolume" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- end -}} # if plugins
+{{- end -}} # end range
+{{- end -}} # if envoySidecar
+{{- end -}} # end define
 
 {{/* Volume definition needed for ext auth plugin setup */}}
 {{- define "gloo.extauthpluginvolume" -}}
