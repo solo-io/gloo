@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >
+      Fix a bug where the ext auth upstream name in the global settings defaults to the
+      standalone deployment upstream name, even if the user is not actually deploying
+      ext auth in that mode (ie, they are deploying only in sidecar mode).
+    issueLink: https://github.com/solo-io/gloo/issues/1556
