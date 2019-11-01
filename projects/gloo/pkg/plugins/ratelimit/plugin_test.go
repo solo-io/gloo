@@ -3,13 +3,13 @@ package ratelimit_test
 import (
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
+
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
@@ -30,13 +30,13 @@ var _ = Describe("Plugin", func() {
 		rlSettings *ratelimitpb.Settings
 		initParams plugins.InitParams
 		params     plugins.Params
-		rlPlugin   *Plugin
+		rlPlugin   *ratelimit.Plugin
 		extensions *gloov1.Extensions
 		ref        core.ResourceRef
 	)
 
 	beforeEach := func() {
-		rlPlugin = NewPlugin()
+		rlPlugin = ratelimit.NewPlugin()
 		ref = core.ResourceRef{
 			Name:      "test",
 			Namespace: "test",
@@ -63,7 +63,7 @@ var _ = Describe("Plugin", func() {
 				Expect(cfg.FailureModeDeny).To(BeFalse())
 			}
 
-			hundredms := DefaultTimeout
+			hundredms := ratelimit.DefaultTimeout
 			expectedConfig := &envoyratelimit.RateLimit{
 				Domain:          "custom",
 				FailureModeDeny: false,
@@ -86,7 +86,7 @@ var _ = Describe("Plugin", func() {
 		It("default timeout is 100ms", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
-			timeout := DefaultTimeout
+			timeout := ratelimit.DefaultTimeout
 			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
@@ -113,7 +113,7 @@ var _ = Describe("Plugin", func() {
 		})
 
 		Context("rate limit ordering", func() {
-			JustBeforeEach(func() {
+			BeforeEach(func() {
 				timeout := time.Second
 				params.Snapshot.Upstreams = []*gloov1.Upstream{
 					{
@@ -124,17 +124,13 @@ var _ = Describe("Plugin", func() {
 					},
 				}
 				rlSettings.RateLimitBeforeAuth = true
-				initParams.Settings = &gloov1.Settings{
-					RatelimitServer: rlSettings,
-					Extauth: &extauthapi.Settings{
-						ExtauthzServerRef: &core.ResourceRef{
-							Name:      "extauth-upstream",
-							Namespace: "ns",
-						},
-						RequestTimeout: &timeout,
+				initParams.Settings.Extauth = &extauthapi.Settings{
+					ExtauthzServerRef: &core.ResourceRef{
+						Name:      "extauth-upstream",
+						Namespace: "ns",
 					},
+					RequestTimeout: &timeout,
 				}
-				rlPlugin.Init(initParams)
 			})
 
 			It("should be ordered before ext auth", func() {
@@ -185,13 +181,14 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			glooExtensions := map[string]*types.Struct{
-				ExtensionName: settingsStruct,
+				ratelimit.ExtensionName: settingsStruct,
 			}
 			extensions = &gloov1.Extensions{
 				Configs: glooExtensions,
 			}
 			initParams.ExtensionsSettings = extensions
-			rlPlugin.Init(initParams)
+			err = rlPlugin.Init(initParams)
+			Expect(err).NotTo(HaveOccurred())
 		})
 		allTests()
 	})
@@ -201,8 +198,9 @@ var _ = Describe("Plugin", func() {
 		BeforeEach(beforeEach)
 
 		JustBeforeEach(func() {
-			initParams.Settings = &gloov1.Settings{RatelimitServer: rlSettings}
-			rlPlugin.Init(initParams)
+			initParams.Settings.RatelimitServer = rlSettings
+			err := rlPlugin.Init(initParams)
+			Expect(err).NotTo(HaveOccurred())
 		})
 		allTests()
 	})
