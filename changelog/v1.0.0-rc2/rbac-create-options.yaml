@@ -1,0 +1,7 @@
+changelog:
+  - type: HELM
+    description: >
+      Allow the disabling of RBAC resources during the gloo-e installation by respecting the "global.glooRbac.create" Helm flag.
+      Note that in order to prevent the creation of *any* RBAC resources, the user must set the Helm flags
+      "grafana.rbac.create" and "prometheus.rbac.create" to false as well.
+    issueLink: https://github.com/solo-io/gloo/issues/1562

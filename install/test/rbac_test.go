@@ -1,7 +1,9 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -15,6 +17,13 @@ var _ = Describe("RBAC Test", func() {
 		testManifest TestManifest
 		manifestYaml string
 	)
+
+	AfterEach(func() {
+		if manifestYaml != "" {
+			err := os.Remove(manifestYaml)
+			Expect(err).ToNot(HaveOccurred())
+		}
+	})
 
 	Context("GlooE", func() {
 		prepareTestManifest := func(customHelmArgs ...string) {
@@ -44,6 +53,15 @@ var _ = Describe("RBAC Test", func() {
 				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
 				permissions := GetGlooEServiceAccountPermissions("")
 				testManifest.ExpectPermissions(permissions)
+			})
+
+			It("creates no permissions when rbac is disabled", func() {
+				prepareMakefile(fmt.Sprintf("--namespace %s --set global.glooRbac.create=false --set grafana.rbac.create=false --set prometheus.rbac.create=false", namespace))
+
+				contents, err := ioutil.ReadFile(manifestYaml)
+				Expect(err).NotTo(HaveOccurred(), "should be able to read manifest file")
+
+				Expect(strings.ToLower(string(contents))).NotTo(ContainSubstring("rbac.authorization.k8s.io"), "should not have any reference to the rbac api group")
 			})
 		})
 	})

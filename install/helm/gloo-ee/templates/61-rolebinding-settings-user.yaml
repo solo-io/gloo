@@ -1,3 +1,4 @@
+{{- if .Values.global.glooRbac.create }}
 {{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 kind: {{ include "gloo.roleKind" . }}Binding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -20,4 +21,5 @@ roleRef:
   kind: {{ include "gloo.roleKind" . }}
   name: settings-user
   apiGroup: rbac.authorization.k8s.io
-{{- end}}
+{{- end }} # if defaultInstallation or customGrafana
+{{- end }} # if glooRbac.create

@@ -161,7 +161,7 @@ var _ = Describe("Helm Test", func() {
 				grafanaDeployment = grafanaBuilder.GetDeploymentAppsv1()
 			})
 
-			Context("observability deployemnt", func() {
+			Context("observability deployment", func() {
 				It("is installed by default", func() {
 					helmFlags := "--namespace " + namespace + " --set namespace.create=true"
 					prepareMakefile(helmFlags)
