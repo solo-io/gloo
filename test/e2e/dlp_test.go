@@ -191,12 +191,8 @@ var _ = Describe("dlp", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "hello")
-
-			var opts clients.WriteOpts
-			up := testUpstream.Upstream
-			_, err = testClients.UpstreamClient.Write(up, opts)
+			_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
-
 		})
 
 		AfterEach(func() {
@@ -276,6 +272,39 @@ var _ = Describe("dlp", func() {
 				testRequest("hello")
 			})
 
+			Context("With SSN", func() {
+
+				Context("Matches standalone SSN", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "123-45-6789")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if SSN provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_SSN,
+						}}, nil)
+						testRequest("XXX-XX-X789")
+					})
+				})
+
+				Context("Matches SSN in JSON", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "\"ssn\":\"123-45-6789\"")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("does not match boundary characters with standard regex", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_SSN,
+						}}, nil)
+						testRequest("\"ssn\":\"XXX-XX-X789\"")
+					})
+				})
+
+			})
 		})
 
 		Context("vhost rules", func() {
