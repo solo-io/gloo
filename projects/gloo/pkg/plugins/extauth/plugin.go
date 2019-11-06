@@ -18,7 +18,7 @@ const (
 
 // Note that although this configures the "envoy.ext_authz" filter, we still want the ordering to be within the
 // AuthNStage because we are using this filter for authentication purposes
-var filterStage = plugins.DuringStage(plugins.AuthNStage)
+var FilterStage = plugins.DuringStage(plugins.AuthNStage)
 
 var _ plugins.Plugin = &Plugin{}
 
@@ -36,7 +36,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	// Delegate to a function with a simpler signature,will make it easier to reuse
+	// Delegate to a function with a simpler signature, will make it easier to reuse
 	return BuildHttpFilters(p.extAuthSettings, params.Snapshot.Upstreams)
 }
 
