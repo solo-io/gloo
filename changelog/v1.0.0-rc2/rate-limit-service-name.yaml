@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Remove unused SERVICE_NAME env var from the rate-limit deployment
+    issueLink: https://github.com/solo-io/gloo/issues/1614

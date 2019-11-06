@@ -38,8 +38,6 @@ spec:
                   fieldPath: metadata.namespace
             - name: GLOO_ADDRESS
               value: {{ .Values.rateLimit.deployment.glooAddress }}
-            - name: SERVICE_NAME
-              value: {{.Values.rateLimit.serviceName}}
             {{- if .Values.rateLimit.deployment.stats }}
             - name: START_STATS_SERVER
               value: "true"
