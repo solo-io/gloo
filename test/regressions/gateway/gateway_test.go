@@ -23,7 +23,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -76,10 +75,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	AfterEach(func() {
 		cancel()
-		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
-		if err != nil && !errors.IsNotExist(err) {
-			Expect(err).NotTo(HaveOccurred())
-		}
+		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 	})
 
 	It("can route request to upstream", func() {

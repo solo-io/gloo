@@ -1312,7 +1312,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:68c734d0226147b4381bc6705ba52255196be8a8b48a6f3558d13e66e88632fd"
+  digest = "1:938aa1825b52352989b277b4e7b0dd445e9a2c7dff1d183c6c26e98488a67ed6"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1452,7 +1452,7 @@
     "test/v1helpers/test_grpc_service/glootest/protos",
   ]
   pruneopts = "UT"
-  revision = "cd82e4e556153462b57135876db0c695998ebcbf"
+  revision = "4350a555e46a225ec9c79337e1715c526dd26683"
 
 [[projects]]
   digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
@@ -1539,7 +1539,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:b5964f35367de1c202424b469682508d7408e52ad3e32fcec5cfed73d31a2f6c"
+  digest = "1:66fb9570ec5c357bb8cad76b3a8b15fcb2ee450fe2d41725ca5bf39e6e6213d2"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1566,7 +1566,7 @@
     "pkg/api/v1/clients/kube/crd/solo.io/v1",
     "pkg/api/v1/clients/kubesecret",
     "pkg/api/v1/clients/memory",
-    "pkg/api/v1/clients/multicluster",
+    "pkg/api/v1/clients/multicluster/factory",
     "pkg/api/v1/clients/vault",
     "pkg/api/v1/clients/wrapper",
     "pkg/api/v1/control-plane/cache",
@@ -1606,8 +1606,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "ea27b57205980f6d89fab3070ce17d3dfa8beead"
-  version = "v0.11.5"
+  revision = "acf498079bc26a59229e9afda1e2f93491884c77"
+  version = "v0.11.10"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"

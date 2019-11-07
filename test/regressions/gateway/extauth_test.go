@@ -31,7 +31,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	skerrors "github.com/solo-io/solo-kit/pkg/errors"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -215,17 +214,7 @@ var _ = Describe("External auth", func() {
 		})
 
 		AfterEach(func() {
-
-			// Delete virtual service
-			err = virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx})
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(func() bool {
-				_, err := virtualServiceClient.Read(testHelper.InstallNamespace, "vs", clients.ReadOpts{Ctx: ctx})
-				if err != nil && skerrors.IsNotExist(err) {
-					return true
-				}
-				return false
-			}, "15s", "0.5s").Should(BeTrue())
+			deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		})
 
 		// TODO(marco): remove when we remove the deprecated API
@@ -440,16 +429,7 @@ var _ = Describe("External auth", func() {
 			}, "15s", "0.5s").Should(BeNil())
 
 			return func() {
-				err = virtualServiceClient.Delete(vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-				EventuallyWithOffset(1, func() bool {
-					_, err := virtualServiceClient.Read(vs.Metadata.Namespace, vs.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-					if err != nil && skerrors.IsNotExist(err) {
-						return true
-					}
-					return false
-				}, "10s", "0.5s").Should(BeTrue())
+				deleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 			}
 		}
 

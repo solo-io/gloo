@@ -332,3 +332,11 @@ func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceCl
 		return err
 	}, time.Minute, "5s").Should(BeNil())
 }
+
+func deleteVirtualService(vsClient v1.VirtualServiceClient, ns, name string, opts clients.DeleteOpts) {
+	// We wrap this in a eventually because the validating webhook may reject the virtual service if one of the
+	// resources the VS depends on is not yet available.
+	EventuallyWithOffset(1, func() error {
+		return vsClient.Delete(ns, name, opts)
+	}, time.Minute, "5s").Should(BeNil())
+}

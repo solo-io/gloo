@@ -2,6 +2,7 @@
 // file: github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as envoy_api_v2_route_route_pb from "../../../../../../../../../../envoy/api/v2/route/route_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../../../gogoproto/gogo_pb";
@@ -124,8 +125,15 @@ export namespace Transformation {
 }
 
 export class Extraction extends jspb.Message {
+  hasHeader(): boolean;
+  clearHeader(): void;
   getHeader(): string;
   setHeader(value: string): void;
+
+  hasBody(): boolean;
+  clearBody(): void;
+  getBody(): google_protobuf_empty_pb.Empty | undefined;
+  setBody(value?: google_protobuf_empty_pb.Empty): void;
 
   getRegex(): string;
   setRegex(value: string): void;
@@ -133,6 +141,7 @@ export class Extraction extends jspb.Message {
   getSubgroup(): number;
   setSubgroup(value: number): void;
 
+  getSourceCase(): Extraction.SourceCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Extraction.AsObject;
   static toObject(includeInstance: boolean, msg: Extraction): Extraction.AsObject;
@@ -146,8 +155,15 @@ export class Extraction extends jspb.Message {
 export namespace Extraction {
   export type AsObject = {
     header: string,
+    body?: google_protobuf_empty_pb.Empty.AsObject,
     regex: string,
     subgroup: number,
+  }
+
+  export enum SourceCase {
+    SOURCE_NOT_SET = 0,
+    HEADER = 1,
+    BODY = 4,
   }
 }
 
@@ -174,6 +190,17 @@ export class TransformationTemplate extends jspb.Message {
   getMergeExtractorsToBody(): MergeExtractorsToBody | undefined;
   setMergeExtractorsToBody(value?: MergeExtractorsToBody): void;
 
+  getParseBodyBehavior(): TransformationTemplate.RequestBodyParseMap[keyof TransformationTemplate.RequestBodyParseMap];
+  setParseBodyBehavior(value: TransformationTemplate.RequestBodyParseMap[keyof TransformationTemplate.RequestBodyParseMap]): void;
+
+  getIgnoreErrorOnParse(): boolean;
+  setIgnoreErrorOnParse(value: boolean): void;
+
+  clearDynamicMetadataValuesList(): void;
+  getDynamicMetadataValuesList(): Array<TransformationTemplate.DynamicMetadataValue>;
+  setDynamicMetadataValuesList(value: Array<TransformationTemplate.DynamicMetadataValue>): void;
+  addDynamicMetadataValues(value?: TransformationTemplate.DynamicMetadataValue, index?: number): TransformationTemplate.DynamicMetadataValue;
+
   getBodyTransformationCase(): TransformationTemplate.BodyTransformationCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransformationTemplate.AsObject;
@@ -193,7 +220,47 @@ export namespace TransformationTemplate {
     body?: InjaTemplate.AsObject,
     passthrough?: Passthrough.AsObject,
     mergeExtractorsToBody?: MergeExtractorsToBody.AsObject,
+    parseBodyBehavior: TransformationTemplate.RequestBodyParseMap[keyof TransformationTemplate.RequestBodyParseMap],
+    ignoreErrorOnParse: boolean,
+    dynamicMetadataValuesList: Array<TransformationTemplate.DynamicMetadataValue.AsObject>,
   }
+
+  export class DynamicMetadataValue extends jspb.Message {
+    getMetadataNamespace(): string;
+    setMetadataNamespace(value: string): void;
+
+    getKey(): string;
+    setKey(value: string): void;
+
+    hasValue(): boolean;
+    clearValue(): void;
+    getValue(): InjaTemplate | undefined;
+    setValue(value?: InjaTemplate): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DynamicMetadataValue.AsObject;
+    static toObject(includeInstance: boolean, msg: DynamicMetadataValue): DynamicMetadataValue.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DynamicMetadataValue, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DynamicMetadataValue;
+    static deserializeBinaryFromReader(message: DynamicMetadataValue, reader: jspb.BinaryReader): DynamicMetadataValue;
+  }
+
+  export namespace DynamicMetadataValue {
+    export type AsObject = {
+      metadataNamespace: string,
+      key: string,
+      value?: InjaTemplate.AsObject,
+    }
+  }
+
+  export interface RequestBodyParseMap {
+    PARSEASJSON: 0;
+    DONTPARSE: 1;
+  }
+
+  export const RequestBodyParse: RequestBodyParseMap;
 
   export enum BodyTransformationCase {
     BODY_TRANSFORMATION_NOT_SET = 0,

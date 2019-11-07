@@ -1,4 +1,4 @@
-FROM quay.io/solo-io/envoy-gloo-ee:0.1.22
+FROM quay.io/solo-io/envoy-gloo-ee:0.1.25
 
 COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
 

@@ -1,0 +1,11 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v0.1.25
+  description: Bump envoy-gloo-ee dependency to version 0.1.25.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: 4350a555e46a225ec9c79337e1715c526dd26683
+  description: Update gloo to revision 4350a555e46a225ec9c79337e1715c526dd26683.

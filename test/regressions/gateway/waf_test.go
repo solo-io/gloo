@@ -69,8 +69,7 @@ var _ = Describe("waf tests", func() {
 
 	AfterEach(func() {
 		cancel()
-		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
+		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 	})
 
 	waitForGateway := func() {

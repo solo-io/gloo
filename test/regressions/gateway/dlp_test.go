@@ -74,9 +74,8 @@ var _ = Describe("dlp tests", func() {
 
 	AfterEach(func() {
 		cancel()
-		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-		err = httpEcho.Terminate()
+		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		err := httpEcho.Terminate()
 		Expect(err).NotTo(HaveOccurred())
 	})
 

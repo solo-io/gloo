@@ -89,8 +89,7 @@ var _ = Describe("RateLimit tests", func() {
 	})
 
 	AfterEach(func() {
-		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
+		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 
 		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
