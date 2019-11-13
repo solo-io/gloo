@@ -39,6 +39,7 @@ discovery:
 
 gateway:
   enabled: true
+  readGatewaysFromAllNamespaces: false
   validation:
     enabled: true
     failurePolicy: "Ignore"

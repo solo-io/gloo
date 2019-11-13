@@ -86,6 +86,7 @@
 |gateway.certGenJob.ttlSecondsAfterFinished|int|60|Clean up the finished job after this many seconds. Defaults to 60|
 |gateway.updateValues|bool|false|if true, will use a provided helm helper 'gloo.updatevalues' to update values during template render - useful for plugins/extensions|
 |gateway.proxyServiceAccount.disableAutomount|bool|false|disable automunting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
+|gateway.readGatewaysFromAllNamespaces|bool|false|if true, read Gateway CRDs from all watched namespaces rather than just the namespace of the Gateway controller|
 |gatewayProxies.NAME.kind.deployment.antiAffinity|bool||configure anti affinity such that pods are prefferably not co-located|
 |gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gatewayProxies.NAME.kind.deployment.resources.limits.memory|string||amount of memory|

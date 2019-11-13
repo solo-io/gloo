@@ -36,7 +36,7 @@ var _ = Describe("Translator", func() {
 
 	Context("translator", func() {
 		BeforeEach(func() {
-			translator = NewTranslator([]ListenerFactory{&HttpTranslator{}, &TcpTranslator{}})
+			translator = NewTranslator([]ListenerFactory{&HttpTranslator{}, &TcpTranslator{}}, Opts{})
 			snap = &v1.ApiSnapshot{
 				Gateways: v1.GatewayList{
 					{
@@ -96,6 +96,7 @@ var _ = Describe("Translator", func() {
 			Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
 			Expect(proxy.Metadata.Name).To(Equal(defaults.GatewayProxyName))
 			Expect(proxy.Metadata.Namespace).To(Equal(ns))
+			Expect(proxy.Listeners).To(HaveLen(1))
 		})
 
 		It("should properly translate listener plugins to proxy listener", func() {
@@ -206,6 +207,73 @@ var _ = Describe("Translator", func() {
 			Expect(err.Error()).To(ContainSubstring("route table exist.don't missing"))
 		})
 
+		Context("when the gateway CRDs don't clash", func() {
+			BeforeEach(func() {
+				translator = NewTranslator([]ListenerFactory{&HttpTranslator{}, &TcpTranslator{}}, Opts{
+					ReadGatewaysFromAllNamespaces: true,
+				})
+				snap = &v1.ApiSnapshot{
+					Gateways: v1.GatewayList{
+						{
+							Metadata: core.Metadata{Namespace: ns, Name: "name"},
+							GatewayType: &v1.Gateway_HttpGateway{
+								HttpGateway: &v1.HttpGateway{},
+							},
+							BindPort: 2,
+						},
+						{
+							Metadata: core.Metadata{Namespace: ns2, Name: "name2"},
+							GatewayType: &v1.Gateway_HttpGateway{
+								HttpGateway: &v1.HttpGateway{},
+							},
+							BindPort: 3,
+						},
+					},
+					VirtualServices: v1.VirtualServiceList{
+						{
+							Metadata: core.Metadata{Namespace: ns, Name: "name1"},
+							VirtualHost: &v1.VirtualHost{
+								Domains: []string{"d1.com"},
+								Routes: []*v1.Route{
+									{
+										Matchers: []*matchers.Matcher{{
+											PathSpecifier: &matchers.Matcher_Prefix{
+												Prefix: "/1",
+											},
+										}},
+									},
+								},
+							},
+						},
+						{
+							Metadata: core.Metadata{Namespace: ns, Name: "name2"},
+							VirtualHost: &v1.VirtualHost{
+								Domains: []string{"d2.com"},
+								Routes: []*v1.Route{
+									{
+										Matchers: []*matchers.Matcher{{
+											PathSpecifier: &matchers.Matcher_Prefix{
+												Prefix: "/2",
+											},
+										}},
+									},
+								},
+							},
+						},
+					},
+				}
+			})
+
+			It("should have the same number of listeners as gateways in the cluster", func() {
+				proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+
+				Expect(errs).To(HaveLen(4))
+				Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
+				Expect(proxy.Metadata.Name).To(Equal(defaults.GatewayProxyName))
+				Expect(proxy.Metadata.Namespace).To(Equal(ns))
+				Expect(proxy.Listeners).To(HaveLen(2))
+			})
+		})
 	})
 
 	Context("http", func() {
@@ -217,7 +285,7 @@ var _ = Describe("Translator", func() {
 
 			BeforeEach(func() {
 				factory = &HttpTranslator{}
-				translator = NewTranslator([]ListenerFactory{factory})
+				translator = NewTranslator([]ListenerFactory{factory}, Opts{})
 				snap = &v1.ApiSnapshot{
 					Gateways: v1.GatewayList{
 						{
@@ -541,7 +609,7 @@ var _ = Describe("Translator", func() {
 				mergedLeafLevelRoutePlugins := &gloov1.RouteOptions{PrefixRewrite: &types.StringValue{Value: "leaf level plugin"}, Timeout: midLevelRoutePlugins.Timeout}
 
 				BeforeEach(func() {
-					translator = NewTranslator([]ListenerFactory{&HttpTranslator{}})
+					translator = NewTranslator([]ListenerFactory{&HttpTranslator{}}, Opts{})
 					snap = &v1.ApiSnapshot{
 						Gateways: v1.GatewayList{
 							{
@@ -884,7 +952,7 @@ var _ = Describe("Translator", func() {
 
 			Context("delegation cycle", func() {
 				BeforeEach(func() {
-					translator = NewTranslator([]ListenerFactory{&HttpTranslator{}})
+					translator = NewTranslator([]ListenerFactory{&HttpTranslator{}}, Opts{})
 					snap = &v1.ApiSnapshot{
 						Gateways: v1.GatewayList{
 							{
@@ -969,7 +1037,7 @@ var _ = Describe("Translator", func() {
 		)
 		BeforeEach(func() {
 			factory = &TcpTranslator{}
-			translator = NewTranslator([]ListenerFactory{factory})
+			translator = NewTranslator([]ListenerFactory{factory}, Opts{})
 
 			idleTimeout = 5 * time.Second
 			plugins = &gloov1.TcpListenerOptions{
