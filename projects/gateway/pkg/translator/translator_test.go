@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/test/samples"
@@ -96,21 +99,27 @@ var _ = Describe("Translator", func() {
 		})
 
 		It("should properly translate listener plugins to proxy listener", func() {
-			extensions := map[string]*types.Struct{
-				"plugin": {},
-			}
 
+			als := &als.AccessLoggingService{
+				AccessLog: []*als.AccessLog{{
+					OutputDestination: &als.AccessLog_FileSink{
+						FileSink: &als.FileSink{
+							Path: "/test",
+						}},
+				}},
+			}
 			snap.Gateways[0].Options = &gloov1.ListenerOptions{
-				Extensions: &gloov1.Extensions{
-					Configs: extensions,
-				},
+				AccessLoggingService: als,
 			}
 
 			httpGateway := snap.Gateways[0].GetHttpGateway()
 			Expect(httpGateway).NotTo(BeNil())
-			httpGateway.Options = &gloov1.HttpListenerOptions{Extensions: &gloov1.Extensions{
-				Configs: extensions,
-			}}
+			waf := &waf.Settings{
+				CustomInterventionMessage: "custom",
+			}
+			httpGateway.Options = &gloov1.HttpListenerOptions{
+				Waf: waf,
+			}
 
 			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
 
@@ -119,12 +128,10 @@ var _ = Describe("Translator", func() {
 			Expect(proxy.Metadata.Name).To(Equal(defaults.GatewayProxyName))
 			Expect(proxy.Metadata.Namespace).To(Equal(ns))
 			Expect(proxy.Listeners).To(HaveLen(1))
-			Expect(proxy.Listeners[0].Options.Extensions.Configs).To(HaveKey("plugin"))
-			Expect(proxy.Listeners[0].Options.Extensions.Configs["plugin"]).To(Equal(extensions["plugin"]))
+			Expect(proxy.Listeners[0].Options.AccessLoggingService).To(Equal(als))
 			httpListener := proxy.Listeners[0].GetHttpListener()
 			Expect(httpListener).NotTo(BeNil())
-			Expect(httpListener.Options.Extensions.Configs).To(HaveKey("plugin"))
-			Expect(httpListener.Options.Extensions.Configs["plugin"]).To(Equal(extensions["plugin"]))
+			Expect(httpListener.Options.Waf).To(Equal(waf))
 		})
 
 		It("should translate two gateways with same name (different types) to one proxy with the same name", func() {
