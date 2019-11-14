@@ -41,4 +41,4 @@ weight: 2
     </td>
   </tr>
 </table>
-</div>
+</dic>
