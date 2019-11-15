@@ -26,7 +26,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
-	configproto "github.com/solo-io/solo-projects/projects/extauth/pkg/config"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
 	"github.com/solo-io/go-utils/stats"
 
@@ -143,7 +143,7 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 
 func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node, service extauthconfig.ConfigMutator) {
 
-	generator := configproto.NewConfigGenerator(
+	generator := config.NewGenerator(
 		ctx,
 		[]byte(clientSettings.SigningKey),
 		clientSettings.UserIdHeader,
@@ -159,12 +159,12 @@ func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node
 				logger := contextutils.LoggerFrom(ctx)
 				logger.Infow("got new config", zap.Any("config", resources))
 
-				config, err := generator.GenerateConfig(resources)
+				serverState, err := generator.GenerateConfig(resources)
 				if err != nil {
 					logger.Errorw("failed to generate config", zap.Any("err", err))
 					return err
 				}
-				service.UpdateConfig(config)
+				service.UpdateConfig(serverState)
 				return nil
 			},
 		)

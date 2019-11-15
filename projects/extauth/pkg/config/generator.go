@@ -1,8 +1,10 @@
-package configproto
+package config
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/solo-io/go-utils/hashutils"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/ext-auth-plugins/api"
@@ -18,7 +20,6 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
-	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 )
 
@@ -27,18 +28,29 @@ const (
 )
 
 var (
-	MissingAuthConfigIdError = errors.New("either [vhost] or [authConfigRefName] must be set on ExtAuthConfig")
-	GetAuthServiceError      = func(err error, authConfigRefName string) error {
-		return errors.Wrapf(err, "failed to get auth service for auth config [%s]", authConfigRefName)
+	MissingAuthConfigRefError = errors.New("missing required [authConfigRefName] field")
+	GetAuthServiceError       = func(err error, id string, keepingPreviousConfig bool) error {
+		additionalContext := "this configuration will be ignored"
+		if keepingPreviousConfig {
+			additionalContext = "server will continue using previous configuration for this id"
+		}
+		return errors.Wrapf(err, "failed to get auth service for auth config with id [%s]; %s", id, additionalContext)
 	}
 )
 
-func NewConfigGenerator(ctx context.Context, key []byte, userIdHeader string, pluginLoader plugins.Loader) *configGenerator {
+type Generator interface {
+	GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*serverState, error)
+}
+
+func NewGenerator(ctx context.Context, key []byte, userIdHeader string, pluginLoader plugins.Loader) *configGenerator {
 	return &configGenerator{
 		originalCtx:  ctx,
 		key:          key,
 		userIdHeader: userIdHeader,
 		pluginLoader: pluginLoader,
+
+		// Initial state will be an empty config
+		currentState: newServerState(ctx, userIdHeader, nil),
 	}
 }
 
@@ -48,52 +60,116 @@ type configGenerator struct {
 	userIdHeader string
 	pluginLoader plugins.Loader
 
-	cancel context.CancelFunc
+	cancel       context.CancelFunc
+	currentState *serverState
 }
 
-func (c *configGenerator) GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*extauthservice.Config, error) {
-	cfg := extauthservice.Config{
-		UserAuthHeader: c.userIdHeader,
-		Configs:        make(map[string]api.AuthService),
-	}
-	ctx, cancel := context.WithCancel(c.originalCtx)
-
+func (c *configGenerator) GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*serverState, error) {
 	errs := &multierror.Error{}
-	var startFuncs []api.StartFunc
-	for _, resource := range resources {
-		if resource.AuthConfigRefName == "" {
-			errs = multierror.Append(errs, MissingAuthConfigIdError)
+
+	// Initialize new server state
+	newState := newServerState(c.originalCtx, c.userIdHeader, resources)
+
+	var authConfigsToStart []string
+	for configId, newConfig := range newState.configs {
+
+		currentConfig, currentlyExists := c.currentState.configs[configId]
+
+		// If the config has not changed, just use the current one in the new state.
+		// We do NOT want to cancel the context and restart the service in this case.
+		if currentlyExists && currentConfig.hash == newConfig.hash {
+			newState.configs[configId] = currentConfig
 			continue
 		}
 
-		authService, err := c.getConfig(ctx, resource)
+		// Create context for new config
+		newConfig.ctx, newConfig.cancel = context.WithCancel(c.originalCtx)
+
+		// Create an AuthService from the new config
+		authService, err := c.getConfig(newConfig.ctx, newConfig.config)
 		if err != nil {
-			errs = multierror.Append(errs, GetAuthServiceError(err, resource.AuthConfigRefName))
+
+			// Cancel context to be safe
+			newConfig.cancel()
+
+			if currentlyExists {
+				// If the current state contains a valid config with this id (i.e. a previously valid AuthConfig),
+				// then keep the current config running.
+				errs = multierror.Append(errs, GetAuthServiceError(err, newConfig.config.AuthConfigRefName, true))
+				newState.configs[configId] = currentConfig
+			} else {
+				// If this configuration is new, just drop it.
+				errs = multierror.Append(errs, GetAuthServiceError(err, newConfig.config.AuthConfigRefName, false))
+				delete(newState.configs, configId)
+			}
+
 			continue
 		}
 
-		startFuncs = append(startFuncs, authService.Start)
-		cfg.Configs[resource.AuthConfigRefName] = authService
+		newConfig.authService = authService
+
+		authConfigsToStart = append(authConfigsToStart, configId)
 	}
 
+	// Log errors, if any
 	if err := errs.ErrorOrNil(); err != nil {
-		return nil, err
+		contextutils.LoggerFrom(c.originalCtx).
+			Errorw("Errors encountered while processing new server configuration", zap.Error(err))
 	}
 
-	// success! cancel old context and start all start funcs
-	if c.cancel != nil {
-		c.cancel()
+	// Check for current configurations that are orphaned and cancel their context to avoid leaks
+	for id, currentConfig := range c.currentState.configs {
+		if _, exists := newState.configs[id]; !exists {
+			currentConfig.cancel()
+		}
 	}
-	c.cancel = cancel
-	for _, f := range startFuncs {
+
+	// For each of the AuthServices that are either new or have changed:
+	// - if an instance is already running, terminate it by cancelling its context
+	// - call the Start function
+	for _, id := range authConfigsToStart {
+
+		if currentConfig, exists := c.currentState.configs[id]; exists {
+			currentConfig.cancel()
+		}
+
+		newConfig := newState.configs[id]
 		go func() {
-			if err := f(ctx); err != nil {
-				contextutils.LoggerFrom(c.originalCtx).Errorw("Error calling Start function", zap.Any("error", err))
+			if err := newConfig.authService.Start(newConfig.ctx); err != nil {
+				contextutils.LoggerFrom(c.originalCtx).Errorw("Error calling Start function",
+					zap.Error(err), zap.String("authConfig", newConfig.config.AuthConfigRefName))
 			}
 		}()
 	}
 
-	return &cfg, nil
+	// Store the new state so that it is available when the next config update is received.
+	c.currentState = newState
+
+	return newState, nil
+}
+
+func newServerState(ctx context.Context, userIdHeader string, resources []*extauthv1.ExtAuthConfig) *serverState {
+	state := &serverState{
+		userAuthHeader: userIdHeader,
+		configs:        map[string]*configState{},
+	}
+
+	for _, resource := range resources {
+
+		if resource.AuthConfigRefName == "" {
+			// this should never happen
+			contextutils.LoggerFrom(ctx).DPanicw("Invalid ExtAuthConfig resource will be ignored",
+				zap.Error(MissingAuthConfigRefError), zap.Any("resource", resource))
+			continue
+		}
+
+		state.configs[resource.AuthConfigRefName] = &configState{
+			config: resource,
+			hash:   hashutils.HashAll(resource),
+		}
+	}
+
+	return state
 }
 
 func (c *configGenerator) getConfig(ctx context.Context, resource *extauthv1.ExtAuthConfig) (svc api.AuthService, err error) {
@@ -158,10 +234,6 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			cb = DefaultCallback
 		}
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, cfg.Oauth.Scopes, stateSigner)
-		if err != nil {
-			return nil, "", err
-		}
-		err = iss.Discover(ctx)
 		if err != nil {
 			return nil, "", err
 		}

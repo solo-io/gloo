@@ -1294,7 +1294,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:bea864687353d6bb2ea518d35460ab0d367f5acfe319c9e439fdd59246ec23a2"
+  digest = "1:e15e180e6ca9992044d18ed21dfa1d6ebcc41b01d246e638e8b5aa77cab77ab8"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
@@ -1308,8 +1308,8 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "5578bc72f6b7dce5cccd3f6a843d7dec71e91ad0"
-  version = "v0.6.0"
+  revision = "2835865643521befe10dded7431c95d88825d3ae"
+  version = "v0.6.1"
 
 [[projects]]
   digest = "1:897fd5ec6afd7a467e67992c6fb45025a249103bc3ead78bacb03004d80cfea8"
@@ -2659,6 +2659,7 @@
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/install/test",
+    "github.com/solo-io/gloo/pkg/cliutil",
     "github.com/solo-io/gloo/pkg/utils",
     "github.com/solo-io/gloo/pkg/utils/settingsutil",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
@@ -2717,6 +2718,7 @@
     "github.com/solo-io/go-utils/githubutils",
     "github.com/solo-io/go-utils/hashutils",
     "github.com/solo-io/go-utils/healthchecker",
+    "github.com/solo-io/go-utils/installutils/kuberesource",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/log",
     "github.com/solo-io/go-utils/manifesttestutils",
@@ -2724,6 +2726,7 @@
     "github.com/solo-io/go-utils/stats",
     "github.com/solo-io/go-utils/testutils",
     "github.com/solo-io/go-utils/testutils/clusterlock",
+    "github.com/solo-io/go-utils/testutils/exec",
     "github.com/solo-io/go-utils/testutils/helper",
     "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/go-utils/versionutils/dep",

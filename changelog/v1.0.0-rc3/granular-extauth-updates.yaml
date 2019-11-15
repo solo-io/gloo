@@ -1,0 +1,14 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: Bump the ext-auth-service dependency to 0.6.1.
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.6.1
+- type: FIX
+  description: >
+    Currently, when the Gloo Enterprise external auth server detects any updates in the authentication configuration,
+    it cancels all the running auth modules and restarts them with the updated configuration. This can cause modules
+    that take some time to restart to be offline for a non-negligible amount of time, during which any requests hitting
+    them will return 403 responses. This change add better handling of configuration updates; specifically, the server
+    now restarts only the `AuthService` instances that have been actually updated.
+  issueLink: https://github.com/solo-io/gloo/issues/1698
