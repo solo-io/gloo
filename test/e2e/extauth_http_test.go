@@ -6,11 +6,6 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
-	extauthplugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
-	"github.com/gogo/protobuf/types"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -131,20 +126,15 @@ var _ = Describe("External http", func() {
 	})
 
 	JustBeforeEach(func() {
-		settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
-		Expect(err).NotTo(HaveOccurred())
-
-		extensions := &gloov1.Extensions{
-			Configs: map[string]*types.Struct{
-				extauthplugin.ExtensionName: settingsStruct,
-			},
-		}
 		what := services.What{
 			DisableGateway: true,
 			DisableUds:     true,
 			DisableFds:     true,
 		}
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions, nil)
+		settings := &gloov1.Settings{
+			Extauth: extauthSettings,
+		}
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, settings)
 	})
 
 	AfterEach(func() {
@@ -238,7 +228,9 @@ var _ = Describe("External http", func() {
 })
 
 func getProxyCustomAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
-	extauthCfg := &extauth.VhostExtension{
-		AuthConfig: &extauth.VhostExtension_CustomAuth{}}
+	extauthCfg := &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_CustomAuth{
+			CustomAuth: &extauth.CustomAuth{},
+		}}
 	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
 }

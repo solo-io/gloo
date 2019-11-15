@@ -6,6 +6,8 @@ metadata:
   labels:
     app: gloo
     gloo: settings
+    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
+    installationId: {{ include "gloo.installationId" $installationContext }}
   name: default
   namespace: {{ .Release.Namespace }}
   annotations:
@@ -33,20 +35,18 @@ spec:
     fdsMode: {{.Values.gloo.discovery.fdsMode}}
 {{- end }}
 
-  extensions:
-    configs:
-      {{- $extauth := .Values.global.extensions.extAuth }}
-      {{- if or $extauth.envoySidecar $extauth.standaloneDeployment }}
-      extauth:
-        extauthzServerRef:
-          # arbitrarily default to the standalone deployment name even if we're using both
-          {{- if $extauth.standaloneDeployment }}
-          name: extauth
-          {{- else }}
-          name: extauth-sidecar
-          {{- end }}
-          namespace: {{ .Release.Namespace }}
+  {{- $extauth := .Values.global.extensions.extAuth }}
+  {{- if or $extauth.envoySidecar $extauth.standaloneDeployment }}
+  extauth:
+    extauthzServerRef:
+      # arbitrarily default to the standalone deployment name even if we're using both
+      {{- if $extauth.standaloneDeployment }}
+      name: extauth
+      {{- else }}
+      name: extauth-sidecar
       {{- end }}
+      namespace: {{ .Release.Namespace }}
+  {{- end }}
   ratelimitServer:
     ratelimit_server_ref:
       name: rate-limit

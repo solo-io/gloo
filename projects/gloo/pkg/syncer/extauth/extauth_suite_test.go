@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestExtauth(t *testing.T) {
+func TestExtAuth(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Extauth Suite")
+	RunSpecs(t, "ExtAuth Suite")
 }

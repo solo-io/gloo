@@ -121,7 +121,7 @@ func (p *Plugin) handleDeprecatedPluginConfig(params plugins.InitParams) error {
 }
 
 func (p *Plugin) Init(params plugins.InitParams) error {
-	authSettings, _, _ := extauth.GetSettings(params)
+	authSettings := params.Settings.GetExtauth()
 	p.authUserIdHeader = extauth.GetAuthHeader(authSettings)
 
 	if err := p.handleDeprecatedPluginConfig(params); err != nil {

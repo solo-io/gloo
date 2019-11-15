@@ -322,26 +322,6 @@ function getVirtualServiceForUpdate(
         // TODO
         if (currentExtAuth !== undefined) {
           let newExtAuthInputConfig = new ExtAuthInput.Config();
-          let currentExtAuthConfig = currentExtAuth!.getValue();
-          if (currentExtAuthConfig !== undefined) {
-            let newOauth = new OAuth();
-
-            let currentOauth = currentExtAuthConfig.getOauth();
-            if (currentOauth !== undefined) {
-              newOauth.setClientId(currentOauth.getClientId());
-              let clientRef = new ResourceRef();
-              // TODO
-              newOauth.setClientSecretRef(clientRef);
-              newOauth.setIssuerUrl(currentOauth.getIssuerUrl());
-              newOauth.setAppUrl(currentOauth.getAppUrl());
-
-              newOauth.setCallbackPath(currentOauth.getCallbackPath());
-              newOauth.setScopesList(currentOauth.getScopesList());
-            }
-
-            newExtAuthInputConfig.setOauth(newOauth);
-          }
-
           inputV2ExtAuthConfig.setConfig(newExtAuthInputConfig);
           inputVirtualServiceV2.setExtAuthConfig(inputV2ExtAuthConfig);
         }

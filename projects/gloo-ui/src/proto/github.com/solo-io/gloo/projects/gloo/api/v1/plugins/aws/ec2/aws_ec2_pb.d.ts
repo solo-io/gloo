@@ -17,11 +17,6 @@ export class UpstreamSpec extends jspb.Message {
   getRoleArn(): string;
   setRoleArn(value: string): void;
 
-  clearRoleArnsList(): void;
-  getRoleArnsList(): Array<string>;
-  setRoleArnsList(value: Array<string>): void;
-  addRoleArns(value: string, index?: number): string;
-
   clearFiltersList(): void;
   getFiltersList(): Array<TagFilter>;
   setFiltersList(value: Array<TagFilter>): void;
@@ -48,7 +43,6 @@ export namespace UpstreamSpec {
     region: string,
     secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     roleArn: string,
-    roleArnsList: Array<string>,
     filtersList: Array<TagFilter.AsObject>,
     publicIp: boolean,
     port: number,

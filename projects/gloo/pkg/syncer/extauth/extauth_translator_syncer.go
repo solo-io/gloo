@@ -7,7 +7,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"go.uber.org/zap"
@@ -62,18 +61,18 @@ func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
 
-				if err := helper.processVirtualHostAuthExtension(ctx, snap, proxy, listener, virtualHost); err != nil {
+				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetVirtualHostPlugins().GetExtauth()); err != nil {
 					return err
 				}
 
 				for _, route := range virtualHost.Routes {
 
-					if err := helper.processAuthExtension(ctx, snap, route.RoutePlugins); err != nil {
+					if err := helper.processAuthExtension(ctx, snap, route.GetRoutePlugins().GetExtauth()); err != nil {
 						return err
 					}
 
 					for _, weightedDestination := range route.GetRouteAction().GetMulti().GetDestinations() {
-						if err := helper.processAuthExtension(ctx, snap, weightedDestination.WeighedDestinationPlugins); err != nil {
+						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetWeightedDestinationPlugins().GetExtauth()); err != nil {
 							return err
 						}
 					}
@@ -109,27 +108,7 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, configContainer extAuthPlugin.ConfigContainer) error {
-	var config extauth.ExtAuthExtension
-
-	// TODO(marco): get rid of this conditional when we remove the opaque config
-	if typedConfig := configContainer.GetExtauth(); typedConfig != nil {
-		// If we have a typed config, use it and ignore the extension
-		config = *typedConfig
-
-	} else {
-		if err := utils.UnmarshalExtension(configContainer, extAuthPlugin.ExtensionName, &config); err != nil {
-
-			// Do nothing if there is no extauth extension
-			if err == utils.NotFoundError {
-				return nil
-			}
-
-			// If we get here, then the extension is malformed
-			return extAuthPlugin.MalformedConfigError(err)
-		}
-	}
-
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, config *extauth.ExtAuthExtension) error {
 	configRef := config.GetConfigRef()
 	if configRef == nil {
 		// Just return if there is nothing to translate
@@ -150,57 +129,5 @@ func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnaps
 	}
 
 	h.translatedConfigs[configRef.Key()] = translatedConfig
-	return nil
-}
-
-// TODO(marco): remove when we get rid of all deprecated auth APIs (just call `processAuthExtension`)
-// We need to handle virtual host extensions differently to maintain backwards compatibility.
-// In addition to the config, we return the key used to uniquely identify the configuration. This can be either:
-// - The virtual host name, if we have the deprecated config, or
-// - The AuthConfig resource ref key, if the virtual host uses the latest config format.
-// This will be removed with v1.0.0.
-func (h *helper) processVirtualHostAuthExtension(
-	ctx context.Context,
-	snap *gloov1.ApiSnapshot,
-	proxy *gloov1.Proxy,
-	listener *gloov1.Listener,
-	virtualHost *gloov1.VirtualHost) error {
-
-	// Handle strongly-typed configurations with the generic function
-	if virtualHost.GetVirtualHostPlugins().GetExtauth() != nil {
-		return h.processAuthExtension(ctx, snap, virtualHost.VirtualHostPlugins)
-	}
-
-	// Try to see if this is an old config first
-	var oldExtensionFormat extauth.VhostExtension
-	err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, extAuthPlugin.ExtensionName, &oldExtensionFormat)
-	if err != nil {
-
-		// Do nothing if there is no extauth extension on this virtual host
-		if err == utils.NotFoundError {
-			return nil
-		}
-
-		// If we get here, either the extension is malformed, or we have the new extauth extension format.
-		// In both cases, try to proceed as if we had a new extension.
-		return h.processAuthExtension(ctx, snap, virtualHost.VirtualHostPlugins)
-	}
-
-	translatedConfig, err := extAuthPlugin.TranslateDeprecatedExtAuthConfig(ctx, proxy, listener, virtualHost, snap, oldExtensionFormat)
-	if err != nil {
-		return err
-	} else if translatedConfig == nil {
-		// Do nothing if config is empty or consists only of custom auth configs
-		return nil
-	}
-
-	const deprecatedConfigKeyPrefix = "vhost_"
-
-	// The translator function above returns the fully qualified virtual host name as a unique identifier for the configuration.
-	// We prepend a prefix with an out-of-band character ("_", which is not allowed for Kubernetes resource names) to be sure not
-	// to have collisions with AuthConfig identifiers.
-	// NOTE: this is done only to ensure uniqueness inside this helper, it is not related to the `DeprecatedConfigRefPrefix`
-	// which we actually use to avoid collisions in the extauth server config.
-	h.translatedConfigs[deprecatedConfigKeyPrefix+translatedConfig.Vhost] = translatedConfig
 	return nil
 }

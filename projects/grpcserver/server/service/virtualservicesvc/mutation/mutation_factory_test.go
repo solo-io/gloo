@@ -7,13 +7,11 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
@@ -71,201 +69,11 @@ var _ = Describe("MutationFactory", func() {
 			}
 		}
 
-		getOAuth := func() *extauth2.OAuth {
-			return &extauth2.OAuth{
-				ClientId:        "a",
-				ClientSecretRef: getRef("sns", "sn"),
-				IssuerUrl:       "b",
-				AppUrl:          "c",
-				CallbackPath:    "d",
-			}
-		}
-
-		getVHostExtensionStruct := func() *types.Struct {
-			vHostExtension := &extauth2.VhostExtension{
-				Configs: []*extauth2.VhostExtension_AuthConfig{{
-					AuthConfig: &extauth2.VhostExtension_AuthConfig_Oauth{
-						Oauth: getOAuth(),
-					},
-				}},
-			}
-			vHostStruct, err := util.MessageToStruct(vHostExtension)
-			Expect(err).NotTo(HaveOccurred())
-			return vHostStruct
-		}
-
 		getRateLimitStruct := func() *types.Struct {
 			rlStruct, err := util.MessageToStruct(getRateLimit())
 			Expect(err).NotTo(HaveOccurred())
 			return rlStruct
 		}
-
-		Describe("deprecated implementation", func() {
-			getOAuthInput := func() *v1.VirtualServiceInput_Oauth {
-				return &v1.VirtualServiceInput_Oauth{
-					Oauth: getOAuth(),
-				}
-			}
-
-			It("works for new virtual services", func() {
-				testCases := []struct {
-					vsInput  *v1.VirtualServiceInput
-					expected *gatewayv1.VirtualService
-				}{
-					{
-						vsInput: &v1.VirtualServiceInput{
-							Ref:             getRef("ns", "name"),
-							DisplayName:     "ds",
-							Domains:         []string{"one", "two"},
-							Routes:          []*gatewayv1.Route{getRoute("a")},
-							ExtAuthConfig:   getOAuthInput(),
-							RateLimitConfig: getRateLimit(),
-							SecretRef:       getRef("sns", "sn"),
-						},
-						expected: &gatewayv1.VirtualService{
-							Metadata:    getMetadata("ns", "name"),
-							DisplayName: "ds",
-							SslConfig: &gloov1.SslConfig{
-								SslSecrets: &gloov1.SslConfig_SecretRef{
-									SecretRef: getRef("sns", "sn"),
-								},
-							},
-							VirtualHost: &gatewayv1.VirtualHost{
-								Domains: []string{"one", "two"},
-								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Extensions: &gloov1.Extensions{
-										Configs: map[string]*types.Struct{
-											extauth.ExtensionName: getVHostExtensionStruct(),
-										},
-									},
-									RatelimitBasic: getRateLimit(),
-								},
-							},
-						},
-					},
-					{
-						vsInput:  &v1.VirtualServiceInput{},
-						expected: &gatewayv1.VirtualService{VirtualHost: &gatewayv1.VirtualHost{}},
-					},
-				}
-
-				for _, tc := range testCases {
-					vs := &gatewayv1.VirtualService{}
-					err := factory.ConfigureVirtualService(tc.vsInput)(vs)
-					Expect(err).NotTo(HaveOccurred())
-					ExpectEqualProtoMessages(vs, tc.expected)
-				}
-			})
-
-			It("works for updating existing virtual services", func() {
-				testCases := []struct {
-					vsInput            *v1.VirtualServiceInput
-					existing, expected *gatewayv1.VirtualService
-					expectedErr        error
-				}{
-					{
-						vsInput: &v1.VirtualServiceInput{
-							Ref:             getRef("ns", "name"),
-							DisplayName:     "new-ds",
-							Domains:         []string{"three"},
-							Routes:          []*gatewayv1.Route{getRoute("b"), getRoute("c")},
-							ExtAuthConfig:   getOAuthInput(),
-							RateLimitConfig: getRateLimit(),
-							SecretRef:       getRef("new-sns", "new-sn"),
-						},
-						existing: &gatewayv1.VirtualService{
-							Metadata:    getMetadata("ns", "name"),
-							DisplayName: "ds",
-							SslConfig: &gloov1.SslConfig{
-								SslSecrets: &gloov1.SslConfig_SecretRef{
-									SecretRef: getRef("sns", "sn"),
-								},
-							},
-							VirtualHost: &gatewayv1.VirtualHost{
-								Domains: []string{"one", "two"},
-								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									RatelimitBasic: getRateLimit(),
-								},
-							},
-						},
-						expected: &gatewayv1.VirtualService{
-							Metadata:    getMetadata("ns", "name"),
-							DisplayName: "new-ds",
-							SslConfig: &gloov1.SslConfig{
-								SslSecrets: &gloov1.SslConfig_SecretRef{
-									SecretRef: getRef("new-sns", "new-sn"),
-								},
-							},
-							VirtualHost: &gatewayv1.VirtualHost{
-								Domains: []string{"three"},
-								Routes:  []*gatewayv1.Route{getRoute("b"), getRoute("c")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Extensions: &gloov1.Extensions{
-										Configs: map[string]*types.Struct{
-											extauth.ExtensionName: getVHostExtensionStruct(),
-										},
-									},
-									RatelimitBasic: getRateLimit(),
-								},
-							},
-						},
-					},
-					{
-						// Should not change metadata
-						vsInput: &v1.VirtualServiceInput{
-							Ref: getRef("new-ns", "new-name"),
-						},
-						existing: &gatewayv1.VirtualService{
-							Metadata: getMetadata("ns", "name"),
-						},
-						expected: &gatewayv1.VirtualService{
-							Metadata:    getMetadata("ns", "name"),
-							VirtualHost: &gatewayv1.VirtualHost{},
-						},
-					},
-					{
-						vsInput: &v1.VirtualServiceInput{
-							Ref:       getRef("new-ns", "new-name"),
-							SecretRef: getRef("new-sns", "new-sn"),
-						},
-						existing: &gatewayv1.VirtualService{
-							Metadata: getMetadata("ns", "name"),
-							SslConfig: &gloov1.SslConfig{
-								SslSecrets: &gloov1.SslConfig_Sds{},
-							},
-						},
-						expectedErr: mutation.AlreadyConfiguredSslWithSds,
-					},
-					{
-						vsInput: &v1.VirtualServiceInput{
-							Ref:       getRef("new-ns", "new-name"),
-							SecretRef: getRef("new-sns", "new-sn"),
-						},
-						existing: &gatewayv1.VirtualService{
-							Metadata: getMetadata("ns", "name"),
-							SslConfig: &gloov1.SslConfig{
-								SslSecrets: &gloov1.SslConfig_SslFiles{},
-							},
-						},
-						expectedErr: mutation.AlreadyConfiguredSslWithFiles,
-					},
-				}
-
-				for _, tc := range testCases {
-					err := factory.ConfigureVirtualService(tc.vsInput)(tc.existing)
-					if tc.expectedErr != nil {
-						Expect(err).To(HaveOccurred())
-						Expect(err).To(Equal(tc.expectedErr))
-					} else {
-						Expect(err).NotTo(HaveOccurred())
-						ExpectEqualProtoMessages(tc.existing, tc.expected)
-					}
-				}
-			})
-
-		})
 
 		Describe("V2", func() {
 			getDisplayName := func(name string) *types.StringValue {
@@ -287,16 +95,6 @@ var _ = Describe("MutationFactory", func() {
 				}
 
 				return &v1.RepeatedRoutes{Values: routes}
-			}
-
-			getOAuthInput := func() *v1.ExtAuthInput {
-				return &v1.ExtAuthInput{
-					Config: &v1.ExtAuthInput_Config{
-						Value: &v1.ExtAuthInput_Config_Oauth{
-							Oauth: getOAuth(),
-						},
-					},
-				}
 			}
 
 			getRateLimitInput := func() *v1.IngressRateLimitValue {
@@ -324,7 +122,6 @@ var _ = Describe("MutationFactory", func() {
 							DisplayName:     getDisplayName("ds"),
 							Domains:         getDomains([]string{"one", "two"}),
 							Routes:          getRoutes([]string{"a"}),
-							ExtAuthConfig:   getOAuthInput(),
 							RateLimitConfig: getRateLimitInput(),
 							SslConfig:       getSslConfigValue([]string{"a", "b"}),
 						},
@@ -339,11 +136,6 @@ var _ = Describe("MutationFactory", func() {
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Extensions: &gloov1.Extensions{
-										Configs: map[string]*types.Struct{
-											extauth.ExtensionName: getVHostExtensionStruct(),
-										},
-									},
 									RatelimitBasic: getRateLimit(),
 								},
 							},
@@ -387,7 +179,6 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -420,7 +211,6 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},
@@ -441,7 +231,6 @@ var _ = Describe("MutationFactory", func() {
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
-											extauth.ExtensionName:    getVHostExtensionStruct(),
 											ratelimit2.ExtensionName: getRateLimitStruct(),
 										},
 									},

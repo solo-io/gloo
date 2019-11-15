@@ -112,7 +112,6 @@ proto.gateway.solo.io.v2.Gateway.toObject = function(includeInstance, msg) {
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpGateway: (f = msg.getHttpGateway()) && proto.gateway.solo.io.v2.HttpGateway.toObject(includeInstance, f),
     tcpGateway: (f = msg.getTcpGateway()) && proto.gateway.solo.io.v2.TcpGateway.toObject(includeInstance, f),
-    gatewayProxyName: jspb.Message.getFieldWithDefault(msg, 11, ""),
     proxyNamesList: jspb.Message.getRepeatedField(msg, 12)
   };
 
@@ -191,10 +190,6 @@ proto.gateway.solo.io.v2.Gateway.deserializeBinaryFromReader = function(msg, rea
       var value = new proto.gateway.solo.io.v2.TcpGateway;
       reader.readMessage(value,proto.gateway.solo.io.v2.TcpGateway.deserializeBinaryFromReader);
       msg.setTcpGateway(value);
-      break;
-    case 11:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setGatewayProxyName(value);
       break;
     case 12:
       var value = /** @type {string} */ (reader.readString());
@@ -296,13 +291,6 @@ proto.gateway.solo.io.v2.Gateway.serializeBinaryToWriter = function(message, wri
       10,
       f,
       proto.gateway.solo.io.v2.TcpGateway.serializeBinaryToWriter
-    );
-  }
-  f = message.getGatewayProxyName();
-  if (f.length > 0) {
-    writer.writeString(
-      11,
-      f
     );
   }
   f = message.getProxyNamesList();
@@ -539,21 +527,6 @@ proto.gateway.solo.io.v2.Gateway.prototype.clearTcpGateway = function() {
  */
 proto.gateway.solo.io.v2.Gateway.prototype.hasTcpGateway = function() {
   return jspb.Message.getField(this, 10) != null;
-};
-
-
-/**
- * optional string gateway_proxy_name = 11;
- * @return {string}
- */
-proto.gateway.solo.io.v2.Gateway.prototype.getGatewayProxyName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
-};
-
-
-/** @param {string} value */
-proto.gateway.solo.io.v2.Gateway.prototype.setGatewayProxyName = function(value) {
-  jspb.Message.setProto3StringField(this, 11, value);
 };
 
 

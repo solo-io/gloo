@@ -5,6 +5,8 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.redis.service.name }}
+    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
+    installationId: {{ include "gloo.installationId" $installationContext }}
   name: {{ .Values.redis.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:

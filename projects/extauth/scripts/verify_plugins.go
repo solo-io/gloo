@@ -19,13 +19,9 @@ import (
 
 var pluginManifestFlagUsage = `A .yaml file containing information required to load the ext auth plugins. Must have the following format: 
 
-	plugins:
-	- name: MyPlugin
-	  pluginFileName: Plugin.so
-	  exportedSymbolName: MyPlugin
-	- name: AnotherPlugin
-	  plugin_file_name: AnotherFile.so
-	  exported_symbol_name: AnotherSymbol
+	name: MyPlugin
+	pluginFileName: Plugin.so
+	exportedSymbolName: MyPlugin
 `
 
 func main() {
@@ -54,7 +50,7 @@ func main() {
 		contextutils.SetLogLevel(zap.DebugLevel)
 	}
 
-	if err := verifyPlugins(ctx, *pluginDir, *pluginManifestFile); err != nil {
+	if err := verifyPlugin(ctx, *pluginDir, *pluginManifestFile); err != nil {
 		logger.Errorw("Plugin(s) cannot be loaded by Gloo", zap.Any("error", err))
 		os.Exit(1)
 	}
@@ -63,16 +59,16 @@ func main() {
 	os.Exit(0)
 }
 
-func verifyPlugins(ctx context.Context, pluginDir, pluginManifestFile string) error {
+func verifyPlugin(ctx context.Context, pluginDir, pluginManifestFile string) error {
 	pluginConfig, err := parseManifestFile(pluginManifestFile)
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse plugin manifest file")
 	}
 
-	return loadPlugins(ctx, pluginDir, pluginConfig)
+	return loadPlugin(ctx, pluginDir, pluginConfig)
 }
 
-func parseManifestFile(filePath string) (*extauth.PluginAuth, error) {
+func parseManifestFile(filePath string) (*extauth.AuthPlugin, error) {
 	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -83,26 +79,24 @@ func parseManifestFile(filePath string) (*extauth.PluginAuth, error) {
 		return nil, err
 	}
 
-	into := &extauth.PluginAuth{}
+	into := &extauth.AuthPlugin{}
 	if err = protoutils.UnmarshalBytes(bytes, into); err != nil {
 		return nil, err
 	}
 	return into, nil
 }
 
-func loadPlugins(ctx context.Context, pluginDir string, pluginConfig *extauth.PluginAuth) error {
+func loadPlugin(ctx context.Context, pluginDir string, pluginConfig *extauth.AuthPlugin) error {
 	sanitizeConfig(pluginConfig)
-	_, err := plugins.NewPluginLoader(pluginDir).Load(ctx, pluginConfig)
+	_, err := plugins.NewPluginLoader(pluginDir).LoadAuthPlugin(ctx, pluginConfig)
 	return err
 }
 
 // Loader will fail if proto is nil
-func sanitizeConfig(pluginConfig *extauth.PluginAuth) {
-	for _, authPlugin := range pluginConfig.Plugins {
-		if authPlugin.Config == nil {
-			authPlugin.Config = &types.Struct{
-				Fields: map[string]*types.Value{},
-			}
+func sanitizeConfig(pluginConfig *extauth.AuthPlugin) {
+	if pluginConfig.Config == nil {
+		pluginConfig.Config = &types.Struct{
+			Fields: map[string]*types.Value{},
 		}
 	}
 }

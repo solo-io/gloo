@@ -14,16 +14,12 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/protoutils"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 	"go.uber.org/zap"
 )
 
 //go:generate mockgen -destination mocks/loader_mock.go -package mocks github.com/solo-io/solo-projects/projects/extauth/pkg/plugins Loader
 
 var (
-	PluginChainBuildError = func(err error) error {
-		return errors.Wrapf(err, "failed to add plugin to plugin chain")
-	}
 	PluginFileOpenError = func(err error) error {
 		return errors.Wrapf(err, "failed to open plugin file")
 	}
@@ -39,34 +35,11 @@ func NewPluginLoader(pluginDir string) Loader {
 }
 
 type Loader interface {
-	// Deprecated
-	Load(ctx context.Context, pluginConfig *extauth.PluginAuth) (api.AuthService, error)
 	LoadAuthPlugin(ctx context.Context, pluginConfig *extauth.AuthPlugin) (api.AuthService, error)
 }
 
 type loader struct {
 	pluginDir string
-}
-
-// Deprecated
-func (l *loader) Load(ctx context.Context, pluginConfigs *extauth.PluginAuth) (api.AuthService, error) {
-	logger := contextutils.LoggerFrom(ctx)
-
-	pluginChain := chain.NewAuthServiceChain()
-
-	for _, cfg := range pluginConfigs.Plugins {
-		authService, err := l.LoadAuthPlugin(ctx, cfg)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get AuthService instance from plugin")
-		}
-
-		logger.Infow("Successfully loaded plugin. Adding it to the plugin chain.", zap.Any("pluginName", cfg.Name))
-		if err := pluginChain.AddAuthService(cfg.Name, authService); err != nil {
-			return nil, PluginChainBuildError(err)
-		}
-	}
-
-	return pluginChain, nil
 }
 
 func (l *loader) LoadAuthPlugin(ctx context.Context, pluginConfig *extauth.AuthPlugin) (api.AuthService, error) {

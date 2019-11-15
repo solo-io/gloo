@@ -36,21 +36,6 @@ func (m *MockLoader) EXPECT() *MockLoaderMockRecorder {
 	return m.recorder
 }
 
-// Load mocks base method
-func (m *MockLoader) Load(arg0 context.Context, arg1 *v1.PluginAuth) (api.AuthService, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load", arg0, arg1)
-	ret0, _ := ret[0].(api.AuthService)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Load indicates an expected call of Load
-func (mr *MockLoaderMockRecorder) Load(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockLoader)(nil).Load), arg0, arg1)
-}
-
 // LoadAuthPlugin mocks base method
 func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *v1.AuthPlugin) (api.AuthService, error) {
 	m.ctrl.T.Helper()

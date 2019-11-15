@@ -9,13 +9,10 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/gogo/protobuf/types"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
 	"github.com/solo-io/go-utils/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -164,7 +161,7 @@ var _ = Describe("External auth", func() {
 	Describe("authenticate requests via LDAP", func() {
 
 		var (
-			extAuthConfigProto proto.Message
+			extAuthConfigProto *extauthapi.ExtAuthExtension
 			ldapConfig         = func(namespace string) *extauthapi.Ldap {
 				return &extauthapi.Ldap{
 					Address:        fmt.Sprintf("ldap.%s.svc.cluster.local:389", namespace),
@@ -192,15 +189,9 @@ var _ = Describe("External auth", func() {
 			})
 
 			By("create an LDAP-secured route to the test upstream", func() {
-				extAuthConfig, err := envoyutil.MessageToStruct(extAuthConfigProto)
-				Expect(err).NotTo(HaveOccurred())
 
 				virtualHostPlugins := &gloov1.VirtualHostPlugins{
-					Extensions: &gloov1.Extensions{
-						Configs: map[string]*types.Struct{
-							extauth.ExtensionName: extAuthConfig,
-						},
-					},
+					Extauth: extAuthConfigProto,
 				}
 
 				writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
@@ -217,41 +208,7 @@ var _ = Describe("External auth", func() {
 			deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		})
 
-		// TODO(marco): remove when we remove the deprecated API
-		When("using the deprecated auth config format", func() {
-
-			BeforeEach(func() {
-				extAuthConfigProto = &extauthapi.VhostExtension{
-					Configs: []*extauthapi.VhostExtension_AuthConfig{
-						{
-							AuthConfig: &extauthapi.VhostExtension_AuthConfig_Ldap{
-								Ldap: ldapConfig(testHelper.InstallNamespace),
-							},
-						},
-					},
-				}
-			})
-
-			It("works as expected", func() {
-
-				By("returns 401 if no authentication header is provided", func() {
-					curlAndAssertResponse(testMatcherPrefix, nil, response401)
-				})
-
-				By("returns 401 if the user is unknown", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("john:doe"), response401)
-				})
-
-				By("returns 200 if the user belongs to one of the allowed groups", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
-				})
-
-				By("returns 403 if the user does not belong to the allowed groups", func() {
-					curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
-				})
-			})
-		})
-
+		// TODO(kdorosh) remove outer context right before merge -- leave around for PR review for easy diff
 		When("using the new auth config format", func() {
 			allTests := func() {
 				It("works as expected ", func() {
@@ -317,12 +274,7 @@ var _ = Describe("External auth", func() {
 					extauthSettings := &extauthapi.Settings{
 						ExtauthzServerRef: &newRef,
 					}
-					settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
-					settings.Extensions = &gloov1.Extensions{
-						Configs: map[string]*types.Struct{
-							extauth.ExtensionName: settingsStruct,
-						},
-					}
+					settings.Extauth = extauthSettings
 
 					_, err = settingsClient.Write(settings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
 					Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
@@ -373,36 +325,18 @@ var _ = Describe("External auth", func() {
 			}
 		}
 
-		buildExtAuthExtension := func(authConfigRef *core.ResourceRef) *gloov1.Extensions {
-			extAuthConfigProto := &extauthapi.ExtAuthExtension{
+		buildExtAuthExtension := func(authConfigRef *core.ResourceRef) *extauthapi.ExtAuthExtension {
+			return &extauthapi.ExtAuthExtension{
 				Spec: &extauthapi.ExtAuthExtension_ConfigRef{
 					ConfigRef: authConfigRef,
 				},
 			}
-
-			extAuthConfig, err := envoyutil.MessageToStruct(extAuthConfigProto)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			return &gloov1.Extensions{
-				Configs: map[string]*types.Struct{
-					extauth.ExtensionName: extAuthConfig,
-				},
-			}
 		}
 
-		getDisableAuthExtension := func() *gloov1.Extensions {
-			extAuthConfigProto := &extauthapi.ExtAuthExtension{
+		getDisableAuthExtension := func() *extauthapi.ExtAuthExtension {
+			return &extauthapi.ExtAuthExtension{
 				Spec: &extauthapi.ExtAuthExtension_Disable{
 					Disable: true,
-				},
-			}
-
-			extAuthConfig, err := envoyutil.MessageToStruct(extAuthConfigProto)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			return &gloov1.Extensions{
-				Configs: map[string]*types.Struct{
-					extauth.ExtensionName: extAuthConfig,
 				},
 			}
 		}
@@ -598,7 +532,7 @@ var _ = Describe("External auth", func() {
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpAuthConfig)
 
 					extension := buildExtAuthExtension(authConfigRef)
-					vhPlugins = &gloov1.VirtualHostPlugins{Extensions: extension}
+					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: extension}
 				})
 
 				It("behaves as expected", func() {
@@ -621,10 +555,10 @@ var _ = Describe("External auth", func() {
 					authConfigRef, cleanUpAuthConfig := writeAuthConfig(allowUser)
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpAuthConfig)
 
-					vhPlugins = &gloov1.VirtualHostPlugins{Extensions: buildExtAuthExtension(authConfigRef)}
+					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: buildExtAuthExtension(authConfigRef)}
 
 					//  Disable auth on route 2
-					route2Plugins = &gloov1.RoutePlugins{Extensions: getDisableAuthExtension()}
+					route2Plugins = &gloov1.RoutePlugins{Extauth: getDisableAuthExtension()}
 				})
 
 				It("behaves as expected", func() {
@@ -655,8 +589,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpVhAuthConfig, cleanUpRouteAuthConfig)
 
-					vhPlugins = &gloov1.VirtualHostPlugins{Extensions: buildExtAuthExtension(vhAuthConfigRef)}
-					route2Plugins = &gloov1.RoutePlugins{Extensions: buildExtAuthExtension(routeAuthConfigRef)}
+					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: buildExtAuthExtension(vhAuthConfigRef)}
+					route2Plugins = &gloov1.RoutePlugins{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {
@@ -723,7 +657,7 @@ var _ = Describe("External auth", func() {
 																},
 															},
 														},
-														WeighedDestinationPlugins: pluginsForDest1,
+														WeightedDestinationPlugins: pluginsForDest1,
 													},
 													{
 														Weight: 50,
@@ -738,7 +672,7 @@ var _ = Describe("External auth", func() {
 																},
 															},
 														},
-														WeighedDestinationPlugins: pluginsForDest2,
+														WeightedDestinationPlugins: pluginsForDest2,
 													},
 												},
 											},
@@ -781,8 +715,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpRouteAuthConfig, cleanUpWeightedDestAuthConfig)
 
-					routePlugins = &gloov1.RoutePlugins{Extensions: buildExtAuthExtension(routeAuthConfigRef)}
-					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extensions: buildExtAuthExtension(weightedDestAuthConfigRef)}
+					routePlugins = &gloov1.RoutePlugins{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
+					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDestAuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {
@@ -820,8 +754,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpWeightedDest1AuthConfig, cleanUpWeightedDest2AuthConfig)
 
-					dest1Plugins = &gloov1.WeightedDestinationPlugins{Extensions: buildExtAuthExtension(weightedDest1AuthConfigRef)}
-					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extensions: buildExtAuthExtension(weightedDest2AuthConfigRef)}
+					dest1Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDest1AuthConfigRef)}
+					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDest2AuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {

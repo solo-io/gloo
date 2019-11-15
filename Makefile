@@ -74,7 +74,7 @@ update-deps:
 	mkdir -p $$GOPATH/src/github.com/envoyproxy
 	# use a specific commit (c15f2c24fb27b136e722fa912accddd0c8db9dfa) until v0.0.15 is released, as in v0.0.14 the import paths were not yet changed
 	cd $$GOPATH/src/github.com/envoyproxy && if [ ! -e protoc-gen-validate ];then git clone https://github.com/envoyproxy/protoc-gen-validate; fi && cd protoc-gen-validate && git fetch && git checkout c15f2c24fb27b136e722fa912accddd0c8db9dfa
-	go get -u github.com/paulvollmer/2gobytes
+	#go get -u github.com/paulvollmer/2gobytes TODO(kdorosh) temporarily commented out until target is fixed
 	go get -v -u github.com/golang/mock/gomock
 	go install github.com/golang/mock/mockgen
 
@@ -444,7 +444,7 @@ init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
@@ -616,7 +616,7 @@ build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
@@ -626,7 +626,7 @@ build-kind-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-tagged-helm
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)

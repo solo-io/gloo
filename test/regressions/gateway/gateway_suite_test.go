@@ -9,6 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/go-utils/testutils/exec"
+
+	"github.com/solo-io/gloo/pkg/cliutil"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/go-utils/errors"
@@ -48,10 +52,18 @@ func TestGateway(t *testing.T) {
 	if testutils.AreTestsDisabled() {
 		return
 	}
-	helpers.RegisterGlooDebugLogPrintHandlerAndClearLogs()
 	skhelpers.RegisterCommonFailHandlers()
 	skhelpers.SetupLog()
+	_ = os.Remove(cliutil.GetLogsPath())
+	skhelpers.RegisterPreFailHandler(printGlooDebugLogs)
 	RunSpecs(t, "Gateway Suite")
+}
+
+func printGlooDebugLogs() {
+	logs, _ := ioutil.ReadFile(cliutil.GetLogsPath())
+	fmt.Println("*** Gloo debug logs ***")
+	fmt.Println(string(logs))
+	fmt.Println("*** End Gloo debug logs ***")
 }
 
 const (
@@ -108,6 +120,14 @@ var _ = BeforeSuite(func() {
 		return errors.New("glooctl check detected a problem with the installation")
 	}, 2*time.Minute, "5s").Should(BeNil())
 
+	// Print out the versions of CLI and server components
+	glooctlVersionCommand := []string{
+		filepath.Join(testHelper.BuildAssetDir, testHelper.GlooctlExecName),
+		"version", "-n", testHelper.InstallNamespace}
+	output, err := exec.RunCommandOutput(testHelper.RootDir, true, glooctlVersionCommand...)
+	Expect(err).NotTo(HaveOccurred())
+	fmt.Println(output)
+
 	// TODO(marco): explicitly enable strict validation, this can be removed once we enable validation by default
 	// See https://github.com/solo-io/gloo/issues/1374
 	enableStrictValidation()
@@ -150,6 +170,7 @@ func getHelmOverrides() (filename string, cleanup func()) {
 gloo:
   rbac:    
     namespaced: true
+    nameSuffix: e2e-test-rbac-suffix
   settings:
     singleNamespace: true
     create: true

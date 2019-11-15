@@ -74,6 +74,14 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getTracing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings | undefined;
   setTracing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings): void;
 
+  getForwardClientCertDetails(): HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap];
+  setForwardClientCertDetails(value: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap]): void;
+
+  hasSetCurrentClientCertDetails(): boolean;
+  clearSetCurrentClientCertDetails(): void;
+  getSetCurrentClientCertDetails(): HttpConnectionManagerSettings.SetCurrentClientCertDetails | undefined;
+  setSetCurrentClientCertDetails(value?: HttpConnectionManagerSettings.SetCurrentClientCertDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -102,6 +110,56 @@ export namespace HttpConnectionManagerSettings {
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
     tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings.AsObject,
+    forwardClientCertDetails: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
+    setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
   }
+
+  export class SetCurrentClientCertDetails extends jspb.Message {
+    hasSubject(): boolean;
+    clearSubject(): void;
+    getSubject(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setSubject(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    getCert(): boolean;
+    setCert(value: boolean): void;
+
+    getChain(): boolean;
+    setChain(value: boolean): void;
+
+    getDns(): boolean;
+    setDns(value: boolean): void;
+
+    getUri(): boolean;
+    setUri(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SetCurrentClientCertDetails.AsObject;
+    static toObject(includeInstance: boolean, msg: SetCurrentClientCertDetails): SetCurrentClientCertDetails.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SetCurrentClientCertDetails, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SetCurrentClientCertDetails;
+    static deserializeBinaryFromReader(message: SetCurrentClientCertDetails, reader: jspb.BinaryReader): SetCurrentClientCertDetails;
+  }
+
+  export namespace SetCurrentClientCertDetails {
+    export type AsObject = {
+      subject?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      cert: boolean,
+      chain: boolean,
+      dns: boolean,
+      uri: boolean,
+    }
+  }
+
+  export interface ForwardClientCertDetailsMap {
+    SANITIZE: 0;
+    FORWARD_ONLY: 1;
+    APPEND_FORWARD: 2;
+    SANITIZE_SET: 3;
+    ALWAYS_FORWARD_ONLY: 4;
+  }
+
+  export const ForwardClientCertDetails: ForwardClientCertDetailsMap;
 }
 

@@ -101,7 +101,8 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   tracing: {
     requestHeadersForTagsList: (undefined as unknown) as string[],
     verbose: (undefined as unknown) as boolean
-  }
+  },
+  forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
 };
 
 const validationSchema = yup.object().shape({

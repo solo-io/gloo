@@ -57,11 +57,6 @@ export namespace AuthConfig {
     getOauth(): OAuth | undefined;
     setOauth(value?: OAuth): void;
 
-    hasCustomAuth(): boolean;
-    clearCustomAuth(): void;
-    getCustomAuth(): CustomAuth | undefined;
-    setCustomAuth(value?: CustomAuth): void;
-
     hasApiKeyAuth(): boolean;
     clearApiKeyAuth(): void;
     getApiKeyAuth(): ApiKeyAuth | undefined;
@@ -97,7 +92,6 @@ export namespace AuthConfig {
     export type AsObject = {
       basicAuth?: BasicAuth.AsObject,
       oauth?: OAuth.AsObject,
-      customAuth?: CustomAuth.AsObject,
       apiKeyAuth?: ApiKeyAuth.AsObject,
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: OpaAuth.AsObject,
@@ -108,7 +102,6 @@ export namespace AuthConfig {
       AUTH_CONFIG_NOT_SET = 0,
       BASIC_AUTH = 1,
       OAUTH = 2,
-      CUSTOM_AUTH = 3,
       API_KEY_AUTH = 4,
       PLUGIN_AUTH = 5,
       OPA_AUTH = 6,
@@ -156,158 +149,6 @@ export namespace ExtAuthExtension {
     DISABLE = 1,
     CONFIG_REF = 2,
     CUSTOM_AUTH = 3,
-  }
-}
-
-export class VhostExtension extends jspb.Message {
-  hasBasicAuth(): boolean;
-  clearBasicAuth(): void;
-  getBasicAuth(): BasicAuth | undefined;
-  setBasicAuth(value?: BasicAuth): void;
-
-  hasOauth(): boolean;
-  clearOauth(): void;
-  getOauth(): OAuth | undefined;
-  setOauth(value?: OAuth): void;
-
-  hasCustomAuth(): boolean;
-  clearCustomAuth(): void;
-  getCustomAuth(): CustomAuth | undefined;
-  setCustomAuth(value?: CustomAuth): void;
-
-  hasApiKeyAuth(): boolean;
-  clearApiKeyAuth(): void;
-  getApiKeyAuth(): ApiKeyAuth | undefined;
-  setApiKeyAuth(value?: ApiKeyAuth): void;
-
-  hasPluginAuth(): boolean;
-  clearPluginAuth(): void;
-  getPluginAuth(): PluginAuth | undefined;
-  setPluginAuth(value?: PluginAuth): void;
-
-  clearConfigsList(): void;
-  getConfigsList(): Array<VhostExtension.AuthConfig>;
-  setConfigsList(value: Array<VhostExtension.AuthConfig>): void;
-  addConfigs(value?: VhostExtension.AuthConfig, index?: number): VhostExtension.AuthConfig;
-
-  getAuthConfigCase(): VhostExtension.AuthConfigCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): VhostExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: VhostExtension): VhostExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: VhostExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): VhostExtension;
-  static deserializeBinaryFromReader(message: VhostExtension, reader: jspb.BinaryReader): VhostExtension;
-}
-
-export namespace VhostExtension {
-  export type AsObject = {
-    basicAuth?: BasicAuth.AsObject,
-    oauth?: OAuth.AsObject,
-    customAuth?: CustomAuth.AsObject,
-    apiKeyAuth?: ApiKeyAuth.AsObject,
-    pluginAuth?: PluginAuth.AsObject,
-    configsList: Array<VhostExtension.AuthConfig.AsObject>,
-  }
-
-  export class AuthConfig extends jspb.Message {
-    hasBasicAuth(): boolean;
-    clearBasicAuth(): void;
-    getBasicAuth(): BasicAuth | undefined;
-    setBasicAuth(value?: BasicAuth): void;
-
-    hasOauth(): boolean;
-    clearOauth(): void;
-    getOauth(): OAuth | undefined;
-    setOauth(value?: OAuth): void;
-
-    hasCustomAuth(): boolean;
-    clearCustomAuth(): void;
-    getCustomAuth(): CustomAuth | undefined;
-    setCustomAuth(value?: CustomAuth): void;
-
-    hasApiKeyAuth(): boolean;
-    clearApiKeyAuth(): void;
-    getApiKeyAuth(): ApiKeyAuth | undefined;
-    setApiKeyAuth(value?: ApiKeyAuth): void;
-
-    hasPluginAuth(): boolean;
-    clearPluginAuth(): void;
-    getPluginAuth(): AuthPlugin | undefined;
-    setPluginAuth(value?: AuthPlugin): void;
-
-    hasOpaAuth(): boolean;
-    clearOpaAuth(): void;
-    getOpaAuth(): OpaAuth | undefined;
-    setOpaAuth(value?: OpaAuth): void;
-
-    hasLdap(): boolean;
-    clearLdap(): void;
-    getLdap(): Ldap | undefined;
-    setLdap(value?: Ldap): void;
-
-    getAuthConfigCase(): AuthConfig.AuthConfigCase;
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): AuthConfig.AsObject;
-    static toObject(includeInstance: boolean, msg: AuthConfig): AuthConfig.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: AuthConfig, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): AuthConfig;
-    static deserializeBinaryFromReader(message: AuthConfig, reader: jspb.BinaryReader): AuthConfig;
-  }
-
-  export namespace AuthConfig {
-    export type AsObject = {
-      basicAuth?: BasicAuth.AsObject,
-      oauth?: OAuth.AsObject,
-      customAuth?: CustomAuth.AsObject,
-      apiKeyAuth?: ApiKeyAuth.AsObject,
-      pluginAuth?: AuthPlugin.AsObject,
-      opaAuth?: OpaAuth.AsObject,
-      ldap?: Ldap.AsObject,
-    }
-
-    export enum AuthConfigCase {
-      AUTH_CONFIG_NOT_SET = 0,
-      BASIC_AUTH = 1,
-      OAUTH = 2,
-      CUSTOM_AUTH = 3,
-      API_KEY_AUTH = 4,
-      PLUGIN_AUTH = 5,
-      OPA_AUTH = 6,
-      LDAP = 7,
-    }
-  }
-
-  export enum AuthConfigCase {
-    AUTH_CONFIG_NOT_SET = 0,
-    BASIC_AUTH = 1,
-    OAUTH = 2,
-    CUSTOM_AUTH = 3,
-    API_KEY_AUTH = 4,
-    PLUGIN_AUTH = 5,
-  }
-}
-
-export class RouteExtension extends jspb.Message {
-  getDisable(): boolean;
-  setDisable(value: boolean): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RouteExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: RouteExtension): RouteExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RouteExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RouteExtension;
-  static deserializeBinaryFromReader(message: RouteExtension, reader: jspb.BinaryReader): RouteExtension;
-}
-
-export namespace RouteExtension {
-  export type AsObject = {
-    disable: boolean,
   }
 }
 
@@ -492,28 +333,6 @@ export class CustomAuth extends jspb.Message {
 export namespace CustomAuth {
   export type AsObject = {
     contextExtensionsMap: Array<[string, string]>,
-  }
-}
-
-export class PluginAuth extends jspb.Message {
-  clearPluginsList(): void;
-  getPluginsList(): Array<AuthPlugin>;
-  setPluginsList(value: Array<AuthPlugin>): void;
-  addPlugins(value?: AuthPlugin, index?: number): AuthPlugin;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): PluginAuth.AsObject;
-  static toObject(includeInstance: boolean, msg: PluginAuth): PluginAuth.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: PluginAuth, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): PluginAuth;
-  static deserializeBinaryFromReader(message: PluginAuth, reader: jspb.BinaryReader): PluginAuth;
-}
-
-export namespace PluginAuth {
-  export type AsObject = {
-    pluginsList: Array<AuthPlugin.AsObject>,
   }
 }
 
@@ -837,35 +656,11 @@ export class ExtAuthConfig extends jspb.Message {
   getAuthConfigRefName(): string;
   setAuthConfigRefName(value: string): void;
 
-  getVhost(): string;
-  setVhost(value: string): void;
-
-  hasOauth(): boolean;
-  clearOauth(): void;
-  getOauth(): ExtAuthConfig.OAuthConfig | undefined;
-  setOauth(value?: ExtAuthConfig.OAuthConfig): void;
-
-  hasBasicAuth(): boolean;
-  clearBasicAuth(): void;
-  getBasicAuth(): BasicAuth | undefined;
-  setBasicAuth(value?: BasicAuth): void;
-
-  hasApiKeyAuth(): boolean;
-  clearApiKeyAuth(): void;
-  getApiKeyAuth(): ExtAuthConfig.ApiKeyAuthConfig | undefined;
-  setApiKeyAuth(value?: ExtAuthConfig.ApiKeyAuthConfig): void;
-
-  hasPluginAuth(): boolean;
-  clearPluginAuth(): void;
-  getPluginAuth(): PluginAuth | undefined;
-  setPluginAuth(value?: PluginAuth): void;
-
   clearConfigsList(): void;
   getConfigsList(): Array<ExtAuthConfig.Config>;
   setConfigsList(value: Array<ExtAuthConfig.Config>): void;
   addConfigs(value?: ExtAuthConfig.Config, index?: number): ExtAuthConfig.Config;
 
-  getAuthConfigCase(): ExtAuthConfig.AuthConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ExtAuthConfig): ExtAuthConfig.AsObject;
@@ -879,11 +674,6 @@ export class ExtAuthConfig extends jspb.Message {
 export namespace ExtAuthConfig {
   export type AsObject = {
     authConfigRefName: string,
-    vhost: string,
-    oauth?: ExtAuthConfig.OAuthConfig.AsObject,
-    basicAuth?: BasicAuth.AsObject,
-    apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
-    pluginAuth?: PluginAuth.AsObject,
     configsList: Array<ExtAuthConfig.Config.AsObject>,
   }
 
@@ -1032,14 +822,6 @@ export namespace ExtAuthConfig {
       OPA_AUTH = 7,
       LDAP = 8,
     }
-  }
-
-  export enum AuthConfigCase {
-    AUTH_CONFIG_NOT_SET = 0,
-    OAUTH = 3,
-    BASIC_AUTH = 4,
-    API_KEY_AUTH = 5,
-    PLUGIN_AUTH = 6,
   }
 }
 

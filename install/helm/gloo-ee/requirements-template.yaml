@@ -1,7 +1,6 @@
 dependencies:
   - name: gloo
-    repository: https://storage.googleapis.com/solo-public-tagged-helm
-    version: v1.0.0-rc1-15-g4350a555
+    repository: https://storage.googleapis.com/solo-public-helm
   - name: prometheus
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 8.4.1

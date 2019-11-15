@@ -19,22 +19,9 @@ import (
 var _ = Describe("Plugin Loader", func() {
 
 	var (
-		pluginFileDir         = os.ExpandEnv("$GOPATH/src/github.com/solo-io/solo-projects/test/extauth/plugins")
-		requiredHeader        = "my-header"
-		allowedHeaderValues   = []string{"value-a", "value-b"}
-		isHeaderPresentPlugin = &extauth.AuthPlugin{
-			Name: "IsHeaderPresent",
-			// No file name of symbol, check that defaults work correctly
-			Config: &types.Struct{
-				Fields: map[string]*types.Value{
-					"RequiredHeader": {
-						Kind: &types.Value_StringValue{
-							StringValue: requiredHeader,
-						},
-					},
-				},
-			},
-		}
+		pluginFileDir        = os.ExpandEnv("$GOPATH/src/github.com/solo-io/solo-projects/test/extauth/plugins")
+		requiredHeader       = "my-header"
+		allowedHeaderValues  = []string{"value-a", "value-b"}
 		allowedHeadersPlugin = &extauth.AuthPlugin{
 			Name:               "AllowedHeaderValues",
 			PluginFileName:     "RequiredHeaderValue.so",
@@ -80,20 +67,6 @@ var _ = Describe("Plugin Loader", func() {
 				},
 			},
 		}
-		requestAuthorizedByFirstPluginOnly = &api.AuthorizationRequest{
-			CheckRequest: &envoyauthv2.CheckRequest{
-				Attributes: &envoyauthv2.AttributeContext{
-					Request: &envoyauthv2.AttributeContext_Request{
-						Http: &envoyauthv2.AttributeContext_HttpRequest{
-							Headers: map[string]string{
-								// had the header required by the first plugin, but not a value allowed by the second one
-								requiredHeader: "not-allowed",
-							},
-						},
-					},
-				},
-			},
-		}
 		unauthorizedRequest = &api.AuthorizationRequest{
 			CheckRequest: &envoyauthv2.CheckRequest{
 				Attributes: &envoyauthv2.AttributeContext{
@@ -104,44 +77,6 @@ var _ = Describe("Plugin Loader", func() {
 			},
 		}
 	)
-
-	// TODO(marco): remove when we remove the deprecated loader.Load function
-	It("can load plugins", func() {
-		ctx := context.Background()
-
-		loader := NewPluginLoader(pluginFileDir)
-		svc, err := loader.Load(ctx, &extauth.PluginAuth{Plugins: []*extauth.AuthPlugin{
-			isHeaderPresentPlugin,
-			allowedHeadersPlugin,
-		}})
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(svc).NotTo(BeNil())
-
-		Expect(svc.Start(ctx)).NotTo(HaveOccurred())
-
-		By("send a request that is authorized by both plugins")
-		resp, err := svc.Authorize(ctx, authorizedRequest)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).NotTo(BeNil())
-		Expect(resp.CheckResponse.Status.Code).To(BeEquivalentTo(int32(rpc.OK)))
-		// Check headers
-		Expect(resp.CheckResponse.GetOkResponse()).NotTo(BeNil())
-		// Each plugin appends a header if it accepts the request
-		Expect(resp.CheckResponse.GetOkResponse().GetHeaders()).To(HaveLen(2))
-
-		By("send a request that is authorized by the first plugins and denied by the second")
-		resp, err = svc.Authorize(ctx, requestAuthorizedByFirstPluginOnly)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).NotTo(BeNil())
-		Expect(resp.CheckResponse.Status.Code).To(BeEquivalentTo(int32(rpc.PERMISSION_DENIED)))
-
-		By("send a request that is denied by both plugins")
-		resp, err = svc.Authorize(ctx, unauthorizedRequest)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).NotTo(BeNil())
-		Expect(resp.CheckResponse.Status.Code).To(BeEquivalentTo(int32(rpc.PERMISSION_DENIED)))
-	})
 
 	It("can load a plugin", func() {
 		ctx := context.Background()

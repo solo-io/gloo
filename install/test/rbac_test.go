@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -62,6 +64,33 @@ var _ = Describe("RBAC Test", func() {
 				Expect(err).NotTo(HaveOccurred(), "should be able to read manifest file")
 
 				Expect(strings.ToLower(string(contents))).NotTo(ContainSubstring("rbac.authorization.k8s.io"), "should not have any reference to the rbac api group")
+			})
+		})
+
+		Context("all cluster-scoped RBAC resources", func() {
+			checkSuffix := func(suffix string) {
+				rbacResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return (resource.GetKind() == "ClusterRole" || resource.GetKind() == "ClusterRoleBinding") &&
+						!strings.Contains(resource.GetName(), "glooe-grafana") &&
+						!strings.Contains(resource.GetName(), "glooe-prometheus")
+				})
+
+				Expect(rbacResources.NumResources()).NotTo(BeZero())
+
+				rbacResources.ExpectAll(func(resource *unstructured.Unstructured) {
+					Expect(resource.GetName()).To(HaveSuffix("-" + suffix))
+				})
+			}
+
+			It("is all named appropriately when a custom suffix is specified", func() {
+				suffix := "test-suffix"
+				prepareMakefile("--namespace " + namespace + " --set global.glooRbac.nameSuffix=" + suffix)
+				checkSuffix(suffix)
+			})
+
+			It("is all named appropriately in a non-namespaced install", func() {
+				prepareMakefile("--namespace " + namespace)
+				checkSuffix(namespace)
 			})
 		})
 	})

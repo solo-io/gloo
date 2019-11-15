@@ -1,9 +1,13 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/solo-io/go-utils/installutils/kuberesource"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 
@@ -20,6 +24,11 @@ import (
 )
 
 var _ = Describe("Helm Test", func() {
+
+	var (
+		installIdLabel    = "installationId"
+		helmTestInstallId = "helm-unit-test-install-id"
+	)
 
 	Describe("gloo-ee helm tests", func() {
 		var (
@@ -62,6 +71,10 @@ var _ = Describe("Helm Test", func() {
 			testManifest = NewTestManifest(manifestYaml)
 		}
 		prepareMakefile := func(customHelmArgs string) {
+			args := customHelmArgs + " --set gloo.installConfig.installationId=" + helmTestInstallId
+			prepareTestManifest(strings.Split(args, " ")...)
+		}
+		renderManifest := func(customHelmArgs string) {
 			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
 		}
 
@@ -72,11 +85,13 @@ var _ = Describe("Helm Test", func() {
 			)
 			BeforeEach(func() {
 				labels = map[string]string{
-					"app":  "gloo",
-					"gloo": "observability",
+					"app":          "gloo",
+					"gloo":         "observability",
+					installIdLabel: helmTestInstallId,
 				}
 				selector = map[string]string{
-					"gloo": "observability",
+					"gloo":         "observability",
+					installIdLabel: helmTestInstallId,
 				}
 
 				rb := ResourceBuilder{
@@ -150,7 +165,8 @@ var _ = Describe("Helm Test", func() {
 				}
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				observabilityDeployment.Spec.Selector.MatchLabels = map[string]string{
-					"gloo": "observability",
+					"gloo":         "observability",
+					installIdLabel: helmTestInstallId,
 				}
 
 				grafanaBuilder := ResourceBuilder{
@@ -207,9 +223,11 @@ var _ = Describe("Helm Test", func() {
 					"gloo":             "gateway-proxy",
 					"gateway-proxy-id": defaults.GatewayProxyName,
 					"app":              "gloo",
+					installIdLabel:     helmTestInstallId,
 				}
 				selector = map[string]string{
 					"gateway-proxy": "live",
+					installIdLabel:  helmTestInstallId,
 				}
 			})
 
@@ -229,11 +247,13 @@ var _ = Describe("Helm Test", func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
+						installIdLabel:     helmTestInstallId,
 					}
 					podLabels := map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
 						"gateway-proxy":    "live",
+						installIdLabel:     helmTestInstallId,
 					}
 					podAnnotations := map[string]string{
 						"prometheus.io/path":   "/metrics",
@@ -419,11 +439,13 @@ var _ = Describe("Helm Test", func() {
 
 					BeforeEach(func() {
 						labels = map[string]string{
-							"gloo": "apiserver-ui",
-							"app":  "gloo",
+							"gloo":         "apiserver-ui",
+							"app":          "gloo",
+							installIdLabel: helmTestInstallId,
 						}
 						selector = map[string]string{
-							"gloo": "apiserver-ui",
+							"gloo":         "apiserver-ui",
+							installIdLabel: helmTestInstallId,
 						}
 						grpcPortEnvVar := v1.EnvVar{
 							Name:  "GRPC_PORT",
@@ -507,6 +529,84 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
+			Context("installation", func() {
+
+				It("attaches a unique installation ID label to all top-level kubernetes resources if install ID is omitted", func() {
+					renderManifest("--namespace " + namespace)
+					glooResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return !strings.Contains(resource.GetName(), "glooe-grafana") &&
+							!strings.Contains(resource.GetName(), "glooe-prometheus")
+					})
+
+					Expect(glooResources.NumResources()).NotTo(BeZero(), "Test manifest should have a nonzero number of resources")
+					var uniqueInstallationId string
+					glooResources.ExpectAll(func(resource *unstructured.Unstructured) {
+						installationId, ok := resource.GetLabels()[installIdLabel]
+						Expect(ok).To(BeTrue(), fmt.Sprintf("The installation ID key should be present, but is not present on %s %s in namespace %s",
+							resource.GetKind(),
+							resource.GetName(),
+							resource.GetNamespace()))
+
+						if uniqueInstallationId == "" {
+							uniqueInstallationId = installationId
+						}
+
+						Expect(installationId).To(Equal(uniqueInstallationId),
+							fmt.Sprintf("Should not have generated several installation IDs, but found %s on %s %s in namespace %s",
+								installationId,
+								resource.GetKind(),
+								resource.GetNamespace(),
+								resource.GetNamespace()))
+					})
+
+					Expect(uniqueInstallationId).NotTo(Equal(helmTestInstallId), "Make sure we didn't accidentally set our install ID to the helm test ID")
+
+					haveNonzeroDeployments := false
+					glooResources.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "Deployment"
+					}).ExpectAll(func(unstructuredDeployment *unstructured.Unstructured) {
+						haveNonzeroDeployments = true
+
+						converted, err := kuberesource.ConvertUnstructured(unstructuredDeployment)
+						Expect(err).NotTo(HaveOccurred(), "Should be able to convert from unstructured")
+						deployment, ok := converted.(*appsv1.Deployment)
+						Expect(ok).To(BeTrue(), "Should be castable to a deployment")
+
+						Expect(len(deployment.Spec.Template.Labels)).NotTo(BeZero(), "The deployment's pod spec had no labels")
+
+						podInstallId, ok := deployment.Spec.Template.Labels[installIdLabel]
+						Expect(ok).To(BeTrue(), "Should have the install id label set")
+						Expect(podInstallId).To(Equal(uniqueInstallationId), "Pods from deployments should have the same install IDs as everything else")
+					})
+
+					Expect(haveNonzeroDeployments).To(BeTrue())
+				})
+
+				It("can assign a custom installation ID", func() {
+					installId := "custom-install-id"
+					renderManifest("--namespace " + namespace + " --set gloo.installConfig.installationId=" + installId)
+					glooResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return !strings.Contains(resource.GetName(), "glooe-grafana") &&
+							!strings.Contains(resource.GetName(), "glooe-prometheus")
+					})
+
+					Expect(glooResources.NumResources()).NotTo(BeZero())
+					glooResources.ExpectAll(func(resource *unstructured.Unstructured) {
+						installationId, ok := resource.GetLabels()[installIdLabel]
+						Expect(ok).To(BeTrue(), fmt.Sprintf("The installation ID key should be present, but is not present on %s %s in namespace %s",
+							resource.GetKind(),
+							resource.GetName(),
+							resource.GetNamespace()))
+
+						Expect(installationId).To(Equal(installId),
+							fmt.Sprintf("Should not have generated several installation IDs, but found %s on %s %s in namespace %s",
+								installationId,
+								resource.GetKind(),
+								resource.GetNamespace(),
+								resource.GetNamespace()))
+					})
+				})
+			})
 		})
 	})
 
@@ -564,7 +664,8 @@ var _ = Describe("Helm Test", func() {
 			testManifest = NewTestManifest(manifestYaml)
 		}
 		prepareMakefile := func(customHelmArgs string) {
-			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
+			args := customHelmArgs + " --set gloo.installConfig.installationId=" + helmTestInstallId
+			prepareTestManifest(strings.Split(args, " ")...)
 		}
 
 		Context("gateway", func() {
@@ -573,9 +674,11 @@ var _ = Describe("Helm Test", func() {
 					"gloo":             "gateway-proxy",
 					"gateway-proxy-id": defaults.GatewayProxyName,
 					"app":              "gloo",
+					installIdLabel:     helmTestInstallId,
 				}
 				selector = map[string]string{
 					"gateway-proxy": "live",
+					installIdLabel:  helmTestInstallId,
 				}
 			})
 
@@ -595,11 +698,13 @@ var _ = Describe("Helm Test", func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
+						installIdLabel:     helmTestInstallId,
 					}
 					podLabels := map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
 						"gateway-proxy":    "live",
+						installIdLabel:     helmTestInstallId,
 					}
 					podAnnotations := map[string]string{
 						"prometheus.io/path":   "/metrics",
@@ -689,11 +794,13 @@ var _ = Describe("Helm Test", func() {
 
 					BeforeEach(func() {
 						labels = map[string]string{
-							"gloo": "apiserver-ui",
-							"app":  "gloo",
+							"gloo":         "apiserver-ui",
+							"app":          "gloo",
+							installIdLabel: helmTestInstallId,
 						}
 						selector = map[string]string{
-							"gloo": "apiserver-ui",
+							"gloo":         "apiserver-ui",
+							installIdLabel: helmTestInstallId,
 						}
 						grpcPortEnvVar := v1.EnvVar{
 							Name:  "GRPC_PORT",

@@ -45,8 +45,7 @@ var _ = Describe("Plugin verification script", func() {
 			pluginCfg, err := parseManifestFile(validManifest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pluginCfg).NotTo(BeNil())
-			Expect(pluginCfg.Plugins).To(HaveLen(2))
-			Expect(pluginCfg.Plugins).To(ConsistOf(
+			Expect(pluginCfg).To(Equal(
 				&extauth.AuthPlugin{
 					Name:               "IsHeaderPresent",
 					PluginFileName:     "IsHeaderPresent.so",
@@ -54,11 +53,6 @@ var _ = Describe("Plugin verification script", func() {
 					Config: &types.Struct{
 						Fields: map[string]*types.Value{},
 					},
-				},
-				&extauth.AuthPlugin{
-					Name:               "HeaderValue",
-					PluginFileName:     "RequiredHeaderValue.so",
-					ExportedSymbolName: "Plugin",
 				},
 			))
 		})
@@ -70,29 +64,29 @@ var _ = Describe("Plugin verification script", func() {
 		})
 	})
 
-	Describe("verify whether plugins can be loaded", func() {
+	Describe("verify whether plugin can be loaded", func() {
 
-		It("returns without error if plugins could be loaded", func() {
-			err := verifyPlugins(context.Background(), pluginDir, validManifest)
+		It("returns without error if plugin could be loaded", func() {
+			err := verifyPlugin(context.Background(), pluginDir, validManifest)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("failures", func() {
 
 			It("returns an error if plugin name is incorrect", func() {
-				err := verifyPlugins(context.Background(), pluginDir, wrongNameManifest)
+				err := verifyPlugin(context.Background(), pluginDir, wrongNameManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(plugins.PluginFileOpenError(errors.New("")).Error()))
 			})
 
 			It("returns an error if symbol name is incorrect", func() {
-				err := verifyPlugins(context.Background(), pluginDir, wrongSymbolManifest)
+				err := verifyPlugin(context.Background(), pluginDir, wrongSymbolManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(plugins.InvalidExportedSymbolError(errors.New("")).Error()))
 			})
 
 			It("returns an error if plugin dir is incorrect", func() {
-				err := verifyPlugins(context.Background(), filepath.Join(pluginDir, "wrong"), validManifest)
+				err := verifyPlugin(context.Background(), filepath.Join(pluginDir, "wrong"), validManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(plugins.PluginFileOpenError(errors.New("")).Error()))
 			})

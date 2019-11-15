@@ -3,7 +3,6 @@ package helpers
 type ConfigFormatType int
 
 const (
-	DeprecatedExtensionsFormat ConfigFormatType = iota
-	NewExtensionsFormat
-	StronglyTyped
+	// TODO(kdorosh) remove now that this is the only configuration type
+	StronglyTyped ConfigFormatType = iota
 )

@@ -70,8 +70,8 @@ export const Gateways = () => {
       {gatewaysList.map((gateway, ind) => {
         return (
           <SectionCard
-            key={gateway.gateway!.gatewayProxyName + ind}
-            cardName={gateway.gateway!.gatewayProxyName}
+            key={gateway.gateway!.proxyNamesList[0] + ind}
+            cardName={gateway.gateway!.proxyNamesList[0]}
             logoIcon={<GatewayLogoFullSize />}
             headerSecondaryInformation={[
               {

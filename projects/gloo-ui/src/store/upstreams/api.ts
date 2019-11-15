@@ -428,7 +428,6 @@ function setUpstreamValues(
         region,
         secretRef,
         roleArn,
-        roleArnsList, //deprecated
         filtersList,
         publicIp,
         port

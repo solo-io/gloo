@@ -3,13 +3,15 @@
 kind: {{ include "gloo.roleKind" . }}Binding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: glooe-settings-user-role-binding{{ include "gloo.rolebindingsuffix" . }}
+  name: glooe-settings-user-role-binding{{ include "gloo.rbacNameSuffix" . }}
 {{- if .Values.gloo.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
 {{- end }}
   labels:
     app: gloo
     gloo: rbac
+    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
+    installationId: {{ include "gloo.installationId" $installationContext }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "15"
@@ -19,7 +21,7 @@ subjects:
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: {{ include "gloo.roleKind" . }}
-  name: settings-user
+  name: settings-user{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }} # if defaultInstallation or customGrafana
 {{- end }} # if glooRbac.create

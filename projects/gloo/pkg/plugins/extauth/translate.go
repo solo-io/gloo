@@ -52,33 +52,10 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1.ApiSnapshot, authC
 	}, nil
 }
 
-// Deprecated: will move to TranslateExtAuthConfig
-// This uses the `Vhost` field as ID for this config.
-// NOTE: Returns {nil, nil} if the input config is empty or if it contains only a custom auth entry
-func TranslateDeprecatedExtAuthConfig(
-	ctx context.Context,
-	proxy *v1.Proxy,
-	listener *v1.Listener,
-	virtualHost *v1.VirtualHost,
-	snap *v1.ApiSnapshot,
-	virtualHostAuthExtension extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
-
-	if len(virtualHostAuthExtension.Configs) != 0 {
-		return translateUserConfigs(ctx, proxy, listener, virtualHost, snap, virtualHostAuthExtension.Configs)
-	}
-	if virtualHostAuthExtension.AuthConfig == nil {
-		return nil, fmt.Errorf("no config defined on vhost")
-	}
-	return deprecatedTranslateUserConfigToExtAuthServerConfig(proxy, listener, virtualHost, snap, virtualHostAuthExtension)
-}
-
 func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
 	extAuthConfig := &extauth.ExtAuthConfig_Config{}
 
 	switch config := config.AuthConfig.(type) {
-	case *extauth.AuthConfig_Config_CustomAuth:
-		// Do nothing in case of custom auth
-		return nil, nil
 	case *extauth.AuthConfig_Config_BasicAuth:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
 			BasicAuth: config.BasicAuth,
@@ -116,134 +93,6 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.
 	default:
 		return nil, unknownConfigTypeError
 	}
-	return extAuthConfig, nil
-}
-
-//  Returns {nil, nil} if the input config array is empty or if it contains only a custom auth entry
-func translateUserConfigs(
-	ctx context.Context,
-	proxy *v1.Proxy,
-	listener *v1.Listener,
-	vhost *v1.VirtualHost,
-	snap *v1.ApiSnapshot,
-	configs []*extauth.VhostExtension_AuthConfig) (*extauth.ExtAuthConfig, error) {
-
-	extAuthConfig := &extauth.ExtAuthConfig{
-		Vhost: BuildVirtualHostName(proxy, listener, vhost),
-	}
-
-	for _, cfg := range configs {
-		cfg, err := translateUserConfig(ctx, snap, cfg)
-		if err != nil {
-			return nil, err
-		} else if cfg == nil {
-			// Custom auth, do nothing
-			continue
-		}
-		extAuthConfig.Configs = append(extAuthConfig.Configs, cfg)
-	}
-
-	if len(extAuthConfig.Configs) == 0 {
-		return nil, nil
-	}
-
-	return extAuthConfig, nil
-}
-
-func translateUserConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.VhostExtension_AuthConfig) (*extauth.ExtAuthConfig_Config, error) {
-	extAuthConfig := &extauth.ExtAuthConfig_Config{}
-
-	switch config := config.AuthConfig.(type) {
-	case *extauth.VhostExtension_AuthConfig_CustomAuth:
-		return nil, nil
-	case *extauth.VhostExtension_AuthConfig_BasicAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
-			BasicAuth: config.BasicAuth,
-		}
-	case *extauth.VhostExtension_AuthConfig_Oauth:
-
-		cfg, err := translateOauth(snap, config.Oauth)
-		if err != nil {
-			return nil, err
-		}
-
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth{
-			Oauth: cfg,
-		}
-	case *extauth.VhostExtension_AuthConfig_ApiKeyAuth:
-
-		cfg, err := translateApiKey(snap, config.ApiKeyAuth)
-		if err != nil {
-			return nil, err
-		}
-
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_ApiKeyAuth{
-			ApiKeyAuth: cfg,
-		}
-	case *extauth.VhostExtension_AuthConfig_PluginAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_PluginAuth{
-			PluginAuth: config.PluginAuth,
-		}
-	case *extauth.VhostExtension_AuthConfig_OpaAuth:
-		cfg, err := translateOpaConfig(ctx, snap, config.OpaAuth)
-		if err != nil {
-			return nil, err
-		}
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_OpaAuth{OpaAuth: cfg}
-	case *extauth.VhostExtension_AuthConfig_Ldap:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Ldap{
-			Ldap: config.Ldap,
-		}
-	default:
-		return nil, unknownConfigTypeError
-	}
-	return extAuthConfig, nil
-}
-
-// This is the old deprecated API (without AuthConfig chains)
-// We will get rid of this with v1.0.0
-// NOTE: this returns a nil config without errors in case `virtualHostAuthExtension` is an instance of CustomAuth
-func deprecatedTranslateUserConfigToExtAuthServerConfig(
-	proxy *v1.Proxy,
-	listener *v1.Listener,
-	virtualHost *v1.VirtualHost,
-	snap *v1.ApiSnapshot,
-	virtualHostAuthExtension extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
-
-	extAuthConfig := &extauth.ExtAuthConfig{
-		Vhost: BuildVirtualHostName(proxy, listener, virtualHost),
-	}
-	switch config := virtualHostAuthExtension.AuthConfig.(type) {
-	case *extauth.VhostExtension_CustomAuth:
-		return nil, nil
-	case *extauth.VhostExtension_BasicAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_BasicAuth{
-			BasicAuth: config.BasicAuth,
-		}
-	case *extauth.VhostExtension_Oauth:
-		cfg, err := translateOauth(snap, config.Oauth)
-		if err != nil {
-			return nil, err
-		}
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Oauth{
-			Oauth: cfg,
-		}
-	case *extauth.VhostExtension_ApiKeyAuth:
-		cfg, err := translateApiKey(snap, config.ApiKeyAuth)
-		if err != nil {
-			return nil, err
-		}
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_ApiKeyAuth{
-			ApiKeyAuth: cfg,
-		}
-	case *extauth.VhostExtension_PluginAuth:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_PluginAuth{
-			PluginAuth: config.PluginAuth,
-		}
-	default:
-		return nil, unknownConfigTypeError
-	}
-
 	return extAuthConfig, nil
 }
 

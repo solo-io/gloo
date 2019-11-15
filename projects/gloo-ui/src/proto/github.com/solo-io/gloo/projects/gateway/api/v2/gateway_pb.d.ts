@@ -51,9 +51,6 @@ export class Gateway extends jspb.Message {
   getTcpGateway(): TcpGateway | undefined;
   setTcpGateway(value?: TcpGateway): void;
 
-  getGatewayProxyName(): string;
-  setGatewayProxyName(value: string): void;
-
   clearProxyNamesList(): void;
   getProxyNamesList(): Array<string>;
   setProxyNamesList(value: Array<string>): void;
@@ -81,7 +78,6 @@ export namespace Gateway {
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpGateway?: HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
-    gatewayProxyName: string,
     proxyNamesList: Array<string>,
   }
 

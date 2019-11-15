@@ -158,17 +158,10 @@ steps:
   waitFor: ['-']
   id: 'docker-login'
 
-- name: 'gcr.io/cloud-builders/gsutil'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
   entrypoint: 'bash'
-  args: ['-c', 'curl -sL https://run.solo.io/gloo/install | sh && mkdir _output && mv ~/.gloo/bin/glooctl _output/glooctl-linux-amd64']
-  env:
-    - 'TAGGED_VERSION=$TAG_NAME'
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'BUILD_ID=$BUILD_ID'
-    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
+  args: ['-c', 'curl -sL https://run.solo.io/gloo/install | GLOO_VERSION=$(go run get_gloo_version.go) sh && mkdir -p _output && mv ~/.gloo/bin/glooctl _output/glooctl-linux-amd64']
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   waitFor: ['dep']
   id: 'download-cli'
 
@@ -209,7 +202,7 @@ steps:
     - 'PROJECT_ROOT=github.com/solo-io/gloo'
     - 'GOPATH=/workspace/gopath'
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=solo-projects-regressions'
     - 'RUN_KUBE2E_TESTS=1'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   args: ['-r', '-failFast', '-trace', '-progress', 'test/regressions']

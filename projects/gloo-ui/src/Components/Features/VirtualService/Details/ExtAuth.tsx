@@ -64,39 +64,11 @@ export const ExtAuth = (props: Props) => {
       <div>
         {!!externalAuth &&
         !!externalAuth.value &&
-        !!externalAuth.value.oauth ? (
+        !!externalAuth.value.authConfigRefName ? (
           <AuthInfo>
             <InfoBlock>
-              <StrongLabel>Client ID:</StrongLabel>
-              <InfoBlock>{externalAuth.value.oauth.clientId}</InfoBlock>
-            </InfoBlock>
-            <InfoBlock>
-              <StrongLabel>Callback Path:</StrongLabel>
-              <InfoBlock>{externalAuth.value.oauth.callbackPath}</InfoBlock>
-            </InfoBlock>
-            <InfoBlock>
-              <StrongLabel>Issuer URL:</StrongLabel>
-              <InfoBlock>{externalAuth.value.oauth.issuerUrl}</InfoBlock>
-            </InfoBlock>
-            <InfoBlock>
-              <StrongLabel>App URL:</StrongLabel>
-              <InfoBlock>{externalAuth.value.oauth.appUrl}</InfoBlock>
-            </InfoBlock>
-            <InfoBlock>
-              <StrongLabel>Secret Ref Name:</StrongLabel>
-              {!!externalAuth.value.oauth.clientSecret ? (
-                <InfoBlock>{`(Secret)`}</InfoBlock>
-              ) : (
-                'None'
-              )}
-            </InfoBlock>
-            <InfoBlock>
-              <StrongLabel>Secret Ref Namespace:</StrongLabel>
-              {!!externalAuth.value.oauth.clientSecret ? (
-                <InfoBlock>{`(Secret)`}</InfoBlock>
-              ) : (
-                'None'
-              )}
+              <StrongLabel>Auth ConfigRef Name:</StrongLabel>
+              <InfoBlock>{externalAuth.value.authConfigRefName}</InfoBlock>
             </InfoBlock>
           </AuthInfo>
         ) : (

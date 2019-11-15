@@ -10,15 +10,11 @@ import (
 	"runtime"
 	"strings"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/gogo/protobuf/proto"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/test/v1helpers"
-
-	"github.com/gogo/protobuf/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,9 +31,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
-	rlCustomPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/test/services"
 	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
 )
@@ -45,14 +39,14 @@ import (
 var _ = Describe("Rate Limit", func() {
 
 	var (
-		ctx            context.Context
-		cancel         context.CancelFunc
-		testClients    services.TestClients
-		redisSession   *gexec.Session
-		rlService      rlservice.RateLimitServiceServer
-		glooExtensions map[string]*types.Struct
-		cache          memory.InMemoryResourceCache
-		rlAddr         string
+		ctx          context.Context
+		cancel       context.CancelFunc
+		testClients  services.TestClients
+		redisSession *gexec.Session
+		rlService    rlservice.RateLimitServiceServer
+		glooSettings *gloov1.Settings
+		cache        memory.InMemoryResourceCache
+		rlAddr       string
 	)
 	const (
 		redisaddr = "127.0.0.1"
@@ -60,6 +54,10 @@ var _ = Describe("Rate Limit", func() {
 		rladdr    = "127.0.0.1"
 		rlport    = uint32(18081)
 	)
+	BeforeEach(func() {
+		glooSettings = &gloov1.Settings{}
+	})
+
 	runAllTests := func() {
 		It("rlserver receives config", func() {
 			tu := v1helpers.NewTestHttpUpstream(ctx, "fake-addr")
@@ -166,14 +164,10 @@ var _ = Describe("Rate Limit", func() {
 
 			Context("with auth", func() {
 
-				JustBeforeEach(func() {
+				BeforeEach(func() {
 					// start the ext auth server
 					extauthport := uint32(9100)
 
-					extauthAddr := "localhost"
-					if runtime.GOOS == "darwin" && envoyInstance.UseDocker() {
-						extauthAddr = "host.docker.internal"
-					}
 					extauthserver := &gloov1.Upstream{
 						Metadata: core.Metadata{
 							Name:      "extauth-server",
@@ -184,7 +178,7 @@ var _ = Describe("Rate Limit", func() {
 							UpstreamType: &gloov1.UpstreamSpec_Static{
 								Static: &gloov1static.UpstreamSpec{
 									Hosts: []*gloov1static.Host{{
-										Addr: extauthAddr,
+										Addr: envoyInstance.LocalAddr(),
 										Port: extauthport,
 									}},
 								},
@@ -192,15 +186,25 @@ var _ = Describe("Rate Limit", func() {
 						},
 					}
 
+					_, err := testClients.AuthConfigClient.Write(&extauthpb.AuthConfig{
+						Metadata: core.Metadata{
+							Name:      GetBasicAuthExtension().GetConfigRef().Name,
+							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*extauthpb.AuthConfig_Config{{
+							AuthConfig: &extauthpb.AuthConfig_Config_BasicAuth{
+								BasicAuth: getBasicAuthConfig(),
+							},
+						}},
+					}, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
 					testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
 					ref := extauthserver.Metadata.Ref()
 					extauthSettings := &extauthpb.Settings{
 						ExtauthzServerRef: &ref,
 					}
-					settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
-					Expect(err).NotTo(HaveOccurred())
-
-					glooExtensions[extauth.ExtensionName] = settingsStruct
+					glooSettings.Extauth = extauthSettings
 
 					settings := extauthrunner.Settings{
 						GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
@@ -233,7 +237,7 @@ var _ = Describe("Rate Limit", func() {
 					}
 					proxy := rlb.getProxy()
 					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
-					vhost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = toStruct(GetDeprecatedBasicAuthExtension())
+					vhost.VirtualHostPlugins.Extauth = GetBasicAuthExtension()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -271,25 +275,18 @@ var _ = Describe("Rate Limit", func() {
 		rlSettings := &ratelimit.Settings{
 			RatelimitServerRef: &ref,
 		}
-		settingsStruct, err := envoyutil.MessageToStruct(rlSettings)
-		Expect(err).NotTo(HaveOccurred())
-
-		glooExtensions = map[string]*types.Struct{
-			rlCustomPlugin.ExtensionName: settingsStruct,
-		}
 
 		rlService = ratelimitservice.RunRatelimit(ctx, cancel, testClients.GlooPort)
 
-		extensions := &gloov1.Extensions{
-			Configs: glooExtensions,
-		}
+		glooSettings.RatelimitServer = rlSettings
+
 		what := services.What{
 			DisableGateway: true,
 			DisableUds:     true,
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions, nil)
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, glooSettings)
 	}
 
 	Context("Redis-backed rate limiting", func() {
@@ -451,17 +448,6 @@ type RlProxyBuilder struct {
 }
 
 func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
-	var extensions *gloov1.Extensions
-
-	rateLimitStruct, err := envoyutil.MessageToStruct(b.ingressRateLimit)
-	Expect(err).NotTo(HaveOccurred())
-	protos := map[string]*types.Struct{
-		rlCustomPlugin.ExtensionName: rateLimitStruct,
-	}
-
-	extensions = &gloov1.Extensions{
-		Configs: protos,
-	}
 
 	var vhosts []*gloov1.VirtualHost
 
@@ -488,13 +474,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 						},
 					},
 					RoutePlugins: &gloov1.RoutePlugins{
-						Extensions: &gloov1.Extensions{
-							Configs: map[string]*types.Struct{
-								extauth.ExtensionName: toStruct(&extauthpb.RouteExtension{
-									Disable: true,
-								}),
-							},
-						},
+						Extauth: &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
 					},
 				},
 				{
@@ -515,7 +495,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 
 		if enableRateLimits {
 			vhost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{
-				Extensions: extensions,
+				RatelimitBasic: b.ingressRateLimit,
 			}
 		}
 		vhosts = append(vhosts, vhost)
@@ -539,10 +519,4 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	}
 
 	return p
-}
-
-func toStruct(msg proto.Message) *types.Struct {
-	strct, err := envoyutil.MessageToStruct(msg)
-	Expect(err).NotTo(HaveOccurred())
-	return strct
 }

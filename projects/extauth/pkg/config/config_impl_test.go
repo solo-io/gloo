@@ -3,8 +3,6 @@ package configproto_test
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	pbtypes "github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
@@ -29,11 +27,6 @@ var _ = Describe("Config Generator", func() {
 		ctrl             *gomock.Controller
 		generator        configproto.ConfigGenerator
 		pluginLoaderMock *mocks.MockLoader
-		pluginAuth       = func(plugin *extauthv1.AuthPlugin) *extauthv1.PluginAuth {
-			return &extauthv1.PluginAuth{
-				Plugins: []*extauthv1.AuthPlugin{plugin},
-			}
-		}
 	)
 
 	BeforeEach(func() {
@@ -51,8 +44,8 @@ var _ = Describe("Config Generator", func() {
 		var panicPlugin = &extauthv1.AuthPlugin{Name: "Panic"}
 
 		BeforeEach(func() {
-			pluginLoaderMock.EXPECT().Load(gomock.Any(), pluginAuth(panicPlugin)).Do(
-				func(context.Context, *extauthv1.PluginAuth) (api.AuthService, error) {
+			pluginLoaderMock.EXPECT().LoadAuthPlugin(gomock.Any(), panicPlugin).Do(
+				func(context.Context, *extauthv1.AuthPlugin) (api.AuthService, error) {
 					panic("test load panic")
 				},
 			)
@@ -61,95 +54,16 @@ var _ = Describe("Config Generator", func() {
 		It("recovers from panic", func() {
 			_, err := generator.GenerateConfig([]*extauthv1.ExtAuthConfig{
 				{
-					Vhost: "test-vhost",
-					AuthConfig: &extauthv1.ExtAuthConfig_PluginAuth{
-						PluginAuth: pluginAuth(panicPlugin),
+					AuthConfigRefName: "default.test-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_PluginAuth{PluginAuth: panicPlugin},
+						},
 					},
 				},
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("test load panic"))
-		})
-	})
-
-	// TODO(marco): this uses the deprecated API, add new implementations to the other test and remove this once we remove the deprecated API
-	Context("all (deprecated) ext auth configs are valid", func() {
-
-		var okPlugin = &extauthv1.AuthPlugin{Name: "ThisOneWorks"}
-
-		BeforeEach(func() {
-			authServiceMock := chainmocks.NewMockAuthService(ctrl)
-			authServiceMock.EXPECT().Start(gomock.Any()).Return(nil).AnyTimes()
-			authServiceMock.EXPECT().Authorize(gomock.Any(), gomock.Any()).Times(0)
-
-			pluginLoaderMock.EXPECT().Load(gomock.Any(), pluginAuth(okPlugin)).Return(authServiceMock, nil).Times(1)
-		})
-
-		It("correctly loads (deprecated) configs", func() {
-			resources := []*extauthv1.ExtAuthConfig{
-				{
-					Vhost: "plugin-vhost",
-					AuthConfig: &extauthv1.ExtAuthConfig_PluginAuth{
-						PluginAuth: pluginAuth(okPlugin),
-					},
-				},
-				{
-					Vhost: "basic-auth-vhost",
-					AuthConfig: &extauthv1.ExtAuthConfig_BasicAuth{
-						BasicAuth: &extauthv1.BasicAuth{
-							Realm: "my-realm",
-							Apr: &extauthv1.BasicAuth_Apr{
-								Users: map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword{
-									"user": {
-										Salt:           "salt",
-										HashedPassword: "pwd",
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					Vhost: "api-keys-vhost",
-					AuthConfig: &extauthv1.ExtAuthConfig_ApiKeyAuth{
-						ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
-							ValidApiKeyAndUser: map[string]string{
-								"key": "user",
-							},
-						},
-					},
-				},
-			}
-			cfg, err := generator.GenerateConfig(resources)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg).NotTo(BeNil())
-			Expect(cfg.Configs).To(HaveLen(3))
-
-			pluginConfig, ok := cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[0].Vhost]
-			Expect(ok).To(BeTrue())
-			_, ok = pluginConfig.(*chainmocks.MockAuthService)
-			Expect(ok).To(BeTrue())
-
-			basicAuthConfig, ok := cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[1].Vhost]
-			Expect(ok).To(BeTrue())
-			aprConfig, ok := basicAuthConfig.(*apr.Config)
-			Expect(ok).To(BeTrue())
-			Expect(aprConfig.Realm).To(Equal("my-realm"))
-			Expect(aprConfig.SaltAndHashedPasswordPerUsername).To(BeEquivalentTo(
-				map[string]apr.SaltAndHashedPassword{
-					"user": {Salt: "salt", HashedPassword: "pwd"},
-				}),
-			)
-
-			apiKeysConfig, ok := cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[2].Vhost]
-			Expect(ok).To(BeTrue())
-			akConfig, ok := apiKeysConfig.(*apikeys.Config)
-			Expect(ok).To(BeTrue())
-			Expect(akConfig.ValidApiKeyAndUserName).To(BeEquivalentTo(
-				map[string]string{
-					"key": "user",
-				}),
-			)
 		})
 	})
 
@@ -187,7 +101,7 @@ var _ = Describe("Config Generator", func() {
 		It("correctly loads configs", func() {
 			resources := []*extauthv1.ExtAuthConfig{
 				{
-					Vhost: "plugin-vhost",
+					AuthConfigRefName: "default.plugin-authconfig",
 					Configs: []*extauthv1.ExtAuthConfig_Config{
 						{
 							AuthConfig: &extauthv1.ExtAuthConfig_Config_PluginAuth{
@@ -197,7 +111,7 @@ var _ = Describe("Config Generator", func() {
 					},
 				},
 				{
-					Vhost: "basic-auth-vhost",
+					AuthConfigRefName: "default.basic-auth-authconfig",
 					Configs: []*extauthv1.ExtAuthConfig_Config{
 						{
 							AuthConfig: &extauthv1.ExtAuthConfig_Config_BasicAuth{
@@ -217,7 +131,7 @@ var _ = Describe("Config Generator", func() {
 					},
 				},
 				{
-					Vhost: "api-keys-vhost",
+					AuthConfigRefName: "default.api-keys-authconfig",
 					Configs: []*extauthv1.ExtAuthConfig_Config{
 						{
 							AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
@@ -231,7 +145,7 @@ var _ = Describe("Config Generator", func() {
 					},
 				},
 				{
-					Vhost: "ldap-vhost",
+					AuthConfigRefName: "default.ldap-authconfig",
 					Configs: []*extauthv1.ExtAuthConfig_Config{
 						{
 							AuthConfig: &extauthv1.ExtAuthConfig_Config_Ldap{
@@ -246,7 +160,7 @@ var _ = Describe("Config Generator", func() {
 			Expect(cfg).NotTo(BeNil())
 			Expect(cfg.Configs).To(HaveLen(4))
 
-			pluginConfig, ok := cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[0].Vhost]
+			pluginConfig, ok := cfg.Configs[resources[0].AuthConfigRefName]
 			Expect(ok).To(BeTrue())
 			authServiceChain, ok := pluginConfig.(chain.AuthServiceChain)
 			Expect(ok).To(BeTrue())
@@ -256,7 +170,7 @@ var _ = Describe("Config Generator", func() {
 			_, ok = services[0].(*chainmocks.MockAuthService)
 			Expect(ok).To(BeTrue())
 
-			pluginConfig, ok = cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[1].Vhost]
+			pluginConfig, ok = cfg.Configs[resources[1].AuthConfigRefName]
 			Expect(ok).To(BeTrue())
 			authServiceChain, ok = pluginConfig.(chain.AuthServiceChain)
 			Expect(ok).To(BeTrue())
@@ -272,7 +186,7 @@ var _ = Describe("Config Generator", func() {
 				}),
 			)
 
-			pluginConfig, ok = cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[2].Vhost]
+			pluginConfig, ok = cfg.Configs[resources[2].AuthConfigRefName]
 			Expect(ok).To(BeTrue())
 			authServiceChain, ok = pluginConfig.(chain.AuthServiceChain)
 			Expect(ok).To(BeTrue())
@@ -287,7 +201,7 @@ var _ = Describe("Config Generator", func() {
 				}),
 			)
 
-			pluginConfig, ok = cfg.Configs[extauth.DeprecatedConfigRefPrefix+resources[3].Vhost]
+			pluginConfig, ok = cfg.Configs[resources[3].AuthConfigRefName]
 			Expect(ok).To(BeTrue())
 			authServiceChain, ok = pluginConfig.(chain.AuthServiceChain)
 			Expect(ok).To(BeTrue())

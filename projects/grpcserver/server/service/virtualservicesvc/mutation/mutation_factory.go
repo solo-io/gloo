@@ -1,16 +1,9 @@
 package mutation
 
 import (
-	"github.com/gogo/protobuf/types"
-	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
-	//TODO: (Graham) handle plugins correclty once the reorg happens "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
@@ -42,26 +35,6 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			vs.Metadata.Name = input.GetRef().GetName()
 		}
 
-		// Convert external auth config into type expected for extensions
-		var extAuthStruct *types.Struct
-		var err error
-		if input.GetExtAuthConfig() != nil {
-			switch t := input.ExtAuthConfig.(type) {
-			case *v1.VirtualServiceInput_BasicAuth:
-				return errors.Errorf("Basic auth is not supported.")
-			case *v1.VirtualServiceInput_Oauth:
-				extAuthStruct, err = getOauthVhostExtensionStruct(t.Oauth)
-				if err != nil {
-					return err
-				}
-			case *v1.VirtualServiceInput_CustomAuth:
-				extAuthStruct, err = getCustomAuthVhostExtensionStruct(t.CustomAuth)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
 		// Attempt to set secret ref -- error if there is a different SSL strategy in place.
 		if input.GetSecretRef() != nil {
 			if vs.SslConfig == nil {
@@ -84,22 +57,14 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 			vs.VirtualHost = &gatewayv1.VirtualHost{}
 		}
 
-		if extAuthStruct != nil || input.GetRateLimitConfig() != nil {
+		if input.GetRateLimitConfig() != nil {
 			if vs.GetVirtualHost().GetVirtualHostPlugins() == nil {
 				vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
 			}
-			if vs.GetVirtualHost().GetVirtualHostPlugins().GetExtensions() == nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions = &gloov1.Extensions{}
-			}
-			if vs.GetVirtualHost().GetVirtualHostPlugins().GetExtensions().GetConfigs() == nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
-			}
-
-			if extAuthStruct != nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = extAuthStruct
-			}
 			if input.GetRateLimitConfig() != nil {
-				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				if vs.VirtualHost.VirtualHostPlugins.GetExtensions().GetConfigs() != nil {
+					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				}
 				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig()
 			}
 		}
@@ -120,26 +85,6 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 			vs.Metadata.Name = input.GetRef().GetName()
 		}
 
-		// Convert external auth config into type expected for extensions
-		var extAuthStruct *types.Struct
-		var err error
-		if input.GetExtAuthConfig() != nil {
-			if input.GetExtAuthConfig().GetConfig() != nil {
-				switch t := input.ExtAuthConfig.Config.Value.(type) {
-				case *v1.ExtAuthInput_Config_Oauth:
-					extAuthStruct, err = getOauthVhostExtensionStruct(t.Oauth)
-					if err != nil {
-						return err
-					}
-				case *v1.ExtAuthInput_Config_CustomAuth:
-					extAuthStruct, err = getCustomAuthVhostExtensionStruct(t.CustomAuth)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-
 		if input.GetSslConfig() != nil {
 			vs.SslConfig = input.GetSslConfig().GetValue()
 		}
@@ -148,26 +93,14 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 			vs.VirtualHost = &gatewayv1.VirtualHost{}
 		}
 
-		if input.GetExtAuthConfig() != nil || input.GetRateLimitConfig() != nil {
+		if input.GetRateLimitConfig() != nil {
 			if vs.GetVirtualHost().GetVirtualHostPlugins() == nil {
 				vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
 			}
-			if vs.GetVirtualHost().GetVirtualHostPlugins().GetExtensions() == nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions = &gloov1.Extensions{}
-			}
-			if vs.GetVirtualHost().GetVirtualHostPlugins().GetExtensions().GetConfigs() == nil {
-				vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
-			}
-
-			if input.GetExtAuthConfig() != nil {
-				if extAuthStruct == nil {
-					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, extauth.ExtensionName)
-				} else {
-					vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth.ExtensionName] = extAuthStruct
-				}
-			}
 			if input.GetRateLimitConfig() != nil {
-				delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				if vs.VirtualHost.VirtualHostPlugins.GetExtensions().GetConfigs() != nil {
+					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				}
 				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig().GetValue()
 			}
 		}
@@ -260,24 +193,4 @@ func (*mutationFactory) ShiftRoutes(fromIndex, toIndex uint32) Mutation {
 
 		return nil
 	}
-}
-
-func getOauthVhostExtensionStruct(oauth *extauthapi.OAuth) (*types.Struct, error) {
-	return util.MessageToStruct(&extauthapi.VhostExtension{
-		Configs: []*extauthapi.VhostExtension_AuthConfig{{
-			AuthConfig: &extauthapi.VhostExtension_AuthConfig_Oauth{
-				Oauth: oauth,
-			},
-		}},
-	})
-}
-
-func getCustomAuthVhostExtensionStruct(customAuth *extauthapi.CustomAuth) (*types.Struct, error) {
-	return util.MessageToStruct(&extauthapi.VhostExtension{
-		Configs: []*extauthapi.VhostExtension_AuthConfig{{
-			AuthConfig: &extauthapi.VhostExtension_AuthConfig_CustomAuth{
-				CustomAuth: customAuth,
-			},
-		}},
-	})
 }

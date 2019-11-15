@@ -6,10 +6,12 @@ metadata:
   {{- if .Values.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
   {{- end }}
-  name: observability-upstream-role
+  name: observability-upstream-role{{ include "gloo.rbacNameSuffix" . }}
   labels:
     app: gloo
     gloo: observability
+    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
+    installationId: {{ include "gloo.installationId" $installationContext }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"
@@ -24,17 +26,19 @@ metadata:
   {{- if .Values.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
   {{- end }}
-  name: observability-upstream-rolebinding
+  name: observability-upstream-rolebinding{{ include "gloo.rbacNameSuffix" . }}
   labels:
     app: gloo
     gloo: observability
+    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
+    installationId: {{ include "gloo.installationId" $installationContext }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: {{ include "gloo.roleKind" . }}
-  name: observability-upstream-role
+  name: observability-upstream-role{{ include "gloo.rbacNameSuffix" . }}
 subjects:
   - kind: ServiceAccount
     name: observability

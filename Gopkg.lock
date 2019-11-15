@@ -1312,7 +1312,7 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:938aa1825b52352989b277b4e7b0dd445e9a2c7dff1d183c6c26e98488a67ed6"
+  digest = "1:897fd5ec6afd7a467e67992c6fb45025a249103bc3ead78bacb03004d80cfea8"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1452,10 +1452,11 @@
     "test/v1helpers/test_grpc_service/glootest/protos",
   ]
   pruneopts = "UT"
-  revision = "4350a555e46a225ec9c79337e1715c526dd26683"
+  revision = "a41bd6a6bb7eda6a08e8a6db9abcbf33e6875fee"
+  version = "v1.0.0-rc2"
 
 [[projects]]
-  digest = "1:22b9beced2e83315f4da8ac91edf95cdfad183d76343312d2d8097304f2e57dd"
+  digest = "1:455acd88baf303663599c3ac7eb439f8d4b36cc2ff0d1cbe807a530c93d079c8"
   name = "github.com/solo-io/go-utils"
   packages = [
     "clicore/constants",
@@ -1482,6 +1483,7 @@
     "testutils/exec",
     "testutils/helper",
     "testutils/kube",
+    "threadsafe",
     "versionutils",
     "versionutils/dep",
     "versionutils/git",
@@ -1489,8 +1491,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "86832286d96eaa9ebd296b7e279c7884eec08888"
-  version = "v0.10.16"
+  revision = "c4b31e48e70d441b0f085d0a9cbd981ae620e0c7"
+  version = "v0.10.26"
 
 [[projects]]
   digest = "1:6a840f34800e61cd8fb26f5503b344d635a24744d9b5512576b250c0fa3d11af"
@@ -1527,7 +1529,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:792aa5d91a415b803d0e64834fed0c730050fd93707709a5e55b68937510ce00"
+  digest = "1:3f4ac0fb4306bc49eb2111c4898bfb6e98e1ca7805a0b8c7692ebc41ad5dadc3"
   name = "github.com/solo-io/reporting-client"
   packages = [
     "pkg/api/v1",
@@ -1535,8 +1537,8 @@
     "pkg/signature",
   ]
   pruneopts = "UT"
-  revision = "53c000c6023e718380ded876e15c2ec0eebc34e5"
-  version = "v0.1.0"
+  revision = "2729ed44327179fe4ab1afee9957b8375b9845b4"
+  version = "v0.1.1"
 
 [[projects]]
   digest = "1:66fb9570ec5c357bb8cad76b3a8b15fcb2ee450fe2d41725ca5bf39e6e6213d2"
@@ -2773,6 +2775,7 @@
     "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
     "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/types",
     "k8s.io/apimachinery/pkg/util/intstr",

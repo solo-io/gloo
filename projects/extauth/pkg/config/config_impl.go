@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	extauthplugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/go-utils/errors"
@@ -29,11 +27,8 @@ const (
 )
 
 var (
-	MissingAuthConfigIdError    = errors.New("either [vhost] or [authConfigRefName] must be set on ExtAuthConfig")
-	GetAuthServiceForVHostError = func(err error, virtualHost string) error {
-		return errors.Wrapf(err, "failed to get auth service for auth config with virtual host [%s]", virtualHost)
-	}
-	GetAuthServiceError = func(err error, authConfigRefName string) error {
+	MissingAuthConfigIdError = errors.New("either [vhost] or [authConfigRefName] must be set on ExtAuthConfig")
+	GetAuthServiceError      = func(err error, authConfigRefName string) error {
 		return errors.Wrapf(err, "failed to get auth service for auth config [%s]", authConfigRefName)
 	}
 )
@@ -66,37 +61,19 @@ func (c *configGenerator) GenerateConfig(resources []*extauthv1.ExtAuthConfig) (
 	errs := &multierror.Error{}
 	var startFuncs []api.StartFunc
 	for _, resource := range resources {
-
-		// TODO(marco): remove when we get rid of the deprecated APIs
-		// Handle deprecated config
-		if resource.Vhost != "" {
-			authService, err := c.getConfig(ctx, resource)
-			if err != nil {
-				errs = multierror.Append(errs, GetAuthServiceForVHostError(err, resource.Vhost))
-				continue
-			}
-
-			startFuncs = append(startFuncs, authService.Start)
-
-			// To avoid collisions with real AuthConfig identifiers we prepend a special prefix.
-			// See the use of `DeprecatedConfigRefPrefix` in the extauth plugin code for the other half of this workaround.
-			cfg.Configs[extauthplugin.DeprecatedConfigRefPrefix+resource.Vhost] = authService
-
-		} else {
-			if resource.AuthConfigRefName == "" {
-				errs = multierror.Append(errs, MissingAuthConfigIdError)
-				continue
-			}
-
-			authService, err := c.getConfig(ctx, resource)
-			if err != nil {
-				errs = multierror.Append(errs, GetAuthServiceError(err, resource.AuthConfigRefName))
-				continue
-			}
-
-			startFuncs = append(startFuncs, authService.Start)
-			cfg.Configs[resource.AuthConfigRefName] = authService
+		if resource.AuthConfigRefName == "" {
+			errs = multierror.Append(errs, MissingAuthConfigIdError)
+			continue
 		}
+
+		authService, err := c.getConfig(ctx, resource)
+		if err != nil {
+			errs = multierror.Append(errs, GetAuthServiceError(err, resource.AuthConfigRefName))
+			continue
+		}
+
+		startFuncs = append(startFuncs, authService.Start)
+		cfg.Configs[resource.AuthConfigRefName] = authService
 	}
 
 	if err := errs.ErrorOrNil(); err != nil {
@@ -133,44 +110,7 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauthv1.Ext
 		return c.getConfigs(ctx, resource.Configs)
 	}
 
-	// handle deprecated code path
-
-	switch cfg := resource.AuthConfig.(type) {
-	case *extauthv1.ExtAuthConfig_BasicAuth:
-		aprCfg := apr.Config{
-			Realm:                            cfg.BasicAuth.Realm,
-			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
-		}
-
-		return &aprCfg, nil
-
-	case *extauthv1.ExtAuthConfig_Oauth:
-		stateSigner := oidc.NewStateSigner(c.key)
-		cb := cfg.Oauth.CallbackPath
-		if cb == "" {
-			cb = DefaultCallback
-		}
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, cfg.Oauth.Scopes, stateSigner)
-		if err != nil {
-			return nil, err
-		}
-		err = iss.Discover(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return iss, nil
-
-	case *extauthv1.ExtAuthConfig_ApiKeyAuth:
-		apiKeyCfg := apikeys.Config{
-			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
-		}
-		return &apiKeyCfg, nil
-
-	case *extauthv1.ExtAuthConfig_PluginAuth:
-		return c.pluginLoader.Load(ctx, cfg.PluginAuth)
-	}
-
-	return nil, fmt.Errorf("config not supported")
+	return nil, nil
 }
 
 func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword) map[string]apr.SaltAndHashedPassword {

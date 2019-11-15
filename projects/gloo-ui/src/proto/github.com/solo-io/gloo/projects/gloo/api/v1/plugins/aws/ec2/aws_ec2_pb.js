@@ -40,7 +40,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.repeatedFields_ = [6,3];
+proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.repeatedFields_ = [3];
 
 
 
@@ -74,7 +74,6 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.toObject = function(includeInsta
     region: jspb.Message.getFieldWithDefault(msg, 1, ""),
     secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     roleArn: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    roleArnsList: jspb.Message.getRepeatedField(msg, 6),
     filtersList: jspb.Message.toObjectList(msg.getFiltersList(),
     proto.aws_ec2.plugins.gloo.solo.io.TagFilter.toObject, includeInstance),
     publicIp: jspb.Message.getFieldWithDefault(msg, 4, false),
@@ -127,10 +126,6 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fu
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.setRoleArn(value);
-      break;
-    case 6:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addRoleArns(value);
       break;
     case 3:
       var value = new proto.aws_ec2.plugins.gloo.solo.io.TagFilter;
@@ -193,13 +188,6 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functi
   if (f.length > 0) {
     writer.writeString(
       7,
-      f
-    );
-  }
-  f = message.getRoleArnsList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      6,
       f
     );
   }
@@ -285,35 +273,6 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.getRoleArn = function(
 /** @param {string} value */
 proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.setRoleArn = function(value) {
   jspb.Message.setProto3StringField(this, 7, value);
-};
-
-
-/**
- * repeated string role_arns = 6;
- * @return {!Array<string>}
- */
-proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.getRoleArnsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
-};
-
-
-/** @param {!Array<string>} value */
-proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.setRoleArnsList = function(value) {
-  jspb.Message.setField(this, 6, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.addRoleArns = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
-};
-
-
-proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.clearRoleArnsList = function() {
-  this.setRoleArnsList([]);
 };
 
 

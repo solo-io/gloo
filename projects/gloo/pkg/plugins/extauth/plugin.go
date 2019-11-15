@@ -1,13 +1,9 @@
 package extauth
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
-
-	"github.com/solo-io/go-utils/contextutils"
 
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
 
@@ -20,8 +16,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-	sputils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 )
 
 const (
@@ -42,41 +36,17 @@ var (
 	NoMatchesForGroupError = func(labelSelector map[string]string) error {
 		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
 	}
-	NilConfigReferenceError = errors.New("config_ref cannot be nil")
-	UnknownConfigTypeError  = errors.New("unknown extauth configuration")
-	MalformedConfigError    = func(err error) error {
-		return errors.Wrapf(err, "failed to parse ext auth config")
-	}
-	NamedExtensionError = func(err error, extensionContainerName string) error {
-		return errors.Wrapf(err, "error on [%s]", extensionContainerName)
-	}
 )
 
 const (
 	SourceTypeVirtualHost         = "virtual_host"
 	SourceTypeRoute               = "route"
 	SourceTypeWeightedDestination = "weighted_destination"
-	// We use this source type so that it is immediately evident by just looking at the request that we are handling a
-	// deprecated config. Will be removed with v1.0.0
-	SourceTypeVirtualHostDeprecated = "virtual_host_deprecated"
-	// The deprecated config uses the virtual host name as an identifier for the auth config to use on a
-	// virtual host. With the new config format, we identify an AuthConfig via the namespace and name of the correspondent
-	// CRD. A virtual host name could in theory be the same as the AuthConfig namespace.name, so we prepend this string
-	// (including "_", a character that is not allowed for kubernetes resources) to the virtual host name to avoid collisions.
-	// We'll get rid of this with v1.0.0.
-	DeprecatedConfigRefPrefix = "deprecated_"
 )
 
 type Plugin struct {
-	userIdHeader             string
-	extAuthSettings          *extauthapi.Settings
-	areSettingsStronglyTyped bool
-}
-
-type ConfigContainer interface {
-	// TODO(marco): remove when opaque config is removed
-	GetExtensions() *v1.Extensions
-	GetExtauth() *extauthapi.ExtAuthExtension
+	userIdHeader    string
+	extAuthSettings *extauthapi.Settings
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -87,23 +57,6 @@ func NewPlugin() *Plugin {
 
 func BuildVirtualHostName(proxy *v1.Proxy, listener *v1.Listener, virtualHost *v1.VirtualHost) string {
 	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, virtualHost.Name)
-}
-
-func GetSettings(params plugins.InitParams) (settings *extauthapi.Settings, stronglyTyped bool, err error) {
-	if stronglyTypedSettings := params.Settings.GetExtauth(); stronglyTypedSettings != nil {
-		return stronglyTypedSettings, true, nil
-	} else {
-		var settings extauthapi.Settings
-		ok, err := sputils.GetSettings(params, ExtensionName, &settings)
-		if err != nil {
-			return nil, false, err
-		}
-		if ok {
-			return &settings, false, nil
-		}
-	}
-
-	return nil, false, nil
 }
 
 func GetAuthHeader(e *extauthapi.Settings) string {
@@ -119,13 +72,8 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	p.userIdHeader = ""
 	p.extAuthSettings = nil
 
-	settings, stronglyTyped, err := GetSettings(params)
-	if err != nil {
-		return err
-	}
+	settings := params.Settings.GetExtauth()
 	p.extAuthSettings = settings
-	p.areSettingsStronglyTyped = stronglyTyped
-
 	p.userIdHeader = GetAuthHeader(settings)
 	return nil
 }
@@ -147,17 +95,6 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		filters = append(filters, stagedFilter)
 	}
 
-	// If extauth settings are defined, but they are not strongly typed, the open source plugin will not have picked
-	// them up, so we need to configure the ext_authz filter ourselves. This is horrific.
-	// TODO(marco): remove when we get rid of the opaque settings
-	if p.extAuthSettings != nil && !p.areSettingsStronglyTyped {
-		extAuthFilter, err := extauth.BuildHttpFilters(p.extAuthSettings, params.Snapshot.Upstreams)
-		if err != nil {
-			return nil, err
-		}
-		filters = append(filters, extAuthFilter...)
-	}
-
 	return filters, nil
 }
 
@@ -172,33 +109,16 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return nil
 	}
 
-	var extAuthConfig *extauthapi.ExtAuthExtension
+	extAuthConfig := in.GetVirtualHostPlugins().GetExtauth()
 
-	// If we have the strongly-typed config, just use that and skip extension parsing
-	if extAuth := in.GetVirtualHostPlugins().GetExtauth(); extAuth != nil {
-		extAuthConfig = extAuth
-
-	} else {
-
-		// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
-		nothingLeftToDo, err := p.processOldVirtualHostExtension(params, in, out)
-		if err != nil {
-			return err
-		}
-		if nothingLeftToDo {
-			return nil
-		}
-
-		// Check if resource is using new configuration format
-		extAuthConfig, err = p.parseExtension(in.VirtualHostPlugins, params.Params)
-		if err != nil {
-			return err
-		}
-	}
-
-	// No config was defined, explicitly disable the filter for this virtual host
+	// No config was defined or explicitly disabled, disable the filter for this virtual host
 	if extAuthConfig == nil || extAuthConfig.GetDisable() {
 		return markVirtualHostNoAuth(out)
+	}
+
+	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
+	if extAuthConfig.GetConfigRef() == nil {
+		return nil
 	}
 
 	config, err := buildFilterConfig(
@@ -224,29 +144,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
-	var extAuthConfig *extauthapi.ExtAuthExtension
-
-	// If we have the strongly-typed config, just use that and skip extension parsing
-	if extAuth := in.GetRoutePlugins().GetExtauth(); extAuth != nil {
-		extAuthConfig = extAuth
-
-	} else {
-
-		// Check whether resource is using deprecated configuration. Will be removed with v1.0.0.
-		nothingLeftToDo, err := processOldRouteExtension(params.Ctx, in, out)
-		if err != nil {
-			return err
-		}
-		if nothingLeftToDo {
-			return nil
-		}
-
-		// Check if resource is using new configuration format
-		extAuthConfig, err = p.parseExtension(in.RoutePlugins, params.Params)
-		if err != nil {
-			return err
-		}
-	}
+	extAuthConfig := in.GetRoutePlugins().GetExtauth()
 
 	// No config was defined, just return
 	if extAuthConfig == nil {
@@ -256,6 +154,11 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	// Explicitly disable the filter for this route
 	if extAuthConfig.GetDisable() {
 		return markRouteNoAuth(out)
+	}
+
+	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
+	if extAuthConfig.GetConfigRef() == nil {
+		return nil
 	}
 
 	config, err := buildFilterConfig(SourceTypeRoute, "", extAuthConfig.GetConfigRef().Key())
@@ -277,38 +180,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return nil
 	}
 
-	var extAuthConfig *extauthapi.ExtAuthExtension
-
-	// If we have the strongly-typed config, just use that and skip extension parsing
-	if extAuth := in.GetWeightedDestinationPlugins().GetExtauth(); extAuth != nil {
-		extAuthConfig = extAuth
-
-	} else if extAuth := in.GetWeighedDestinationPlugins().GetExtauth(); extAuth != nil {
-		// Handle deprecated field
-		extAuthConfig = extAuth
-
-	} else {
-
-		var errs *multierror.Error
-		var newFmtErr, oldFmtErr error
-
-		// Check whether resource is using extension. Will be removed with v1.0.0.
-		extAuthConfig, newFmtErr = p.parseExtension(in.WeightedDestinationPlugins, params.Params)
-		if extAuthConfig == nil { // this indicates that either there was an error or no config was found
-
-			// Don't swallow error, if present
-			if newFmtErr != nil {
-				errs = multierror.Append(errs, NamedExtensionError(newFmtErr, "WeightedDestinationPlugins"))
-			}
-
-			// Try deprecated field
-			extAuthConfig, oldFmtErr = p.parseExtension(in.WeighedDestinationPlugins, params.Params)
-			if oldFmtErr != nil {
-				errs = multierror.Append(errs, NamedExtensionError(oldFmtErr, "WeighedDestinationPlugins"))
-				return errs
-			}
-		}
-	}
+	extAuthConfig := in.GetWeightedDestinationPlugins().GetExtauth()
 
 	// No config was defined, just return
 	if extAuthConfig == nil {
@@ -320,48 +192,17 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return markWeightedClusterNoAuth(out)
 	}
 
+	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
+	if extAuthConfig.GetConfigRef() == nil {
+		return nil
+	}
+
 	config, err := buildFilterConfig(SourceTypeWeightedDestination, "", extAuthConfig.GetConfigRef().Key())
 	if err != nil {
 		return err
 	}
 
 	return pluginutils.SetWeightedClusterPerFilterConfig(out, FilterName, config)
-}
-
-// If the input resource does not contain an extauth config, then the first return value will be nil.
-// If the returned ExtAuthExtension is not nil, then it is guaranteed to be valid.
-func (p *Plugin) parseExtension(resource ConfigContainer, params plugins.Params) (*extauthapi.ExtAuthExtension, error) {
-	var config extauthapi.ExtAuthExtension
-	if err := utils.UnmarshalExtension(resource, ExtensionName, &config); err != nil {
-
-		// This means that there is no extauth extension on this resource, just return nil
-		if err == utils.NotFoundError {
-			return nil, nil
-		}
-
-		return nil, MalformedConfigError(err)
-	}
-
-	switch config.Spec.(type) {
-	case *extauthapi.ExtAuthExtension_Disable:
-		return &config, nil
-
-	case *extauthapi.ExtAuthExtension_ConfigRef:
-		authConfigRef := config.GetConfigRef()
-		if authConfigRef == nil {
-			return nil, NilConfigReferenceError
-		}
-
-		// Do not set the filter if the config is invalid
-		if _, err := TranslateExtAuthConfig(params.Ctx, params.Snapshot, authConfigRef); err != nil {
-			return nil, err
-		}
-
-		return &config, nil
-
-	default:
-		return nil, UnknownConfigTypeError
-	}
 }
 
 func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth.ExtAuthzPerRoute, error) {
@@ -377,54 +218,6 @@ func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth
 			},
 		},
 	}, nil
-}
-
-func processOldRouteExtension(ctx context.Context, in *v1.Route, out *envoyroute.Route) (nothingLeftToDo bool, err error) {
-	var extAuth extauthapi.RouteExtension
-	if err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &extAuth); err != nil {
-		if err == utils.NotFoundError {
-			return true, nil
-		}
-		return false, nil
-	}
-	logDeprecatedWarning(ctx)
-
-	if extAuth.Disable {
-		return true, markRouteNoAuth(out)
-	}
-	return true, nil
-}
-
-func (p *Plugin) processOldVirtualHostExtension(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) (nothingLeftToDo bool, err error) {
-	var deprecatedExtAuth extauthapi.VhostExtension
-	if err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &deprecatedExtAuth); err != nil {
-		if err == utils.NotFoundError {
-			// No extauth config, disable extauth on this virtual host
-			return true, markVirtualHostNoAuth(out)
-		}
-		// This is not the old format, try the new
-		return false, nil
-	}
-	logDeprecatedWarning(params.Ctx)
-
-	// Do not set the filter if the config is invalid
-	if _, err = TranslateDeprecatedExtAuthConfig(params.Ctx, params.Proxy, params.Listener, in, params.Snapshot, deprecatedExtAuth); err != nil {
-		return true, err
-	}
-
-	config, err := buildFilterConfig(
-		SourceTypeVirtualHostDeprecated,
-		BuildVirtualHostName(params.Proxy, params.Listener, in),
-		// A virtual host name could in theory be the same as the identifier of an AuthConfig resource ref.
-		// To avoid collisions we prepend a special prefix. See the use of this `DeprecatedConfigRefPrefix` in the extauth
-		// server code for the other half of this workaround.
-		DeprecatedConfigRefPrefix+BuildVirtualHostName(params.Proxy, params.Listener, in),
-	)
-	if err != nil {
-		return true, err
-	}
-
-	return true, pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
 }
 
 func markVirtualHostNoAuth(out *envoyroute.VirtualHost) error {
@@ -445,10 +238,6 @@ func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
 			Disabled: true,
 		},
 	}
-}
-
-func logDeprecatedWarning(ctx context.Context) {
-	contextutils.LoggerFrom(contextutils.WithLogger(ctx, "extauth")).Warnf("Deprecated extauth config format detected. Please consider using the new 'AuthConfig' CRD.")
 }
 
 func (p *Plugin) isExtAuthzFilterConfigured(upstreams v1.UpstreamList) bool {
