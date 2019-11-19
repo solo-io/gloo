@@ -1,12 +1,12 @@
 ---
 title: Open Policy Agent (OPA)
-weight: 20
-description: Fine grained control over Gloo Configuration using Open Policy Agent
+weight: 60
+description: Define fine-grained policies to control Gloo configuration itself.
 ---
 
 ## Motivation
 
-In Kubernetes, Gloo stores its configuration as Custom Resource Definitions (CRDs). You can use
+In Kubernetes, Gloo stores its configuration as Custom Resource Definitions (CRDs). You can use 
 normal Kubernetes Role Based Access Control (RBAC) to create a policy that grants users the ability
 to create a Gloo VirtualService. RBAC only allows to grant permissions entire objects.
 With the Open Policy Agent, one can specify very fine grain control over Gloo objects.
@@ -18,8 +18,8 @@ You can of-course combine both, as you see fit.
 In this document we will show a simple OPA policy that dictates that all virtual services must not 
 have a prefix re-write.
 
-### Prereqs
-- Install Gloo gateway.
+### Prerequisites
+Install Gloo gateway.
 
 ### Setup
 
@@ -33,7 +33,7 @@ with some small adaptations for the Gloo API.
 For your convenience, here's the content of setup.sh (click to reveal):
 <details><summary>[setup.sh](setup.sh)</summary>
 ```
-{{% readfile file="gloo_routing/virtual_services/opa/setup.sh" %}}
+{{% readfile file="security/opa/setup.sh" %}}
 ```
 </details>
 
@@ -44,7 +44,7 @@ OPA Policies are written in `Rego`. A language specifically designed for policy 
 Let's apply [this](vs-no-prefix-rewrite.rego) policy, forbidding virtual service with prefix re-write:
 
 ```
-{{% readfile file="gloo_routing/virtual_services/opa/vs-no-prefix-rewrite.rego" %}}
+{{% readfile file="security/opa/vs-no-prefix-rewrite.rego" %}}
 ```
 
 Let's break this down:
@@ -116,12 +116,12 @@ we have prepared two virtual services for testing:
 
 <details><summary>[vs-ok.yaml](vs-ok.yaml)</summary>
 ```
-{{% readfile file="gloo_routing/virtual_services/opa/vs-ok.yaml" %}}
+{{% readfile file="security/opa/vs-ok.yaml" %}}
 ```
 </details>
 <details><summary>[vs-err.yaml](vs-err.yaml)</summary>
 ```
-{{% readfile file="gloo_routing/virtual_services/opa/vs-err.yaml" %}}
+{{% readfile file="security/opa/vs-err.yaml" %}}
 ```
 </details>
 
@@ -148,6 +148,6 @@ you can use the [teardown.sh](teardown.sh) to clean-up the resources created in 
 For your convenience, here's the content of teardown.sh (click to reveal):
 <details><summary>[teardown.sh](teardown.sh)</summary>
 ```
-{{% readfile file="gloo_routing/virtual_services/opa/teardown.sh" %}}
+{{% readfile file="security/opa/teardown.sh" %}}
 ```
 </details>

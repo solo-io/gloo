@@ -1,7 +1,7 @@
 ---
-title: Authentication
-weight: 30
-description: Gloo has a few different options for Authentication; choose the one that best suits your use case.
+title: External auth
+weight: 10
+description: Authenticate and authorize requests to your services using Gloo's external auth service.
 ---
 
 ### Why Authenticate in API Gateway Environments
@@ -15,7 +15,7 @@ control policies.
 ### Authentication in Gloo
 {{% notice note %}}
 This section refers specifically to the **Gloo Enterprise** external auth server. If you are using the open source version 
-of Gloo, please refer to the [Custom Auth section]({{< versioned_link_path fromRoot="/gloo_routing/virtual_services/security/custom_auth" >}})
+of Gloo, please refer to the [Custom Auth section]({{< versioned_link_path fromRoot="/security/auth/custom_auth" >}})
 of the security docs.
 {{% /notice %}}
 

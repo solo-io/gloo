@@ -1,13 +1,13 @@
 ---
 title: Data Loss Prevention
-weight: 20
-description: Data Loss Prevention (DLP) is a method of ensuring that sensitive data isn't logged or leaked
+weight: 40
+description: Data Loss Prevention (DLP) is a method of ensuring that sensitive data isn't logged or leaked.
 ---
 
 {{% notice note %}}
 DLP is a feature of **Gloo Enterprise v1.0.0+**. Gloo Enterprise release candidate v1.0.0-rc1 was the first version to
-support this feature. v1.0.0-rc2 contained some minor fixes to the Gloo-provided regexes. This guide is written for
-v1.0.0-rc2+
+support this feature. v1.0.0-rc2 contained some minor fixes to the Gloo-provided regular expressions. 
+This guide is written for v1.0.0-rc2+.
 {{% /notice %}}
 
 ### Understanding DLP
@@ -56,7 +56,7 @@ First let's begin by configuring a simple static upstream to an echo site.
 
 {{< tabs >}}
 {{< tab name="kubectl" codelang="yaml">}}
-{{< readfile file="gloo_routing/virtual_services/data_loss_prevention/us-echo-test.yaml">}}
+{{< readfile file="security/data_loss_prevention/us-echo-test.yaml">}}
 {{< /tab >}}
 {{< tab name="glooctl" codelang="shell script">}}
 glooctl create upstream static --static-hosts echo.jsontest.com:80 --name json-upstream
@@ -65,7 +65,7 @@ glooctl create upstream static --static-hosts echo.jsontest.com:80 --name json-u
 
 Now let's configure a simple virtual service to send requests to the upstream.
 ```yaml
-{{< readfile file="gloo_routing/virtual_services/data_loss_prevention/vs-json-upstream.yaml">}}
+{{< readfile file="security/data_loss_prevention/vs-json-upstream.yaml">}}
 ```
 
 Run the following `curl` to get the unmasked response:
