@@ -15,23 +15,18 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.apiServer.service.name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: gloo
       gloo: {{ .Values.apiServer.service.name }}
-      {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-      installationId: {{ include "gloo.installationId" $installationContext }}
   template:
     metadata:
       labels:
         app: gloo
         gloo: {{ .Values.apiServer.service.name }}
-        {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-        installationId: {{ include "gloo.installationId" $installationContext }}
       {{- if .Values.apiServer.deployment.stats }}
       annotations:
         prometheus.io/path: /metrics

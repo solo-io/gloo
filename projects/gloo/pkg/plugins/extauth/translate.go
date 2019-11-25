@@ -8,18 +8,17 @@ import (
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"k8s.io/apimachinery/pkg/labels"
 
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 var (
 	unknownConfigTypeError = errors.New("unknown ext auth configuration")
 	emptyQueryError        = errors.New("no query provided")
+	emptyApiKeyError       = errors.New("no apikey found on apikey secret")
 	duplicateModuleError   = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
 )
 
@@ -136,12 +135,11 @@ func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth
 		if err != nil {
 			return nil, err
 		}
-		var apiKeySecret extauth.ApiKeySecret
-		err = utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
-		if err != nil {
-			return nil, err
+		apiKey := secret.GetApiKey().GetApiKey()
+		if apiKey == "" {
+			return nil, emptyApiKeyError
 		}
-		validApiKeyAndUser[apiKeySecret.ApiKey] = secretRef.Name
+		validApiKeyAndUser[apiKey] = secretRef.Name
 	}
 
 	// add valid apikey/user map entries using secrets matching provided label selector
@@ -150,12 +148,11 @@ func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth
 		for _, secret := range snap.Secrets {
 			selector := labels.Set(config.LabelSelector).AsSelectorPreValidated()
 			if selector.Matches(labels.Set(secret.Metadata.Labels)) {
-				var apiKeySecret extauth.ApiKeySecret
-				err := utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &apiKeySecret)
-				if err != nil {
-					return nil, err
+				apiKey := secret.GetApiKey().GetApiKey()
+				if apiKey == "" {
+					return nil, emptyApiKeyError
 				}
-				validApiKeyAndUser[apiKeySecret.ApiKey] = secret.Metadata.Name
+				validApiKeyAndUser[apiKey] = secret.Metadata.Name
 				foundAny = true
 			}
 		}
@@ -176,16 +173,10 @@ func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAu
 		return nil, err
 	}
 
-	var clientSecret extauth.OauthSecret
-	err = utils.ExtensionToProto(secret.GetExtension(), ExtensionName, &clientSecret)
-	if err != nil {
-		return nil, err
-	}
-
 	return &extauth.ExtAuthConfig_OAuthConfig{
 		AppUrl:       config.AppUrl,
 		ClientId:     config.ClientId,
-		ClientSecret: clientSecret.ClientSecret,
+		ClientSecret: secret.GetOauth().GetClientSecret(),
 		IssuerUrl:    config.IssuerUrl,
 		CallbackPath: config.CallbackPath,
 		Scopes:       config.Scopes,

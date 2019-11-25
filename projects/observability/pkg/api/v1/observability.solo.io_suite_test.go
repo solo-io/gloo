@@ -40,7 +40,7 @@ var (
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("authconfigs.enterprise.gloo.solo.io", &metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("gateways.gateway.solo.io.v2", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("gateways.gateway.solo.io", &metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("proxies.gloo.solo.io", &metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)

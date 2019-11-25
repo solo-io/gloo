@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/go-utils/testutils/helper"
 
@@ -17,13 +17,13 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/go-utils/kubeutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 
@@ -150,7 +150,7 @@ var _ = Describe("RateLimit tests", func() {
 					Unit:            ratelimit.RateLimit_HOUR,
 				},
 			}
-			virtualHostPlugins = &gloov1.VirtualHostPlugins{
+			virtualHostPlugins = &gloov1.VirtualHostOptions{
 				RatelimitBasic: ingressRateLimit,
 			}
 		)
@@ -236,7 +236,7 @@ var _ = Describe("RateLimit tests", func() {
 					}},
 				}
 
-				virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
 					Ratelimit: ratelimitExtension,
 					Extauth:   extAuthConfigProto,
 				}
@@ -298,7 +298,7 @@ var _ = Describe("RateLimit tests", func() {
 				}},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				Ratelimit: ratelimitExtension,
 			}
 
@@ -320,7 +320,7 @@ var _ = Describe("RateLimit tests", func() {
 				}},
 			}
 
-			routePlugins := &gloov1.RoutePlugins{
+			routePlugins := &gloov1.RouteOptions{
 				Ratelimit: ratelimitExtension,
 			}
 
@@ -342,7 +342,7 @@ var _ = Describe("RateLimit tests", func() {
 				}},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				Ratelimit: vhostRateLimitExtension,
 			}
 
@@ -350,7 +350,7 @@ var _ = Describe("RateLimit tests", func() {
 				IncludeVhRateLimits: true,
 			}
 
-			routePlugins := &gloov1.RoutePlugins{
+			routePlugins := &gloov1.RouteOptions{
 				Ratelimit: routeRateLimitExtension,
 			}
 

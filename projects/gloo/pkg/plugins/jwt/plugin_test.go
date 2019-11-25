@@ -13,7 +13,7 @@ import (
 	"gopkg.in/square/go-jose.v2"
 
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -78,7 +78,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					Body:   "test",
 				},
 			},
-			RoutePlugins: &v1.RoutePlugins{
+			Options: &v1.RouteOptions{
 				Jwt: jwtRoute,
 			},
 		}
@@ -104,7 +104,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		virtualHost = &v1.VirtualHost{
 			Name:    "virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &v1.VirtualHostPlugins{
+			Options: &v1.VirtualHostOptions{
 				Jwt: jwtVhost,
 			},
 			Routes: []*v1.Route{route},
@@ -287,7 +287,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 		Context("claims to headers", func() {
 			BeforeEach(func() {
-				route.RoutePlugins = nil
+				route.Options = nil
 				jwks := &jwt.Jwks{
 					Jwks: &jwt.Jwks_Local{
 						Local: &jwt.LocalJwks{
@@ -341,7 +341,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 		Context("claims token source", func() {
 			BeforeEach(func() {
-				route.RoutePlugins = nil
+				route.Options = nil
 				jwks := &jwt.Jwks{
 					Jwks: &jwt.Jwks_Local{
 						Local: &jwt.LocalJwks{

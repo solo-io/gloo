@@ -162,7 +162,7 @@ export const SecurityPage: React.FunctionComponent<Props> = React.memo(
                   props.onDeleteSecret(
                     record.name,
                     record.namespace,
-                    Secret.KindCase.EXTENSION
+                    Secret.KindCase.OAUTH
                   )
                 }>
                 x
@@ -198,7 +198,7 @@ export const SecurityPage: React.FunctionComponent<Props> = React.memo(
               dataSource={oAuthTableData}
               formComponent={() => (
                 <SecretForm
-                  secretKind={Secret.KindCase.EXTENSION}
+                  secretKind={Secret.KindCase.OAUTH}
                   onCreateSecret={props.onCreateSecret}
                 />
               )}

@@ -72,7 +72,7 @@ function setWeightedDestinationValues(
   weightedDest: WeightedDestination.AsObject,
   weightedDestToUpdate = new WeightedDestination()
 ) {
-  let { destination, weightedDestinationPlugins, weight } = weightedDest!;
+  let { destination, weight, options } = weightedDest!;
   if (destination !== undefined) {
     let newDest = new Destination();
     let { upstream, kube, consul, destinationSpec, subset } = destination!;
@@ -104,7 +104,7 @@ function setWeightedDestinationValues(
   }
 
   // TODO
-  if (weightedDestinationPlugins !== undefined) {
+  if (options !== undefined) {
   }
   return weightedDestToUpdate;
 }

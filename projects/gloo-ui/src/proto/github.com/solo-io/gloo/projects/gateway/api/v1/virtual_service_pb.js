@@ -19,7 +19,7 @@ var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../gi
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.Route', null, global);
 goog.exportSymbol('proto.gateway.solo.io.VirtualHost', null, global);
@@ -396,12 +396,10 @@ proto.gateway.solo.io.VirtualHost.prototype.toObject = function(opt_includeInsta
  */
 proto.gateway.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     domainsList: jspb.Message.getRepeatedField(msg, 2),
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gateway.solo.io.Route.toObject, includeInstance),
-    virtualHostPlugins: (f = msg.getVirtualHostPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.toObject(includeInstance, f),
-    corsPolicy: (f = msg.getCorsPolicy()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -438,10 +436,6 @@ proto.gateway.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, re
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
-      break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.addDomains(value);
@@ -452,14 +446,9 @@ proto.gateway.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, re
       msg.addRoutes(value);
       break;
     case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.deserializeBinaryFromReader);
-      msg.setVirtualHostPlugins(value);
-      break;
-    case 5:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.deserializeBinaryFromReader);
-      msg.setCorsPolicy(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     default:
       reader.skipField();
@@ -490,13 +479,6 @@ proto.gateway.solo.io.VirtualHost.prototype.serializeBinary = function() {
  */
 proto.gateway.solo.io.VirtualHost.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
   f = message.getDomainsList();
   if (f.length > 0) {
     writer.writeRepeatedString(
@@ -512,37 +494,14 @@ proto.gateway.solo.io.VirtualHost.serializeBinaryToWriter = function(message, wr
       proto.gateway.solo.io.Route.serializeBinaryToWriter
     );
   }
-  f = message.getVirtualHostPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.serializeBinaryToWriter
     );
   }
-  f = message.getCorsPolicy();
-  if (f != null) {
-    writer.writeMessage(
-      5,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * optional string name = 1;
- * @return {string}
- */
-proto.gateway.solo.io.VirtualHost.prototype.getName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.gateway.solo.io.VirtualHost.prototype.setName = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
@@ -607,23 +566,23 @@ proto.gateway.solo.io.VirtualHost.prototype.clearRoutesList = function() {
 
 
 /**
- * optional gloo.solo.io.VirtualHostPlugins virtual_host_plugins = 4;
- * @return {?proto.gloo.solo.io.VirtualHostPlugins}
+ * optional gloo.solo.io.VirtualHostOptions options = 4;
+ * @return {?proto.gloo.solo.io.VirtualHostOptions}
  */
-proto.gateway.solo.io.VirtualHost.prototype.getVirtualHostPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.VirtualHostPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins, 4));
+proto.gateway.solo.io.VirtualHost.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.VirtualHostOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions, 4));
 };
 
 
-/** @param {?proto.gloo.solo.io.VirtualHostPlugins|undefined} value */
-proto.gateway.solo.io.VirtualHost.prototype.setVirtualHostPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.VirtualHostOptions|undefined} value */
+proto.gateway.solo.io.VirtualHost.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.gateway.solo.io.VirtualHost.prototype.clearVirtualHostPlugins = function() {
-  this.setVirtualHostPlugins(undefined);
+proto.gateway.solo.io.VirtualHost.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -631,38 +590,8 @@ proto.gateway.solo.io.VirtualHost.prototype.clearVirtualHostPlugins = function()
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gateway.solo.io.VirtualHost.prototype.hasVirtualHostPlugins = function() {
+proto.gateway.solo.io.VirtualHost.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional gloo.solo.io.CorsPolicy cors_policy = 5;
- * @return {?proto.gloo.solo.io.CorsPolicy}
- */
-proto.gateway.solo.io.VirtualHost.prototype.getCorsPolicy = function() {
-  return /** @type{?proto.gloo.solo.io.CorsPolicy} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy, 5));
-};
-
-
-/** @param {?proto.gloo.solo.io.CorsPolicy|undefined} value */
-proto.gateway.solo.io.VirtualHost.prototype.setCorsPolicy = function(value) {
-  jspb.Message.setWrapperField(this, 5, value);
-};
-
-
-proto.gateway.solo.io.VirtualHost.prototype.clearCorsPolicy = function() {
-  this.setCorsPolicy(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gateway.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
-  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -754,7 +683,7 @@ proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
     redirectAction: (f = msg.getRedirectAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
     delegateAction: (f = msg.getDelegateAction()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    routePlugins: (f = msg.getRoutePlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -817,9 +746,9 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
       msg.setDelegateAction(value);
       break;
     case 6:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.deserializeBinaryFromReader);
-      msg.setRoutePlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     default:
       reader.skipField();
@@ -890,12 +819,12 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
-  f = message.getRoutePlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       6,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.serializeBinaryToWriter
     );
   }
 };
@@ -1053,23 +982,23 @@ proto.gateway.solo.io.Route.prototype.hasDelegateAction = function() {
 
 
 /**
- * optional gloo.solo.io.RoutePlugins route_plugins = 6;
- * @return {?proto.gloo.solo.io.RoutePlugins}
+ * optional gloo.solo.io.RouteOptions options = 6;
+ * @return {?proto.gloo.solo.io.RouteOptions}
  */
-proto.gateway.solo.io.Route.prototype.getRoutePlugins = function() {
-  return /** @type{?proto.gloo.solo.io.RoutePlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins, 6));
+proto.gateway.solo.io.Route.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.RouteOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions, 6));
 };
 
 
-/** @param {?proto.gloo.solo.io.RoutePlugins|undefined} value */
-proto.gateway.solo.io.Route.prototype.setRoutePlugins = function(value) {
+/** @param {?proto.gloo.solo.io.RouteOptions|undefined} value */
+proto.gateway.solo.io.Route.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 6, value);
 };
 
 
-proto.gateway.solo.io.Route.prototype.clearRoutePlugins = function() {
-  this.setRoutePlugins(undefined);
+proto.gateway.solo.io.Route.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -1077,7 +1006,7 @@ proto.gateway.solo.io.Route.prototype.clearRoutePlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gateway.solo.io.Route.prototype.hasRoutePlugins = function() {
+proto.gateway.solo.io.Route.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 6) != null;
 };
 

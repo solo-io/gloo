@@ -4,20 +4,20 @@ import { colors } from 'Styles';
 import { SoloCheckbox } from './SoloCheckbox';
 import { SoloInput } from './SoloInput';
 import { SoloRadioGroup } from './SoloRadioGroup';
-
-const FilterContainer = styled.div`
+import css from '@emotion/css';
+export const FilterContainer = styled.div`
   display: flex;
 `;
-const Filters = styled.div`
+export const Filters = styled.div`
   width: 190px;
   margin-right: 35px;
 `;
-const Content = styled.div`
+export const Content = styled.div`
   flex: 1;
   width: calc(100% - 225px);
 `;
 
-const StyledHeader = styled.div`
+export const StyledHeader = css`
   overflow: hidden;
   text-align: center;
   padding: 15px;
@@ -42,7 +42,7 @@ const StyledHeader = styled.div`
   }
 `;
 
-const FilterInput = styled.div`
+export const FilterInput = styled.div`
   margin-bottom: 15px;
 `;
 
@@ -171,7 +171,7 @@ export const ListingFilter = (filterProps: FilterProps) => {
           </FilterInput>
           <>
             {radioFilters.length > 0 && filterProps.showLabels && (
-              <StyledHeader>Status Filter</StyledHeader>
+              <div css={StyledHeader}>Status Filter</div>
             )}
           </>
           {radioFilters.map((filter, ind) => {
@@ -217,7 +217,7 @@ export const ListingFilter = (filterProps: FilterProps) => {
             );
           })}
           {checkboxFilters.length > 0 && filterProps.showLabels && (
-            <StyledHeader>Types Filter</StyledHeader>
+            <div css={StyledHeader}>Types Filter</div>
           )}
           {checkboxFilters.map((filter, ind) => {
             return (

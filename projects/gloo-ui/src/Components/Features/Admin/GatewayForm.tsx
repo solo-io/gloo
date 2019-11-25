@@ -8,8 +8,7 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
-import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb';
-import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb';
+import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm_pb';
 import {
   EditedResourceYaml,
   Raw
@@ -20,6 +19,7 @@ import { AppState } from 'store';
 import { updateGatewayYaml } from 'store/gateway/actions';
 import { colors, soloConstants } from 'Styles';
 import * as yup from 'yup';
+import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb';
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -102,7 +102,7 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
     requestHeadersForTagsList: (undefined as unknown) as string[],
     verbose: (undefined as unknown) as boolean
   },
-  forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
+  forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap]
 };
 
 const validationSchema = yup.object().shape({
@@ -156,11 +156,11 @@ export const GatewayForm = (props: FormProps) => {
 
   if (
     props.gatewayValues.httpGateway &&
-    props.gatewayValues.httpGateway.plugins &&
-    props.gatewayValues.httpGateway.plugins.httpConnectionManagerSettings
+    props.gatewayValues.httpGateway.options &&
+    props.gatewayValues.httpGateway.options.httpConnectionManagerSettings
   ) {
     let httpValues =
-      props.gatewayValues.httpGateway.plugins.httpConnectionManagerSettings;
+      props.gatewayValues.httpGateway.options.httpConnectionManagerSettings;
 
     initialValues.skipXffAppend = httpValues.skipXffAppend;
     initialValues.via = httpValues.via;

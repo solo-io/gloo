@@ -7,8 +7,8 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto";
 import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
@@ -30,7 +30,7 @@ message ExtAuthPlugin {
 }
 
 message RateLimitPlugin {
-    ratelimit.plugins.gloo.solo.io.IngressRateLimit value = 1;
+    ratelimit.options.gloo.solo.io.IngressRateLimit value = 1;
     string error = 2;
 }
 
@@ -47,7 +47,7 @@ message SslConfigValue {
 }
 
 message IngressRateLimitValue {
-    ratelimit.plugins.gloo.solo.io.IngressRateLimit value = 1;
+    ratelimit.options.gloo.solo.io.IngressRateLimit value = 1;
 }
 
 message ExtAuthInput {
@@ -89,7 +89,7 @@ message VirtualServiceInput {
     repeated string domains = 3;
     repeated gateway.solo.io.Route routes = 4;
     core.solo.io.ResourceRef secret_ref = 5;
-    ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
+    ratelimit.options.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
 
     message BasicAuthInput {
         string realm = 1;

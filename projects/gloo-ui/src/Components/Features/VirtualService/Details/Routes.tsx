@@ -1,12 +1,13 @@
 import styled from '@emotion/styled';
-import { Popconfirm } from 'antd';
-import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
+import { Popconfirm, Popover } from 'antd';
+import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as RouteTableIcon } from 'assets/route-table-icon.svg';
+import { ReactComponent as GlooIcon } from 'assets/GlooEE.svg';
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, shallowEqual, useSelector } from 'react-redux';
 import { shiftRoutes, deleteRoute } from 'store/virtualServices/actions';
 import { colors, TableActionCircle, TableActions } from 'Styles';
 import {
@@ -14,15 +15,23 @@ import {
   getRouteMatcher,
   getRouteMethods,
   getRouteQueryParams,
-  getRouteSingleUpstream
+  getRouteSingleUpstream,
+  getIcon,
+  getIconFromSpec
 } from 'utils/helpers';
 import { RouteParent } from '../RouteTableDetails';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
-
+import css from '@emotion/css';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { AppState } from 'store';
+import { NavLink } from 'react-router-dom';
+import RT from 'assets/route-table-icon.png';
+import { updateRouteTable } from 'store/routeTables/actions';
 const RouteMatch = styled.div`
   max-width: 200px;
   max-height: 70px;
   overflow: hidden;
+  font-weight: bold;
   text-overflow: ellipsis;
 `;
 
@@ -48,74 +57,78 @@ const ModalTrigger = styled.div`
   font-size: 14px;
 `;
 
-const getRouteColumns = (
-  showEditRouteModal: (matcher: string) => void,
-  deleteRoute: (matcher: string) => any
-) => {
-  return [
-    {
-      title: 'Matcher',
-      dataIndex: 'matcher',
-      render: (matcher: string) => {
-        return <RouteMatch>{matcher}</RouteMatch>;
-      }
-    },
-    {
-      title: 'Path Match Type',
-      dataIndex: 'pathMatch'
-    },
-    {
-      title: 'Methods',
-      dataIndex: 'method',
-      width: 150
-    },
-    {
-      title: 'Destination',
-      dataIndex: 'destinationName',
-      render: (destinationName: string) => destinationName
-    },
-    {
-      title: 'Headers',
-      dataIndex: 'header'
-    },
-    {
-      title: 'Query Parameters',
-      dataIndex: 'queryParams'
-    },
-    {
-      title: 'Actions',
-      dataIndex: 'actions',
-      render: (matcher: string) => {
-        return (
-          <TableActions>
-            <TableActionCircle onClick={() => showEditRouteModal(matcher)}>
-              <EditPencil />
-            </TableActionCircle>
-
-            <div style={{ marginLeft: '5px' }}>
-              <Popconfirm
-                onConfirm={() => deleteRoute(matcher)}
-                title={'Are you sure you want to delete this route? '}
-                okText='Yes'
-                cancelText='No'>
-                <TableActionCircle data-testid={`delete-route-${matcher}`}>
-                  x
-                </TableActionCircle>
-              </Popconfirm>
-            </div>
-          </TableActions>
-        );
-      }
-    }
-  ];
-};
-
+const RouteTablePopoverContainer = css`
+  display: grid;
+  grid-template-areas:
+    'matcher destination'
+    'content content';
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: 24px 1fr;
+  grid-gap: 10px;
+`;
+const RouteTablePopoverRoutesContainer = css`
+  grid-area: content;
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-column-gap: 10px;
+`;
 interface Props {
   routes: Route.AsObject[];
   routeParent?: RouteParent;
+  deleteRouteFromRouteTable?: (matcher: string) => void;
 }
 
-export const Routes: React.FC<Props> = props => {
+const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
+  let icon = <GlooIcon style={{ width: '20px', paddingRight: '5px' }} />;
+  let destination = '';
+  const upstreamsList = useSelector(
+    (state: AppState) => state.upstreams.upstreamsList
+  );
+  if (route.routeAction !== undefined) {
+    let upstreamDestination = upstreamsList.find(
+      upstreamDetails =>
+        upstreamDetails?.upstream?.metadata?.name ===
+        route?.routeAction?.single?.upstream?.name
+    );
+    let upstreamSpec = upstreamDestination?.upstream;
+    if (upstreamSpec !== undefined) {
+      icon = getIconFromSpec(upstreamSpec);
+    } else {
+      icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
+    }
+
+    destination = route.routeAction.single?.upstream?.name || '';
+  }
+  if (route.delegateAction !== undefined) {
+    icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
+    destination = route.delegateAction.name;
+  }
+  return (
+    <div
+      css={css`
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+      `}>
+      {icon}
+      {destination}
+    </div>
+  );
+};
+
+function checkRoutesProps(
+  oldProps: Readonly<Props>,
+  newProps: Readonly<Props>
+): boolean {
+  return shallowEqual(oldProps.routes, newProps.routes);
+}
+export const Routes: React.FC<Props> = React.memo(props => {
+  const routeTablesList = useSelector(
+    (state: AppState) => state.routeTables.routeTablesList,
+    shallowEqual
+  );
+
   const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
   const [routeBeingEdited, setRouteBeingEdited] = React.useState<
     Route.AsObject | undefined
@@ -127,22 +140,21 @@ export const Routes: React.FC<Props> = props => {
     name: props.routeParent ? props.routeParent.metadata!.name : '',
     namespace: props.routeParent ? props.routeParent.metadata!.namespace : ''
   };
-  console.log('routeParentRef', routeParentRef);
+
   React.useEffect(() => {
     setRoutesList([...props.routes]);
-  }, [props.routes]);
+  }, [props.routes.length]);
 
   const getRouteData = () => {
-    const existingRoutes = routesList.map(route => {
+    const existingRoutes = props.routes.map(route => {
       const upstreamName = getRouteSingleUpstream(route) || '';
-      const destinationName = getRouteSingleUpstream(route);
       const { matcher, matchType } = getRouteMatcher(route);
       return {
         key: `${matcher}-${upstreamName}`,
         matcher: matcher,
         pathMatch: matchType,
         method: getRouteMethods(route),
-        destinationName: destinationName,
+        destinationName: getDestinationIcon(route),
         upstreamName: upstreamName,
         header: getRouteHeaders(route),
         queryParams: getRouteQueryParams(route),
@@ -153,23 +165,145 @@ export const Routes: React.FC<Props> = props => {
     return existingRoutes;
   };
 
-  const handleDeleteRoute = (matcherToDelete: string) => {
-    let index = routesList.findIndex(
-      route => getRouteMatcher(route).matcher === matcherToDelete
-    );
-    const newList = routesList.filter(
-      route => getRouteMatcher(route).matcher !== matcherToDelete
-    );
-    console.log('index', index);
-    console.log('newList', newList);
+  function getDestinationIcon(route: Route.AsObject): React.ReactNode {
+    let upstreamDestination = route?.routeAction?.single?.upstream?.name;
+    let routeTableDestination = route?.delegateAction?.name;
 
-    dispatch(
-      deleteRoute({
-        virtualServiceRef: routeParentRef,
-        index
-      })
+    // get the routes of the route table
+    const previewRouteTable = routeTablesList.find(
+      rt => rt?.routeTable?.metadata?.name === routeTableDestination
     );
-    setRoutesList(newList);
+    // if its a route or an upstream
+    // get type
+    let type: 'Upstream' | 'Route Table';
+    if (routeTableDestination !== undefined) {
+      type = 'Route Table';
+    } else {
+      type = 'Upstream';
+    }
+
+    // style to match design
+    return (
+      <Popover
+        placement='bottom'
+        content={
+          type === 'Route Table' ? (
+            <>
+              <div css={RouteTablePopoverContainer}>
+                <div
+                  css={css`
+                    grid-area: matcher;
+                  `}>
+                  Matcher
+                </div>
+                <div
+                  css={css`
+                    grid-area: destination;
+                  `}>
+                  Destination
+                </div>
+                <div css={RouteTablePopoverRoutesContainer}>
+                  {previewRouteTable?.routeTable?.routesList.map(route => (
+                    <>
+                      <div
+                        css={css`
+                          display: flex;
+                          flex-direction: row;
+                          justify-content: flex-start;
+                          align-items: center;
+                        `}>
+                        {route.matchersList[0]?.prefix}
+                      </div>
+
+                      <DestinationIcon route={route} />
+                    </>
+                  ))}
+                </div>
+              </div>
+              <div>
+                {`${previewRouteTable?.routeTable?.routesList.length} total routes`}
+              </div>
+            </>
+          ) : (
+            <div
+              css={css`
+                display: flex;
+                justify-content: center;
+              `}>
+              Upstream
+            </div>
+          )
+        }
+        trigger='hover'>
+        {!!previewRouteTable ? (
+          <NavLink
+            to={`/routetables/${previewRouteTable?.routeTable?.metadata?.namespace}/${previewRouteTable?.routeTable?.metadata?.name}`}>
+            <div
+              css={css`
+                color: #2196c9;
+                cursor: pointer;
+                font-weight: bold;
+              `}>
+              <DestinationIcon route={route} />
+            </div>
+          </NavLink>
+        ) : (
+          <div
+            css={css`
+              color: #2196c9;
+              cursor: pointer;
+              font-weight: bold;
+            `}>
+            <DestinationIcon route={route} />
+          </div>
+        )}
+      </Popover>
+    );
+  }
+
+  const handleDeleteRoute = (matcherToDelete: string) => {
+    console.log('props', props);
+    let isRouteTable = routeTablesList.find(
+      rt =>
+        rt?.routeTable?.metadata?.name === props.routeParent?.metadata?.name &&
+        rt?.routeTable?.metadata?.namespace ===
+          props?.routeParent?.metadata?.namespace
+    );
+    if (isRouteTable !== undefined) {
+      console.log('props', props);
+      const newList = routeTablesList
+        .flatMap(rtd => rtd!.routeTable!.routesList)
+        .filter(route => getRouteMatcher(route).matcher !== matcherToDelete);
+
+      dispatch(
+        updateRouteTable({
+          routeTable: {
+            ...isRouteTable,
+            metadata: {
+              ...props.routeParent?.metadata!,
+              name: isRouteTable?.routeTable?.metadata?.name!,
+              namespace: isRouteTable?.routeTable?.metadata?.namespace!
+            },
+            routesList: newList
+          }
+        })
+      );
+    } else {
+      let index = routesList.findIndex(
+        route => getRouteMatcher(route).matcher === matcherToDelete
+      );
+      const newList = routesList.filter(
+        route => getRouteMatcher(route).matcher !== matcherToDelete
+      );
+
+      dispatch(
+        deleteRoute({
+          virtualServiceRef: routeParentRef,
+          index
+        })
+      );
+      setRoutesList(newList);
+    }
   };
 
   const beginRouteEditing = (matcherToEdit: string) => {
@@ -198,6 +332,68 @@ export const Routes: React.FC<Props> = props => {
     setRoutesList(newRoutesList);
   };
 
+  const getRouteColumns = (
+    showEditRouteModal: (matcher: string) => void,
+    deleteRoute: (matcher: string) => any
+  ) => {
+    return [
+      {
+        title: 'Matcher',
+        dataIndex: 'matcher',
+        render: (matcher: string) => {
+          return <RouteMatch>{matcher}</RouteMatch>;
+        }
+      },
+      {
+        title: 'Path Match Type',
+        dataIndex: 'pathMatch'
+      },
+      {
+        title: 'Methods',
+        dataIndex: 'method',
+        width: 150
+      },
+      {
+        title: 'Destination',
+        dataIndex: 'destinationName'
+      },
+      {
+        title: 'Headers',
+        dataIndex: 'header'
+      },
+      {
+        title: 'Query Parameters',
+        dataIndex: 'queryParams'
+      },
+      {
+        title: 'Actions',
+        dataIndex: 'actions',
+        render: (matcher: string) => {
+          return (
+            <TableActions>
+              {/* disallowing edits until further notice TODO: (ascampos) */}
+              {/* <TableActionCircle onClick={() => showEditRouteModal(matcher)}>
+              <EditPencil />
+            </TableActionCircle> */}
+
+              <div style={{ marginLeft: '5px' }}>
+                <Popconfirm
+                  onConfirm={() => deleteRoute(matcher)}
+                  title={'Are you sure you want to delete this route? '}
+                  okText='Yes'
+                  cancelText='No'>
+                  <TableActionCircle data-testid={`delete-route-${matcher}`}>
+                    x
+                  </TableActionCircle>
+                </Popconfirm>
+              </div>
+            </TableActions>
+          );
+        }
+      }
+    ];
+  };
+
   return (
     <>
       <RouteSectionTitle>
@@ -224,11 +420,12 @@ export const Routes: React.FC<Props> = props => {
         title={'Create Route'}
         onClose={() => setShowCreateRouteModal(false)}>
         <CreateRouteModal
-          defaultRouteParent={props.routeParent!}
+          defaultRouteParent={props.routeParent!.metadata}
           completeCreation={() => setShowCreateRouteModal(false)}
         />
       </SoloModal>
-      <SoloModal
+      {/* Temporarily removed edit route functionality */}
+      {/* <SoloModal
         visible={!!routeBeingEdited}
         width={500}
         title={'Edit Route'}
@@ -238,7 +435,7 @@ export const Routes: React.FC<Props> = props => {
           existingRoute={routeBeingEdited}
           completeCreation={finishRouteEditiing}
         />
-      </SoloModal>
+      </SoloModal> */}
     </>
   );
-};
+}, checkRoutesProps);

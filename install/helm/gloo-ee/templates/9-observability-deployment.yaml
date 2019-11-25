@@ -10,24 +10,20 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   name: observability
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
+      app: gloo
       gloo: observability
-      {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-      installationId: {{ include "gloo.installationId" $installationContext }}
   template:
     metadata:
       labels:
-        gloo: observability
         app: gloo
-        {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-        installationId: {{ include "gloo.installationId" $installationContext }}
+        gloo: observability
       {{- if .Values.observability.deployment.stats }}
       annotations:
         prometheus.io/path: /metrics

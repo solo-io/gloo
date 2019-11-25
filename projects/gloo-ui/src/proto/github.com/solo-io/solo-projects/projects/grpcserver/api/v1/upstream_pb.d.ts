@@ -3,12 +3,12 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb";
@@ -149,33 +149,33 @@ export class UpstreamInput extends jspb.Message {
 
   hasKube(): boolean;
   clearKube(): void;
-  getKube(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec | undefined;
-  setKube(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec): void;
+  getKube(): github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec | undefined;
+  setKube(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec): void;
 
   hasStatic(): boolean;
   clearStatic(): void;
-  getStatic(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec | undefined;
-  setStatic(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec): void;
+  getStatic(): github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec | undefined;
+  setStatic(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec): void;
 
   hasAws(): boolean;
   clearAws(): void;
-  getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec | undefined;
-  setAws(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec): void;
+  getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec | undefined;
+  setAws(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec): void;
 
   hasAzure(): boolean;
   clearAzure(): void;
-  getAzure(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec | undefined;
-  setAzure(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec): void;
+  getAzure(): github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec | undefined;
+  setAzure(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec): void;
 
   hasConsul(): boolean;
   clearConsul(): void;
-  getConsul(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec | undefined;
-  setConsul(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec): void;
+  getConsul(): github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec | undefined;
+  setConsul(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec): void;
 
   hasAwsEc2(): boolean;
   clearAwsEc2(): void;
-  getAwsEc2(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec | undefined;
-  setAwsEc2(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec): void;
+  getAwsEc2(): github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec | undefined;
+  setAwsEc2(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec): void;
 
   getSpecCase(): UpstreamInput.SpecCase;
   serializeBinary(): Uint8Array;
@@ -191,12 +191,12 @@ export class UpstreamInput extends jspb.Message {
 export namespace UpstreamInput {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    kube?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
-    pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.AsObject,
-    aws?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.AsObject,
-    azure?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.AsObject,
-    consul?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.AsObject,
-    awsEc2?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
+    kube?: github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
+    pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec.AsObject,
+    aws?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec.AsObject,
+    azure?: github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec.AsObject,
+    consul?: github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.AsObject,
+    awsEc2?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
   }
 
   export enum SpecCase {

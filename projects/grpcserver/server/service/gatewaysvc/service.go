@@ -12,7 +12,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -destination mocks/gateway_client_mock.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v2 GatewayClient
+//go:generate mockgen -destination mocks/gateway_client_mock.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 GatewayClient
 
 type gatewayGrpcService struct {
 	ctx             context.Context

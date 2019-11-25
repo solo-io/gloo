@@ -11,7 +11,7 @@ import (
 
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -43,7 +43,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	rbacConf := in.VirtualHostPlugins.GetRbac()
+	rbacConf := in.Options.GetRbac()
 	if rbacConf == nil {
 		// no config found, nothing to do here
 		return nil
@@ -65,7 +65,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	rbacConfig := in.RoutePlugins.GetRbac()
+	rbacConfig := in.GetOptions().GetRbac()
 	if rbacConfig == nil {
 		// no config found, nothing to do here
 		return nil

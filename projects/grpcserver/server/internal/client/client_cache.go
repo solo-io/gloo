@@ -11,7 +11,7 @@ import (
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"

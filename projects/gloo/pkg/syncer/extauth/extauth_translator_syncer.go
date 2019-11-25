@@ -14,7 +14,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
@@ -61,18 +61,18 @@ func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
 
-				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetVirtualHostPlugins().GetExtauth()); err != nil {
+				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetOptions().GetExtauth()); err != nil {
 					return err
 				}
 
 				for _, route := range virtualHost.Routes {
 
-					if err := helper.processAuthExtension(ctx, snap, route.GetRoutePlugins().GetExtauth()); err != nil {
+					if err := helper.processAuthExtension(ctx, snap, route.GetOptions().GetExtauth()); err != nil {
 						return err
 					}
 
 					for _, weightedDestination := range route.GetRouteAction().GetMulti().GetDestinations() {
-						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetWeightedDestinationPlugins().GetExtauth()); err != nil {
+						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetOptions().GetExtauth()); err != nil {
 							return err
 						}
 					}

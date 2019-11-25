@@ -8,15 +8,13 @@ metadata:
   labels:
     app: gloo
     gloo: {{ $extAuth.service.name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   name: {{ $extAuth.service.name }}-sidecar
   namespace: {{ .Release.Namespace }}
 spec:
-  upstreamSpec:
-    use_http2: true
-    pipe:
-      path: "/usr/share/shared-data/.sock"
+  use_http2: true
+  pipe:
+    path: "/usr/share/shared-data/.sock"
 {{- end }}
 ---
 {{- if $extAuth.standaloneDeployment }}
@@ -26,25 +24,23 @@ metadata:
   labels:
     app: gloo
     gloo: {{ $extAuth.service.name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   name: {{ $extAuth.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  upstreamSpec:
-    use_http2: true
-    healthChecks:
-    - timeout: 5s
-      interval: 1m
-      unhealthyThreshold: 5
-      healthyThreshold: 5
-      grpcHealthCheck:
-        serviceName: {{ $extAuth.serviceName }}
-    kube:
-      serviceName: {{ $extAuth.service.name }}
-      serviceNamespace: {{ .Release.Namespace }}
-      servicePort:  {{ $extAuth.service.port }}
-      serviceSpec:
-        grpc: {}
+  use_http2: true
+  healthChecks:
+  - timeout: 5s
+    interval: 1m
+    unhealthyThreshold: 5
+    healthyThreshold: 5
+    grpcHealthCheck:
+      serviceName: {{ $extAuth.serviceName }}
+  kube:
+    serviceName: {{ $extAuth.service.name }}
+    serviceNamespace: {{ .Release.Namespace }}
+    servicePort:  {{ $extAuth.service.port }}
+    serviceSpec:
+      grpc: {}
 {{- end }}
 {{- end }}

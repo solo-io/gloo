@@ -8,8 +8,7 @@ metadata:
     app: gloo
     chart: glooe-grafana
     release: {{ .Release.Name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
 data:
 {{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
 {{- end }}

@@ -5,23 +5,21 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.rateLimit.service.name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   name: {{ .Values.rateLimit.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  upstreamSpec:
-    healthChecks:
-    - timeout: 5s
-      interval: 1m
-      unhealthyThreshold: 5
-      healthyThreshold: 5
-      grpcHealthCheck:
-        serviceName: ratelimit
-    kube:
-      serviceName: {{ .Values.rateLimit.service.name }}
-      serviceNamespace: {{ .Release.Namespace }}
-      servicePort:  {{ .Values.rateLimit.service.port }}
-      serviceSpec:
-        grpc: {}
+  healthChecks:
+  - timeout: 5s
+    interval: 1m
+    unhealthyThreshold: 5
+    healthyThreshold: 5
+    grpcHealthCheck:
+      serviceName: ratelimit
+  kube:
+    serviceName: {{ .Values.rateLimit.service.name }}
+    serviceNamespace: {{ .Release.Namespace }}
+    servicePort:  {{ .Values.rateLimit.service.port }}
+    serviceSpec:
+      grpc: {}
 {{- end }}

@@ -21,14 +21,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/test/services"
 
-	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac"
+	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 
 	"github.com/fgrosse/zaptest"
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -132,15 +132,13 @@ var _ = Describe("JWT + RBAC", func() {
 				Name:      "jwks-server",
 				Namespace: "default",
 			},
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UseHttp2: true,
-				UpstreamType: &gloov1.UpstreamSpec_Static{
-					Static: &gloov1static.UpstreamSpec{
-						Hosts: []*gloov1static.Host{{
-							Addr: envoyInstance.GlooAddr,
-							Port: jwksPort,
-						}},
-					},
+			UseHttp2: true,
+			UpstreamType: &gloov1.Upstream_Static{
+				Static: &gloov1static.UpstreamSpec{
+					Hosts: []*gloov1static.Host{{
+						Addr: envoyInstance.GlooAddr,
+						Port: jwksPort,
+					}},
 				},
 			},
 		}
@@ -534,13 +532,13 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 	vhost := &gloov1.VirtualHost{
 		Name:    "virt1",
 		Domains: []string{"*"},
-		VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+		Options: &gloov1.VirtualHostOptions{
 			Rbac: rbacCfg,
 			Jwt:  jwtCfg,
 		},
 		Routes: []*gloov1.Route{
 			{
-				RoutePlugins: &gloov1.RoutePlugins{
+				Options: &gloov1.RouteOptions{
 					Jwt:  getDisabledJwt(),
 					Rbac: getDisabledRbac(),
 				},
@@ -561,7 +559,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
-				RoutePlugins: &gloov1.RoutePlugins{
+				Options: &gloov1.RouteOptions{
 					// Disable JWT and not RBAC, so that no one can get here
 					Jwt: getDisabledJwt(),
 				},
@@ -582,7 +580,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
-				RoutePlugins: &gloov1.RoutePlugins{
+				Options: &gloov1.RouteOptions{
 					Transformations: &transformation.RouteTransformations{
 						RequestTransformation: &transformation.Transformation{
 							TransformationType: &transformation.Transformation_TransformationTemplate{
@@ -617,7 +615,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
-				RoutePlugins: &gloov1.RoutePlugins{
+				Options: &gloov1.RouteOptions{
 					// Disable RBAC and not JWT, for authn only tests
 					Rbac: getDisabledRbac(),
 				},

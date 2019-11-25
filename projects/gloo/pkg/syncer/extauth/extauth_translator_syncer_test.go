@@ -11,9 +11,8 @@ import (
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	. "github.com/solo-io/solo-projects/test/extauth/helpers"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -36,8 +35,8 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Namespace: "gloo-system",
 			},
 
-			Kind: &gloov1.Secret_Extension{
-				Extension: oidcSecret(),
+			Kind: &gloov1.Secret_Oauth{
+				Oauth: oidcSecret(),
 			},
 		}
 		apiSnapshot = &gloov1.ApiSnapshot{
@@ -125,15 +124,9 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 
 })
 
-func oidcSecret() *gloov1.Extension {
-	input := extauth.OauthSecret{
+func oidcSecret() *extauth.OauthSecret {
+	return &extauth.OauthSecret{
 		ClientSecret: "123",
-	}
-	secretStruct, err := envoyutil.MessageToStruct(&input)
-	Expect(err).NotTo(HaveOccurred())
-
-	return &gloov1.Extension{
-		Config: secretStruct,
 	}
 }
 
@@ -148,17 +141,17 @@ func getProxy(configFormat ConfigFormatType, authConfigRef skcore.ResourceRef) *
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{
 					VirtualHosts: []*gloov1.VirtualHost{{
-						Name:               "gloo-system.default",
-						VirtualHostPlugins: nil,
+						Name:    "gloo-system.default",
+						Options: nil,
 					}},
 				},
 			},
 		}},
 	}
 
-	var plugins *gloov1.VirtualHostPlugins
+	var plugins *gloov1.VirtualHostOptions
 	if configFormat == StronglyTyped {
-		plugins = &gloov1.VirtualHostPlugins{
+		plugins = &gloov1.VirtualHostOptions{
 			Extauth: &extauth.ExtAuthExtension{
 				Spec: &extauth.ExtAuthExtension_ConfigRef{
 					ConfigRef: &authConfigRef,
@@ -168,7 +161,7 @@ func getProxy(configFormat ConfigFormatType, authConfigRef skcore.ResourceRef) *
 
 	}
 
-	proxy.Listeners[0].GetHttpListener().VirtualHosts[0].VirtualHostPlugins = plugins
+	proxy.Listeners[0].GetHttpListener().VirtualHosts[0].Options = plugins
 
 	return proxy
 }

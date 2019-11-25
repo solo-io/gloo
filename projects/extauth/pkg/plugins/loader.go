@@ -10,7 +10,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/ext-auth-plugins/api"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/protoutils"

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type"
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/dlp"
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/go-utils/testutils/helper"
@@ -124,7 +124,7 @@ var _ = Describe("dlp tests", func() {
 				},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				Dlp: dlpVhost,
 			}
 

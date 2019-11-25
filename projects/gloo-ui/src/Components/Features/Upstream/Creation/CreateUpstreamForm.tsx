@@ -23,6 +23,8 @@ import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
 import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { CreateUpstreamRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -156,41 +158,81 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
   async function handleCreateUpstream(values: typeof initialValues) {
     const { name, namespace } = values;
     const ref = { name, namespace };
+
+    let initialUpstream = new CreateUpstreamRequest().toObject()?.upstreamInput;
+    let initialUpstreamSpec = new Upstream().toObject();
+    let initialUpstreamInput = {
+      ...initialUpstream,
+      metadata: {
+        ...initialUpstream?.metadata!,
+        name: values.name,
+        namespace: values.namespace
+      }
+    };
     if (values.type === UPSTREAM_SPEC_TYPES.AWS) {
       const { awsRegion: region, awsSecretRef: secretRef } = values;
-
-      const aws = {
-        region,
-        secretRef,
-        lambdaFunctionsList: []
+      const aws: Upstream.AsObject = {
+        ...initialUpstreamSpec,
+        aws: {
+          region,
+          secretRef,
+          lambdaFunctionsList: []
+        }
       };
 
-      dispatch(createUpstream({ input: { ref, aws } }));
+      dispatch(
+        createUpstream({
+          upstreamInput: {
+            ...initialUpstreamInput,
+            ...aws
+          }
+        })
+      );
     } else if (values.type === UPSTREAM_SPEC_TYPES.AZURE) {
       const {
         azureFunctionAppName: functionAppName,
         azureSecretRef: secretRef
       } = values;
-      const azure = {
-        ref,
-        functionAppName,
-        secretRef,
-        functionsList: []
+      const azure: Upstream.AsObject = {
+        ...initialUpstreamSpec,
+        azure: {
+          functionAppName,
+          secretRef,
+          functionsList: []
+        }
       };
-      dispatch(createUpstream({ input: { ref, azure } }));
+
+      dispatch(
+        createUpstream({
+          upstreamInput: {
+            ...initialUpstreamInput,
+            ...azure
+          }
+        })
+      );
     } else if (values.type === UPSTREAM_SPEC_TYPES.KUBE) {
       const {
         kubeServiceName: serviceName,
         kubeServiceNamespace: serviceNamespace,
         kubeServicePort: servicePort
       } = values;
-      const kube = {
-        serviceName,
-        serviceNamespace,
-        servicePort,
-        selectorMap: []
+      const kube: Upstream.AsObject = {
+        ...initialUpstreamSpec,
+        kube: {
+          serviceName,
+          serviceNamespace,
+          servicePort,
+          selectorMap: []
+        }
       };
-      dispatch(createUpstream({ input: { ref, kube } }));
+      dispatch(
+        createUpstream({
+          upstreamInput: {
+            ...initialUpstreamInput,
+            ...kube
+          }
+        })
+      );
     } else if (values.type === UPSTREAM_SPEC_TYPES.STATIC) {
       const { staticUseTls: useTls } = values;
       let hostsList = values.staticHostList.map(h => {
@@ -199,11 +241,22 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
           port: +h.value
         };
       });
-      const pb_static = {
-        useTls,
-        hostsList
+      const pb_static: Upstream.AsObject = {
+        ...initialUpstreamSpec,
+
+        pb_static: {
+          useTls,
+          hostsList
+        }
       };
-      dispatch(createUpstream({ input: { ref, pb_static } }));
+      dispatch(
+        createUpstream({
+          upstreamInput: {
+            ...initialUpstreamInput,
+            ...pb_static
+          }
+        })
+      );
     } else if (values.type === UPSTREAM_SPEC_TYPES.CONSUL) {
       const {
         consulConnectEnabled,
@@ -211,13 +264,23 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
         consulServiceName,
         consulServiceTagsList
       } = values;
-      let consul = {
-        connectEnabled: consulConnectEnabled,
-        dataCentersList: consulDataCentersList,
-        serviceName: consulServiceName,
-        serviceTagsList: consulServiceTagsList
+      let consul: Upstream.AsObject = {
+        ...initialUpstreamSpec,
+        consul: {
+          connectEnabled: consulConnectEnabled,
+          dataCentersList: consulDataCentersList,
+          serviceName: consulServiceName,
+          serviceTagsList: consulServiceTagsList
+        }
       };
-      dispatch(createUpstream({ input: { ref, consul } }));
+      dispatch(
+        createUpstream({
+          upstreamInput: {
+            ...initialUpstreamInput,
+            ...consul
+          }
+        })
+      );
     }
 
     props.toggleModal(s => !s);

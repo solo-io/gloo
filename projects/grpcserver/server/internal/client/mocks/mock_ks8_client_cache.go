@@ -9,7 +9,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	v10 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
@@ -51,10 +50,10 @@ func (mr *MockClientCacheMockRecorder) GetArtifactClient() *gomock.Call {
 }
 
 // GetGatewayClient mocks base method
-func (m *MockClientCache) GetGatewayClient() v2.GatewayClient {
+func (m *MockClientCache) GetGatewayClient() v1.GatewayClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGatewayClient")
-	ret0, _ := ret[0].(v2.GatewayClient)
+	ret0, _ := ret[0].(v1.GatewayClient)
 	return ret0
 }
 
@@ -163,7 +162,7 @@ func (mr *MockClientCacheMockRecorder) GetVirtualServiceClient() *gomock.Call {
 }
 
 // SetCacheState mocks base method
-func (m *MockClientCache) SetCacheState(arg0 v1.VirtualServiceClient, arg1 v2.GatewayClient, arg2 v10.UpstreamClient, arg3 v10.SettingsClient, arg4 v10.SecretClient, arg5 v10.ArtifactClient, arg6 v10.ProxyClient, arg7 v10.UpstreamGroupClient, arg8 v1.RouteTableClient) {
+func (m *MockClientCache) SetCacheState(arg0 v1.VirtualServiceClient, arg1 v1.GatewayClient, arg2 v10.UpstreamClient, arg3 v10.SettingsClient, arg4 v10.SecretClient, arg5 v10.ArtifactClient, arg6 v10.ProxyClient, arg7 v10.UpstreamGroupClient, arg8 v1.RouteTableClient) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetCacheState", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }

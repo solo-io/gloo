@@ -2,7 +2,7 @@
 // file: github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer.proto
 
 import * as jspb from "google-protobuf";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/lbhash/lbhash_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/lbhash/lbhash_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";

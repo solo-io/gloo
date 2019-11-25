@@ -1,16 +1,22 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
-interface Props {
-  children?: React.ReactNode;
-  noRedirect?: boolean;
-}
 
-export class ErrorBoundary extends React.Component<Props, any> {
-  state = {
-    hasError: false
-  };
+type State = {
+  hasError: boolean;
+  error: Error | null;
+};
+
+type ErrorBoundProps = {
+  fallback: React.ReactNode;
+};
+
+// Error boundaries currently have to be classes.
+export class ErrorBoundary extends React.Component<ErrorBoundProps, State> {
+  state = { hasError: false, error: null };
   static getDerivedStateFromError(error: Error) {
-    return { hasError: true };
+    return {
+      hasError: true,
+      error
+    };
   }
   componentDidCatch(error: Error, info: object) {
     console.error('Error Boundary caught an error', error, info);
@@ -18,22 +24,8 @@ export class ErrorBoundary extends React.Component<Props, any> {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div>
-          <div>Something went wrong.</div>
-
-          {!this.props.noRedirect && (
-            <div>
-              <Link to='/catalog' style={{ textDecoration: 'none' }}>
-                Click here
-              </Link>
-              to go back to the Catalog page
-            </div>
-          )}
-        </div>
-      );
+      return this.props.fallback;
     }
-
     return this.props.children;
   }
 }

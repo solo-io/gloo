@@ -21,16 +21,16 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
 
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
-	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/test/services"
 	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
@@ -173,15 +173,13 @@ var _ = Describe("Rate Limit", func() {
 							Name:      "extauth-server",
 							Namespace: "default",
 						},
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UseHttp2: true,
-							UpstreamType: &gloov1.UpstreamSpec_Static{
-								Static: &gloov1static.UpstreamSpec{
-									Hosts: []*gloov1static.Host{{
-										Addr: envoyInstance.LocalAddr(),
-										Port: extauthport,
-									}},
-								},
+						UseHttp2: true,
+						UpstreamType: &gloov1.Upstream_Static{
+							Static: &gloov1static.UpstreamSpec{
+								Hosts: []*gloov1static.Host{{
+									Addr: envoyInstance.LocalAddr(),
+									Port: extauthport,
+								}},
 							},
 						},
 					}
@@ -237,7 +235,7 @@ var _ = Describe("Rate Limit", func() {
 					}
 					proxy := rlb.getProxy()
 					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
-					vhost.VirtualHostPlugins.Extauth = GetBasicAuthExtension()
+					vhost.Options.Extauth = GetBasicAuthExtension()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -257,15 +255,13 @@ var _ = Describe("Rate Limit", func() {
 				Name:      "rl-server",
 				Namespace: "default",
 			},
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UseHttp2: true,
-				UpstreamType: &gloov1.UpstreamSpec_Static{
-					Static: &gloov1static.UpstreamSpec{
-						Hosts: []*gloov1static.Host{{
-							Addr: rlAddr,
-							Port: rlport,
-						}},
-					},
+			UseHttp2: true,
+			UpstreamType: &gloov1.Upstream_Static{
+				Static: &gloov1static.UpstreamSpec{
+					Hosts: []*gloov1static.Host{{
+						Addr: rlAddr,
+						Port: rlport,
+					}},
 				},
 			},
 		}
@@ -473,7 +469,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 							},
 						},
 					},
-					RoutePlugins: &gloov1.RoutePlugins{
+					Options: &gloov1.RouteOptions{
 						Extauth: &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
 					},
 				},
@@ -494,7 +490,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 		}
 
 		if enableRateLimits {
-			vhost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{
+			vhost.Options = &gloov1.VirtualHostOptions{
 				RatelimitBasic: b.ingressRateLimit,
 			}
 		}

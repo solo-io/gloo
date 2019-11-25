@@ -13,7 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
-var github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb.js');
+var github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb.js');
 goog.exportSymbol('proto.glooeeapi.solo.io.GatewayDetails', null, global);
@@ -71,7 +71,7 @@ proto.glooeeapi.solo.io.GatewayDetails.prototype.toObject = function(opt_include
  */
 proto.glooeeapi.solo.io.GatewayDetails.toObject = function(includeInstance, msg) {
   var f, obj = {
-    gateway: (f = msg.getGateway()) && github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.toObject(includeInstance, f),
+    gateway: (f = msg.getGateway()) && github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.toObject(includeInstance, f),
     raw: (f = msg.getRaw()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Raw.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$projects_projects_grpcserver_api_v1_types_pb.Status.toObject(includeInstance, f)
   };
@@ -111,8 +111,8 @@ proto.glooeeapi.solo.io.GatewayDetails.deserializeBinaryFromReader = function(ms
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.deserializeBinaryFromReader);
       msg.setGateway(value);
       break;
     case 2:
@@ -159,7 +159,7 @@ proto.glooeeapi.solo.io.GatewayDetails.serializeBinaryToWriter = function(messag
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.serializeBinaryToWriter
     );
   }
   f = message.getRaw();
@@ -182,16 +182,16 @@ proto.glooeeapi.solo.io.GatewayDetails.serializeBinaryToWriter = function(messag
 
 
 /**
- * optional gateway.solo.io.v2.Gateway gateway = 1;
- * @return {?proto.gateway.solo.io.v2.Gateway}
+ * optional gateway.solo.io.Gateway gateway = 1;
+ * @return {?proto.gateway.solo.io.Gateway}
  */
 proto.glooeeapi.solo.io.GatewayDetails.prototype.getGateway = function() {
-  return /** @type{?proto.gateway.solo.io.v2.Gateway} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway, 1));
+  return /** @type{?proto.gateway.solo.io.Gateway} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway, 1));
 };
 
 
-/** @param {?proto.gateway.solo.io.v2.Gateway|undefined} value */
+/** @param {?proto.gateway.solo.io.Gateway|undefined} value */
 proto.glooeeapi.solo.io.GatewayDetails.prototype.setGateway = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -967,7 +967,7 @@ proto.glooeeapi.solo.io.UpdateGatewayRequest.prototype.toObject = function(opt_i
  */
 proto.glooeeapi.solo.io.UpdateGatewayRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    gateway: (f = msg.getGateway()) && github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.toObject(includeInstance, f)
+    gateway: (f = msg.getGateway()) && github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1005,8 +1005,8 @@ proto.glooeeapi.solo.io.UpdateGatewayRequest.deserializeBinaryFromReader = funct
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.deserializeBinaryFromReader);
       msg.setGateway(value);
       break;
     default:
@@ -1043,23 +1043,23 @@ proto.glooeeapi.solo.io.UpdateGatewayRequest.serializeBinaryToWriter = function(
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional gateway.solo.io.v2.Gateway gateway = 1;
- * @return {?proto.gateway.solo.io.v2.Gateway}
+ * optional gateway.solo.io.Gateway gateway = 1;
+ * @return {?proto.gateway.solo.io.Gateway}
  */
 proto.glooeeapi.solo.io.UpdateGatewayRequest.prototype.getGateway = function() {
-  return /** @type{?proto.gateway.solo.io.v2.Gateway} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v2_gateway_pb.Gateway, 1));
+  return /** @type{?proto.gateway.solo.io.Gateway} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_gateway_pb.Gateway, 1));
 };
 
 
-/** @param {?proto.gateway.solo.io.v2.Gateway|undefined} value */
+/** @param {?proto.gateway.solo.io.Gateway|undefined} value */
 proto.glooeeapi.solo.io.UpdateGatewayRequest.prototype.setGateway = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };

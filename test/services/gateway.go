@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
@@ -156,14 +157,14 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 
 }
 
-func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) gatewaysyncer.Opts {
+func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) translator.Opts {
 	ctx = contextutils.WithLogger(ctx, "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	f := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 
-	return gatewaysyncer.Opts{
+	return translator.Opts{
 		WriteNamespace:  ns,
 		WatchNamespaces: []string{"default", ns},
 		Gateways:        f,

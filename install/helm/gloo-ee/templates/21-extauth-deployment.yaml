@@ -11,8 +11,7 @@ metadata:
   labels:
     app: gloo
     gloo: {{ $extAuth.deployment.name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   name: {{ $extAuth.deployment.name }}
   namespace: {{ .Release.Namespace }}
 spec:
@@ -20,14 +19,10 @@ spec:
   selector:
     matchLabels:
       gloo: {{ $extAuth.deployment.name }}
-      {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-      installationId: {{ include "gloo.installationId" $installationContext }}
   template:
     metadata:
       labels:
         gloo: {{ $extAuth.deployment.name }}
-        {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-        installationId: {{ include "gloo.installationId" $installationContext }}
       {{- if $extAuth.deployment.stats }}
       annotations:
         prometheus.io/path: /metrics

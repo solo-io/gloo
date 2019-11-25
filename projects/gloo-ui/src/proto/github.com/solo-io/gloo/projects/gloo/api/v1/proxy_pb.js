@@ -21,10 +21,9 @@ var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../gi
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_subset_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/subset_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.ConsulServiceDestination', null, global);
-goog.exportSymbol('proto.gloo.solo.io.CorsPolicy', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Destination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.DirectResponseAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HttpListener', null, global);
@@ -385,7 +384,7 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     sslConfigurationsList: jspb.Message.toObjectList(msg.getSslConfigurationsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.toObject, includeInstance),
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f),
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
@@ -456,9 +455,9 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       msg.setUseProxyProto(value);
       break;
     case 8:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.deserializeBinaryFromReader);
-      msg.setPlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     case 9:
       var value = new google_protobuf_struct_pb.Struct;
@@ -547,12 +546,12 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
-  f = message.getPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       8,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -733,23 +732,23 @@ proto.gloo.solo.io.Listener.prototype.hasUseProxyProto = function() {
 
 
 /**
- * optional ListenerPlugins plugins = 8;
- * @return {?proto.gloo.solo.io.ListenerPlugins}
+ * optional ListenerOptions options = 8;
+ * @return {?proto.gloo.solo.io.ListenerOptions}
  */
-proto.gloo.solo.io.Listener.prototype.getPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.ListenerPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins, 8));
+proto.gloo.solo.io.Listener.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.ListenerOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions, 8));
 };
 
 
-/** @param {?proto.gloo.solo.io.ListenerPlugins|undefined} value */
-proto.gloo.solo.io.Listener.prototype.setPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.ListenerOptions|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 8, value);
 };
 
 
-proto.gloo.solo.io.Listener.prototype.clearPlugins = function() {
-  this.setPlugins(undefined);
+proto.gloo.solo.io.Listener.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -757,7 +756,7 @@ proto.gloo.solo.io.Listener.prototype.clearPlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Listener.prototype.hasPlugins = function() {
+proto.gloo.solo.io.Listener.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 8) != null;
 };
 
@@ -848,7 +847,7 @@ proto.gloo.solo.io.TcpListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     tcpHostsList: jspb.Message.toObjectList(msg.getTcpHostsList(),
     proto.gloo.solo.io.TcpHost.toObject, includeInstance),
-    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.toObject(includeInstance, f),
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions.toObject(includeInstance, f),
     statPrefix: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
@@ -892,9 +891,9 @@ proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader = function(msg, reade
       msg.addTcpHosts(value);
       break;
     case 8:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.deserializeBinaryFromReader);
-      msg.setPlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -937,12 +936,12 @@ proto.gloo.solo.io.TcpListener.serializeBinaryToWriter = function(message, write
       proto.gloo.solo.io.TcpHost.serializeBinaryToWriter
     );
   }
-  f = message.getPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       8,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions.serializeBinaryToWriter
     );
   }
   f = message.getStatPrefix();
@@ -987,23 +986,23 @@ proto.gloo.solo.io.TcpListener.prototype.clearTcpHostsList = function() {
 
 
 /**
- * optional TcpListenerPlugins plugins = 8;
- * @return {?proto.gloo.solo.io.TcpListenerPlugins}
+ * optional TcpListenerOptions options = 8;
+ * @return {?proto.gloo.solo.io.TcpListenerOptions}
  */
-proto.gloo.solo.io.TcpListener.prototype.getPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.TcpListenerPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins, 8));
+proto.gloo.solo.io.TcpListener.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.TcpListenerOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions, 8));
 };
 
 
-/** @param {?proto.gloo.solo.io.TcpListenerPlugins|undefined} value */
-proto.gloo.solo.io.TcpListener.prototype.setPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.TcpListenerOptions|undefined} value */
+proto.gloo.solo.io.TcpListener.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 8, value);
 };
 
 
-proto.gloo.solo.io.TcpListener.prototype.clearPlugins = function() {
-  this.setPlugins(undefined);
+proto.gloo.solo.io.TcpListener.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -1011,7 +1010,7 @@ proto.gloo.solo.io.TcpListener.prototype.clearPlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.TcpListener.prototype.hasPlugins = function() {
+proto.gloo.solo.io.TcpListener.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 8) != null;
 };
 
@@ -1317,7 +1316,7 @@ proto.gloo.solo.io.HttpListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     virtualHostsList: jspb.Message.toObjectList(msg.getVirtualHostsList(),
     proto.gloo.solo.io.VirtualHost.toObject, includeInstance),
-    listenerPlugins: (f = msg.getListenerPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.toObject(includeInstance, f),
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.toObject(includeInstance, f),
     statPrefix: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
@@ -1361,9 +1360,9 @@ proto.gloo.solo.io.HttpListener.deserializeBinaryFromReader = function(msg, read
       msg.addVirtualHosts(value);
       break;
     case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.deserializeBinaryFromReader);
-      msg.setListenerPlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -1406,12 +1405,12 @@ proto.gloo.solo.io.HttpListener.serializeBinaryToWriter = function(message, writ
       proto.gloo.solo.io.VirtualHost.serializeBinaryToWriter
     );
   }
-  f = message.getListenerPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.serializeBinaryToWriter
     );
   }
   f = message.getStatPrefix();
@@ -1456,23 +1455,23 @@ proto.gloo.solo.io.HttpListener.prototype.clearVirtualHostsList = function() {
 
 
 /**
- * optional HttpListenerPlugins listener_plugins = 2;
- * @return {?proto.gloo.solo.io.HttpListenerPlugins}
+ * optional HttpListenerOptions options = 2;
+ * @return {?proto.gloo.solo.io.HttpListenerOptions}
  */
-proto.gloo.solo.io.HttpListener.prototype.getListenerPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.HttpListenerPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins, 2));
+proto.gloo.solo.io.HttpListener.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.HttpListenerOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions, 2));
 };
 
 
-/** @param {?proto.gloo.solo.io.HttpListenerPlugins|undefined} value */
-proto.gloo.solo.io.HttpListener.prototype.setListenerPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.HttpListenerOptions|undefined} value */
+proto.gloo.solo.io.HttpListener.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.gloo.solo.io.HttpListener.prototype.clearListenerPlugins = function() {
-  this.setListenerPlugins(undefined);
+proto.gloo.solo.io.HttpListener.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -1480,7 +1479,7 @@ proto.gloo.solo.io.HttpListener.prototype.clearListenerPlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.HttpListener.prototype.hasListenerPlugins = function() {
+proto.gloo.solo.io.HttpListener.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
@@ -1558,8 +1557,7 @@ proto.gloo.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
     domainsList: jspb.Message.getRepeatedField(msg, 2),
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gloo.solo.io.Route.toObject, includeInstance),
-    virtualHostPlugins: (f = msg.getVirtualHostPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.toObject(includeInstance, f),
-    corsPolicy: (f = msg.getCorsPolicy()) && proto.gloo.solo.io.CorsPolicy.toObject(includeInstance, f),
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
@@ -1611,14 +1609,9 @@ proto.gloo.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, reade
       msg.addRoutes(value);
       break;
     case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.deserializeBinaryFromReader);
-      msg.setVirtualHostPlugins(value);
-      break;
-    case 5:
-      var value = new proto.gloo.solo.io.CorsPolicy;
-      reader.readMessage(value,proto.gloo.solo.io.CorsPolicy.deserializeBinaryFromReader);
-      msg.setCorsPolicy(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     case 6:
       var value = new google_protobuf_struct_pb.Struct;
@@ -1676,20 +1669,12 @@ proto.gloo.solo.io.VirtualHost.serializeBinaryToWriter = function(message, write
       proto.gloo.solo.io.Route.serializeBinaryToWriter
     );
   }
-  f = message.getVirtualHostPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.serializeBinaryToWriter
-    );
-  }
-  f = message.getCorsPolicy();
-  if (f != null) {
-    writer.writeMessage(
-      5,
-      f,
-      proto.gloo.solo.io.CorsPolicy.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -1779,23 +1764,23 @@ proto.gloo.solo.io.VirtualHost.prototype.clearRoutesList = function() {
 
 
 /**
- * optional VirtualHostPlugins virtual_host_plugins = 4;
- * @return {?proto.gloo.solo.io.VirtualHostPlugins}
+ * optional VirtualHostOptions options = 4;
+ * @return {?proto.gloo.solo.io.VirtualHostOptions}
  */
-proto.gloo.solo.io.VirtualHost.prototype.getVirtualHostPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.VirtualHostPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins, 4));
+proto.gloo.solo.io.VirtualHost.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.VirtualHostOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions, 4));
 };
 
 
-/** @param {?proto.gloo.solo.io.VirtualHostPlugins|undefined} value */
-proto.gloo.solo.io.VirtualHost.prototype.setVirtualHostPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.VirtualHostOptions|undefined} value */
+proto.gloo.solo.io.VirtualHost.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.gloo.solo.io.VirtualHost.prototype.clearVirtualHostPlugins = function() {
-  this.setVirtualHostPlugins(undefined);
+proto.gloo.solo.io.VirtualHost.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -1803,38 +1788,8 @@ proto.gloo.solo.io.VirtualHost.prototype.clearVirtualHostPlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.VirtualHost.prototype.hasVirtualHostPlugins = function() {
+proto.gloo.solo.io.VirtualHost.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional CorsPolicy cors_policy = 5;
- * @return {?proto.gloo.solo.io.CorsPolicy}
- */
-proto.gloo.solo.io.VirtualHost.prototype.getCorsPolicy = function() {
-  return /** @type{?proto.gloo.solo.io.CorsPolicy} */ (
-    jspb.Message.getWrapperField(this, proto.gloo.solo.io.CorsPolicy, 5));
-};
-
-
-/** @param {?proto.gloo.solo.io.CorsPolicy|undefined} value */
-proto.gloo.solo.io.VirtualHost.prototype.setCorsPolicy = function(value) {
-  jspb.Message.setWrapperField(this, 5, value);
-};
-
-
-proto.gloo.solo.io.VirtualHost.prototype.clearCorsPolicy = function() {
-  this.setCorsPolicy(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.VirtualHost.prototype.hasCorsPolicy = function() {
-  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -1954,7 +1909,7 @@ proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
     routeAction: (f = msg.getRouteAction()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && proto.gloo.solo.io.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && proto.gloo.solo.io.DirectResponseAction.toObject(includeInstance, f),
-    routePlugins: (f = msg.getRoutePlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.toObject(includeInstance, f),
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
@@ -2013,9 +1968,9 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
       msg.setDirectResponseAction(value);
       break;
     case 5:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.deserializeBinaryFromReader);
-      msg.setRoutePlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     case 6:
       var value = new google_protobuf_struct_pb.Struct;
@@ -2083,12 +2038,12 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       proto.gloo.solo.io.DirectResponseAction.serializeBinaryToWriter
     );
   }
-  f = message.getRoutePlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       5,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -2224,23 +2179,23 @@ proto.gloo.solo.io.Route.prototype.hasDirectResponseAction = function() {
 
 
 /**
- * optional RoutePlugins route_plugins = 5;
- * @return {?proto.gloo.solo.io.RoutePlugins}
+ * optional RouteOptions options = 5;
+ * @return {?proto.gloo.solo.io.RouteOptions}
  */
-proto.gloo.solo.io.Route.prototype.getRoutePlugins = function() {
-  return /** @type{?proto.gloo.solo.io.RoutePlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins, 5));
+proto.gloo.solo.io.Route.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.RouteOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.RouteOptions, 5));
 };
 
 
-/** @param {?proto.gloo.solo.io.RoutePlugins|undefined} value */
-proto.gloo.solo.io.Route.prototype.setRoutePlugins = function(value) {
+/** @param {?proto.gloo.solo.io.RouteOptions|undefined} value */
+proto.gloo.solo.io.Route.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 5, value);
 };
 
 
-proto.gloo.solo.io.Route.prototype.clearRoutePlugins = function() {
-  this.setRoutePlugins(undefined);
+proto.gloo.solo.io.Route.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -2248,7 +2203,7 @@ proto.gloo.solo.io.Route.prototype.clearRoutePlugins = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Route.prototype.hasRoutePlugins = function() {
+proto.gloo.solo.io.Route.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 5) != null;
 };
 
@@ -2634,7 +2589,7 @@ proto.gloo.solo.io.Destination.toObject = function(includeInstance, msg) {
     upstream: (f = msg.getUpstream()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     kube: (f = msg.getKube()) && proto.gloo.solo.io.KubernetesServiceDestination.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.ConsulServiceDestination.toObject(includeInstance, f),
-    destinationSpec: (f = msg.getDestinationSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.toObject(includeInstance, f),
+    destinationSpec: (f = msg.getDestinationSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec.toObject(includeInstance, f),
     subset: (f = msg.getSubset()) && github_com_solo$io_gloo_projects_gloo_api_v1_subset_pb.Subset.toObject(includeInstance, f)
   };
 
@@ -2688,8 +2643,8 @@ proto.gloo.solo.io.Destination.deserializeBinaryFromReader = function(msg, reade
       msg.setConsul(value);
       break;
     case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec.deserializeBinaryFromReader);
       msg.setDestinationSpec(value);
       break;
     case 3:
@@ -2755,7 +2710,7 @@ proto.gloo.solo.io.Destination.serializeBinaryToWriter = function(message, write
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec.serializeBinaryToWriter
     );
   }
   f = message.getSubset();
@@ -2865,7 +2820,7 @@ proto.gloo.solo.io.Destination.prototype.hasConsul = function() {
  */
 proto.gloo.solo.io.Destination.prototype.getDestinationSpec = function() {
   return /** @type{?proto.gloo.solo.io.DestinationSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec, 2));
 };
 
 
@@ -3809,7 +3764,7 @@ proto.gloo.solo.io.WeightedDestination.toObject = function(includeInstance, msg)
   var f, obj = {
     destination: (f = msg.getDestination()) && proto.gloo.solo.io.Destination.toObject(includeInstance, f),
     weight: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    weightedDestinationPlugins: (f = msg.getWeightedDestinationPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3856,9 +3811,9 @@ proto.gloo.solo.io.WeightedDestination.deserializeBinaryFromReader = function(ms
       msg.setWeight(value);
       break;
     case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.deserializeBinaryFromReader);
-      msg.setWeightedDestinationPlugins(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions.deserializeBinaryFromReader);
+      msg.setOptions(value);
       break;
     default:
       reader.skipField();
@@ -3904,12 +3859,12 @@ proto.gloo.solo.io.WeightedDestination.serializeBinaryToWriter = function(messag
       f
     );
   }
-  f = message.getWeightedDestinationPlugins();
+  f = message.getOptions();
   if (f != null) {
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions.serializeBinaryToWriter
     );
   }
 };
@@ -3961,23 +3916,23 @@ proto.gloo.solo.io.WeightedDestination.prototype.setWeight = function(value) {
 
 
 /**
- * optional WeightedDestinationPlugins weighted_destination_plugins = 3;
- * @return {?proto.gloo.solo.io.WeightedDestinationPlugins}
+ * optional WeightedDestinationOptions options = 3;
+ * @return {?proto.gloo.solo.io.WeightedDestinationOptions}
  */
-proto.gloo.solo.io.WeightedDestination.prototype.getWeightedDestinationPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.WeightedDestinationPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins, 3));
+proto.gloo.solo.io.WeightedDestination.prototype.getOptions = function() {
+  return /** @type{?proto.gloo.solo.io.WeightedDestinationOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions, 3));
 };
 
 
-/** @param {?proto.gloo.solo.io.WeightedDestinationPlugins|undefined} value */
-proto.gloo.solo.io.WeightedDestination.prototype.setWeightedDestinationPlugins = function(value) {
+/** @param {?proto.gloo.solo.io.WeightedDestinationOptions|undefined} value */
+proto.gloo.solo.io.WeightedDestination.prototype.setOptions = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.gloo.solo.io.WeightedDestination.prototype.clearWeightedDestinationPlugins = function() {
-  this.setWeightedDestinationPlugins(undefined);
+proto.gloo.solo.io.WeightedDestination.prototype.clearOptions = function() {
+  this.setOptions(undefined);
 };
 
 
@@ -3985,7 +3940,7 @@ proto.gloo.solo.io.WeightedDestination.prototype.clearWeightedDestinationPlugins
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.WeightedDestination.prototype.hasWeightedDestinationPlugins = function() {
+proto.gloo.solo.io.WeightedDestination.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -4502,389 +4457,6 @@ proto.gloo.solo.io.DirectResponseAction.prototype.getBody = function() {
 /** @param {string} value */
 proto.gloo.solo.io.DirectResponseAction.prototype.setBody = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.gloo.solo.io.CorsPolicy = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.CorsPolicy.repeatedFields_, null);
-};
-goog.inherits(proto.gloo.solo.io.CorsPolicy, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.gloo.solo.io.CorsPolicy.displayName = 'proto.gloo.solo.io.CorsPolicy';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.gloo.solo.io.CorsPolicy.repeatedFields_ = [1,2,3,4,5];
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.toObject = function(opt_includeInstance) {
-  return proto.gloo.solo.io.CorsPolicy.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.gloo.solo.io.CorsPolicy} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.gloo.solo.io.CorsPolicy.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    allowOriginList: jspb.Message.getRepeatedField(msg, 1),
-    allowOriginRegexList: jspb.Message.getRepeatedField(msg, 2),
-    allowMethodsList: jspb.Message.getRepeatedField(msg, 3),
-    allowHeadersList: jspb.Message.getRepeatedField(msg, 4),
-    exposeHeadersList: jspb.Message.getRepeatedField(msg, 5),
-    maxAge: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    allowCredentials: jspb.Message.getFieldWithDefault(msg, 7, false)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.gloo.solo.io.CorsPolicy}
- */
-proto.gloo.solo.io.CorsPolicy.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.gloo.solo.io.CorsPolicy;
-  return proto.gloo.solo.io.CorsPolicy.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.gloo.solo.io.CorsPolicy} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.gloo.solo.io.CorsPolicy}
- */
-proto.gloo.solo.io.CorsPolicy.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAllowOrigin(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAllowOriginRegex(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAllowMethods(value);
-      break;
-    case 4:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAllowHeaders(value);
-      break;
-    case 5:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addExposeHeaders(value);
-      break;
-    case 6:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setMaxAge(value);
-      break;
-    case 7:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setAllowCredentials(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.gloo.solo.io.CorsPolicy.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.gloo.solo.io.CorsPolicy} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.gloo.solo.io.CorsPolicy.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getAllowOriginList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      1,
-      f
-    );
-  }
-  f = message.getAllowOriginRegexList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      2,
-      f
-    );
-  }
-  f = message.getAllowMethodsList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      3,
-      f
-    );
-  }
-  f = message.getAllowHeadersList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      4,
-      f
-    );
-  }
-  f = message.getExposeHeadersList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      5,
-      f
-    );
-  }
-  f = message.getMaxAge();
-  if (f.length > 0) {
-    writer.writeString(
-      6,
-      f
-    );
-  }
-  f = message.getAllowCredentials();
-  if (f) {
-    writer.writeBool(
-      7,
-      f
-    );
-  }
-};
-
-
-/**
- * repeated string allow_origin = 1;
- * @return {!Array<string>}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getAllowOriginList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
-};
-
-
-/** @param {!Array<string>} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setAllowOriginList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.gloo.solo.io.CorsPolicy.prototype.addAllowOrigin = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
-};
-
-
-proto.gloo.solo.io.CorsPolicy.prototype.clearAllowOriginList = function() {
-  this.setAllowOriginList([]);
-};
-
-
-/**
- * repeated string allow_origin_regex = 2;
- * @return {!Array<string>}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getAllowOriginRegexList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
-};
-
-
-/** @param {!Array<string>} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setAllowOriginRegexList = function(value) {
-  jspb.Message.setField(this, 2, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.gloo.solo.io.CorsPolicy.prototype.addAllowOriginRegex = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
-};
-
-
-proto.gloo.solo.io.CorsPolicy.prototype.clearAllowOriginRegexList = function() {
-  this.setAllowOriginRegexList([]);
-};
-
-
-/**
- * repeated string allow_methods = 3;
- * @return {!Array<string>}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getAllowMethodsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
-};
-
-
-/** @param {!Array<string>} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setAllowMethodsList = function(value) {
-  jspb.Message.setField(this, 3, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.gloo.solo.io.CorsPolicy.prototype.addAllowMethods = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
-};
-
-
-proto.gloo.solo.io.CorsPolicy.prototype.clearAllowMethodsList = function() {
-  this.setAllowMethodsList([]);
-};
-
-
-/**
- * repeated string allow_headers = 4;
- * @return {!Array<string>}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getAllowHeadersList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
-};
-
-
-/** @param {!Array<string>} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setAllowHeadersList = function(value) {
-  jspb.Message.setField(this, 4, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.gloo.solo.io.CorsPolicy.prototype.addAllowHeaders = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
-};
-
-
-proto.gloo.solo.io.CorsPolicy.prototype.clearAllowHeadersList = function() {
-  this.setAllowHeadersList([]);
-};
-
-
-/**
- * repeated string expose_headers = 5;
- * @return {!Array<string>}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getExposeHeadersList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
-};
-
-
-/** @param {!Array<string>} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setExposeHeadersList = function(value) {
-  jspb.Message.setField(this, 5, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.gloo.solo.io.CorsPolicy.prototype.addExposeHeaders = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
-};
-
-
-proto.gloo.solo.io.CorsPolicy.prototype.clearExposeHeadersList = function() {
-  this.setExposeHeadersList([]);
-};
-
-
-/**
- * optional string max_age = 6;
- * @return {string}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getMaxAge = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
-};
-
-
-/** @param {string} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setMaxAge = function(value) {
-  jspb.Message.setProto3StringField(this, 6, value);
-};
-
-
-/**
- * optional bool allow_credentials = 7;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.gloo.solo.io.CorsPolicy.prototype.getAllowCredentials = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
-};
-
-
-/** @param {boolean} value */
-proto.gloo.solo.io.CorsPolicy.prototype.setAllowCredentials = function(value) {
-  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

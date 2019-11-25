@@ -15,8 +15,13 @@ import {
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
-
-type Resource = VirtualService.AsObject | Upstream.AsObject | number;
+import RT from 'assets/route-table-icon.png';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+type Resource =
+  | VirtualService.AsObject
+  | Upstream.AsObject
+  | RouteTable.AsObject
+  | number;
 
 const StyledGRPCLogo = styled.img`
   width: 20px;
@@ -72,8 +77,52 @@ export function getIcon(type: string) {
       return <StaticLogo />;
     case 'REST':
       return <RESTLogo />;
+    case 'Route Table':
+      return <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
     default:
       return <Gloo />;
+  }
+}
+
+export function getIconFromSpec(spec: Upstream.AsObject) {
+  if (spec?.kube !== undefined)
+    return (
+      <KubeLogo
+        style={{
+          width: '25px',
+          paddingRight: '5px'
+        }}
+      />
+    );
+  if (spec?.aws !== undefined)
+    return (
+      <AWSLogo
+        style={{
+          width: '25px',
+          paddingRight: '5px'
+        }}
+      />
+    );
+  if (spec?.azure !== undefined)
+    return (
+      <AzureLogo
+        style={{
+          width: '25px',
+          paddingRight: '5px'
+        }}
+      />
+    );
+  if (spec?.pb_static !== undefined)
+    return (
+      <StaticLogo
+        style={{
+          width: '25px',
+          paddingRight: '5px'
+        }}
+      />
+    );
+  else {
+    return <Gloo />;
   }
 }
 

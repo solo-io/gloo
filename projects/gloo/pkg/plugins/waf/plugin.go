@@ -4,11 +4,9 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-	"github.com/solo-io/go-utils/errors"
 )
 
 const (
@@ -28,15 +26,6 @@ var (
 
 	// waf should happen before any code is run
 	filterStage = plugins.DuringStage(plugins.WafStage)
-)
-
-var (
-	ConvertingProtoError = func(err error, cfg string) error {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return errors.Wrapf(err, "Error converting proto to %s waf plugin", cfg)
-	}
 )
 
 func NewPlugin() *Plugin {
@@ -63,7 +52,7 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 
 // Process virtual host plugin
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	wafConfig := in.VirtualHostPlugins.GetWaf()
+	wafConfig := in.Options.GetWaf()
 	if wafConfig == nil {
 		// no config found, nothing to do here
 		return nil
@@ -89,7 +78,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 // Process route plugin
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	wafConfig := in.RoutePlugins.GetWaf()
+	wafConfig := in.GetOptions().GetWaf()
 	if wafConfig == nil {
 		// no config found, nothing to do here
 		return nil
@@ -116,22 +105,13 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	var filters []plugins.StagedHttpFilter
 	// If the list does not already have the listener than it is necessary to check for nil
 	if !p.listenerPresent(listener) {
-		if listener.GetListenerPlugins() == nil {
+		if listener.GetOptions() == nil {
 			return nil, nil
 		}
 	}
 
 	var settings waf.Settings
-	wafSettings := listener.ListenerPlugins.GetWaf()
-	// TODO(kdorosh) remove once we stop supporting opaque config
-	err := utils.UnmarshalExtension(listener.GetListenerPlugins(), ExtensionName, &settings)
-	if err != nil {
-		// important to check this because, on any other error this method should keep executing
-		if err != utils.NotFoundError {
-			return nil, ConvertingProtoError(err, "listener")
-		}
-	}
-
+	wafSettings := listener.GetOptions().GetWaf()
 	if wafSettings != nil {
 		settings = *wafSettings
 	}

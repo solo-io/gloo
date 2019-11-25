@@ -9,7 +9,7 @@ const testValues = {
 };
 
 describe('app', () => {
-  let page: Page;
+  let page: any;
   let browser: Browser;
 
   beforeAll(async () => {

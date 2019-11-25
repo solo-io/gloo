@@ -17,9 +17,9 @@ var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
@@ -168,11 +168,9 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     kubernetesArtifactSource: (f = msg.getKubernetesArtifactSource()) && proto.gloo.solo.io.Settings.KubernetesConfigmaps.toObject(includeInstance, f),
     directoryArtifactSource: (f = msg.getDirectoryArtifactSource()) && proto.gloo.solo.io.Settings.Directory.toObject(includeInstance, f),
     consulKvArtifactSource: (f = msg.getConsulKvArtifactSource()) && proto.gloo.solo.io.Settings.ConsulKv.toObject(includeInstance, f),
-    bindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
     refreshRate: (f = msg.getRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     devMode: jspb.Message.getFieldWithDefault(msg, 13, false),
     linkerd: jspb.Message.getFieldWithDefault(msg, 17, false),
-    circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     knative: (f = msg.getKnative()) && proto.gloo.solo.io.Settings.KnativeOptions.toObject(includeInstance, f),
     discovery: (f = msg.getDiscovery()) && proto.gloo.solo.io.Settings.DiscoveryOptions.toObject(includeInstance, f),
     gloo: (f = msg.getGloo()) && proto.gloo.solo.io.GlooOptions.toObject(includeInstance, f),
@@ -180,10 +178,10 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.Settings.ConsulConfiguration.toObject(includeInstance, f),
     kubernetes: (f = msg.getKubernetes()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
-    ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.toObject(includeInstance, f),
-    ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
-    rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.toObject(includeInstance, f),
-    extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.toObject(includeInstance, f),
+    ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.toObject(includeInstance, f),
+    ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
+    rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.toObject(includeInstance, f),
+    extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f)
   };
@@ -275,10 +273,6 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulKv.deserializeBinaryFromReader);
       msg.setConsulKvArtifactSource(value);
       break;
-    case 11:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setBindAddr(value);
-      break;
     case 12:
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
@@ -291,11 +285,6 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
     case 17:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setLinkerd(value);
-      break;
-    case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.deserializeBinaryFromReader);
-      msg.setCircuitBreakers(value);
       break;
     case 18:
       var value = new proto.gloo.solo.io.Settings.KnativeOptions;
@@ -333,23 +322,23 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       msg.setExtensions(value);
       break;
     case 26:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.deserializeBinaryFromReader);
       msg.setRatelimit(value);
       break;
     case 27:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
       msg.setRatelimitServer(value);
       break;
     case 28:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.deserializeBinaryFromReader);
       msg.setRbac(value);
       break;
     case 29:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.deserializeBinaryFromReader);
       msg.setExtauth(value);
       break;
     case 14:
@@ -477,13 +466,6 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       proto.gloo.solo.io.Settings.ConsulKv.serializeBinaryToWriter
     );
   }
-  f = message.getBindAddr();
-  if (f.length > 0) {
-    writer.writeString(
-      11,
-      f
-    );
-  }
   f = message.getRefreshRate();
   if (f != null) {
     writer.writeMessage(
@@ -504,14 +486,6 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
     writer.writeBool(
       17,
       f
-    );
-  }
-  f = message.getCircuitBreakers();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.serializeBinaryToWriter
     );
   }
   f = message.getKnative();
@@ -575,7 +549,7 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
     writer.writeMessage(
       26,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.serializeBinaryToWriter
     );
   }
   f = message.getRatelimitServer();
@@ -583,7 +557,7 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
     writer.writeMessage(
       27,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getRbac();
@@ -591,7 +565,7 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
     writer.writeMessage(
       28,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getExtauth();
@@ -599,7 +573,7 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
     writer.writeMessage(
       29,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -3271,21 +3245,6 @@ proto.gloo.solo.io.Settings.prototype.hasConsulKvArtifactSource = function() {
 
 
 /**
- * optional string bind_addr = 11;
- * @return {string}
- */
-proto.gloo.solo.io.Settings.prototype.getBindAddr = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
-};
-
-
-/** @param {string} value */
-proto.gloo.solo.io.Settings.prototype.setBindAddr = function(value) {
-  jspb.Message.setProto3StringField(this, 11, value);
-};
-
-
-/**
  * optional google.protobuf.Duration refresh_rate = 12;
  * @return {?proto.google.protobuf.Duration}
  */
@@ -3346,36 +3305,6 @@ proto.gloo.solo.io.Settings.prototype.getLinkerd = function() {
 /** @param {boolean} value */
 proto.gloo.solo.io.Settings.prototype.setLinkerd = function(value) {
   jspb.Message.setProto3BooleanField(this, 17, value);
-};
-
-
-/**
- * optional CircuitBreakerConfig circuit_breakers = 3;
- * @return {?proto.gloo.solo.io.CircuitBreakerConfig}
- */
-proto.gloo.solo.io.Settings.prototype.getCircuitBreakers = function() {
-  return /** @type{?proto.gloo.solo.io.CircuitBreakerConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig, 3));
-};
-
-
-/** @param {?proto.gloo.solo.io.CircuitBreakerConfig|undefined} value */
-proto.gloo.solo.io.Settings.prototype.setCircuitBreakers = function(value) {
-  jspb.Message.setWrapperField(this, 3, value);
-};
-
-
-proto.gloo.solo.io.Settings.prototype.clearCircuitBreakers = function() {
-  this.setCircuitBreakers(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.Settings.prototype.hasCircuitBreakers = function() {
-  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -3590,16 +3519,16 @@ proto.gloo.solo.io.Settings.prototype.hasExtensions = function() {
 
 
 /**
- * optional ratelimit.plugins.gloo.solo.io.ServiceSettings ratelimit = 26;
- * @return {?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings}
+ * optional ratelimit.options.gloo.solo.io.ServiceSettings ratelimit = 26;
+ * @return {?proto.ratelimit.options.gloo.solo.io.ServiceSettings}
  */
 proto.gloo.solo.io.Settings.prototype.getRatelimit = function() {
-  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings, 26));
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.ServiceSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings, 26));
 };
 
 
-/** @param {?proto.ratelimit.plugins.gloo.solo.io.ServiceSettings|undefined} value */
+/** @param {?proto.ratelimit.options.gloo.solo.io.ServiceSettings|undefined} value */
 proto.gloo.solo.io.Settings.prototype.setRatelimit = function(value) {
   jspb.Message.setWrapperField(this, 26, value);
 };
@@ -3620,16 +3549,16 @@ proto.gloo.solo.io.Settings.prototype.hasRatelimit = function() {
 
 
 /**
- * optional ratelimit.plugins.gloo.solo.io.Settings ratelimit_server = 27;
- * @return {?proto.ratelimit.plugins.gloo.solo.io.Settings}
+ * optional ratelimit.options.gloo.solo.io.Settings ratelimit_server = 27;
+ * @return {?proto.ratelimit.options.gloo.solo.io.Settings}
  */
 proto.gloo.solo.io.Settings.prototype.getRatelimitServer = function() {
-  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.Settings} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings, 27));
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings, 27));
 };
 
 
-/** @param {?proto.ratelimit.plugins.gloo.solo.io.Settings|undefined} value */
+/** @param {?proto.ratelimit.options.gloo.solo.io.Settings|undefined} value */
 proto.gloo.solo.io.Settings.prototype.setRatelimitServer = function(value) {
   jspb.Message.setWrapperField(this, 27, value);
 };
@@ -3650,16 +3579,16 @@ proto.gloo.solo.io.Settings.prototype.hasRatelimitServer = function() {
 
 
 /**
- * optional rbac.plugins.gloo.solo.io.Settings rbac = 28;
- * @return {?proto.rbac.plugins.gloo.solo.io.Settings}
+ * optional rbac.options.gloo.solo.io.Settings rbac = 28;
+ * @return {?proto.rbac.options.gloo.solo.io.Settings}
  */
 proto.gloo.solo.io.Settings.prototype.getRbac = function() {
-  return /** @type{?proto.rbac.plugins.gloo.solo.io.Settings} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings, 28));
+  return /** @type{?proto.rbac.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings, 28));
 };
 
 
-/** @param {?proto.rbac.plugins.gloo.solo.io.Settings|undefined} value */
+/** @param {?proto.rbac.options.gloo.solo.io.Settings|undefined} value */
 proto.gloo.solo.io.Settings.prototype.setRbac = function(value) {
   jspb.Message.setWrapperField(this, 28, value);
 };
@@ -3685,7 +3614,7 @@ proto.gloo.solo.io.Settings.prototype.hasRbac = function() {
  */
 proto.gloo.solo.io.Settings.prototype.getExtauth = function() {
   return /** @type{?proto.enterprise.gloo.solo.io.Settings} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings, 29));
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings, 29));
 };
 
 
@@ -4534,7 +4463,8 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     validationServerAddr: jspb.Message.getFieldWithDefault(msg, 1, ""),
     disableAutoGenGateways: jspb.Message.getFieldWithDefault(msg, 2, false),
-    validation: (f = msg.getValidation()) && proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject(includeInstance, f)
+    validation: (f = msg.getValidation()) && proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject(includeInstance, f),
+    readGatewaysFromAllNamespaces: jspb.Message.getFieldWithDefault(msg, 4, false)
   };
 
   if (includeInstance) {
@@ -4583,6 +4513,10 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
       var value = new proto.gloo.solo.io.GatewayOptions.ValidationOptions;
       reader.readMessage(value,proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader);
       msg.setValidation(value);
+      break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setReadGatewaysFromAllNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -4633,6 +4567,13 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
       3,
       f,
       proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getReadGatewaysFromAllNamespaces();
+  if (f) {
+    writer.writeBool(
+      4,
+      f
     );
   }
 };
@@ -4966,6 +4907,23 @@ proto.gloo.solo.io.GatewayOptions.prototype.clearValidation = function() {
  */
 proto.gloo.solo.io.GatewayOptions.prototype.hasValidation = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional bool read_gateways_from_all_namespaces = 4;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getReadGatewaysFromAllNamespaces = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 4, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setReadGatewaysFromAllNamespaces = function(value) {
+  jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
 

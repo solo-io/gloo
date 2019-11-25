@@ -6,7 +6,7 @@ import { colors } from 'Styles';
 
 const Container = styled.div``;
 type TileIconProps = { selected?: boolean; onClick: () => any };
-const TileIcon = styled(ColorlessTile)`
+export const TileIcon = styled(ColorlessTile)`
   margin-right: 10px;
   cursor: pointer;
 
@@ -31,7 +31,7 @@ const TileIcon = styled(ColorlessTile)`
       : ``};
 `;
 
-const ListIcon = styled<
+export const ListIcon = styled<
   React.FunctionComponent,
   { selected?: boolean; onClick: () => any }
 >(ColorlessList)`

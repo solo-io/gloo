@@ -15,7 +15,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/dlp"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/go-utils/contextutils"
@@ -41,12 +41,12 @@ var _ = Describe("dlp", func() {
 		vhost := &gloov1.VirtualHost{
 			Name:    "gloo-system.virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+			Options: &gloov1.VirtualHostOptions{
 				Dlp: dlpVhostSettings,
 			},
 			Routes: []*gloov1.Route{
 				{
-					RoutePlugins: &gloov1.RoutePlugins{
+					Options: &gloov1.RouteOptions{
 						Dlp: dlpRouteSettings,
 					},
 					Matchers: []*matchers.Matcher{{
@@ -101,7 +101,7 @@ var _ = Describe("dlp", func() {
 				ListenerType: &gloov1.Listener_HttpListener{
 					HttpListener: &gloov1.HttpListener{
 						VirtualHosts: vhosts,
-						ListenerPlugins: &gloov1.HttpListenerPlugins{
+						Options: &gloov1.HttpListenerOptions{
 							Dlp: dlpListenerSettings,
 						},
 					},

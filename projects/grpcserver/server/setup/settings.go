@@ -70,7 +70,9 @@ func writeDefaultSettings(settingsNamespace, name string, cli gloov1.SettingsCli
 		SecretSource: &gloov1.Settings_KubernetesSecretSource{
 			KubernetesSecretSource: &gloov1.Settings_KubernetesSecrets{},
 		},
-		BindAddr:           "0.0.0.0:9977",
+		Gloo: &gloov1.GlooOptions{
+			XdsBindAddr: "0.0.0.0:9977",
+		},
 		RefreshRate:        types.DurationProto(time.Minute),
 		DevMode:            true,
 		DiscoveryNamespace: settingsNamespace,

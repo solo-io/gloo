@@ -58,7 +58,7 @@ interface Props {
 export const ExtraInfo = React.memo((props: Props) => {
   const [showModal, setShowModal] = React.useState(true);
 
-  const functionsList = getFunctionList(props.upstream.upstreamSpec!);
+  const functionsList = getFunctionList(props.upstream);
 
   return (
     <>

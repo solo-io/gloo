@@ -11,7 +11,7 @@ import (
 
 	pb_rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	glooee "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
-	solorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	solorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
 	"go.uber.org/zap"
 )

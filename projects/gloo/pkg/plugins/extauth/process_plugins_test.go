@@ -15,11 +15,11 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
-	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -119,14 +119,12 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 			Name:      "extauth",
 			Namespace: "default",
 		},
-		UpstreamSpec: &gloov1.UpstreamSpec{
-			UpstreamType: &gloov1.UpstreamSpec_Static{
-				Static: &static_plugin_gloo.UpstreamSpec{
-					Hosts: []*static_plugin_gloo.Host{{
-						Addr: "test",
-						Port: 1234,
-					}},
-				},
+		UpstreamType: &gloov1.Upstream_Static{
+			Static: &static_plugin_gloo.UpstreamSpec{
+				Hosts: []*static_plugin_gloo.Host{{
+					Addr: "test",
+					Port: 1234,
+				}},
 			},
 		},
 	}
@@ -160,8 +158,8 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 				Upstream: utils.ResourceRefPtr(extAuthServerUpstream.Metadata.Ref()),
 			},
 		},
-		Weight:                     1,
-		WeightedDestinationPlugins: &gloov1.WeightedDestinationPlugins{},
+		Weight:  1,
+		Options: &gloov1.WeightedDestinationOptions{},
 	}
 
 	// ----------------------------------------------------------------------------
@@ -191,17 +189,17 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 				},
 			},
 		},
-		RoutePlugins: &gloov1.RoutePlugins{},
+		Options: &gloov1.RouteOptions{},
 	}
 
 	// ----------------------------------------------------------------------------
 	// Virtual Host
 	// ----------------------------------------------------------------------------
 	virtualHost := &gloov1.VirtualHost{
-		Name:               "virt1",
-		Domains:            []string{"*"},
-		Routes:             []*gloov1.Route{route},
-		VirtualHostPlugins: &gloov1.VirtualHostPlugins{},
+		Name:    "virt1",
+		Domains: []string{"*"},
+		Routes:  []*gloov1.Route{route},
+		Options: &gloov1.VirtualHostOptions{},
 	}
 
 	// ----------------------------------------------------------------------------
@@ -210,23 +208,23 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	switch authOnWeightedDest {
 	case Enabled:
 		// Use the renamed field to test this case as well (other tests use the deprecated one)
-		weightedDestination.WeightedDestinationPlugins = &gloov1.WeightedDestinationPlugins{Extauth: enableAuthNewFormat}
+		weightedDestination.Options = &gloov1.WeightedDestinationOptions{Extauth: enableAuthNewFormat}
 	case Disabled:
-		weightedDestination.WeightedDestinationPlugins = &gloov1.WeightedDestinationPlugins{Extauth: disableAuthNewFormat}
+		weightedDestination.Options = &gloov1.WeightedDestinationOptions{Extauth: disableAuthNewFormat}
 	}
 
 	switch authOnRoute {
 	case Enabled:
-		route.RoutePlugins.Extauth = enableAuthNewFormat
+		route.Options.Extauth = enableAuthNewFormat
 	case Disabled:
-		route.RoutePlugins.Extauth = disableAuthNewFormat
+		route.Options.Extauth = disableAuthNewFormat
 	}
 
 	switch authOnVirtualHost {
 	case Enabled:
-		virtualHost.VirtualHostPlugins.Extauth = enableAuthNewFormat
+		virtualHost.Options.Extauth = enableAuthNewFormat
 	case Disabled:
-		virtualHost.VirtualHostPlugins.Extauth = disableAuthNewFormat
+		virtualHost.Options.Extauth = disableAuthNewFormat
 	}
 
 	// ----------------------------------------------------------------------------

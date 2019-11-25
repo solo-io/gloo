@@ -5,12 +5,12 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gateway/api/v2/gateway.proto";
+import "github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
 
 message GatewayDetails {
-    gateway.solo.io.v2.Gateway gateway = 1;
+    gateway.solo.io.Gateway gateway = 1;
     Raw raw = 2;
     // Status of the instance and its relationship with Gloo.
     // Currently there are three possible values for the "Code" field on the status message.
@@ -42,7 +42,7 @@ message ListGatewaysResponse {
 }
 
 message UpdateGatewayRequest {
-    gateway.solo.io.v2.Gateway gateway = 1;
+    gateway.solo.io.Gateway gateway = 1;
 }
 
 message UpdateGatewayYamlRequest {

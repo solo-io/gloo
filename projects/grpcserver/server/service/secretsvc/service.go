@@ -97,8 +97,6 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 			secret.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
 		case *v1.CreateSecretRequest_Azure:
 			secret.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-		case *v1.CreateSecretRequest_Extension:
-			secret.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
 		case *v1.CreateSecretRequest_Tls:
 			secret.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
 		}
@@ -144,8 +142,6 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 			read.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
 		case *v1.UpdateSecretRequest_Azure:
 			read.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-		case *v1.UpdateSecretRequest_Extension:
-			read.Kind = &gloov1.Secret_Extension{Extension: request.GetExtension()}
 		case *v1.UpdateSecretRequest_Tls:
 			read.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
 		}

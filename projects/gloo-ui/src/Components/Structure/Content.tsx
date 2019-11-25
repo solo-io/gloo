@@ -10,6 +10,7 @@ import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -17,41 +18,69 @@ const Container = styled.div`
   max-width: 100vw;
   margin: 0 auto;
 `;
-export const Content = () => {
-  return (
-    <Container>
-      <Switch>
-        <Route path='/overview'>
+
+export const Content = () => (
+  <Container>
+    <Switch>
+      <Route path='/overview'>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Overview</div>}>
           <Overview />
-        </Route>
-        <Route
-          path='/virtualservices/:virtualservicenamespace/:virtualservicename'
-          exact>
+        </ErrorBoundary>
+      </Route>
+      <Route
+        path='/virtualservices/:virtualservicenamespace/:virtualservicename'
+        exact>
+        <ErrorBoundary
+          fallback={<div>There was an error with Virtual Service Details</div>}>
           <VirtualServiceDetails />
-        </Route>
-        <Route path='/routetables/:routetablenamespace/:routetablename' exact>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/routetables/:routetablenamespace/:routetablename' exact>
+        <ErrorBoundary
+          fallback={<div>There was an error with Route Table Details</div>}>
           <RouteTableDetails />
-        </Route>
-        <Route path='/virtualservices/'>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/virtualservices/'>
+        <ErrorBoundary
+          fallback={
+            <div>There was an error with the Virtual Services Listing</div>
+          }>
           <VirtualServicesListing />
-        </Route>
-        <Route path='/upstreams/'>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/upstreams/'>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Upstreams Listing</div>}>
           <UpstreamsListing />
-        </Route>
-        <Route path='/admin' exact>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/admin' exact>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Admin section</div>}>
           <AdminLanding />
-        </Route>
-        <Route path='/admin/:sublocation'>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/admin/:sublocation'>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Admin section</div>}>
           <AdminHub />
-        </Route>
-        <Route path='/stats/' exact>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/stats/' exact>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Stats section</div>}>
           <StatsLanding />
-        </Route>
-        <Route path='/settings/'>
+        </ErrorBoundary>
+      </Route>
+      <Route path='/settings/'>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Settings section</div>}>
           <SettingsLanding />
-        </Route>
-        <Redirect exact from='/' to='/overview/' />
-      </Switch>
-    </Container>
-  );
-};
+        </ErrorBoundary>
+      </Route>
+      <Redirect exact from='/' to='/overview/' />
+    </Switch>
+  </Container>
+);

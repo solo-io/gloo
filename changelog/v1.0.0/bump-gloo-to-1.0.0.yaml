@@ -1,0 +1,13 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.0.0
+    description: Update gloo to version 1.0.0.
+  - type: BREAKING_CHANGE
+    description: Update gloo to version 1.0.0. For a full list of changes, see release notes [here](https://github.com/solo-io/gloo/releases/tag/v1.0.0).
+    issueLink: https://github.com/solo-io/gloo/releases/tag/v1.0.0
+  - type: FIX
+    description: Improved stability in the UI particularly around the virtual services section.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1285
+releaseStableApi: true

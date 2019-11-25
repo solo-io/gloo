@@ -1,13 +1,11 @@
 import styled from '@emotion/styled';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
+  RouteDestinationDropdown,
   SoloFormDropdown,
   SoloFormInput,
-  SoloFormMetadataBasedDropdown,
   SoloFormMultipartStringCardsList,
   SoloFormMultiselect,
-  SoloFormVirtualServiceTypeahead,
-  SoloFormTypeahead,
   SoloRouteParentDropdown
 } from 'Components/Common/Form/SoloFormField';
 import {
@@ -16,16 +14,14 @@ import {
 } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
+import { uniqBy } from 'lodash';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import {
   Route,
   VirtualService
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import {
-  HeaderMatcher,
-  QueryParameterMatcher
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -36,17 +32,52 @@ import { colors, soloConstants } from 'Styles';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { getRouteMatcher } from 'utils/helpers';
 import * as yup from 'yup';
-import { DestinationForm } from './DestinationForm';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import { RouteParent } from '../RouteTableDetails';
+import { DestinationForm } from './DestinationForm';
 import { updateRouteTable } from 'store/routeTables/actions';
+import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
+import {
+  HeaderMatcher,
+  QueryParameterMatcher
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 
-enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
-  PATH_SPECIFIER_NOT_SET = 0,
-  PREFIX = 1,
-  EXACT = 2,
-  REGEX = 3
-}
+const FormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+`;
+
+const InnerSectionTitle = styled.div`
+  color: ${colors.novemberGrey};
+  font-size: 18px;
+  line-height: 22px;
+  margin: 13px 0;
+`;
+
+const InnerFormSectionContent = styled.div`
+  background: ${colors.februaryGrey};
+  border: 1px solid ${colors.marchGrey};
+  border-radius: ${soloConstants.smallRadius}px;
+  padding: 13px 8px;
+  display: flex;
+  flex-direction: column;
+  > div {
+  }
+`;
+
+export const HalfColumn = styled.div`
+  width: calc(50% - 10px);
+`;
+
+const Thirds = styled.div`
+  width: calc(33.33% - 10px);
+`;
+
+const Footer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 28px;
+`;
 
 export const PATH_SPECIFIERS = [
   {
@@ -69,11 +100,10 @@ export const PATH_SPECIFIERS = [
 let httpMethods = ['POST', 'PUT', 'GET', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 export interface CreateRouteValuesType {
-  routeParent: string;
-  routeTable: RouteTable.AsObject | undefined;
-  virtualService: RouteParent | undefined;
-  upstream: Upstream.AsObject | undefined;
-  destinationType: string;
+  routeParent: { name: string; namespace: string };
+
+  destinationType: 'Upstream' | 'Route Table';
+  routeDestination: Upstream.AsObject | RouteTable.AsObject | undefined;
   destinationSpec: DestinationSpec.AsObject | undefined;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
@@ -82,30 +112,10 @@ export interface CreateRouteValuesType {
   methods: string[];
 }
 
-export const createRouteDefaultValues: CreateRouteValuesType = {
-  routeParent: '',
-  routeTable: new RouteTable().toObject() as RouteParent,
-  virtualService: new VirtualService().toObject() as RouteParent,
-  upstream: new Upstream().toObject(),
-  destinationSpec: undefined,
-  destinationType: 'Upstream', // TODO: add other types
-  path: '',
-  matchType: 'PREFIX',
-  headers: [],
-  queryParameters: [],
-  methods: []
-};
-
 const validationSchema = yup.object().shape({
   region: yup.string(),
   virtualService: yup.object(),
-  upstream: yup
-    .object()
-    .test(
-      'Valid upstream',
-      'Upstream must be set',
-      upstream => !!upstream && !!upstream.metadata
-    ),
+  upstream: yup.object(),
   destinationSpec: yup.object().when('upstream', {
     is: upstream =>
       !!upstream && !!upstream.upstreamSpec && !!upstream.upstreamSpec.aws,
@@ -146,169 +156,234 @@ const validationSchema = yup.object().shape({
   methods: yup.array().of(yup.string())
 });
 
-const FormContainer = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const InnerSectionTitle = styled.div`
-  color: ${colors.novemberGrey};
-  font-size: 18px;
-  line-height: 22px;
-  margin: 13px 0;
-`;
-
-const InnerFormSectionContent = styled.div`
-  background: ${colors.februaryGrey};
-  border: 1px solid ${colors.marchGrey};
-  border-radius: ${soloConstants.smallRadius}px;
-  padding: 13px 8px;
-  display: flex;
-  flex-direction: column;
-
-  > div {
-  }
-`;
-
-export const HalfColumn = styled.div`
-  width: calc(50% - 10px);
-`;
-
-const Thirds = styled.div`
-  width: calc(33.33% - 10px);
-`;
-
-const Footer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-top: 28px;
-`;
-
 interface Props {
-  defaultRouteParent?: RouteParent;
+  defaultRouteParent?: Metadata.AsObject;
   defaultUpstream?: Upstream.AsObject;
   completeCreation: () => any;
   existingRoute?: Route.AsObject;
   createRouteFn?: (values: CreateRouteValuesType) => void;
 }
 
-export const CreateRouteModal = (props: Props) => {
+function arePropsEqual(
+  oldProps: Readonly<Props>,
+  newProps: Readonly<Props>
+): boolean {
+  return true;
+}
+
+export const CreateRouteModal = React.memo((props: Props) => {
+  const createRouteDefaultValues: CreateRouteValuesType = {
+    routeParent: { name: '', namespace: '' },
+
+    destinationSpec: undefined,
+    routeDestination: props.defaultUpstream ? props.defaultUpstream : undefined,
+    destinationType: 'Upstream',
+    path: '',
+    matchType: 'PREFIX',
+    headers: [],
+    queryParameters: [],
+    methods: []
+  };
+
   let history = useHistory();
   const dispatch = useDispatch();
   const virtualServicesList = useSelector(
-    (state: AppState) => state.virtualServices.virtualServicesList
+    (state: AppState) => state.virtualServices.virtualServicesList,
+    shallowEqual
   );
-  const upstreamsList = useSelector((state: AppState) =>
-    state.upstreams.upstreamsList.map(u => u.upstream!)
-  );
-  const [fallbackVS, setFallbackVS] = React.useState<
-    VirtualServiceDetails.AsObject
-  >();
-  const [
-    allUsableVirtualServices,
-    setAllUsableVirtualServices
-  ] = React.useState<VirtualServiceDetails.AsObject[]>([]);
-
-  const allUsableUpstreams = useSelector(
-    (state: AppState) =>
-      state.upstreams.upstreamsList
-        ? state.upstreams.upstreamsList
-            .map(upstreamDetails => upstreamDetails.upstream)
-            .filter(upstream => !!upstream && !!upstream.metadata)
-        : [],
+  const upstreamsList = useSelector(
+    (state: AppState) => state.upstreams.upstreamsList.map(u => u.upstream!),
     shallowEqual
   );
 
-  const routeTableDestinations = useSelector((state: AppState) =>
-    state.routeTables.routeTablesList.map(
-      routeTableDetails => routeTableDetails.routeTable
-    )
+  const routeTablesList = useSelector(
+    (state: AppState) => state.routeTables?.routeTablesList
   );
 
-  React.useEffect(() => {
-    setAllUsableVirtualServices(
-      !!virtualServicesList
-        ? virtualServicesList.filter(vs => !!vs.virtualService!.metadata)
-        : []
-    );
-    setFallbackVS(
-      !!virtualServicesList
-        ? virtualServicesList.find(
-            vsD =>
-              !!vsD &&
-              vsD.virtualService &&
-              vsD.virtualService.virtualHost &&
-              vsD.virtualService.virtualHost.domainsList &&
-              vsD.virtualService.virtualHost.domainsList.includes('*')
-          )
-        : undefined
-    );
-  }, [virtualServicesList.length]);
+  const upstreamsListMD = useSelector(
+    (state: AppState) =>
+      state.upstreams.upstreamsList.map(_ => _.upstream!.metadata!),
+    shallowEqual
+  );
 
-  if (!upstreamsList.length || !virtualServicesList.length) {
-    return <Loading />;
-  }
+  const routeTablesListMD = useSelector(
+    (state: AppState) =>
+      state.routeTables.routeTablesList.map(_ => _.routeTable!.metadata!),
+    shallowEqual
+  );
+
+  let RToptionsList = uniqBy(routeTablesListMD, obj => obj.name);
+  let USoptionsList = uniqBy(upstreamsListMD, obj => obj.name);
+
+  const [fallbackVS, setFallbackVS] = React.useState<
+    VirtualServiceDetails.AsObject
+  >();
 
   const { defaultUpstream, defaultRouteParent } = props;
 
   const handleCreateRoute = (values: CreateRouteValuesType) => {
-    if (!!props.createRouteFn) {
-      props.createRouteFn(values);
-    } else {
-      dispatch(
-        createRoute({
-          input: {
-            ...(!!values.virtualService &&
-              values.virtualService.metadata && {
-                virtualServiceRef: {
-                  name: values.virtualService!.metadata!.name,
-                  namespace: values.virtualService!.metadata!.namespace
-                }
-              }),
-            index: 0,
-            route: {
-              matchersList: [
-                {
-                  prefix: values.matchType === 'PREFIX' ? values.path : '',
-                  exact: values.matchType === 'EXACT' ? values.path : '',
-                  regex: values.matchType === 'REGEX' ? values.path : '',
-                  methodsList: values.methods,
-                  headersList: values.headers,
-                  queryParametersList: values.queryParameters
-                }
-              ],
-              routeAction: {
-                single: {
-                  upstream: {
-                    name: values.upstream!.metadata!.name,
-                    namespace: values.upstream!.metadata!.namespace
-                  },
-                  destinationSpec: values.destinationSpec
-                }
-              }
+    let virtualService = virtualServicesList.find(
+      vsd =>
+        vsd?.virtualService?.metadata?.name === values.routeParent?.name &&
+        vsd?.virtualService?.metadata?.namespace ===
+          values.routeParent?.namespace
+    );
+    let routeTable = routeTablesList.find(
+      rt =>
+        rt?.routeTable?.metadata?.name === values.routeParent?.name &&
+        rt?.routeTable?.metadata?.namespace === values.routeParent?.namespace
+    );
+
+    if (routeTable !== undefined) {
+      let newRoutesList = routeTable?.routeTable?.routesList || [];
+
+      let destination;
+      if (values.destinationType === 'Route Table') {
+        destination = {
+          delegateAction: {
+            name: values.routeDestination!.metadata!.name,
+            namespace: values.routeDestination!.metadata!.namespace
+          }
+        };
+      } else if (values.destinationType === 'Upstream') {
+        console.log('values', values);
+        let destinationSpec;
+        if (values.destinationSpec !== undefined) {
+          destinationSpec = values.destinationSpec;
+        }
+        destination = {
+          routeAction: {
+            single: {
+              upstream: {
+                name: values.routeDestination!.metadata!.name,
+                namespace: values.routeDestination!.metadata!.namespace
+              },
+              destinationSpec
             }
+          }
+        };
+      }
+      dispatch(
+        updateRouteTable({
+          routeTable: {
+            ...routeTable,
+            metadata: {
+              ...routeTable.routeTable?.metadata!,
+              name: values.routeParent?.name,
+              namespace: values?.routeParent?.namespace
+            },
+            routesList: [
+              ...newRoutesList,
+              {
+                matchersList: [
+                  {
+                    prefix: values.matchType === 'PREFIX' ? values.path : '',
+                    exact: values.matchType === 'EXACT' ? values.path : '',
+                    regex: values.matchType === 'REGEX' ? values.path : '',
+                    methodsList: values.methods,
+                    headersList: values.headers,
+                    queryParametersList: values.queryParameters
+                  }
+                ],
+                ...destination
+              }
+            ]
           }
         })
       );
+
       props.completeCreation();
-      if (values.virtualService && values.virtualService.metadata) {
-        history.push({
-          pathname: `/virtualservices/${
-            values.virtualService.metadata!.namespace
-          }/${values.virtualService.metadata!.name}`
-        });
-      } else {
-        if (!!fallbackVS && !!fallbackVS.virtualService) {
+    } else if (virtualService !== undefined) {
+      // vs -> rt
+      if (values.destinationType === 'Route Table') {
+        dispatch(
+          createRoute({
+            input: {
+              ...(!!values.routeParent && {
+                virtualServiceRef: {
+                  name: values.routeParent?.name,
+                  namespace: values.routeParent?.namespace
+                }
+              }),
+              index: 0,
+              route: {
+                matchersList: [
+                  {
+                    prefix: values.matchType === 'PREFIX' ? values.path : '',
+                    exact: values.matchType === 'EXACT' ? values.path : '',
+                    regex: values.matchType === 'REGEX' ? values.path : '',
+                    methodsList: values.methods,
+                    headersList: values.headers,
+                    queryParametersList: values.queryParameters
+                  }
+                ],
+                delegateAction: {
+                  name: values.routeDestination!.metadata!.name,
+                  namespace: values.routeDestination!.metadata!.namespace
+                }
+              }
+            }
+          })
+        );
+        props.completeCreation();
+      } else if (values.destinationType === 'Upstream') {
+        let destinationSpec;
+        if (values.destinationSpec !== undefined) {
+          destinationSpec = values.destinationSpec;
+        }
+        // vs -> us
+        dispatch(
+          createRoute({
+            input: {
+              ...(!!values.routeParent && {
+                virtualServiceRef: {
+                  name: values.routeParent?.name,
+                  namespace: values.routeParent?.namespace
+                }
+              }),
+              index: 0,
+              route: {
+                matchersList: [
+                  {
+                    prefix: values.matchType === 'PREFIX' ? values.path : '',
+                    exact: values.matchType === 'EXACT' ? values.path : '',
+                    regex: values.matchType === 'REGEX' ? values.path : '',
+                    methodsList: values.methods,
+                    headersList: values.headers,
+                    queryParametersList: values.queryParameters
+                  }
+                ],
+                routeAction: {
+                  single: {
+                    upstream: {
+                      name: values.routeDestination!.metadata!.name,
+                      namespace: values.routeDestination!.metadata!.namespace
+                    },
+                    destinationSpec
+                  }
+                }
+              }
+            }
+          })
+        );
+        props.completeCreation();
+
+        if (virtualService !== undefined) {
           history.push({
-            pathname: `/virtualservices/${
-              fallbackVS.virtualService.metadata!.namespace
-            }/${fallbackVS.virtualService.metadata!.name}`
+            pathname: `/virtualservices/${values.routeParent?.namespace}/${values.routeParent?.name}`
           });
         } else {
-          history.push({
-            pathname: `/virtualservices/gloo-system/default`
-          });
+          if (!!fallbackVS && !!fallbackVS.virtualService) {
+            history.push({
+              pathname: `/virtualservices/${
+                fallbackVS.virtualService.metadata!.namespace
+              }/${fallbackVS.virtualService.metadata!.name}`
+            });
+          } else {
+            history.push({
+              pathname: `/virtualservices/gloo-system/default`
+            });
+          }
         }
       }
     }
@@ -326,60 +401,47 @@ export const CreateRouteModal = (props: Props) => {
   if (!!props.existingRoute) {
     const { existingRoute } = props;
 
-    const existingRouteUpstream = allUsableUpstreams.find(
+    const existingRouteUpstream = upstreamsList.find(
       upstream =>
-        !!upstream &&
-        !!upstream.metadata &&
-        !!existingRoute.routeAction &&
-        !!existingRoute.routeAction.single &&
-        !!existingRoute.routeAction.single.upstream &&
-        upstream.metadata!.name ===
-          existingRoute.routeAction!.single!.upstream!.name &&
-        upstream.metadata!.namespace ===
-          existingRoute.routeAction!.single!.upstream!.namespace
+        upstream?.metadata?.name ===
+          existingRoute?.routeAction?.single?.upstream?.name &&
+        upstream?.metadata?.namespace ===
+          existingRoute?.routeAction?.single?.upstream?.namespace
     );
 
     existingRouteToInitialValues = {
-      routeParent: props.defaultRouteParent
-        ? props.defaultRouteParent!.metadata!.name
-        : '',
-      virtualService: props.defaultRouteParent,
-      routeTable: props.defaultRouteParent,
-      upstream: existingRouteUpstream,
+      routeParent: props.defaultRouteParent ? props.defaultRouteParent! : '',
+      routeDestination: existingRouteUpstream,
       destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
-      destinationType: 'Upstream', // TODO: add other types
-      headers: existingRoute.matchersList[0]!.headersList,
-      methods: existingRoute.matchersList[0]!.methodsList,
+      destinationType: 'Upstream',
+      headers: existingRoute.matchersList[0]?.headersList,
+      methods: existingRoute.matchersList[0]?.methodsList,
       path: getRouteMatcher(existingRoute).matcher,
       matchType: getRouteMatcher(existingRoute).matchType as any,
-      queryParameters: existingRoute.matchersList[0]!.queryParametersList
+      queryParameters: existingRoute.matchersList[0]?.queryParametersList
     };
   }
 
-  const initialValues: CreateRouteValuesType = !!existingRouteToInitialValues
-    ? existingRouteToInitialValues
-    : {
-        ...createRouteDefaultValues,
-        routeParent: props.defaultRouteParent
-          ? props.defaultRouteParent!.metadata!.name
-          : '',
-        destinationSpec: defaultUpstream
-          ? {
-              aws: {
-                logicalName: '',
-                invocationStyle: 0,
-                responseTransformation: false
-              }
+  const initialValues: CreateRouteValuesType = {
+    ...createRouteDefaultValues,
+    routeParent: !!props.defaultRouteParent
+      ? props.defaultRouteParent!
+      : { name: '', namespace: '' },
+    destinationSpec:
+      defaultUpstream && defaultUpstream?.aws !== undefined
+        ? {
+            aws: {
+              logicalName: '',
+              invocationStyle: 0,
+              responseTransformation: false
             }
-          : undefined,
-        routeTable: createRouteDefaultValues.routeTable,
-        virtualService: defaultRouteParent
-          ? defaultRouteParent
-          : createRouteDefaultValues.virtualService,
-        upstream: defaultUpstream
-          ? defaultUpstream
-          : createRouteDefaultValues.upstream
-      };
+          }
+        : undefined,
+    destinationType: createRouteDefaultValues.destinationType
+    // routeDestination:
+    //   createRouteDefaultValues.routeDestination || defaultUpstream
+    // routeTable: createRouteDefaultValues.routeTable
+  };
 
   return (
     <Formik
@@ -405,38 +467,37 @@ export const CreateRouteModal = (props: Props) => {
                     <SoloRouteParentDropdown
                       title='Route Container'
                       name='routeParent'
-                      defaultValue={values.routeParent}
+                      defaultValue={values.routeParent?.name}
                     />
                   </div>
                 </Thirds>
+
                 <Thirds>
                   <SoloFormDropdown
                     name='destinationType'
                     title='Destination Type'
                     defaultValue={'Upstream'}
-                    options={['Upstream', 'Route Table'].map(region => {
-                      return { key: region, value: region };
+                    options={['Upstream', 'Route Table'].map(dest => {
+                      return { key: dest, value: dest };
                     })}
                   />
                 </Thirds>
-                {allUsableUpstreams.length && (
+                {upstreamsList.length > 0 && (
                   <Thirds>
-                    <SoloFormMetadataBasedDropdown
+                    <RouteDestinationDropdown
                       testId='upstream-dropdown'
-                      name='upstream'
+                      name='routeDestination'
                       title='Destination'
-                      value={values.upstream}
-                      placeholder='Upstream...'
-                      options={
+                      value={values.routeDestination!}
+                      optionsList={
                         values.destinationType === 'Route Table'
-                          ? routeTableDestinations
-                          : allUsableUpstreams
+                          ? RToptionsList
+                          : USoptionsList
                       }
+                      destinationType={values.destinationType}
                       onChange={newUpstream => {
-                        if (
-                          newUpstream.upstreamSpec &&
-                          newUpstream.upstreamSpec.aws
-                        ) {
+                        console.log('newUpstream', newUpstream);
+                        if (newUpstream?.upstreamSpec?.aws !== undefined) {
                           setFieldValue('destinationSpec', {
                             aws: {
                               logicalName: '',
@@ -444,22 +505,24 @@ export const CreateRouteModal = (props: Props) => {
                               responseTransformation: false
                             }
                           });
+                        } else {
+                          setFieldValue('destinationSpec', undefined);
                         }
                       }}
                     />
                   </Thirds>
                 )}
               </InputRow>
-              {allUsableUpstreams.length && (
-                <InputRow>
-                  {!!values.upstream && (
+              <InputRow>
+                {values.routeDestination !== undefined &&
+                  values.destinationType === 'Upstream' &&
+                  'upstreamSpec' in values.routeDestination && (
                     <DestinationForm
                       name='destinationSpec'
-                      upstreamSpec={values.upstream.upstreamSpec!}
+                      upstream={values.routeDestination}
                     />
                   )}
-                </InputRow>
-              )}
+              </InputRow>
               <InputRow>
                 <HalfColumn>
                   <SoloFormInput
@@ -541,4 +604,4 @@ export const CreateRouteModal = (props: Props) => {
       }}
     </Formik>
   );
-};
+}, arePropsEqual);

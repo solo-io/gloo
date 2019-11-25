@@ -99,7 +99,7 @@ func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.Cr
 		ref     *core.ResourceRef
 	)
 	if request.GetUpstreamInput() == nil {
-		ref = request.Input.Ref
+		ref = request.GetInput().GetRef()
 		written, err = s.mutator.Create(s.ctx, ref, s.mutationFactory.ConfigureUpstream(request.GetInput()))
 	} else {
 		upstreamRef := request.GetUpstreamInput().GetMetadata().Ref()

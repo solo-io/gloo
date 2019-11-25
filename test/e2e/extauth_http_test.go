@@ -14,11 +14,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/test/services"
 
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
 	"github.com/fgrosse/zaptest"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -98,14 +98,12 @@ var _ = Describe("External http", func() {
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UpstreamType: &gloov1.UpstreamSpec_Static{
-					Static: &gloov1static.UpstreamSpec{
-						Hosts: []*gloov1static.Host{{
-							Addr: envoyInstance.LocalAddr(),
-							Port: extauthPort,
-						}},
-					},
+			UpstreamType: &gloov1.Upstream_Static{
+				Static: &gloov1static.UpstreamSpec{
+					Hosts: []*gloov1static.Host{{
+						Addr: envoyInstance.LocalAddr(),
+						Port: extauthPort,
+					}},
 				},
 			},
 		}

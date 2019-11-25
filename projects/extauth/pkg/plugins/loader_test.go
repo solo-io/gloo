@@ -13,7 +13,7 @@ import (
 	"os"
 
 	"github.com/solo-io/ext-auth-plugins/api"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 )
 
 var _ = Describe("Plugin Loader", func() {

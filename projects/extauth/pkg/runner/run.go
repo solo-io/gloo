@@ -25,7 +25,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
 	"github.com/solo-io/go-utils/stats"

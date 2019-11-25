@@ -13,7 +13,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -47,14 +47,12 @@ func newTestUpstream(addr string, port uint32, responses <-chan *ReceivedRequest
 			Name:      fmt.Sprintf("local-%d", id),
 			Namespace: "default",
 		},
-		UpstreamSpec: &gloov1.UpstreamSpec{
-			UpstreamType: &gloov1.UpstreamSpec_Static{
-				Static: &static_plugin_gloo.UpstreamSpec{
-					Hosts: []*static_plugin_gloo.Host{{
-						Addr: addr,
-						Port: port,
-					}},
-				},
+		UpstreamType: &gloov1.Upstream_Static{
+			Static: &static_plugin_gloo.UpstreamSpec{
+				Hosts: []*static_plugin_gloo.Host{{
+					Addr: addr,
+					Port: port,
+				}},
 			},
 		},
 	}

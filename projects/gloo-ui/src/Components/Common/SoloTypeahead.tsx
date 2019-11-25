@@ -63,12 +63,12 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
   }
 `;
 
-interface OptionType {
+export interface OptionType {
   key?: string;
   disabled?: boolean;
   value: string;
   displayValue?: any;
-  icon?: JSX.Element;
+  icon?: React.ReactNode;
 }
 export interface TypeaheadProps {
   presetOptions?: OptionType[];

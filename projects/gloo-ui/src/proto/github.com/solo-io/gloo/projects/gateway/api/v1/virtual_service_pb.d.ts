@@ -9,7 +9,7 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb";
 
 export class VirtualService extends jspb.Message {
@@ -57,9 +57,6 @@ export namespace VirtualService {
 }
 
 export class VirtualHost extends jspb.Message {
-  getName(): string;
-  setName(value: string): void;
-
   clearDomainsList(): void;
   getDomainsList(): Array<string>;
   setDomainsList(value: Array<string>): void;
@@ -70,15 +67,10 @@ export class VirtualHost extends jspb.Message {
   setRoutesList(value: Array<Route>): void;
   addRoutes(value?: Route, index?: number): Route;
 
-  hasVirtualHostPlugins(): boolean;
-  clearVirtualHostPlugins(): void;
-  getVirtualHostPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins | undefined;
-  setVirtualHostPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins): void;
-
-  hasCorsPolicy(): boolean;
-  clearCorsPolicy(): void;
-  getCorsPolicy(): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy | undefined;
-  setCorsPolicy(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHost.AsObject;
@@ -92,11 +84,9 @@ export class VirtualHost extends jspb.Message {
 
 export namespace VirtualHost {
   export type AsObject = {
-    name: string,
     domainsList: Array<string>,
     routesList: Array<Route.AsObject>,
-    virtualHostPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.AsObject,
-    corsPolicy?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.CorsPolicy.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.AsObject,
   }
 }
 
@@ -126,10 +116,10 @@ export class Route extends jspb.Message {
   getDelegateAction(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setDelegateAction(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
-  hasRoutePlugins(): boolean;
-  clearRoutePlugins(): void;
-  getRoutePlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins | undefined;
-  setRoutePlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions): void;
 
   getActionCase(): Route.ActionCase;
   serializeBinary(): Uint8Array;
@@ -149,7 +139,7 @@ export namespace Route {
     redirectAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,
     delegateAction?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    routePlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.AsObject,
   }
 
   export enum ActionCase {

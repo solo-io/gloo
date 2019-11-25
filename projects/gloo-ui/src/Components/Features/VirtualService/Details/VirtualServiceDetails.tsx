@@ -85,14 +85,10 @@ export const VirtualServiceDetails = () => {
   const dispatch = useDispatch();
 
   let virtualServiceDetails = virtualServicesList.find(
-    vsD => vsD && vsD.virtualService!.metadata!.name === virtualservicename
+    vsD => vsD?.virtualService?.metadata?.name === virtualservicename
   )!;
-  if (
-    !virtualServicesList.length ||
-    !virtualServiceDetails ||
-    !virtualServiceDetails.virtualService ||
-    !virtualServiceDetails.virtualService.virtualHost
-  ) {
+
+  if (!virtualServiceDetails?.virtualService?.virtualHost) {
     return (
       <>
         <Breadcrumb />
@@ -105,9 +101,8 @@ export const VirtualServiceDetails = () => {
 
   let {
     routesList,
-    virtualHostPlugins,
     domainsList
-  } = virtualServiceDetails.virtualService!.virtualHost!;
+  } = virtualServiceDetails?.virtualService?.virtualHost;
 
   let rateLimits;
   let externalAuth;

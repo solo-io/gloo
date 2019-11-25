@@ -4,6 +4,7 @@
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 
@@ -23,10 +24,20 @@ export class Secret extends jspb.Message {
   getTls(): TlsSecret | undefined;
   setTls(value?: TlsSecret): void;
 
-  hasExtension(): boolean;
-  clearExtension(): void;
-  getExtension(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension | undefined;
-  setExtension(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension): void;
+  hasOauth(): boolean;
+  clearOauth(): void;
+  getOauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret | undefined;
+  setOauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret): void;
+
+  hasApiKey(): boolean;
+  clearApiKey(): void;
+  getApiKey(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret | undefined;
+  setApiKey(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret): void;
+
+  hasExtensions(): boolean;
+  clearExtensions(): void;
+  getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
+  setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -49,7 +60,9 @@ export namespace Secret {
     aws?: AwsSecret.AsObject,
     azure?: AzureSecret.AsObject,
     tls?: TlsSecret.AsObject,
-    extension?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension.AsObject,
+    oauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret.AsObject,
+    apiKey?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret.AsObject,
+    extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
 
@@ -58,7 +71,9 @@ export namespace Secret {
     AWS = 1,
     AZURE = 2,
     TLS = 3,
-    EXTENSION = 4,
+    OAUTH = 5,
+    API_KEY = 6,
+    EXTENSIONS = 4,
   }
 }
 

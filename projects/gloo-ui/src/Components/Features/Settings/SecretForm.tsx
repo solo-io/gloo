@@ -87,7 +87,7 @@ export const SecretForm: React.FC<Props> = props => {
             {secretKind === Secret.KindCase.AWS && <AwsSecretFields />}
             {secretKind === Secret.KindCase.AZURE && <AzureSecretFields />}
             {secretKind === Secret.KindCase.TLS && <TlsSecretFields />}
-            {secretKind === Secret.KindCase.EXTENSION && <OAuthSecretFields />}
+            {secretKind === Secret.KindCase.OAUTH && <OAuthSecretFields />}
             <TableFormWrapper>
               <GreenPlus
                 style={{ cursor: 'pointer' }}

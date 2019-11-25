@@ -71,7 +71,7 @@ var _ = Describe("Helm Test", func() {
 			testManifest = NewTestManifest(manifestYaml)
 		}
 		prepareMakefile := func(customHelmArgs string) {
-			args := customHelmArgs + " --set gloo.installConfig.installationId=" + helmTestInstallId
+			args := customHelmArgs + " --set global.glooInstallationId=" + helmTestInstallId
 			prepareTestManifest(strings.Split(args, " ")...)
 		}
 		renderManifest := func(customHelmArgs string) {
@@ -90,8 +90,8 @@ var _ = Describe("Helm Test", func() {
 					installIdLabel: helmTestInstallId,
 				}
 				selector = map[string]string{
-					"gloo":         "observability",
-					installIdLabel: helmTestInstallId,
+					"app":  "gloo",
+					"gloo": "observability",
 				}
 
 				rb := ResourceBuilder{
@@ -164,10 +164,8 @@ var _ = Describe("Helm Test", func() {
 					},
 				}
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
-				observabilityDeployment.Spec.Selector.MatchLabels = map[string]string{
-					"gloo":         "observability",
-					installIdLabel: helmTestInstallId,
-				}
+				observabilityDeployment.Spec.Selector.MatchLabels = selector
+				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 
 				grafanaBuilder := ResourceBuilder{
 					Namespace: "", // grafana installs to empty namespace during tests
@@ -227,7 +225,6 @@ var _ = Describe("Helm Test", func() {
 				}
 				selector = map[string]string{
 					"gateway-proxy": "live",
-					installIdLabel:  helmTestInstallId,
 				}
 			})
 
@@ -247,13 +244,11 @@ var _ = Describe("Helm Test", func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
-						installIdLabel:     helmTestInstallId,
 					}
 					podLabels := map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
 						"gateway-proxy":    "live",
-						installIdLabel:     helmTestInstallId,
 					}
 					podAnnotations := map[string]string{
 						"prometheus.io/path":   "/metrics",
@@ -290,7 +285,7 @@ var _ = Describe("Helm Test", func() {
 						VolumeSource: v1.VolumeSource{
 							ConfigMap: &v1.ConfigMapVolumeSource{
 								LocalObjectReference: v1.LocalObjectReference{
-									Name: "gateway-proxy-v2-envoy-config",
+									Name: "gateway-proxy-envoy-config",
 								},
 							},
 						},
@@ -337,7 +332,7 @@ var _ = Describe("Helm Test", func() {
 
 				It("creates a deployment with envoy config annotations", func() {
 					helmFlags := "--namespace " + namespace + " --set namespace.create=true " +
-						"--set gloo.gatewayProxies.gatewayProxyV2.readConfig=true"
+						"--set gloo.gatewayProxies.gatewayProxy.readConfig=true"
 
 					prepareMakefile(helmFlags)
 					includeStatConfig()
@@ -444,8 +439,8 @@ var _ = Describe("Helm Test", func() {
 							installIdLabel: helmTestInstallId,
 						}
 						selector = map[string]string{
-							"gloo":         "apiserver-ui",
-							installIdLabel: helmTestInstallId,
+							"app":  "gloo",
+							"gloo": "apiserver-ui",
 						}
 						grpcPortEnvVar := v1.EnvVar{
 							Name:  "GRPC_PORT",
@@ -508,6 +503,8 @@ var _ = Describe("Helm Test", func() {
 							Labels:    labels,
 						}
 						deploy = rb.GetDeploymentAppsv1()
+						deploy.Spec.Selector.MatchLabels = selector
+						deploy.Spec.Template.ObjectMeta.Labels = selector
 						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
 							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
@@ -531,7 +528,8 @@ var _ = Describe("Helm Test", func() {
 
 			Context("installation", func() {
 
-				It("attaches a unique installation ID label to all top-level kubernetes resources if install ID is omitted", func() {
+				// TODO(kdorosh) need to bump to Gloo 1.1 and enable this test
+				PIt("attaches a unique installation ID label to all top-level kubernetes resources if install ID is omitted", func() {
 					renderManifest("--namespace " + namespace)
 					glooResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 						return !strings.Contains(resource.GetName(), "glooe-grafana") &&
@@ -584,7 +582,7 @@ var _ = Describe("Helm Test", func() {
 
 				It("can assign a custom installation ID", func() {
 					installId := "custom-install-id"
-					renderManifest("--namespace " + namespace + " --set gloo.installConfig.installationId=" + installId)
+					renderManifest("--namespace " + namespace + " --set global.glooInstallationId=" + installId)
 					glooResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 						return !strings.Contains(resource.GetName(), "glooe-grafana") &&
 							!strings.Contains(resource.GetName(), "glooe-prometheus")
@@ -664,7 +662,7 @@ var _ = Describe("Helm Test", func() {
 			testManifest = NewTestManifest(manifestYaml)
 		}
 		prepareMakefile := func(customHelmArgs string) {
-			args := customHelmArgs + " --set gloo.installConfig.installationId=" + helmTestInstallId
+			args := customHelmArgs + " --set global.glooInstallationId=" + helmTestInstallId
 			prepareTestManifest(strings.Split(args, " ")...)
 		}
 
@@ -678,7 +676,6 @@ var _ = Describe("Helm Test", func() {
 				}
 				selector = map[string]string{
 					"gateway-proxy": "live",
-					installIdLabel:  helmTestInstallId,
 				}
 			})
 
@@ -698,13 +695,11 @@ var _ = Describe("Helm Test", func() {
 					selector = map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
-						installIdLabel:     helmTestInstallId,
 					}
 					podLabels := map[string]string{
 						"gloo":             "gateway-proxy",
 						"gateway-proxy-id": defaults.GatewayProxyName,
 						"gateway-proxy":    "live",
-						installIdLabel:     helmTestInstallId,
 					}
 					podAnnotations := map[string]string{
 						"prometheus.io/path":   "/metrics",
@@ -741,7 +736,7 @@ var _ = Describe("Helm Test", func() {
 						VolumeSource: v1.VolumeSource{
 							ConfigMap: &v1.ConfigMapVolumeSource{
 								LocalObjectReference: v1.LocalObjectReference{
-									Name: "gateway-proxy-v2-envoy-config",
+									Name: "gateway-proxy-envoy-config",
 								},
 							},
 						},
@@ -782,7 +777,7 @@ var _ = Describe("Helm Test", func() {
 
 				It("creates a deployment with envoy config annotations", func() {
 					helmFlags := "--namespace " + namespace + " --set namespace.create=true " +
-						"--set gloo.gatewayProxies.gatewayProxyV2.readConfig=true"
+						"--set gloo.gatewayProxies.gatewayProxy.readConfig=true"
 
 					prepareMakefile(helmFlags)
 					includeStatConfig()
@@ -799,8 +794,8 @@ var _ = Describe("Helm Test", func() {
 							installIdLabel: helmTestInstallId,
 						}
 						selector = map[string]string{
-							"gloo":         "apiserver-ui",
-							installIdLabel: helmTestInstallId,
+							"app":  "gloo",
+							"gloo": "apiserver-ui",
 						}
 						grpcPortEnvVar := v1.EnvVar{
 							Name:  "GRPC_PORT",
@@ -851,6 +846,8 @@ var _ = Describe("Helm Test", func() {
 							Labels:    labels,
 						}
 						deploy = rb.GetDeploymentAppsv1()
+						deploy.Spec.Selector.MatchLabels = selector
+						deploy.Spec.Template.ObjectMeta.Labels = selector
 						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
 							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},

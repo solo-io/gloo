@@ -5,12 +5,12 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
@@ -44,12 +44,12 @@ message ListUpstreamsResponse {
 message UpstreamInput {
     core.solo.io.ResourceRef ref = 1;
     oneof spec {
-        kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 2;
-        static.plugins.gloo.solo.io.UpstreamSpec static = 3;
-        aws.plugins.gloo.solo.io.UpstreamSpec aws = 4;
-        azure.plugins.gloo.solo.io.UpstreamSpec azure = 5;
-        consul.plugins.gloo.solo.io.UpstreamSpec consul = 6;
-        aws_ec2.plugins.gloo.solo.io.UpstreamSpec aws_ec2 = 7;
+        kubernetes.options.gloo.solo.io.UpstreamSpec kube = 2;
+        static.options.gloo.solo.io.UpstreamSpec static = 3;
+        aws.options.gloo.solo.io.UpstreamSpec aws = 4;
+        azure.options.gloo.solo.io.UpstreamSpec azure = 5;
+        consul.options.gloo.solo.io.UpstreamSpec consul = 6;
+        aws_ec2.options.gloo.solo.io.UpstreamSpec aws_ec2 = 7;
     }
 }
 

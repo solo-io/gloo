@@ -13,7 +13,7 @@ import (
 
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -23,7 +23,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/kubeutils"
@@ -190,7 +190,7 @@ var _ = Describe("External auth", func() {
 
 			By("create an LDAP-secured route to the test upstream", func() {
 
-				virtualHostPlugins := &gloov1.VirtualHostPlugins{
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
 					Extauth: extAuthConfigProto,
 				}
 
@@ -430,22 +430,22 @@ var _ = Describe("External auth", func() {
 		Context("single destinations", func() {
 
 			var (
-				vhPlugins                    *gloov1.VirtualHostPlugins
-				route1Plugins, route2Plugins *gloov1.RoutePlugins
+				vhPlugins                    *gloov1.VirtualHostOptions
+				route1Plugins, route2Plugins *gloov1.RouteOptions
 			)
 
-			getVirtualService := func(vhPlugins *gloov1.VirtualHostPlugins, pluginsForRoute1, pluginsForRoute2 *gloov1.RoutePlugins) *gatewayv1.VirtualService {
+			getVirtualService := func(vhPlugins *gloov1.VirtualHostOptions, pluginsForRoute1, pluginsForRoute2 *gloov1.RouteOptions) *gatewayv1.VirtualService {
 				return &gatewayv1.VirtualService{
 					Metadata: core.Metadata{
 						Name:      "echo-vs",
 						Namespace: testHelper.InstallNamespace,
 					},
 					VirtualHost: &gatewayv1.VirtualHost{
-						VirtualHostPlugins: vhPlugins,
-						Domains:            []string{"*"},
+						Options: vhPlugins,
+						Domains: []string{"*"},
 						Routes: []*gatewayv1.Route{
 							{
-								RoutePlugins: pluginsForRoute1,
+								Options: pluginsForRoute1,
 								Matchers: []*matchers.Matcher{{
 									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/1",
@@ -470,7 +470,7 @@ var _ = Describe("External auth", func() {
 								},
 							},
 							{
-								RoutePlugins: pluginsForRoute2,
+								Options: pluginsForRoute2,
 								Matchers: []*matchers.Matcher{{
 									PathSpecifier: &matchers.Matcher_Prefix{
 										Prefix: testMatcherPrefix + "/2",
@@ -532,7 +532,7 @@ var _ = Describe("External auth", func() {
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpAuthConfig)
 
 					extension := buildExtAuthExtension(authConfigRef)
-					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: extension}
+					vhPlugins = &gloov1.VirtualHostOptions{Extauth: extension}
 				})
 
 				It("behaves as expected", func() {
@@ -555,10 +555,10 @@ var _ = Describe("External auth", func() {
 					authConfigRef, cleanUpAuthConfig := writeAuthConfig(allowUser)
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpAuthConfig)
 
-					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: buildExtAuthExtension(authConfigRef)}
+					vhPlugins = &gloov1.VirtualHostOptions{Extauth: buildExtAuthExtension(authConfigRef)}
 
 					//  Disable auth on route 2
-					route2Plugins = &gloov1.RoutePlugins{Extauth: getDisableAuthExtension()}
+					route2Plugins = &gloov1.RouteOptions{Extauth: getDisableAuthExtension()}
 				})
 
 				It("behaves as expected", func() {
@@ -589,8 +589,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpVhAuthConfig, cleanUpRouteAuthConfig)
 
-					vhPlugins = &gloov1.VirtualHostPlugins{Extauth: buildExtAuthExtension(vhAuthConfigRef)}
-					route2Plugins = &gloov1.RoutePlugins{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
+					vhPlugins = &gloov1.VirtualHostOptions{Extauth: buildExtAuthExtension(vhAuthConfigRef)}
+					route2Plugins = &gloov1.RouteOptions{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {
@@ -616,13 +616,13 @@ var _ = Describe("External auth", func() {
 		Context("multi destination", func() {
 
 			var (
-				routePlugins               *gloov1.RoutePlugins
-				dest1Plugins, dest2Plugins *gloov1.WeightedDestinationPlugins
+				routePlugins               *gloov1.RouteOptions
+				dest1Plugins, dest2Plugins *gloov1.WeightedDestinationOptions
 			)
 
 			getMultiDestinationVirtualService := func(
-				routePlugins *gloov1.RoutePlugins,
-				pluginsForDest1, pluginsForDest2 *gloov1.WeightedDestinationPlugins,
+				routePlugins *gloov1.RouteOptions,
+				pluginsForDest1, pluginsForDest2 *gloov1.WeightedDestinationOptions,
 			) *gatewayv1.VirtualService {
 				return &gatewayv1.VirtualService{
 					Metadata: core.Metadata{
@@ -638,7 +638,7 @@ var _ = Describe("External auth", func() {
 										Prefix: testMatcherPrefix,
 									},
 								}},
-								RoutePlugins: routePlugins,
+								Options: routePlugins,
 								Action: &gatewayv1.Route_RouteAction{
 									RouteAction: &gloov1.RouteAction{
 										Destination: &gloov1.RouteAction_Multi{
@@ -657,7 +657,7 @@ var _ = Describe("External auth", func() {
 																},
 															},
 														},
-														WeightedDestinationPlugins: pluginsForDest1,
+														Options: pluginsForDest1,
 													},
 													{
 														Weight: 50,
@@ -672,7 +672,7 @@ var _ = Describe("External auth", func() {
 																},
 															},
 														},
-														WeightedDestinationPlugins: pluginsForDest2,
+														Options: pluginsForDest2,
 													},
 												},
 											},
@@ -715,8 +715,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpRouteAuthConfig, cleanUpWeightedDestAuthConfig)
 
-					routePlugins = &gloov1.RoutePlugins{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
-					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDestAuthConfigRef)}
+					routePlugins = &gloov1.RouteOptions{Extauth: buildExtAuthExtension(routeAuthConfigRef)}
+					dest2Plugins = &gloov1.WeightedDestinationOptions{Extauth: buildExtAuthExtension(weightedDestAuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {
@@ -754,8 +754,8 @@ var _ = Describe("External auth", func() {
 
 					cleanUpFuncs = append(cleanUpFuncs, cleanUpWeightedDest1AuthConfig, cleanUpWeightedDest2AuthConfig)
 
-					dest1Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDest1AuthConfigRef)}
-					dest2Plugins = &gloov1.WeightedDestinationPlugins{Extauth: buildExtAuthExtension(weightedDest2AuthConfigRef)}
+					dest1Plugins = &gloov1.WeightedDestinationOptions{Extauth: buildExtAuthExtension(weightedDest1AuthConfigRef)}
+					dest2Plugins = &gloov1.WeightedDestinationOptions{Extauth: buildExtAuthExtension(weightedDest2AuthConfigRef)}
 				})
 
 				It("behaves as expected", func() {

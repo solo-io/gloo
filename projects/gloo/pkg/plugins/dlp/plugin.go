@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/dlp"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
@@ -60,7 +60,7 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 
 // Process virtual host plugin
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	dlpSettings := in.GetVirtualHostPlugins().GetDlp()
+	dlpSettings := in.GetOptions().GetDlp()
 	// should never be nil
 	p.addListener(params.Listener.GetHttpListener())
 
@@ -83,7 +83,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 // Process route plugin
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	dlpSettings := in.RoutePlugins.GetDlp()
+	dlpSettings := in.GetOptions().GetDlp()
 
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
@@ -106,12 +106,12 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	var filters []plugins.StagedHttpFilter
 	// If the list does not already have the listener then it is necessary to check for nil
 	if !p.listenerPresent(listener) {
-		if listener.GetListenerPlugins() == nil {
+		if listener.GetOptions() == nil {
 			return nil, nil
 		}
 	}
 
-	dlpSettings := listener.ListenerPlugins.GetDlp()
+	dlpSettings := listener.GetOptions().GetDlp()
 
 	var (
 		transformationRules []*transformation_ee.TransformationRule

@@ -20,7 +20,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 )
 
 const (

@@ -3,7 +3,8 @@ import { Select } from 'antd';
 import { useField, useFormikContext } from 'formik';
 import _ from 'lodash';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import React from 'react';
+import React, { RefAttributes, Component } from 'react';
+import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { shallowEqual, useSelector } from 'react-redux';
 import { AppState } from 'store';
 import { colors } from 'Styles';
@@ -31,9 +32,14 @@ import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
 import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
-
+import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import css from '@emotion/css';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { CreateRouteValuesType } from 'Components/Features/VirtualService/Creation/CreateRouteModal';
+import { OptionProps, OptGroupProps, SelectProps } from 'antd/lib/select';
 const { Option, OptGroup } = Select;
-
+import { uniqBy } from 'lodash';
 type ErrorTextProps = { errorExists?: boolean };
 export const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
@@ -43,8 +49,9 @@ export const ErrorText = styled.div`
 `;
 
 export const SoloFormInput = ({ ...props }) => {
-  const [field, meta] = useField(props.name);
-
+  const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   return (
     <>
       <SoloInput
@@ -68,8 +75,9 @@ interface FormDurationProps extends DurationProps {
 export const SoloFormDurationEditor: React.FC<FormDurationProps> = ({
   ...props
 }) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
 
   return (
     <>
@@ -99,8 +107,9 @@ interface FormTypeaheadProps extends TypeaheadProps {
 export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
   ...props
 }) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   return (
     <>
       <SoloTypeahead
@@ -116,8 +125,9 @@ export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
 };
 
 export const SoloFormDropdown = (props: any) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   return (
     <>
       <SoloDropdown
@@ -135,8 +145,9 @@ export const SoloFormDropdown = (props: any) => {
 };
 
 export const SoloFormCheckbox = (props: any) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   return (
     <>
       <SoloCheckbox
@@ -155,8 +166,9 @@ export const SoloFormCheckbox = (props: any) => {
 };
 
 export const SoloFormMultiselect = (props: any) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   return (
     <>
       <SoloMultiSelect
@@ -179,78 +191,233 @@ interface MetadataBasedDropdownProps extends DropdownProps {
   name: string;
   onChange?: (newValue: any) => void;
 }
-export const SoloFormMetadataBasedDropdown: React.FC<
-  MetadataBasedDropdownProps
-> = React.memo(props => {
-  const [field, meta] = useField(props.name);
-  const form = useFormikContext<any>();
-  const usedOptions = React.useMemo(
-    () =>
-      props.options
-        .sort((optionA, optionB) => {
-          const nameA = optionA.metadata.name;
-          const nameB = optionB.metadata.name;
+export const SoloFormMetadataBasedDropdown: React.FC<MetadataBasedDropdownProps> = React.memo(
+  props => {
+    const form = useFormikContext<any>();
+    const field = form.getFieldProps(props.name);
+    const meta = form.getFieldMeta(props.name);
+    const usedOptions = React.useMemo(
+      () =>
+        props.options
+          .sort((optionA, optionB) => {
+            const nameA = optionA.metadata.name;
+            const nameB = optionB.metadata.name;
 
-          const nameOrder = nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+            const nameOrder = nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
 
-          if (!!optionA.upstreamSpec) {
-            const typeA = getUpstreamType(optionA);
-            const typeB = getUpstreamType(optionB);
+            if (!!optionA.upstreamSpec) {
+              const typeA = getUpstreamType(optionA);
+              const typeB = getUpstreamType(optionB);
 
-            return typeA < typeB ? -1 : typeA > typeB ? 1 : nameOrder;
-          }
+              return typeA < typeB ? -1 : typeA > typeB ? 1 : nameOrder;
+            }
 
-          return nameOrder;
-        })
-        .map(option => {
-          return {
-            key: createUpstreamId(option.metadata!), // the same as virtual service's currently
-            displayValue: option.metadata.name,
-            value: createUpstreamId(option.metadata!),
-            icon: !!option.upstreamSpec
-              ? getIcon(getUpstreamType(option))
-              : undefined
-          };
-        }),
-    [props.options.length]
-  );
-
-  const usedValue =
-    props.value && props.value.metadata
-      ? props.value.metadata.name
-      : field.value && field.value.metadata
-      ? field.value.metadata.name
-      : undefined;
-
-  const setNewValue = (newValueId: any) => {
-    const { name, namespace } = parseUpstreamId(newValueId);
-    const optionChosen = props.options.find(
-      option =>
-        option.metadata.name === name && option.metadata.namespace === namespace
+            return nameOrder;
+          })
+          .map(option => {
+            return {
+              key: createUpstreamId(option.metadata!), // the same as virtual service's currently
+              displayValue: option.metadata.name,
+              value: createUpstreamId(option.metadata!),
+              icon: !!option.upstreamSpec
+                ? getIcon(getUpstreamType(option))
+                : undefined
+            };
+          }),
+      [props.options.length]
     );
 
-    if (props.onChange) {
-      props.onChange(optionChosen);
+    const usedValue =
+      props.value && props.value.metadata
+        ? props.value.metadata.name
+        : field.value && field.value.metadata
+        ? field.value.metadata.name
+        : undefined;
+
+    const setNewValue = (newValueId: any) => {
+      const { name, namespace } = parseUpstreamId(newValueId);
+      const optionChosen = props.options.find(
+        option =>
+          option.metadata.name === name &&
+          option.metadata.namespace === namespace
+      );
+
+      if (props.onChange) {
+        props.onChange(optionChosen);
+      }
+
+      form.setFieldValue(field.name, optionChosen);
+    };
+
+    return (
+      <>
+        <SoloDropdown
+          {...field}
+          {...props}
+          options={usedOptions}
+          value={usedValue}
+          onChange={setNewValue}
+        />
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      </>
+    );
+  },
+  shallowEqual
+);
+
+function compareOptions(
+  oldProps: Readonly<{ value?: string | number }>,
+  newProps: Readonly<{ value?: string | number }>
+): boolean {
+  return oldProps.value === newProps.value;
+}
+function compareSelect(oldProps: any, newProps: any): boolean {
+  return true;
+}
+type CompareProps = {
+  children?: Element[];
+  key?: string;
+  label: string;
+};
+
+const MemoSelect = React.memo(Select, compareSelect);
+const MemoOption = React.memo(Option, compareOptions);
+interface RouteDestinationDropdownProps {
+  value: RouteTable.AsObject | Upstream.AsObject;
+  testId: string;
+  name: string;
+  onChange?: (newValue: any) => void;
+  upstreams?: Upstream.AsObject[];
+  title: string;
+  optionsList: Metadata.AsObject[];
+  destinationType: string;
+}
+
+function areRouteDestinationDropdownPropsEqual(
+  oldProps: Readonly<RouteDestinationDropdownProps>,
+  newProps: Readonly<RouteDestinationDropdownProps>
+): boolean {
+  return oldProps.destinationType === newProps.destinationType;
+}
+export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> = React.memo(
+  props => {
+    const form = useFormikContext<CreateRouteValuesType>();
+    const field = form.getFieldProps(props.name);
+    const meta = form.getFieldMeta(props.name);
+    const namespacesList = useSelector(
+      (state: AppState) => state.config.namespacesList,
+      shallowEqual
+    );
+
+    const upstreamsList = useSelector(
+      (state: AppState) => state.upstreams.upstreamsList!,
+      shallowEqual
+    );
+    const routeTablesList = useSelector(
+      (state: AppState) => state.routeTables.routeTablesList,
+      shallowEqual
+    );
+
+    let defaultValue = upstreamsList.find(
+      ud =>
+        ud?.upstream?.metadata?.name === props.value?.metadata?.name &&
+        ud?.upstream?.metadata?.namespace === props.value?.metadata?.namespace
+    );
+
+    function handleChange(value: any) {
+      console.log('this changed', value);
+      if (form.values.destinationType === 'Route Table') {
+        let routeTable = routeTablesList.find(
+          rt => rt!.routeTable!.metadata!.name === value
+        );
+        form.setFieldValue('routeDestination', routeTable!.routeTable);
+      } else if (form.values.destinationType === 'Upstream') {
+        let upstream = upstreamsList.find(
+          us => us!.upstream!.metadata!.name === value
+        );
+        form.setFieldValue('routeDestination', upstream!.upstream);
+        if (upstream?.upstream?.aws === undefined) {
+          form.setFieldValue('destinationSpec', undefined);
+        }
+      }
     }
+    function getDestinationIcon(option: Metadata.AsObject): React.ReactNode {
+      if (props.destinationType === 'Route Table') {
+        return getIcon(props.destinationType);
+      } else {
+        return getIcon(
+          getUpstreamType(
+            upstreamsList.find(
+              us => us?.upstream!.metadata!.name === option.name
+            )!.upstream!
+          )
+        );
+      }
+    }
+    return (
+      <>
+        <Label>{props.title}</Label>
 
-    form.setFieldValue(field.name, optionChosen);
-  };
-
-  return (
-    <>
-      <SoloDropdown
-        {...field}
-        {...props}
-        options={usedOptions}
-        value={usedValue}
-        onChange={setNewValue}
-      />
-      <ErrorText errorExists={!!meta.error && meta.touched}>
-        {meta.error}
-      </ErrorText>
-    </>
-  );
-}, shallowEqual);
+        <Select
+          css={css`
+            width: fit-content;
+            .ant-select-selection {
+              width: 100%;
+              padding: 9px 15px 9px 11px;
+              border: 1px solid ${colors.aprilGrey};
+              border-radius: 8px;
+              height: auto;
+              outline: none;
+              .ant-select-selection__rendered {
+                line-height: inherit;
+                margin: 0;
+                .ant-select-selection-selected-value {
+                  color: ${colors.septemberGrey};
+                }
+              }
+              &:disabled {
+                background: ${colors.aprilGrey};
+              }
+            }
+          `}
+          placeholder='Destination...'
+          defaultValue={defaultValue?.upstream?.metadata?.name}
+          dropdownMatchSelectWidth={false}
+          onChange={handleChange}>
+          {namespacesList.map((ns: string) => (
+            <Select.OptGroup key={ns} label={ns}>
+              {props.optionsList
+                .filter(option => option!.namespace === ns)
+                .map(option => (
+                  <Option
+                    key={`${option!.name}-${option!.namespace}`}
+                    value={option!.name}>
+                    <div
+                      css={css`
+                        display: flex;
+                        align-self: center;
+                        & > svg {
+                          width: 20px;
+                        }
+                      `}>
+                      {getDestinationIcon(option!)}
+                      {option!.name}
+                    </div>
+                  </Option>
+                ))}
+            </Select.OptGroup>
+          ))}
+        </Select>
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {/* {meta.error || ''} */}
+        </ErrorText>
+      </>
+    );
+  },
+  areRouteDestinationDropdownPropsEqual
+);
 
 interface VirtualServiceTypeaheadProps extends TypeaheadProps {
   value: RouteParent | undefined;
@@ -258,14 +425,15 @@ interface VirtualServiceTypeaheadProps extends TypeaheadProps {
   name: string;
   onChange?: (newValue: any) => any;
 }
-export const SoloFormVirtualServiceTypeahead: React.FC<
-  VirtualServiceTypeaheadProps
-> = ({ ...props }) => {
+export const SoloFormVirtualServiceTypeahead: React.FC<VirtualServiceTypeaheadProps> = ({
+  ...props
+}) => {
   const {
     config: { namespace: podNamespace }
   } = useSelector((state: AppState) => state);
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
   const usedOptions = props.options
     .sort((optionA, optionB) => {
       const nameA = optionA.metadata!.name;
@@ -331,11 +499,12 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
   );
 };
 
-export const SoloFormMultipartStringCardsList: React.FC<
-  { name: string } & MultipartStringCardsProps
-> = ({ name, ...props }) => {
-  const [field, meta] = useField(name);
+export const SoloFormMultipartStringCardsList: React.FC<{
+  name: string;
+} & MultipartStringCardsProps> = ({ name, ...props }) => {
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(name);
+  const meta = form.getFieldMeta(name);
 
   return (
     <>
@@ -374,17 +543,20 @@ export const SoloFormSecretRefInput: React.FC<{
   asColumn?: boolean;
   name: string;
 }> = props => {
-  const {
-    config: { namespacesList }
-  } = useSelector((state: AppState) => state);
+  const namespacesList = useSelector(
+    (state: AppState) => state.config.namespacesList,
+    shallowEqual
+  );
   const secretsList = useSelector(
-    (state: AppState) => state.secrets.secretsList
+    (state: AppState) => state.secrets.secretsList,
+    shallowEqual
   );
   const { name, type } = props;
-  const [field, meta] = useField(name);
   const form = useFormikContext<any>();
-
-  const [namespaceField, namespaceMeta] = useField(`${field.name}.namespace`);
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
+  const namespaceField = form.getFieldProps(`${field.name}.namespace`);
+  const namespaceMeta = form.getFieldMeta(`${field.name}.namespace`);
   const [nameField, nameMeta] = useField(`${field.name}.name`);
 
   const [selectedNS, setSelectedNS] = React.useState(namespaceField.value);
@@ -458,6 +630,7 @@ const compareFn = (
 ) => {
   return _.isEqual(prevProps, newProps);
 };
+
 export const SoloAWSSecretsList: React.FC<{
   type: string;
   name: string;
@@ -466,8 +639,9 @@ export const SoloAWSSecretsList: React.FC<{
     (state: AppState) => state.secrets.secretsList
   );
   const { name, type } = props;
-  const [field, meta] = useField(name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
 
   const groupedSecrets = Array.from(
     groupBy(secretsList, secret => secret.metadata!.namespace).entries()
@@ -520,26 +694,32 @@ const compare = (
   prevProps: Readonly<{ name: string; title: string; defaultValue: string }>,
   newProps: Readonly<{ name: string; title: string; defaultValue: string }>
 ) => {
-  return _.isEqual(prevProps, newProps);
+  return prevProps.defaultValue === newProps.defaultValue;
 };
+
 type RouteParentType = RouteTable.AsObject | VirtualService.AsObject;
+
 export const SoloRouteParentDropdown: React.FC<{
   name: string;
   title: string;
   defaultValue: string;
 }> = React.memo(props => {
-  const routeTablesList = useSelector((state: AppState) =>
-    state.routeTables.routeTablesList.map(rtd => !!rtd && rtd.routeTable!)
+  const routeTablesList = useSelector(
+    (state: AppState) =>
+      state.routeTables.routeTablesList.map(rtd => !!rtd && rtd.routeTable!),
+    shallowEqual
   );
   const groupedRouteTables = React.useMemo(
     () => Array.from(groupBy(routeTablesList, () => 'Route Table')),
     [routeTablesList.length]
   );
 
-  const virtualServicesList = useSelector((state: AppState) =>
-    state.virtualServices.virtualServicesList.map(
-      vsd => !!vsd && vsd.virtualService!
-    )
+  const virtualServicesList = useSelector(
+    (state: AppState) =>
+      state.virtualServices.virtualServicesList.map(
+        vsd => !!vsd && vsd.virtualService!
+      ),
+    shallowEqual
   );
   const groupedVirtualServices = React.useMemo(
     () => Array.from(groupBy(virtualServicesList, () => 'Virtual Service')),
@@ -552,17 +732,16 @@ export const SoloRouteParentDropdown: React.FC<{
   ];
 
   const { name, title } = props;
-  const [field, meta] = useField(name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
 
   return (
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
       <SoloDropdownBlock
-        disabled={!!props.defaultValue}
         value={props.defaultValue}
         onChange={(value: any) => {
-
           let [name, namespace] = value.split('::');
           // find the correct one in the list
           let selectedRouteParent;
@@ -603,8 +782,9 @@ export const SoloFormStringsList: React.FC<any> = ({
   createNewPromptText,
   ...props
 }) => {
-  const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
 
   const removeValue = (index: number) => {
     form.setFieldValue(field.name, form.values[field.name].splice(index, 1));

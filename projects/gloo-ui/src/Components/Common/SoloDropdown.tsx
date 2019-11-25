@@ -6,7 +6,7 @@ import { Label } from './SoloInput';
 import { shallowEqual } from 'react-redux';
 
 export const SoloDropdownBlock = styled(Select)`
-  width: fit-content;
+  width: inherit;
   /* margin-bottom: 15px; */
   line-height: 16px;
 
@@ -88,7 +88,6 @@ export const SoloDropdown = React.memo((props: DropdownProps) => {
         placeholder={placeholder}>
         {options.map((opt: OptionType) => (
           <Select.Option
-            style={{ width: 'fitContent' }}
             key={opt.key}
             value={opt.value}
             disabled={opt.disabled}>

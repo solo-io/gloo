@@ -7,7 +7,7 @@ import (
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )

@@ -24,7 +24,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 	getVirtualService := func(pluginConfigs map[string]*types.Struct) *gatewayv1.VirtualService {
 		return &gatewayv1.VirtualService{
 			VirtualHost: &gatewayv1.VirtualHost{
-				VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+				Options: &gloov1.VirtualHostOptions{
 					Extensions: &gloov1.Extensions{
 						Configs: pluginConfigs,
 					},

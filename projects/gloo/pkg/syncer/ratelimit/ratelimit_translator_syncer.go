@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"go.uber.org/zap"
 
@@ -14,7 +12,7 @@ import (
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlCustomPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -26,35 +24,8 @@ type RateLimitTranslatorSyncerExtension struct {
 	settings *ratelimit.ServiceSettings
 }
 
-// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
-type extensionsContainer struct {
-	params syncer.TranslatorSyncerExtensionParams
-}
-
-// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
-func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
-	return t.params.SettingExtensions
-}
-
-// TODO(kdorosh) delete once we stop supporting opaque rate-limiting config
-func getDeprecatedSettings(params syncer.TranslatorSyncerExtensionParams) (ratelimit.ServiceSettings, error) {
-	var settings ratelimit.ServiceSettings
-	err := utils.UnmarshalExtension(&extensionsContainer{params}, rlCustomPlugin.EnvoyExtensionName, &settings)
-	if err != nil {
-		if err == utils.NotFoundError {
-			return ratelimit.ServiceSettings{}, nil
-		}
-		return ratelimit.ServiceSettings{}, err
-	}
-	return ratelimit.ServiceSettings{Descriptors: settings.GetDescriptors()}, nil
-}
-
 func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
 	var settings ratelimit.ServiceSettings
-	settings, err := getDeprecatedSettings(params)
-	if err != nil {
-		return nil, err
-	}
 
 	if params.RateLimitServiceSettings.GetDescriptors() != nil {
 		settings.Descriptors = params.RateLimitServiceSettings.Descriptors
@@ -93,27 +64,13 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
-				var rateLimitDeprecated ratelimit.IngressRateLimit
-				rateLimit := virtualHost.GetVirtualHostPlugins().GetRatelimitBasic()
-				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rlCustomPlugin.ExtensionName, &rateLimitDeprecated)
-				if err != nil {
-					if err == utils.NotFoundError && rateLimit == nil {
-						// no rate limit virtual host config found, nothing to do here
-						continue
-					} else if rateLimit == nil {
-						// if we have nothing to fall back to, error out
-						return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
-					} else if err != utils.NotFoundError {
-						// if the error was real (ie, it wasn't a NotFoundError) but we do have something to fall back to, log a warning
-						logger.Warnw("Deprecated rate limit plugin is malformed, defaulting to non-deprecated settings", zap.Error(err))
-					}
+				rateLimit := virtualHost.GetOptions().GetRatelimitBasic()
+				if rateLimit == nil {
+					// no rate limit virtual host config found, nothing to do here
+					continue
 				}
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
-
-				if rateLimit == nil {
-					rateLimit = &rateLimitDeprecated
-				}
 
 				vhostConstraint, err := rlIngressPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
 				if err != nil {

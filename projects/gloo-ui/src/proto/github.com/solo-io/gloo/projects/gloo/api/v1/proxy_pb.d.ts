@@ -11,7 +11,7 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_subset_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/subset_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb";
 
 export class Proxy extends jspb.Message {
@@ -78,10 +78,10 @@ export class Listener extends jspb.Message {
   getUseProxyProto(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setUseProxyProto(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  hasPlugins(): boolean;
-  clearPlugins(): void;
-  getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins | undefined;
-  setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -108,7 +108,7 @@ export namespace Listener {
     tcpListener?: TcpListener.AsObject,
     sslConfigurationsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-    plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.ListenerOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
@@ -125,10 +125,10 @@ export class TcpListener extends jspb.Message {
   setTcpHostsList(value: Array<TcpHost>): void;
   addTcpHosts(value?: TcpHost, index?: number): TcpHost;
 
-  hasPlugins(): boolean;
-  clearPlugins(): void;
-  getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins | undefined;
-  setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions): void;
 
   getStatPrefix(): string;
   setStatPrefix(value: string): void;
@@ -146,7 +146,7 @@ export class TcpListener extends jspb.Message {
 export namespace TcpListener {
   export type AsObject = {
     tcpHostsList: Array<TcpHost.AsObject>,
-    plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.TcpListenerOptions.AsObject,
     statPrefix: string,
   }
 }
@@ -189,10 +189,10 @@ export class HttpListener extends jspb.Message {
   setVirtualHostsList(value: Array<VirtualHost>): void;
   addVirtualHosts(value?: VirtualHost, index?: number): VirtualHost;
 
-  hasListenerPlugins(): boolean;
-  clearListenerPlugins(): void;
-  getListenerPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins | undefined;
-  setListenerPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions): void;
 
   getStatPrefix(): string;
   setStatPrefix(value: string): void;
@@ -210,7 +210,7 @@ export class HttpListener extends jspb.Message {
 export namespace HttpListener {
   export type AsObject = {
     virtualHostsList: Array<VirtualHost.AsObject>,
-    listenerPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.AsObject,
     statPrefix: string,
   }
 }
@@ -229,15 +229,10 @@ export class VirtualHost extends jspb.Message {
   setRoutesList(value: Array<Route>): void;
   addRoutes(value?: Route, index?: number): Route;
 
-  hasVirtualHostPlugins(): boolean;
-  clearVirtualHostPlugins(): void;
-  getVirtualHostPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins | undefined;
-  setVirtualHostPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins): void;
-
-  hasCorsPolicy(): boolean;
-  clearCorsPolicy(): void;
-  getCorsPolicy(): CorsPolicy | undefined;
-  setCorsPolicy(value?: CorsPolicy): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -259,8 +254,7 @@ export namespace VirtualHost {
     name: string,
     domainsList: Array<string>,
     routesList: Array<Route.AsObject>,
-    virtualHostPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.VirtualHostPlugins.AsObject,
-    corsPolicy?: CorsPolicy.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.VirtualHostOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 }
@@ -286,10 +280,10 @@ export class Route extends jspb.Message {
   getDirectResponseAction(): DirectResponseAction | undefined;
   setDirectResponseAction(value?: DirectResponseAction): void;
 
-  hasRoutePlugins(): boolean;
-  clearRoutePlugins(): void;
-  getRoutePlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins | undefined;
-  setRoutePlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -313,7 +307,7 @@ export namespace Route {
     routeAction?: RouteAction.AsObject,
     redirectAction?: RedirectAction.AsObject,
     directResponseAction?: DirectResponseAction.AsObject,
-    routePlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.RoutePlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.RouteOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
@@ -385,8 +379,8 @@ export class Destination extends jspb.Message {
 
   hasDestinationSpec(): boolean;
   clearDestinationSpec(): void;
-  getDestinationSpec(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec | undefined;
-  setDestinationSpec(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec): void;
+  getDestinationSpec(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec | undefined;
+  setDestinationSpec(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec): void;
 
   hasSubset(): boolean;
   clearSubset(): void;
@@ -409,7 +403,7 @@ export namespace Destination {
     upstream?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     kube?: KubernetesServiceDestination.AsObject,
     consul?: ConsulServiceDestination.AsObject,
-    destinationSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.AsObject,
+    destinationSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.DestinationSpec.AsObject,
     subset?: github_com_solo_io_gloo_projects_gloo_api_v1_subset_pb.Subset.AsObject,
   }
 
@@ -544,10 +538,10 @@ export class WeightedDestination extends jspb.Message {
   getWeight(): number;
   setWeight(value: number): void;
 
-  hasWeightedDestinationPlugins(): boolean;
-  clearWeightedDestinationPlugins(): void;
-  getWeightedDestinationPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins | undefined;
-  setWeightedDestinationPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins): void;
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions | undefined;
+  setOptions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WeightedDestination.AsObject;
@@ -563,7 +557,7 @@ export namespace WeightedDestination {
   export type AsObject = {
     destination?: Destination.AsObject,
     weight: number,
-    weightedDestinationPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.AsObject,
+    options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.WeightedDestinationOptions.AsObject,
   }
 }
 
@@ -649,60 +643,6 @@ export namespace DirectResponseAction {
   export type AsObject = {
     status: number,
     body: string,
-  }
-}
-
-export class CorsPolicy extends jspb.Message {
-  clearAllowOriginList(): void;
-  getAllowOriginList(): Array<string>;
-  setAllowOriginList(value: Array<string>): void;
-  addAllowOrigin(value: string, index?: number): string;
-
-  clearAllowOriginRegexList(): void;
-  getAllowOriginRegexList(): Array<string>;
-  setAllowOriginRegexList(value: Array<string>): void;
-  addAllowOriginRegex(value: string, index?: number): string;
-
-  clearAllowMethodsList(): void;
-  getAllowMethodsList(): Array<string>;
-  setAllowMethodsList(value: Array<string>): void;
-  addAllowMethods(value: string, index?: number): string;
-
-  clearAllowHeadersList(): void;
-  getAllowHeadersList(): Array<string>;
-  setAllowHeadersList(value: Array<string>): void;
-  addAllowHeaders(value: string, index?: number): string;
-
-  clearExposeHeadersList(): void;
-  getExposeHeadersList(): Array<string>;
-  setExposeHeadersList(value: Array<string>): void;
-  addExposeHeaders(value: string, index?: number): string;
-
-  getMaxAge(): string;
-  setMaxAge(value: string): void;
-
-  getAllowCredentials(): boolean;
-  setAllowCredentials(value: boolean): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CorsPolicy.AsObject;
-  static toObject(includeInstance: boolean, msg: CorsPolicy): CorsPolicy.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: CorsPolicy, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CorsPolicy;
-  static deserializeBinaryFromReader(message: CorsPolicy, reader: jspb.BinaryReader): CorsPolicy;
-}
-
-export namespace CorsPolicy {
-  export type AsObject = {
-    allowOriginList: Array<string>,
-    allowOriginRegexList: Array<string>,
-    allowMethodsList: Array<string>,
-    allowHeadersList: Array<string>,
-    exposeHeadersList: Array<string>,
-    maxAge: string,
-    allowCredentials: boolean,
   }
 }
 

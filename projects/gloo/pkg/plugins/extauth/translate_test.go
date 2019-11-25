@@ -7,14 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -42,14 +41,12 @@ var _ = Describe("Translate", func() {
 					Name:      "extauth",
 					Namespace: "default",
 				},
-				UpstreamSpec: &v1.UpstreamSpec{
-					UpstreamType: &v1.UpstreamSpec_Static{
-						Static: &static_plugin_gloo.UpstreamSpec{
-							Hosts: []*static_plugin_gloo.Host{{
-								Addr: "test",
-								Port: 1234,
-							}},
-						},
+				UpstreamType: &v1.Upstream_Static{
+					Static: &static_plugin_gloo.UpstreamSpec{
+						Hosts: []*static_plugin_gloo.Host{{
+							Addr: "test",
+							Port: 1234,
+						}},
 					},
 				},
 			}
@@ -80,18 +77,13 @@ var _ = Describe("Translate", func() {
 				ClientSecret: "1234",
 			}
 
-			st, err := util.MessageToStruct(clientSecret)
-			Expect(err).NotTo(HaveOccurred())
-
 			secret = &v1.Secret{
 				Metadata: core.Metadata{
 					Name:      "secret",
 					Namespace: "default",
 				},
-				Kind: &v1.Secret_Extension{
-					Extension: &v1.Extension{
-						Config: st,
-					},
+				Kind: &v1.Secret_Oauth{
+					Oauth: clientSecret,
 				},
 			}
 			secretRef := secret.Metadata.Ref()
@@ -130,7 +122,7 @@ var _ = Describe("Translate", func() {
 			virtualHost = &v1.VirtualHost{
 				Name:    "virt1",
 				Domains: []string{"*"},
-				VirtualHostPlugins: &v1.VirtualHostPlugins{
+				Options: &v1.VirtualHostOptions{
 					Extauth: extAuthExtension,
 				},
 				Routes: []*v1.Route{route},
@@ -171,8 +163,6 @@ var _ = Describe("Translate", func() {
 
 		Context("with api key extauth", func() {
 			BeforeEach(func() {
-				st, err := util.MessageToStruct(apiKeySecret)
-				Expect(err).NotTo(HaveOccurred())
 
 				secret = &v1.Secret{
 					Metadata: core.Metadata{
@@ -180,10 +170,8 @@ var _ = Describe("Translate", func() {
 						Namespace: "default",
 						Labels:    map[string]string{"team": "infrastructure"},
 					},
-					Kind: &v1.Secret_Extension{
-						Extension: &v1.Extension{
-							Config: st,
-						},
+					Kind: &v1.Secret_ApiKey{
+						ApiKey: apiKeySecret,
 					},
 				}
 				secretRef := secret.Metadata.Ref()

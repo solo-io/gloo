@@ -15,7 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/rbac"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 )
 
 const (
@@ -75,7 +75,7 @@ var _ = Describe("Plugin", func() {
 					Body:   "test",
 				},
 			},
-			RoutePlugins: &v1.RoutePlugins{
+			Options: &v1.RouteOptions{
 				Rbac: rbacRoute,
 			},
 		}
@@ -83,7 +83,7 @@ var _ = Describe("Plugin", func() {
 		virtualHost = &v1.VirtualHost{
 			Name:    "virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &v1.VirtualHostPlugins{
+			Options: &v1.VirtualHostOptions{
 				Rbac: rbacVhost,
 			},
 			Routes: []*v1.Route{route},

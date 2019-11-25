@@ -7,7 +7,7 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
@@ -135,7 +135,7 @@ var _ = Describe("MutationFactory", func() {
 							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+								Options: &gloov1.VirtualHostOptions{
 									RatelimitBasic: getRateLimit(),
 								},
 							},
@@ -176,7 +176,7 @@ var _ = Describe("MutationFactory", func() {
 							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+								Options: &gloov1.VirtualHostOptions{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
 											ratelimit2.ExtensionName: getRateLimitStruct(),
@@ -188,7 +188,7 @@ var _ = Describe("MutationFactory", func() {
 						expected: &gatewayv1.VirtualService{
 							Metadata: getMetadata("ns", "name"),
 							VirtualHost: &gatewayv1.VirtualHost{
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+								Options: &gloov1.VirtualHostOptions{
 									Extensions: &gloov1.Extensions{},
 								},
 							},
@@ -208,7 +208,7 @@ var _ = Describe("MutationFactory", func() {
 							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+								Options: &gloov1.VirtualHostOptions{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
 											ratelimit2.ExtensionName: getRateLimitStruct(),
@@ -228,7 +228,7 @@ var _ = Describe("MutationFactory", func() {
 							VirtualHost: &gatewayv1.VirtualHost{
 								Domains: []string{"one", "two"},
 								Routes:  []*gatewayv1.Route{getRoute("a")},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+								Options: &gloov1.VirtualHostOptions{
 									Extensions: &gloov1.Extensions{
 										Configs: map[string]*types.Struct{
 											ratelimit2.ExtensionName: getRateLimitStruct(),

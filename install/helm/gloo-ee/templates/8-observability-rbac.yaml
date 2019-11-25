@@ -10,8 +10,7 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"
@@ -30,8 +29,7 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
 	. "github.com/onsi/ginkgo"
@@ -18,7 +18,7 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v2"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
+	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -172,7 +172,7 @@ var _ = Describe("Plugin", func() {
 			}
 			err := rlPlugin.ProcessVirtualHost(vHostParams, &gloov1.VirtualHost{
 				Name: "test-vh",
-				VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+				Options: &gloov1.VirtualHostOptions{
 					RatelimitBasic: &ratelimitpb.IngressRateLimit{
 						AuthorizedLimits: &ratelimitpb.RateLimit{
 							Unit:            ratelimitpb.RateLimit_HOUR,

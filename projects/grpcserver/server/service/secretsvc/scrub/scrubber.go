@@ -31,8 +31,6 @@ func (s scrubber) Secret(ctx context.Context, secret *gloov1.Secret) {
 		secret.Kind = &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}}
 	case *gloov1.Secret_Tls:
 		secret.Kind = &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}}
-	case *gloov1.Secret_Extension:
-		secret.Kind = &gloov1.Secret_Extension{Extension: &gloov1.Extension{}}
 	default:
 		contextutils.LoggerFrom(ctx).Warnw(
 			"Scrubbing secret with unhandled type. Details will be removed but type will be undefined.",

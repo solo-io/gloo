@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
 	templatemocks "github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template/mocks"
@@ -65,22 +65,18 @@ var _ = Describe("Grafana Syncer", func() {
 		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate)
 		logger = contextutils.LoggerFrom(context.TODO())
 		upstreamOne = &gloov1.Upstream{
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UpstreamType: &gloov1.UpstreamSpec_Aws{
-					Aws: &aws.UpstreamSpec{Region: "test"},
-				},
+			UpstreamType: &gloov1.Upstream_Aws{
+				Aws: &aws.UpstreamSpec{Region: "test"},
 			},
 			Status:   core.Status{},
 			Metadata: core.Metadata{Name: "test-upstream-one", Namespace: "ns"},
 		}
 		upstreamTwo = &gloov1.Upstream{
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UpstreamType: &gloov1.UpstreamSpec_Kube{
-					Kube: &kubernetes.UpstreamSpec{
-						ServiceName:      "upstream-service",
-						ServiceNamespace: "ns",
-						ServicePort:      80,
-					},
+			UpstreamType: &gloov1.Upstream_Kube{
+				Kube: &kubernetes.UpstreamSpec{
+					ServiceName:      "upstream-service",
+					ServiceNamespace: "ns",
+					ServicePort:      80,
 				},
 			},
 			Status:   core.Status{},

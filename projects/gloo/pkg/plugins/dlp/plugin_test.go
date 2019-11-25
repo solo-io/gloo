@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/dlp"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -63,7 +63,7 @@ var _ = Describe("dlp plugin", func() {
 					Body:   "test",
 				},
 			},
-			RoutePlugins: &v1.RoutePlugins{
+			Options: &v1.RouteOptions{
 				Dlp: dlpRoute,
 			},
 		}
@@ -75,7 +75,7 @@ var _ = Describe("dlp plugin", func() {
 		virtualHost = &v1.VirtualHost{
 			Name:    "virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &v1.VirtualHostPlugins{
+			Options: &v1.VirtualHostOptions{
 				Dlp: dlpVhost,
 			},
 			Routes: []*v1.Route{route},
@@ -83,7 +83,7 @@ var _ = Describe("dlp plugin", func() {
 
 		httpListener = &v1.HttpListener{
 			VirtualHosts: []*v1.VirtualHost{virtualHost},
-			ListenerPlugins: &v1.HttpListenerPlugins{
+			Options: &v1.HttpListenerOptions{
 				Dlp: dlpListener,
 			},
 		}

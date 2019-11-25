@@ -13,7 +13,7 @@ const ModalWindow = styled.div`
   justify-content: center;
   align-content: center;
   background: rgba(0, 0, 0, 0.1);
-  overflow: auto;
+  /* overflow: auto; */
   line-height: 19px;
   z-index: 100;
 `;

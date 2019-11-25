@@ -33,23 +33,19 @@ func (factory) ConfigureUpstream(input *v1.UpstreamInput) Mutation {
 			return EmptyInputError
 		}
 
-		if upstream.GetUpstreamSpec() == nil {
-			upstream.UpstreamSpec = &gloov1.UpstreamSpec{}
-		}
-
 		switch input.GetSpec().(type) {
 		case *v1.UpstreamInput_Aws:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_Aws{Aws: input.GetAws()}
+			upstream.UpstreamType = &gloov1.Upstream_Aws{Aws: input.GetAws()}
 		case *v1.UpstreamInput_Azure:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_Azure{Azure: input.GetAzure()}
+			upstream.UpstreamType = &gloov1.Upstream_Azure{Azure: input.GetAzure()}
 		case *v1.UpstreamInput_Consul:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_Consul{Consul: input.GetConsul()}
+			upstream.UpstreamType = &gloov1.Upstream_Consul{Consul: input.GetConsul()}
 		case *v1.UpstreamInput_Kube:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_Kube{Kube: input.GetKube()}
+			upstream.UpstreamType = &gloov1.Upstream_Kube{Kube: input.GetKube()}
 		case *v1.UpstreamInput_Static:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_Static{Static: input.GetStatic()}
+			upstream.UpstreamType = &gloov1.Upstream_Static{Static: input.GetStatic()}
 		case *v1.UpstreamInput_AwsEc2:
-			upstream.UpstreamSpec.UpstreamType = &gloov1.UpstreamSpec_AwsEc2{AwsEc2: input.GetAwsEc2()}
+			upstream.UpstreamType = &gloov1.Upstream_AwsEc2{AwsEc2: input.GetAwsEc2()}
 		default:
 			return UnsupportedUpstreamTypeError
 		}

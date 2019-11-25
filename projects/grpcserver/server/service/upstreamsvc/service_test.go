@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	mock_gloo "github.com/solo-io/gloo/projects/gloo/pkg/mocks"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -182,10 +182,8 @@ var _ = Describe("ServiceTest", func() {
 
 				upstream := &gloov1.Upstream{
 					Metadata: metadata,
-					UpstreamSpec: &gloov1.UpstreamSpec{
-						UpstreamType: &gloov1.UpstreamSpec_Aws{
-							Aws: &aws.UpstreamSpec{Region: "test"},
-						},
+					UpstreamType: &gloov1.Upstream_Aws{
+						Aws: &aws.UpstreamSpec{Region: "test"},
 					},
 				}
 				raw := getRaw("name")
@@ -210,10 +208,8 @@ var _ = Describe("ServiceTest", func() {
 				ref := metadata.Ref()
 				upstream := &gloov1.Upstream{
 					Metadata: metadata,
-					UpstreamSpec: &gloov1.UpstreamSpec{
-						UpstreamType: &gloov1.UpstreamSpec_Aws{
-							Aws: &aws.UpstreamSpec{Region: "test"},
-						},
+					UpstreamType: &gloov1.Upstream_Aws{
+						Aws: &aws.UpstreamSpec{Region: "test"},
 					},
 				}
 
@@ -249,10 +245,8 @@ var _ = Describe("ServiceTest", func() {
 
 				upstream := &gloov1.Upstream{
 					Metadata: metadata,
-					UpstreamSpec: &gloov1.UpstreamSpec{
-						UpstreamType: &gloov1.UpstreamSpec_Aws{
-							Aws: &aws.UpstreamSpec{Region: "test"},
-						},
+					UpstreamType: &gloov1.Upstream_Aws{
+						Aws: &aws.UpstreamSpec{Region: "test"},
 					},
 				}
 				raw := getRaw("name")
@@ -316,10 +310,8 @@ var _ = Describe("ServiceTest", func() {
 
 			upstream := &gloov1.Upstream{
 				Metadata: metadata,
-				UpstreamSpec: &gloov1.UpstreamSpec{
-					UpstreamType: &gloov1.UpstreamSpec_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
+				UpstreamType: &gloov1.Upstream_Aws{
+					Aws: &aws.UpstreamSpec{Region: "test"},
 				},
 			}
 			raw := getRaw("name")

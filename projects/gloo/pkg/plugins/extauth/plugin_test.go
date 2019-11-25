@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -15,7 +15,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -49,14 +49,12 @@ var _ = Describe("Plugin", func() {
 					Name:      "extauth",
 					Namespace: "default",
 				},
-				UpstreamSpec: &v1.UpstreamSpec{
-					UpstreamType: &v1.UpstreamSpec_Static{
-						Static: &static.UpstreamSpec{
-							Hosts: []*static.Host{{
-								Addr: "test",
-								Port: 1234,
-							}},
-						},
+				UpstreamType: &v1.Upstream_Static{
+					Static: &static.UpstreamSpec{
+						Hosts: []*static.Host{{
+							Addr: "test",
+							Port: 1234,
+						}},
 					},
 				},
 			}
@@ -83,18 +81,13 @@ var _ = Describe("Plugin", func() {
 				ClientSecret: "1234",
 			}
 
-			st, err := util.MessageToStruct(clientSecret)
-			Expect(err).NotTo(HaveOccurred())
-
 			secret = &v1.Secret{
 				Metadata: core.Metadata{
 					Name:      "secret",
 					Namespace: "default",
 				},
-				Kind: &v1.Secret_Extension{
-					Extension: &v1.Extension{
-						Config: st,
-					},
+				Kind: &v1.Secret_Oauth{
+					Oauth: clientSecret,
 				},
 			}
 			secretRef := secret.Metadata.Ref()
@@ -129,7 +122,7 @@ var _ = Describe("Plugin", func() {
 			virtualHost = &v1.VirtualHost{
 				Name:    "virt1",
 				Domains: []string{"*"},
-				VirtualHostPlugins: &v1.VirtualHostPlugins{
+				Options: &v1.VirtualHostOptions{
 					Extauth: authExtension,
 				},
 				Routes: []*v1.Route{route},
@@ -213,7 +206,7 @@ var _ = Describe("Plugin", func() {
 
 			It("should mark vhost with no auth as disabled", func() {
 				// remove auth extension
-				virtualHost.VirtualHostPlugins.Extauth = nil
+				virtualHost.Options.Extauth = nil
 				var out envoyroute.VirtualHost
 				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 				Expect(err).NotTo(HaveOccurred())
@@ -225,7 +218,7 @@ var _ = Describe("Plugin", func() {
 					Spec: &extauthv1.ExtAuthExtension_Disable{Disable: true},
 				}
 
-				route.RoutePlugins = &v1.RoutePlugins{
+				route.Options = &v1.RouteOptions{
 					Extauth: disabled,
 				}
 				var out envoyroute.Route

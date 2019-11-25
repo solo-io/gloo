@@ -3,7 +3,6 @@ package scrub_test
 import (
 	"context"
 
-	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/gomega"
 
 	. "github.com/onsi/ginkgo"
@@ -72,22 +71,6 @@ var _ = Describe("Scrubber Test", func() {
 					},
 					expected: &gloov1.Secret{
 						Kind:     &gloov1.Secret_Tls{Tls: &gloov1.TlsSecret{}},
-						Metadata: testMetadata,
-					},
-				},
-				{
-					desc: "extension",
-					input: &gloov1.Secret{
-						Kind: &gloov1.Secret_Extension{
-							Extension: &gloov1.Extension{
-								Config: &types.Struct{
-									Fields: map[string]*types.Value{"test": nil},
-								},
-							}},
-						Metadata: testMetadata,
-					},
-					expected: &gloov1.Secret{
-						Kind:     &gloov1.Secret_Extension{Extension: &gloov1.Extension{}},
 						Metadata: testMetadata,
 					},
 				},

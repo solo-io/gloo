@@ -4,12 +4,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws/ec2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/azure"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/consul"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws/ec2"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/azure"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/consul"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	. "github.com/solo-io/go-utils/testutils"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
@@ -33,10 +33,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_Aws{
-								Aws: &aws.UpstreamSpec{Region: "test"},
-							},
+						UpstreamType: &gloov1.Upstream_Aws{
+							Aws: &aws.UpstreamSpec{Region: "test"},
 						},
 					},
 				},
@@ -49,10 +47,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_Azure{
-								Azure: &azure.UpstreamSpec{FunctionAppName: "test"},
-							},
+						UpstreamType: &gloov1.Upstream_Azure{
+							Azure: &azure.UpstreamSpec{FunctionAppName: "test"},
 						},
 					},
 				},
@@ -65,10 +61,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_Consul{
-								Consul: &consul.UpstreamSpec{ServiceName: "test"},
-							},
+						UpstreamType: &gloov1.Upstream_Consul{
+							Consul: &consul.UpstreamSpec{ServiceName: "test"},
 						},
 					},
 				},
@@ -81,10 +75,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_Kube{
-								Kube: &kubernetes.UpstreamSpec{ServiceName: "test"},
-							},
+						UpstreamType: &gloov1.Upstream_Kube{
+							Kube: &kubernetes.UpstreamSpec{ServiceName: "test"},
 						},
 					},
 				},
@@ -97,10 +89,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_Static{
-								Static: &static.UpstreamSpec{UseTls: true},
-							},
+						UpstreamType: &gloov1.Upstream_Static{
+							Static: &static.UpstreamSpec{UseTls: true},
 						},
 					},
 				},
@@ -113,10 +103,8 @@ var _ = Describe("FactoryTest", func() {
 					},
 					before: &gloov1.Upstream{},
 					after: &gloov1.Upstream{
-						UpstreamSpec: &gloov1.UpstreamSpec{
-							UpstreamType: &gloov1.UpstreamSpec_AwsEc2{
-								AwsEc2: &ec2.UpstreamSpec{Region: "test"},
-							},
+						UpstreamType: &gloov1.Upstream_AwsEc2{
+							AwsEc2: &ec2.UpstreamSpec{Region: "test"},
 						},
 					},
 				},

@@ -32,13 +32,18 @@ export function routeTablesReducer(
         )
       };
 
+    case RouteTableAction.UPDATE_ROUTE_TABLE_YAML:
+      return {
+        ...state,
+        yamlParseError: false
+      };
+
     case RouteTableAction.UPDATE_ROUTE_TABLE:
       let updatedRT = state.routeTablesList.find(
         rtd =>
           rtd.routeTable!.metadata!.name ===
           action.payload!.routeTable!.metadata!.name
       );
-
       return {
         ...state,
         routeTablesList: [

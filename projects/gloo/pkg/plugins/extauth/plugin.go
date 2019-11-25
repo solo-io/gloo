@@ -10,7 +10,7 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/errors"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -109,7 +109,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return nil
 	}
 
-	extAuthConfig := in.GetVirtualHostPlugins().GetExtauth()
+	extAuthConfig := in.GetOptions().GetExtauth()
 
 	// No config was defined or explicitly disabled, disable the filter for this virtual host
 	if extAuthConfig == nil || extAuthConfig.GetDisable() {
@@ -144,7 +144,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
-	extAuthConfig := in.GetRoutePlugins().GetExtauth()
+	extAuthConfig := in.GetOptions().GetExtauth()
 
 	// No config was defined, just return
 	if extAuthConfig == nil {
@@ -180,7 +180,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return nil
 	}
 
-	extAuthConfig := in.GetWeightedDestinationPlugins().GetExtauth()
+	extAuthConfig := in.GetOptions().GetExtauth()
 
 	// No config was defined, just return
 	if extAuthConfig == nil {

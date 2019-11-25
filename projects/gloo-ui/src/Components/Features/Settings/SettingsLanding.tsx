@@ -80,7 +80,7 @@ export const SettingsLanding = () => {
     if (secretsList && allSecrets) {
       setAwsSecrets(allSecrets.filter(s => !!s.aws));
       setAzureSecrets(allSecrets.filter(s => !!s.azure));
-      setOAuthSecrets(allSecrets.filter(s => !!s.extension));
+      setOAuthSecrets(allSecrets.filter(s => !!s.oauth));
       setTlsSecrets(allSecrets.filter(s => !!s.tls));
     }
   }, [allSecrets.length, showSuccessModal]);

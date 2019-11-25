@@ -4,21 +4,21 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { useField } from 'formik';
-import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import React from 'react';
 import { getFunctionList } from 'utils/helpers';
 import { HalfColumn } from './CreateRouteModal';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 
 interface DestiantionFormProps {
   name: string;
-  upstreamSpec: UpstreamSpec.AsObject;
+  upstream: Upstream.AsObject;
 }
 
 export function DestinationForm(props: DestiantionFormProps) {
   const [field] = useField(props.name);
-  const { upstreamSpec } = props;
+  const { upstream } = props;
   // TODO: process upstream spec to support all types
-  const functionsList = getFunctionList(props.upstreamSpec);
+  const functionsList = getFunctionList(props.upstream);
 
   if (functionsList.length === 0) {
     return null;
@@ -26,7 +26,7 @@ export function DestinationForm(props: DestiantionFormProps) {
 
   return (
     <>
-      {!!upstreamSpec && upstreamSpec.aws && (
+      {upstream?.aws !== undefined && (
         <>
           <HalfColumn>
             <SoloFormDropdown
@@ -56,7 +56,7 @@ export function DestinationForm(props: DestiantionFormProps) {
         </>
       )}
 
-      {!!upstreamSpec && upstreamSpec.kube && (
+      {upstream?.kube !== undefined && (
         <>
           <HalfColumn>
             <SoloFormDropdown

@@ -231,7 +231,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
 	config.Gloo.Gloo.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.Gateway.ConversionJob.Image.Tag = gc.OsGlooVersion
 	config.Gloo.AccessLogger.Image.Tag = gc.OsGlooVersion
 	config.ApiServer.Deployment.Server.Image.Tag = glooEVersion
 	config.ApiServer.Deployment.Envoy.Image.Tag = glooEVersion

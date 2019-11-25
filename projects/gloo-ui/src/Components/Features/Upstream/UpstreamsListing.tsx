@@ -2,7 +2,11 @@ import styled from '@emotion/styled';
 import { Popconfirm } from 'antd';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
-import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import {
+  CatalogTableToggle,
+  TileIcon,
+  ListIcon
+} from 'Components/Common/CatalogTableToggle';
 import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { HealthInformation } from 'Components/Common/HealthInformation';
@@ -21,10 +25,10 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { LoadingBar } from 'react-redux-loading-bar';
 import { useHistory, useLocation, useRouteMatch } from 'react-router';
-import { Route } from 'react-router-dom';
+import { Route, NavLink } from 'react-router-dom';
 import { AppState } from 'store';
 import { deleteUpstream, listUpstreams } from 'store/upstreams/actions';
 import {
@@ -196,7 +200,8 @@ export const UpstreamsListing = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(false);
   const upstreamsList = useSelector(
-    (state: AppState) => state.upstreams.upstreamsList
+    (state: AppState) => state.upstreams.upstreamsList,
+    shallowEqual
   );
 
   React.useEffect(() => {
@@ -358,18 +363,13 @@ export const UpstreamsListing = () => {
         <Breadcrumb />
         <Action>
           <CreateUpstreamModal />
-          <CatalogTableToggle
-            listIsSelected={!catalogNotTable}
-            onToggle={() => {
-              history.push({
-                pathname: `${match.path}${
-                  location.pathname.includes('table') ? '' : 'table'
-                }`,
-                search: location.search
-              });
-              setCatalogNotTable(cNt => !cNt);
-            }}
-          />
+          <NavLink to={{ pathname: match.path, search: location.search }}>
+            <TileIcon selected={!location.pathname.includes('table')} />
+          </NavLink>
+          <NavLink
+            to={{ pathname: `${match.path}table`, search: location.search }}>
+            <ListIcon selected={location.pathname.includes('table')} />
+          </NavLink>
         </Action>
       </Heading>
       <ListingFilter

@@ -74,7 +74,6 @@ update-deps:
 	mkdir -p $$GOPATH/src/github.com/envoyproxy
 	# use a specific commit (c15f2c24fb27b136e722fa912accddd0c8db9dfa) until v0.0.15 is released, as in v0.0.14 the import paths were not yet changed
 	cd $$GOPATH/src/github.com/envoyproxy && if [ ! -e protoc-gen-validate ];then git clone https://github.com/envoyproxy/protoc-gen-validate; fi && cd protoc-gen-validate && git fetch && git checkout c15f2c24fb27b136e722fa912accddd0c8db9dfa
-	#go get -u github.com/paulvollmer/2gobytes TODO(kdorosh) temporarily commented out until target is fixed
 	go get -v -u github.com/golang/mock/gomock
 	go install github.com/golang/mock/mockgen
 
@@ -162,21 +161,19 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v2/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/*/*/*.proto
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh

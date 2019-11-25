@@ -12,7 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_lbhash_lbhash_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/lbhash/lbhash_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/lbhash/lbhash_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');

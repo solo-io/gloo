@@ -7,9 +7,9 @@ import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../
 import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/rbac/rbac_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -68,9 +68,6 @@ export class Settings extends jspb.Message {
   getConsulKvArtifactSource(): Settings.ConsulKv | undefined;
   setConsulKvArtifactSource(value?: Settings.ConsulKv): void;
 
-  getBindAddr(): string;
-  setBindAddr(value: string): void;
-
   hasRefreshRate(): boolean;
   clearRefreshRate(): void;
   getRefreshRate(): google_protobuf_duration_pb.Duration | undefined;
@@ -81,11 +78,6 @@ export class Settings extends jspb.Message {
 
   getLinkerd(): boolean;
   setLinkerd(value: boolean): void;
-
-  hasCircuitBreakers(): boolean;
-  clearCircuitBreakers(): void;
-  getCircuitBreakers(): github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig | undefined;
-  setCircuitBreakers(value?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig): void;
 
   hasKnative(): boolean;
   clearKnative(): void;
@@ -124,23 +116,23 @@ export class Settings extends jspb.Message {
 
   hasRatelimit(): boolean;
   clearRatelimit(): void;
-  getRatelimit(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings | undefined;
-  setRatelimit(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings): void;
+  getRatelimit(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings | undefined;
+  setRatelimit(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings): void;
 
   hasRatelimitServer(): boolean;
   clearRatelimitServer(): void;
-  getRatelimitServer(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings | undefined;
-  setRatelimitServer(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings): void;
+  getRatelimitServer(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings | undefined;
+  setRatelimitServer(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings): void;
 
   hasRbac(): boolean;
   clearRbac(): void;
-  getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings | undefined;
-  setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings): void;
+  getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings | undefined;
+  setRbac(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings): void;
 
   hasExtauth(): boolean;
   clearExtauth(): void;
-  getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings | undefined;
-  setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings): void;
+  getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings | undefined;
+  setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings): void;
 
   hasMetadata(): boolean;
   clearMetadata(): void;
@@ -178,11 +170,9 @@ export namespace Settings {
     kubernetesArtifactSource?: Settings.KubernetesConfigmaps.AsObject,
     directoryArtifactSource?: Settings.Directory.AsObject,
     consulKvArtifactSource?: Settings.ConsulKv.AsObject,
-    bindAddr: string,
     refreshRate?: google_protobuf_duration_pb.Duration.AsObject,
     devMode: boolean,
     linkerd: boolean,
-    circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     knative?: Settings.KnativeOptions.AsObject,
     discovery?: Settings.DiscoveryOptions.AsObject,
     gloo?: GlooOptions.AsObject,
@@ -190,10 +180,10 @@ export namespace Settings {
     consul?: Settings.ConsulConfiguration.AsObject,
     kubernetes?: Settings.KubernetesConfiguration.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
-    ratelimit?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.ServiceSettings.AsObject,
-    ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_ratelimit_ratelimit_pb.Settings.AsObject,
-    rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_rbac_rbac_pb.Settings.AsObject,
-    extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_plugins_extauth_v1_extauth_pb.Settings.AsObject,
+    ratelimit?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.AsObject,
+    ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
+    rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.AsObject,
+    extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
   }
@@ -668,6 +658,9 @@ export class GatewayOptions extends jspb.Message {
   getValidation(): GatewayOptions.ValidationOptions | undefined;
   setValidation(value?: GatewayOptions.ValidationOptions): void;
 
+  getReadGatewaysFromAllNamespaces(): boolean;
+  setReadGatewaysFromAllNamespaces(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -683,6 +676,7 @@ export namespace GatewayOptions {
     validationServerAddr: string,
     disableAutoGenGateways: boolean,
     validation?: GatewayOptions.ValidationOptions.AsObject,
+    readGatewaysFromAllNamespaces: boolean,
   }
 
   export class ValidationOptions extends jspb.Message {

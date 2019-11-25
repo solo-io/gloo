@@ -15,7 +15,11 @@ export function upstreamsReducer(
 ): UpstreamState {
   switch (action.type) {
     case UpstreamAction.LIST_UPSTREAMS:
-      return { ...state, upstreamsList: action.payload };
+      if (action.payload.length === state.upstreamsList.length) {
+        return state;
+      } else {
+        return { upstreamsList: action.payload };
+      }
 
     case UpstreamAction.UPDATE_UPSTREAM:
       return {

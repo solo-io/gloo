@@ -15,7 +15,7 @@ import (
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -66,12 +66,12 @@ var _ = Describe("waf", func() {
 		vhost := &gloov1.VirtualHost{
 			Name:    "gloo-system.virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+			Options: &gloov1.VirtualHostOptions{
 				Waf: wafVhostSettings,
 			},
 			Routes: []*gloov1.Route{
 				{
-					RoutePlugins: &gloov1.RoutePlugins{
+					Options: &gloov1.RouteOptions{
 						Waf: wafRouteSettings,
 					},
 					Matchers: []*matchers.Matcher{{
@@ -126,7 +126,7 @@ var _ = Describe("waf", func() {
 				ListenerType: &gloov1.Listener_HttpListener{
 					HttpListener: &gloov1.HttpListener{
 						VirtualHosts: vhosts,
-						ListenerPlugins: &gloov1.HttpListenerPlugins{
+						Options: &gloov1.HttpListenerOptions{
 							Waf: wafListenerSettings,
 						},
 					},

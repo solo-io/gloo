@@ -58,14 +58,14 @@ func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) M
 		}
 
 		if input.GetRateLimitConfig() != nil {
-			if vs.GetVirtualHost().GetVirtualHostPlugins() == nil {
-				vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
+			if vs.GetVirtualHost().GetOptions() == nil {
+				vs.VirtualHost.Options = &gloov1.VirtualHostOptions{}
 			}
 			if input.GetRateLimitConfig() != nil {
-				if vs.VirtualHost.VirtualHostPlugins.GetExtensions().GetConfigs() != nil {
-					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				if vs.VirtualHost.Options.GetExtensions().GetConfigs() != nil {
+					delete(vs.VirtualHost.Options.Extensions.Configs, ratelimit.ExtensionName)
 				}
-				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig()
+				vs.VirtualHost.Options.RatelimitBasic = input.GetRateLimitConfig()
 			}
 		}
 
@@ -94,14 +94,14 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 		}
 
 		if input.GetRateLimitConfig() != nil {
-			if vs.GetVirtualHost().GetVirtualHostPlugins() == nil {
-				vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
+			if vs.GetVirtualHost().GetOptions() == nil {
+				vs.VirtualHost.Options = &gloov1.VirtualHostOptions{}
 			}
 			if input.GetRateLimitConfig() != nil {
-				if vs.VirtualHost.VirtualHostPlugins.GetExtensions().GetConfigs() != nil {
-					delete(vs.VirtualHost.VirtualHostPlugins.Extensions.Configs, ratelimit.ExtensionName)
+				if vs.VirtualHost.Options.GetExtensions().GetConfigs() != nil {
+					delete(vs.VirtualHost.Options.Extensions.Configs, ratelimit.ExtensionName)
 				}
-				vs.VirtualHost.VirtualHostPlugins.RatelimitBasic = input.GetRateLimitConfig().GetValue()
+				vs.VirtualHost.Options.RatelimitBasic = input.GetRateLimitConfig().GetValue()
 			}
 		}
 

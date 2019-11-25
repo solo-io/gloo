@@ -3,15 +3,11 @@ package ratelimit
 import (
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/ratelimit"
-	"github.com/solo-io/go-utils/errors"
-
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
@@ -92,41 +88,9 @@ func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
-// // TODO(yuval-k): Copied from ext auth. the real solution is to add it to upstream Gloo
-type tmpPluginContainer struct {
-	params plugins.InitParams
-}
-
-func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
-	return t.params.ExtensionsSettings
-}
-
-// TODO(kdorosh) delete once support for old config is dropped
-func (p *Plugin) handleDeprecatedPluginConfig(params plugins.InitParams) error {
-	var settings ratelimit.Settings
-	p.upstreamRef = nil
-	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, rlplugin.ExtensionName, &settings)
-	if err != nil {
-		if err == utils.NotFoundError {
-			return nil
-		}
-		return err
-	}
-
-	p.upstreamRef = settings.RatelimitServerRef
-	p.timeout = settings.RequestTimeout
-	p.denyOnFail = settings.DenyOnFail
-	p.rateLimitBeforeAuth = settings.RateLimitBeforeAuth
-	return nil
-}
-
 func (p *Plugin) Init(params plugins.InitParams) error {
 	authSettings := params.Settings.GetExtauth()
 	p.authUserIdHeader = extauth.GetAuthHeader(authSettings)
-
-	if err := p.handleDeprecatedPluginConfig(params); err != nil {
-		return err
-	}
 
 	if rlServer := params.Settings.GetRatelimitServer(); rlServer != nil {
 		p.upstreamRef = rlServer.RatelimitServerRef
@@ -142,28 +106,8 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return p.ProcessVirtualHostSimple(params, in, out)
 }
 
-// TODO(kdorosh) delete once support for old config is dropped
-func (p *Plugin) handleDeprecatedVirtualHostSimple(params plugins.VirtualHostParams, in *v1.VirtualHost) (*ratelimit.IngressRateLimit, error) {
-	var rateLimit ratelimit.IngressRateLimit
-	err := utils.UnmarshalExtension(in.VirtualHostPlugins, rlplugin.ExtensionName, &rateLimit)
-	if err != nil {
-		if err == utils.NotFoundError {
-			return nil, nil
-		}
-		return nil, errors.Wrapf(err, "Error converting proto to ingress rate limit plugin")
-	}
-	return &rateLimit, nil
-}
-
 func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	rateLimit, err := p.handleDeprecatedVirtualHostSimple(params, in)
-	if err != nil {
-		return err
-	}
-
-	if rl := in.GetVirtualHostPlugins().GetRatelimitBasic(); rl != nil {
-		rateLimit = rl
-	}
+	rateLimit := in.GetOptions().GetRatelimitBasic()
 
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
@@ -175,7 +119,7 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 		return RateLimitAuthOrderingConflict
 	}
 
-	_, err = TranslateUserConfigToRateLimitServerConfig(in.Name, *rateLimit)
+	_, err := TranslateUserConfigToRateLimitServerConfig(in.Name, *rateLimit)
 	if err != nil {
 		return err
 	}
@@ -189,10 +133,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, nil
 	}
 
-	filterStage := rlplugin.DefaultFilterStage
-	if p.rateLimitBeforeAuth {
-		filterStage = rlplugin.BeforeAuthStage
-	}
+	filterStage := rlplugin.DetermineFilterStage(p.rateLimitBeforeAuth)
 
 	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, filterStage)

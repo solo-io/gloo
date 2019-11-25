@@ -7,7 +7,7 @@ import (
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -231,7 +231,7 @@ var _ = Describe("waf plugin", func() {
 					Body:   "test",
 				},
 			},
-			RoutePlugins: &v1.RoutePlugins{
+			Options: &v1.RouteOptions{
 				Waf: &waf.Settings{
 					Disabled:                  wafRoute.Disabled,
 					CoreRuleSet:               wafRoute.CoreRuleSet,
@@ -248,7 +248,7 @@ var _ = Describe("waf plugin", func() {
 		virtualHost = &v1.VirtualHost{
 			Name:    "virt1",
 			Domains: []string{"*"},
-			VirtualHostPlugins: &v1.VirtualHostPlugins{
+			Options: &v1.VirtualHostOptions{
 				Waf: &waf.Settings{
 					Disabled:                  wafVhost.Disabled,
 					CoreRuleSet:               wafVhost.CoreRuleSet,
@@ -261,7 +261,7 @@ var _ = Describe("waf plugin", func() {
 
 		httpListener = &v1.HttpListener{
 			VirtualHosts: []*v1.VirtualHost{virtualHost},
-			ListenerPlugins: &v1.HttpListenerPlugins{
+			Options: &v1.HttpListenerOptions{
 				Waf: wafListener,
 			},
 		}

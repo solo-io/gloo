@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/go-utils/errors"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -64,7 +64,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
-	jwtRoute := in.GetRoutePlugins().GetJwt()
+	jwtRoute := in.GetOptions().GetJwt()
 	if jwtRoute == nil {
 		// no config found, nothing to do here
 		return nil
@@ -77,7 +77,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	var jwtExt = in.GetVirtualHostPlugins().GetJwt()
+	var jwtExt = in.GetOptions().GetJwt()
 	if jwtExt == nil {
 		// no config found, nothing to do here
 		return nil

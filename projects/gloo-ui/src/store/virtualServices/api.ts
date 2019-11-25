@@ -1,28 +1,10 @@
+import { grpc } from '@improbable-eng/grpc-web';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/extauth/v1/extauth_pb';
 import {
   IngressRateLimit,
   RateLimit
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
-import { DestinationSpec as AwsDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
-import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb';
-import {
-  DestinationSpec,
-  RoutePlugins
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import {
-  Destination,
-  RouteAction
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
-import {
-  HeaderMatcher,
-  Matcher,
-  QueryParameterMatcher,
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
 import {
   CallCredentials,
   SDSConfig,
@@ -60,10 +42,9 @@ import {
   UpdateVirtualServiceYamlRequest,
   VirtualServiceInputV2
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { guardByLicense } from 'store/config/actions';
 import { VirtualServiceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
-import { grpc } from '@improbable-eng/grpc-web';
 import { host } from 'store';
+import { guardByLicense } from 'store/config/actions';
 import { setInputRouteValues } from 'store/routeTables/api';
 
 const client = new VirtualServiceApiClient(host, {
@@ -74,8 +55,8 @@ const client = new VirtualServiceApiClient(host, {
 });
 
 function getListVirtualServices(): Promise<
-    ListVirtualServicesResponse.AsObject
-    > {
+  ListVirtualServicesResponse.AsObject
+> {
   return new Promise((resolve, reject) => {
     let request = new ListVirtualServicesRequest();
     client.listVirtualServices(request, (error, data) => {
@@ -92,7 +73,7 @@ function getListVirtualServices(): Promise<
 }
 
 function getGetVirtualService(
-    getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
+  getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
 ): Promise<GetVirtualServiceResponse> {
   return new Promise((resolve, reject) => {
     let request = new GetVirtualServiceRequest();
@@ -114,7 +95,7 @@ function getGetVirtualService(
 }
 
 function getDeleteVirtualService(
-    deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
+  deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
 ): Promise<DeleteVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new DeleteVirtualServiceRequest();
@@ -137,7 +118,7 @@ function getDeleteVirtualService(
 }
 
 function getUpdateVirtualServiceYaml(
-    updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
+  updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
 ): Promise<UpdateVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new UpdateVirtualServiceYamlRequest();
@@ -166,7 +147,7 @@ function getUpdateVirtualServiceYaml(
 }
 
 function getDeleteRoute(
-    deleteRouteRequest: DeleteRouteRequest.AsObject
+  deleteRouteRequest: DeleteRouteRequest.AsObject
 ): Promise<DeleteRouteResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new DeleteRouteRequest();
@@ -190,7 +171,7 @@ function getDeleteRoute(
 }
 
 function getSwapRoutes(
-    swapRoutesRequest: SwapRoutesRequest.AsObject
+  swapRoutesRequest: SwapRoutesRequest.AsObject
 ): Promise<SwapRoutesResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new SwapRoutesRequest();
@@ -216,7 +197,7 @@ function getSwapRoutes(
 }
 
 function getShiftRoutes(
-    shiftRoutesRequest: ShiftRoutesRequest.AsObject
+  shiftRoutesRequest: ShiftRoutesRequest.AsObject
 ): Promise<ShiftRoutesResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new ShiftRoutesRequest();
@@ -242,7 +223,7 @@ function getShiftRoutes(
 }
 
 function getVirtualServiceForUpdate(
-    virtualServiceRef: ResourceRef.AsObject
+  virtualServiceRef: ResourceRef.AsObject
 ): Promise<VirtualServiceInputV2> {
   return new Promise(async (resolve, reject) => {
     // input V2
@@ -294,7 +275,7 @@ function getVirtualServiceForUpdate(
             inputVirtualServiceV2.setRoutes(inputV2Routes);
           }
           // virtual host plugins TODO ?
-          let currentVirtualHostPlugins = currentVirtualHost.getVirtualHostPlugins();
+          let currentVirtualHostPlugins = currentVirtualHost.getOptions();
           if (currentVirtualHostPlugins !== undefined) {
             let currentVHostExtensions = currentVirtualHostPlugins.getExtensions();
             let currentVHostRetries = currentVirtualHostPlugins.getRetries();
@@ -370,7 +351,7 @@ function getUpdateDisplayName(updateDisplayNameRequest: {
     let updateRequest = new UpdateVirtualServiceRequest();
 
     let inputV2 = await getVirtualServiceForUpdate(
-        updateDisplayNameRequest.ref
+      updateDisplayNameRequest.ref
     );
     let inputV2DisplayName = new StringValue();
 
@@ -457,10 +438,10 @@ function setInputSslConfigValues(sslConfig: SslConfig.AsObject) {
         let newCallCreds = new CallCredentials();
         let newCallCredsSource = new CallCredentials.FileCredentialSource();
         newCallCredsSource.setHeader(
-            callCredentials.fileCredentialSource!.header
+          callCredentials.fileCredentialSource!.header
         );
         newCallCredsSource.setTokenFileName(
-            callCredentials.fileCredentialSource!.tokenFileName
+          callCredentials.fileCredentialSource!.tokenFileName
         );
         newCallCreds.setFileCredentialSource(newCallCredsSource);
         updatedSds.setCallCredentials(newCallCreds);
@@ -505,7 +486,7 @@ function getUpdateSslConfig(updateSslConfigRequest: {
 
     let inputV2 = await getVirtualServiceForUpdate(updateSslConfigRequest.ref);
     let inputV2SslConfig = setInputSslConfigValues(
-        updateSslConfigRequest.sslConfig!
+      updateSslConfigRequest.sslConfig!
     );
 
     inputV2.setSslConfig(inputV2SslConfig);
@@ -524,7 +505,7 @@ function getUpdateSslConfig(updateSslConfigRequest: {
 }
 
 function getCreateRoute(
-    createRouteRequest: CreateRouteRequest.AsObject
+  createRouteRequest: CreateRouteRequest.AsObject
 ): Promise<CreateRouteResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let createRequest = new CreateRouteRequest();
@@ -560,7 +541,7 @@ function getCreateRoute(
 }
 
 function getUpdateVirtualService(
-    updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
+  updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
 ): Promise<UpdateVirtualServiceResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
     let updateRequest = new UpdateVirtualServiceRequest();
@@ -580,7 +561,7 @@ function getUpdateVirtualService(
       // ref
       inputV2Ref.setName(updateVirtualServiceRequest.inputV2!.ref!.name);
       inputV2Ref.setNamespace(
-          updateVirtualServiceRequest.inputV2!.ref!.namespace
+        updateVirtualServiceRequest.inputV2!.ref!.namespace
       );
       inputV2.setRef(inputV2Ref);
       // display name
@@ -598,14 +579,14 @@ function getUpdateVirtualService(
       let inputRoutes = updateVirtualServiceRequest.inputV2!.routes;
       if (inputRoutes !== undefined) {
         inputV2Routes.setValuesList(
-            inputRoutes!.valuesList.map(setInputRouteValues)
+          inputRoutes!.valuesList.map(setInputRouteValues)
         );
         inputV2.setRoutes(inputV2Routes);
       }
       //extAuth
       if (updateVirtualServiceRequest.inputV2!.extAuthConfig !== undefined) {
         inputV2ExtAuthConfig = setInputExtAuthValues(
-            updateVirtualServiceRequest.inputV2!.extAuthConfig
+          updateVirtualServiceRequest.inputV2!.extAuthConfig
         );
         inputV2.setExtAuthConfig(inputV2ExtAuthConfig);
       }
@@ -613,7 +594,7 @@ function getUpdateVirtualService(
       // rate limit
       if (updateVirtualServiceRequest.inputV2!.rateLimitConfig !== undefined) {
         inputV2RateLimitConfig = setInputRateLimitValues(
-            updateVirtualServiceRequest.inputV2!.rateLimitConfig.value!
+          updateVirtualServiceRequest.inputV2!.rateLimitConfig.value!
         );
         inputV2.setRateLimitConfig(inputV2RateLimitConfig);
       }
@@ -650,7 +631,7 @@ function getUpdateVirtualService(
 }
 
 function getCreateVirtualService(
-    createVirtualSeviceRequest: CreateVirtualServiceRequest.AsObject
+  createVirtualSeviceRequest: CreateVirtualServiceRequest.AsObject
 ): Promise<CreateVirtualServiceResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let createRequest = new CreateVirtualServiceRequest();
@@ -706,7 +687,7 @@ function getCreateVirtualService(
       //routes
       if (routes !== undefined) {
         inputV2Routes.setValuesList(
-            routes!.valuesList.map(setInputRouteValues)
+          routes!.valuesList.map(setInputRouteValues)
         );
         inputV2.setRoutes(inputV2Routes);
       }
@@ -719,7 +700,7 @@ function getCreateVirtualService(
       // rate limit
       if (rateLimitConfig !== undefined) {
         inputV2RateLimitConfig = setInputRateLimitValues(
-            rateLimitConfig.value!
+          rateLimitConfig.value!
         );
         inputV2.setRateLimitConfig(inputV2RateLimitConfig);
       }
@@ -805,7 +786,7 @@ function getUpdateExtAuth(updateExtAuthRequest: {
     let inputV2 = await getVirtualServiceForUpdate(updateExtAuthRequest.ref);
 
     let inputV2ExtAuthConfig = setInputExtAuthValues(
-        updateExtAuthRequest.extAuthConfig
+      updateExtAuthRequest.extAuthConfig
     );
     inputV2.setExtAuthConfig(inputV2ExtAuthConfig);
     updateRequest.setInputV2(inputV2);
@@ -833,7 +814,7 @@ function setInputRateLimitValues(rateLimitConfig: IngressRateLimit.AsObject) {
     if (authorizedLimits !== undefined) {
       let inputAuthorizedRateLimit = new RateLimit();
       inputAuthorizedRateLimit.setRequestsPerUnit(
-          authorizedLimits.requestsPerUnit
+        authorizedLimits.requestsPerUnit
       );
       inputAuthorizedRateLimit.setUnit(authorizedLimits.unit);
       newIngressRateLimit.setAuthorizedLimits(inputAuthorizedRateLimit);
@@ -842,7 +823,7 @@ function setInputRateLimitValues(rateLimitConfig: IngressRateLimit.AsObject) {
     if (anonymousLimits !== undefined) {
       let inputAnonymousRateLimit = new RateLimit();
       inputAnonymousRateLimit.setRequestsPerUnit(
-          anonymousLimits.requestsPerUnit
+        anonymousLimits.requestsPerUnit
       );
       inputAnonymousRateLimit.setUnit(anonymousLimits.unit);
       newIngressRateLimit.setAnonymousLimits(inputAnonymousRateLimit);
@@ -861,7 +842,7 @@ function getUpdateRateLimit(updateRateLimitRequest: {
     let inputV2 = await getVirtualServiceForUpdate(updateRateLimitRequest.ref);
 
     let inputV2RateLimitConfig = setInputRateLimitValues(
-        updateRateLimitRequest.rateLimitConfig
+      updateRateLimitRequest.rateLimitConfig
     );
 
     inputV2.setRateLimitConfig(inputV2RateLimitConfig);

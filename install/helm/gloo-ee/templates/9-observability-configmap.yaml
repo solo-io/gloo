@@ -7,8 +7,7 @@ metadata:
   labels:
     app: gloo
     release: {{ .Release.Name }}
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
 data:
   {{- if .Values.observability.customGrafana.url}}
   GRAFANA_URL: {{.Values.observability.customGrafana.url}}

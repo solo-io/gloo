@@ -52,7 +52,6 @@ const App = () => {
   }, []);
 
   useInterval(() => {
-    dispatch(listUpstreams());
     dispatch(listVirtualServices());
     dispatch(listSecrets());
     dispatch(listGateways());
@@ -60,12 +59,15 @@ const App = () => {
     dispatch(listNamespaces());
     dispatch(getSettings());
     dispatch(getPodNamespace());
-    dispatch(getIsLicenseValid());
     dispatch(getVersion());
     dispatch(listEnvoyDetails());
     dispatch(listRouteTables());
   }, 3000);
 
+  useInterval(() => {
+    dispatch(getIsLicenseValid());
+    dispatch(listUpstreams());
+  }, 60000);
   const showModal = useSelector((state: AppState) => state.modal.showModal);
   const modalMessage = useSelector((state: AppState) => state.modal.message);
   return (

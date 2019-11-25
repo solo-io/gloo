@@ -1,12 +1,9 @@
 import styled from '@emotion/styled';
-import { Breadcrumb, Popconfirm, Spin } from 'antd';
-import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
+import { Breadcrumb, Spin } from 'antd';
 import { ReactComponent as RouteTableIcon } from 'assets/route-table-icon.svg';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import {
@@ -14,20 +11,15 @@ import {
   VirtualService
 } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { useHistory, useParams } from 'react-router-dom';
 import { AppState } from 'store';
 import {
   listRouteTables,
-  updateRouteTableYaml,
-  updateRouteTable
+  updateRouteTable,
+  updateRouteTableYaml
 } from 'store/routeTables/actions';
-import {
-  colors,
-  healthConstants,
-  TableActionCircle,
-  TableActions
-} from 'Styles';
+import { colors, healthConstants } from 'Styles';
 import {
   getRouteHeaders,
   getRouteMatcher,
@@ -36,109 +28,31 @@ import {
   getRouteSingleUpstream
 } from 'utils/helpers';
 import {
-  ConfigurationToggle,
-  DetailsContent,
-  DetailsSection,
-  DetailsSectionTitle,
-  YamlLink
-} from './Details/VirtualServiceDetails';
-import {
   CreateRouteModal,
   CreateRouteValuesType
 } from './Creation/CreateRouteModal';
-
-const RouteMatch = styled.div`
-  max-width: 200px;
-  max-height: 70px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
+import { Routes } from './Details/Routes';
+import {
+  ConfigurationToggle,
+  DetailsContent,
+  DetailsSection,
+  DetailsSectionTitle
+} from './Details/VirtualServiceDetails';
 
 const RouteSectionTitle = styled.div`
   font-size: 18px;
   color: ${colors.novemberGrey};
   margin-top: 10px;
   display: flex;
-  justify-content: space-between;
-`;
-
-const StyledGreenPlus = styled(GreenPlus)`
-  cursor: pointer;
-  margin-right: 7px;
-`;
-const ModalTrigger = styled.div`
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-size: 14px;
+  justify-content: flex-end;
 `;
 
 const YamlLinks = styled.div`
   display: flex;
+  justify-items: flex-end;
   align-items: center;
 `;
 
-const getRouteColumns = (
-  showEditRouteModal: (matcher: string) => void,
-  deleteRoute: (matcher: string) => any
-) => {
-  return [
-    {
-      title: 'Matcher',
-      dataIndex: 'matcher',
-      render: (matcher: string) => {
-        return <RouteMatch>{matcher}</RouteMatch>;
-      }
-    },
-    {
-      title: 'Path Match Type',
-      dataIndex: 'pathMatch'
-    },
-    {
-      title: 'Methods',
-      dataIndex: 'method',
-      width: 150
-    },
-    {
-      title: 'Destination',
-      dataIndex: 'upstreamName'
-    },
-    {
-      title: 'Headers',
-      dataIndex: 'header'
-    },
-    {
-      title: 'Query Parameters',
-      dataIndex: 'queryParams'
-    },
-    {
-      title: 'Actions',
-      dataIndex: 'actions',
-      render: (matcher: string) => {
-        return (
-          <TableActions>
-            <TableActionCircle onClick={() => showEditRouteModal(matcher)}>
-              <EditPencil />
-            </TableActionCircle>
-
-            <div style={{ marginLeft: '5px' }}>
-              <Popconfirm
-                onConfirm={() => deleteRoute(matcher)}
-                title={'Are you sure you want to delete this route? '}
-                okText='Yes'
-                cancelText='No'>
-                <TableActionCircle data-testid={`delete-route-${matcher}`}>
-                  x
-                </TableActionCircle>
-              </Popconfirm>
-            </div>
-          </TableActions>
-        );
-      }
-    }
-  ];
-};
 export interface RouteParent
   extends VirtualService.AsObject,
     RouteTable.AsObject {}
@@ -151,12 +65,15 @@ export const RouteTableDetails = () => {
   const [routeBeingEdited, setRouteBeingEdited] = React.useState<
     Route.AsObject | undefined
   >(undefined);
+
   const routeTablesList = useSelector(
-    (state: AppState) => state.routeTables.routeTablesList
+    (state: AppState) => state.routeTables.routeTablesList,
+    shallowEqual
   );
 
   const yamlError = useSelector(
-    (state: AppState) => state.virtualServices.yamlParseError
+    (state: AppState) => state.virtualServices.yamlParseError,
+    shallowEqual
   );
 
   const dispatch = useDispatch();
@@ -174,19 +91,15 @@ export const RouteTableDetails = () => {
       rtD.routeTable.metadata!.name === routetablename
   )!;
 
-  const [routesList, setRoutesList] = React.useState<Route.AsObject[]>(
-    routeTablesList.flatMap(rtd => rtd!.routeTable!.routesList)
+  const routesList = useSelector((state: AppState) =>
+    state.routeTables.routeTablesList
+      .filter(
+        rtd =>
+          rtd?.routeTable?.metadata?.name === routetablename &&
+          rtd?.routeTable?.metadata?.namespace === routetablenamespace
+      )
+      .flatMap(rtd => rtd!.routeTable!.routesList)
   );
-
-  React.useEffect(() => {
-    if (
-      routesList.length === 0 &&
-      !!routeTableDetails &&
-      !!routeTableDetails.routeTable
-    ) {
-      setRoutesList(routeTableDetails.routeTable.routesList);
-    }
-  }, [routeTablesList.length, routesList.length]);
 
   if (!routeTablesList || !routeTableDetails || !routeTableDetails.routeTable) {
     return (
@@ -242,7 +155,6 @@ export const RouteTableDetails = () => {
         }
       })
     );
-    setRoutesList(newList);
   };
 
   const beginRouteEditing = (matcherToEdit: string) => {
@@ -256,14 +168,41 @@ export const RouteTableDetails = () => {
   };
 
   const handleCreateRoute = (values: CreateRouteValuesType) => {
+    console.log('values', values);
     let newRoutesList = routeTable.routesList;
 
     if (routeBeingEdited !== undefined) {
       newRoutesList = routeTable.routesList.filter(
-        route => route.matchersList[0]!.prefix !== routeBeingEdited!.matchersList[0]!.prefix
+        route =>
+          route.matchersList[0]?.prefix !==
+          routeBeingEdited?.matchersList[0]?.prefix
       );
     }
-
+    let destination;
+    if (values.destinationType === 'Route Table') {
+      destination = {
+        delegateAction: {
+          name: values.routeDestination!.metadata!.name,
+          namespace: values.routeDestination!.metadata!.namespace
+        }
+      };
+    } else if (values.destinationType === 'Upstream') {
+      // let destinationSpec;
+      // if (values.destinationSpec !== undefined) {
+      //   destinationSpec = values.destinationSpec;
+      // }
+      // destination = {
+      //   routeAction: {
+      //     single: {
+      //       upstream: {
+      //         name: values.upstream!.metadata!.name,
+      //         namespace: values.upstream!.metadata!.namespace
+      //       },
+      //       destinationSpec
+      //     }
+      //   }
+      // };
+    }
     dispatch(
       updateRouteTable({
         routeTable: {
@@ -281,15 +220,8 @@ export const RouteTableDetails = () => {
                   queryParametersList: values.queryParameters
                 }
               ],
-              routeAction: {
-                single: {
-                  upstream: {
-                    name: values.upstream!.metadata!.name,
-                    namespace: values.upstream!.metadata!.namespace
-                  },
-                  destinationSpec: values.destinationSpec
-                }
-              }
+
+              ...destination
             }
           ]
         }
@@ -313,7 +245,6 @@ export const RouteTableDetails = () => {
         }
       })
     );
-    setRoutesList(newRoutesList);
   };
 
   const headerInfo = [
@@ -348,7 +279,6 @@ export const RouteTableDetails = () => {
         }
         onClose={() => history.push(`/virtualservices/`)}>
         <RouteSectionTitle>
-          <b>Routes</b>
           <YamlLinks>
             {!!raw && (
               <>
@@ -362,21 +292,12 @@ export const RouteTableDetails = () => {
                 />
               </>
             )}
-            <ModalTrigger
-              data-testid='create-new-route-modal'
-              onClick={() => setShowCreateRouteModal(true)}>
-              <>
-                <StyledGreenPlus />
-                <b>Create Route</b>
-              </>
-            </ModalTrigger>
           </YamlLinks>
         </RouteSectionTitle>
         <DetailsContent
           configurationShowing={showConfiguration}
           style={{ gridTemplateRows: 'unset' }}>
           <DetailsSection></DetailsSection>
-          <div style={{ height: '40px' }}></div>
           {showConfiguration && (
             <DetailsSection>
               <DetailsSectionTitle>YAML Configuration</DetailsSectionTitle>
@@ -390,24 +311,23 @@ export const RouteTableDetails = () => {
           )}
           <DetailsSection>
             <>
-              <SoloDragSortableTable
-                columns={getRouteColumns(beginRouteEditing, handleDeleteRoute)}
-                dataSource={existingRoutes}
-                moveRow={reorderRoutes}
+              <Routes
+                routes={routesList}
+                routeParent={routeTable as RouteParent}
               />
-
               <SoloModal
                 visible={showCreateRouteModal}
                 width={500}
                 title={'Create Route'}
                 onClose={() => setShowCreateRouteModal(false)}>
                 <CreateRouteModal
-                  defaultRouteParent={routeTable! as RouteParent}
+                  defaultRouteParent={routeTable!.metadata}
                   completeCreation={() => setShowCreateRouteModal(false)}
                   createRouteFn={handleCreateRoute}
                 />
               </SoloModal>
-              <SoloModal
+              {/* temporarily removing edit route functionality (ascampos) */}
+              {/* <SoloModal
                 visible={!!routeBeingEdited}
                 width={500}
                 title={'Edit Route'}
@@ -418,7 +338,7 @@ export const RouteTableDetails = () => {
                   completeCreation={finishRouteEditiing}
                   createRouteFn={handleCreateRoute}
                 />
-              </SoloModal>
+              </SoloModal> */}
             </>
           </DetailsSection>
         </DetailsContent>

@@ -14,7 +14,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -25,13 +24,13 @@ import (
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/test/services"
 
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/extauth/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fgrosse/zaptest"
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -75,15 +74,13 @@ var _ = Describe("External auth", func() {
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
-			UpstreamSpec: &gloov1.UpstreamSpec{
-				UseHttp2: true,
-				UpstreamType: &gloov1.UpstreamSpec_Static{
-					Static: &gloov1static.UpstreamSpec{
-						Hosts: []*gloov1static.Host{{
-							Addr: extauthAddr,
-							Port: extAuthPort,
-						}},
-					},
+			UseHttp2: true,
+			UpstreamType: &gloov1.Upstream_Static{
+				Static: &gloov1static.UpstreamSpec{
+					Hosts: []*gloov1static.Host{{
+						Addr: extauthAddr,
+						Port: extAuthPort,
+					}},
 				},
 			},
 		}
@@ -247,21 +244,17 @@ var _ = Describe("External auth", func() {
 					clientSecret := &extauth.OauthSecret{
 						ClientSecret: "test",
 					}
-					secretStruct, err := envoyutil.MessageToStruct(clientSecret)
-					Expect(err).NotTo(HaveOccurred())
 
 					secret = &gloov1.Secret{
 						Metadata: core.Metadata{
 							Name:      "secret",
 							Namespace: "default",
 						},
-						Kind: &gloov1.Secret_Extension{
-							Extension: &gloov1.Extension{
-								Config: secretStruct,
-							},
+						Kind: &gloov1.Secret_Oauth{
+							Oauth: clientSecret,
 						},
 					}
-					_, err = testClients.SecretClient.Write(secret, clients.WriteOpts{})
+					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
 					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
@@ -543,26 +536,20 @@ var _ = Describe("External auth", func() {
 					apiKeySecret1 := &extauth.ApiKeySecret{
 						ApiKey: "secretApiKey1",
 					}
-					secretStruct1, err := envoyutil.MessageToStruct(apiKeySecret1)
-					Expect(err).NotTo(HaveOccurred())
 
 					secret1 := &gloov1.Secret{
 						Metadata: core.Metadata{
 							Name:      "secret1",
 							Namespace: "default",
 						},
-						Kind: &gloov1.Secret_Extension{
-							Extension: &gloov1.Extension{
-								Config: secretStruct1,
-							},
+						Kind: &gloov1.Secret_ApiKey{
+							ApiKey: apiKeySecret1,
 						},
 					}
 
 					apiKeySecret2 := &extauth.ApiKeySecret{
 						ApiKey: "secretApiKey2",
 					}
-					secretStruct2, err := envoyutil.MessageToStruct(apiKeySecret2)
-					Expect(err).NotTo(HaveOccurred())
 
 					secret2 := &gloov1.Secret{
 						Metadata: core.Metadata{
@@ -570,10 +557,8 @@ var _ = Describe("External auth", func() {
 							Namespace: "default",
 							Labels:    map[string]string{"team": "infrastructure"},
 						},
-						Kind: &gloov1.Secret_Extension{
-							Extension: &gloov1.Extension{
-								Config: secretStruct2,
-							},
+						Kind: &gloov1.Secret_ApiKey{
+							ApiKey: apiKeySecret2,
 						},
 					}
 
@@ -873,7 +858,7 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 	vhost := &gloov1.VirtualHost{
 		Name:    "gloo-system.virt1",
 		Domains: []string{"*"},
-		VirtualHostPlugins: &gloov1.VirtualHostPlugins{
+		Options: &gloov1.VirtualHostOptions{
 			Extauth: extauthCfg,
 		},
 		Routes: []*gloov1.Route{{

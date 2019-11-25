@@ -10,8 +10,7 @@ metadata:
   labels:
     app: gloo
     gloo: rbac
-    {{- $installationContext := dict "Values" .Values.gloo }} # TODO: https://github.com/solo-io/gloo/issues/1635
-    installationId: {{ include "gloo.installationId" $installationContext }}
+    installationId: {{ include "gloo.installationId" . }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "10"
@@ -29,7 +28,7 @@ rules:
   - apiGroups: ["gloo.solo.io"]
     resources: ["settings"]
     verbs: ["get", "list", "watch", "create"]
-  - apiGroups: ["gateway.solo.io.v2"]
+  - apiGroups: ["gateway.solo.io"]
     resources: ["gateways"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["gateway.solo.io"]
@@ -46,7 +45,7 @@ rules:
   - apiGroups: ["gloo.solo.io"]
     resources: ["artifacts", "settings", "upstreams", "upstreamgroups", "proxies", "secrets"]
     verbs: ["create", "update", "delete"]
-  - apiGroups: ["gateway.solo.io.v2"]
+  - apiGroups: ["gateway.solo.io"]
     resources: ["gateways"]
     verbs: ["create", "update", "delete"]
   - apiGroups: ["gateway.solo.io"]

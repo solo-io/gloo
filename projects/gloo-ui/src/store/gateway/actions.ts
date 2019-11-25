@@ -19,7 +19,7 @@ export const listGateways = () => {
     // dispatch(showLoading());
 
     try {
-      const response = await gateways.getListGateways();
+      const response = await gateways.listGateways();
       dispatch<ListGatewaysAction>({
         type: GatewayAction.LIST_GATEWAYS,
         payload: response.gatewayDetailsList
@@ -35,7 +35,7 @@ export const updateGateway = (
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await gateways.getUpdateGateway(updateGatewayRequest);
+      const response = await gateways.updateGateway(updateGatewayRequest);
       dispatch<UpdateGatewayAction>({
         type: GatewayAction.UPDATE_GATEWAY,
         payload: response.gatewayDetails!

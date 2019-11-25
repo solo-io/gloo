@@ -3,15 +3,15 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb from "../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v2/gateway_pb";
+import * as github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb from "../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb";
 
 export class GatewayDetails extends jspb.Message {
   hasGateway(): boolean;
   clearGateway(): void;
-  getGateway(): github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway | undefined;
-  setGateway(value?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway): void;
+  getGateway(): github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway | undefined;
+  setGateway(value?: github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway): void;
 
   hasRaw(): boolean;
   clearRaw(): void;
@@ -35,7 +35,7 @@ export class GatewayDetails extends jspb.Message {
 
 export namespace GatewayDetails {
   export type AsObject = {
-    gateway?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.AsObject,
+    gateway?: github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.AsObject,
     raw?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
     status?: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb.Status.AsObject,
   }
@@ -132,8 +132,8 @@ export namespace ListGatewaysResponse {
 export class UpdateGatewayRequest extends jspb.Message {
   hasGateway(): boolean;
   clearGateway(): void;
-  getGateway(): github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway | undefined;
-  setGateway(value?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway): void;
+  getGateway(): github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway | undefined;
+  setGateway(value?: github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateGatewayRequest.AsObject;
@@ -147,7 +147,7 @@ export class UpdateGatewayRequest extends jspb.Message {
 
 export namespace UpdateGatewayRequest {
   export type AsObject = {
-    gateway?: github_com_solo_io_gloo_projects_gateway_api_v2_gateway_pb.Gateway.AsObject,
+    gateway?: github_com_solo_io_gloo_projects_gateway_api_v1_gateway_pb.Gateway.AsObject,
   }
 }
 

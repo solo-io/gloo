@@ -83,11 +83,11 @@ func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {
 }
 
 func (t *templateGenerator) buildEnvoyClusterName() string {
-	us := t.upstream.GetUpstreamSpec()
+	us := t.upstream
 	switch us.GetUpstreamType().(type) {
 
 	// kubernetes upstreams have their prometheus statistics built using metadata about the service being represented
-	case *gloov1.UpstreamSpec_Kube:
+	case *gloov1.Upstream_Kube:
 		kube := us.GetKube()
 		return fmt.Sprintf("%s-%s-%d_%s", kube.ServiceNamespace, kube.ServiceName, kube.ServicePort, t.upstream.Metadata.Namespace)
 

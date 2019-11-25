@@ -3,7 +3,6 @@ import {
   RadioFilterProps
 } from 'Components/Common/ListingFilter';
 import _ from 'lodash';
-import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
@@ -30,20 +29,22 @@ export function parseUpstreamId(
 }
 
 export function getUpstreamType(upstream: Upstream.AsObject) {
+  // return upstream.getUpstreamTypeCase();
+
   let upstreamType = 'other';
-  if (!!upstream.upstreamSpec!.aws) {
+  if (upstream?.aws !== undefined) {
     upstreamType = 'Aws';
   }
 
-  if (!!upstream.upstreamSpec!.azure) {
+  if (upstream?.azure !== undefined) {
     upstreamType = 'Azure';
   }
 
-  if (!!upstream.upstreamSpec!.consul) {
+  if (upstream?.consul !== undefined) {
     upstreamType = 'Consul';
   }
 
-  if (!!upstream.upstreamSpec!.kube) {
+  if (upstream?.kube !== undefined) {
     upstreamType = 'Kubernetes';
   }
   // TODO: add back
@@ -51,7 +52,7 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   //   upstreamType = 'Aws Ec 2';
   // }
 
-  if (!!upstream.upstreamSpec!.pb_static) {
+  if (upstream?.pb_static !== undefined) {
     upstreamType = 'Static';
   }
 
@@ -60,28 +61,22 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
 
 export function getFunctionInfo(upstream: Upstream.AsObject) {
   if (getUpstreamType(upstream) === 'Azure') {
-    return `${upstream.upstreamSpec!.azure!.functionsList.length}`;
+    return `${upstream?.azure!.functionsList.length}`;
   }
   if (getUpstreamType(upstream) === 'Aws') {
-    return `${upstream.upstreamSpec!.aws!.lambdaFunctionsList.length}`;
+    return `${upstream?.aws!.lambdaFunctionsList.length}`;
   }
-  if (
-    upstream.upstreamSpec!.kube &&
-    upstream.upstreamSpec!.kube!.serviceSpec &&
-    upstream.upstreamSpec!.kube!.serviceSpec!.rest
-  ) {
-    return `${
-      upstream.upstreamSpec!.kube!.serviceSpec!.rest!.transformationsMap.length
-    }`;
+  if (upstream?.kube?.serviceSpec?.rest !== undefined) {
+    return `${upstream?.kube!.serviceSpec!.rest?.transformationsMap?.length}`;
   }
   return '';
 }
 
-export function getFunctionList(upstreamSpec: UpstreamSpec.AsObject) {
+export function getFunctionList(upstream: Upstream.AsObject) {
   let functionsList: { key: string; value: string }[] = [];
-  if (upstreamSpec) {
-    if (upstreamSpec.aws && upstreamSpec.aws.lambdaFunctionsList.length > 0) {
-      let newList = upstreamSpec.aws.lambdaFunctionsList.map(lambda => {
+  if (upstream) {
+    if (upstream?.aws && upstream?.aws?.lambdaFunctionsList?.length > 0) {
+      let newList = upstream?.aws.lambdaFunctionsList.map(lambda => {
         return {
           key: lambda.logicalName,
           value: lambda.logicalName
@@ -89,8 +84,8 @@ export function getFunctionList(upstreamSpec: UpstreamSpec.AsObject) {
       });
       functionsList = newList;
     }
-    if (upstreamSpec.kube) {
-      const { serviceSpec } = upstreamSpec.kube;
+    if (upstream?.kube) {
+      const { serviceSpec } = upstream?.kube;
       if (serviceSpec && serviceSpec.rest) {
         let newList = serviceSpec.rest.transformationsMap.map(
           ([func, transform]) => {

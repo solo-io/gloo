@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/plugins/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
 	"github.com/solo-io/go-utils/testutils/helper"
 
@@ -104,7 +104,7 @@ var _ = Describe("waf tests", func() {
 				CoreRuleSet: &waf.CoreRuleSet{},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				Waf: wafVhost,
 			}
 
@@ -122,7 +122,7 @@ var _ = Describe("waf tests", func() {
 				},
 			}
 
-			virtualHostPlugins := &gloov1.VirtualHostPlugins{
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				Waf: wafVhost,
 			}
 

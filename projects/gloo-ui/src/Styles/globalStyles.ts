@@ -6,6 +6,7 @@ export const globalStyles = css`
   body {
     width: 100vw;
     height: 100vh;
+    overflow: auto !important;
   }
 
   body {
@@ -27,6 +28,11 @@ export const globalStyles = css`
     }
 
     .ant-popover {
+      color: white;
+      .ant-popover-title {
+        color: white;
+        border: none;
+      }
       .ant-popover-content {
         min-width: 125px;
 

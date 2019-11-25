@@ -1,6 +1,6 @@
 import { Modal } from 'antd';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
-import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/plugins/ratelimit/ratelimit_pb';
+import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CreateRouteRequest,

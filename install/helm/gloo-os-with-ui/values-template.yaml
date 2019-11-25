@@ -30,7 +30,7 @@ gloo:
         repository: gloo
       replicas: 1
   gatewayProxies:
-    gatewayProxyV2:
+    gatewayProxy:
       stats: true
       kind:
         deployment:
@@ -68,10 +68,19 @@ gloo:
         registry: quay.io/solo-io
     enabled: true
     updateValues: true
-    conversionJob:
+    validation:
+      enabled: true
+      failurePolicy: "Ignore"
+      secretName: gateway-validation-certs
+      alwaysAcceptResources: true
+    certGenJob:
+      enabled: true
       image:
-        repository: gateway-conversion
-      restartPolicy: Never
+        repository: certgen
+        registry: quay.io/solo-io
+      restartPolicy: OnFailure
+      setTtlAfterFinished: true
+      ttlSecondsAfterFinished: 60
   accessLogger:
     enabled: false
     port: 8083

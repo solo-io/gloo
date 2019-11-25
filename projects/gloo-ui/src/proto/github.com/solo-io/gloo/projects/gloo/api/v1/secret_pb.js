@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb.js');
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.AwsSecret', null, global);
@@ -46,7 +47,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Secret.oneofGroups_ = [[1,2,3,4]];
+proto.gloo.solo.io.Secret.oneofGroups_ = [[1,2,3,5,6,4]];
 
 /**
  * @enum {number}
@@ -56,7 +57,9 @@ proto.gloo.solo.io.Secret.KindCase = {
   AWS: 1,
   AZURE: 2,
   TLS: 3,
-  EXTENSION: 4
+  OAUTH: 5,
+  API_KEY: 6,
+  EXTENSIONS: 4
 };
 
 /**
@@ -98,7 +101,9 @@ proto.gloo.solo.io.Secret.toObject = function(includeInstance, msg) {
     aws: (f = msg.getAws()) && proto.gloo.solo.io.AwsSecret.toObject(includeInstance, f),
     azure: (f = msg.getAzure()) && proto.gloo.solo.io.AzureSecret.toObject(includeInstance, f),
     tls: (f = msg.getTls()) && proto.gloo.solo.io.TlsSecret.toObject(includeInstance, f),
-    extension: (f = msg.getExtension$()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.toObject(includeInstance, f),
+    oauth: (f = msg.getOauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret.toObject(includeInstance, f),
+    apiKey: (f = msg.getApiKey()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret.toObject(includeInstance, f),
+    extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f)
   };
 
@@ -151,10 +156,20 @@ proto.gloo.solo.io.Secret.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.gloo.solo.io.TlsSecret.deserializeBinaryFromReader);
       msg.setTls(value);
       break;
+    case 5:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret.deserializeBinaryFromReader);
+      msg.setOauth(value);
+      break;
+    case 6:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret.deserializeBinaryFromReader);
+      msg.setApiKey(value);
+      break;
     case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.deserializeBinaryFromReader);
-      msg.setExtension$(value);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.deserializeBinaryFromReader);
+      msg.setExtensions(value);
       break;
     case 7:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -214,12 +229,28 @@ proto.gloo.solo.io.Secret.serializeBinaryToWriter = function(message, writer) {
       proto.gloo.solo.io.TlsSecret.serializeBinaryToWriter
     );
   }
-  f = message.getExtension$();
+  f = message.getOauth();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret.serializeBinaryToWriter
+    );
+  }
+  f = message.getApiKey();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtensions();
   if (f != null) {
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
     );
   }
   f = message.getMetadata();
@@ -324,23 +355,23 @@ proto.gloo.solo.io.Secret.prototype.hasTls = function() {
 
 
 /**
- * optional Extension extension = 4;
- * @return {?proto.gloo.solo.io.Extension}
+ * optional enterprise.gloo.solo.io.OauthSecret oauth = 5;
+ * @return {?proto.enterprise.gloo.solo.io.OauthSecret}
  */
-proto.gloo.solo.io.Secret.prototype.getExtension$ = function() {
-  return /** @type{?proto.gloo.solo.io.Extension} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension, 4));
+proto.gloo.solo.io.Secret.prototype.getOauth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.OauthSecret} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret, 5));
 };
 
 
-/** @param {?proto.gloo.solo.io.Extension|undefined} value */
-proto.gloo.solo.io.Secret.prototype.setExtension$ = function(value) {
-  jspb.Message.setOneofWrapperField(this, 4, proto.gloo.solo.io.Secret.oneofGroups_[0], value);
+/** @param {?proto.enterprise.gloo.solo.io.OauthSecret|undefined} value */
+proto.gloo.solo.io.Secret.prototype.setOauth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.gloo.solo.io.Secret.oneofGroups_[0], value);
 };
 
 
-proto.gloo.solo.io.Secret.prototype.clearExtension$ = function() {
-  this.setExtension$(undefined);
+proto.gloo.solo.io.Secret.prototype.clearOauth = function() {
+  this.setOauth(undefined);
 };
 
 
@@ -348,7 +379,67 @@ proto.gloo.solo.io.Secret.prototype.clearExtension$ = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Secret.prototype.hasExtension$ = function() {
+proto.gloo.solo.io.Secret.prototype.hasOauth = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional enterprise.gloo.solo.io.ApiKeySecret api_key = 6;
+ * @return {?proto.enterprise.gloo.solo.io.ApiKeySecret}
+ */
+proto.gloo.solo.io.Secret.prototype.getApiKey = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ApiKeySecret} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret, 6));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ApiKeySecret|undefined} value */
+proto.gloo.solo.io.Secret.prototype.setApiKey = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.gloo.solo.io.Secret.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Secret.prototype.clearApiKey = function() {
+  this.setApiKey(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Secret.prototype.hasApiKey = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional Extensions extensions = 4;
+ * @return {?proto.gloo.solo.io.Extensions}
+ */
+proto.gloo.solo.io.Secret.prototype.getExtensions = function() {
+  return /** @type{?proto.gloo.solo.io.Extensions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions, 4));
+};
+
+
+/** @param {?proto.gloo.solo.io.Extensions|undefined} value */
+proto.gloo.solo.io.Secret.prototype.setExtensions = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.gloo.solo.io.Secret.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Secret.prototype.clearExtensions = function() {
+  this.setExtensions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Secret.prototype.hasExtensions = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 

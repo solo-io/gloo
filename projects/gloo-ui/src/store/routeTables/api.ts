@@ -24,22 +24,23 @@ import {
 import {
   HeaderMatcher,
   Matcher,
-  QueryParameterMatcher,
+  QueryParameterMatcher
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
-import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/parameters_pb';
+import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/parameters_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import {
-  RoutePlugins,
-  DestinationSpec
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
-import { DestinationSpec as AwsDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
+
+import { DestinationSpec as AwsDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb';
+import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb';
+import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
+import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest_pb';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import {
+  DestinationSpec,
+  RouteOptions
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
 
 const client = new RouteTableApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -304,8 +305,8 @@ export function setInputRouteValues(route: Route.AsObject) {
       updatedRoute.setDelegateAction(routeTableRef);
     }
 
-    if (route.routePlugins !== undefined) {
-      let updatedRoutePlugins = new RoutePlugins();
+    if (route.options !== undefined) {
+      let updatedRoutePlugins = new RouteOptions();
       let {
         transformations,
         faults,
@@ -325,13 +326,13 @@ export function setInputRouteValues(route: Route.AsObject) {
         jwt,
         rbac,
         extauth
-      } = route.routePlugins;
+      } = route.options;
       if (prefixRewrite !== undefined) {
         let stringValue = new StringValue();
         stringValue.setValue(prefixRewrite.value);
         updatedRoutePlugins.setPrefixRewrite(stringValue);
       }
-      updatedRoute.setRoutePlugins(updatedRoutePlugins);
+      updatedRoute.setOptions(updatedRoutePlugins);
     }
   }
   return updatedRoute;

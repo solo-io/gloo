@@ -49,7 +49,6 @@ const HeaderTitleName = styled.div`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-transform: capitalize;
 `;
 
 const SecondaryInformation = styled.div`
