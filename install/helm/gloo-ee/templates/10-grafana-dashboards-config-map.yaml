@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: glooe-grafana-custom-dashboards
+  namespace: {{ $.Release.Namespace }}
   labels:
     app: gloo
     chart: glooe-grafana

@@ -174,6 +174,12 @@ gloo:
   settings:
     singleNamespace: true
     create: true
+prometheus:
+  podSecurityPolicy:
+    enabled: true
+grafana:
+  testFramework:
+    enabled: false
 global:
   extensions:
     extAuth:

@@ -44,22 +44,25 @@ var _ = Describe("RBAC Test", func() {
 		prepareMakefile := func(customHelmArgs string) {
 			prepareTestManifest(strings.Split(customHelmArgs, " ")...)
 		}
+
 		Context("implementation-agnostic permissions", func() {
 			It("correctly assigns permissions for single-namespace gloo", func() {
-				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=true")
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true," +
+					"global.glooRbac.namespaced=true")
 				permissions := GetGlooEServiceAccountPermissions("gloo-system")
 				testManifest.ExpectPermissions(permissions)
 			})
 
 			It("correctly assigns permissions for cluster-scoped gloo", func() {
-				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true," +
+					"global.glooRbac.namespaced=false")
 				permissions := GetGlooEServiceAccountPermissions("")
 				testManifest.ExpectPermissions(permissions)
 			})
 
 			It("creates no permissions when rbac is disabled", func() {
-				prepareMakefile(fmt.Sprintf("--namespace %s --set global.glooRbac.create=false --set grafana.rbac.create=false --set prometheus.rbac.create=false", namespace))
-
+				prepareMakefile(fmt.Sprintf("--namespace %s --set global.glooRbac.create=false,"+
+					"prometheus.rbac.create=false,grafana.testFramework.enabled=false", namespace))
 				contents, err := ioutil.ReadFile(manifestYaml)
 				Expect(err).NotTo(HaveOccurred(), "should be able to read manifest file")
 
@@ -114,13 +117,15 @@ var _ = Describe("RBAC Test", func() {
 		}
 		Context("implementation-agnostic permissions", func() {
 			It("correctly assigns permissions for single-namespace gloo", func() {
-				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=true")
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true," +
+					"global.glooRbac.namespaced=true")
 				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("gloo-system")
 				testManifest.ExpectPermissions(permissions)
 			})
 
 			It("correctly assigns permissions for cluster-scoped gloo", func() {
-				prepareMakefile("--namespace " + namespace + " --set namespace.create=true --set global.glooRbac.namespaced=false")
+				prepareMakefile("--namespace " + namespace + " --set namespace.create=true," +
+					"global.glooRbac.namespaced=false")
 				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("")
 				testManifest.ExpectPermissions(permissions)
 			})

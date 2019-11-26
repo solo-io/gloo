@@ -242,7 +242,8 @@ grafana:
     enabled: true
     size: 100Mi
   rbac:
-    pspUseAppArmor: false
+    create: false
+    pspEnabled: false
   # setting these name overrides ensures that the pods get deleted when `glooctl uninstall` is run
   nameOverride: glooe-grafana
   fullnameOverride: glooe-grafana
@@ -274,4 +275,5 @@ grafana:
             path: /var/lib/grafana/dashboards/gloo
   dashboardsConfigMaps:
     gloo: glooe-grafana-custom-dashboards
-
+  testFramework:
+    enabled: false

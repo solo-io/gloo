@@ -1,0 +1,22 @@
+changelog:
+  - type: HELM
+    description: >
+      Bump versions of prometheus and grafana subcharts to 9.3.1 and 4.0.1 respectively so all Gloo Enterprise components can install cleanly on k8s 1.16.
+    issueLink: https://github.com/solo-io/gloo/issues/1437
+  - type: FIX
+    description: >
+      Bump prometheus and grafana subcharts so all Gloo Enterprise components can install cleanly on k8s 1.16.
+    issueLink: https://github.com/solo-io/gloo/issues/1437
+  - type: DEPENDENCY_BUMP
+    description: Bumped the grafana version so that the chart can install cleanly on k8s 1.16.
+    dependencyOwner: grafana
+    dependencyRepo: https://kubernetes-charts.storage.googleapis.com/
+    dependencyTag: 4.0.1
+  - type: DEPENDENCY_BUMP
+    description: Bumped the prometheus version so that the chart can install cleanly on k8s 1.16.
+    dependencyOwner: prometheus
+    dependencyRepo: https://kubernetes-charts.storage.googleapis.com/
+    dependencyTag: 9.3.1
+  - type: FIX
+    description: Ensure the ConfigMap grafana-dashboards-config-map installs to the proper namespace in all cases
+    issueLink: https://github.com/solo-io/gloo/issues/1747
