@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Fix the Envoy Proxy Latency graph.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1300
