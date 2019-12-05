@@ -5,10 +5,13 @@ import './fontFace.css';
 import { GlooIApp } from './GlooIApp';
 import * as serviceWorker from './serviceWorker';
 import { globalStore } from './store';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 ReactDOM.render(
   <Provider store={globalStore}>
-    <GlooIApp />
+    <ErrorBoundary fallback={<div> there was an error</div>}>
+      <GlooIApp />
+    </ErrorBoundary>
   </Provider>,
   document.getElementById('root')
 );

@@ -33,18 +33,13 @@ const { warning } = Modal;
 
 export const listVirtualServices = () => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       const response = await virtualServices.getListVirtualServices();
       dispatch<ListVirtualServicesAction>({
         type: VirtualServiceAction.LIST_VIRTUAL_SERVICES,
         payload: response.virtualServiceDetailsList!
       });
-      // dispatch(hideLoading());
-    } catch (error) {
-      SoloWarning('There was an error retrieving virtual services.', error);
-    }
+    } catch (error) {}
   };
 };
 
@@ -52,7 +47,6 @@ export const createVirtualService = (
   createVirtualServiceRequest: CreateVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
     guardByLicense();
     try {
       const response = await virtualServices.getCreateVirtualService(
@@ -62,7 +56,6 @@ export const createVirtualService = (
         type: VirtualServiceAction.CREATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error creating the virtual service.',
@@ -76,8 +69,6 @@ export const updateVirtualService = (
   updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       const response = await virtualServices.getUpdateVirtualService(
         updateVirtualServiceRequest
@@ -86,7 +77,6 @@ export const updateVirtualService = (
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error updating the virtual service.',
@@ -100,15 +90,12 @@ export const createRoute = (
   createRouteRequest: CreateRouteRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       const response = await virtualServices.getCreateRoute(createRouteRequest);
       dispatch<CreateRouteAction>({
         type: VirtualServiceAction.CREATE_ROUTE,
         payload: response.virtualServiceDetails!
       });
-      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error creating the route.',
@@ -123,8 +110,6 @@ export const updateDomains = (updateDomainsRequest: {
   domains: string[];
 }) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       const response = await virtualServices.getUpdateDomains(
         updateDomainsRequest
@@ -133,7 +118,6 @@ export const updateDomains = (updateDomainsRequest: {
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE,
         payload: response.virtualServiceDetails!
       });
-      // dispatch(hideLoading());
     } catch (error) {
       warning({
         title: 'There was an error updating the virtual service domains.',
@@ -147,8 +131,6 @@ export const deleteVirtualService = (
   deleteVirtualServiceRequest: DeleteVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       guardByLicense();
       const response = await virtualServices.getDeleteVirtualService(
@@ -158,7 +140,6 @@ export const deleteVirtualService = (
         type: VirtualServiceAction.DELETE_VIRTUAL_SERVICE,
         payload: deleteVirtualServiceRequest
       });
-      // dispatch(hideLoading());
     } catch (error) {
       SoloWarning('There was an error deleting the virtual service.', error);
     }
@@ -169,8 +150,6 @@ export const updateVirtualServiceYaml = (
   updateVirtualServiceYamlRequest: UpdateVirtualServiceYamlRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    // dispatch(showLoading());
-
     try {
       const response = await virtualServices.getUpdateVirtualServiceYaml(
         updateVirtualServiceYamlRequest
@@ -179,7 +158,6 @@ export const updateVirtualServiceYaml = (
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE_YAML,
         payload: response.virtualServiceDetails!
       });
-      // dispatch(hideLoading());
     } catch (error) {
       //handle error
       dispatch<UpdateVirtualServiceYamlErrorAction>({

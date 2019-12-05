@@ -60,8 +60,6 @@ const InnerFormSectionContent = styled.div`
   padding: 13px 8px;
   display: flex;
   flex-direction: column;
-  > div {
-  }
 `;
 
 export const HalfColumn = styled.div`

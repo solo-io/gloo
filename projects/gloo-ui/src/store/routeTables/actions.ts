@@ -26,12 +26,7 @@ export const listRouteTables = () => {
         type: RouteTableAction.LIST_ROUTE_TABLES,
         payload: response.routeTableDetailsList!
       });
-    } catch (error) {
-      SoloWarning(
-        'There was an error retrieving the routes tables list.',
-        error
-      );
-    }
+    } catch (error) {}
   };
 };
 

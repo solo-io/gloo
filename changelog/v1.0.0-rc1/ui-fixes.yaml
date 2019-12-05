@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: Fix bug when creating a route would sometimes result in invalid config.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1308
+  - type: FIX
+    description: UI should not be placed in an unusable state when there is an error retrieving resources.
+    issueLink: https://github.com/solo-io/gloo/issues/1774
+  - type: FIX
+    description: Improved stability in the UI particularly around the virtual services section.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1285

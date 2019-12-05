@@ -24,9 +24,7 @@ export const listUpstreamGroups = () => {
         type: UpstreamGroupAction.LIST_UPSTREAM_GROUPS,
         payload: response.upstreamGroupDetailsList!
       });
-    } catch (error) {
-      SoloWarning('There was an error listing the upstream groups', error);
-    }
+    } catch (error) {}
   };
 };
 

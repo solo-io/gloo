@@ -26,6 +26,7 @@ import './Styles/styles.css';
 import { hot } from 'react-hot-loader/root';
 import { SuccessModal } from 'Components/Common/DisplayOnly/SuccessModal';
 import { listRouteTables } from 'store/routeTables/actions';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 const AppContainer = styled.div`
   display: grid;
@@ -75,9 +76,11 @@ const App = () => {
       <SuccessModal visible={!!showModal} successMessage={modalMessage} />
       <Global styles={globalStyles} />
       <AppContainer>
-        <MainMenu />
-        <Content />
-        <Footer />
+        <ErrorBoundary fallback={<div> there was an error</div>}>
+          <MainMenu />
+          <Content />
+          <Footer />
+        </ErrorBoundary>
       </AppContainer>
     </BrowserRouter>
   );
