@@ -8,7 +8,6 @@ metadata:
   labels:
     app: gloo
     gloo: {{ $extAuth.service.name }}
-    installationId: {{ include "gloo.installationId" . }}
   name: {{ $extAuth.service.name }}-sidecar
   namespace: {{ .Release.Namespace }}
 spec:
@@ -24,7 +23,6 @@ metadata:
   labels:
     app: gloo
     gloo: {{ $extAuth.service.name }}
-    installationId: {{ include "gloo.installationId" . }}
   name: {{ $extAuth.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:

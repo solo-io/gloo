@@ -96,6 +96,11 @@ export class HttpGateway extends jspb.Message {
 
   getVirtualServiceSelectorMap(): jspb.Map<string, string>;
   clearVirtualServiceSelectorMap(): void;
+  clearVirtualServiceNamespacesList(): void;
+  getVirtualServiceNamespacesList(): Array<string>;
+  setVirtualServiceNamespacesList(value: Array<string>): void;
+  addVirtualServiceNamespaces(value: string, index?: number): string;
+
   hasOptions(): boolean;
   clearOptions(): void;
   getOptions(): github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions | undefined;
@@ -115,6 +120,7 @@ export namespace HttpGateway {
   export type AsObject = {
     virtualServicesList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
     virtualServiceSelectorMap: Array<[string, string]>,
+    virtualServiceNamespacesList: Array<string>,
     options?: github_com_solo_io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.AsObject,
   }
 }

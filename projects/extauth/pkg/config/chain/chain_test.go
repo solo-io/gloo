@@ -3,9 +3,10 @@ package chain
 import (
 	"context"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyauthv2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,7 +28,7 @@ var _ = Describe("Plugin Chain", func() {
 						Key:   key,
 						Value: value,
 					},
-					Append: &types.BoolValue{
+					Append: &wrappers.BoolValue{
 						Value: append,
 					},
 				}

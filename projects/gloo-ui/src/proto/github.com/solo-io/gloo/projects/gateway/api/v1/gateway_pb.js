@@ -582,7 +582,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gateway.solo.io.HttpGateway.repeatedFields_ = [1];
+proto.gateway.solo.io.HttpGateway.repeatedFields_ = [1,3];
 
 
 
@@ -616,6 +616,7 @@ proto.gateway.solo.io.HttpGateway.toObject = function(includeInstance, msg) {
     virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
     github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance),
     virtualServiceSelectorMap: (f = msg.getVirtualServiceSelectorMap()) ? f.toObject(includeInstance, undefined) : [],
+    virtualServiceNamespacesList: jspb.Message.getRepeatedField(msg, 3),
     options: (f = msg.getOptions()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.toObject(includeInstance, f)
   };
 
@@ -664,6 +665,10 @@ proto.gateway.solo.io.HttpGateway.deserializeBinaryFromReader = function(msg, re
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addVirtualServiceNamespaces(value);
+      break;
     case 8:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_pb.HttpListenerOptions.deserializeBinaryFromReader);
@@ -709,6 +714,13 @@ proto.gateway.solo.io.HttpGateway.serializeBinaryToWriter = function(message, wr
   f = message.getVirtualServiceSelectorMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getVirtualServiceNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
   }
   f = message.getOptions();
   if (f != null) {
@@ -767,6 +779,35 @@ proto.gateway.solo.io.HttpGateway.prototype.getVirtualServiceSelectorMap = funct
 
 proto.gateway.solo.io.HttpGateway.prototype.clearVirtualServiceSelectorMap = function() {
   this.getVirtualServiceSelectorMap().clear();
+};
+
+
+/**
+ * repeated string virtual_service_namespaces = 3;
+ * @return {!Array<string>}
+ */
+proto.gateway.solo.io.HttpGateway.prototype.getVirtualServiceNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gateway.solo.io.HttpGateway.prototype.setVirtualServiceNamespacesList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gateway.solo.io.HttpGateway.prototype.addVirtualServiceNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.gateway.solo.io.HttpGateway.prototype.clearVirtualServiceNamespacesList = function() {
+  this.setVirtualServiceNamespacesList([]);
 };
 
 

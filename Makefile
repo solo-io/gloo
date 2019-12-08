@@ -20,6 +20,8 @@ VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
 
+GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64
+
 # Passed by cloudbuild
 GCLOUD_PROJECT_ID := $(GCLOUD_PROJECT_ID)
 BUILD_ID := $(BUILD_ID)
@@ -74,14 +76,14 @@ update-deps:
 	mkdir -p $$GOPATH/src/github.com/envoyproxy
 	# use a specific commit (c15f2c24fb27b136e722fa912accddd0c8db9dfa) until v0.0.15 is released, as in v0.0.14 the import paths were not yet changed
 	cd $$GOPATH/src/github.com/envoyproxy && if [ ! -e protoc-gen-validate ];then git clone https://github.com/envoyproxy/protoc-gen-validate; fi && cd protoc-gen-validate && git fetch && git checkout c15f2c24fb27b136e722fa912accddd0c8db9dfa
-	go get -v -u github.com/golang/mock/gomock
+	go get -u github.com/golang/mock/gomock
 	go install github.com/golang/mock/mockgen
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
 .PHONY: pin-repos
 pin-repos:
-	go run pin_repos.go
+	$(GO_BUILD_FLAGS) go run pin_repos.go
 
 .PHONY: check-format
 check-format:
@@ -112,7 +114,7 @@ generate-all: generated-ui generated-code
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code:
-	CGO_ENABLED=0 go generate ./...
+	GO111MODULE=on CGO_ENABLED=0 go generate ./...
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)
@@ -139,7 +141,9 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/*.proto
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
 	protoc $(UI_PROTOC_FLAGS) \
@@ -198,7 +202,7 @@ allprojects: grpcserver gloo extauth rate-limit observability
 GRPCSERVER_DIR=projects/grpcserver
 
 $(OUTPUT_DIR)/grpcserver-linux-amd64:
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/grpcserver/server/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/grpcserver/server/cmd/main.go
 
 .PHONY: grpcserver
 grpcserver: $(OUTPUT_DIR)/grpcserver-linux-amd64
@@ -234,7 +238,7 @@ GLOO_UI_PORT=20202
 
 .PHONY: run-apiserver
 run-apiserver:
-	NO_AUTH=1 GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
+	NO_AUTH=1 GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/grpcserver/server/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
@@ -267,7 +271,7 @@ RATELIMIT_DIR=projects/rate-limit
 RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
 
 .PHONY: rate-limit
 rate-limit: $(OUTPUT_DIR)/rate-limit-linux-amd64
@@ -297,6 +301,7 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
 $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
+	GO111MODULE=on go mod vendor
 	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
@@ -307,12 +312,14 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
+	GO111MODULE=on go mod vendor
 	docker create -ti --name extauth-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-amd64 $(OUTPUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
+	GO111MODULE=on go mod vendor
 	docker create -ti --name verify-plugins-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
@@ -324,6 +331,7 @@ extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-am
 # Build ext-auth-plugins docker image
 .PHONY: auth-plugins
 auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
+	GO111MODULE=on go mod vendor
 	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
@@ -335,6 +343,7 @@ auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
 $(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+	GO111MODULE=on go mod vendor
 	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 	touch $@
 
@@ -347,7 +356,7 @@ OBSERVABILITY_DIR=projects/observability
 OBSERVABILITY_SOURCES=$(shell find $(OBSERVABILITY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/observability-linux-amd64: $(OBSERVABILITY_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
 
 .PHONY: observability
 observability: $(OUTPUT_DIR)/observability-linux-amd64
@@ -370,7 +379,7 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 
 .PHONY: gloo
@@ -399,7 +408,7 @@ ENVOYINIT_DIR=cmd/envoyinit
 ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
 
 .PHONY: envoyinit
 envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
@@ -425,7 +434,6 @@ HELM_DIR := install/helm
 MANIFEST_DIR := install/manifest
 MANIFEST_FOR_RO_UI_GLOO := gloo-with-read-only-ui-release.yaml
 MANIFEST_FOR_GLOO_EE := glooe-release.yaml
-HELMFLAGS ?= ""
 
 .PHONY: manifest
 manifest: helm-template init-helm produce-manifests update-helm-chart
@@ -434,13 +442,13 @@ manifest: helm-template init-helm produce-manifests update-helm-chart
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
-	go run install/helm/gloo-ee/generate.go $(VERSION)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 
 .PHONY: init-helm
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 
 $(OUTPUT_DIR)/.helm-initialized:
-	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
+	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
@@ -452,8 +460,8 @@ $(OUTPUT_DIR)/.helm-initialized:
 
 .PHONY: produce-manifests
 produce-manifests: init-helm
-	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe $(HELMFLAGS) > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
-	helm template install/helm/gloo-os-with-ui --namespace gloo-system --name=gloo $(HELMFLAGS) > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
+	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
+	helm template gloo install/helm/gloo-os-with-ui --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
 
 update-helm-chart:
 ifeq ($(RELEASE),"true")
@@ -480,8 +488,6 @@ fetch-helm:
 	gsutil -m rsync -r gs://gloo-ee-helm/ './_output/helm'
 	gsutil -m rsync -r gs://gloo-os-ui-helm/ './_output/helm_gloo_os_ui'
 
-
-
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
@@ -496,7 +502,7 @@ endif
 
 .PHONY: upload-github-release-assets
 upload-github-release-assets: produce-manifests
-	go run ci/upload_github_release_assets.go
+	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
 
 DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPENDENCIES_BUCKET=gloo-ee-dependencies
@@ -611,7 +617,7 @@ gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_
 .PHONY: build-test-chart
 build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
-	go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
@@ -621,7 +627,7 @@ build-test-chart:
 .PHONY: build-kind-chart
 build-kind-chart:
 	mkdir -p $(TEST_ASSET_DIR)
-	go run install/helm/gloo-ee/generate.go $(VERSION)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee

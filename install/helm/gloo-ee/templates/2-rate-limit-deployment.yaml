@@ -9,7 +9,6 @@ metadata:
   labels:
     app: gloo
     gloo: rate-limit
-    installationId: {{ include "gloo.installationId" . }}
   name: rate-limit
   namespace: {{ .Release.Namespace }}
 spec:

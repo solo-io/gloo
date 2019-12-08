@@ -10,10 +10,6 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    installationId: {{ include "gloo.installationId" . }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-weight": "10"
 rules:
   - apiGroups: ["gloo.solo.io"]
     resources: ["upstreams"]
@@ -29,10 +25,6 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    installationId: {{ include "gloo.installationId" . }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-weight": "10"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: {{ include "gloo.roleKind" . }}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	"github.com/gogo/protobuf/types"
+	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	_struct "github.com/golang/protobuf/ptypes/struct"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/rate-limiter/cmd/service/runner"
@@ -44,10 +44,10 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 	}
 	nodeinfo.Cluster = "ratelimit"
 	role := "ratelimit"
-	nodeinfo.Metadata = &types.Struct{
-		Fields: map[string]*types.Value{
+	nodeinfo.Metadata = &_struct.Struct{
+		Fields: map[string]*_struct.Value{
 			"role": {
-				Kind: &types.Value_StringValue{
+				Kind: &_struct.Value_StringValue{
 					StringValue: role,
 				},
 			},

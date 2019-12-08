@@ -9,7 +9,6 @@ metadata:
   labels:
     app: gloo
     gloo: redis
-    installationId: {{ include "gloo.installationId" . }}
   name: redis
   namespace: {{ .Release.Namespace }}
 spec:

@@ -94,7 +94,7 @@ steps:
   args: ['-p', './_output/helm']
   dir: './gopath/src/github.com/solo-io/solo-projects'
   id: 'create-helm-dir'
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.17'
   args: ['fetch-helm']
   env:
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -130,7 +130,7 @@ steps:
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.17'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   entrypoint: 'bash'
   args:
@@ -162,11 +162,11 @@ steps:
   entrypoint: 'bash'
   args: ['-c', 'curl -sL https://run.solo.io/gloo/install | GLOO_VERSION=$(go run get_gloo_version.go) sh && mkdir -p _output && mv ~/.gloo/bin/glooctl _output/glooctl-linux-amd64']
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['dep']
+  waitFor: ['test']
   id: 'download-cli'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
-  args: ['--jobs=2', 'docker']
+  args: ['docker']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -179,10 +179,10 @@ steps:
   id: 'build-images'
 
   # Run regression tests
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.17'
   args: ['build-test-assets']
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/gloo'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
     - 'GOPATH=/workspace/gopath'
     - 'BUILD_ID=$BUILD_ID'
     - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
@@ -197,9 +197,9 @@ steps:
 - name: gcr.io/cloud-builders/gcloud
   args: ['container', 'clusters', 'get-credentials', 'solo-projects-regression']
   id: 'get-credentials-regression'
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.17'
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/gloo'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
     - 'GOPATH=/workspace/gopath'
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
     - 'CLOUDSDK_CONTAINER_CLUSTER=solo-projects-regressions'
@@ -216,7 +216,7 @@ steps:
   waitFor: ['regression-tests']
   id: 'docker-login-push'
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.17'
   args: ['--jobs=4', 'docker-push']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
@@ -228,7 +228,7 @@ steps:
   id: 'push-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.17'
   args: ['manifest', 'upload-github-release-assets', 'upload-changelog', 'publish-dependencies']
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
@@ -251,7 +251,7 @@ steps:
   id: 'docker-login-again'
 
   # Sync helm chart data back to google storage bucket
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.17'
   args: ['save-helm']
   env:
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'

@@ -118,9 +118,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				_, err := kubeClient.CoreV1().Secrets(sslSecret.Namespace).Get(sslSecret.Name, metav1.GetOptions{
-					IncludeUninitialized: false,
-				})
+				_, err := kubeClient.CoreV1().Secrets(sslSecret.Namespace).Get(sslSecret.Name, metav1.GetOptions{})
 				return err
 			}, "10s", "0.5s").Should(BeNil())
 			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail

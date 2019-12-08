@@ -1107,6 +1107,7 @@ proto.envoy.api.v2.DeltaDiscoveryResponse.toObject = function(includeInstance, m
     systemVersionInfo: jspb.Message.getFieldWithDefault(msg, 1, ""),
     resourcesList: jspb.Message.toObjectList(msg.getResourcesList(),
     proto.envoy.api.v2.Resource.toObject, includeInstance),
+    typeUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
     removedResourcesList: jspb.Message.getRepeatedField(msg, 6),
     nonce: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
@@ -1153,6 +1154,10 @@ proto.envoy.api.v2.DeltaDiscoveryResponse.deserializeBinaryFromReader = function
       var value = new proto.envoy.api.v2.Resource;
       reader.readMessage(value,proto.envoy.api.v2.Resource.deserializeBinaryFromReader);
       msg.addResources(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTypeUrl(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
@@ -1204,6 +1209,13 @@ proto.envoy.api.v2.DeltaDiscoveryResponse.serializeBinaryToWriter = function(mes
       2,
       f,
       proto.envoy.api.v2.Resource.serializeBinaryToWriter
+    );
+  }
+  f = message.getTypeUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
   f = message.getRemovedResourcesList();
@@ -1270,6 +1282,21 @@ proto.envoy.api.v2.DeltaDiscoveryResponse.prototype.clearResourcesList = functio
 
 
 /**
+ * optional string type_url = 4;
+ * @return {string}
+ */
+proto.envoy.api.v2.DeltaDiscoveryResponse.prototype.getTypeUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.api.v2.DeltaDiscoveryResponse.prototype.setTypeUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
  * repeated string removed_resources = 6;
  * @return {!Array<string>}
  */
@@ -1325,12 +1352,19 @@ proto.envoy.api.v2.DeltaDiscoveryResponse.prototype.setNonce = function(value) {
  * @constructor
  */
 proto.envoy.api.v2.Resource = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.envoy.api.v2.Resource.repeatedFields_, null);
 };
 goog.inherits(proto.envoy.api.v2.Resource, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.api.v2.Resource.displayName = 'proto.envoy.api.v2.Resource';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.envoy.api.v2.Resource.repeatedFields_ = [4];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1361,6 +1395,7 @@ proto.envoy.api.v2.Resource.prototype.toObject = function(opt_includeInstance) {
 proto.envoy.api.v2.Resource.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    aliasesList: jspb.Message.getRepeatedField(msg, 4),
     version: jspb.Message.getFieldWithDefault(msg, 1, ""),
     resource: (f = msg.getResource()) && google_protobuf_any_pb.Any.toObject(includeInstance, f)
   };
@@ -1402,6 +1437,10 @@ proto.envoy.api.v2.Resource.deserializeBinaryFromReader = function(msg, reader) 
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setName(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAliases(value);
       break;
     case 1:
       var value = /** @type {string} */ (reader.readString());
@@ -1448,6 +1487,13 @@ proto.envoy.api.v2.Resource.serializeBinaryToWriter = function(message, writer) 
       f
     );
   }
+  f = message.getAliasesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
+    );
+  }
   f = message.getVersion();
   if (f.length > 0) {
     writer.writeString(
@@ -1478,6 +1524,35 @@ proto.envoy.api.v2.Resource.prototype.getName = function() {
 /** @param {string} value */
 proto.envoy.api.v2.Resource.prototype.setName = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated string aliases = 4;
+ * @return {!Array<string>}
+ */
+proto.envoy.api.v2.Resource.prototype.getAliasesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.envoy.api.v2.Resource.prototype.setAliasesList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.envoy.api.v2.Resource.prototype.addAliases = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.envoy.api.v2.Resource.prototype.clearAliasesList = function() {
+  this.setAliasesList([]);
 };
 
 

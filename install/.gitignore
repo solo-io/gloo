@@ -2,6 +2,7 @@
 requirements.lock
 charts
 Chart.yaml
+Chart.lock
 values.yaml
 requirements.yaml
 

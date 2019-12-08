@@ -157,6 +157,9 @@ export class DeltaDiscoveryResponse extends jspb.Message {
   setResourcesList(value: Array<Resource>): void;
   addResources(value?: Resource, index?: number): Resource;
 
+  getTypeUrl(): string;
+  setTypeUrl(value: string): void;
+
   clearRemovedResourcesList(): void;
   getRemovedResourcesList(): Array<string>;
   setRemovedResourcesList(value: Array<string>): void;
@@ -179,6 +182,7 @@ export namespace DeltaDiscoveryResponse {
   export type AsObject = {
     systemVersionInfo: string,
     resourcesList: Array<Resource.AsObject>,
+    typeUrl: string,
     removedResourcesList: Array<string>,
     nonce: string,
   }
@@ -187,6 +191,11 @@ export namespace DeltaDiscoveryResponse {
 export class Resource extends jspb.Message {
   getName(): string;
   setName(value: string): void;
+
+  clearAliasesList(): void;
+  getAliasesList(): Array<string>;
+  setAliasesList(value: Array<string>): void;
+  addAliases(value: string, index?: number): string;
 
   getVersion(): string;
   setVersion(value: string): void;
@@ -209,6 +218,7 @@ export class Resource extends jspb.Message {
 export namespace Resource {
   export type AsObject = {
     name: string,
+    aliasesList: Array<string>,
     version: string,
     resource?: google_protobuf_any_pb.Any.AsObject,
   }

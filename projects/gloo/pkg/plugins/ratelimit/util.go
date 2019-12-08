@@ -4,9 +4,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -87,7 +88,7 @@ func generateEnvoyConfigForVhost(vhostname, headername string) []*envoyvhostrate
 
 	vhostrl := []*envoyvhostratelimit.RateLimit{
 		{
-			Stage: &types.UInt32Value{Value: stage},
+			Stage: &wrappers.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
 				vhostAction,
 				getAuthRateLimits(true),
@@ -95,7 +96,7 @@ func generateEnvoyConfigForVhost(vhostname, headername string) []*envoyvhostrate
 			},
 		},
 		{
-			Stage: &types.UInt32Value{Value: stage},
+			Stage: &wrappers.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
 				vhostAction,
 				getAuthRateLimits(false),
@@ -134,7 +135,7 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.
 		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
 			HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
 				DescriptorValue: value,
-				ExpectMatch:     &types.BoolValue{Value: match},
+				ExpectMatch:     &wrappers.BoolValue{Value: match},
 				Headers:         headersmatcher,
 			},
 		},

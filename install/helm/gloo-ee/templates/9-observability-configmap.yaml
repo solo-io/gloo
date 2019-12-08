@@ -7,7 +7,6 @@ metadata:
   labels:
     app: gloo
     release: {{ .Release.Name }}
-    installationId: {{ include "gloo.installationId" . }}
 data:
   {{- if .Values.observability.customGrafana.url}}
   GRAFANA_URL: {{.Values.observability.customGrafana.url}}

@@ -5,9 +5,10 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as envoy_api_v2_core_http_uri_pb from "../../../../../../../../../envoy/api/v2/core/http_uri_pb";
 import * as validate_validate_pb from "../../../../../../../../../validate/validate_pb";
-import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
 import * as envoy_type_percent_pb from "../../../../../../../../../envoy/type/percent_pb";
+import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
 
 export class Locality extends jspb.Message {
   getRegion(): string;
@@ -116,6 +117,32 @@ export class RuntimeUInt32 extends jspb.Message {
 export namespace RuntimeUInt32 {
   export type AsObject = {
     defaultValue: number,
+    runtimeKey: string,
+  }
+}
+
+export class RuntimeFeatureFlag extends jspb.Message {
+  hasDefaultValue(): boolean;
+  clearDefaultValue(): void;
+  getDefaultValue(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDefaultValue(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  getRuntimeKey(): string;
+  setRuntimeKey(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RuntimeFeatureFlag.AsObject;
+  static toObject(includeInstance: boolean, msg: RuntimeFeatureFlag): RuntimeFeatureFlag.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RuntimeFeatureFlag, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RuntimeFeatureFlag;
+  static deserializeBinaryFromReader(message: RuntimeFeatureFlag, reader: jspb.BinaryReader): RuntimeFeatureFlag;
+}
+
+export namespace RuntimeFeatureFlag {
+  export type AsObject = {
+    defaultValue?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     runtimeKey: string,
   }
 }
@@ -235,6 +262,67 @@ export namespace DataSource {
     FILENAME = 1,
     INLINE_BYTES = 2,
     INLINE_STRING = 3,
+  }
+}
+
+export class RemoteDataSource extends jspb.Message {
+  hasHttpUri(): boolean;
+  clearHttpUri(): void;
+  getHttpUri(): envoy_api_v2_core_http_uri_pb.HttpUri | undefined;
+  setHttpUri(value?: envoy_api_v2_core_http_uri_pb.HttpUri): void;
+
+  getSha256(): string;
+  setSha256(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoteDataSource.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoteDataSource): RemoteDataSource.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoteDataSource, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoteDataSource;
+  static deserializeBinaryFromReader(message: RemoteDataSource, reader: jspb.BinaryReader): RemoteDataSource;
+}
+
+export namespace RemoteDataSource {
+  export type AsObject = {
+    httpUri?: envoy_api_v2_core_http_uri_pb.HttpUri.AsObject,
+    sha256: string,
+  }
+}
+
+export class AsyncDataSource extends jspb.Message {
+  hasLocal(): boolean;
+  clearLocal(): void;
+  getLocal(): DataSource | undefined;
+  setLocal(value?: DataSource): void;
+
+  hasRemote(): boolean;
+  clearRemote(): void;
+  getRemote(): RemoteDataSource | undefined;
+  setRemote(value?: RemoteDataSource): void;
+
+  getSpecifierCase(): AsyncDataSource.SpecifierCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AsyncDataSource.AsObject;
+  static toObject(includeInstance: boolean, msg: AsyncDataSource): AsyncDataSource.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AsyncDataSource, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AsyncDataSource;
+  static deserializeBinaryFromReader(message: AsyncDataSource, reader: jspb.BinaryReader): AsyncDataSource;
+}
+
+export namespace AsyncDataSource {
+  export type AsObject = {
+    local?: DataSource.AsObject,
+    remote?: RemoteDataSource.AsObject,
+  }
+
+  export enum SpecifierCase {
+    SPECIFIER_NOT_SET = 0,
+    LOCAL = 1,
+    REMOTE = 2,
   }
 }
 
@@ -401,7 +489,16 @@ export interface RequestMethodMap {
   CONNECT: 6;
   OPTIONS: 7;
   TRACE: 8;
+  PATCH: 9;
 }
 
 export const RequestMethod: RequestMethodMap;
+
+export interface TrafficDirectionMap {
+  UNSPECIFIED: 0;
+  INBOUND: 1;
+  OUTBOUND: 2;
+}
+
+export const TrafficDirection: TrafficDirectionMap;
 

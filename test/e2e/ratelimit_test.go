@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/test/v1helpers"
@@ -67,14 +67,13 @@ var _ = Describe("Rate Limit", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			envoyPort := uint32(8080)
-			proxy := getProxy(envoyPort, up.Metadata.Ref(), map[string]bool{"host1": true})
+			proxy := getAuthEnabledProxy(envoyPort, up.Metadata.Ref(), map[string]bool{"host1": true})
 
 			proxycli := testClients.ProxyClient
 			_, err = proxycli.Write(proxy, opts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
-
 		})
 
 		Context("With envoy", func() {
@@ -92,9 +91,7 @@ var _ = Describe("Rate Limit", func() {
 
 				envoyInstance.RatelimitAddr = rladdr
 				envoyInstance.RatelimitPort = rlport
-				if runtime.GOOS == "darwin" && envoyInstance.UseDocker() {
-					rlAddr = "host.docker.internal"
-				}
+				rlAddr = envoyInstance.LocalAddr()
 
 				err = envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
@@ -117,10 +114,10 @@ var _ = Describe("Rate Limit", func() {
 				}
 			})
 
-			It("should should rate limit envoy", func() {
+			It("should rate limit envoy", func() {
 
 				hosts := map[string]bool{"host1": true}
-				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
@@ -130,10 +127,10 @@ var _ = Describe("Rate Limit", func() {
 				EventuallyRateLimited("host1", envoyPort)
 			})
 
-			It("should should rate limit two vhosts", func() {
+			It("should rate limit two vhosts", func() {
 
 				hosts := map[string]bool{"host1": true, "host2": true}
-				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
@@ -144,10 +141,11 @@ var _ = Describe("Rate Limit", func() {
 				EventuallyRateLimited("host1", envoyPort)
 				EventuallyRateLimited("host2", envoyPort)
 			})
-			It("should should rate limit one vhosts", func() {
+
+			It("should rate limit one of two vhosts", func() {
 
 				hosts := map[string]bool{"host1": false, "host2": true}
-				proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
@@ -246,6 +244,120 @@ var _ = Describe("Rate Limit", func() {
 					ConsistentlyNotRateLimited("host1/noauth", envoyPort)
 				})
 			})
+
+			Context("reserved keyword rules (i.e., weighted and applyAlways rules)", func() {
+				BeforeEach(func() {
+					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+						Descriptors: []*ratelimit.Descriptor{
+							{
+								Key:   "generic_key",
+								Value: "unprioritized",
+								RateLimit: &ratelimit.RateLimit{
+									Unit:            ratelimit.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+							{
+								Key:   "generic_key",
+								Value: "prioritized",
+								RateLimit: &ratelimit.RateLimit{
+									Unit:            ratelimit.RateLimit_SECOND,
+									RequestsPerUnit: 1000,
+								},
+								Weight: 1,
+							},
+							{
+								Key:   "generic_key",
+								Value: "always",
+								RateLimit: &ratelimit.RateLimit{
+									Unit:            ratelimit.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+								AlwaysApply: true,
+							},
+						},
+					}
+				})
+
+				It("should honor weighted rate limit rules", func() {
+					hosts := map[string]bool{"host1": true}
+					rateLimits := []*ratelimit.RateLimitActions{{
+						Actions: []*ratelimit.Action{{
+							ActionSpecifier: &ratelimit.Action_GenericKey_{
+								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "unprioritized"},
+							}},
+						}}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					EventuallyRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// add a new rate limit action that points to a weighted rule with generous limit
+					weightedAction := &ratelimit.RateLimitActions{
+						Actions: []*ratelimit.Action{{
+							ActionSpecifier: &ratelimit.Action_GenericKey_{
+								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "prioritized"},
+							}},
+						}}
+					rateLimits = append(rateLimits, weightedAction)
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// weighted rule has generous limit that will not be hit, however its larger weight trumps
+					// the previous rule (that returned 429 before). we do not expect this to rate limit anymore
+					EventuallyOk("host1", envoyPort)
+					ConsistentlyNotRateLimited("host1", envoyPort)
+				})
+
+				It("should honor alwaysApply rate limit rules", func() {
+					hosts := map[string]bool{"host1": true}
+					// add a prioritized rule to match against (has largest weight)
+					rateLimits := []*ratelimit.RateLimitActions{{
+						Actions: []*ratelimit.Action{{
+							ActionSpecifier: &ratelimit.Action_GenericKey_{
+								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "prioritized"},
+							}},
+						}}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					EventuallyOk("host1", envoyPort)
+					ConsistentlyNotRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// add a new rate limit action that points to a "concurrent" rule, i.e. always evaluated
+					weightedAction := &ratelimit.RateLimitActions{
+						Actions: []*ratelimit.Action{{
+							ActionSpecifier: &ratelimit.Action_GenericKey_{
+								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "always"},
+							}},
+						}}
+					rateLimits = append(rateLimits, weightedAction)
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// we added a ratelimit action that points to a rule with alwaysApply: true. Even though the rule
+					// has zero weight, we will still evaluate the rule. the original request matched a weighted rule
+					// that was too generous to return a 429, but the new rule should trigger and return a 429
+					EventuallyRateLimited("host1", envoyPort)
+				})
+			})
+
 		})
 	}
 	justBeforeEach := func() {
@@ -311,7 +423,6 @@ var _ = Describe("Rate Limit", func() {
 			testClients = services.GetTestClients(cache)
 			testClients.GlooPort = int(services.AllocateGlooPort())
 
-			rlAddr = "localhost"
 		})
 		JustBeforeEach(justBeforeEach)
 
@@ -343,8 +454,6 @@ var _ = Describe("Rate Limit", func() {
 
 			testClients = services.GetTestClients(cache)
 			testClients.GlooPort = int(services.AllocateGlooPort())
-
-			rlAddr = "localhost"
 		})
 
 		JustBeforeEach(justBeforeEach)
@@ -356,7 +465,6 @@ var _ = Describe("Rate Limit", func() {
 
 		runAllTests()
 	})
-
 })
 
 func EventuallyOk(hostname string, port uint32) {
@@ -384,6 +492,7 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 		return nil
 	}, "5s", ".1s").Should(BeNil())
 }
+
 func EventuallyRateLimited(hostname string, port uint32) {
 	EventuallyWithOffset(1, func() error {
 		res, err := get(hostname, port)
@@ -420,7 +529,7 @@ func get(hostname string, port uint32) (*http.Response, error) {
 	return http.DefaultClient.Do(req)
 }
 
-func getProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
+func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
 	ingressRateLimit := &ratelimit.IngressRateLimit{
 		AnonymousLimits: &ratelimit.RateLimit{
 			RequestsPerUnit: 1,
@@ -492,6 +601,78 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 		if enableRateLimits {
 			vhost.Options = &gloov1.VirtualHostOptions{
 				RatelimitBasic: b.ingressRateLimit,
+			}
+		}
+		vhosts = append(vhosts, vhost)
+	}
+
+	p := &gloov1.Proxy{
+		Metadata: core.Metadata{
+			Name:      "proxy",
+			Namespace: "default",
+		},
+		Listeners: []*gloov1.Listener{{
+			Name:        "listener",
+			BindAddress: "0.0.0.0",
+			BindPort:    b.envoyPort,
+			ListenerType: &gloov1.Listener_HttpListener{
+				HttpListener: &gloov1.HttpListener{
+					VirtualHosts: vhosts,
+				},
+			},
+		}},
+	}
+
+	return p
+}
+
+func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*ratelimit.RateLimitActions) *gloov1.Proxy {
+	rlVhostExt := &ratelimit.RateLimitVhostExtension{
+		RateLimits: rateLimits,
+	}
+	rlb := CustomRlProxyBuilder{
+		envoyPort:         envoyPort,
+		upstream:          upstream,
+		hostsToRateLimits: hostsToRateLimits,
+		customRateLimit:   rlVhostExt,
+	}
+	return rlb.getCustomProxy()
+}
+
+type CustomRlProxyBuilder struct {
+	customRateLimit   *ratelimit.RateLimitVhostExtension
+	upstream          core.ResourceRef
+	hostsToRateLimits map[string]bool
+	envoyPort         uint32
+}
+
+func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
+	var vhosts []*gloov1.VirtualHost
+
+	for hostname, enableRateLimits := range b.hostsToRateLimits {
+		vhost := &gloov1.VirtualHost{
+			Name:    "gloo-system.virt" + hostname,
+			Domains: []string{hostname},
+			Routes: []*gloov1.Route{
+				{
+					Action: &gloov1.Route_RouteAction{
+						RouteAction: &gloov1.RouteAction{
+							Destination: &gloov1.RouteAction_Single{
+								Single: &gloov1.Destination{
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: utils.ResourceRefPtr(b.upstream),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		if enableRateLimits {
+			vhost.Options = &gloov1.VirtualHostOptions{
+				Ratelimit: b.customRateLimit,
 			}
 		}
 		vhosts = append(vhosts, vhost)

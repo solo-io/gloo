@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/go-utils/errors"
 
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
@@ -260,8 +259,8 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 		}
 
 		out.JwksSourceSpecifier = &envoyauth.JwtProvider_LocalJwks{
-			LocalJwks: &core.DataSource{
-				Specifier: &core.DataSource_InlineString{
+			LocalJwks: &envoycore.DataSource{
+				Specifier: &envoycore.DataSource_InlineString{
 					InlineString: string(keysetJson),
 				},
 			},

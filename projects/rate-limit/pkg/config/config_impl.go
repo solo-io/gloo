@@ -19,6 +19,8 @@ import (
 type rateLimitDescriptor struct {
 	descriptors map[string]*rateLimitDescriptor
 	limit       *config.RateLimit
+	weight      uint32
+	alwaysApply bool
 }
 
 type rateLimitDomain struct {
@@ -57,8 +59,8 @@ func (this *rateLimitDescriptor) dump() string {
 	ret := ""
 	if this.limit != nil {
 		ret += fmt.Sprintf(
-			"%s: unit=%s requests_per_unit=%d\n", this.limit.Key,
-			this.limit.Unit.String(), this.limit.RequestsPerUnit)
+			"%s: unit=%s requests_per_unit=%d weight=%d always_apply=%t\n", this.limit.Key,
+			this.limit.Unit.String(), this.limit.RequestsPerUnit, this.weight, this.alwaysApply)
 	}
 	for _, descriptor := range this.descriptors {
 		ret += descriptor.dump()
@@ -105,6 +107,8 @@ func (this rateLimitConfig) GetLimit(
 			this.logger.Debugf("found rate limit: %s", finalKey)
 			if i == len(descriptor.Entries)-1 {
 				rateLimit = nextDescriptor.limit
+				rateLimit.Weight = nextDescriptor.weight
+				rateLimit.AlwaysApply = nextDescriptor.alwaysApply
 			} else {
 				this.logger.Debugf("request depth does not match config depth, there are more entries in the request's descriptor")
 			}
@@ -157,7 +161,7 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 
 		logger.Debugf(
 			"loading descriptor: key=%s%s", newParentKey, rateLimitDebugString)
-		newDescriptor := &rateLimitDescriptor{map[string]*rateLimitDescriptor{}, rateLimit}
+		newDescriptor := &rateLimitDescriptor{map[string]*rateLimitDescriptor{}, rateLimit, descriptorConfig.Weight, descriptorConfig.AlwaysApply}
 		err := newDescriptor.loadDescriptors(logger, newParentKey+".", descriptorConfig.Descriptors)
 		if err != nil {
 			return err
@@ -203,7 +207,7 @@ func (this *rateLimitConfigGenerator) GenerateConfig(configs []*glooee.RateLimit
 
 func (this *rateLimitConfigGenerator) makeConfig(rc *glooee.RateLimitConfig) (*rateLimitDomain, error) {
 
-	newDomain := &rateLimitDomain{rateLimitDescriptor{map[string]*rateLimitDescriptor{}, nil}}
+	newDomain := &rateLimitDomain{rateLimitDescriptor{map[string]*rateLimitDescriptor{}, nil, 0, false}}
 	newDomain.loadDescriptors(this.logger, rc.Domain, rc.Descriptors)
 	return newDomain, nil
 }

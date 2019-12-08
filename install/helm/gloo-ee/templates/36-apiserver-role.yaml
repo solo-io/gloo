@@ -10,10 +10,6 @@ metadata:
   labels:
     app: gloo
     gloo: rbac
-    installationId: {{ include "gloo.installationId" . }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-weight": "10"
 rules:
 # Group 1: these rules apply to read-only and enterprise apiserver
   - apiGroups: [""]

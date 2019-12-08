@@ -4,7 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/golang/protobuf/ptypes/duration"
+
+	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
@@ -20,7 +24,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -63,7 +66,7 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.FailureModeDeny).To(BeFalse())
 		}
 
-		hundredms := time.Millisecond * 100
+		hundredms := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
 		expectedConfig := &envoyratelimit.RateLimit{
 			Domain:          "ingress",
 			FailureModeDeny: false,
@@ -87,7 +90,7 @@ var _ = Describe("Plugin", func() {
 	It("default timeout is 100ms", func() {
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
-		timeout := time.Millisecond * 100
+		timeout := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
 		Expect(filters).To(HaveLen(1))
 		for _, f := range filters {
 			cfg := getConfig(f.HttpFilter)
@@ -180,7 +183,7 @@ var _ = Describe("Plugin", func() {
 						},
 					},
 				},
-			}, &route.VirtualHost{})
+			}, &envoyroute.VirtualHost{})
 
 			Expect(err).To(Equal(RateLimitAuthOrderingConflict), "Should not allow auth-based rate limits when rate limiting before auth")
 		})
@@ -199,7 +202,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
 				cfg := getConfig(f.HttpFilter)
-				Expect(*cfg.Timeout).To(Equal(time.Second))
+				Expect(*cfg.Timeout).To(Equal(duration.Duration{Seconds: 1}))
 			}
 		})
 	})
@@ -209,7 +212,7 @@ var _ = Describe("Plugin", func() {
 func getConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {
 	cfg := f.GetConfig()
 	rcfg := new(envoyratelimit.RateLimit)
-	err := util.StructToMessage(cfg, rcfg)
+	err := conversion.StructToMessage(cfg, rcfg)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return rcfg
 }

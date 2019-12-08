@@ -35,6 +35,876 @@ goog.exportSymbol('proto.jwt.options.gloo.solo.io.VhostExtension', null, global)
  * @extends {jspb.Message}
  * @constructor
  */
+proto.jwt.options.gloo.solo.io.VhostExtension = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.jwt.options.gloo.solo.io.VhostExtension, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.jwt.options.gloo.solo.io.VhostExtension.displayName = 'proto.jwt.options.gloo.solo.io.VhostExtension';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.toObject = function(opt_includeInstance) {
+  return proto.jwt.options.gloo.solo.io.VhostExtension.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.jwt.options.gloo.solo.io.Provider.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.jwt.options.gloo.solo.io.VhostExtension}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.jwt.options.gloo.solo.io.VhostExtension;
+  return proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.jwt.options.gloo.solo.io.VhostExtension}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 4:
+      var value = msg.getProvidersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.jwt.options.gloo.solo.io.VhostExtension.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getProvidersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, Provider> providers = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.jwt.options.gloo.solo.io.Provider>}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.getProvidersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.jwt.options.gloo.solo.io.Provider>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      proto.jwt.options.gloo.solo.io.Provider));
+};
+
+
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.clearProvidersMap = function() {
+  this.getProvidersMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.jwt.options.gloo.solo.io.RouteExtension, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.jwt.options.gloo.solo.io.RouteExtension.displayName = 'proto.jwt.options.gloo.solo.io.RouteExtension';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.toObject = function(opt_includeInstance) {
+  return proto.jwt.options.gloo.solo.io.RouteExtension.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    disable: jspb.Message.getFieldWithDefault(msg, 1, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.jwt.options.gloo.solo.io.RouteExtension}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.jwt.options.gloo.solo.io.RouteExtension;
+  return proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.jwt.options.gloo.solo.io.RouteExtension}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisable(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.jwt.options.gloo.solo.io.RouteExtension.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getDisable();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool disable = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.getDisable = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.setDisable = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.jwt.options.gloo.solo.io.Provider = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.jwt.options.gloo.solo.io.Provider.repeatedFields_, null);
+};
+goog.inherits(proto.jwt.options.gloo.solo.io.Provider, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.jwt.options.gloo.solo.io.Provider.displayName = 'proto.jwt.options.gloo.solo.io.Provider';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.jwt.options.gloo.solo.io.Provider.repeatedFields_ = [2,6];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.toObject = function(opt_includeInstance) {
+  return proto.jwt.options.gloo.solo.io.Provider.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.jwt.options.gloo.solo.io.Provider} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.Provider.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    jwks: (f = msg.getJwks()) && proto.jwt.options.gloo.solo.io.Jwks.toObject(includeInstance, f),
+    audiencesList: jspb.Message.getRepeatedField(msg, 2),
+    issuer: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    tokenSource: (f = msg.getTokenSource()) && proto.jwt.options.gloo.solo.io.TokenSource.toObject(includeInstance, f),
+    keepToken: jspb.Message.getFieldWithDefault(msg, 5, false),
+    claimsToHeadersList: jspb.Message.toObjectList(msg.getClaimsToHeadersList(),
+    proto.jwt.options.gloo.solo.io.ClaimToHeader.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.jwt.options.gloo.solo.io.Provider}
+ */
+proto.jwt.options.gloo.solo.io.Provider.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.jwt.options.gloo.solo.io.Provider;
+  return proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.jwt.options.gloo.solo.io.Provider} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.jwt.options.gloo.solo.io.Provider}
+ */
+proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.jwt.options.gloo.solo.io.Jwks;
+      reader.readMessage(value,proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader);
+      msg.setJwks(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAudiences(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIssuer(value);
+      break;
+    case 4:
+      var value = new proto.jwt.options.gloo.solo.io.TokenSource;
+      reader.readMessage(value,proto.jwt.options.gloo.solo.io.TokenSource.deserializeBinaryFromReader);
+      msg.setTokenSource(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setKeepToken(value);
+      break;
+    case 6:
+      var value = new proto.jwt.options.gloo.solo.io.ClaimToHeader;
+      reader.readMessage(value,proto.jwt.options.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader);
+      msg.addClaimsToHeaders(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.jwt.options.gloo.solo.io.Provider} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getJwks();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getAudiencesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+  f = message.getIssuer();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getTokenSource();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.jwt.options.gloo.solo.io.TokenSource.serializeBinaryToWriter
+    );
+  }
+  f = message.getKeepToken();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
+    );
+  }
+  f = message.getClaimsToHeadersList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      6,
+      f,
+      proto.jwt.options.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional Jwks jwks = 1;
+ * @return {?proto.jwt.options.gloo.solo.io.Jwks}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getJwks = function() {
+  return /** @type{?proto.jwt.options.gloo.solo.io.Jwks} */ (
+    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.Jwks, 1));
+};
+
+
+/** @param {?proto.jwt.options.gloo.solo.io.Jwks|undefined} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setJwks = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.jwt.options.gloo.solo.io.Provider.prototype.clearJwks = function() {
+  this.setJwks(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.hasJwks = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated string audiences = 2;
+ * @return {!Array<string>}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getAudiencesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setAudiencesList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.addAudiences = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.jwt.options.gloo.solo.io.Provider.prototype.clearAudiencesList = function() {
+  this.setAudiencesList([]);
+};
+
+
+/**
+ * optional string issuer = 3;
+ * @return {string}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getIssuer = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setIssuer = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional TokenSource token_source = 4;
+ * @return {?proto.jwt.options.gloo.solo.io.TokenSource}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getTokenSource = function() {
+  return /** @type{?proto.jwt.options.gloo.solo.io.TokenSource} */ (
+    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.TokenSource, 4));
+};
+
+
+/** @param {?proto.jwt.options.gloo.solo.io.TokenSource|undefined} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setTokenSource = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.jwt.options.gloo.solo.io.Provider.prototype.clearTokenSource = function() {
+  this.setTokenSource(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.hasTokenSource = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional bool keep_token = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getKeepToken = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setKeepToken = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * repeated ClaimToHeader claims_to_headers = 6;
+ * @return {!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getClaimsToHeadersList = function() {
+  return /** @type{!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.jwt.options.gloo.solo.io.ClaimToHeader, 6));
+};
+
+
+/** @param {!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setClaimsToHeadersList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 6, value);
+};
+
+
+/**
+ * @param {!proto.jwt.options.gloo.solo.io.ClaimToHeader=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.jwt.options.gloo.solo.io.ClaimToHeader}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.addClaimsToHeaders = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.jwt.options.gloo.solo.io.ClaimToHeader, opt_index);
+};
+
+
+proto.jwt.options.gloo.solo.io.Provider.prototype.clearClaimsToHeadersList = function() {
+  this.setClaimsToHeadersList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.jwt.options.gloo.solo.io.Jwks = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_);
+};
+goog.inherits(proto.jwt.options.gloo.solo.io.Jwks, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.jwt.options.gloo.solo.io.Jwks.displayName = 'proto.jwt.options.gloo.solo.io.Jwks';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.JwksCase = {
+  JWKS_NOT_SET: 0,
+  REMOTE: 1,
+  LOCAL: 2
+};
+
+/**
+ * @return {proto.jwt.options.gloo.solo.io.Jwks.JwksCase}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.getJwksCase = function() {
+  return /** @type {proto.jwt.options.gloo.solo.io.Jwks.JwksCase} */(jspb.Message.computeOneofCase(this, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.toObject = function(opt_includeInstance) {
+  return proto.jwt.options.gloo.solo.io.Jwks.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.jwt.options.gloo.solo.io.Jwks} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.Jwks.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    remote: (f = msg.getRemote()) && proto.jwt.options.gloo.solo.io.RemoteJwks.toObject(includeInstance, f),
+    local: (f = msg.getLocal()) && proto.jwt.options.gloo.solo.io.LocalJwks.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.jwt.options.gloo.solo.io.Jwks}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.jwt.options.gloo.solo.io.Jwks;
+  return proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.jwt.options.gloo.solo.io.Jwks} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.jwt.options.gloo.solo.io.Jwks}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.jwt.options.gloo.solo.io.RemoteJwks;
+      reader.readMessage(value,proto.jwt.options.gloo.solo.io.RemoteJwks.deserializeBinaryFromReader);
+      msg.setRemote(value);
+      break;
+    case 2:
+      var value = new proto.jwt.options.gloo.solo.io.LocalJwks;
+      reader.readMessage(value,proto.jwt.options.gloo.solo.io.LocalJwks.deserializeBinaryFromReader);
+      msg.setLocal(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.jwt.options.gloo.solo.io.Jwks} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRemote();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.jwt.options.gloo.solo.io.RemoteJwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocal();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.jwt.options.gloo.solo.io.LocalJwks.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional RemoteJwks remote = 1;
+ * @return {?proto.jwt.options.gloo.solo.io.RemoteJwks}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.getRemote = function() {
+  return /** @type{?proto.jwt.options.gloo.solo.io.RemoteJwks} */ (
+    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.RemoteJwks, 1));
+};
+
+
+/** @param {?proto.jwt.options.gloo.solo.io.RemoteJwks|undefined} value */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.setRemote = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0], value);
+};
+
+
+proto.jwt.options.gloo.solo.io.Jwks.prototype.clearRemote = function() {
+  this.setRemote(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.hasRemote = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional LocalJwks local = 2;
+ * @return {?proto.jwt.options.gloo.solo.io.LocalJwks}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.getLocal = function() {
+  return /** @type{?proto.jwt.options.gloo.solo.io.LocalJwks} */ (
+    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.LocalJwks, 2));
+};
+
+
+/** @param {?proto.jwt.options.gloo.solo.io.LocalJwks|undefined} value */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.setLocal = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0], value);
+};
+
+
+proto.jwt.options.gloo.solo.io.Jwks.prototype.clearLocal = function() {
+  this.setLocal(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.Jwks.prototype.hasLocal = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.jwt.options.gloo.solo.io.RemoteJwks = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -393,235 +1263,6 @@ proto.jwt.options.gloo.solo.io.LocalJwks.prototype.getKey = function() {
 /** @param {string} value */
 proto.jwt.options.gloo.solo.io.LocalJwks.prototype.setKey = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.jwt.options.gloo.solo.io.Jwks = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_);
-};
-goog.inherits(proto.jwt.options.gloo.solo.io.Jwks, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.jwt.options.gloo.solo.io.Jwks.displayName = 'proto.jwt.options.gloo.solo.io.Jwks';
-}
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_ = [[1,2]];
-
-/**
- * @enum {number}
- */
-proto.jwt.options.gloo.solo.io.Jwks.JwksCase = {
-  JWKS_NOT_SET: 0,
-  REMOTE: 1,
-  LOCAL: 2
-};
-
-/**
- * @return {proto.jwt.options.gloo.solo.io.Jwks.JwksCase}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.getJwksCase = function() {
-  return /** @type {proto.jwt.options.gloo.solo.io.Jwks.JwksCase} */(jspb.Message.computeOneofCase(this, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0]));
-};
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.toObject = function(opt_includeInstance) {
-  return proto.jwt.options.gloo.solo.io.Jwks.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.jwt.options.gloo.solo.io.Jwks} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.Jwks.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    remote: (f = msg.getRemote()) && proto.jwt.options.gloo.solo.io.RemoteJwks.toObject(includeInstance, f),
-    local: (f = msg.getLocal()) && proto.jwt.options.gloo.solo.io.LocalJwks.toObject(includeInstance, f)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.jwt.options.gloo.solo.io.Jwks}
- */
-proto.jwt.options.gloo.solo.io.Jwks.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.jwt.options.gloo.solo.io.Jwks;
-  return proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.jwt.options.gloo.solo.io.Jwks} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.jwt.options.gloo.solo.io.Jwks}
- */
-proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new proto.jwt.options.gloo.solo.io.RemoteJwks;
-      reader.readMessage(value,proto.jwt.options.gloo.solo.io.RemoteJwks.deserializeBinaryFromReader);
-      msg.setRemote(value);
-      break;
-    case 2:
-      var value = new proto.jwt.options.gloo.solo.io.LocalJwks;
-      reader.readMessage(value,proto.jwt.options.gloo.solo.io.LocalJwks.deserializeBinaryFromReader);
-      msg.setLocal(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.jwt.options.gloo.solo.io.Jwks} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getRemote();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      proto.jwt.options.gloo.solo.io.RemoteJwks.serializeBinaryToWriter
-    );
-  }
-  f = message.getLocal();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      proto.jwt.options.gloo.solo.io.LocalJwks.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * optional RemoteJwks remote = 1;
- * @return {?proto.jwt.options.gloo.solo.io.RemoteJwks}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.getRemote = function() {
-  return /** @type{?proto.jwt.options.gloo.solo.io.RemoteJwks} */ (
-    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.RemoteJwks, 1));
-};
-
-
-/** @param {?proto.jwt.options.gloo.solo.io.RemoteJwks|undefined} value */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.setRemote = function(value) {
-  jspb.Message.setOneofWrapperField(this, 1, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0], value);
-};
-
-
-proto.jwt.options.gloo.solo.io.Jwks.prototype.clearRemote = function() {
-  this.setRemote(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.hasRemote = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional LocalJwks local = 2;
- * @return {?proto.jwt.options.gloo.solo.io.LocalJwks}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.getLocal = function() {
-  return /** @type{?proto.jwt.options.gloo.solo.io.LocalJwks} */ (
-    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.LocalJwks, 2));
-};
-
-
-/** @param {?proto.jwt.options.gloo.solo.io.LocalJwks|undefined} value */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.setLocal = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.jwt.options.gloo.solo.io.Jwks.oneofGroups_[0], value);
-};
-
-
-proto.jwt.options.gloo.solo.io.Jwks.prototype.clearLocal = function() {
-  this.setLocal(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.jwt.options.gloo.solo.io.Jwks.prototype.hasLocal = function() {
-  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -1198,647 +1839,6 @@ proto.jwt.options.gloo.solo.io.ClaimToHeader.prototype.getAppend = function() {
 /** @param {boolean} value */
 proto.jwt.options.gloo.solo.io.ClaimToHeader.prototype.setAppend = function(value) {
   jspb.Message.setProto3BooleanField(this, 4, value);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.jwt.options.gloo.solo.io.Provider = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.jwt.options.gloo.solo.io.Provider.repeatedFields_, null);
-};
-goog.inherits(proto.jwt.options.gloo.solo.io.Provider, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.jwt.options.gloo.solo.io.Provider.displayName = 'proto.jwt.options.gloo.solo.io.Provider';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.jwt.options.gloo.solo.io.Provider.repeatedFields_ = [2,6];
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.toObject = function(opt_includeInstance) {
-  return proto.jwt.options.gloo.solo.io.Provider.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.jwt.options.gloo.solo.io.Provider} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.Provider.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    jwks: (f = msg.getJwks()) && proto.jwt.options.gloo.solo.io.Jwks.toObject(includeInstance, f),
-    audiencesList: jspb.Message.getRepeatedField(msg, 2),
-    issuer: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    tokenSource: (f = msg.getTokenSource()) && proto.jwt.options.gloo.solo.io.TokenSource.toObject(includeInstance, f),
-    keepToken: jspb.Message.getFieldWithDefault(msg, 5, false),
-    claimsToHeadersList: jspb.Message.toObjectList(msg.getClaimsToHeadersList(),
-    proto.jwt.options.gloo.solo.io.ClaimToHeader.toObject, includeInstance)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.jwt.options.gloo.solo.io.Provider}
- */
-proto.jwt.options.gloo.solo.io.Provider.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.jwt.options.gloo.solo.io.Provider;
-  return proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.jwt.options.gloo.solo.io.Provider} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.jwt.options.gloo.solo.io.Provider}
- */
-proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new proto.jwt.options.gloo.solo.io.Jwks;
-      reader.readMessage(value,proto.jwt.options.gloo.solo.io.Jwks.deserializeBinaryFromReader);
-      msg.setJwks(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addAudiences(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setIssuer(value);
-      break;
-    case 4:
-      var value = new proto.jwt.options.gloo.solo.io.TokenSource;
-      reader.readMessage(value,proto.jwt.options.gloo.solo.io.TokenSource.deserializeBinaryFromReader);
-      msg.setTokenSource(value);
-      break;
-    case 5:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setKeepToken(value);
-      break;
-    case 6:
-      var value = new proto.jwt.options.gloo.solo.io.ClaimToHeader;
-      reader.readMessage(value,proto.jwt.options.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader);
-      msg.addClaimsToHeaders(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.jwt.options.gloo.solo.io.Provider} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getJwks();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      proto.jwt.options.gloo.solo.io.Jwks.serializeBinaryToWriter
-    );
-  }
-  f = message.getAudiencesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      2,
-      f
-    );
-  }
-  f = message.getIssuer();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
-  f = message.getTokenSource();
-  if (f != null) {
-    writer.writeMessage(
-      4,
-      f,
-      proto.jwt.options.gloo.solo.io.TokenSource.serializeBinaryToWriter
-    );
-  }
-  f = message.getKeepToken();
-  if (f) {
-    writer.writeBool(
-      5,
-      f
-    );
-  }
-  f = message.getClaimsToHeadersList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      6,
-      f,
-      proto.jwt.options.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * optional Jwks jwks = 1;
- * @return {?proto.jwt.options.gloo.solo.io.Jwks}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getJwks = function() {
-  return /** @type{?proto.jwt.options.gloo.solo.io.Jwks} */ (
-    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.Jwks, 1));
-};
-
-
-/** @param {?proto.jwt.options.gloo.solo.io.Jwks|undefined} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setJwks = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.jwt.options.gloo.solo.io.Provider.prototype.clearJwks = function() {
-  this.setJwks(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.hasJwks = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * repeated string audiences = 2;
- * @return {!Array<string>}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getAudiencesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
-};
-
-
-/** @param {!Array<string>} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setAudiencesList = function(value) {
-  jspb.Message.setField(this, 2, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.addAudiences = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
-};
-
-
-proto.jwt.options.gloo.solo.io.Provider.prototype.clearAudiencesList = function() {
-  this.setAudiencesList([]);
-};
-
-
-/**
- * optional string issuer = 3;
- * @return {string}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getIssuer = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/** @param {string} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setIssuer = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
- * optional TokenSource token_source = 4;
- * @return {?proto.jwt.options.gloo.solo.io.TokenSource}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getTokenSource = function() {
-  return /** @type{?proto.jwt.options.gloo.solo.io.TokenSource} */ (
-    jspb.Message.getWrapperField(this, proto.jwt.options.gloo.solo.io.TokenSource, 4));
-};
-
-
-/** @param {?proto.jwt.options.gloo.solo.io.TokenSource|undefined} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setTokenSource = function(value) {
-  jspb.Message.setWrapperField(this, 4, value);
-};
-
-
-proto.jwt.options.gloo.solo.io.Provider.prototype.clearTokenSource = function() {
-  this.setTokenSource(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.hasTokenSource = function() {
-  return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional bool keep_token = 5;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getKeepToken = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
-};
-
-
-/** @param {boolean} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setKeepToken = function(value) {
-  jspb.Message.setProto3BooleanField(this, 5, value);
-};
-
-
-/**
- * repeated ClaimToHeader claims_to_headers = 6;
- * @return {!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.getClaimsToHeadersList = function() {
-  return /** @type{!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.jwt.options.gloo.solo.io.ClaimToHeader, 6));
-};
-
-
-/** @param {!Array<!proto.jwt.options.gloo.solo.io.ClaimToHeader>} value */
-proto.jwt.options.gloo.solo.io.Provider.prototype.setClaimsToHeadersList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 6, value);
-};
-
-
-/**
- * @param {!proto.jwt.options.gloo.solo.io.ClaimToHeader=} opt_value
- * @param {number=} opt_index
- * @return {!proto.jwt.options.gloo.solo.io.ClaimToHeader}
- */
-proto.jwt.options.gloo.solo.io.Provider.prototype.addClaimsToHeaders = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.jwt.options.gloo.solo.io.ClaimToHeader, opt_index);
-};
-
-
-proto.jwt.options.gloo.solo.io.Provider.prototype.clearClaimsToHeadersList = function() {
-  this.setClaimsToHeadersList([]);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.jwt.options.gloo.solo.io.VhostExtension = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.jwt.options.gloo.solo.io.VhostExtension, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.jwt.options.gloo.solo.io.VhostExtension.displayName = 'proto.jwt.options.gloo.solo.io.VhostExtension';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.prototype.toObject = function(opt_includeInstance) {
-  return proto.jwt.options.gloo.solo.io.VhostExtension.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.jwt.options.gloo.solo.io.Provider.toObject) : []
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.jwt.options.gloo.solo.io.VhostExtension}
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.jwt.options.gloo.solo.io.VhostExtension;
-  return proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.jwt.options.gloo.solo.io.VhostExtension}
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 4:
-      var value = msg.getProvidersMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader, "");
-         });
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.jwt.options.gloo.solo.io.VhostExtension.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.jwt.options.gloo.solo.io.VhostExtension} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getProvidersMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter);
-  }
-};
-
-
-/**
- * map<string, Provider> providers = 4;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,!proto.jwt.options.gloo.solo.io.Provider>}
- */
-proto.jwt.options.gloo.solo.io.VhostExtension.prototype.getProvidersMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,!proto.jwt.options.gloo.solo.io.Provider>} */ (
-      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
-      proto.jwt.options.gloo.solo.io.Provider));
-};
-
-
-proto.jwt.options.gloo.solo.io.VhostExtension.prototype.clearProvidersMap = function() {
-  this.getProvidersMap().clear();
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.jwt.options.gloo.solo.io.RouteExtension = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.jwt.options.gloo.solo.io.RouteExtension, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.jwt.options.gloo.solo.io.RouteExtension.displayName = 'proto.jwt.options.gloo.solo.io.RouteExtension';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.prototype.toObject = function(opt_includeInstance) {
-  return proto.jwt.options.gloo.solo.io.RouteExtension.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    disable: jspb.Message.getFieldWithDefault(msg, 1, false)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.jwt.options.gloo.solo.io.RouteExtension}
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.jwt.options.gloo.solo.io.RouteExtension;
-  return proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.jwt.options.gloo.solo.io.RouteExtension}
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setDisable(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.jwt.options.gloo.solo.io.RouteExtension.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.jwt.options.gloo.solo.io.RouteExtension} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getDisable();
-  if (f) {
-    writer.writeBool(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * optional bool disable = 1;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.jwt.options.gloo.solo.io.RouteExtension.prototype.getDisable = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
-};
-
-
-/** @param {boolean} value */
-proto.jwt.options.gloo.solo.io.RouteExtension.prototype.setDisable = function(value) {
-  jspb.Message.setProto3BooleanField(this, 1, value);
 };
 
 

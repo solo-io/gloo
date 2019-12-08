@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 
-	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type"
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,6 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/go-utils/contextutils"
+	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"

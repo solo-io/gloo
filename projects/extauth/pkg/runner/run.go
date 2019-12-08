@@ -14,17 +14,16 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/gogo/protobuf/types"
-
 	"github.com/solo-io/go-utils/contextutils"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
+	_struct "github.com/golang/protobuf/ptypes/struct"
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
 	extauth "github.com/solo-io/ext-auth-service/pkg/service"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
@@ -127,10 +126,10 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 	}
 	nodeInfo.Cluster = "extauth"
 	role := ExtAuthServerRole
-	nodeInfo.Metadata = &types.Struct{
-		Fields: map[string]*types.Value{
+	nodeInfo.Metadata = &_struct.Struct{
+		Fields: map[string]*_struct.Value{
 			"role": {
-				Kind: &types.Value_StringValue{
+				Kind: &_struct.Value_StringValue{
 					StringValue: role,
 				},
 			},

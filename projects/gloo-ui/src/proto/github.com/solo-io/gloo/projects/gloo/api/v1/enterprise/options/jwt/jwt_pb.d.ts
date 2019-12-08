@@ -6,6 +6,128 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 import * as gogoproto_gogo_pb from "../../../../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
+export class VhostExtension extends jspb.Message {
+  getProvidersMap(): jspb.Map<string, Provider>;
+  clearProvidersMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VhostExtension.AsObject;
+  static toObject(includeInstance: boolean, msg: VhostExtension): VhostExtension.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VhostExtension, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VhostExtension;
+  static deserializeBinaryFromReader(message: VhostExtension, reader: jspb.BinaryReader): VhostExtension;
+}
+
+export namespace VhostExtension {
+  export type AsObject = {
+    providersMap: Array<[string, Provider.AsObject]>,
+  }
+}
+
+export class RouteExtension extends jspb.Message {
+  getDisable(): boolean;
+  setDisable(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RouteExtension.AsObject;
+  static toObject(includeInstance: boolean, msg: RouteExtension): RouteExtension.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RouteExtension, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RouteExtension;
+  static deserializeBinaryFromReader(message: RouteExtension, reader: jspb.BinaryReader): RouteExtension;
+}
+
+export namespace RouteExtension {
+  export type AsObject = {
+    disable: boolean,
+  }
+}
+
+export class Provider extends jspb.Message {
+  hasJwks(): boolean;
+  clearJwks(): void;
+  getJwks(): Jwks | undefined;
+  setJwks(value?: Jwks): void;
+
+  clearAudiencesList(): void;
+  getAudiencesList(): Array<string>;
+  setAudiencesList(value: Array<string>): void;
+  addAudiences(value: string, index?: number): string;
+
+  getIssuer(): string;
+  setIssuer(value: string): void;
+
+  hasTokenSource(): boolean;
+  clearTokenSource(): void;
+  getTokenSource(): TokenSource | undefined;
+  setTokenSource(value?: TokenSource): void;
+
+  getKeepToken(): boolean;
+  setKeepToken(value: boolean): void;
+
+  clearClaimsToHeadersList(): void;
+  getClaimsToHeadersList(): Array<ClaimToHeader>;
+  setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
+  addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Provider.AsObject;
+  static toObject(includeInstance: boolean, msg: Provider): Provider.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Provider, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Provider;
+  static deserializeBinaryFromReader(message: Provider, reader: jspb.BinaryReader): Provider;
+}
+
+export namespace Provider {
+  export type AsObject = {
+    jwks?: Jwks.AsObject,
+    audiencesList: Array<string>,
+    issuer: string,
+    tokenSource?: TokenSource.AsObject,
+    keepToken: boolean,
+    claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+  }
+}
+
+export class Jwks extends jspb.Message {
+  hasRemote(): boolean;
+  clearRemote(): void;
+  getRemote(): RemoteJwks | undefined;
+  setRemote(value?: RemoteJwks): void;
+
+  hasLocal(): boolean;
+  clearLocal(): void;
+  getLocal(): LocalJwks | undefined;
+  setLocal(value?: LocalJwks): void;
+
+  getJwksCase(): Jwks.JwksCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Jwks.AsObject;
+  static toObject(includeInstance: boolean, msg: Jwks): Jwks.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Jwks, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Jwks;
+  static deserializeBinaryFromReader(message: Jwks, reader: jspb.BinaryReader): Jwks;
+}
+
+export namespace Jwks {
+  export type AsObject = {
+    remote?: RemoteJwks.AsObject,
+    local?: LocalJwks.AsObject,
+  }
+
+  export enum JwksCase {
+    JWKS_NOT_SET = 0,
+    REMOTE = 1,
+    LOCAL = 2,
+  }
+}
+
 export class RemoteJwks extends jspb.Message {
   getUrl(): string;
   setUrl(value: string): void;
@@ -55,41 +177,6 @@ export class LocalJwks extends jspb.Message {
 export namespace LocalJwks {
   export type AsObject = {
     key: string,
-  }
-}
-
-export class Jwks extends jspb.Message {
-  hasRemote(): boolean;
-  clearRemote(): void;
-  getRemote(): RemoteJwks | undefined;
-  setRemote(value?: RemoteJwks): void;
-
-  hasLocal(): boolean;
-  clearLocal(): void;
-  getLocal(): LocalJwks | undefined;
-  setLocal(value?: LocalJwks): void;
-
-  getJwksCase(): Jwks.JwksCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Jwks.AsObject;
-  static toObject(includeInstance: boolean, msg: Jwks): Jwks.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Jwks, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Jwks;
-  static deserializeBinaryFromReader(message: Jwks, reader: jspb.BinaryReader): Jwks;
-}
-
-export namespace Jwks {
-  export type AsObject = {
-    remote?: RemoteJwks.AsObject,
-    local?: LocalJwks.AsObject,
-  }
-
-  export enum JwksCase {
-    JWKS_NOT_SET = 0,
-    REMOTE = 1,
-    LOCAL = 2,
   }
 }
 
@@ -170,93 +257,6 @@ export namespace ClaimToHeader {
     claim: string,
     header: string,
     append: boolean,
-  }
-}
-
-export class Provider extends jspb.Message {
-  hasJwks(): boolean;
-  clearJwks(): void;
-  getJwks(): Jwks | undefined;
-  setJwks(value?: Jwks): void;
-
-  clearAudiencesList(): void;
-  getAudiencesList(): Array<string>;
-  setAudiencesList(value: Array<string>): void;
-  addAudiences(value: string, index?: number): string;
-
-  getIssuer(): string;
-  setIssuer(value: string): void;
-
-  hasTokenSource(): boolean;
-  clearTokenSource(): void;
-  getTokenSource(): TokenSource | undefined;
-  setTokenSource(value?: TokenSource): void;
-
-  getKeepToken(): boolean;
-  setKeepToken(value: boolean): void;
-
-  clearClaimsToHeadersList(): void;
-  getClaimsToHeadersList(): Array<ClaimToHeader>;
-  setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
-  addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Provider.AsObject;
-  static toObject(includeInstance: boolean, msg: Provider): Provider.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Provider, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Provider;
-  static deserializeBinaryFromReader(message: Provider, reader: jspb.BinaryReader): Provider;
-}
-
-export namespace Provider {
-  export type AsObject = {
-    jwks?: Jwks.AsObject,
-    audiencesList: Array<string>,
-    issuer: string,
-    tokenSource?: TokenSource.AsObject,
-    keepToken: boolean,
-    claimsToHeadersList: Array<ClaimToHeader.AsObject>,
-  }
-}
-
-export class VhostExtension extends jspb.Message {
-  getProvidersMap(): jspb.Map<string, Provider>;
-  clearProvidersMap(): void;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): VhostExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: VhostExtension): VhostExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: VhostExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): VhostExtension;
-  static deserializeBinaryFromReader(message: VhostExtension, reader: jspb.BinaryReader): VhostExtension;
-}
-
-export namespace VhostExtension {
-  export type AsObject = {
-    providersMap: Array<[string, Provider.AsObject]>,
-  }
-}
-
-export class RouteExtension extends jspb.Message {
-  getDisable(): boolean;
-  setDisable(value: boolean): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RouteExtension.AsObject;
-  static toObject(includeInstance: boolean, msg: RouteExtension): RouteExtension.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RouteExtension, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RouteExtension;
-  static deserializeBinaryFromReader(message: RouteExtension, reader: jspb.BinaryReader): RouteExtension;
-}
-
-export namespace RouteExtension {
-  export type AsObject = {
-    disable: boolean,
   }
 }
 

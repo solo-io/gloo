@@ -7,7 +7,6 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.apiServer.service.name }}
-    installationId: {{ include "gloo.installationId" . }}
 spec:
   ports:
     - name: static

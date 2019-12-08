@@ -10,7 +10,6 @@ metadata:
   labels:
     app: gloo
     gloo: observability
-    installationId: {{ include "gloo.installationId" . }}
   name: observability
   namespace: {{ .Release.Namespace }}
 spec:

@@ -2,6 +2,7 @@ package waf
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/envoyproxy/go-control-plane/pkg/conversion"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
@@ -9,7 +10,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -83,7 +83,7 @@ var _ = Describe("waf plugin", func() {
 					st := wafFilter.HttpFilter.GetConfig()
 					Expect(st).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					err := util.StructToMessage(st, &filterWaf)
+					err := conversion.StructToMessage(st, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(filterWaf.Disabled).To(BeTrue())
 				})
@@ -116,7 +116,7 @@ var _ = Describe("waf plugin", func() {
 					st := wafFilter.HttpFilter.GetConfig()
 					Expect(st).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					err := util.StructToMessage(st, &filterWaf)
+					err := conversion.StructToMessage(st, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					checkRuleSets(filterWaf.RuleSets)
 				})
@@ -142,7 +142,7 @@ var _ = Describe("waf plugin", func() {
 						pfc := outRoute.PerFilterConfig[FilterName]
 						Expect(pfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						err := util.StructToMessage(pfc, &perRouteWaf)
+						err := conversion.StructToMessage(pfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeTrue())
 					})
@@ -151,7 +151,7 @@ var _ = Describe("waf plugin", func() {
 						pfc := outVhost.PerFilterConfig[FilterName]
 						Expect(pfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						err := util.StructToMessage(pfc, &perVhostWaf)
+						err := conversion.StructToMessage(pfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeTrue())
 					})
@@ -190,7 +190,7 @@ var _ = Describe("waf plugin", func() {
 						pfc := outRoute.PerFilterConfig[FilterName]
 						Expect(pfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						err := util.StructToMessage(pfc, &perRouteWaf)
+						err := conversion.StructToMessage(pfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeFalse())
 						checkRuleSets(perRouteWaf.RuleSets)
@@ -200,7 +200,7 @@ var _ = Describe("waf plugin", func() {
 						pfc := outVhost.PerFilterConfig[FilterName]
 						Expect(pfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						err := util.StructToMessage(pfc, &perVhostWaf)
+						err := conversion.StructToMessage(pfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeFalse())
 						checkRuleSets(perVhostWaf.RuleSets)

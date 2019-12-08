@@ -4,16 +4,12 @@ kind: {{ include "gloo.roleKind" . }}Binding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: glooe-settings-user-role-binding{{ include "gloo.rbacNameSuffix" . }}
-{{- if .Values.gloo.global.glooRbac.namespaced }}
+  {{- if .Values.gloo.global.glooRbac.namespaced }}
   namespace: {{ .Release.Namespace }}
-{{- end }}
+  {{- end }}
   labels:
     app: gloo
     gloo: rbac
-    installationId: {{ include "gloo.installationId" . }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-weight": "15"
 subjects:
   - kind: ServiceAccount
     name: observability

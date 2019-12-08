@@ -9,7 +9,6 @@ metadata:
     app: gloo
     chart: glooe-grafana
     release: {{ .Release.Name }}
-    installationId: {{ include "gloo.installationId" . }}
 data:
 {{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
 {{- end }}

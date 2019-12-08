@@ -24,6 +24,12 @@ export class Descriptor extends jspb.Message {
   setDescriptorsList(value: Array<Descriptor>): void;
   addDescriptors(value?: Descriptor, index?: number): Descriptor;
 
+  getWeight(): number;
+  setWeight(value: number): void;
+
+  getAlwaysApply(): boolean;
+  setAlwaysApply(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Descriptor.AsObject;
   static toObject(includeInstance: boolean, msg: Descriptor): Descriptor.AsObject;
@@ -40,6 +46,8 @@ export namespace Descriptor {
     value: string,
     rateLimit?: RateLimit.AsObject,
     descriptorsList: Array<Descriptor.AsObject>,
+    weight: number,
+    alwaysApply: boolean,
   }
 }
 

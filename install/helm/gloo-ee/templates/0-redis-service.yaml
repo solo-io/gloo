@@ -5,7 +5,6 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.redis.service.name }}
-    installationId: {{ include "gloo.installationId" . }}
   name: {{ .Values.redis.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:

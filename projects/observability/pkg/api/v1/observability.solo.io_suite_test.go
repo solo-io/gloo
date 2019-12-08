@@ -18,9 +18,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func TestObservabilitysoloio(t *testing.T) {
+func TestObservabilitySoloIo(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Observabilitysoloio Suite")
+	RunSpecs(t, "ObservabilitySoloIo Suite")
 }
 
 var (

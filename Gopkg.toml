@@ -1,4 +1,18 @@
-ignored = ["github.com/lyft/protoc-gen-validate*"]
+# This file remains temporarily because several libaries parse
+# toml files and our cloudbuild setup depends on GOPATH.
+#
+# Gloo is currently building using go modules, however. We are
+# actively working to rewrite our parsing libraries to use go
+# modules and updating our CI to work outside of the GOPATH.
+
+ignored = [
+"github.com/lyft/protoc-gen-validate*",
+"github.com/Masterminds/semver/v3",
+"github.com/Masterminds/sprig/v3",
+"github.com/pierrec/lz4/v3",
+"github.com/russross/blackfriday/v2",
+"github.com/cespare/xxhash/v2",
+]
 
 [prune]
   go-tests = true
@@ -8,41 +22,38 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
 
-[[constraint]]
-  version = "1.1.1"
-  name = "github.com/gogo/protobuf"
-
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "v1.13.0"
+  version = "v1.16.2"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.16.2"
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.16.2"
 
 [[constraint]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.16.2"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.16.2"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.13.4"
+  version = "kubernetes-1.16.2"
 
 [[override]]
-  name = "github.com/Masterminds/sprig"
-  version = "v2.17.0"
+  name = "helm.sh/helm/v3"
+  version = "3.0.0"
+  source = "https://github.com/helm/helm"
 
 [[override]]
-  name = "k8s.io/helm"
-  version = "v2.13.0"
+  name = "github.com/docker/docker"
+  revision = "be7ac8be2ae072032a4005e8f232be3fc57e4127"
 
 [[override]]
   version = "1.3.2"
@@ -50,32 +61,27 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/envoy-operator"
-  version = "0.1.0"
+  version = "0.1.1"
 
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
-  version = "0.0.1"
+  version = "0.0.2"
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.11.5"
+  version = "0.11.13"
+
+[[override]]
+  name = "github.com/evanphx/json-patch"
+  version = "3.0.0"
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "1.0.0"
-
-[[override]]
-  name = "github.com/hashicorp/consul"
-  revision = "eba25a143821cec25bdb48fe64dd7b7a6152d01d"
-
-# go versioning story not ideal, so we have to pin serf to the version consul expects
-[[override]]
-  name = "github.com/hashicorp/serf"
-  revision = "19bbd39e421bdf3559d5025fb2c760f5ffa56233"
+  version = "1.2.1"
 
 [[override]]
   name = "github.com/solo-io/go-utils"
-  version = "0.10.25"
+  version = "0.11.0"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"
@@ -86,7 +92,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
   version = "v0.19.0"
 
 [[constraint]]
-  version = "v0.8.2"
+  version = "=v0.9.0"
   name = "github.com/envoyproxy/go-control-plane"
 
 [[override]]
@@ -101,11 +107,11 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-service"
-  version = "v0.6.1"
+  version = "v0.6.2"
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-plugins"
-  version = "v0.1.0"
+  version = "v0.1.1"
 
 [[override]]
   name = "k8s.io/klog"

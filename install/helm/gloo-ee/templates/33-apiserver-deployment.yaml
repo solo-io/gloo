@@ -15,7 +15,6 @@ metadata:
   labels:
     app: gloo
     gloo: {{ .Values.apiServer.service.name }}
-    installationId: {{ include "gloo.installationId" . }}
 spec:
   replicas: 1
   selector:

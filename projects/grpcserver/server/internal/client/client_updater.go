@@ -45,9 +45,9 @@ func (u *updater) StartWatch(ctx context.Context) {
 	go func() {
 		// setuputils.Main will block until the watch loop ends
 		err := setuputils.Main(setuputils.SetupOpts{
-			LoggingPrefix: clientUpdaterLogger,
-			SetupFunc:     u.buildReceiverFunc(),
-			ExitOnError:   false,
+			LoggerName:  clientUpdaterLogger,
+			SetupFunc:   u.buildReceiverFunc(),
+			ExitOnError: false,
 		})
 
 		if err != nil {

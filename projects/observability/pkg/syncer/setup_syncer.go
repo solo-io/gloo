@@ -34,9 +34,9 @@ const (
 
 func Main() error {
 	return setuputils.Main(setuputils.SetupOpts{
-		LoggingPrefix: observability,
-		ExitOnError:   true,
-		SetupFunc:     Setup,
+		LoggerName:  observability,
+		ExitOnError: true,
+		SetupFunc:   Setup,
 	})
 }
 

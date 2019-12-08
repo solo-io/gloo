@@ -10,4 +10,3 @@ changelog:
   - type: FIX
     description: Improved stability in the UI particularly around the virtual services section.
     issueLink: https://github.com/solo-io/solo-projects/issues/1285
-releaseStableApi: true

@@ -4,6 +4,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 
+	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
@@ -18,7 +20,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
@@ -165,7 +166,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			filter := outFilters[0]
 			cfgSt := filter.HttpFilter.GetConfig()
 			cfg = &envoyauth.JwtAuthentication{}
-			err = util.StructToMessage(cfgSt, cfg)
+			err = conversion.StructToMessage(cfgSt, cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -182,7 +183,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			Expect(pfc).NotTo(BeNil())
 
 			var routeCfg SoloJwtAuthnPerRoute
-			err := util.StructToMessage(pfc, &routeCfg)
+			err := conversion.StructToMessage(pfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(virtualHost.Name))
 		})
@@ -192,7 +193,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			Expect(pfc).NotTo(BeNil())
 
 			var routeCfg SoloJwtAuthnPerRoute
-			err := util.StructToMessage(pfc, &routeCfg)
+			err := conversion.StructToMessage(pfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(DisableName))
 		})
@@ -317,7 +318,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				Expect(pfc).NotTo(BeNil())
 
 				var routeCfg SoloJwtAuthnPerRoute
-				err := util.StructToMessage(pfc, &routeCfg)
+				err := conversion.StructToMessage(pfc, &routeCfg)
 				Expect(err).NotTo(HaveOccurred())
 
 				provider1Name := ProviderName(virtualHost.Name, "provider1")

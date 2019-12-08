@@ -3,6 +3,9 @@ package dlp
 import (
 	"context"
 
+	"github.com/solo-io/gloo/pkg/utils/gogoutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
@@ -11,7 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 )
@@ -131,7 +134,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 			continue
 		}
 		transformationRules = append(transformationRules, &transformation_ee.TransformationRule{
-			Match: &envoyMatcher,
+			Match: gogoutils.ToGlooRouteMatch(&envoyMatcher),
 			RouteTransformations: &transformation_ee.RouteTransformations{
 				ResponseTransformation: &transformation_ee.Transformation{
 					TransformationType: &transformation_ee.Transformation_DlpTransformation{

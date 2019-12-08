@@ -9,43 +9,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/go-utils/testutils/exec"
-
-	"github.com/solo-io/gloo/pkg/cliutil"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/go-utils/errors"
-
-	"github.com/solo-io/go-utils/contextutils"
-	"go.uber.org/zap"
-
-	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
 	"github.com/avast/retry-go"
-	"github.com/solo-io/go-utils/kubeutils"
-	"k8s.io/client-go/kubernetes"
-
-	"github.com/solo-io/go-utils/testutils"
-	"github.com/solo-io/go-utils/testutils/clusterlock"
-
-	"github.com/solo-io/go-utils/testutils/helper"
-
+	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
+	"github.com/solo-io/gloo/pkg/cliutil"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	clienthelpers "github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/errors"
+	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/go-utils/testutils"
+	"github.com/solo-io/go-utils/testutils/clusterlock"
+	"github.com/solo-io/go-utils/testutils/exec"
+	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 func TestGateway(t *testing.T) {
@@ -101,6 +92,12 @@ var _ = BeforeSuite(func() {
 	// Install Gloo
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
+
+	// Create namespace
+	_, err = clienthelpers.MustKubeClient().CoreV1().Namespaces().Create(&corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: testHelper.InstallNamespace},
+	})
+	Expect(err).NotTo(HaveOccurred())
 
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())

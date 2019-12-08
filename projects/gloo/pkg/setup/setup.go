@@ -40,7 +40,7 @@ func Main() error {
 	return setuputils.Main(setuputils.SetupOpts{
 		SetupFunc:     syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions(cancellableCtx)),
 		ExitOnError:   true,
-		LoggingPrefix: "gloo-ee",
+		LoggerName:    "gloo-ee",
 		UsageReporter: enterpriseUsageReader,
 		CustomCtx:     cancellableCtx,
 	})

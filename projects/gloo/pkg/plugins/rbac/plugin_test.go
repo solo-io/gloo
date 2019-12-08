@@ -5,13 +5,13 @@ import (
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rbac/v2"
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
+	"github.com/envoyproxy/go-control-plane/pkg/conversion"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 
@@ -221,7 +221,7 @@ var _ = Describe("Plugin", func() {
 			Expect(pfc).NotTo(BeNil())
 
 			var perRouteRbac envoyauthz.RBACPerRoute
-			err := util.StructToMessage(pfc, &perRouteRbac)
+			err := conversion.StructToMessage(pfc, &perRouteRbac)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(perRouteRbac.Rbac).ToNot(BeNil())
 
@@ -239,7 +239,7 @@ var _ = Describe("Plugin", func() {
 			Expect(pfc).NotTo(BeNil())
 
 			var perRouteRbac envoyauthz.RBACPerRoute
-			err := util.StructToMessage(pfc, &perRouteRbac)
+			err := conversion.StructToMessage(pfc, &perRouteRbac)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(perRouteRbac.Rbac).To(BeNil())
 		})
@@ -261,7 +261,7 @@ var _ = Describe("Plugin", func() {
 				Expect(pfc).NotTo(BeNil())
 
 				var perVhostRbac envoyauthz.RBACPerRoute
-				err := util.StructToMessage(pfc, &perVhostRbac)
+				err := conversion.StructToMessage(pfc, &perVhostRbac)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(perVhostRbac.Rbac).To(BeNil())
 			})
@@ -277,7 +277,7 @@ var _ = Describe("Plugin", func() {
 				Expect(pfc).NotTo(BeNil())
 
 				var perRouteRbac envoyauthz.RBACPerRoute
-				err := util.StructToMessage(pfc, &perRouteRbac)
+				err := conversion.StructToMessage(pfc, &perRouteRbac)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(perRouteRbac.Rbac).ToNot(BeNil())
 

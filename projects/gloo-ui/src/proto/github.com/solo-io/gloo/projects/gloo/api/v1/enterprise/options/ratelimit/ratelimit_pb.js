@@ -93,7 +93,9 @@ proto.ratelimit.options.gloo.solo.io.Descriptor.toObject = function(includeInsta
     value: jspb.Message.getFieldWithDefault(msg, 2, ""),
     rateLimit: (f = msg.getRateLimit()) && proto.ratelimit.options.gloo.solo.io.RateLimit.toObject(includeInstance, f),
     descriptorsList: jspb.Message.toObjectList(msg.getDescriptorsList(),
-    proto.ratelimit.options.gloo.solo.io.Descriptor.toObject, includeInstance)
+    proto.ratelimit.options.gloo.solo.io.Descriptor.toObject, includeInstance),
+    weight: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    alwaysApply: jspb.Message.getFieldWithDefault(msg, 6, false)
   };
 
   if (includeInstance) {
@@ -147,6 +149,14 @@ proto.ratelimit.options.gloo.solo.io.Descriptor.deserializeBinaryFromReader = fu
       var value = new proto.ratelimit.options.gloo.solo.io.Descriptor;
       reader.readMessage(value,proto.ratelimit.options.gloo.solo.io.Descriptor.deserializeBinaryFromReader);
       msg.addDescriptors(value);
+      break;
+    case 5:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setWeight(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAlwaysApply(value);
       break;
     default:
       reader.skipField();
@@ -205,6 +215,20 @@ proto.ratelimit.options.gloo.solo.io.Descriptor.serializeBinaryToWriter = functi
       4,
       f,
       proto.ratelimit.options.gloo.solo.io.Descriptor.serializeBinaryToWriter
+    );
+  }
+  f = message.getWeight();
+  if (f !== 0) {
+    writer.writeUint32(
+      5,
+      f
+    );
+  }
+  f = message.getAlwaysApply();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
     );
   }
 };
@@ -298,6 +322,38 @@ proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.addDescriptors = funct
 
 proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.clearDescriptorsList = function() {
   this.setDescriptorsList([]);
+};
+
+
+/**
+ * optional uint32 weight = 5;
+ * @return {number}
+ */
+proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.getWeight = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/** @param {number} value */
+proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.setWeight = function(value) {
+  jspb.Message.setProto3IntField(this, 5, value);
+};
+
+
+/**
+ * optional bool always_apply = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.getAlwaysApply = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.ratelimit.options.gloo.solo.io.Descriptor.prototype.setAlwaysApply = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

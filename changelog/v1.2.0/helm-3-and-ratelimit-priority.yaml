@@ -1,0 +1,49 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/1724
+  description: >
+      Implement the advanced rule priority options to added to the Gloo Enterprise rate limit API. Adds support for
+      weighted rules and weight overrides via the `weight` and `alwaysApply` options added to rate limit `Descriptor`s.
+- type: NEW_FEATURE
+  description: The Gloo Helm chart is now compatible with [Helm 3](https://helm.sh/blog/helm-3-released/).
+  issueLink: https://github.com/solo-io/gloo/issues/1732
+- type: NEW_FEATURE
+  description: >
+    Removed the `installConfig.installationId` Helm value to track the resources that belong to a Gloo installation.
+    Helm keeps track of resources by storing release information in a Kubernetes Secret in the namespace Gloo was
+    installed in (this is the default with Helm 3 and can be changed via the `HELM_DRIVER` environment variable).
+    `glooctl install` and `glooctl uninstall` now take the same approach (under the hood the two commands now delegate
+    to their counterparts in the Helm 3 libraries).
+  issueLink: https://github.com/solo-io/gloo/issues/1635
+- type: NON_USER_FACING
+  description: Refactored Helm chart unit tests to avoid running `make manifest` out-process for each spec.
+  issueLink: https://github.com/solo-io/gloo/issues/1269
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.11.0
+  description: Update go-util to version v0.11.0.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: api
+  dependencyTag: kubernetes-1.16.2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: client-go
+  dependencyTag: kubernetes-1.16.2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: kubectl
+  dependencyTag: kubernetes-1.16.2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apimachinery
+  dependencyTag: kubernetes-1.16.2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apiextensions-apiserver
+  dependencyTag: kubernetes-1.16.2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s.io
+  dependencyRepo: apiserver
+  dependencyTag: kubernetes-1.16.2

@@ -3,6 +3,9 @@ package extauth_test
 import (
 	"time"
 
+	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+	structpb "github.com/golang/protobuf/ptypes/struct"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -12,12 +15,10 @@ import (
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -239,7 +240,7 @@ var _ = Describe("Plugin", func() {
 })
 
 type envoyPerFilterConfig interface {
-	GetPerFilterConfig() map[string]*types.Struct
+	GetPerFilterConfig() map[string]*structpb.Struct
 }
 
 func ExpectDisabled(e envoyPerFilterConfig) {
@@ -255,7 +256,7 @@ func IsDisabled(e envoyPerFilterConfig) bool {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := util.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	return cfg.GetDisabled()
@@ -270,7 +271,7 @@ func IsEnabled(e envoyPerFilterConfig) bool {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := util.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	if cfg.GetCheckSettings() == nil {
