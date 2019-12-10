@@ -39,6 +39,7 @@ export interface InputProps {
   name?: string;
   title?: string;
   type?: string;
+  testId?: string;
   placeholder?: string;
   value: string | number;
   disabled?: boolean;
@@ -53,6 +54,7 @@ export const SoloInput: React.FC<InputProps> = props => {
   const {
     name,
     title,
+    testId,
     placeholder,
     value,
     onChange,
@@ -68,6 +70,7 @@ export const SoloInput: React.FC<InputProps> = props => {
     <div>
       {title && <Label>{title}</Label>}
       <Input
+        data-testid={testId}
         borderless={borderless}
         name={name}
         placeholder={placeholder}

@@ -40,7 +40,7 @@ export const CreateRouteTableModal = (props: Props) => {
   const [showModal, setShowModal] = React.useState(false);
 
   return (
-    <ModalContainer>
+    <ModalContainer data-testid='create-route-table-modal'>
       {props.withoutDivider ? (
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
           <>

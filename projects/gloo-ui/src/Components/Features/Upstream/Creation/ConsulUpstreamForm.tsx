@@ -1,7 +1,8 @@
 import {
   SoloFormCheckbox,
   SoloFormInput,
-  SoloFormStringsList
+  SoloFormStringsList,
+  ErrorText
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
@@ -9,7 +10,10 @@ import {
 } from 'Components/Common/Form/SoloFormTemplate';
 import * as React from 'react';
 import * as yup from 'yup';
-
+import { Select } from 'antd';
+import { useFormikContext } from 'formik';
+import { Label } from 'Components/Common/SoloInput';
+const { Option } = Select;
 export interface ConsulVauesType {
   consulServiceName: string;
   consulServiceTagsList: string[];
@@ -19,7 +23,7 @@ export interface ConsulVauesType {
 
 export const consulInitialValues: ConsulVauesType = {
   consulServiceName: '',
-  consulServiceTagsList: [''],
+  consulServiceTagsList: [] as string[],
   consulConnectEnabled: false,
   consulDataCentersList: ['']
 };
@@ -32,6 +36,41 @@ export const consulValidationSchema = yup.object().shape({
   consulConnectEnabled: yup.boolean(),
   consulDataCentersList: yup.array().of(yup.string())
 });
+
+export const SoloFormTagSelect = ({ ...props }) => {
+  const { name, label, placeholder } = props;
+  const form = useFormikContext<ConsulVauesType>();
+  const field = form.getFieldProps(name);
+  const meta = form.getFieldMeta(name);
+  console.log('form', form);
+  console.log('field', field);
+
+  function handleChange(newVal: any) {
+    console.log('form', form);
+    console.log(newVal);
+  }
+
+  return (
+    <>
+      {label && <Label>{label}</Label>}
+      <Select
+        {...field}
+        {...props}
+        mode='tags'
+        size={'default'}
+        placeholder={placeholder}
+        onChange={handleChange}
+        style={{ width: '100%' }}>
+        {field.value.map((opt: any) => (
+          <Option key={opt}>{opt}</Option>
+        ))}
+      </Select>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
+    </>
+  );
+};
 
 export const ConsulUpstreamForm: React.FC<Props> = () => {
   return (
@@ -52,22 +91,22 @@ export const ConsulUpstreamForm: React.FC<Props> = () => {
         </div>
       </InputRow>
       <InputRow>
-        <SoloFormTemplate formHeader='Service Tags'>
+        <div>
           <SoloFormStringsList
+            data-testid='consul-service-tags'
             name='consulServiceTagsList'
-            title='Consul Service Tags'
+            label='Consul Service Tags'
             createNewPromptText='Service Tags'
           />
-        </SoloFormTemplate>
-      </InputRow>
-      <InputRow>
-        <SoloFormTemplate formHeader='Data Centers'>
+        </div>
+        <div>
           <SoloFormStringsList
+            label='Data Centers'
             name='consulDataCentersList'
             title='Data Centers'
             createNewPromptText='Data Centers'
           />
-        </SoloFormTemplate>
+        </div>
       </InputRow>
     </SoloFormTemplate>
   );

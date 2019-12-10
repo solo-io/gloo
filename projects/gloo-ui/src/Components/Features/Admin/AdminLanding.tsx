@@ -219,29 +219,16 @@ const ProxyOverview = () => {
     (state: AppState) => state.proxies.proxiesList
   );
 
-  const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
-    []
-  );
-
-  React.useEffect(() => {
-    if (!!proxiesList.length) {
-      const newProxies = proxiesList.filter(proxy => proxy.proxy);
-      setAllProxies(newProxies);
+  let proxyStatus = healthConstants.Pending.value;
+  let proxyErrorCount = 0;
+  proxiesList.forEach(proxy => {
+    if (proxy.status!.code === 0) {
+      proxyStatus = healthConstants.Error.value;
+      proxyErrorCount += 1;
+    } else if (proxy.status!.code === 2) {
+      proxyStatus = healthConstants.Good.value;
     }
-  }, [proxiesList.length]);
-
-  if (!proxiesList.length) {
-    return <div>Loading...</div>;
-  }
-
-  const proxyErrorCount = proxiesList.reduce((total, proxy) => {
-    if (getResourceStatus(proxy.proxy!.status?.state!) !== 'Rejected') {
-      return total;
-    }
-
-    return total + 1;
-  }, 0);
-
+  });
   return (
     <Proxy>
       <StatusTile
@@ -254,13 +241,9 @@ const ProxyOverview = () => {
           prompt: 'View Proxy',
           link: '/admin/proxy/'
         }}
-        healthStatus={
-          !!proxyErrorCount
-            ? healthConstants.Error.value
-            : healthConstants.Good.value
-        }
+        healthStatus={proxyStatus}
         descriptionMinHeight={'95px'}>
-        {!!allProxies.length ? (
+        {!!proxiesList.length ? (
           <>
             {!!proxyErrorCount ? (
               <TallyInformationDisplay
@@ -297,12 +280,7 @@ const EnvoyOverview = () => {
   const envoysList = useSelector(
     (state: AppState) => state.envoy.envoyDetailsList
   );
-  const envoyStatuses = useSelector((state: AppState) =>
-    state.envoy.envoyDetailsList.map(envoy => envoy.status)
-  );
-  const badEnvoys = useSelector((state: AppState) =>
-    state.envoy.envoyDetailsList.filter(envoy => envoy.status!.code !== 2)
-  );
+
   const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
   const [envoyConfigs, setEnvoyConfigs] = React.useState<any[]>([]);
   React.useEffect(() => {
@@ -322,22 +300,16 @@ const EnvoyOverview = () => {
     }
   }, [envoysList.length]);
 
-  const envoyErrorCount = envoyStatuses.reduce((total, status) => {
-    if (status!.code !== 0) {
-      return total;
+  let envoyStatus = healthConstants.Pending.value;
+  let envoyErrorCount = 0;
+  envoysList.forEach(envoy => {
+    if (envoy.status!.code === 0) {
+      envoyStatus = healthConstants.Pending.value;
+      envoyErrorCount += 1;
+    } else if (envoy.status!.code === 2) {
+      envoyStatus = healthConstants.Good.value;
     }
-    return total + 1;
-  }, 0);
-
-  const getHealthStatus = (): number => {
-    if (envoyErrorCount === envoysList.length) {
-      return healthConstants.Error.value;
-    }
-    if (envoyErrorCount > 0) {
-      return healthConstants.Pending.value;
-    }
-    return healthConstants.Good.value;
-  };
+  });
 
   return (
     <Envoy>
@@ -351,13 +323,13 @@ const EnvoyOverview = () => {
           prompt: 'View Envoy',
           link: '/admin/envoy/'
         }}
-        healthStatus={getHealthStatus()}
+        healthStatus={envoyStatus}
         descriptionMinHeight={'95px'}>
         {!envoysList.length ? (
           <div>Loading...</div>
         ) : !!envoysList.length ? (
           <>
-            {!!envoyErrorCount ? (
+            {envoyStatus === healthConstants.Error.value ? (
               <TallyInformationDisplay
                 tallyCount={envoyErrorCount}
                 tallyDescription={`envoy error${
@@ -370,15 +342,32 @@ const EnvoyOverview = () => {
                 }}
               />
             ) : (
-              <GoodStateCongratulations typeOfItem={'envoy configurations'} />
+              envoyStatus === healthConstants.Good.value && (
+                <GoodStateCongratulations typeOfItem={'envoy configurations'} />
+              )
             )}
-            <TallyInformationDisplay
-              tallyCount={envoysList.length}
-              tallyDescription={`envoy${
-                envoysList.length === 1 ? '' : 's'
-              } configured`}
-              color='blue'
-            />
+            {envoyStatus === healthConstants.Pending.value && (
+              <TallyInformationDisplay
+                tallyCount={envoysList.length}
+                tallyDescription={`envoy${
+                  envoysList.length === 1 ? '' : 's'
+                } configuration pending`}
+                color='yellow'
+                moreInfoLink={{
+                  prompt: 'View issues',
+                  link: '/admin/envoy/?status=Rejected'
+                }}
+              />
+            )}
+            {envoyStatus === healthConstants.Good.value && (
+              <TallyInformationDisplay
+                tallyCount={envoysList.length}
+                tallyDescription={`envoy${
+                  envoysList.length === 1 ? '' : 's'
+                } configured`}
+                color='blue'
+              />
+            )}
           </>
         ) : (
           <div>You have no envoy configured yet.</div>

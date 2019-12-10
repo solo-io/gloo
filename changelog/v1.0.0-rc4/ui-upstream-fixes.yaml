@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    description: Create Upstream form was sending empty values to backend.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1336
+  - type: FIX
+    description: Adjust svg icon sizes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1335
+  - type: FIX
+    description: Add puppeteer tests for basic workflows, fix Upstream creation issues in UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1282
+  - type: DEPENDENCY_BUMP
+    description: Upgrade a node package to include a security patch.
+    dependencyOwner: serialize-javascript
+    dependencyRepo: gloo-ui
+    dependencyTag: 2.1.1

@@ -244,6 +244,7 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
                 </RegexCheckbox>
               )}
               <PlusHolder
+                data-testid='green-plus-button'
                 disabled={
                   (!newValue.length && !valuesMayBeEmpty) ||
                   !newName.length ||

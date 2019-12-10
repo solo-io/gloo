@@ -5,7 +5,9 @@ const colorsList = {
   pumpkinOrange: 'hsl(19, 100%, 27%)', //#8B2E00
 
   flashlightGold: 'hsl(39, 100%, 95%)', //#FFF6E5
-  sunGold: 'hsl(39, 100%, 59%)', //#FFB831
+  sunGold: 'hsl(39, 100%, 59%)', //#FFB831,
+  lightGold: 'hsl(39, 100%, 84%)',
+  darkGold: 'hsl(39, 100%, 20%)',
 
   groveGreen: 'hsl(161, 100%, 96%)', //	#ebfff9
   forestGreen: 'hsl(161, 88%, 42%)', //#0dc98e

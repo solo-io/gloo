@@ -39,7 +39,7 @@ export const CreateUpstreamModal = (props: Props) => {
   const [showModal, setShowModal] = React.useState(false);
 
   return (
-    <ModalContainer>
+    <ModalContainer data-testid='create-upstream-modal'>
       <ModalTrigger onClick={() => setShowModal(s => !s)}>
         <>
           <StyledGreenPlus />

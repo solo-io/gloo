@@ -40,7 +40,7 @@ export const CreateVirtualServiceModal = (props: Props) => {
   const [showModal, setShowModal] = React.useState(false);
 
   return (
-    <ModalContainer>
+    <ModalContainer data-testid='create-virtual-service-modal'>
       {props.withoutDivider ? (
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
           <>

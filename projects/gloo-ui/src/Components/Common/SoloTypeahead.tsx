@@ -76,6 +76,7 @@ export interface TypeaheadProps {
   title?: string;
   placeholder?: string;
   defaultValue?: string | number;
+  testId?: string;
   onBlur?: (newValue: string | number) => any;
   disabled?: boolean;
   hideArrow?: boolean;
@@ -89,6 +90,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
     title,
     disabled,
     placeholder,
+    testId,
     presetOptions,
     onChange,
     defaultValue,
@@ -123,6 +125,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
       {/*
        // @ts-ignore */}
       <SoloAutocompleteBlock
+        data-testid={testId}
         hideArrow={hideArrow}
         disabled={disabled}
         onChange={handleChange}

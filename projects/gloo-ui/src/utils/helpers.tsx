@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { ReactComponent as AWSLogo } from 'assets/aws-logo.svg';
 import { ReactComponent as AzureLogo } from 'assets/azure-logo.svg';
-import { ReactComponent as Gloo } from 'assets/Gloo.svg';
+import Gloo from 'assets/Gloo.svg';
 // TODO: get svg format GRPC logo
 // import { ReactComponent as GRPCLogo } from 'assets/grpc-logo.svg';
 import GRPCLogo from 'assets/grpc-logo.png';
@@ -80,7 +80,7 @@ export function getIcon(type: string) {
     case 'Route Table':
       return <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
     default:
-      return <Gloo />;
+      return <img src={Gloo} style={{ width: '25px', paddingRight: '5px' }} />;
   }
 }
 

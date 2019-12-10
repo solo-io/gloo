@@ -18,9 +18,13 @@ export const TallyContainer = styled.div`
       ? `border: 1px solid ${colors.grapefruitOrange};
     background: ${colors.tangerineOrange};
     color: ${colors.pumpkinOrange};`
-      : `border: 1px solid ${colors.lakeBlue};
+      : props.color === 'blue'
+      ? `border: 1px solid ${colors.lakeBlue};
     background: ${colors.splashBlue};
-    color: ${colors.seaBlue};`}
+    color: ${colors.seaBlue};`
+      : `border: 1px solid ${colors.sunGold};
+    background: ${colors.lightGold};
+    color: ${colors.darkGold};`}
 `;
 
 const TallyCount = styled.div`
@@ -56,7 +60,7 @@ interface Props {
     prompt: string;
     link: string;
   };
-  color: 'orange' | 'blue';
+  color: 'orange' | 'blue' | 'yellow';
 }
 
 export const TallyInformationDisplay = (props: Props) => {
@@ -75,10 +79,17 @@ export const TallyInformationDisplay = (props: Props) => {
         return count;
       }
     } else {
-      return '?';
+      return '';
     }
   };
 
+  let dividerColor = colors.grapefruitOrange;
+  if (props.color === 'blue') {
+    dividerColor = colors.lakeBlue;
+  }
+  if (props.color === 'yellow') {
+    dividerColor = colors.sunGold;
+  }
   return (
     <TallyContainer color={props.color}>
       <TallyCount>{countDisplay()}</TallyCount>
@@ -92,7 +103,7 @@ export const TallyInformationDisplay = (props: Props) => {
                 display: 'flex',
                 width: '2px',
                 alignSelf: 'center',
-                backgroundColor: colors.grapefruitOrange
+                backgroundColor: dividerColor
               }}
               type='vertical'
             />

@@ -1,11 +1,11 @@
 import puppeteer, { Page, Browser } from 'puppeteer';
-import expect from 'expect-puppeteer';
 
 const testValues = {
   domain: 'http://localhost:3000/',
   routeName: '/vets',
-  upstreamName: 'default-petclinic-vets-8080',
-  demoUrl: 'http://valet-petclinic-f3f885f59f.corp.solo.io'
+  upstreamName: 'default-kubernetes-443',
+  demoUrl: 'http://valet-petclinic-f3f885f59f.corp.solo.io',
+  routeTableName: 'my-route-table'
 };
 
 describe('app', () => {
@@ -16,8 +16,8 @@ describe('app', () => {
     browser = await puppeteer.launch({
       headless: false,
       defaultViewport: {
-        width: 2035,
-        height: 1306
+        width: 2280,
+        height: 850
       },
       slowMo: 100
     });
@@ -30,7 +30,7 @@ describe('app', () => {
     await browser.close();
   });
 
-  describe('demo path', () => {
+  describe('standard demo path', () => {
     test('Overview Page', async () => {
       await expect(page).toMatch('Enterprise Gloo Overview');
 
@@ -42,7 +42,7 @@ describe('app', () => {
     test('New Route Modal', async () => {
       await expect(page).toClick('div[data-testid="view-details-link"]');
       await expect(page).toMatch('Create Route');
-      await expect(page).toMatch('View Raw Configuration');
+      await expect(page).toMatch('View YAML Configuration');
       await expect(page).toClick('div[data-testid="create-new-route-modal"]');
     });
 

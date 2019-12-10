@@ -473,6 +473,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
                 <Thirds>
                   <SoloFormDropdown
                     name='destinationType'
+                    testId='destination-dropdown'
                     title='Destination Type'
                     defaultValue={'Upstream'}
                     options={['Upstream', 'Route Table'].map(dest => {

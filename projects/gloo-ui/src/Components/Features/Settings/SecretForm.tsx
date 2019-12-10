@@ -74,8 +74,13 @@ export const SecretForm: React.FC<Props> = props => {
         {({ handleSubmit }) => (
           <>
             <TableFormWrapper>
-              <SoloFormInput name='secretResourceRef.name' placeholder='Name' />
+              <SoloFormInput
+                testId={`${secretKind}-secret-name`}
+                name='secretResourceRef.name'
+                placeholder='Name'
+              />
               <SoloFormTypeahead
+                testId={`${secretKind}-secret-namespace`}
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
                 defaultValue={podNamespace}
@@ -90,6 +95,7 @@ export const SecretForm: React.FC<Props> = props => {
             {secretKind === Secret.KindCase.OAUTH && <OAuthSecretFields />}
             <TableFormWrapper>
               <GreenPlus
+                data-testid={`${secretKind}-secret-green-plus`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleSubmit()}
               />
@@ -104,8 +110,16 @@ export const SecretForm: React.FC<Props> = props => {
 const AwsSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <SoloFormInput name='awsSecret.accessKey' placeholder='Access Key' />
-      <SoloFormInput name='awsSecret.secretKey' placeholder='Secret Key' />
+      <SoloFormInput
+        testId='aws-secret-accessKey'
+        name='awsSecret.accessKey'
+        placeholder='Access Key'
+      />
+      <SoloFormInput
+        testId='aws-secret-secretKey'
+        name='awsSecret.secretKey'
+        placeholder='Secret Key'
+      />
     </TableFormWrapper>
   );
 };
@@ -113,9 +127,21 @@ const AwsSecretFields: React.FC = () => {
 const TlsSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <SoloFormInput name='tlsSecret.certChain' placeholder='Cert Chain' />
-      <SoloFormInput name='tlsSecret.privateKey' placeholder='Private Key' />
-      <SoloFormInput name='tlsSecret.rootCa' placeholder='Root Ca' />
+      <SoloFormInput
+        testId='tls-secret-'
+        name='tlsSecret.certChain'
+        placeholder='Cert Chain'
+      />
+      <SoloFormInput
+        testId='tls-secret-'
+        name='tlsSecret.privateKey'
+        placeholder='Private Key'
+      />
+      <SoloFormInput
+        testId='tls-secret-'
+        name='tlsSecret.rootCa'
+        placeholder='Root Ca'
+      />
     </TableFormWrapper>
   );
 };
@@ -123,7 +149,11 @@ const TlsSecretFields: React.FC = () => {
 const AzureSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <SoloFormInput name='azureSecret.apiKeysMap' placeholder='Api Keys' />
+      <SoloFormInput
+        testId='azure-secret-apiKeysMap'
+        name='azureSecret.apiKeysMap'
+        placeholder='Api Keys'
+      />
     </TableFormWrapper>
   );
 };
@@ -132,6 +162,7 @@ const OAuthSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
       <SoloFormInput
+        testId='oauth-secret-clientSecret'
         name='oAuthSecret.clientSecret'
         placeholder='Client Secret'
       />

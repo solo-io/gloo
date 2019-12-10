@@ -35,16 +35,21 @@ const FormContainer = styled.div`
   flex-direction: column;
 `;
 
+const FormRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 15px;
+`;
+
 // TODO combine validation schemas
 const validationSchema = yup.object().shape({
   name: yup
     .string()
     .required('Upstream name is required')
-    .min(2, `Names must be 2 characters or longer`)
     .max(254, `Names must be 254 characters or shorter`)
     .test(
       'only lowercase',
-      'Letters in a name may only be lower-case',
+      'Names may only be lower-case',
       val => val && val.toLowerCase() === val
     )
     .test(
@@ -76,6 +81,7 @@ const validationSchema = yup.object().shape({
         if (!val) {
           return false;
         }
+        if (val.length < 2) return true;
 
         const regexTest = /^[a-z0-9]+[-.a-z0-9]*[a-z0-9]{1}$/;
         return !!val.match(regexTest) && val.match(regexTest)[0] === val;
@@ -183,8 +189,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       dispatch(
         createUpstream({
           upstreamInput: {
-            ...initialUpstreamInput,
-            ...aws
+            ...aws,
+            ...initialUpstreamInput
           }
         })
       );
@@ -205,8 +211,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       dispatch(
         createUpstream({
           upstreamInput: {
-            ...initialUpstreamInput,
-            ...azure
+            ...azure,
+            ...initialUpstreamInput
           }
         })
       );
@@ -228,8 +234,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       dispatch(
         createUpstream({
           upstreamInput: {
-            ...initialUpstreamInput,
-            ...kube
+            ...kube,
+            ...initialUpstreamInput
           }
         })
       );
@@ -252,8 +258,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       dispatch(
         createUpstream({
           upstreamInput: {
-            ...initialUpstreamInput,
-            ...pb_static
+            ...pb_static,
+            ...initialUpstreamInput
           }
         })
       );
@@ -276,8 +282,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       dispatch(
         createUpstream({
           upstreamInput: {
-            ...initialUpstreamInput,
-            ...consul
+            ...consul,
+            ...initialUpstreamInput
           }
         })
       );
@@ -295,7 +301,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       {formik => (
         <FormContainer>
           <SoloFormTemplate>
-            <InputRow>
+            <FormRow>
               <div>
                 <SoloFormInput
                   name='name'
@@ -305,6 +311,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
               </div>
               <div>
                 <SoloFormDropdown
+                  testId='upstream-type'
                   name='type'
                   title='Upstream Type'
                   placeholder='Type'
@@ -321,7 +328,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
                   })}
                 />
               </div>
-            </InputRow>
+            </FormRow>
           </SoloFormTemplate>
           {formik.values.type === UPSTREAM_SPEC_TYPES.AWS && (
             <AwsUpstreamForm />
@@ -338,7 +345,6 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
           {formik.values.type === UPSTREAM_SPEC_TYPES.CONSUL && (
             <ConsulUpstreamForm />
           )}
-
           <Footer>
             <SoloButton
               onClick={() => formik.handleSubmit()}

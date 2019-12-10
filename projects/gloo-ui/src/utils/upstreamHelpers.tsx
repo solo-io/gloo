@@ -133,8 +133,8 @@ export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
       displayName: _.startCase(_.toLower(str)),
       value: false
     };
-  });
-// .concat({ displayName: 'other', value: false });
+  })
+  .concat({ displayName: 'Other', value: false });
 
 export const RadioFilters: RadioFilterProps = {
   options: [

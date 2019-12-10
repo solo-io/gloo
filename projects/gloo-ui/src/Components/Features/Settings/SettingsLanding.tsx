@@ -221,6 +221,7 @@ export const SettingsLanding = () => {
                 render={() => <WatchedNamespacesPage />}
               />
               <Route
+                data-testid='secrets'
                 path='/settings/secrets/'
                 render={() => (
                   <SecretsPage

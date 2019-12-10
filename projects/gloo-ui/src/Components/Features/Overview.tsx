@@ -162,14 +162,6 @@ const HealthStatus = () => {
     (state: AppState) => state.envoy.envoyDetailsList
   );
 
-  const envoyErrorCount = envoysList.reduce((total, envoy) => {
-    if (envoy.status && envoy.status.code === 0) {
-      return total + 1;
-    }
-
-    return total;
-  }, 0);
-
   if (!envoysList.length) {
     return <div>Loading...</div>;
   }
@@ -178,6 +170,17 @@ const HealthStatus = () => {
     history.push('/admin/');
   };
 
+  let envoyStatus = healthConstants.Pending.value;
+  let envoyErrorCount = 0;
+  envoysList.forEach(envoy => {
+    if (envoy.status!.code === 0) {
+      envoyStatus = healthConstants.Pending.value;
+      envoyErrorCount += 1;
+    } else if (envoy.status!.code === 2) {
+      envoyStatus = healthConstants.Good.value;
+    }
+  });
+
   return (
     <EnvoyHealth>
       <StatusTile titleIcon={<EnvoyIcon />} horizontal>
@@ -185,10 +188,8 @@ const HealthStatus = () => {
           <EnvoyHealthHeader>
             <div>
               <EnvoyHealthTitle>
-                <HealthIndicator
-                  healthStatus={getHealth(envoysList[0]!.status!.code)}
-                />{' '}
-                Envoy Health Status
+                <HealthIndicator healthStatus={envoyStatus} /> Envoy Health
+                Status
               </EnvoyHealthTitle>
               <EnvoyHealthSubtitle>
                 Gloo is responsible for configuring Envoy. Whenever Virtual
@@ -204,7 +205,7 @@ const HealthStatus = () => {
             <div>Loading...</div>
           ) : !!envoysList.length ? (
             <div>
-              {!!envoyErrorCount ? (
+              {envoyStatus === healthConstants.Error.value ? (
                 <TallyInformationDisplay
                   tallyCount={envoyErrorCount}
                   tallyDescription={`envoy configuration error${
@@ -217,16 +218,32 @@ const HealthStatus = () => {
                   }}
                 />
               ) : (
-                <GoodStateCongratulations typeOfItem={'envoys'} />
+                envoyStatus === healthConstants.Good.value && (
+                  <GoodStateCongratulations typeOfItem={'envoys'} />
+                )
               )}
-
-              <TallyInformationDisplay
-                tallyCount={envoysList.length}
-                tallyDescription={`envoy${
-                  envoysList.length === 1 ? '' : 's'
-                } configured`}
-                color='blue'
-              />
+              {envoyStatus === healthConstants.Pending.value && (
+                <TallyInformationDisplay
+                  tallyCount={envoysList.length}
+                  tallyDescription={`envoy${
+                    envoysList.length === 1 ? '' : 's'
+                  } configuration pending`}
+                  color='yellow'
+                  moreInfoLink={{
+                    prompt: 'View envoy issues',
+                    link: '/admin/envoy/?status=Rejected'
+                  }}
+                />
+              )}
+              {envoyStatus === healthConstants.Good.value && (
+                <TallyInformationDisplay
+                  tallyCount={envoysList.length}
+                  tallyDescription={`envoy${
+                    envoysList.length === 1 ? '' : 's'
+                  } configured`}
+                  color='blue'
+                />
+              )}
             </div>
           ) : (
             <div>You have no envoy configurations yet.</div>
@@ -299,7 +316,13 @@ const VirtualServicesOverview = () => {
             />
           </>
         ) : (
-          <div>You have no virtual services configured yet.</div>
+          <div>
+            <TallyInformationDisplay
+              tallyCount={null}
+              tallyDescription={`Envoy will not receive configuration updates until a virtual service is defined.`}
+              color={'yellow'}
+            />
+          </div>
         )}
       </StatusTile>
     </VirtualServices>

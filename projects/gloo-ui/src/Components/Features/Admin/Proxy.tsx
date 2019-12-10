@@ -41,10 +41,6 @@ export const Proxys = (props: Props) => {
     }
   }, [proxiesList.length]);
 
-  if (!proxiesList.length) {
-    return <div>Loading...</div>;
-  }
-
   if (!allProxies.length) {
     return <div>You have no Proxy configurations.</div>;
   }

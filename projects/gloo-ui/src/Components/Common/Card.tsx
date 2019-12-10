@@ -218,7 +218,11 @@ export const Card = (props: CardType) => {
                 title={removeConfirmText}
                 okText='Yes'
                 cancelText='No'>
-                <ActionCircle style={{ gridArea: 'delete' }}>x</ActionCircle>
+                <ActionCircle
+                  style={{ gridArea: 'delete' }}
+                  data-testid='delete-button'>
+                  x
+                </ActionCircle>
               </Popconfirm>
             )}
             {!!onCreate && (

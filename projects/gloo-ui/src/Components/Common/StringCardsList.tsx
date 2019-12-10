@@ -4,7 +4,7 @@ import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { soloConstants } from 'Styles/constants';
-import { SoloInput } from './SoloInput';
+import { SoloInput, Label } from './SoloInput';
 import { SoloTypeahead } from './SoloTypeahead';
 
 export const Container = styled.div`
@@ -13,6 +13,13 @@ export const Container = styled.div`
   align-items: center;
 `;
 
+const Title = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: ${colors.novemberGrey};
+  line-height: normal;
+  padding: ${soloConstants.largeBuffer}px ${soloConstants.smallBuffer}px 13px;
+`;
 type StringCardProps = { limitWidth?: boolean };
 export const StringCard = styled.div`
   display: flex;
@@ -94,6 +101,7 @@ export const PlusHolder = styled.div`
 
 export interface StringCardsListProps {
   values: string[];
+  label?: string;
   valueDeleted: (indexDeleted: number) => any;
   createNew?: (newValue: string) => any;
   valueIsValid?: (value: string) => boolean;
@@ -106,6 +114,7 @@ export interface StringCardsListProps {
 export const StringCardsList = (props: StringCardsListProps) => {
   const {
     values,
+    label,
     valueDeleted,
     createNew,
     createNewPromptText,
@@ -128,64 +137,67 @@ export const StringCardsList = (props: StringCardsListProps) => {
   };
 
   return (
-    <Container>
-      {values.map((value, ind) => {
-        return (
-          <StringCard key={ind}>
-            <CardValue
-              title={value}
-              hasError={!!valueIsValid ? !valueIsValid(value) : false}>
-              {value}
-            </CardValue>
-            <DeleteX
-              onClick={() => valueDeleted(ind)}
-              hasError={!!valueIsValid ? !valueIsValid(value) : false}>
-              <GreyX style={{ marginBottom: '-3px' }} />
-            </DeleteX>
-          </StringCard>
-        );
-      })}
-      {!!createNew && (
-        <NewStringPrompt>
-          {asTypeahead ? (
-            <SoloTypeahead
-              placeholder={createNewPromptText}
-              defaultValue={createNewPromptText}
-              onChange={value => setNewValue(value)}
-              presetOptions={presetOptions!.map(pO => {
-                return { value: pO };
-              })}
-              onKeyPress={(e: React.KeyboardEvent) =>
-                e.key === 'Enter' ? sendCreateNew() : {}
-              }
-              hideArrow
-            />
-          ) : (
-            <SoloInput
-              value={newValue}
-              placeholder={createNewPromptText}
-              onChange={newValueChanged}
-              onKeyPress={(e: React.KeyboardEvent) =>
-                e.key === 'Enter' ? sendCreateNew() : {}
-              }
-              error={
-                !!newValue.length &&
+    <>
+      {label && <Label>{label}</Label>}
+      <Container>
+        {values.map((value, ind) => {
+          return (
+            <StringCard key={ind}>
+              <CardValue
+                title={value}
+                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+                {value}
+              </CardValue>
+              <DeleteX
+                onClick={() => valueDeleted(ind)}
+                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+                <GreyX style={{ marginBottom: '-3px' }} />
+              </DeleteX>
+            </StringCard>
+          );
+        })}
+        {!!createNew && (
+          <NewStringPrompt>
+            {asTypeahead ? (
+              <SoloTypeahead
+                placeholder={createNewPromptText}
+                defaultValue={createNewPromptText}
+                onChange={value => setNewValue(value)}
+                presetOptions={presetOptions!.map(pO => {
+                  return { value: pO };
+                })}
+                onKeyPress={(e: React.KeyboardEvent) =>
+                  e.key === 'Enter' ? sendCreateNew() : {}
+                }
+                hideArrow
+              />
+            ) : (
+              <SoloInput
+                value={newValue}
+                placeholder={createNewPromptText}
+                onChange={newValueChanged}
+                onKeyPress={(e: React.KeyboardEvent) =>
+                  e.key === 'Enter' ? sendCreateNew() : {}
+                }
+                error={
+                  !!newValue.length &&
+                  (!!valueIsValid ? !valueIsValid(newValue) : false)
+                }
+              />
+            )}
+            <PlusHolder
+              disabled={
+                !newValue.length ||
                 (!!valueIsValid ? !valueIsValid(newValue) : false)
               }
-            />
-          )}
-          <PlusHolder
-            disabled={
-              !newValue.length ||
-              (!!valueIsValid ? !valueIsValid(newValue) : false)
-            }
-            onClick={sendCreateNew}>
-            <GreenPlus
-              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-            />
-          </PlusHolder>
-        </NewStringPrompt>
-      )}
-    </Container>
+              onClick={sendCreateNew}>
+              <GreenPlus
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+            </PlusHolder>
+          </NewStringPrompt>
+        )}
+      </Container>
+    </>
   );
 };

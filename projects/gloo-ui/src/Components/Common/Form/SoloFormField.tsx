@@ -1,10 +1,15 @@
+import css from '@emotion/css';
 import styled from '@emotion/styled';
 import { Select } from 'antd';
+import { CreateRouteValuesType } from 'Components/Features/VirtualService/Creation/CreateRouteModal';
+import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
 import { useField, useFormikContext } from 'formik';
 import _ from 'lodash';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import React, { RefAttributes, Component } from 'react';
-import { ReactComponent as Gloo } from 'assets/Gloo.svg';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import React from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 import { AppState } from 'store';
 import { colors } from 'Styles';
@@ -30,22 +35,15 @@ import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
-import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
-import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import css from '@emotion/css';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-import { CreateRouteValuesType } from 'Components/Features/VirtualService/Creation/CreateRouteModal';
-import { OptionProps, OptGroupProps, SelectProps } from 'antd/lib/select';
 const { Option, OptGroup } = Select;
-import { uniqBy } from 'lodash';
+
 type ErrorTextProps = { errorExists?: boolean };
+
 export const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
   visibility: ${(props: ErrorTextProps) =>
     props.errorExists ? 'visible' : 'hidden'};
-  min-height: 19px;
+  height: 50px;
 `;
 
 export const SoloFormInput = ({ ...props }) => {
@@ -382,6 +380,7 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
               }
             }
           `}
+          data-testid={props.testId}
           placeholder='Destination...'
           defaultValue={defaultValue?.upstream?.metadata?.name}
           dropdownMatchSelectWidth={false}
@@ -397,9 +396,11 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
                     <div
                       css={css`
                         display: flex;
+                        align-items: center;
                         align-self: center;
                         & > svg {
                           width: 20px;
+                          padding-right: 3px;
                         }
                       `}>
                       {getDestinationIcon(option!)}
@@ -625,8 +626,8 @@ export const SoloFormSecretRefInput: React.FC<{
 };
 
 const compareFn = (
-  prevProps: Readonly<{ type: string; name: string }>,
-  newProps: Readonly<{ type: string; name: string }>
+  prevProps: Readonly<{ type: string; name: string; testId: string }>,
+  newProps: Readonly<{ type: string; name: string; testId: string }>
 ) => {
   return _.isEqual(prevProps, newProps);
 };
@@ -634,6 +635,7 @@ const compareFn = (
 export const SoloAWSSecretsList: React.FC<{
   type: string;
   name: string;
+  testId: string;
 }> = React.memo(props => {
   const secretsList = useSelector(
     (state: AppState) => state.secrets.secretsList
@@ -654,6 +656,7 @@ export const SoloAWSSecretsList: React.FC<{
     <div style={{ width: '100%' }}>
       {name && <Label>AWS Secret</Label>}
       <SoloDropdownBlock
+        data-testid={props.testId}
         style={{ width: '200px' }}
         onChange={(value: any) => {
           let [name, namespace] = value.split('::');

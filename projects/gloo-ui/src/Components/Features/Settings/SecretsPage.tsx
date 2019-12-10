@@ -6,6 +6,7 @@ import * as React from 'react';
 import { TableActionCircle, TableActions } from 'Styles';
 import { getIcon } from 'utils/helpers';
 import { SecretForm, SecretValuesType } from './SecretForm';
+import { Popconfirm } from 'antd';
 
 interface Props {
   awsSecrets?: Secret.AsObject[];
@@ -112,16 +113,20 @@ export const SecretsPage = React.memo((props: Props) => {
       render: (text: any, record: any) => (
         <TableActions>
           <div style={{ marginLeft: '5px' }}>
-            <TableActionCircle
-              onClick={() =>
+            <Popconfirm
+              data-testid={`delete-aws-secret-${record.name}`}
+              onConfirm={() =>
                 props.onDeleteSecret(
                   record.name,
                   record.namespace,
                   Secret.KindCase.AWS
                 )
-              }>
-              x
-            </TableActionCircle>
+              }
+              title={'Are you sure you want to delete this secret? '}
+              okText='Yes'
+              cancelText='No'>
+              <TableActionCircle>x</TableActionCircle>
+            </Popconfirm>
           </div>
         </TableActions>
       )
@@ -148,16 +153,20 @@ export const SecretsPage = React.memo((props: Props) => {
       render: (text: any, record: any) => (
         <TableActions>
           <div style={{ marginLeft: '5px' }}>
-            <TableActionCircle
-              onClick={() =>
+            <Popconfirm
+              data-testid={`delete-azure-secret-${record.name}`}
+              onConfirm={() =>
                 props.onDeleteSecret(
                   record.name,
                   record.namespace,
                   Secret.KindCase.AZURE
                 )
-              }>
-              x
-            </TableActionCircle>
+              }
+              title={'Are you sure you want to delete this secret? '}
+              okText='Yes'
+              cancelText='No'>
+              <TableActionCircle>x</TableActionCircle>
+            </Popconfirm>
           </div>
         </TableActions>
       )

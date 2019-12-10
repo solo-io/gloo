@@ -38,15 +38,18 @@ export const StaticUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='Static Upstream Settings'>
       <InputRow>
-        <SoloFormMultipartStringCardsList
-          name='staticHostList'
-          title='Hosts'
-          values={form.values.staticHostList}
-          createNewNamePromptText={'address...'}
-          createNewValuePromptText={'port...'}
-        />
-
-        <SoloFormCheckbox name='staticUseTls' title='Use Tls' />
+        <div>
+          <SoloFormMultipartStringCardsList
+            name='staticHostList'
+            title='Hosts'
+            values={form.values.staticHostList}
+            createNewNamePromptText={'address...'}
+            createNewValuePromptText={'port...'}
+          />
+        </div>
+        <div>
+          <SoloFormCheckbox name='staticUseTls' title='Use Tls' />
+        </div>
       </InputRow>
       <InputRow />
     </SoloFormTemplate>

@@ -64,9 +64,13 @@ steps:
   args: ['check-format']
   waitFor: ['dep']
   id: 'check-format'
-- name: 'gcr.io/cloud-builders/yarn'
-  args: ['install']
+- name: node:12.13.1
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
+  entrypoint: yarn
+  args: ['install']
   id: yarn-install
   waitFor: ['dep']
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'

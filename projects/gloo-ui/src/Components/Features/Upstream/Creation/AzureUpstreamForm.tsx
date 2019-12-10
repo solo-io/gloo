@@ -35,12 +35,16 @@ export const AzureUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='Azure Upstream Settings'>
       <InputRow>
-        <SoloFormInput
-          name='azureFunctionAppName'
-          title='Function App Name'
-          placeholder='Function App Name'
-        />
-        <SoloFormSecretRefInput name='azureSecretRef' type='azure' />
+        <div>
+          <SoloFormInput
+            name='azureFunctionAppName'
+            title='Function App Name'
+            placeholder='Function App Name'
+          />
+        </div>
+        <div>
+          <SoloFormSecretRefInput name='azureSecretRef' type='azure' />
+        </div>
       </InputRow>
     </SoloFormTemplate>
   );

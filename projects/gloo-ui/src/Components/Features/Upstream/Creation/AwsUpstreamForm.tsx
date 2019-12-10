@@ -46,6 +46,7 @@ export const AwsUpstreamForm = () => {
         <InputRow style={{ justifyContent: 'spaceAround' }}>
           <div>
             <SoloFormTypeahead
+              testId='aws-region'
               name='awsRegion'
               title='Region'
               presetOptions={awsRegions.map(region => {
@@ -54,7 +55,11 @@ export const AwsUpstreamForm = () => {
             />
           </div>
           <div>
-            <SoloAWSSecretsList name='awsSecretRef' type='aws' />
+            <SoloAWSSecretsList
+              testId='aws-secret'
+              name='awsSecretRef'
+              type='aws'
+            />
           </div>
         </InputRow>
         <InputRow>
