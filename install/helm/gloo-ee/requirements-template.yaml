@@ -3,7 +3,7 @@ dependencies:
     repository: https://storage.googleapis.com/solo-public-helm
   - name: prometheus
     repository: https://kubernetes-charts.storage.googleapis.com/
-    version: 9.3.1
+    version: 9.5.1
     condition: prometheus.enabled
     tags:
       - monitoring

@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: prometheus
+    dependencyRepo: prometheus
+    dependencyTag: v9.5.1
+  - type: FIX
+    description: >
+      Bump Prometheus to 9.5.1 from 9.3.1 to fix a compatibility issue with k8s 1.13. The root cause is that
+      Prometheus 9.3.1 creates ClusterRoles for unused Prometheus components that have an empty `rules:` object.
+      Prometheus 9.5.1 creates ClusterRoles for those unused components that have `rules: []`.
+    issueLink: https://github.com/solo-io/gloo/issues/1869
