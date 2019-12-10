@@ -41,7 +41,7 @@ const Link = styled.div`
   font-size: 14px;
 `;
 
-interface Props { }
+interface Props {}
 export const getHealth = (code: number): number => {
   switch (code) {
     case Status.Code.ERROR:
@@ -94,11 +94,10 @@ export const Envoy = (props: Props) => {
     );
   };
 
-
   return (
     <>
       {allEnvoys.map((envoy, ind) => {
-        const hasConfigDump = !!envoy.raw && envoy.raw.content.length > 0
+        const hasConfigDump = !!envoy.raw && envoy.raw.content.length > 0;
         return (
           <SectionCard
             key={envoy.name + ind}
@@ -119,7 +118,9 @@ export const Envoy = (props: Props) => {
                   fileName={envoy.raw!.fileName}
                   fileContent={envoy.raw!.content}
                 />
-              ) : (<div>---</div>)}
+              ) : (
+                <div>---</div>
+              )}
             </InsideHeader>
             {hasConfigDump ? (
               <>
@@ -132,8 +133,12 @@ export const Envoy = (props: Props) => {
                 </Link>
               </>
             ) : (
-                <div><i>Install Gloo with </i><code>gatewayProxies.gatewayProxyV2.readConfig</code> <i>enabled to view Envoy config.</i></div>
-              )}
+              <div>
+                <i>Install Gloo with </i>
+                <code>gloo.gatewayProxies.gatewayProxyV2.readConfig</code>{' '}
+                <i>enabled to view Envoy config.</i>
+              </div>
+            )}
           </SectionCard>
         );
       })}

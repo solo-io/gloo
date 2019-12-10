@@ -42,13 +42,8 @@ export const SoloFormTagSelect = ({ ...props }) => {
   const form = useFormikContext<ConsulVauesType>();
   const field = form.getFieldProps(name);
   const meta = form.getFieldMeta(name);
-  console.log('form', form);
-  console.log('field', field);
 
-  function handleChange(newVal: any) {
-    console.log('form', form);
-    console.log(newVal);
-  }
+  function handleChange(newVal: any) {}
 
   return (
     <>

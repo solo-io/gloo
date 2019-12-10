@@ -95,7 +95,6 @@ export const SoloButtonWithDropdown = (props: ButtonProps) => {
   }, []);
 
   const handleClick = (evt: any) => {
-    console.log(containerRef);
     if (
       !!containerRef &&
       !!containerRef.current &&

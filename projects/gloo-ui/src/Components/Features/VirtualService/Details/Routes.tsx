@@ -135,7 +135,6 @@ export const Routes: React.FC<Props> = React.memo(props => {
   >(undefined);
   const [showCreateRouteModal, setShowCreateRouteModal] = React.useState(false);
   const dispatch = useDispatch();
-
   let routeParentRef = {
     name: props.routeParent ? props.routeParent.metadata!.name : '',
     namespace: props.routeParent ? props.routeParent.metadata!.namespace : ''
@@ -261,19 +260,22 @@ export const Routes: React.FC<Props> = React.memo(props => {
     );
   }
 
-  const handleDeleteRoute = (matcherToDelete: string) => {
-    console.log('props', props);
+  const handleDeleteRoute = (matcherToDelete: string, row: any) => {
     let isRouteTable = routeTablesList.find(
       rt =>
         rt?.routeTable?.metadata?.name === props.routeParent?.metadata?.name &&
         rt?.routeTable?.metadata?.namespace ===
           props?.routeParent?.metadata?.namespace
     );
-    if (isRouteTable !== undefined) {
-      console.log('props', props);
+    if (isRouteTable !== undefined && !('virtualHost' in props.routeParent!)) {
       const newList = routeTablesList
         .flatMap(rtd => rtd!.routeTable!.routesList)
-        .filter(route => getRouteMatcher(route).matcher !== matcherToDelete);
+        .filter(route => {
+          return (
+            getRouteMatcher(route).matcher !== matcherToDelete &&
+            row.upstreamName !== route.delegateAction?.name
+          );
+        });
 
       dispatch(
         updateRouteTable({
@@ -290,10 +292,14 @@ export const Routes: React.FC<Props> = React.memo(props => {
       );
     } else {
       let index = routesList.findIndex(
-        route => getRouteMatcher(route).matcher === matcherToDelete
+        route =>
+          getRouteMatcher(route).matcher === matcherToDelete &&
+          row.upstreamName === route.routeAction?.single?.upstream?.name
       );
       const newList = routesList.filter(
-        route => getRouteMatcher(route).matcher !== matcherToDelete
+        route =>
+          getRouteMatcher(route).matcher !== matcherToDelete &&
+          row.upstreamName !== route.routeAction?.single?.upstream?.name
       );
 
       dispatch(
@@ -317,24 +323,45 @@ export const Routes: React.FC<Props> = React.memo(props => {
   };
 
   const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
+    let isRouteTable = routeTablesList.find(
+      rt =>
+        rt?.routeTable?.metadata?.name === props.routeParent?.metadata?.name &&
+        rt?.routeTable?.metadata?.namespace ===
+          props?.routeParent?.metadata?.namespace
+    );
     const movedRoute = routesList.splice(dragIndex, 1)[0];
 
     let newRoutesList = [...routesList];
     newRoutesList.splice(hoverIndex, 0, movedRoute);
-
-    dispatch(
-      shiftRoutes({
-        virtualServiceRef: routeParentRef,
-        fromIndex: dragIndex,
-        toIndex: hoverIndex
-      })
-    );
+    if ('virtualHost' in props.routeParent!) {
+      dispatch(
+        shiftRoutes({
+          virtualServiceRef: routeParentRef,
+          fromIndex: dragIndex,
+          toIndex: hoverIndex
+        })
+      );
+    } else {
+      dispatch(
+        updateRouteTable({
+          routeTable: {
+            ...isRouteTable,
+            metadata: {
+              ...props.routeParent?.metadata!,
+              name: isRouteTable?.routeTable?.metadata?.name!,
+              namespace: isRouteTable?.routeTable?.metadata?.namespace!
+            },
+            routesList: newRoutesList
+          }
+        })
+      );
+    }
     setRoutesList(newRoutesList);
   };
 
   const getRouteColumns = (
     showEditRouteModal: (matcher: string) => void,
-    deleteRoute: (matcher: string) => any
+    deleteRoute: (matcher: string, row: any) => any
   ) => {
     return [
       {
@@ -368,7 +395,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
       {
         title: 'Actions',
         dataIndex: 'actions',
-        render: (matcher: string) => {
+        render: (matcher: string, row: any) => {
           return (
             <TableActions>
               {/* disallowing edits until further notice TODO: (ascampos) */}
@@ -378,7 +405,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
 
               <div style={{ marginLeft: '5px' }}>
                 <Popconfirm
-                  onConfirm={() => deleteRoute(matcher)}
+                  onConfirm={() => deleteRoute(matcher, row)}
                   title={'Are you sure you want to delete this route? '}
                   okText='Yes'
                   cancelText='No'>
@@ -420,7 +447,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
         title={'Create Route'}
         onClose={() => setShowCreateRouteModal(false)}>
         <CreateRouteModal
-          defaultRouteParent={props.routeParent!.metadata}
+          defaultRouteParent={props.routeParent}
           completeCreation={() => setShowCreateRouteModal(false)}
         />
       </SoloModal>

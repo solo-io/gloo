@@ -107,7 +107,6 @@ function setUpstreamValues(
   upstream: Upstream.AsObject,
   upstreamToUpdate = new Upstream()
 ): Upstream {
-  console.log('upstream', upstream);
   let {
     status,
     metadata,
@@ -516,7 +515,6 @@ function createUpstream(
 ): Promise<CreateUpstreamResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new CreateUpstreamRequest();
-    console.log('createUpstreamRequest', createUpstreamRequest);
     const { upstreamInput } = createUpstreamRequest;
     if (upstreamInput !== undefined) {
       let inputUpstream = setUpstreamValues(upstreamInput);

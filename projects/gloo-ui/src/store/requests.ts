@@ -1,6 +1,9 @@
 import { Dispatch, Middleware, MiddlewareAPI } from 'redux';
 import { UpstreamActionTypes } from './upstreams/types';
-import { VirtualServiceActionTypes, VirtualServiceAction } from './virtualServices/types';
+import {
+  VirtualServiceActionTypes,
+  VirtualServiceAction
+} from './virtualServices/types';
 import { normalize } from 'normalizr';
 import { upstream } from './schemas';
 
@@ -41,7 +44,6 @@ function initialAction<T>(type: T): InitialAction<T> {
 }
 
 function successfulAction<T, P>(type: T, payload: P): SuccessfulAction<T, P> {
-  console.log('type, payload', type, payload);
   return {
     type,
     status: ActionStatus.SUCCESS,
@@ -61,14 +63,9 @@ type AllActions = UpstreamActionTypes | VirtualServiceActionTypes;
 export const myMiddleware: Middleware<Dispatch> = ({
   dispatch
 }: MiddlewareAPI) => next => (action: AllActions) => {
-  console.log('action', action);
-  console.log('dispatch', dispatch);
   try {
     next(action);
-  } catch (error) {
-    console.log('error', error);
-  }
-  console.log('action.type + `LOADING`', action.type + `_LOADING`);
+  } catch (error) {}
 };
 
 export function makeActionRequest<T, P>(
@@ -104,13 +101,12 @@ export function reduceAsyncActionStatusOf<T extends string>(type: T) {
 export const normalizrMiddleware: Middleware<Dispatch> = ({
   dispatch
 }: MiddlewareAPI) => next => (action: AllActions) => {
-  console.log('action', action);
   // if (action.type.toLocaleLowerCase().includes('upstreams')) {
   //   const normalized = normalize(action.payload, [upstream]);
   //   action = Object.assign({}, action, {
   //     payload: normalized.entities
   //   });
-  //   console.log('newaction', action);
+  //
   // }
   return next(action);
 };

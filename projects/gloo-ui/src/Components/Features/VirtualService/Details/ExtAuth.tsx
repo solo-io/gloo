@@ -94,7 +94,7 @@ export const ExtAuth = (props: Props) => {
               <br />
               Need help?{' '}
               <a
-                href='https://gloo.solo.io/gloo_routing/virtual_services/authentication/external_auth/oauth/'
+                href='https://docs.solo.io/gloo/latest/security/auth/'
                 target='_blank'
                 rel='noopener noreferrer'>
                 View Authorization documentation.

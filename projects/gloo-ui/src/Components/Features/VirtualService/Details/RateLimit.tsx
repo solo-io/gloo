@@ -121,7 +121,7 @@ export const RateLimit = (props: Props) => {
               <br />
               Need help?{' '}
               <a
-                href='https://gloo.solo.io/gloo_routing/virtual_services/rate_limiting/simple/'
+                href='https://docs.solo.io/gloo/latest/security/rate_limiting/'
                 target='_blank'
                 rel='noopener noreferrer'>
                 View Rate Limit documentation.

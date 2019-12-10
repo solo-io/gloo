@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
   RouteDestinationDropdown,
   SoloFormDropdown,
@@ -99,7 +98,7 @@ let httpMethods = ['POST', 'PUT', 'GET', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 export interface CreateRouteValuesType {
   routeParent: { name: string; namespace: string };
-
+  routeParentKind: 'virtualService' | 'routeTable' | '';
   destinationType: 'Upstream' | 'Route Table';
   routeDestination: Upstream.AsObject | RouteTable.AsObject | undefined;
   destinationSpec: DestinationSpec.AsObject | undefined;
@@ -155,7 +154,7 @@ const validationSchema = yup.object().shape({
 });
 
 interface Props {
-  defaultRouteParent?: Metadata.AsObject;
+  defaultRouteParent?: RouteTable.AsObject | VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
   completeCreation: () => any;
   existingRoute?: Route.AsObject;
@@ -172,7 +171,7 @@ function arePropsEqual(
 export const CreateRouteModal = React.memo((props: Props) => {
   const createRouteDefaultValues: CreateRouteValuesType = {
     routeParent: { name: '', namespace: '' },
-
+    routeParentKind: '',
     destinationSpec: undefined,
     routeDestination: props.defaultUpstream ? props.defaultUpstream : undefined,
     destinationType: 'Upstream',
@@ -232,7 +231,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
         rt?.routeTable?.metadata?.namespace === values.routeParent?.namespace
     );
 
-    if (routeTable !== undefined) {
+    if (routeTable !== undefined && values.routeParentKind === 'routeTable') {
       let newRoutesList = routeTable?.routeTable?.routesList || [];
 
       let destination;
@@ -244,7 +243,6 @@ export const CreateRouteModal = React.memo((props: Props) => {
           }
         };
       } else if (values.destinationType === 'Upstream') {
-        console.log('values', values);
         let destinationSpec;
         if (values.destinationSpec !== undefined) {
           destinationSpec = values.destinationSpec;
@@ -271,7 +269,6 @@ export const CreateRouteModal = React.memo((props: Props) => {
               namespace: values?.routeParent?.namespace
             },
             routesList: [
-              ...newRoutesList,
               {
                 matchersList: [
                   {
@@ -284,14 +281,18 @@ export const CreateRouteModal = React.memo((props: Props) => {
                   }
                 ],
                 ...destination
-              }
+              },
+              ...newRoutesList
             ]
           }
         })
       );
 
       props.completeCreation();
-    } else if (virtualService !== undefined) {
+    } else if (
+      virtualService !== undefined &&
+      values.routeParentKind === 'virtualService'
+    ) {
       // vs -> rt
       if (values.destinationType === 'Route Table') {
         dispatch(
@@ -422,9 +423,8 @@ export const CreateRouteModal = React.memo((props: Props) => {
 
   const initialValues: CreateRouteValuesType = {
     ...createRouteDefaultValues,
-    routeParent: !!props.defaultRouteParent
-      ? props.defaultRouteParent!
-      : { name: '', namespace: '' },
+    routeParent: { name: '', namespace: '' },
+
     destinationSpec:
       defaultUpstream && defaultUpstream?.aws !== undefined
         ? {
@@ -495,8 +495,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
                       }
                       destinationType={values.destinationType}
                       onChange={newUpstream => {
-                        console.log('newUpstream', newUpstream);
-                        if (newUpstream?.upstreamSpec?.aws !== undefined) {
+                        if (newUpstream?.aws !== undefined) {
                           setFieldValue('destinationSpec', {
                             aws: {
                               logicalName: '',
@@ -515,7 +514,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
               <InputRow>
                 {values.routeDestination !== undefined &&
                   values.destinationType === 'Upstream' &&
-                  'upstreamSpec' in values.routeDestination && (
+                  'aws' in values.routeDestination && (
                     <DestinationForm
                       name='destinationSpec'
                       upstream={values.routeDestination}

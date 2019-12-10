@@ -710,7 +710,7 @@ export const VirtualServicesListing = () => {
         title={'Create Route'}
         onClose={() => setRouteParentForRouteCreation(undefined)}>
         <CreateRouteModal
-          defaultRouteParent={routeParentForRouteCreation?.metadata}
+          defaultRouteParent={routeParentForRouteCreation}
           completeCreation={() => setRouteParentForRouteCreation(undefined)}
         />
       </SoloModal>

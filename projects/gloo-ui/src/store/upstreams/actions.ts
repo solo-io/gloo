@@ -52,9 +52,6 @@ export const createUpstream = (
   createUpstreamRequest: CreateUpstreamRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    console.log('createUpstreamRequest', createUpstreamRequest);
-    // dispatch(showLoading());
-
     guardByLicense();
     try {
       const response = await upstreams.createUpstream(createUpstreamRequest);

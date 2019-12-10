@@ -63,11 +63,11 @@ const App = () => {
     dispatch(getVersion());
     dispatch(listEnvoyDetails());
     dispatch(listRouteTables());
+    dispatch(listUpstreams());
   }, 3000);
 
   useInterval(() => {
     dispatch(getIsLicenseValid());
-    dispatch(listUpstreams());
   }, 60000);
   const showModal = useSelector((state: AppState) => state.modal.showModal);
   const modalMessage = useSelector((state: AppState) => state.modal.message);

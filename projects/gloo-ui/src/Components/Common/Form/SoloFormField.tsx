@@ -325,7 +325,6 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
     );
 
     function handleChange(value: any) {
-      console.log('this changed', value);
       if (form.values.destinationType === 'Route Table') {
         let routeTable = routeTablesList.find(
           rt => rt!.routeTable!.metadata!.name === value
@@ -745,19 +744,39 @@ export const SoloRouteParentDropdown: React.FC<{
       <SoloDropdownBlock
         value={props.defaultValue}
         onChange={(value: any) => {
-          let [name, namespace] = value.split('::');
+          let [name, namespace, kind] = value.split('::');
+
           // find the correct one in the list
           let selectedRouteParent;
+          form.setFieldValue('routeParentKind', kind);
+
           form.setFieldValue(`${field.name}.name`, name);
           // set it in the form
           form.setFieldValue(`${field.name}.namespace`, namespace);
         }}>
-        {routeParents.map(([namespace, secrets]) => {
+        {groupedVirtualServices.map(([label, resources]) => {
           return (
-            <OptGroup key={namespace} label={namespace}>
-              {secrets.map(s => (
-                <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
-                  {s.metadata!.name}
+            <OptGroup key={label} label={label}>
+              {resources.map(s => (
+                <Option
+                  key={`${s.metadata!.name}::${
+                    s.metadata!.namespace
+                  }::virtualService`}>
+                  {`${s.metadata!.name}`}
+                </Option>
+              ))}
+            </OptGroup>
+          );
+        })}
+        {groupedRouteTables.map(([label, resources]) => {
+          return (
+            <OptGroup key={label} label={label}>
+              {resources.map(s => (
+                <Option
+                  key={`${s.metadata!.name}::${
+                    s.metadata!.namespace
+                  }::routeTable`}>
+                  {`${s.metadata!.name}`}
                 </Option>
               ))}
             </OptGroup>

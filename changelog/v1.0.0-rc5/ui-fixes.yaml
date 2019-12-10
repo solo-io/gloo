@@ -1,0 +1,31 @@
+changelog:
+  - type: FIX
+    description: Use the correct links to documentation.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1291
+  - type: FIX
+    description: Add missing breadcrumb link in route table details view.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1353
+  - type: FIX
+    description: Show the correct Helm chart value in the admin section to enable reading the envoy config.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1274
+  - type: FIX
+    description: Fix bug where having a virtual service and a route table with the same name caused problems.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1351
+  - type: FIX
+    description: Fix bug that prevented deleting routes from a virtual service.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1349
+  - type: FIX
+    description: Fix bug that prevented creating routes to AWS upstreams.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1345
+  - type: FIX
+    description: Fix bug that prevented creating routes to AWS upstreams.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1298
+  - type: FIX
+    description: Fix bug that prevented reordering routes in a route table.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1320
+  - type: FIX
+    description: Fix bug where routes with the same path were treated equally.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1352
+  - type: FIX
+    description: Fix bug where new routes were added to the bottom of the list in route tables.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1321

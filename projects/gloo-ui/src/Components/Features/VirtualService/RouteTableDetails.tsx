@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Breadcrumb, Spin } from 'antd';
+import { Spin } from 'antd';
 import { ReactComponent as RouteTableIcon } from 'assets/route-table-icon.svg';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
@@ -38,6 +38,7 @@ import {
   DetailsSection,
   DetailsSectionTitle
 } from './Details/VirtualServiceDetails';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 
 const RouteSectionTitle = styled.div`
   font-size: 18px;
@@ -168,7 +169,6 @@ export const RouteTableDetails = () => {
   };
 
   const handleCreateRoute = (values: CreateRouteValuesType) => {
-    console.log('values', values);
     let newRoutesList = routeTable.routesList;
 
     if (routeBeingEdited !== undefined) {
@@ -321,7 +321,7 @@ export const RouteTableDetails = () => {
                 title={'Create Route'}
                 onClose={() => setShowCreateRouteModal(false)}>
                 <CreateRouteModal
-                  defaultRouteParent={routeTable!.metadata}
+                  defaultRouteParent={routeTable}
                   completeCreation={() => setShowCreateRouteModal(false)}
                   createRouteFn={handleCreateRoute}
                 />

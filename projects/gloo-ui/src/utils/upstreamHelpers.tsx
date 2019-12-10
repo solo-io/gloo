@@ -31,7 +31,7 @@ export function parseUpstreamId(
 export function getUpstreamType(upstream: Upstream.AsObject) {
   // return upstream.getUpstreamTypeCase();
 
-  let upstreamType = 'other';
+  let upstreamType = 'Other';
   if (upstream?.aws !== undefined) {
     upstreamType = 'Aws';
   }

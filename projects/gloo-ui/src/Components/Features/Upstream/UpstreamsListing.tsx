@@ -358,7 +358,6 @@ export const UpstreamsListing = () => {
 
   return (
     <div>
-      <LoadingBar />
       <Heading>
         <Breadcrumb />
         <Action>
