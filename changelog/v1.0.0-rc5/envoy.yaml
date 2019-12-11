@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/1346
+    description: Wire up stats to static envoy in apiserver. 
