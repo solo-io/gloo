@@ -15,6 +15,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
+	duration "github.com/golang/protobuf/ptypes/duration"
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/square/go-jose.v2"
 
@@ -30,6 +31,8 @@ const (
 	DisableName       = "-any:cf7a7de2-83ff-45ce-b697-f57d6a4775b5-"
 	StateName         = "filterState"
 	PayloadInMetadata = "principal"
+
+	RemoteJwksTimeoutSecs = 5
 )
 
 var (
@@ -239,7 +242,8 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 		out.JwksSourceSpecifier = &envoyauth.JwtProvider_RemoteJwks{
 			RemoteJwks: &envoyauth.RemoteJwks{
 				HttpUri: &envoycore.HttpUri{
-					Uri: jwks.Remote.Url,
+					Timeout: &duration.Duration{Seconds: RemoteJwksTimeoutSecs},
+					Uri:     jwks.Remote.Url,
 					HttpUpstreamType: &envoycore.HttpUri_Cluster{
 						Cluster: translator.UpstreamToClusterName(*jwks.Remote.UpstreamRef),
 					},

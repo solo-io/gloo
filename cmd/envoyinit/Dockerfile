@@ -1,7 +1,6 @@
-FROM quay.io/solo-io/envoy-gloo-ee:0.1.25
+FROM quay.io/solo-io/envoy-gloo-ee:0.1.27
 
 COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
-
 
 ARG COMMIT=v3.1/dev
 ARG REPO=SpiderLabs/owasp-modsecurity-crs
