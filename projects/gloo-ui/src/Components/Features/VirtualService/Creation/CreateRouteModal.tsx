@@ -465,7 +465,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
                     <SoloRouteParentDropdown
                       title='Route Container'
                       name='routeParent'
-                      defaultValue={values.routeParent?.name}
+                      defaultValue={defaultRouteParent?.metadata?.name!}
                     />
                   </div>
                 </Thirds>

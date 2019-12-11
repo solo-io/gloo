@@ -1,7 +1,8 @@
 import styled from '@emotion/styled';
 import {
   SoloFormInput,
-  SoloFormTypeahead
+  SoloFormTypeahead,
+  SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
@@ -11,6 +12,7 @@ import { AppState } from 'store';
 import { createVirtualService } from 'store/virtualServices/actions';
 import * as yup from 'yup';
 import { useHistory, useLocation } from 'react-router';
+import { Domains } from '../Details/Domains';
 
 const Footer = styled.div`
   display: flex;
@@ -27,7 +29,8 @@ const InputContainer = styled.div`
 let initialValues = {
   virtualServiceName: '',
   displayName: '',
-  namespace: ''
+  namespace: '',
+  domainsList: ['']
 };
 
 const validationSchema = yup.object().shape({
@@ -36,6 +39,10 @@ const validationSchema = yup.object().shape({
     .required('Name is required')
     .matches(/[a-z0-9]+[-.a-z0-9]*[a-z0-9]/, 'Name is invalid'),
   displayName: yup.string(),
+  domainsList: yup
+    .array()
+    .of(yup.string())
+    .required('At least one domain must be specified.'),
   namespace: yup
     .string()
     .required('Namespace is required')
@@ -57,13 +64,16 @@ export const CreateVirtualServiceForm = (props: Props) => {
   initialValues.namespace = podNamespace;
 
   const handleCreateVirtualService = (values: typeof initialValues) => {
-    let { namespace, virtualServiceName, displayName } = values;
+    let { namespace, virtualServiceName, displayName, domainsList } = values;
 
     dispatch(
       createVirtualService({
         inputV2: {
           displayName: {
             value: displayName
+          },
+          domains: {
+            valuesList: domainsList.filter(val => val !== '')
           },
           ref: {
             name: virtualServiceName,
@@ -72,6 +82,7 @@ export const CreateVirtualServiceForm = (props: Props) => {
         }
       })
     );
+
     setTimeout(() => {
       history.push({
         pathname: `${location.pathname}${values.namespace}/${values.virtualServiceName}`
@@ -100,6 +111,13 @@ export const CreateVirtualServiceForm = (props: Props) => {
                 name='displayName'
                 title='Display Name'
                 placeholder='Display Name'
+              />
+            </div>
+            <div>
+              <SoloFormStringsList
+                name='domainsList'
+                label='Domains'
+                createNewPromptText='Specify a domain'
               />
             </div>
             <div>

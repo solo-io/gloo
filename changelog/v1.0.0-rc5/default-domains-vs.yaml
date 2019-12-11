@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow user to specify domains when creating a virtual service.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1358
