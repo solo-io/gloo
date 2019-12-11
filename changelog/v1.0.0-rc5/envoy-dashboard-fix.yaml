@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Fix malformed JSON in the Envoy Grafana dashboard.
+  issueLink: https://github.com/solo-io/gloo/issues/1888

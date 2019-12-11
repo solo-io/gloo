@@ -1,7 +1,10 @@
 package test
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
@@ -142,6 +145,19 @@ var _ = Describe("Helm Test", func() {
 					Labels:    labels,
 				}
 				grafanaDeployment = grafanaBuilder.GetDeploymentAppsv1()
+			})
+
+			It("has valid default dashboards", func() {
+				dashboardsDir := "../helm/gloo-ee/dashboards/"
+				files, err := ioutil.ReadDir(dashboardsDir)
+				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
+				Expect(files).NotTo(HaveLen(0), "Should have dashboard files")
+				for _, f := range files {
+					bytes, err := ioutil.ReadFile(path.Join(dashboardsDir, f.Name()))
+					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
+					err = json.Unmarshal(bytes, &map[string]interface{}{})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
+				}
 			})
 
 			Context("observability deployment", func() {

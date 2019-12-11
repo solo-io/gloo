@@ -359,7 +359,7 @@
           "intervalFactor": 1,
           "legendFormat": "average time from downstream",
           "refId": "B"
-        },
+        }
       ],
       "thresholds": [],
       "timeFrom": null,
