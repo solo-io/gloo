@@ -52,7 +52,7 @@ describe('route table demo', () => {
     await browser.close();
   });
 
-  xdescribe('demo', () => {
+  describe('demo', () => {
     test('Overview Page renders correctly', async () => {
       await expect(page).toMatch('Enterprise Gloo Overview');
 
@@ -238,7 +238,7 @@ describe('route table demo', () => {
     }, 9999);
   });
 
-  xtest('can delete resources without errors', async () => {
+  test('can delete resources without errors', async () => {
     await page.goto(`http://localhost:3000/virtualservices/`);
     await expect(page).toClick('div[data-testid="delete-button"]');
     await expect(page).toMatch(
@@ -257,5 +257,5 @@ describe('route table demo', () => {
       'Are you sure you want to delete this Route Table?'
     );
     await expect(page).toClick('button', { text: 'Yes' });
-  }, 9999);
+  }, 15000);
 });

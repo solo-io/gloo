@@ -5,7 +5,8 @@ const testValues = {
   routeName: '/vets',
   upstreamName: 'default-kubernetes-443',
   demoUrl: 'http://valet-petclinic-f3f885f59f.corp.solo.io',
-  routeTableName: 'my-route-table'
+  routeTableName: 'my-route-table',
+  virtualServiceName: 'test-virtual-service-standard'
 };
 
 describe('app', () => {
@@ -37,14 +38,35 @@ describe('app', () => {
       await expect(page).toClick(
         'div[data-testid="view-virtual-services-link"]'
       );
-    });
+    }, 9999);
+
+    test('create test virtual service', async () => {
+      await expect(page).toClick('a[data-testid="virtual-services-navlink"]');
+
+      await expect(page).toClick(
+        'div[data-testid="create-virtual-service-modal"]'
+      );
+    }, 9999);
+
+    test('Enter virtual service name', async () => {
+      await expect(page).toFill(
+        'input[name="virtualServiceName"]',
+        testValues.virtualServiceName
+      );
+    }, 9999);
+
+    test('submit create virtual service form ', async () => {
+      await expect(page).toClick('button', { text: 'Create Virtual Service' });
+    }, 9999);
 
     test('New Route Modal', async () => {
-      await expect(page).toClick('div[data-testid="view-details-link"]');
+      await page.goto(
+        `http://localhost:3000/virtualservices/gloo-system/${testValues.virtualServiceName}`
+      );
       await expect(page).toMatch('Create Route');
       await expect(page).toMatch('View YAML Configuration');
       await expect(page).toClick('div[data-testid="create-new-route-modal"]');
-    });
+    }, 9999);
 
     test('Enter route path', async () => {
       await expect(page).toFill('input[name="path"]', testValues.routeName);
@@ -57,7 +79,7 @@ describe('app', () => {
         text: testValues.upstreamName,
         timeout: 0
       });
-    });
+    }, 9999);
 
     test('submit form ', async () => {
       await expect(page).toClick('button', { text: 'Create Route' });

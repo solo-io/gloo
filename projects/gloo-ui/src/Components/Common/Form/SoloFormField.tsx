@@ -742,10 +742,9 @@ export const SoloRouteParentDropdown: React.FC<{
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
       <SoloDropdownBlock
-        value={props.defaultValue}
+        value={field.value.name || props.defaultValue}
         onChange={(value: any) => {
           let [name, namespace, kind] = value.split('::');
-
           // find the correct one in the list
           let selectedRouteParent;
           form.setFieldValue('routeParentKind', kind);

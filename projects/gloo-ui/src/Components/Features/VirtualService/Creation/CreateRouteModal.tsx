@@ -171,7 +171,10 @@ function arePropsEqual(
 export const CreateRouteModal = React.memo((props: Props) => {
   const createRouteDefaultValues: CreateRouteValuesType = {
     routeParent: { name: '', namespace: '' },
-    routeParentKind: '',
+    routeParentKind:
+      !!props.defaultRouteParent && 'virtualHost' in props.defaultRouteParent
+        ? 'virtualService'
+        : '',
     destinationSpec: undefined,
     routeDestination: props.defaultUpstream ? props.defaultUpstream : undefined,
     destinationType: 'Upstream',
@@ -423,7 +426,10 @@ export const CreateRouteModal = React.memo((props: Props) => {
 
   const initialValues: CreateRouteValuesType = {
     ...createRouteDefaultValues,
-    routeParent: { name: '', namespace: '' },
+    routeParent: {
+      name: defaultRouteParent?.metadata?.name || '',
+      namespace: defaultRouteParent?.metadata?.namespace || ''
+    },
 
     destinationSpec:
       defaultUpstream && defaultUpstream?.aws !== undefined

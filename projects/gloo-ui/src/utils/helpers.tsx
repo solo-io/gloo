@@ -182,7 +182,7 @@ export function getRouteSingleUpstream(route: Route.AsObject) {
     functionName = route.delegateAction.name;
     return functionName;
   }
-  return {} as ResourceRef.AsObject;
+  return functionName;
 }
 
 // TODO: handle multi destination case

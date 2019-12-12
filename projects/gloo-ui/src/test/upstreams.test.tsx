@@ -128,7 +128,7 @@ describe('basic upstream functionality', () => {
       );
 
       await expect(page).toClick('svg[data-testid="1-secret-green-plus"]');
-    }, 9999);
+    }, 15000);
 
     test('aws secret was created correctly', async () => {
       await page.goto('http://localhost:3000/settings/secrets/');

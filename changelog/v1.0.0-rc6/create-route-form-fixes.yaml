@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Route container field in create route form was not being correctly shown when selected.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1381

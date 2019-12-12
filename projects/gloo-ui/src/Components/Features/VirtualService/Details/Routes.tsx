@@ -97,7 +97,7 @@ const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
       icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
     }
 
-    destination = route.routeAction.single?.upstream?.name || '';
+    destination = getRouteSingleUpstream(route);
   }
   if (route.delegateAction !== undefined) {
     icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
