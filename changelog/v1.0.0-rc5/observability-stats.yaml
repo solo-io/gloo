@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix observability deployment template by moving the START_STATS_SERVER env variable to the correct place.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1370

@@ -56,15 +56,15 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            {{- if .Values.observability.deployment.stats }}
+            - name: START_STATS_SERVER
+              value: "true"
+            {{- end}}
           envFrom:
             - configMapRef:
                 name: {{.Release.Name}}-observability-config
             - secretRef:
                 name: {{.Release.Name}}-observability-secrets
-            {{- if .Values.observability.deployment.stats }}
-            - name: START_STATS_SERVER
-              value: "true"
-            {{- end}}
       {{- if $image.pullSecret }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
