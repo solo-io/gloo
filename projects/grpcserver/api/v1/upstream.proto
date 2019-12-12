@@ -38,6 +38,8 @@ message ListUpstreamsRequest {
 message ListUpstreamsResponse {
     // Deprecated, use upstream_details
     repeated gloo.solo.io.Upstream upstreams = 1;
+    // NOTE: These upstreams are at least partially truncated.
+    // As of now, that only means that the descriptor field on gRPC upstreams is omitted for performance reasons.
     repeated UpstreamDetails upstream_details = 2;
 }
 

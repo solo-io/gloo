@@ -5,6 +5,7 @@ import (
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
 	searchmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search/mocks"
+	mock_truncate "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate/mocks"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -35,6 +36,7 @@ var (
 	factory          *mock_mutator.MockFactory
 	settingsValues   *mock_settings.MockValuesClient
 	rawGetter        *mock_rawgetter.MockRawGetter
+	truncator        *mock_truncate.MockUpstreamTruncator
 	testErr          = errors.Errorf("test-err")
 )
 
@@ -63,8 +65,9 @@ var _ = Describe("ServiceTest", func() {
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		clientCache = clientmocks.NewMockClientCache(mockCtrl)
+		truncator = mock_truncate.NewMockUpstreamTruncator(mockCtrl)
 		clientCache.EXPECT().GetUpstreamClient().Return(upstreamClient).AnyTimes()
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter, upstreamSearcher)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter, upstreamSearcher, truncator)
 	})
 
 	AfterEach(func() {
@@ -144,6 +147,8 @@ var _ = Describe("ServiceTest", func() {
 			rawGetter.EXPECT().
 				GetRaw(context.Background(), upstream2, gloov1.UpstreamCrd).
 				Return(raw2)
+			truncator.EXPECT().Truncate(upstream1)
+			truncator.EXPECT().Truncate(upstream2)
 
 			actual, err := apiserver.ListUpstreams(context.TODO(), &v1.ListUpstreamsRequest{})
 			Expect(err).NotTo(HaveOccurred())

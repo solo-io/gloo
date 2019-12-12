@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate"
 
 	"github.com/solo-io/solo-projects/pkg/license"
 
@@ -30,6 +31,7 @@ type upstreamGrpcService struct {
 	mutationFactory  mutation.Factory
 	rawGetter        rawgetter.RawGetter
 	upstreamSearcher search.UpstreamSearcher
+	truncator        truncate.UpstreamTruncator
 }
 
 // this client is not mocked by gloo, so mock it ourselves here
@@ -44,6 +46,7 @@ func NewUpstreamGrpcService(
 	factory mutation.Factory,
 	rawGetter rawgetter.RawGetter,
 	upstreamSearcher search.UpstreamSearcher,
+	truncator truncate.UpstreamTruncator,
 ) v1.UpstreamApiServer {
 
 	return &upstreamGrpcService{
@@ -55,6 +58,7 @@ func NewUpstreamGrpcService(
 		rawGetter:        rawGetter,
 		licenseClient:    licenseClient,
 		upstreamSearcher: upstreamSearcher,
+		truncator:        truncator,
 	}
 }
 
@@ -83,6 +87,7 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 
 	detailsList := make([]*v1.UpstreamDetails, 0, len(upstreamList))
 	for _, u := range upstreamList {
+		s.truncator.Truncate(u)
 		detailsList = append(detailsList, s.getDetails(u))
 	}
 

@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Strip Descriptor field when sending gRPC upstreams to the frontend to reduce response payload. Note that this the upstream YAML downloaded from the UI will not contain those descriptors. 
+    issueLink: https://github.com/solo-io/solo-projects/issues/1367
+    resolvesIssue: false

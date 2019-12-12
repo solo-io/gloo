@@ -29,6 +29,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
 	mutation2 "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
@@ -59,7 +60,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	factory := mutation.NewFactory()
 	rawGetter := rawgetter.NewKubeYamlRawGetter()
 	upstreamSearcher := search.NewUpstreamSearcher(clientCache, valuesClient)
-	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter, upstreamSearcher)
+	truncator := truncate.NewUpstreamTruncator()
+	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter, upstreamSearcher, truncator)
 	upstreamGroupApiServer := upstreamgroupsvc.NewUpstreamGroupGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter, upstreamSearcher)
 	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient, valuesClient)
 	coreV1Interface, err := setup.GetK8sCoreInterface(config)

@@ -207,7 +207,9 @@ func (m *ListUpstreamsRequest) GetNamespaces() []string {
 
 type ListUpstreamsResponse struct {
 	// Deprecated, use upstream_details
-	Upstreams            []*v1.Upstream     `protobuf:"bytes,1,rep,name=upstreams,proto3" json:"upstreams,omitempty"`
+	Upstreams []*v1.Upstream `protobuf:"bytes,1,rep,name=upstreams,proto3" json:"upstreams,omitempty"`
+	// NOTE: These upstreams are at least partially truncated.
+	// As of now, that only means that the descriptor field on gRPC upstreams is omitted for performance reasons.
 	UpstreamDetails      []*UpstreamDetails `protobuf:"bytes,2,rep,name=upstream_details,json=upstreamDetails,proto3" json:"upstream_details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
 	XXX_unrecognized     []byte             `json:"-"`

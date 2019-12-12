@@ -8,6 +8,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate"
 
 	"github.com/google/wire"
 	"github.com/solo-io/go-utils/envutils"
@@ -70,6 +71,8 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		envoydetails.NewProxyStatusGetter,
 		scrub.NewScrubber,
 		status.NewInputResourceStatusGetter,
+		truncate.NewUpstreamTruncator,
+		wire.Bind(new(truncate.UpstreamTruncator), truncate.Truncator{}),
 
 		// Services
 		upstreamsvc.NewUpstreamGrpcService,
