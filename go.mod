@@ -16,7 +16,7 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
-	github.com/google/wire v0.2.1
+	github.com/google/wire v0.4.0
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
@@ -47,7 +47,9 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
+	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
 	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
+	golang.org/x/tools v0.0.0-20191212051200-825cb0626375 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11
 	google.golang.org/grpc v1.25.1
 	gopkg.in/square/go-jose.v2 v2.3.1
@@ -78,7 +80,7 @@ replace (
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.0.0-20191004125145-7118cc13aa0a
 	k8s.io/gengo => k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/heapster => k8s.io/heapster v1.2.0-beta.1
-	k8s.io/klog => k8s.io/klog v0.4.0
+	k8s.io/klog => github.com/stefanprodan/klog v0.0.0-20190418165334-9cbb78b20423
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.0.0-20191104231939-9e18019dec40
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.0.0-20191004124629-b9859bb1ce71
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
