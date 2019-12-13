@@ -80,6 +80,7 @@ export const Content = () => (
           <SettingsLanding />
         </ErrorBoundary>
       </Route>
+      <Redirect exact from='/routetables/' to='/virtualservices/' />
       <Redirect exact from='/' to='/overview/' />
     </Switch>
   </Container>

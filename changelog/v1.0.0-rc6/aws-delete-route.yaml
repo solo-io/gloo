@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Fix regression when deleting aws routes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1380
+  - type: FIX
+    description: Correctly redirect breadcrumb in route table details view.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1353

@@ -294,12 +294,12 @@ export const Routes: React.FC<Props> = React.memo(props => {
       let index = routesList.findIndex(
         route =>
           getRouteMatcher(route).matcher === matcherToDelete &&
-          row.upstreamName === route.routeAction?.single?.upstream?.name
+          row.upstreamName === getRouteSingleUpstream(route)
       );
       const newList = routesList.filter(
         route =>
           getRouteMatcher(route).matcher !== matcherToDelete &&
-          row.upstreamName !== route.routeAction?.single?.upstream?.name
+          row.upstreamName !== getRouteSingleUpstream(route)
       );
 
       dispatch(
