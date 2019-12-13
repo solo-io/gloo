@@ -168,9 +168,9 @@ gloo:
   rbac:    
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
-  settings:
-    singleNamespace: true
-    create: true
+settings:
+  singleNamespace: true
+  create: true
 prometheus:
   podSecurityPolicy:
     enabled: true
