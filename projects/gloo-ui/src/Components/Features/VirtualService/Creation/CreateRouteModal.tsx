@@ -174,7 +174,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
     routeParentKind:
       !!props.defaultRouteParent && 'virtualHost' in props.defaultRouteParent
         ? 'virtualService'
-        : '',
+        : 'routeTable',
     destinationSpec: undefined,
     routeDestination: props.defaultUpstream ? props.defaultUpstream : undefined,
     destinationType: 'Upstream',
@@ -290,7 +290,9 @@ export const CreateRouteModal = React.memo((props: Props) => {
           }
         })
       );
-
+      history.push({
+        pathname: `/routetables/${values.routeParent?.namespace}/${values.routeParent?.name}`
+      });
       props.completeCreation();
     } else if (
       virtualService !== undefined &&

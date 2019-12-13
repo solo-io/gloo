@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Correctly preselect values on create route form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1381
