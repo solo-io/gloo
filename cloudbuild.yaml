@@ -179,7 +179,7 @@ steps:
     - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  waitFor: ['dep','yarn-build']
+  waitFor: ['dep','yarn-build', 'fetch-helm']
   id: 'build-images'
 
   # Run regression tests

@@ -6,6 +6,9 @@ import (
 	"os"
 	"path"
 
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/pkg/install"
@@ -184,6 +187,38 @@ var _ = Describe("Helm Test", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+			})
+
+			Context("observability RBAC rule", func() {
+
+				It("allows correct operations on upstreams", func() {
+					labels = map[string]string{
+						"app":  "gloo",
+						"gloo": "observability",
+					}
+					rb := ResourceBuilder{
+						Name:   "observability-upstream-role-gloo-system",
+						Labels: labels,
+					}
+
+					observabilityClusterRole := rb.GetClusterRole()
+					observabilityClusterRole.Rules = []rbacv1.PolicyRule{
+						{
+							Verbs:     []string{"get", "list", "watch"},
+							APIGroups: []string{"gloo.solo.io"},
+							Resources: []string{"upstreams"},
+						},
+					}
+
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+					Expect(err).NotTo(HaveOccurred())
+
+					clusterRoles := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "ClusterRole" && unstructured.GetLabels()["gloo"] == "observability"
+					})
+
+					clusterRoles.ExpectClusterRole(observabilityClusterRole)
 				})
 			})
 

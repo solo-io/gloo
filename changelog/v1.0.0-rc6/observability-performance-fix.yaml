@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  description: >
+    Fix the issue that was causing the `observability` pod memory footprint to increase over time, eventually resulting in the pod being evicted.
+  issueLink: https://github.com/solo-io/gloo/issues/1904

@@ -115,5 +115,5 @@ func ApplyPermissionsForGlooEServiceAccounts(namespace string, permissions *mani
 		namespace,
 		[]string{"gloo.solo.io"},
 		[]string{"upstreams"},
-		[]string{"list"})
+		[]string{"get", "list", "watch"})
 }
