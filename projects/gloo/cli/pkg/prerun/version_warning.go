@@ -10,7 +10,6 @@ import (
 	versiondiscovery "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/version"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/versionutils"
-	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"strings"
@@ -20,7 +19,13 @@ const (
 	ContainerNameToCheck = "discovery"
 )
 
-func VersionMismatchWarning(opts *options.Options, cmd *cobra.Command) error {
+func VersionMismatchWarning(opts *options.Options, consul options.Consul) error {
+	// Only Kubernetes provides client/server version information. Only check for a version
+	// mismatch if Kubernetes is enabled (i.e. Consul is not enabled)
+	if consul.UseConsul {
+		return nil
+	}
+
 	return WarnOnMismatch(os.Args[0], versioncmd.NewKube(opts.Metadata.Namespace), &defaultLogger{})
 }
 
