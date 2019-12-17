@@ -508,11 +508,17 @@ DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPENDENCIES_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
-publish-dependencies: $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env $(DEPENDENCIES_DIR)/verify-plugins-linux-amd64
+publish-dependencies: $(DEPENDENCIES_DIR)/go.mod $(DEPENDENCIES_DIR)/go.sum $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env $(DEPENDENCIES_DIR)/verify-plugins-linux-amd64
 	gsutil cp -r $(DEPENDENCIES_DIR) gs://$(DEPENDENCIES_BUCKET)
 
 $(DEPENDENCIES_DIR):
 	mkdir -p $(DEPENDENCIES_DIR)
+
+$(DEPENDENCIES_DIR)/go.mod: $(DEPENDENCIES_DIR) go.mod
+	cp go.mod $(DEPENDENCIES_DIR)
+
+$(DEPENDENCIES_DIR)/go.sum: $(DEPENDENCIES_DIR) go.sum
+	cp go.sum $(DEPENDENCIES_DIR)
 
 $(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR) Gopkg.lock
 	cp Gopkg.lock $(DEPENDENCIES_DIR)

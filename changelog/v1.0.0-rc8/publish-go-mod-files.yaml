@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  description: >
+    As part of each Gloo Enterprise release we publish information about all the dependencies that we use. This is
+    needed for external auth plugin developers to be able to create plugins compatible with a particular Gloo
+    Enterprise version. As we have recently started to use Go Modules instead of Dep to build Gloo, this change adds the
+    `go.mod`/`go.sum` files to the list of published dependency info.
+  issueLink: https://github.com/solo-io/gloo/issues/1987
