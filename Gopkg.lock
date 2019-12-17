@@ -1571,7 +1571,7 @@
   version = "v0.6.2"
 
 [[projects]]
-  digest = "1:b2672efa62a01b2f98883c2d2feeb55f0e4c5a09323c1b5a039fa830ed5099c5"
+  digest = "1:ca110a79bc4b4d5054e706c7f2c37b8e2cc4f78bbfb5664d48227434513f7473"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1617,6 +1617,7 @@
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/external/envoy/api/v2/cluster",
+    "projects/gloo/pkg/api/external/envoy/api/v2/config",
     "projects/gloo/pkg/api/external/envoy/api/v2/core",
     "projects/gloo/pkg/api/external/envoy/api/v2/route",
     "projects/gloo/pkg/api/external/envoy/extensions/aws",
@@ -1652,6 +1653,7 @@
     "projects/gloo/pkg/api/v1/options/kubernetes",
     "projects/gloo/pkg/api/v1/options/lbhash",
     "projects/gloo/pkg/api/v1/options/pipe",
+    "projects/gloo/pkg/api/v1/options/protocol_upgrade",
     "projects/gloo/pkg/api/v1/options/rest",
     "projects/gloo/pkg/api/v1/options/retries",
     "projects/gloo/pkg/api/v1/options/shadowing",
@@ -1660,6 +1662,7 @@
     "projects/gloo/pkg/api/v1/options/tcp",
     "projects/gloo/pkg/api/v1/options/tracing",
     "projects/gloo/pkg/api/v1/options/transformation",
+    "projects/gloo/pkg/api/v1/options/wasm",
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
     "projects/gloo/pkg/discovery",
@@ -1698,6 +1701,7 @@
     "projects/gloo/pkg/plugins/upstreamssl",
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/plugins/utils/transformation",
+    "projects/gloo/pkg/plugins/wasm",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/syncer/sanitizer",
     "projects/gloo/pkg/syncer/stats",
@@ -1718,8 +1722,8 @@
     "test/v1helpers/test_grpc_service/glootest/protos",
   ]
   pruneopts = "UT"
-  revision = "2df53c6e208b87a1f93cfaf04b14e472326d5405"
-  version = "v1.2.4"
+  revision = "af5f9c10f95ef6d07b4c959c3b73ed07854cf205"
+  version = "v1.2.10"
 
 [[projects]]
   digest = "1:bbd80ca970be2ff964842e4a5c23397dc234ebdaff1d9cbeeb791d364aa1a255"
@@ -1881,6 +1885,22 @@
   pruneopts = "UT"
   revision = "d556dcb3dbbaecdd7b483beaa612a322d3a45bb7"
   version = "v0.11.13"
+
+[[projects]]
+  digest = "1:54480bcd69fcd0349be66861194e8d40b9aaf4fced14f9ad1932c585f3ac799c"
+  name = "github.com/solo-io/wasme"
+  packages = [
+    "pkg/auth/store",
+    "pkg/cache",
+    "pkg/consts",
+    "pkg/defaults",
+    "pkg/model",
+    "pkg/pull",
+    "pkg/resolver",
+  ]
+  pruneopts = "UT"
+  revision = "6d6d4fb38bed1cb9c795ae85a1667cd4ef4ad3a1"
+  version = "v0.0.7"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2054,6 +2074,19 @@
   ]
   pruneopts = "UT"
   revision = "a2144134853fc9a27a7b1e3eb4f19f1a76df13c9"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1ec79de2c381494b56be9cb968899e77818957301fe9302ddecb6d6ad5f62748"
+  name = "golang.org/x/mod"
+  packages = [
+    "internal/lazyregexp",
+    "modfile",
+    "module",
+    "semver",
+  ]
+  pruneopts = "UT"
+  revision = "331c550502dddccec70ff032beba72756bb428f2"
 
 [[projects]]
   branch = "master"
@@ -2953,11 +2986,13 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws/ec2",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/azure",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/consul",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/faultinjection",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static",
     "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap",
@@ -3024,6 +3059,7 @@
     "go.opencensus.io/tag",
     "go.opencensus.io/trace",
     "go.uber.org/zap",
+    "golang.org/x/mod/modfile",
     "golang.org/x/net/http2",
     "golang.org/x/net/http2/h2c",
     "google.golang.org/genproto/googleapis/rpc/errdetails",
@@ -3041,6 +3077,7 @@
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
     "k8s.io/api/policy/v1beta1",
+    "k8s.io/api/rbac/v1",
     "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",

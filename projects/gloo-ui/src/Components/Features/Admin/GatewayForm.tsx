@@ -20,6 +20,8 @@ import { updateGatewayYaml } from 'store/gateway/actions';
 import { colors, soloConstants } from 'Styles';
 import * as yup from 'yup';
 import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb';
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb
+  from "../../../proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb";
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -102,6 +104,9 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
     requestHeadersForTagsList: (undefined as unknown) as string[],
     verbose: (undefined as unknown) as boolean
   },
+  preserveExternalRequestId: (undefined as unknown) as boolean,
+  setCurrentClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
+  upgradesList: (undefined as unknown) as Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
   forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap]
 };
 

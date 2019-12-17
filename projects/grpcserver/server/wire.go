@@ -72,7 +72,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 		scrub.NewScrubber,
 		status.NewInputResourceStatusGetter,
 		truncate.NewUpstreamTruncator,
-		wire.Bind(new(truncate.UpstreamTruncator), truncate.Truncator{}),
+		wire.Bind(new(truncate.UpstreamTruncator), &truncate.Truncator{}),
 
 		// Services
 		upstreamsvc.NewUpstreamGrpcService,

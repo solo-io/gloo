@@ -20,8 +20,10 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_stats_stats_pb 
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/faultinjection/fault_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb";
@@ -91,6 +93,11 @@ export class HttpListenerOptions extends jspb.Message {
   getDlp(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig | undefined;
   setDlp(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig): void;
 
+  hasWasm(): boolean;
+  clearWasm(): void;
+  getWasm(): github_com_solo_io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource | undefined;
+  setWasm(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -109,6 +116,7 @@ export namespace HttpListenerOptions {
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.AsObject,
+    wasm?: github_com_solo_io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.AsObject,
   }
 }
 
@@ -294,6 +302,11 @@ export class RouteOptions extends jspb.Message {
   getLbHash(): github_com_solo_io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig | undefined;
   setLbHash(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig): void;
 
+  clearUpgradesList(): void;
+  getUpgradesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>;
+  setUpgradesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>): void;
+  addUpgrades(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
+
   hasRatelimitBasic(): boolean;
   clearRatelimitBasic(): void;
   getRatelimitBasic(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit | undefined;
@@ -355,6 +368,7 @@ export namespace RouteOptions {
     autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     cors?: github_com_solo_io_gloo_projects_gloo_api_v1_options_cors_cors_pb.CorsPolicy.AsObject,
     lbHash?: github_com_solo_io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
+    upgradesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
     ratelimitBasic?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimit?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,

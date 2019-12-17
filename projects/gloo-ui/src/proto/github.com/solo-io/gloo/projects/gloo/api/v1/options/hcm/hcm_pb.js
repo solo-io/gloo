@@ -16,6 +16,7 @@ var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_tracing_tracing_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ForwardClientCertDetails', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails', null, global);
@@ -31,12 +32,19 @@ goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.
  * @constructor
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.repeatedFields_, null);
 };
 goog.inherits(proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.displayName = 'proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.repeatedFields_ = [21];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -83,7 +91,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
     tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
     forwardClientCertDetails: jspb.Message.getFieldWithDefault(msg, 18, 0),
-    setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f)
+    setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f),
+    preserveExternalRequestId: jspb.Message.getFieldWithDefault(msg, 20, false),
+    upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
+    github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -201,6 +212,15 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails;
       reader.readMessage(value,proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.deserializeBinaryFromReader);
       msg.setSetCurrentClientCertDetails(value);
+      break;
+    case 20:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPreserveExternalRequestId(value);
+      break;
+    case 21:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.deserializeBinaryFromReader);
+      msg.addUpgrades(value);
       break;
     default:
       reader.skipField();
@@ -365,6 +385,21 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       19,
       f,
       proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.serializeBinaryToWriter
+    );
+  }
+  f = message.getPreserveExternalRequestId();
+  if (f) {
+    writer.writeBool(
+      20,
+      f
+    );
+  }
+  f = message.getUpgradesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      21,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.serializeBinaryToWriter
     );
   }
 };
@@ -1079,6 +1114,54 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearSetC
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasSetCurrentClientCertDetails = function() {
   return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional bool preserve_external_request_id = 20;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPreserveExternalRequestId = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 20, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPreserveExternalRequestId = function(value) {
+  jspb.Message.setProto3BooleanField(this, 20, value);
+};
+
+
+/**
+ * repeated protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig upgrades = 21;
+ * @return {!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getUpgradesList = function() {
+  return /** @type{!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig, 21));
+};
+
+
+/** @param {!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setUpgradesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 21, value);
+};
+
+
+/**
+ * @param {!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.addUpgrades = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 21, opt_value, proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig, opt_index);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearUpgradesList = function() {
+  this.setUpgradesList([]);
 };
 
 

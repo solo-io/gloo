@@ -1,17 +1,19 @@
 module github.com/solo-io/solo-projects
 
-go 1.12
+go 1.13
 
 require (
 	cloud.google.com/go/pubsub v1.1.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.25.44
-	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/envoyproxy/go-control-plane v0.9.1
 	github.com/fgrosse/zaptest v1.1.0
+	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-ldap/ldap v3.0.2+incompatible // indirect
+	github.com/go-test/deep v1.0.2 // indirect
 	github.com/gogo/googleapis v1.3.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.3.1
@@ -19,15 +21,20 @@ require (
 	github.com/google/wire v0.4.0
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
-	github.com/hashicorp/consul/api v1.3.0
+	github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/hashicorp/vault/api v1.0.5-0.20190730042357-746c0b111519
+	github.com/hashicorp/serf v0.8.3 // indirect
+	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
+	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
+	github.com/miekg/dns v1.1.15 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.1
 	github.com/open-policy-agent/opa v0.15.1 // indirect
+	github.com/pierrec/lz4 v2.2.6+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
@@ -35,23 +42,22 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.0.0-20191202155823-0a478050ec14
 	github.com/solo-io/ext-auth-plugins v0.1.1
 	github.com/solo-io/ext-auth-service v0.6.2
-	github.com/solo-io/gloo v1.2.5
-	github.com/solo-io/go-utils v0.11.0
-	github.com/solo-io/licensing v0.1.13
+	github.com/solo-io/gloo v1.2.10
+	github.com/solo-io/go-utils v0.11.1
+	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/rate-limiter v0.0.2
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-kit v0.11.13
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
-	github.com/ugorji/go v1.1.5-pre // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
 	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
-	golang.org/x/tools v0.0.0-20191212051200-825cb0626375 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11
 	google.golang.org/grpc v1.25.1
+	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.0.0
 	k8s.io/api v0.0.0
@@ -60,12 +66,16 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/yaml v1.1.0
-	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 replace (
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.0.5
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
+	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/vault => github.com/hashicorp/vault v1.3.0
+	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
 	k8s.io/api => k8s.io/api v0.0.0-20191004120104-195af9ec3521
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20191204090712-e0e829f17bab
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20191028221656-72ed19daf4bb

@@ -6,6 +6,7 @@ import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_tracing_tracing_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb";
 
 export class HttpConnectionManagerSettings extends jspb.Message {
   getSkipXffAppend(): boolean;
@@ -82,6 +83,14 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getSetCurrentClientCertDetails(): HttpConnectionManagerSettings.SetCurrentClientCertDetails | undefined;
   setSetCurrentClientCertDetails(value?: HttpConnectionManagerSettings.SetCurrentClientCertDetails): void;
 
+  getPreserveExternalRequestId(): boolean;
+  setPreserveExternalRequestId(value: boolean): void;
+
+  clearUpgradesList(): void;
+  getUpgradesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>;
+  setUpgradesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>): void;
+  addUpgrades(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -112,6 +121,8 @@ export namespace HttpConnectionManagerSettings {
     tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,
     forwardClientCertDetails: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
     setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
+    preserveExternalRequestId: boolean,
+    upgradesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {

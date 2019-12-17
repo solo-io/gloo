@@ -30,8 +30,10 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_options_stats_stats_pb = requir
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_faultinjection_fault_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/faultinjection/fault_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_headers_headers_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/headers/headers_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_aws_aws_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_azure_azure_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb.js');
@@ -303,7 +305,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     healthCheck: (f = msg.getHealthCheck()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb.HealthCheck.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
-    dlp: (f = msg.getDlp()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.toObject(includeInstance, f)
+    dlp: (f = msg.getDlp()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.toObject(includeInstance, f),
+    wasm: (f = msg.getWasm()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -369,6 +372,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.deserializeBinaryFromReader);
       msg.setDlp(value);
+      break;
+    case 7:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.deserializeBinaryFromReader);
+      msg.setWasm(value);
       break;
     default:
       reader.skipField();
@@ -445,6 +453,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       6,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getWasm();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.serializeBinaryToWriter
     );
   }
 };
@@ -627,6 +643,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearDlp = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasDlp = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional wasm.options.gloo.solo.io.PluginSource wasm = 7;
+ * @return {?proto.wasm.options.gloo.solo.io.PluginSource}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getWasm = function() {
+  return /** @type{?proto.wasm.options.gloo.solo.io.PluginSource} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource, 7));
+};
+
+
+/** @param {?proto.wasm.options.gloo.solo.io.PluginSource|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setWasm = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearWasm = function() {
+  this.setWasm(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasWasm = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 
@@ -1488,12 +1534,19 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasDlp = function() {
  * @constructor
  */
 proto.gloo.solo.io.RouteOptions = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.RouteOptions.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.RouteOptions.repeatedFields_, proto.gloo.solo.io.RouteOptions.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.RouteOptions, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.RouteOptions.displayName = 'proto.gloo.solo.io.RouteOptions';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.RouteOptions.repeatedFields_ = [21];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -1562,6 +1615,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     autoHostRewrite: (f = msg.getAutoHostRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     cors: (f = msg.getCors()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
     lbHash: (f = msg.getLbHash()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f),
+    upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
+    github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance),
     ratelimitBasic: (f = msg.getRatelimitBasic()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.toObject(includeInstance, f),
     waf: (f = msg.getWaf()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
@@ -1668,6 +1723,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.deserializeBinaryFromReader);
       msg.setLbHash(value);
+      break;
+    case 21:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.deserializeBinaryFromReader);
+      msg.addUpgrades(value);
       break;
     case 13:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit;
@@ -1834,6 +1894,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       12,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getUpgradesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      21,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.serializeBinaryToWriter
     );
   }
   f = message.getRatelimitBasic();
@@ -2281,6 +2349,37 @@ proto.gloo.solo.io.RouteOptions.prototype.clearLbHash = function() {
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasLbHash = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * repeated protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig upgrades = 21;
+ * @return {!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getUpgradesList = function() {
+  return /** @type{!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig, 21));
+};
+
+
+/** @param {!Array<!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig>} value */
+proto.gloo.solo.io.RouteOptions.prototype.setUpgradesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 21, value);
+};
+
+
+/**
+ * @param {!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.addUpgrades = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 21, opt_value, proto.protocol_upgrade.options.gloo.solo.io.ProtocolUpgradeConfig, opt_index);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearUpgradesList = function() {
+  this.setUpgradesList([]);
 };
 
 

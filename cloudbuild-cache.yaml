@@ -1,5 +1,5 @@
-steps:
 
+steps:
 # Setup SSH
 # These are required before dep
 - name: gcr.io/cloud-builders/gcloud
@@ -32,25 +32,43 @@ steps:
     path: /root/.ssh
   id: 'configure-git'
 
-- name: 'gcr.io/$PROJECT_ID/dep'
-  args: ['ensure']
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'bash'
+  args: ['-c', 'mkdir -p /go/pkg && cd /go/pkg && gsutil cat gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz | tar -xzf -']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  volumes:
+  volumes: &vol
+  - name: 'gopath'
+    path: '/go/pkg'
   - name: 'ssh'
     path: /root/.ssh
-  id: 'dep'
+  id: 'untar-mod-cache'
 
-- name: 'gcr.io/$PROJECT_ID/go-make'
+- name: 'golang:1.13'
+  args: ['go', 'env', '-w', 'GOPRIVATE=github.com/solo-io']
+  volumes: *vol
+  id: 'set-private'
+
+- name: 'golang:1.13'
+  args: ['go', 'mod', 'download']
+  volumes: *vol
+  id: 'download'
+
+- name: 'golang:1.13'
+  args: ['go', 'mod', 'tidy']
+  volumes: *vol
+  id: 'tidy'
+
+- name: 'golang:1.13'
   entrypoint: 'bash'
-  args: ['-c', 'tar -zvcf solo-projects-dep.tar.gz ./gopath/pkg/dep']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
+  volumes: *vol
+  args: ['-c', ' cd /go/pkg && tar -zvcf solo-projects-mod.tar.gz mod']
   id: 'tar-cache'
 
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'solo-projects-dep.tar.gz', 'gs://gloo-ee-cache/solo-projects']
+  args: ['cp', '/go/pkg/solo-projects-mod.tar.gz', 'gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz']
+  volumes: *vol
   id: 'upload-cache'
 
-timeout: 1800s
+options:
+  env:
+  - "GO111MODULE=on"
