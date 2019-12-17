@@ -247,6 +247,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   waitFor: ['docker-login-push']
+  volumes: *vol
   id: 'push-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
@@ -281,6 +282,7 @@ steps:
     - 'GOPATH=/workspace/gopath'
     - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
+  volumes: *vol
   id: 'save-helm-chart'
 
 secrets:

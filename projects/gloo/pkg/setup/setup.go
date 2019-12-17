@@ -55,13 +55,13 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 				return extauthExt.NewTranslatorSyncerExtension(), nil
 			},
 		},
-		PluginExtensions: []plugins.Plugin{
-			ratelimit.NewPlugin(),
-			extauth.NewPlugin(),
-			rbac.NewPlugin(),
-			jwt.NewPlugin(),
-			waf.NewPlugin(),
-			dlp.NewPlugin(),
+		PluginExtensionsFuncs: []func() plugins.Plugin{
+			func() plugins.Plugin { return ratelimit.NewPlugin() },
+			func() plugins.Plugin { return extauth.NewPlugin() },
+			func() plugins.Plugin { return rbac.NewPlugin() },
+			func() plugins.Plugin { return jwt.NewPlugin() },
+			func() plugins.Plugin { return waf.NewPlugin() },
+			func() plugins.Plugin { return dlp.NewPlugin() },
 		},
 	}
 }

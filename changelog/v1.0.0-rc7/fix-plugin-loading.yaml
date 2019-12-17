@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    The lifecycle of Gloo plugins recently changed. Plugins used to be initialized only once at startup, while now we
+    re-initialize them every time the settings change. This change implements the behavior in Gloo Enterprise.
