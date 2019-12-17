@@ -20,7 +20,7 @@ spec:
   kubernetesSecretSource: {}
   refreshRate: 60s
 
-{{- if .Values.gloo.gateway.validation }}
+{{- if .Values.gloo.gateway.validation.enabled }}
   gateway:
     validation:
       proxyValidationServerAddr: "gloo:{{ .Values.gloo.gloo.deployment.validationPort }}"

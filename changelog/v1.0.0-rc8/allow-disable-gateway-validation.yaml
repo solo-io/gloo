@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Update settings template to check for whether gateway validation is enabled.
+    issueLink: https://github.com/solo-io/gloo/issues/1975
