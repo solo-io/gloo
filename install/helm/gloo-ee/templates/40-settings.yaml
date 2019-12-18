@@ -32,7 +32,8 @@ spec:
     fdsMode: {{.Values.gloo.discovery.fdsMode}}
 {{- end }}
 
-  {{- $extauth := .Values.global.extensions.extAuth }}
+{{- $extauth := .Values.global.extensions.extAuth }}
+{{- if $extauth.enabled }}
   {{- if or $extauth.envoySidecar $extauth.standaloneDeployment }}
   extauth:
     extauthzServerRef:
@@ -44,10 +45,13 @@ spec:
       {{- end }}
       namespace: {{ .Release.Namespace }}
   {{- end }}
+{{- end}}
+{{- if .Values.rateLimit.enabled }}
   ratelimitServer:
     ratelimit_server_ref:
       name: rate-limit
       namespace: {{ .Release.Namespace }}
+{{- end }}
 
 {{- if .Values.settings.singleNamespace }}
   watchNamespaces:

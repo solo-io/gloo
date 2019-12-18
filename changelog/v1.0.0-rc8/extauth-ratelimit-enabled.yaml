@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Omit ratelimit and extauth config from settings when not enabled via helm values.
+    issueLink: https://github.com/solo-io/gloo/issues/1977
