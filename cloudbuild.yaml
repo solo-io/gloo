@@ -178,10 +178,10 @@ steps:
 
 - name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
   entrypoint: 'bash'
-  args: ['-c', 'curl -sL https://run.solo.io/gloo/install | GLOO_VERSION=$(go run get_gloo_version.go) sh && mkdir -p _output && mv ~/.gloo/bin/glooctl _output/glooctl-linux-amd64']
+  args: ['-c', 'GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o _output/glooctl-linux-amd64 projects/gloo/cli/main.go']
   dir: './gopath/src/github.com/solo-io/solo-projects'
   volumes: *vol
-  waitFor: ['test']
+  waitFor: ['test','dep']
   id: 'download-cli'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'

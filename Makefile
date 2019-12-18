@@ -64,7 +64,7 @@ endif
 init:
 	git config core.hooksPath .githooks
 
-.PHONY: update-deps
+.PHONY: update-all-deps
 update-all-deps: update-deps update-ui-deps
 
 .PHONY: update-deps
