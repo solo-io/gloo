@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >
+      There is a race condition where the `observability` pod can become ready before Grafana is ready. This can cause
+      the dynamic dashboards to be missing, as `observability` tries only a single time to make the Grafana service call.
+      This change introduces a 10-second retry window into the `observability` sync loop.
+    issueLink: https://github.com/solo-io/gloo/issues/1985
