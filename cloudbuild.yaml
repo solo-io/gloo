@@ -182,7 +182,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   volumes: *vol
   waitFor: ['test','dep']
-  id: 'download-cli'
+  id: 'build-glooctl'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
   args: ['docker']
@@ -209,7 +209,7 @@ steps:
     - 'HELM_HOME=/root/.helm'
     - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['download-cli', 'build-images', 'docker-login', 'test']
+  waitFor: ['build-glooctl', 'build-images', 'docker-login', 'test']
   volumes: *vol
   id: 'build-test-assets'
 - name: gcr.io/cloud-builders/gcloud

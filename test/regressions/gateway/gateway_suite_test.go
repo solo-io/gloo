@@ -17,7 +17,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	clienthelpers "github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/test/helpers"
@@ -34,7 +33,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -92,12 +90,6 @@ var _ = BeforeSuite(func() {
 	// Install Gloo
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
-
-	// Create namespace
-	_, err = clienthelpers.MustKubeClient().CoreV1().Namespaces().Create(&corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: testHelper.InstallNamespace},
-	})
-	Expect(err).NotTo(HaveOccurred())
 
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())

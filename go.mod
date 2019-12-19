@@ -3,8 +3,6 @@ module github.com/solo-io/solo-projects
 go 1.13
 
 require (
-	cloud.google.com/go/pubsub v1.1.0 // indirect
-	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.25.44
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -19,17 +17,13 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/wire v0.4.0
-	github.com/goph/emperror v0.17.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.1.0
-	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
 	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/miekg/dns v1.1.15 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.1
@@ -39,7 +33,7 @@ require (
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/solo-io/envoy-operator v0.1.1
-	github.com/solo-io/ext-auth-plugin-examples v0.0.0-20191202155823-0a478050ec14
+	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.1
 	github.com/solo-io/ext-auth-service v0.6.2
 	github.com/solo-io/gloo v1.2.12
@@ -49,8 +43,6 @@ require (
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-kit v0.11.13
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
-	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
