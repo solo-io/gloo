@@ -152,6 +152,7 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	if config.Gloo.IngressProxy != nil {
 		config.Gloo.IngressProxy.Deployment.Image.Tag = version
 	}
+	config.Gloo.Settings.Integrations.Knative.Proxy.Image.Tag = version
 	// Use open source gloo version for discovery and gateway
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
@@ -170,6 +171,7 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	if config.Gloo.IngressProxy != nil {
 		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
 	}
+	config.Gloo.Settings.Integrations.Knative.Proxy.Image.PullPolicy = pullPolicy
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy

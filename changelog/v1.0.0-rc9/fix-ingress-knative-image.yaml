@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: >
+      Update helm values to use enterprise envoy with knative and ingress. Without this, envoy will fail to load some
+      enterprise-only filters, such as `io.solo.filters.http.transformation_ee` in the DLP plugin.
+    issueLink: https://github.com/solo-io/gloo/issues/1992

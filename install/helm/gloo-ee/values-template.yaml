@@ -22,6 +22,13 @@ gloo:
     # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
     # which is hard. We will provide out own settings template as part of the GlooE chart.
     create: false
+    integrations:
+      knative:
+        enabled: false
+        version: "0.10.0"
+        proxy:
+          image:
+            repository: gloo-ee-envoy-wrapper
   gloo:
     deployment:
       xdsPort: 9977
@@ -83,6 +90,10 @@ gloo:
       restartPolicy: OnFailure
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
+  ingressProxy:
+    deployment:
+      image:
+        repository: gloo-ee-envoy-wrapper
 
 ########################################################################
 ###                                                                  ###
