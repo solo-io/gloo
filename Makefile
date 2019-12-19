@@ -504,31 +504,38 @@ endif
 upload-github-release-assets: produce-manifests
 	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
 
-DEPENDENCIES_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
-DEPENDENCIES_BUCKET=gloo-ee-dependencies
+DEPS_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
+DEPS_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
-publish-dependencies: $(DEPENDENCIES_DIR)/go.mod $(DEPENDENCIES_DIR)/go.sum $(DEPENDENCIES_DIR)/Gopkg.lock $(DEPENDENCIES_DIR)/build_env $(DEPENDENCIES_DIR)/verify-plugins-linux-amd64
-	gsutil cp -r $(DEPENDENCIES_DIR) gs://$(DEPENDENCIES_BUCKET)
+publish-dependencies: $(DEPS_DIR)/go.mod $(DEPS_DIR)/go.sum $(DEPS_DIR)/dependencies $(DEPS_DIR)/dependencies.json \
+	$(DEPS_DIR)/Gopkg.lock $(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64
+	gsutil cp -r $(DEPS_DIR) gs://$(DEPS_BUCKET)
 
-$(DEPENDENCIES_DIR):
-	mkdir -p $(DEPENDENCIES_DIR)
+$(DEPS_DIR):
+	mkdir -p $(DEPS_DIR)
 
-$(DEPENDENCIES_DIR)/go.mod: $(DEPENDENCIES_DIR) go.mod
-	cp go.mod $(DEPENDENCIES_DIR)
+$(DEPS_DIR)/dependencies: $(DEPS_DIR) go.mod
+	GO111MODULE=on go list -m all > $@
 
-$(DEPENDENCIES_DIR)/go.sum: $(DEPENDENCIES_DIR) go.sum
-	cp go.sum $(DEPENDENCIES_DIR)
+$(DEPS_DIR)/dependencies.json: $(DEPS_DIR) go.mod
+	GO111MODULE=on go list -m --json all > $@
 
-$(DEPENDENCIES_DIR)/Gopkg.lock: $(DEPENDENCIES_DIR) Gopkg.lock
-	cp Gopkg.lock $(DEPENDENCIES_DIR)
+$(DEPS_DIR)/go.mod: $(DEPS_DIR) go.mod
+	cp go.mod $(DEPS_DIR)
 
-$(DEPENDENCIES_DIR)/build_env: $(DEPENDENCIES_DIR)
+$(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
+	cp go.sum $(DEPS_DIR)
+
+$(DEPS_DIR)/Gopkg.lock: $(DEPS_DIR) Gopkg.lock
+	cp Gopkg.lock $(DEPS_DIR)
+
+$(DEPS_DIR)/build_env: $(DEPS_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
-$(DEPENDENCIES_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
-	cp $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPENDENCIES_DIR)
+$(DEPS_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+	cp $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
 
 #----------------------------------------------------------------------------------
 # Docker push

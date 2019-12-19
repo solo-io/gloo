@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  description: >
+    Include the output of `go list -m all` and `go list -m --json all` in the dependency information we publish with
+    each release. These files provide a clear and simple summary of all the dependencies (direct and indirect) for
+    the Gloo Enterprise module.
+  issueLink: https://github.com/solo-io/gloo/issues/1987
