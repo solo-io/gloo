@@ -536,6 +536,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
+  name = "github.com/fsnotify/fsnotify"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  version = "v1.4.7"
+
+[[projects]]
   digest = "1:2cd7915ab26ede7d95b8749e6b1f933f1c6d5398030684e6505940a10f31cfda"
   name = "github.com/ghodss/yaml"
   packages = ["."]
@@ -940,6 +948,14 @@
   revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
 
 [[projects]]
+  digest = "1:f14364057165381ea296e49f8870a9ffce2b8a95e34d6ae06c759106aaef428c"
+  name = "github.com/hashicorp/go-uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4f571afc59f3043a65f8fe6bf46d887b10a01d43"
+  version = "v1.0.1"
+
+[[projects]]
   branch = "master"
   digest = "1:cf296baa185baae04a9a7004efee8511d08e2f5f51d4cbe5375da89722d681db"
   name = "github.com/hashicorp/golang-lru"
@@ -952,12 +968,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:12247a2e99a060cc692f6680e5272c8adf0b8f572e6bce0d7095e624c958a240"
+  digest = "1:a361611b8c8c75a1091f00027767f7779b29cb37c456a71b8f2604c88057ab40"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
     "hcl/ast",
     "hcl/parser",
+    "hcl/printer",
     "hcl/scanner",
     "hcl/strconv",
     "hcl/token",
@@ -1042,6 +1059,18 @@
   pruneopts = "UT"
   revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
   version = "v0.3.5"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f3b0cfd42716269884bf06df5d5be9e54161d5af0a2f0ccca08717928dd45fc5"
+  name = "github.com/inconshreveable/go-update"
+  packages = [
+    ".",
+    "internal/binarydist",
+    "internal/osext",
+  ]
+  pruneopts = "UT"
+  revision = "8152e7eb6ccf8679a64582a66b78519688d156ad"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -1129,6 +1158,14 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "89fcab3d43de07060e4fd4c1547430ed57e87f24"
+
+[[projects]]
+  digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
+  name = "github.com/magiconair/properties"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "de8848e004dd33dc07a2947b3d76f618a7fc7ef1"
+  version = "v1.8.1"
 
 [[projects]]
   branch = "master"
@@ -1571,18 +1608,20 @@
   version = "v0.6.2"
 
 [[projects]]
-  digest = "1:ca110a79bc4b4d5054e706c7f2c37b8e2cc4f78bbfb5664d48227434513f7473"
+  digest = "1:2a3e19619306eb10561c131a2d9907b33d61803f6dc4148a7608e59441bf60a0"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
     "install/test",
     "pkg/cliutil",
     "pkg/cliutil/helm",
+    "pkg/cliutil/install",
     "pkg/listers",
     "pkg/utils",
     "pkg/utils/channelutils",
     "pkg/utils/gogoutils",
     "pkg/utils/protoutils",
+    "pkg/utils/selectionutils",
     "pkg/utils/settingsutil",
     "pkg/utils/setuputils",
     "pkg/utils/syncutil",
@@ -1607,12 +1646,40 @@
     "projects/gateway/pkg/translator",
     "projects/gateway/pkg/utils",
     "projects/gateway/pkg/validation",
+    "projects/gloo/cli/pkg/argsutils",
+    "projects/gloo/cli/pkg/cmd",
+    "projects/gloo/cli/pkg/cmd/add",
     "projects/gloo/cli/pkg/cmd/check",
+    "projects/gloo/cli/pkg/cmd/create",
+    "projects/gloo/cli/pkg/cmd/create/authconfig",
+    "projects/gloo/cli/pkg/cmd/create/secret",
+    "projects/gloo/cli/pkg/cmd/debug",
+    "projects/gloo/cli/pkg/cmd/del",
+    "projects/gloo/cli/pkg/cmd/edit",
+    "projects/gloo/cli/pkg/cmd/edit/options",
+    "projects/gloo/cli/pkg/cmd/edit/route",
+    "projects/gloo/cli/pkg/cmd/edit/route/options",
+    "projects/gloo/cli/pkg/cmd/edit/route/ratelimit",
+    "projects/gloo/cli/pkg/cmd/edit/settings",
+    "projects/gloo/cli/pkg/cmd/edit/settings/ratelimit",
+    "projects/gloo/cli/pkg/cmd/edit/upstream",
+    "projects/gloo/cli/pkg/cmd/edit/virtualservice",
+    "projects/gloo/cli/pkg/cmd/gateway",
+    "projects/gloo/cli/pkg/cmd/get",
+    "projects/gloo/cli/pkg/cmd/install",
     "projects/gloo/cli/pkg/cmd/options",
+    "projects/gloo/cli/pkg/cmd/remove",
+    "projects/gloo/cli/pkg/cmd/route",
+    "projects/gloo/cli/pkg/cmd/upgrade",
+    "projects/gloo/cli/pkg/cmd/version",
+    "projects/gloo/cli/pkg/cmdutils",
+    "projects/gloo/cli/pkg/common",
     "projects/gloo/cli/pkg/constants",
     "projects/gloo/cli/pkg/flagutils",
     "projects/gloo/cli/pkg/helpers",
+    "projects/gloo/cli/pkg/prerun",
     "projects/gloo/cli/pkg/printers",
+    "projects/gloo/cli/pkg/surveyutils",
     "projects/gloo/cli/pkg/xdsinspection",
     "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
@@ -1628,6 +1695,7 @@
     "projects/gloo/pkg/api/external/envoy/extensions/waf",
     "projects/gloo/pkg/api/external/envoy/type",
     "projects/gloo/pkg/api/grpc/validation",
+    "projects/gloo/pkg/api/grpc/version",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/core/matchers",
     "projects/gloo/pkg/api/v1/enterprise",
@@ -1701,6 +1769,7 @@
     "projects/gloo/pkg/plugins/upstreamssl",
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/plugins/utils/transformation",
+    "projects/gloo/pkg/plugins/utils/upgradeconfig",
     "projects/gloo/pkg/plugins/wasm",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/syncer/sanitizer",
@@ -1722,16 +1791,17 @@
     "test/v1helpers/test_grpc_service/glootest/protos",
   ]
   pruneopts = "UT"
-  revision = "af5f9c10f95ef6d07b4c959c3b73ed07854cf205"
-  version = "v1.2.10"
+  revision = "a1ad17b6bad6efeb8841a4f56134e16da75ae8f8"
+  version = "v1.2.12"
 
 [[projects]]
-  digest = "1:bbd80ca970be2ff964842e4a5c23397dc234ebdaff1d9cbeeb791d364aa1a255"
+  digest = "1:adf49776ef94a4c3908cb84378f9668a25f19f8ba6a17516e5ba24f855538b07"
   name = "github.com/solo-io/go-utils"
   packages = [
     "clicore/constants",
     "cliutils",
     "contextutils",
+    "debugutils",
     "envutils",
     "errors",
     "errutils",
@@ -1813,7 +1883,7 @@
   version = "v0.1.2"
 
 [[projects]]
-  digest = "1:c0f42f8496f41bc9aa613410c14414cd1e2dd64aa3503f590886ece0401362a4"
+  digest = "1:77e9e062328c0c885996647cfd558315a1718dd66f35050af6b888c4702a6e75"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1879,7 +1949,9 @@
     "pkg/utils/fileutils",
     "pkg/utils/kubeutils",
     "pkg/utils/protoutils",
+    "pkg/utils/syncutils",
     "test/helpers",
+    "test/setup",
     "test/testutils",
   ]
   pruneopts = "UT"
@@ -1914,6 +1986,14 @@
   version = "v1.2.1"
 
 [[projects]]
+  digest = "1:ff4cd55a3666b6ea3a876c9e133bfb54d6c812e725409a773f2c94a0b3a92f4f"
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1ffadf551085444af981432dd0f6d1160c11ec64"
+  version = "v1.3.1"
+
+[[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
   name = "github.com/spf13/cobra"
   packages = ["."]
@@ -1922,12 +2002,36 @@
   version = "v0.0.3"
 
 [[projects]]
+  digest = "1:1b753ec16506f5864d26a28b43703c58831255059644351bbcb019b843950900"
+  name = "github.com/spf13/jwalterweatherman"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "94f6ae3ed3bceceafa716478c5fbf8d29ca601a1"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:9424f440bba8f7508b69414634aef3b2b3a877e522d8a4624692412805407bb7"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "UT"
   revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:8d0b79a29be9946ea00b2f2b778ec5b36db07453d97abe9d754b25bc2cc49a0e"
+  name = "github.com/spf13/viper"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "eabbc68a3ecd5cf8c11a2f84dbda5e7a38493b2f"
+  version = "v1.6.1"
+
+[[projects]]
+  digest = "1:f4b32291cad5efac2bfdba89ccde6aa04618b62ce06c1a571da2dc4f3f2677fb"
+  name = "github.com/subosito/gotenv"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2ef7124db659d49edac6aa459693a15ae36c671a"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -2337,6 +2441,14 @@
   version = "v0.9.1"
 
 [[projects]]
+  digest = "1:591460fbfc463bda7071ac906bed19cbf64cffd5fcb80a6d1490e87b9dfad942"
+  name = "gopkg.in/ini.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "87e589f4917038ae250cff2446db7573f47e97ca"
+  version = "v1.51.0"
+
+[[projects]]
   digest = "1:377f8ccfbf9d7ff3997ea7454b894de46cd1d9fe6ec1e724c93ad59eb716c5c0"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
@@ -2364,7 +2476,7 @@
   version = "v2.2.1"
 
 [[projects]]
-  digest = "1:69b0954070ae8353bf65f366e7f884d7a9e72af3f4edaac7967f739b76181ce2"
+  digest = "1:b22bdbf75096db5930ec7f4b77e3d07aab9926e3693b178780a2225b72606afc"
   name = "helm.sh/helm/v3"
   packages = [
     "internal/experimental/registry",
@@ -2381,6 +2493,7 @@
     "pkg/chart/loader",
     "pkg/chartutil",
     "pkg/cli",
+    "pkg/cli/values",
     "pkg/downloader",
     "pkg/engine",
     "pkg/getter",
@@ -2779,14 +2892,6 @@
   version = "kubernetes-1.16.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:87b39a5573d0bc55c0d4ec61072fb661115aae0c754e44edc8e977c2196a6259"
-  name = "k8s.io/component-base"
-  packages = ["version"]
-  pruneopts = "UT"
-  revision = "3ac1376c73aaf050c25739248b219987944eff98"
-
-[[projects]]
   digest = "1:16a43d0b78057f165fbf32077f8a1f6bd6993d9cf6ef97fb669dc152e70626cd"
   name = "k8s.io/klog"
   packages = ["."]
@@ -2807,21 +2912,25 @@
   revision = "e3762e86a74c878ffed47484592986685639c2cd"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e6c5a71f8d9a763fd470bcae4d15c137d5088208c6e59aefb637043fb86dc745"
+  digest = "1:a77dadc9f3907357738dc651b7fdeb7376f52d721900a22b5c30d27b6a9b52b9"
   name = "k8s.io/kubectl"
   packages = [
     "pkg/cmd/util",
+    "pkg/cmd/util/editor",
+    "pkg/cmd/util/editor/crlf",
     "pkg/scheme",
+    "pkg/util",
     "pkg/util/interrupt",
     "pkg/util/openapi",
     "pkg/util/openapi/validation",
     "pkg/util/templates",
     "pkg/util/term",
     "pkg/validation",
+    "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "a3a0d014e5a35445d7b423c97ac18061b5340d45"
+  revision = "2ed914427d51f6fd865e0db43d72b2f22610cf32"
+  version = "kubernetes-1.16.2"
 
 [[projects]]
   digest = "1:9365c97c9d200c0eb4f6c87bdbc6cbb565e1ef4c980dfea1313463bdd2893801"
@@ -2844,6 +2953,14 @@
   ]
   pruneopts = "UT"
   revision = "c2654d5206da6b7b6ace12841e8f359bb89b443c"
+
+[[projects]]
+  digest = "1:2170628baa0679ae0ed99900c8094f84b772b74e059201e6f6bb6a4344fcf755"
+  name = "sigs.k8s.io/controller-runtime"
+  packages = ["pkg/client/apiutil"]
+  pruneopts = "UT"
+  revision = "198197fe0fd7553cadd8afcd3338f8ee4b8a7e3f"
+  version = "v0.4.0"
 
 [[projects]]
   digest = "1:cb422c75bab66a8339a38b64e837f3b28f3d5a8c06abd7b9048f420363baa18a"
@@ -2969,6 +3086,7 @@
     "github.com/solo-io/gloo/projects/gateway/pkg/setup",
     "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
     "github.com/solo-io/gloo/projects/gateway/pkg/translator",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers",

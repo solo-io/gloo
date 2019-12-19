@@ -77,7 +77,7 @@ ignored = [
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "1.2.10"
+  version = "1.2.12"
 
 [[override]]
   name = "github.com/solo-io/go-utils"

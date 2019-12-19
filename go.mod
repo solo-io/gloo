@@ -42,7 +42,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.0.0-20191202155823-0a478050ec14
 	github.com/solo-io/ext-auth-plugins v0.1.1
 	github.com/solo-io/ext-auth-service v0.6.2
-	github.com/solo-io/gloo v1.2.10
+	github.com/solo-io/gloo v1.2.12
 	github.com/solo-io/go-utils v0.11.1
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/rate-limiter v0.0.2
