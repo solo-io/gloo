@@ -1,0 +1,9 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: >
+      Gloo Enterprise 1.2.0 is released 🎉. This version is built against Gloo v1.2.12. The Gloo
+      [changelog docs](https://docs.solo.io/gloo/latest/changelog/enterprise/) show an accurate progression of the
+      changes in the release; for a complete summary of changes from Gloo Enterprise v0.x see our
+      [1.0.0+ upgrade docs](https://docs.solo.io/gloo/latest/upgrading/1.0.0/).
+    issueLink: https://github.com/solo-io/gloo/issues/2033
+releaseStableApi: true
