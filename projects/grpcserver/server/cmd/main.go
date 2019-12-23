@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 
 	"github.com/solo-io/go-utils/stats"
 	"github.com/solo-io/solo-projects/pkg/version"
@@ -17,13 +16,9 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 )
 
-const (
-	START_STATS_SERVER = "START_STATS_SERVER"
-)
-
 func main() {
 	ctx := getInitialContext()
-	startStatsIfConfigured()
+	stats.ConditionallyStartStatsServer()
 	grpcPort := envutils.MustGetGrpcPort(ctx)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
@@ -37,12 +32,6 @@ func main() {
 	}
 	if err := glooGrpcService.Run(ctx); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Failed while running gloo grpc service", zap.Error(err))
-	}
-}
-
-func startStatsIfConfigured() {
-	if os.Getenv(START_STATS_SERVER) != "" {
-		stats.StartStatsServer()
 	}
 }
 

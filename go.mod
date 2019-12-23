@@ -3,6 +3,7 @@ module github.com/solo-io/solo-projects
 go 1.13
 
 require (
+	github.com/Sirupsen/logrus v1.4.2 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.25.44
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -37,11 +38,12 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.1.1
 	github.com/solo-io/ext-auth-service v0.6.2
 	github.com/solo-io/gloo v1.2.12
-	github.com/solo-io/go-utils v0.11.1
+	github.com/solo-io/go-utils v0.11.5
 	github.com/solo-io/licensing v0.1.17
-	github.com/solo-io/rate-limiter v0.0.2
+	github.com/solo-io/rate-limiter v0.0.3
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-kit v0.11.13
+	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
@@ -58,6 +60,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/yaml v1.1.0
+	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 replace (

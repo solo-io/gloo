@@ -46,11 +46,9 @@ func Run() {
 	ctx := context.Background()
 
 	if clientSettings.DebugPort != 0 {
-
-		debugPort := fmt.Sprintf("%d", clientSettings.DebugPort)
 		// TODO(yuval-k): we need to start the stats server before calling contextutils
 		// need to think of a better way to express this dependency, or preferably, fix it.
-		stats.StartStatsServerWithPort(debugPort)
+		stats.StartStatsServerWithPort(stats.StartupOptions{Port: clientSettings.DebugPort})
 	}
 
 	err := RunWithSettings(ctx, clientSettings)

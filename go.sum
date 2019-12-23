@@ -864,10 +864,14 @@ github.com/solo-io/go-utils v0.9.20/go.mod h1:FMVDuV3UzhVw4yDPJLYZLSBvGPOiPgGAtf
 github.com/solo-io/go-utils v0.11.0/go.mod h1:R8lbLuLtMaTOhD+6wGpdxj60r1Vwt63fHe1UxlObHig=
 github.com/solo-io/go-utils v0.11.1 h1:Y/46OhkxfJZf6oSR95CjQJLyoN2odSsK6FAP5eZ2Vp4=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
+github.com/solo-io/go-utils v0.11.5 h1:7WPbpDvwB6MUCYtHSr/GznIwTPkTU6Rg/gFDpid8nTM=
+github.com/solo-io/go-utils v0.11.5/go.mod h1:D5lbi4EyIMq+T5gzjJacu0Ou4Z1brL7g2YYYYgYBJso=
 github.com/solo-io/licensing v0.1.17 h1:zyQGjznkw4AEGc3SeUuBEwkt8YE2Z9p5NwaSf6bvYHc=
 github.com/solo-io/licensing v0.1.17/go.mod h1:D4H3wnaqW015S90fKqSRFWLK8J9H/zrJyRx2pQwVzuE=
 github.com/solo-io/rate-limiter v0.0.2 h1:inByhyu/Fe0NliS0vrOhaf0nv+t6Van04qBwjGwTVKo=
 github.com/solo-io/rate-limiter v0.0.2/go.mod h1:5sBXva895YND+KzrThjVvvTWvMBd10vdsG+qB7XcOFc=
+github.com/solo-io/rate-limiter v0.0.3 h1:fwiQxX1pbb8VcfCgWV3q4Z2XYodRnH9K3BRELdQxomM=
+github.com/solo-io/rate-limiter v0.0.3/go.mod h1:pyzE5BP1l3vFKIncFYiLa1gBDnA3bFfr8cmrJ4GF2Gs=
 github.com/solo-io/reporting-client v0.1.2 h1:U585Q5UlB5/UUewtgEAQz94SWuNRBxoHc4tPthhnYko=
 github.com/solo-io/reporting-client v0.1.2/go.mod h1:FmBDzwc1zEwayCCrlP+1w7NcpM0FIuvU+NSePj4wJq8=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
