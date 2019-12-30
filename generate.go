@@ -19,7 +19,9 @@ func main() {
 
 	generateOptions := cmd.GenerateOptions{
 		SkipGenMocks:  true,
-		CustomImports: []string{os.ExpandEnv("$GOPATH/src/github.com/solo-io/gloo/projects/gloo/api/external")},
+		CustomImports: []string{
+			os.ExpandEnv("$GOPATH/src/github.com/solo-io/gloo/projects/gloo/api/external"),
+			os.ExpandEnv("$GOPATH/src/github.com/solo-io/protoc-gen-ext")},
 		SkipDirs:      []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"},
 		RelativeRoot:  ".",
 		CompileProtos: true,

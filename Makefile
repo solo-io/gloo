@@ -72,6 +72,7 @@ update-deps:
 	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
 	GO111MODULE=off go get -u github.com/gogo/protobuf/gogoproto
 	GO111MODULE=off go get -u github.com/gogo/protobuf/protoc-gen-gogo
+	GO111MODULE=off go get -u github.com/solo-io/protoc-gen-ext
 	GO111MODULE=off go get -u github.com/google/wire/cmd/wire
 	mkdir -p $$GOPATH/src/github.com/envoyproxy
 	# use a specific commit (c15f2c24fb27b136e722fa912accddd0c8db9dfa) until v0.0.15 is released, as in v0.0.14 the import paths were not yet changed
