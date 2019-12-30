@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: handlebars
+    dependencyTag: v4.3.0
+    description: Update handlebars to version 4.3.0
+    issueLink: https://github.com/solo-io/gloo/issues/1415
