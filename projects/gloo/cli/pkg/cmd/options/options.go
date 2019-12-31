@@ -376,7 +376,7 @@ type ApiKeyAuth struct {
 }
 
 type OIDCSettings struct {
-	ExtAtuhServerUpstreamRef core.ResourceRef
+	ExtAuthServerUpstreamRef core.ResourceRef
 }
 
 type OpaAuth struct {
