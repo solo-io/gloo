@@ -1,7 +1,7 @@
 steps:
 
 # Setup SSH
-# These are required before dep
+# These are required before prepare-workspace
 - name: gcr.io/cloud-builders/gcloud
   args:
   - kms
@@ -53,21 +53,31 @@ steps:
   id: 'untar-mod-cache'
   waitFor: ['-']
 
-# Using dep container from github.com/solo-io/cloud-builders/dep
+# Using prepare-workspace container from github.com/solo-io/cloud-builders/prepare-go-workspace
 # This copies files into the proper workspace layout and so must be run before other tasks
 # Subsequent steps should set GOPATH variable to avoid setting up unnecessary sym link
-- name: 'gcr.io/$PROJECT_ID/dep'
-  args: ['ensure']
-  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
+- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:mkdev2'
+  args:
+  - "--repo-owner"
+  - "solo-io"
+  - "--repo-name"
+  - "solo-projects"
+  - "--repo-sha"
+  - "$COMMIT_SHA"
+  - "--repo-output-dir"
+  - "/workspace/gopath/src/github.com/solo-io/"
+  - "--use-ssh"
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   volumes: *vol
-  id: 'dep'
+  id: 'prepare-workspace'
 
 # Run some basic checks on the repo
 # 1) check formatting of go files
 # 2) ensure that make generated-code produces a clean diff
 
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
-# Must set the GOPATH to tell the container the workspace has already been set up (by the dep step above)
+# Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
 - name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -75,7 +85,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   entrypoint: make
   args: ['check-format']
-  waitFor: ['dep']
+  waitFor: ['prepare-workspace']
   id: 'check-format'
   volumes: *vol
 - name: node:12.13.1
@@ -86,7 +96,7 @@ steps:
   entrypoint: yarn
   args: ['install']
   id: yarn-install
-  waitFor: ['dep']
+  waitFor: ['prepare-workspace']
 - name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
   entrypoint: 'bash'
   args: ['ci/check-code-gen.sh']
@@ -96,7 +106,7 @@ steps:
   - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   volumes: *vol
-  waitFor: ['dep', 'yarn-install']
+  waitFor: ['prepare-workspace', 'yarn-install']
   id: 'check-code-gen'
 - name: 'gcr.io/cloud-builders/yarn'
   args: ['build']
@@ -129,7 +139,7 @@ steps:
     gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
     chmod +x /workspace/envoy
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['dep']
+  waitFor: ['prepare-workspace']
   id: 'get-envoy'
 - name: gcr.io/cloud-builders/gcloud
   args:
@@ -140,7 +150,7 @@ steps:
   - --location=global
   - --keyring=build
   - --key=build-key
-  waitFor: ['dep']
+  waitFor: ['prepare-workspace']
   id: 'setup-aws-creds'
 
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
@@ -165,7 +175,7 @@ steps:
   - 'CLOUD_BUILD=1'
   - 'GOPATH=/workspace/gopath'
   - 'HELM_HOME=/root/.helm'
-  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'fetch-helm', 'check-code-gen']
+  waitFor: ['prepare-workspace', 'get-envoy', 'setup-aws-creds', 'fetch-helm', 'check-code-gen']
   volumes: *vol
   id: 'test'
 
@@ -181,7 +191,7 @@ steps:
   args: ['-c', 'GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o _output/glooctl-linux-amd64 projects/gloo/cli/main.go']
   dir: './gopath/src/github.com/solo-io/solo-projects'
   volumes: *vol
-  waitFor: ['test','dep']
+  waitFor: ['test','prepare-workspace']
   id: 'build-glooctl'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
@@ -195,7 +205,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   volumes: *vol
-  waitFor: ['dep','yarn-build', 'fetch-helm']
+  waitFor: ['prepare-workspace','yarn-build', 'fetch-helm']
   id: 'build-images'
 
   # Run regression tests
@@ -292,7 +302,7 @@ secrets:
     QUAY_IO_PASSWORD: CiQAwdWthknPPz3v+xcbHWaCRhuSisUqPrkn6sQJxbo7SaI9iucSaQD5SXFILt6uY5C4xcuuzDcZXml2FXnRBg9Uk6BDJebycORdyslJz9iVEWeTrFZoOyHh5aDTLQhuNEmW4znFnleICVdasJtwFE9VIJCU5OGCgkTFdfGGvMx8up37ST9MwDYUPCB1vqLL1w==
 
 # Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
-# set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving
+# set timeouts on specific steps (prepare-workspace, tests, etc) if we want to limit the time in sections, but want a forgiving
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 3600s
 

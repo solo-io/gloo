@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: "Use go mod builder to prepare cloudbuild workspace"
+    issueLink: https://github.com/solo-io/solo-projects/issues/1416
