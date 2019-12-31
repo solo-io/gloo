@@ -40,7 +40,6 @@ require (
 	github.com/hashicorp/memberlist v0.1.4 // indirect
 	github.com/hashicorp/vault/api v1.0.5-0.20190730042357-746c0b111519
 	github.com/hinshun/vt10x v0.0.0-20180809195222-d55458df857c
-	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334 // indirect
 	github.com/ilackarms/protoc-gen-doc v1.0.0 // indirect
 	github.com/ilackarms/protokit v0.0.0-20181231193355-ee2393f3bbf0 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
@@ -52,7 +51,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.3
-	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/pkg/errors v0.8.1
@@ -64,7 +63,8 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f
-	github.com/solo-io/go-utils v0.11.0
+	github.com/solo-io/go-utils v0.11.7
+	github.com/solo-io/protoc-gen-ext v0.0.4
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-kit v0.11.13
 	github.com/solo-io/wasme v0.0.1
@@ -75,10 +75,11 @@ require (
 	go.opencensus.io v0.22.2
 	go.uber.org/multierr v1.4.0
 	go.uber.org/zap v1.13.0
+	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 // indirect
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
-	golang.org/x/tools v0.0.0-20191212051200-825cb0626375 // indirect
+	golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8 // indirect
+	golang.org/x/tools v0.0.0-20191230220329-2aa90c603ae3 // indirect
 	google.golang.org/api v0.10.0 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11
 	google.golang.org/grpc v1.25.1
