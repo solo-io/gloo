@@ -86,11 +86,6 @@ export namespace GetProxyResponse {
 }
 
 export class ListProxiesRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListProxiesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListProxiesRequest): ListProxiesRequest.AsObject;
@@ -103,7 +98,6 @@ export class ListProxiesRequest extends jspb.Message {
 
 export namespace ListProxiesRequest {
   export type AsObject = {
-    namespacesList: Array<string>,
   }
 }
 

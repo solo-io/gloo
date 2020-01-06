@@ -27,12 +27,11 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc/scrub"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamgroupsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
-	mutation2 "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/selection"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 )
@@ -56,12 +55,10 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	}
 	licenseClient := license.NewClient(ctx)
 	valuesClient := settings.NewSettingsValuesClient(ctx, clientCache, string2)
-	mutator := mutation.NewMutator(clientCache)
-	factory := mutation.NewFactory()
 	rawGetter := rawgetter.NewKubeYamlRawGetter()
 	upstreamSearcher := search.NewUpstreamSearcher(clientCache, valuesClient)
 	truncator := truncate.NewUpstreamTruncator()
-	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, mutator, factory, rawGetter, upstreamSearcher, truncator)
+	upstreamApiServer := upstreamsvc.NewUpstreamGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter, upstreamSearcher, truncator)
 	upstreamGroupApiServer := upstreamgroupsvc.NewUpstreamGroupGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter, upstreamSearcher)
 	artifactApiServer := artifactsvc.NewArtifactGrpcService(ctx, clientCache, licenseClient, valuesClient)
 	coreV1Interface, err := setup.GetK8sCoreInterface(config)
@@ -78,11 +75,11 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	}
 	scrubber := scrub.NewScrubber()
 	secretApiServer := secretsvc.NewSecretGrpcService(ctx, clientCache, scrubber, licenseClient, valuesClient)
-	mutationMutator := mutation2.NewMutator(ctx, clientCache, licenseClient)
-	mutationFactory := mutation2.NewMutationFactory()
+	mutator := mutation.NewMutator(ctx, clientCache, licenseClient)
+	mutationFactory := mutation.NewMutationFactory()
 	virtualServiceDetailsConverter := converter.NewVirtualServiceDetailsConverter(rawGetter)
 	virtualServiceSelector := selection.NewVirtualServiceSelector(clientCache, namespaceClient, string2)
-	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, clientCache, licenseClient, valuesClient, mutationMutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
+	virtualServiceApiServer := virtualservicesvc.NewVirtualServiceGrpcService(ctx, string2, clientCache, licenseClient, valuesClient, mutator, mutationFactory, virtualServiceDetailsConverter, virtualServiceSelector, rawGetter)
 	routeTableApiServer := routetablesvc.NewRouteTableGrpcService(ctx, clientCache, licenseClient, valuesClient, rawGetter)
 	inputResourceStatusGetter := status.NewInputResourceStatusGetter()
 	gatewayApiServer := gatewaysvc.NewGatewayGrpcService(ctx, clientCache, rawGetter, inputResourceStatusGetter, licenseClient, valuesClient)

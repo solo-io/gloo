@@ -32,10 +32,7 @@ message GetGatewayResponse {
     GatewayDetails gateway_details = 1;
 }
 
-message ListGatewaysRequest {
-    // Deprecated. `List` calls will now query all WatchNamespaces.
-    repeated string namespaces = 1;
-}
+message ListGatewaysRequest {}
 
 message ListGatewaysResponse {
     repeated GatewayDetails gateway_details = 1;

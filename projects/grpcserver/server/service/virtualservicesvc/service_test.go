@@ -99,7 +99,7 @@ var _ = Describe("ServiceTest", func() {
 			request := &v1.GetVirtualServiceRequest{Ref: &ref}
 			actual, err := apiserver.GetVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.GetVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -153,7 +153,6 @@ var _ = Describe("ServiceTest", func() {
 			actual, err := apiserver.ListVirtualServices(context.TODO(), &v1.ListVirtualServicesRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListVirtualServicesResponse{
-				VirtualServices:       []*gatewayv1.VirtualService{virtualService1, virtualService2},
 				VirtualServiceDetails: []*v1.VirtualServiceDetails{virtualServiceDetails1, virtualServiceDetails2},
 			}
 			ExpectEqualProtoMessages(actual, expected)
@@ -176,43 +175,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateVirtualService", func() {
-		Context("with deprecated V1 input", func() {
-			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
-				return &v1.VirtualServiceInput{
-					Ref: ref,
-				}
-			}
-
-			It("works when the mutator works", func() {
-				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-				mutator.EXPECT().
-					Create(&ref, gomock.Any()).
-					Return(virtualService, nil)
-
-				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the mutator errors", func() {
-				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-				mutator.EXPECT().
-					Create(&ref, gomock.Any()).
-					Return(nil, testErr)
-				detailsExpectation.Times(0)
-
-				request := &v1.CreateVirtualServiceRequest{
-					Input: getInput(&ref),
-				}
-				_, err := apiserver.CreateVirtualService(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-
-		Context("with deprecated V2 input", func() {
+		Context("with V2 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
 				return &v1.VirtualServiceInputV2{
 					Ref: ref,
@@ -227,7 +190,7 @@ var _ = Describe("ServiceTest", func() {
 
 				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+				expected := &v1.CreateVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -243,13 +206,6 @@ var _ = Describe("ServiceTest", func() {
 				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
-		})
-
-		It("errors when no input is provided", func() {
-			detailsExpectation.Times(0)
-			_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
 	})
 
@@ -379,39 +335,6 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("UpdateVirtualService", func() {
-		Context("with deprecated V1 input", func() {
-			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
-				return &v1.VirtualServiceInput{
-					Ref: ref,
-				}
-			}
-
-			It("works when the mutator works", func() {
-				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-				mutator.EXPECT().
-					Update(&ref, gomock.Any()).
-					Return(virtualService, nil)
-
-				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the mutator errors", func() {
-				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-				mutator.EXPECT().
-					Update(&ref, gomock.Any()).
-					Return(nil, testErr)
-				detailsExpectation.Times(0)
-
-				_, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
-				Expect(err).To(HaveOccurred())
-				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-
 		Context("with deprecated V2 input", func() {
 			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
 				return &v1.VirtualServiceInputV2{
@@ -427,7 +350,7 @@ var _ = Describe("ServiceTest", func() {
 
 				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+				expected := &v1.UpdateVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -443,13 +366,6 @@ var _ = Describe("ServiceTest", func() {
 				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
-		})
-
-		It("errors when no input is provided", func() {
-			detailsExpectation.Times(0)
-			_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
 	})
 
@@ -503,7 +419,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.CreateRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -547,7 +463,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.UpdateRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -581,7 +497,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := apiserver.DeleteRoute(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.DeleteRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.DeleteRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -616,7 +532,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := apiserver.SwapRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.SwapRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.SwapRoutesResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -651,7 +567,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := apiserver.ShiftRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ShiftRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
+			expected := &v1.ShiftRoutesResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 

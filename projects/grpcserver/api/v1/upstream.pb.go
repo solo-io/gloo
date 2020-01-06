@@ -12,12 +12,6 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	aws "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
-	ec2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws/ec2"
-	azure "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/azure"
-	consul "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/consul"
-	kubernetes "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
-	static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -120,8 +114,6 @@ func (m *GetUpstreamRequest) GetRef() *core.ResourceRef {
 }
 
 type GetUpstreamResponse struct {
-	// Deprecated, use upstream_details
-	Upstream             *v1.Upstream     `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
 	UpstreamDetails      *UpstreamDetails `protobuf:"bytes,2,opt,name=upstream_details,json=upstreamDetails,proto3" json:"upstream_details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
@@ -152,13 +144,6 @@ func (m *GetUpstreamResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetUpstreamResponse proto.InternalMessageInfo
 
-func (m *GetUpstreamResponse) GetUpstream() *v1.Upstream {
-	if m != nil {
-		return m.Upstream
-	}
-	return nil
-}
-
 func (m *GetUpstreamResponse) GetUpstreamDetails() *UpstreamDetails {
 	if m != nil {
 		return m.UpstreamDetails
@@ -167,8 +152,6 @@ func (m *GetUpstreamResponse) GetUpstreamDetails() *UpstreamDetails {
 }
 
 type ListUpstreamsRequest struct {
-	// Deprecated. `List` calls will now query all WatchNamespaces.
-	Namespaces           []string `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -198,16 +181,7 @@ func (m *ListUpstreamsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListUpstreamsRequest proto.InternalMessageInfo
 
-func (m *ListUpstreamsRequest) GetNamespaces() []string {
-	if m != nil {
-		return m.Namespaces
-	}
-	return nil
-}
-
 type ListUpstreamsResponse struct {
-	// Deprecated, use upstream_details
-	Upstreams []*v1.Upstream `protobuf:"bytes,1,rep,name=upstreams,proto3" json:"upstreams,omitempty"`
 	// NOTE: These upstreams are at least partially truncated.
 	// As of now, that only means that the descriptor field on gRPC upstreams is omitted for performance reasons.
 	UpstreamDetails      []*UpstreamDetails `protobuf:"bytes,2,rep,name=upstream_details,json=upstreamDetails,proto3" json:"upstream_details,omitempty"`
@@ -240,13 +214,6 @@ func (m *ListUpstreamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListUpstreamsResponse proto.InternalMessageInfo
 
-func (m *ListUpstreamsResponse) GetUpstreams() []*v1.Upstream {
-	if m != nil {
-		return m.Upstreams
-	}
-	return nil
-}
-
 func (m *ListUpstreamsResponse) GetUpstreamDetails() []*UpstreamDetails {
 	if m != nil {
 		return m.UpstreamDetails
@@ -254,158 +221,18 @@ func (m *ListUpstreamsResponse) GetUpstreamDetails() []*UpstreamDetails {
 	return nil
 }
 
-type UpstreamInput struct {
-	Ref *core.ResourceRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
-	// Types that are valid to be assigned to Spec:
-	//	*UpstreamInput_Kube
-	//	*UpstreamInput_Static
-	//	*UpstreamInput_Aws
-	//	*UpstreamInput_Azure
-	//	*UpstreamInput_Consul
-	//	*UpstreamInput_AwsEc2
-	Spec                 isUpstreamInput_Spec `protobuf_oneof:"spec"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
-}
-
-func (m *UpstreamInput) Reset()         { *m = UpstreamInput{} }
-func (m *UpstreamInput) String() string { return proto.CompactTextString(m) }
-func (*UpstreamInput) ProtoMessage()    {}
-func (*UpstreamInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{5}
-}
-func (m *UpstreamInput) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpstreamInput.Unmarshal(m, b)
-}
-func (m *UpstreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpstreamInput.Marshal(b, m, deterministic)
-}
-func (m *UpstreamInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpstreamInput.Merge(m, src)
-}
-func (m *UpstreamInput) XXX_Size() int {
-	return xxx_messageInfo_UpstreamInput.Size(m)
-}
-func (m *UpstreamInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpstreamInput.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpstreamInput proto.InternalMessageInfo
-
-type isUpstreamInput_Spec interface {
-	isUpstreamInput_Spec()
-	Equal(interface{}) bool
-}
-
-type UpstreamInput_Kube struct {
-	Kube *kubernetes.UpstreamSpec `protobuf:"bytes,2,opt,name=kube,proto3,oneof" json:"kube,omitempty"`
-}
-type UpstreamInput_Static struct {
-	Static *static.UpstreamSpec `protobuf:"bytes,3,opt,name=static,proto3,oneof" json:"static,omitempty"`
-}
-type UpstreamInput_Aws struct {
-	Aws *aws.UpstreamSpec `protobuf:"bytes,4,opt,name=aws,proto3,oneof" json:"aws,omitempty"`
-}
-type UpstreamInput_Azure struct {
-	Azure *azure.UpstreamSpec `protobuf:"bytes,5,opt,name=azure,proto3,oneof" json:"azure,omitempty"`
-}
-type UpstreamInput_Consul struct {
-	Consul *consul.UpstreamSpec `protobuf:"bytes,6,opt,name=consul,proto3,oneof" json:"consul,omitempty"`
-}
-type UpstreamInput_AwsEc2 struct {
-	AwsEc2 *ec2.UpstreamSpec `protobuf:"bytes,7,opt,name=aws_ec2,json=awsEc2,proto3,oneof" json:"aws_ec2,omitempty"`
-}
-
-func (*UpstreamInput_Kube) isUpstreamInput_Spec()   {}
-func (*UpstreamInput_Static) isUpstreamInput_Spec() {}
-func (*UpstreamInput_Aws) isUpstreamInput_Spec()    {}
-func (*UpstreamInput_Azure) isUpstreamInput_Spec()  {}
-func (*UpstreamInput_Consul) isUpstreamInput_Spec() {}
-func (*UpstreamInput_AwsEc2) isUpstreamInput_Spec() {}
-
-func (m *UpstreamInput) GetSpec() isUpstreamInput_Spec {
-	if m != nil {
-		return m.Spec
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetRef() *core.ResourceRef {
-	if m != nil {
-		return m.Ref
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetKube() *kubernetes.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_Kube); ok {
-		return x.Kube
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetStatic() *static.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_Static); ok {
-		return x.Static
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetAws() *aws.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_Aws); ok {
-		return x.Aws
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetAzure() *azure.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_Azure); ok {
-		return x.Azure
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetConsul() *consul.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_Consul); ok {
-		return x.Consul
-	}
-	return nil
-}
-
-func (m *UpstreamInput) GetAwsEc2() *ec2.UpstreamSpec {
-	if x, ok := m.GetSpec().(*UpstreamInput_AwsEc2); ok {
-		return x.AwsEc2
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*UpstreamInput) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*UpstreamInput_Kube)(nil),
-		(*UpstreamInput_Static)(nil),
-		(*UpstreamInput_Aws)(nil),
-		(*UpstreamInput_Azure)(nil),
-		(*UpstreamInput_Consul)(nil),
-		(*UpstreamInput_AwsEc2)(nil),
-	}
-}
-
 type CreateUpstreamRequest struct {
-	// Deprecated: use `upstreamInput` instead
-	Input                *UpstreamInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"` // Deprecated: Do not use.
-	UpstreamInput        *v1.Upstream   `protobuf:"bytes,2,opt,name=upstream_input,json=upstreamInput,proto3" json:"upstream_input,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	UpstreamInput        *v1.Upstream `protobuf:"bytes,2,opt,name=upstream_input,json=upstreamInput,proto3" json:"upstream_input,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
 }
 
 func (m *CreateUpstreamRequest) Reset()         { *m = CreateUpstreamRequest{} }
 func (m *CreateUpstreamRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateUpstreamRequest) ProtoMessage()    {}
 func (*CreateUpstreamRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{6}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{5}
 }
 func (m *CreateUpstreamRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUpstreamRequest.Unmarshal(m, b)
@@ -425,14 +252,6 @@ func (m *CreateUpstreamRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateUpstreamRequest proto.InternalMessageInfo
 
-// Deprecated: Do not use.
-func (m *CreateUpstreamRequest) GetInput() *UpstreamInput {
-	if m != nil {
-		return m.Input
-	}
-	return nil
-}
-
 func (m *CreateUpstreamRequest) GetUpstreamInput() *v1.Upstream {
 	if m != nil {
 		return m.UpstreamInput
@@ -441,8 +260,6 @@ func (m *CreateUpstreamRequest) GetUpstreamInput() *v1.Upstream {
 }
 
 type CreateUpstreamResponse struct {
-	// Deprecated, use upstream_details
-	Upstream             *v1.Upstream     `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
 	UpstreamDetails      *UpstreamDetails `protobuf:"bytes,2,opt,name=upstream_details,json=upstreamDetails,proto3" json:"upstream_details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
@@ -453,7 +270,7 @@ func (m *CreateUpstreamResponse) Reset()         { *m = CreateUpstreamResponse{}
 func (m *CreateUpstreamResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateUpstreamResponse) ProtoMessage()    {}
 func (*CreateUpstreamResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{7}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{6}
 }
 func (m *CreateUpstreamResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUpstreamResponse.Unmarshal(m, b)
@@ -473,13 +290,6 @@ func (m *CreateUpstreamResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateUpstreamResponse proto.InternalMessageInfo
 
-func (m *CreateUpstreamResponse) GetUpstream() *v1.Upstream {
-	if m != nil {
-		return m.Upstream
-	}
-	return nil
-}
-
 func (m *CreateUpstreamResponse) GetUpstreamDetails() *UpstreamDetails {
 	if m != nil {
 		return m.UpstreamDetails
@@ -488,19 +298,17 @@ func (m *CreateUpstreamResponse) GetUpstreamDetails() *UpstreamDetails {
 }
 
 type UpdateUpstreamRequest struct {
-	// Deprecated: use `upstreamInput` instead
-	Input                *UpstreamInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"` // Deprecated: Do not use.
-	UpstreamInput        *v1.Upstream   `protobuf:"bytes,2,opt,name=upstream_input,json=upstreamInput,proto3" json:"upstream_input,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	UpstreamInput        *v1.Upstream `protobuf:"bytes,2,opt,name=upstream_input,json=upstreamInput,proto3" json:"upstream_input,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
 }
 
 func (m *UpdateUpstreamRequest) Reset()         { *m = UpdateUpstreamRequest{} }
 func (m *UpdateUpstreamRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateUpstreamRequest) ProtoMessage()    {}
 func (*UpdateUpstreamRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{8}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{7}
 }
 func (m *UpdateUpstreamRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUpstreamRequest.Unmarshal(m, b)
@@ -520,14 +328,6 @@ func (m *UpdateUpstreamRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateUpstreamRequest proto.InternalMessageInfo
 
-// Deprecated: Do not use.
-func (m *UpdateUpstreamRequest) GetInput() *UpstreamInput {
-	if m != nil {
-		return m.Input
-	}
-	return nil
-}
-
 func (m *UpdateUpstreamRequest) GetUpstreamInput() *v1.Upstream {
 	if m != nil {
 		return m.UpstreamInput
@@ -536,8 +336,6 @@ func (m *UpdateUpstreamRequest) GetUpstreamInput() *v1.Upstream {
 }
 
 type UpdateUpstreamResponse struct {
-	// Deprecated, use upstream_details
-	Upstream             *v1.Upstream     `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
 	UpstreamDetails      *UpstreamDetails `protobuf:"bytes,2,opt,name=upstream_details,json=upstreamDetails,proto3" json:"upstream_details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
@@ -548,7 +346,7 @@ func (m *UpdateUpstreamResponse) Reset()         { *m = UpdateUpstreamResponse{}
 func (m *UpdateUpstreamResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateUpstreamResponse) ProtoMessage()    {}
 func (*UpdateUpstreamResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{9}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{8}
 }
 func (m *UpdateUpstreamResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUpstreamResponse.Unmarshal(m, b)
@@ -568,13 +366,6 @@ func (m *UpdateUpstreamResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateUpstreamResponse proto.InternalMessageInfo
 
-func (m *UpdateUpstreamResponse) GetUpstream() *v1.Upstream {
-	if m != nil {
-		return m.Upstream
-	}
-	return nil
-}
-
 func (m *UpdateUpstreamResponse) GetUpstreamDetails() *UpstreamDetails {
 	if m != nil {
 		return m.UpstreamDetails
@@ -593,7 +384,7 @@ func (m *DeleteUpstreamRequest) Reset()         { *m = DeleteUpstreamRequest{} }
 func (m *DeleteUpstreamRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteUpstreamRequest) ProtoMessage()    {}
 func (*DeleteUpstreamRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{10}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{9}
 }
 func (m *DeleteUpstreamRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteUpstreamRequest.Unmarshal(m, b)
@@ -630,7 +421,7 @@ func (m *DeleteUpstreamResponse) Reset()         { *m = DeleteUpstreamResponse{}
 func (m *DeleteUpstreamResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteUpstreamResponse) ProtoMessage()    {}
 func (*DeleteUpstreamResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b7d24dd6d13c7a0b, []int{11}
+	return fileDescriptor_b7d24dd6d13c7a0b, []int{10}
 }
 func (m *DeleteUpstreamResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteUpstreamResponse.Unmarshal(m, b)
@@ -656,7 +447,6 @@ func init() {
 	proto.RegisterType((*GetUpstreamResponse)(nil), "glooeeapi.solo.io.GetUpstreamResponse")
 	proto.RegisterType((*ListUpstreamsRequest)(nil), "glooeeapi.solo.io.ListUpstreamsRequest")
 	proto.RegisterType((*ListUpstreamsResponse)(nil), "glooeeapi.solo.io.ListUpstreamsResponse")
-	proto.RegisterType((*UpstreamInput)(nil), "glooeeapi.solo.io.UpstreamInput")
 	proto.RegisterType((*CreateUpstreamRequest)(nil), "glooeeapi.solo.io.CreateUpstreamRequest")
 	proto.RegisterType((*CreateUpstreamResponse)(nil), "glooeeapi.solo.io.CreateUpstreamResponse")
 	proto.RegisterType((*UpdateUpstreamRequest)(nil), "glooeeapi.solo.io.UpdateUpstreamRequest")
@@ -670,55 +460,38 @@ func init() {
 }
 
 var fileDescriptor_b7d24dd6d13c7a0b = []byte{
-	// 757 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0xdf, 0x4e, 0x13, 0x4d,
-	0x14, 0x67, 0x69, 0x29, 0x1f, 0x87, 0x00, 0xdf, 0x37, 0x1f, 0x90, 0xb5, 0x17, 0x84, 0x6c, 0x22,
-	0x16, 0x95, 0x6d, 0xac, 0xc6, 0x0b, 0x88, 0x89, 0x14, 0x10, 0x24, 0x9a, 0x98, 0x35, 0xdc, 0x78,
-	0x21, 0x59, 0x96, 0x43, 0x5d, 0x29, 0x9d, 0x71, 0x66, 0x96, 0x46, 0x1f, 0xc2, 0x0b, 0xaf, 0x4c,
-	0xf4, 0x01, 0x7c, 0x24, 0xaf, 0x7d, 0x12, 0x33, 0x3b, 0xb3, 0x65, 0xb7, 0x0c, 0x50, 0xca, 0x0d,
-	0x17, 0xed, 0x4c, 0xb7, 0xe7, 0xf7, 0x3b, 0x7f, 0xe6, 0x77, 0xce, 0x2c, 0xec, 0xb6, 0x62, 0xf9,
-	0x21, 0x39, 0xf0, 0x23, 0x7a, 0x52, 0x17, 0xb4, 0x4d, 0x57, 0x62, 0xaa, 0x57, 0xc6, 0xe9, 0x47,
-	0x8c, 0xa4, 0xa8, 0xf7, 0x36, 0x2d, 0xce, 0x22, 0x81, 0xfc, 0x14, 0x79, 0x3d, 0x64, 0x71, 0xfd,
-	0xf4, 0x51, 0x3d, 0x61, 0x42, 0x72, 0x0c, 0x4f, 0x7c, 0xc6, 0xa9, 0xa4, 0xe4, 0xbf, 0x56, 0x9b,
-	0x52, 0xc4, 0x90, 0xc5, 0xbe, 0xa2, 0xf0, 0x63, 0x5a, 0x9d, 0x6d, 0xd1, 0x16, 0x4d, 0xff, 0xad,
-	0xab, 0x9d, 0x36, 0xac, 0x36, 0x2d, 0x4e, 0x15, 0x36, 0xe7, 0x4b, 0xfd, 0x32, 0x5e, 0x28, 0x93,
-	0x31, 0xed, 0x88, 0x7a, 0xd8, 0x4d, 0x3f, 0x86, 0x63, 0x67, 0x28, 0x0e, 0x21, 0x43, 0x19, 0x47,
-	0x66, 0x31, 0x4c, 0x2f, 0x86, 0x8b, 0xe6, 0x4b, 0xc2, 0x51, 0x7f, 0xdf, 0x28, 0xa2, 0x88, 0x76,
-	0x44, 0xd2, 0x36, 0x8b, 0x61, 0x7a, 0x33, 0x14, 0xd3, 0x71, 0x72, 0x80, 0xbc, 0x83, 0x12, 0xf3,
-	0x5b, 0xc3, 0xb8, 0x3b, 0x74, 0xc5, 0x31, 0x6a, 0xa8, 0x75, 0x1f, 0xa3, 0x86, 0xe1, 0x5a, 0xbb,
-	0x16, 0x57, 0x51, 0x23, 0xd5, 0x87, 0x17, 0xe9, 0xed, 0x38, 0x96, 0x19, 0x84, 0xe3, 0x91, 0xb1,
-	0xde, 0xbe, 0x89, 0x3a, 0xe5, 0x67, 0x96, 0xe5, 0xef, 0x51, 0x98, 0xd9, 0x33, 0x81, 0x6c, 0xa2,
-	0x0c, 0xe3, 0xb6, 0x20, 0x0d, 0xf8, 0x27, 0x8b, 0xcd, 0x75, 0x16, 0x9d, 0xda, 0x64, 0x63, 0xde,
-	0x57, 0x81, 0x67, 0xda, 0xf5, 0x33, 0x40, 0xd0, 0xb3, 0x23, 0x35, 0x28, 0xf1, 0xb0, 0xeb, 0x8e,
-	0xe6, 0xcc, 0x0b, 0x7a, 0xf7, 0x83, 0xb0, 0x1b, 0x28, 0x13, 0x6f, 0x1d, 0xc8, 0x36, 0xca, 0x1e,
-	0x05, 0x7e, 0x4a, 0x50, 0x48, 0xf2, 0x00, 0x4a, 0x1c, 0x8f, 0x8c, 0xbb, 0x3b, 0x7e, 0x44, 0x39,
-	0x9e, 0x41, 0x51, 0xd0, 0x84, 0x47, 0x18, 0xe0, 0x51, 0xa0, 0xac, 0xbc, 0xef, 0x0e, 0xfc, 0x5f,
-	0xe0, 0x10, 0x8c, 0x76, 0x04, 0x0e, 0x15, 0xf8, 0x6b, 0xf8, 0x37, 0xdb, 0xef, 0x1f, 0xea, 0x02,
-	0x98, 0x2c, 0x3c, 0x4b, 0x16, 0x7d, 0xa5, 0x0a, 0x66, 0x92, 0xe2, 0x03, 0xef, 0x29, 0xcc, 0xbe,
-	0x8a, 0x45, 0x2f, 0x34, 0x91, 0xe5, 0xb7, 0x00, 0xd0, 0x09, 0x4f, 0x50, 0xb0, 0x30, 0x42, 0xe1,
-	0x3a, 0x8b, 0xa5, 0xda, 0x44, 0x90, 0x7b, 0xe2, 0xfd, 0x74, 0x60, 0xae, 0x0f, 0x68, 0x92, 0x7a,
-	0x02, 0x13, 0x99, 0x13, 0x0d, 0xbc, 0x38, 0xab, 0x33, 0xc3, 0x0b, 0xd2, 0x2a, 0x0d, 0x9b, 0xd6,
-	0xef, 0x12, 0x4c, 0x65, 0x46, 0x2f, 0x3b, 0x2c, 0xb9, 0xde, 0x81, 0x91, 0x0d, 0x28, 0xab, 0xc6,
-	0x33, 0x85, 0x5d, 0xf1, 0x73, 0x5d, 0x68, 0x3a, 0xca, 0x9e, 0xd1, 0x5b, 0x86, 0xd1, 0xce, 0x48,
-	0x90, 0x82, 0xc9, 0x06, 0x54, 0xf4, 0x74, 0x72, 0x4b, 0x29, 0xcd, 0xb2, 0x6f, 0x86, 0xd5, 0x20,
-	0x14, 0x06, 0x4a, 0x56, 0xa1, 0x14, 0x76, 0x85, 0x5b, 0x4e, 0x19, 0x96, 0x7c, 0x35, 0x35, 0x07,
-	0x81, 0x2b, 0x10, 0x79, 0x0e, 0x63, 0xe9, 0x54, 0x73, 0xc7, 0x52, 0x74, 0xcd, 0xd7, 0x33, 0x6e,
-	0x10, 0xbc, 0x06, 0xaa, 0x14, 0xf4, 0x38, 0x73, 0x2b, 0x26, 0x05, 0x33, 0xdd, 0x06, 0x4a, 0x41,
-	0xdb, 0x92, 0x2d, 0x18, 0x37, 0x63, 0xc7, 0x1d, 0x4f, 0x59, 0xee, 0xfb, 0xd9, 0x18, 0x1a, 0x88,
-	0x26, 0xec, 0x8a, 0xad, 0xa8, 0xd1, 0xac, 0x40, 0x59, 0x30, 0x8c, 0xbc, 0x6f, 0x0e, 0xcc, 0x6d,
-	0x70, 0x0c, 0x25, 0xf6, 0xf7, 0xe4, 0x2a, 0x8c, 0xc5, 0xea, 0xac, 0xcd, 0x21, 0x2f, 0x5e, 0x22,
-	0x9c, 0x54, 0x13, 0xcd, 0x51, 0xd7, 0x09, 0x34, 0x84, 0x3c, 0x83, 0xe9, 0x9e, 0xfe, 0x34, 0xc9,
-	0xe8, 0xa5, 0x0d, 0x39, 0x95, 0xe4, 0x99, 0xbc, 0x1f, 0x0e, 0xcc, 0xf7, 0x07, 0x75, 0x7b, 0x9a,
-	0x5c, 0x95, 0x6c, 0x8f, 0x1d, 0xde, 0xbe, 0x92, 0xf5, 0x07, 0x75, 0x7b, 0x4a, 0xb6, 0x09, 0x73,
-	0x9b, 0xd8, 0xc6, 0xf3, 0x15, 0xbb, 0xd6, 0xe0, 0x77, 0x61, 0xbe, 0x9f, 0x45, 0xa7, 0xd8, 0xf8,
-	0x5a, 0x86, 0xc9, 0xec, 0xe1, 0x3a, 0x8b, 0xc9, 0x7b, 0x98, 0xcc, 0xdd, 0x10, 0xe4, 0xae, 0x25,
-	0xe6, 0xf3, 0xb7, 0x50, 0x75, 0xe9, 0x2a, 0x33, 0xed, 0xcd, 0x1b, 0x21, 0x87, 0x30, 0x55, 0x18,
-	0xd7, 0xe4, 0x9e, 0x05, 0x6a, 0xbb, 0x09, 0xaa, 0xb5, 0xab, 0x0d, 0x7b, 0x5e, 0x5a, 0x30, 0x5d,
-	0xec, 0x02, 0x62, 0x43, 0x5b, 0xbb, 0xb7, 0xba, 0x3c, 0x80, 0x65, 0xde, 0x51, 0x51, 0x3b, 0x56,
-	0x47, 0x56, 0xcd, 0x5b, 0x1d, 0xd9, 0x85, 0xa8, 0x1d, 0x15, 0x4f, 0xd0, 0xea, 0xc8, 0x2a, 0x15,
-	0xab, 0x23, 0xbb, 0x1c, 0xbc, 0x91, 0xe6, 0xfa, 0xaf, 0x3f, 0x0b, 0xce, 0xbb, 0xb5, 0x1b, 0xbc,
-	0x26, 0x1d, 0x54, 0xd2, 0x37, 0xa4, 0xc7, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xf5, 0xd2, 0xe6,
-	0x80, 0x0a, 0x0c, 0x00, 0x00,
+	// 488 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0xcf, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0x1b, 0x82, 0x10, 0x9a, 0xa8, 0x2d, 0x2c, 0x4d, 0x14, 0x7c, 0x40, 0x68, 0x25, 0x20,
+	0x08, 0xb0, 0x45, 0x38, 0x56, 0x1c, 0x02, 0x91, 0x2a, 0x10, 0x5c, 0x2c, 0xb5, 0x07, 0x0e, 0x20,
+	0xd7, 0x99, 0x98, 0x85, 0xb4, 0xb3, 0xec, 0xae, 0x5b, 0xf1, 0x12, 0x3c, 0x07, 0xcf, 0xc5, 0x93,
+	0x20, 0xd7, 0x7f, 0xc8, 0x3a, 0x03, 0x05, 0xa2, 0x9c, 0xe2, 0x6c, 0xbe, 0x99, 0xdf, 0x37, 0xe3,
+	0x2f, 0x0b, 0xaf, 0x33, 0xe5, 0x3e, 0xe6, 0xc7, 0x61, 0x4a, 0x27, 0x91, 0xa5, 0x05, 0x3d, 0x51,
+	0x54, 0x7e, 0x6a, 0x43, 0x9f, 0x30, 0x75, 0x36, 0x6a, 0x1e, 0x32, 0xa3, 0x53, 0x8b, 0xe6, 0x0c,
+	0x4d, 0x94, 0x68, 0x15, 0x9d, 0x3d, 0x8d, 0x72, 0x6d, 0x9d, 0xc1, 0xe4, 0x24, 0xd4, 0x86, 0x1c,
+	0x89, 0x9b, 0xd9, 0x82, 0x08, 0x31, 0xd1, 0x2a, 0x2c, 0x5a, 0x84, 0x8a, 0x82, 0xbd, 0x8c, 0x32,
+	0xba, 0xf8, 0x35, 0x2a, 0x9e, 0x4a, 0x61, 0xb0, 0xcf, 0x40, 0x8b, 0xda, 0x25, 0x56, 0xf1, 0x8d,
+	0xa5, 0x04, 0x8f, 0x7f, 0xe7, 0xf8, 0xb3, 0x72, 0x75, 0x89, 0xc1, 0x79, 0xa5, 0x3e, 0x58, 0x67,
+	0x3e, 0xf7, 0x55, 0xa3, 0x2d, 0x1b, 0x49, 0x82, 0xdd, 0xc3, 0xca, 0xc8, 0x14, 0x5d, 0xa2, 0x16,
+	0x56, 0x8c, 0xe1, 0x7a, 0xed, 0x6d, 0xd8, 0xb9, 0xdb, 0x19, 0xf5, 0xc6, 0x83, 0xb0, 0x30, 0x5e,
+	0x4f, 0x1f, 0xd6, 0x05, 0x71, 0xa3, 0x13, 0x23, 0xe8, 0x9a, 0xe4, 0x7c, 0x78, 0x65, 0x49, 0xee,
+	0x6d, 0x2c, 0x8c, 0x93, 0xf3, 0xb8, 0x90, 0xc8, 0x09, 0x88, 0x03, 0x74, 0x4d, 0x0b, 0xfc, 0x92,
+	0xa3, 0x75, 0xe2, 0x11, 0x74, 0x0d, 0xce, 0x2b, 0xdc, 0xed, 0x30, 0x25, 0x83, 0xbf, 0x4a, 0xd1,
+	0x52, 0x6e, 0x52, 0x8c, 0x71, 0x1e, 0x17, 0x2a, 0x39, 0x83, 0x5b, 0x5e, 0x0b, 0xab, 0xe9, 0xd4,
+	0xa2, 0x78, 0x0b, 0x37, 0x6a, 0x3f, 0x1f, 0x66, 0xe5, 0x2c, 0x95, 0x21, 0xc9, 0x18, 0x6a, 0x4d,
+	0x1d, 0xef, 0xe6, 0xfe, 0x81, 0x1c, 0xc0, 0xde, 0x1b, 0x65, 0x1b, 0x8c, 0xad, 0xac, 0xca, 0x39,
+	0xf4, 0x5b, 0xe7, 0x7f, 0xe4, 0x77, 0xff, 0x97, 0x7f, 0x04, 0xfd, 0x97, 0x06, 0x13, 0x87, 0xed,
+	0x5d, 0x3d, 0x87, 0x9d, 0x86, 0xa3, 0x4e, 0x75, 0xee, 0xbc, 0xb5, 0xaf, 0xbe, 0xa5, 0xed, 0x5a,
+	0xfd, 0xaa, 0x10, 0xcb, 0x0c, 0x06, 0xed, 0xbe, 0x9b, 0x59, 0xe0, 0x11, 0xf4, 0x0f, 0xf5, 0x6c,
+	0x23, 0x03, 0xb4, 0xfb, 0x6e, 0x66, 0x80, 0x29, 0xf4, 0xa7, 0xb8, 0xc0, 0xd5, 0x01, 0xfe, 0x29,
+	0xad, 0x43, 0x18, 0xb4, 0xbb, 0x94, 0x76, 0xc7, 0xdf, 0xae, 0x42, 0xaf, 0x3e, 0x9c, 0x68, 0x25,
+	0xde, 0x43, 0x6f, 0x29, 0xd7, 0xe2, 0x1e, 0xe3, 0x79, 0xf5, 0xaf, 0x13, 0xdc, 0xbf, 0x4c, 0x56,
+	0xd2, 0xe4, 0x96, 0x98, 0xc1, 0xb6, 0x97, 0x5c, 0xf1, 0x80, 0x29, 0xe5, 0x32, 0x1f, 0x8c, 0x2e,
+	0x17, 0x36, 0x94, 0x0c, 0x76, 0xfc, 0x7c, 0x09, 0xae, 0x9a, 0x8d, 0x76, 0xf0, 0xf0, 0x2f, 0x94,
+	0xcb, 0x20, 0x3f, 0x07, 0x2c, 0x88, 0x8d, 0x20, 0x0b, 0xe2, 0x43, 0x55, 0x82, 0xfc, 0x37, 0xc8,
+	0x82, 0xd8, 0xa8, 0xb0, 0x20, 0x3e, 0x0e, 0x72, 0xeb, 0xc5, 0xe4, 0xfb, 0x8f, 0x3b, 0x9d, 0x77,
+	0xfb, 0x6b, 0xdc, 0xed, 0xc7, 0xd7, 0x2e, 0xae, 0xf5, 0x67, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff,
+	0xe0, 0x84, 0x69, 0x02, 0x01, 0x07, 0x00, 0x00,
 }
 
 func (this *UpstreamDetails) Equal(that interface{}) bool {
@@ -797,9 +570,6 @@ func (this *GetUpstreamResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Upstream.Equal(that1.Upstream) {
-		return false
-	}
 	if !this.UpstreamDetails.Equal(that1.UpstreamDetails) {
 		return false
 	}
@@ -827,14 +597,6 @@ func (this *ListUpstreamsRequest) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if len(this.Namespaces) != len(that1.Namespaces) {
-		return false
-	}
-	for i := range this.Namespaces {
-		if this.Namespaces[i] != that1.Namespaces[i] {
-			return false
-		}
-	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -859,14 +621,6 @@ func (this *ListUpstreamsResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if len(this.Upstreams) != len(that1.Upstreams) {
-		return false
-	}
-	for i := range this.Upstreams {
-		if !this.Upstreams[i].Equal(that1.Upstreams[i]) {
-			return false
-		}
-	}
 	if len(this.UpstreamDetails) != len(that1.UpstreamDetails) {
 		return false
 	}
@@ -876,186 +630,6 @@ func (this *ListUpstreamsResponse) Equal(that interface{}) bool {
 		}
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput)
-	if !ok {
-		that2, ok := that.(UpstreamInput)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Ref.Equal(that1.Ref) {
-		return false
-	}
-	if that1.Spec == nil {
-		if this.Spec != nil {
-			return false
-		}
-	} else if this.Spec == nil {
-		return false
-	} else if !this.Spec.Equal(that1.Spec) {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_Kube) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_Kube)
-	if !ok {
-		that2, ok := that.(UpstreamInput_Kube)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Kube.Equal(that1.Kube) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_Static) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_Static)
-	if !ok {
-		that2, ok := that.(UpstreamInput_Static)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Static.Equal(that1.Static) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_Aws) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_Aws)
-	if !ok {
-		that2, ok := that.(UpstreamInput_Aws)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Aws.Equal(that1.Aws) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_Azure) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_Azure)
-	if !ok {
-		that2, ok := that.(UpstreamInput_Azure)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Azure.Equal(that1.Azure) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_Consul) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_Consul)
-	if !ok {
-		that2, ok := that.(UpstreamInput_Consul)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Consul.Equal(that1.Consul) {
-		return false
-	}
-	return true
-}
-func (this *UpstreamInput_AwsEc2) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpstreamInput_AwsEc2)
-	if !ok {
-		that2, ok := that.(UpstreamInput_AwsEc2)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.AwsEc2.Equal(that1.AwsEc2) {
 		return false
 	}
 	return true
@@ -1077,9 +651,6 @@ func (this *CreateUpstreamRequest) Equal(that interface{}) bool {
 	if that1 == nil {
 		return this == nil
 	} else if this == nil {
-		return false
-	}
-	if !this.Input.Equal(that1.Input) {
 		return false
 	}
 	if !this.UpstreamInput.Equal(that1.UpstreamInput) {
@@ -1109,9 +680,6 @@ func (this *CreateUpstreamResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Upstream.Equal(that1.Upstream) {
-		return false
-	}
 	if !this.UpstreamDetails.Equal(that1.UpstreamDetails) {
 		return false
 	}
@@ -1139,9 +707,6 @@ func (this *UpdateUpstreamRequest) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Input.Equal(that1.Input) {
-		return false
-	}
 	if !this.UpstreamInput.Equal(that1.UpstreamInput) {
 		return false
 	}
@@ -1167,9 +732,6 @@ func (this *UpdateUpstreamResponse) Equal(that interface{}) bool {
 	if that1 == nil {
 		return this == nil
 	} else if this == nil {
-		return false
-	}
-	if !this.Upstream.Equal(that1.Upstream) {
 		return false
 	}
 	if !this.UpstreamDetails.Equal(that1.UpstreamDetails) {

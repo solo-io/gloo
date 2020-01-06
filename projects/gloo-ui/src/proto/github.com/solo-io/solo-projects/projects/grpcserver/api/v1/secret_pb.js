@@ -13,7 +13,6 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
-var github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.glooeeapi.solo.io.CreateSecretRequest', null, global);
@@ -356,19 +355,12 @@ proto.glooeeapi.solo.io.GetSecretResponse.prototype.hasSecret = function() {
  * @constructor
  */
 proto.glooeeapi.solo.io.ListSecretsRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListSecretsRequest.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.ListSecretsRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.ListSecretsRequest.displayName = 'proto.glooeeapi.solo.io.ListSecretsRequest';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.ListSecretsRequest.repeatedFields_ = [1];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -398,7 +390,7 @@ proto.glooeeapi.solo.io.ListSecretsRequest.prototype.toObject = function(opt_inc
  */
 proto.glooeeapi.solo.io.ListSecretsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespacesList: jspb.Message.getRepeatedField(msg, 1)
+
   };
 
   if (includeInstance) {
@@ -435,10 +427,6 @@ proto.glooeeapi.solo.io.ListSecretsRequest.deserializeBinaryFromReader = functio
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaces(value);
-      break;
     default:
       reader.skipField();
       break;
@@ -468,42 +456,6 @@ proto.glooeeapi.solo.io.ListSecretsRequest.prototype.serializeBinary = function(
  */
 proto.glooeeapi.solo.io.ListSecretsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespacesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * repeated string namespaces = 1;
- * @return {!Array<string>}
- */
-proto.glooeeapi.solo.io.ListSecretsRequest.prototype.getNamespacesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
-};
-
-
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListSecretsRequest.prototype.setNamespacesList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.glooeeapi.solo.io.ListSecretsRequest.prototype.addNamespaces = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.ListSecretsRequest.prototype.clearNamespacesList = function() {
-  this.setNamespacesList([]);
 };
 
 
@@ -687,40 +639,12 @@ proto.glooeeapi.solo.io.ListSecretsResponse.prototype.clearSecretsList = functio
  * @constructor
  */
 proto.glooeeapi.solo.io.CreateSecretRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.CreateSecretRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.CreateSecretRequest.displayName = 'proto.glooeeapi.solo.io.CreateSecretRequest';
 }
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_ = [[2,3,4,5]];
-
-/**
- * @enum {number}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.KindCase = {
-  KIND_NOT_SET: 0,
-  AWS: 2,
-  AZURE: 3,
-  TLS: 4,
-  EXTENSION: 5
-};
-
-/**
- * @return {proto.glooeeapi.solo.io.CreateSecretRequest.KindCase}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getKindCase = function() {
-  return /** @type {proto.glooeeapi.solo.io.CreateSecretRequest.KindCase} */(jspb.Message.computeOneofCase(this, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_[0]));
-};
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -750,11 +674,6 @@ proto.glooeeapi.solo.io.CreateSecretRequest.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.CreateSecretRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    aws: (f = msg.getAws()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.toObject(includeInstance, f),
-    azure: (f = msg.getAzure()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.toObject(includeInstance, f),
-    tls: (f = msg.getTls()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.toObject(includeInstance, f),
-    extension: (f = msg.getExtension$()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.toObject(includeInstance, f),
     secret: (f = msg.getSecret()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.toObject(includeInstance, f)
   };
 
@@ -792,31 +711,6 @@ proto.glooeeapi.solo.io.CreateSecretRequest.deserializeBinaryFromReader = functi
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.deserializeBinaryFromReader);
-      msg.setAws(value);
-      break;
-    case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.deserializeBinaryFromReader);
-      msg.setAzure(value);
-      break;
-    case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.deserializeBinaryFromReader);
-      msg.setTls(value);
-      break;
-    case 5:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.deserializeBinaryFromReader);
-      msg.setExtension$(value);
-      break;
     case 6:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.deserializeBinaryFromReader);
@@ -851,46 +745,6 @@ proto.glooeeapi.solo.io.CreateSecretRequest.prototype.serializeBinary = function
  */
 proto.glooeeapi.solo.io.CreateSecretRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getAws();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getAzure();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getTls();
-  if (f != null) {
-    writer.writeMessage(
-      4,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getExtension$();
-  if (f != null) {
-    writer.writeMessage(
-      5,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.serializeBinaryToWriter
-    );
-  }
   f = message.getSecret();
   if (f != null) {
     writer.writeMessage(
@@ -899,156 +753,6 @@ proto.glooeeapi.solo.io.CreateSecretRequest.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.serializeBinaryToWriter
     );
   }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional gloo.solo.io.AwsSecret aws = 2;
- * @return {?proto.gloo.solo.io.AwsSecret}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getAws = function() {
-  return /** @type{?proto.gloo.solo.io.AwsSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret, 2));
-};
-
-
-/** @param {?proto.gloo.solo.io.AwsSecret|undefined} value */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.setAws = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.clearAws = function() {
-  this.setAws(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.hasAws = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional gloo.solo.io.AzureSecret azure = 3;
- * @return {?proto.gloo.solo.io.AzureSecret}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getAzure = function() {
-  return /** @type{?proto.gloo.solo.io.AzureSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret, 3));
-};
-
-
-/** @param {?proto.gloo.solo.io.AzureSecret|undefined} value */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.setAzure = function(value) {
-  jspb.Message.setOneofWrapperField(this, 3, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.clearAzure = function() {
-  this.setAzure(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.hasAzure = function() {
-  return jspb.Message.getField(this, 3) != null;
-};
-
-
-/**
- * optional gloo.solo.io.TlsSecret tls = 4;
- * @return {?proto.gloo.solo.io.TlsSecret}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getTls = function() {
-  return /** @type{?proto.gloo.solo.io.TlsSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret, 4));
-};
-
-
-/** @param {?proto.gloo.solo.io.TlsSecret|undefined} value */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.setTls = function(value) {
-  jspb.Message.setOneofWrapperField(this, 4, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.clearTls = function() {
-  this.setTls(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.hasTls = function() {
-  return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional gloo.solo.io.Extension extension = 5;
- * @return {?proto.gloo.solo.io.Extension}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.getExtension$ = function() {
-  return /** @type{?proto.gloo.solo.io.Extension} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension, 5));
-};
-
-
-/** @param {?proto.gloo.solo.io.Extension|undefined} value */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.setExtension$ = function(value) {
-  jspb.Message.setOneofWrapperField(this, 5, proto.glooeeapi.solo.io.CreateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.clearExtension$ = function() {
-  this.setExtension$(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateSecretRequest.prototype.hasExtension$ = function() {
-  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -1253,40 +957,12 @@ proto.glooeeapi.solo.io.CreateSecretResponse.prototype.hasSecret = function() {
  * @constructor
  */
 proto.glooeeapi.solo.io.UpdateSecretRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.UpdateSecretRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.UpdateSecretRequest.displayName = 'proto.glooeeapi.solo.io.UpdateSecretRequest';
 }
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_ = [[2,3,4,5]];
-
-/**
- * @enum {number}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.KindCase = {
-  KIND_NOT_SET: 0,
-  AWS: 2,
-  AZURE: 3,
-  TLS: 4,
-  EXTENSION: 5
-};
-
-/**
- * @return {proto.glooeeapi.solo.io.UpdateSecretRequest.KindCase}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getKindCase = function() {
-  return /** @type {proto.glooeeapi.solo.io.UpdateSecretRequest.KindCase} */(jspb.Message.computeOneofCase(this, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_[0]));
-};
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1316,11 +992,6 @@ proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.UpdateSecretRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    aws: (f = msg.getAws()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.toObject(includeInstance, f),
-    azure: (f = msg.getAzure()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.toObject(includeInstance, f),
-    tls: (f = msg.getTls()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.toObject(includeInstance, f),
-    extension: (f = msg.getExtension$()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.toObject(includeInstance, f),
     secret: (f = msg.getSecret()) && github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.toObject(includeInstance, f)
   };
 
@@ -1358,31 +1029,6 @@ proto.glooeeapi.solo.io.UpdateSecretRequest.deserializeBinaryFromReader = functi
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.deserializeBinaryFromReader);
-      msg.setAws(value);
-      break;
-    case 3:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.deserializeBinaryFromReader);
-      msg.setAzure(value);
-      break;
-    case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.deserializeBinaryFromReader);
-      msg.setTls(value);
-      break;
-    case 5:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.deserializeBinaryFromReader);
-      msg.setExtension$(value);
-      break;
     case 6:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.deserializeBinaryFromReader);
@@ -1417,46 +1063,6 @@ proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.serializeBinary = function
  */
 proto.glooeeapi.solo.io.UpdateSecretRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getAws();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getAzure();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getTls();
-  if (f != null) {
-    writer.writeMessage(
-      4,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.serializeBinaryToWriter
-    );
-  }
-  f = message.getExtension$();
-  if (f != null) {
-    writer.writeMessage(
-      5,
-      f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension.serializeBinaryToWriter
-    );
-  }
   f = message.getSecret();
   if (f != null) {
     writer.writeMessage(
@@ -1465,156 +1071,6 @@ proto.glooeeapi.solo.io.UpdateSecretRequest.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.Secret.serializeBinaryToWriter
     );
   }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional gloo.solo.io.AwsSecret aws = 2;
- * @return {?proto.gloo.solo.io.AwsSecret}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getAws = function() {
-  return /** @type{?proto.gloo.solo.io.AwsSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret, 2));
-};
-
-
-/** @param {?proto.gloo.solo.io.AwsSecret|undefined} value */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.setAws = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.clearAws = function() {
-  this.setAws(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.hasAws = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional gloo.solo.io.AzureSecret azure = 3;
- * @return {?proto.gloo.solo.io.AzureSecret}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getAzure = function() {
-  return /** @type{?proto.gloo.solo.io.AzureSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret, 3));
-};
-
-
-/** @param {?proto.gloo.solo.io.AzureSecret|undefined} value */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.setAzure = function(value) {
-  jspb.Message.setOneofWrapperField(this, 3, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.clearAzure = function() {
-  this.setAzure(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.hasAzure = function() {
-  return jspb.Message.getField(this, 3) != null;
-};
-
-
-/**
- * optional gloo.solo.io.TlsSecret tls = 4;
- * @return {?proto.gloo.solo.io.TlsSecret}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getTls = function() {
-  return /** @type{?proto.gloo.solo.io.TlsSecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret, 4));
-};
-
-
-/** @param {?proto.gloo.solo.io.TlsSecret|undefined} value */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.setTls = function(value) {
-  jspb.Message.setOneofWrapperField(this, 4, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.clearTls = function() {
-  this.setTls(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.hasTls = function() {
-  return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional gloo.solo.io.Extension extension = 5;
- * @return {?proto.gloo.solo.io.Extension}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.getExtension$ = function() {
-  return /** @type{?proto.gloo.solo.io.Extension} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extension, 5));
-};
-
-
-/** @param {?proto.gloo.solo.io.Extension|undefined} value */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.setExtension$ = function(value) {
-  jspb.Message.setOneofWrapperField(this, 5, proto.glooeeapi.solo.io.UpdateSecretRequest.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.clearExtension$ = function() {
-  this.setExtension$(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSecretRequest.prototype.hasExtension$ = function() {
-  return jspb.Message.getField(this, 5) != null;
 };
 
 

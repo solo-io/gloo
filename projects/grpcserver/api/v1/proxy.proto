@@ -32,10 +32,7 @@ message GetProxyResponse {
     ProxyDetails proxy_details = 1;
 }
 
-message ListProxiesRequest {
-    // Deprecated. `List` calls will now query all WatchNamespaces.
-    repeated string namespaces = 1;
-}
+message ListProxiesRequest {}
 
 message ListProxiesResponse {
     repeated ProxyDetails proxy_details = 1;

@@ -3,9 +3,7 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb";
-import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 
 export class OAuthEndpoint extends jspb.Message {
   getUrl(): string;
@@ -144,21 +142,6 @@ export namespace GetSettingsResponse {
 }
 
 export class UpdateSettingsRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  clearWatchNamespacesList(): void;
-  getWatchNamespacesList(): Array<string>;
-  setWatchNamespacesList(value: Array<string>): void;
-  addWatchNamespaces(value: string, index?: number): string;
-
-  hasRefreshRate(): boolean;
-  clearRefreshRate(): void;
-  getRefreshRate(): google_protobuf_duration_pb.Duration | undefined;
-  setRefreshRate(value?: google_protobuf_duration_pb.Duration): void;
-
   hasSettings(): boolean;
   clearSettings(): void;
   getSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb.Settings | undefined;
@@ -176,9 +159,6 @@ export class UpdateSettingsRequest extends jspb.Message {
 
 export namespace UpdateSettingsRequest {
   export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    watchNamespacesList: Array<string>,
-    refreshRate?: google_protobuf_duration_pb.Duration.AsObject,
     settings?: github_com_solo_io_gloo_projects_gloo_api_v1_settings_pb.Settings.AsObject,
   }
 }

@@ -18,7 +18,6 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"go.uber.org/zap"
 )
 
@@ -27,8 +26,6 @@ type upstreamGrpcService struct {
 	clientCache      client.ClientCache
 	licenseClient    license.Client
 	settingsValues   settings.ValuesClient
-	mutator          mutation.Mutator
-	mutationFactory  mutation.Factory
 	rawGetter        rawgetter.RawGetter
 	upstreamSearcher search.UpstreamSearcher
 	truncator        truncate.UpstreamTruncator
@@ -42,8 +39,6 @@ func NewUpstreamGrpcService(
 	clientCache client.ClientCache,
 	licenseClient license.Client,
 	settingsValues settings.ValuesClient,
-	mutator mutation.Mutator,
-	factory mutation.Factory,
 	rawGetter rawgetter.RawGetter,
 	upstreamSearcher search.UpstreamSearcher,
 	truncator truncate.UpstreamTruncator,
@@ -53,8 +48,6 @@ func NewUpstreamGrpcService(
 		ctx:              ctx,
 		clientCache:      clientCache,
 		settingsValues:   settingsValues,
-		mutator:          mutator,
-		mutationFactory:  factory,
 		rawGetter:        rawGetter,
 		licenseClient:    licenseClient,
 		upstreamSearcher: upstreamSearcher,
@@ -70,7 +63,7 @@ func (s *upstreamGrpcService) GetUpstream(ctx context.Context, request *v1.GetUp
 		return nil, wrapped
 	}
 
-	return &v1.GetUpstreamResponse{Upstream: upstream, UpstreamDetails: s.getDetails(upstream)}, nil
+	return &v1.GetUpstreamResponse{UpstreamDetails: s.getDetails(upstream)}, nil
 }
 
 func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.ListUpstreamsRequest) (*v1.ListUpstreamsResponse, error) {
@@ -91,60 +84,37 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 		detailsList = append(detailsList, s.getDetails(u))
 	}
 
-	return &v1.ListUpstreamsResponse{Upstreams: upstreamList, UpstreamDetails: detailsList}, nil
+	return &v1.ListUpstreamsResponse{UpstreamDetails: detailsList}, nil
 }
 
 func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.CreateUpstreamRequest) (*v1.CreateUpstreamResponse, error) {
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	var (
-		written *gloov1.Upstream
-		err     error
-		ref     *core.ResourceRef
-	)
-	if request.GetUpstreamInput() == nil {
-		ref = request.GetInput().GetRef()
-		written, err = s.mutator.Create(s.ctx, ref, s.mutationFactory.ConfigureUpstream(request.GetInput()))
-	} else {
-		upstreamRef := request.GetUpstreamInput().GetMetadata().Ref()
-		ref = &upstreamRef
-		written, err = s.mutator.CreateUpstream(s.ctx, request.GetUpstreamInput())
-	}
 
+	written, err := s.clientCache.GetUpstreamClient().Write(request.GetUpstreamInput(), clients.WriteOpts{Ctx: s.ctx})
 	if err != nil {
-		wrapped := FailedToCreateUpstreamError(err, ref)
+		ref := request.GetUpstreamInput().GetMetadata().Ref()
+		wrapped := FailedToCreateUpstreamError(err, &ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.CreateUpstreamResponse{Upstream: written, UpstreamDetails: s.getDetails(written)}, nil
+	return &v1.CreateUpstreamResponse{UpstreamDetails: s.getDetails(written)}, nil
 }
 
 func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.UpdateUpstreamRequest) (*v1.UpdateUpstreamResponse, error) {
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	var (
-		written *gloov1.Upstream
-		ref     *core.ResourceRef
-		err     error
-	)
 
-	if request.GetUpstreamInput() == nil {
-		ref = request.GetInput().GetRef()
-		written, err = s.mutator.Update(s.ctx, ref, s.mutationFactory.ConfigureUpstream(request.GetInput()))
-	} else {
-		written, err = s.mutator.UpdateUpstream(s.ctx, request.GetUpstreamInput())
-		upstreamRef := request.GetUpstreamInput().GetMetadata().Ref()
-		ref = &upstreamRef
-	}
-
+	written, err := s.clientCache.GetUpstreamClient().Write(request.GetUpstreamInput(), clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
-		wrapped := FailedToUpdateUpstreamError(err, ref)
+		ref := request.GetUpstreamInput().GetMetadata().Ref()
+		wrapped := FailedToUpdateUpstreamError(err, &ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.UpdateUpstreamResponse{Upstream: written, UpstreamDetails: s.getDetails(written)}, nil
+	return &v1.UpdateUpstreamResponse{UpstreamDetails: s.getDetails(written)}, nil
 }
 
 func (s *upstreamGrpcService) DeleteUpstream(ctx context.Context, request *v1.DeleteUpstreamRequest) (*v1.DeleteUpstreamResponse, error) {

@@ -11,7 +11,8 @@ import {
 import {
   AwsSecret,
   Secret,
-  TlsSecret
+  TlsSecret,
+  AzureSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +23,7 @@ import { SecretValuesType } from './SecretForm';
 import { SecretsPage } from './SecretsPage';
 import { SecurityPage } from './SecurityPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
+import { OauthSecret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -162,6 +164,8 @@ export const SettingsLanding = () => {
     values: SecretValuesType,
     secretKind: Secret.KindCase
   ) {
+    let newSecret = new Secret().toObject();
+
     const {
       secretResourceRef: { name, namespace }
     } = values;
@@ -169,13 +173,39 @@ export const SettingsLanding = () => {
     let aws: AwsSecret.AsObject | undefined = undefined;
     if (secretKind === Secret.KindCase.AWS) {
       aws = values.awsSecret;
+      newSecret = { ...newSecret, aws };
     }
+
+    let azure: AzureSecret.AsObject | undefined = undefined;
+    if (secretKind === Secret.KindCase.AZURE) {
+      azure = values.azureSecret;
+      newSecret = { ...newSecret, azure };
+    }
+
     let tls: TlsSecret.AsObject | undefined = undefined;
     if (secretKind === Secret.KindCase.TLS) {
       tls = values.tlsSecret;
+      newSecret = { ...newSecret, tls };
     }
 
-    dispatch(createSecret({ ref: { name, namespace }, aws, tls }));
+    let oauth: OauthSecret.AsObject | undefined = undefined;
+    if (secretKind === Secret.KindCase.OAUTH) {
+      oauth = values.oAuthSecret;
+      newSecret = { ...newSecret, oauth };
+    }
+
+    dispatch(
+      createSecret({
+        secret: {
+          ...newSecret,
+          metadata: {
+            ...newSecret.metadata!,
+            name,
+            namespace
+          }
+        }
+      })
+    );
   }
 
   async function handleDeleteSecret(

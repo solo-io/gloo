@@ -355,19 +355,12 @@ proto.glooeeapi.solo.io.GetArtifactResponse.prototype.hasArtifact = function() {
  * @constructor
  */
 proto.glooeeapi.solo.io.ListArtifactsRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListArtifactsRequest.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.ListArtifactsRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.ListArtifactsRequest.displayName = 'proto.glooeeapi.solo.io.ListArtifactsRequest';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.ListArtifactsRequest.repeatedFields_ = [1];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -397,7 +390,7 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.toObject = function(opt_i
  */
 proto.glooeeapi.solo.io.ListArtifactsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespacesList: jspb.Message.getRepeatedField(msg, 1)
+
   };
 
   if (includeInstance) {
@@ -434,10 +427,6 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.deserializeBinaryFromReader = funct
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaces(value);
-      break;
     default:
       reader.skipField();
       break;
@@ -467,42 +456,6 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.serializeBinary = functio
  */
 proto.glooeeapi.solo.io.ListArtifactsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespacesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * repeated string namespaces = 1;
- * @return {!Array<string>}
- */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.getNamespacesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
-};
-
-
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.setNamespacesList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.addNamespaces = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.clearNamespacesList = function() {
-  this.setNamespacesList([]);
 };
 
 
@@ -721,8 +674,6 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.CreateArtifactRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, undefined) : [],
     artifact: (f = msg.getArtifact()) && github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.toObject(includeInstance, f)
   };
 
@@ -760,17 +711,6 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.deserializeBinaryFromReader = func
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = msg.getDataMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
-         });
-      break;
     case 3:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.deserializeBinaryFromReader);
@@ -805,18 +745,6 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.serializeBinary = functi
  */
 proto.glooeeapi.solo.io.CreateArtifactRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getDataMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
-  }
   f = message.getArtifact();
   if (f != null) {
     writer.writeMessage(
@@ -825,54 +753,6 @@ proto.glooeeapi.solo.io.CreateArtifactRequest.serializeBinaryToWriter = function
       github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.serializeBinaryToWriter
     );
   }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * map<string, string> data = 2;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
- */
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.getDataMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
-      null));
-};
-
-
-proto.glooeeapi.solo.io.CreateArtifactRequest.prototype.clearDataMap = function() {
-  this.getDataMap().clear();
 };
 
 
@@ -1112,8 +992,6 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.UpdateArtifactRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, undefined) : [],
     artifact: (f = msg.getArtifact()) && github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.toObject(includeInstance, f)
   };
 
@@ -1151,17 +1029,6 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.deserializeBinaryFromReader = func
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = msg.getDataMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
-         });
-      break;
     case 3:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.deserializeBinaryFromReader);
@@ -1196,18 +1063,6 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.serializeBinary = functi
  */
 proto.glooeeapi.solo.io.UpdateArtifactRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getDataMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
-  }
   f = message.getArtifact();
   if (f != null) {
     writer.writeMessage(
@@ -1216,54 +1071,6 @@ proto.glooeeapi.solo.io.UpdateArtifactRequest.serializeBinaryToWriter = function
       github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.serializeBinaryToWriter
     );
   }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * map<string, string> data = 2;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
- */
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.getDataMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
-      null));
-};
-
-
-proto.glooeeapi.solo.io.UpdateArtifactRequest.prototype.clearDataMap = function() {
-  this.getDataMap().clear();
 };
 
 

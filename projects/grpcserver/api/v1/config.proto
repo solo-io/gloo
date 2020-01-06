@@ -5,9 +5,7 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "google/protobuf/duration.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto";
-import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
 message OAuthEndpoint {
     string url = 1;
@@ -33,12 +31,6 @@ message GetSettingsResponse {
 }
 
 message UpdateSettingsRequest {
-    // Deprecated
-    core.solo.io.ResourceRef ref = 1 [deprecated=true];
-    // Deprecated
-    repeated string watch_namespaces = 2 [deprecated=true];
-    // Deprecated
-    google.protobuf.Duration refresh_rate = 3;
     gloo.solo.io.Settings settings = 4;
 }
 

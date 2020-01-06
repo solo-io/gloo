@@ -51,11 +51,6 @@ export namespace GetArtifactResponse {
 }
 
 export class ListArtifactsRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListArtifactsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListArtifactsRequest): ListArtifactsRequest.AsObject;
@@ -68,7 +63,6 @@ export class ListArtifactsRequest extends jspb.Message {
 
 export namespace ListArtifactsRequest {
   export type AsObject = {
-    namespacesList: Array<string>,
   }
 }
 
@@ -95,13 +89,6 @@ export namespace ListArtifactsResponse {
 }
 
 export class CreateArtifactRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  getDataMap(): jspb.Map<string, string>;
-  clearDataMap(): void;
   hasArtifact(): boolean;
   clearArtifact(): void;
   getArtifact(): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact | undefined;
@@ -119,8 +106,6 @@ export class CreateArtifactRequest extends jspb.Message {
 
 export namespace CreateArtifactRequest {
   export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    dataMap: Array<[string, string]>,
     artifact?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject,
   }
 }
@@ -148,13 +133,6 @@ export namespace CreateArtifactResponse {
 }
 
 export class UpdateArtifactRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  getDataMap(): jspb.Map<string, string>;
-  clearDataMap(): void;
   hasArtifact(): boolean;
   clearArtifact(): void;
   getArtifact(): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact | undefined;
@@ -172,8 +150,6 @@ export class UpdateArtifactRequest extends jspb.Message {
 
 export namespace UpdateArtifactRequest {
   export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    dataMap: Array<[string, string]>,
     artifact?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject,
   }
 }

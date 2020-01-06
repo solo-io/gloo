@@ -11,8 +11,6 @@ import (
 
 type MutationFactory interface {
 	// Deprecated
-	ConfigureVirtualService(input *v1.VirtualServiceInput) Mutation
-	// Deprecated
 	ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV2) Mutation
 	CreateRoute(input *v1.RouteInput) Mutation
 	UpdateRoute(input *v1.RouteInput) Mutation
@@ -25,55 +23,6 @@ type mutationFactory struct{}
 
 func NewMutationFactory() MutationFactory {
 	return &mutationFactory{}
-}
-
-func (*mutationFactory) ConfigureVirtualService(input *v1.VirtualServiceInput) Mutation {
-	return func(vs *gatewayv1.VirtualService) error {
-		// Only set metadata if this is a new Virtual Service
-		if vs.GetMetadata().Namespace == "" {
-			vs.Metadata.Namespace = input.GetRef().GetNamespace()
-			vs.Metadata.Name = input.GetRef().GetName()
-		}
-
-		// Attempt to set secret ref -- error if there is a different SSL strategy in place.
-		if input.GetSecretRef() != nil {
-			if vs.SslConfig == nil {
-				vs.SslConfig = &gloov1.SslConfig{}
-			}
-
-			switch vs.SslConfig.GetSslSecrets().(type) {
-			case *gloov1.SslConfig_SslFiles:
-				return AlreadyConfiguredSslWithFiles
-			case *gloov1.SslConfig_Sds:
-				return AlreadyConfiguredSslWithSds
-			case *gloov1.SslConfig_SecretRef:
-				vs.SslConfig.SslSecrets = &gloov1.SslConfig_SecretRef{SecretRef: input.GetSecretRef()}
-			default:
-				vs.SslConfig.SslSecrets = &gloov1.SslConfig_SecretRef{SecretRef: input.GetSecretRef()}
-			}
-		}
-
-		if vs.GetVirtualHost() == nil {
-			vs.VirtualHost = &gatewayv1.VirtualHost{}
-		}
-
-		if input.GetRateLimitConfig() != nil {
-			if vs.GetVirtualHost().GetOptions() == nil {
-				vs.VirtualHost.Options = &gloov1.VirtualHostOptions{}
-			}
-			if input.GetRateLimitConfig() != nil {
-				if vs.VirtualHost.Options.GetExtensions().GetConfigs() != nil {
-					delete(vs.VirtualHost.Options.Extensions.Configs, ratelimit.ExtensionName)
-				}
-				vs.VirtualHost.Options.RatelimitBasic = input.GetRateLimitConfig()
-			}
-		}
-
-		vs.DisplayName = input.GetDisplayName()
-		vs.VirtualHost.Domains = input.GetDomains()
-		vs.VirtualHost.Routes = input.GetRoutes()
-		return nil
-	}
 }
 
 // Only sets fields that are non-nil in the input to allow for delta-style updates.

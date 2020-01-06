@@ -86,11 +86,6 @@ export namespace GetGatewayResponse {
 }
 
 export class ListGatewaysRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListGatewaysRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListGatewaysRequest): ListGatewaysRequest.AsObject;
@@ -103,7 +98,6 @@ export class ListGatewaysRequest extends jspb.Message {
 
 export namespace ListGatewaysRequest {
   export type AsObject = {
-    namespacesList: Array<string>,
   }
 }
 

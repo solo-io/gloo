@@ -34,7 +34,7 @@ export const createSecret = (
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await secrets.getCreateSecret(createSecretRequest);
+      const response = await secrets.createSecret(createSecretRequest);
       dispatch<CreateSecretAction>({
         type: SecretAction.CREATE_SECRET,
         payload: response.secret!

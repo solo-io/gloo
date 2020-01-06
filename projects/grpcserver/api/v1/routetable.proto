@@ -22,8 +22,7 @@ message GetRouteTableResponse {
     RouteTableDetails route_table_details = 1;
 }
 
-message ListRouteTablesRequest {
-}
+message ListRouteTablesRequest {}
 
 message ListRouteTablesResponse {
     repeated RouteTableDetails route_table_details = 1;

@@ -9,7 +9,9 @@ import {
   GetSecretRequest,
   CreateSecretResponse,
   GetSecretResponse,
-  DeleteSecretResponse
+  DeleteSecretResponse,
+  UpdateSecretRequest,
+  UpdateSecretResponse
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { SecretValuesType } from 'Components/Features/Settings/SecretForm';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
@@ -20,6 +22,11 @@ import {
   AzureSecret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import { guardByLicense } from 'store/config/actions';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import {
+  OauthSecret,
+  ApiKeySecret
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 
 const client = new SecretApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -44,76 +51,95 @@ function getSecretsList(): Promise<ListSecretsResponse.AsObject> {
 
 function getSecret(
   getSecretRequest: GetSecretRequest.AsObject
-): Promise<GetSecretResponse.AsObject> {
-  const { name, namespace } = getSecretRequest.ref!;
-  let request = new GetSecretRequest();
-  let ref = new ResourceRef();
-  ref.setName(name);
-  ref.setNamespace(namespace);
-  request.setRef();
+): Promise<Secret> {
   return new Promise((resolve, reject) => {
+    const { name, namespace } = getSecretRequest.ref!;
+    let request = new GetSecretRequest();
+    let ref = new ResourceRef();
+    ref.setName(name);
+    ref.setNamespace(namespace);
+    request.setRef();
+
     client.getSecret(request, (error, data) => {
       if (error !== null) {
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data?.getSecret());
       }
     });
   });
 }
 
-function setSecretRequest(params: {
-  secretKind: Secret.KindCase;
-  values: SecretValuesType;
-}) {
-  const { secretKind, values } = params;
-  let newSecret = new CreateSecretRequest();
-  switch (secretKind) {
-    case Secret.KindCase.AWS:
-      const { accessKey, secretKey } = values.awsSecret;
-      const awsSecret = new AwsSecret();
-      awsSecret.setAccessKey(accessKey);
-      awsSecret.setSecretKey(secretKey);
-      newSecret.setAws(awsSecret);
-      break;
-    case Secret.KindCase.TLS:
-      const tlsSecret = new TlsSecret();
-      tlsSecret.setCertChain(values.tlsSecret.certChain);
-      tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
-      tlsSecret.setRootCa(values.tlsSecret.rootCa);
-      newSecret.setTls(tlsSecret);
-    default:
-      throw new Error('Not supported');
+function setSecretValues(
+  secret: Secret.AsObject,
+  secretToUpdate = new Secret()
+): Secret {
+  let { aws, azure, tls, oauth, apiKey, extensions, metadata } = secret;
+  if (metadata !== undefined) {
+    let { name, namespace } = metadata;
+    let newMetadata = new Metadata();
+    newMetadata.setName(name);
+    newMetadata.setNamespace(namespace);
+    secretToUpdate.setMetadata(newMetadata);
   }
-  return newSecret;
+
+  if (aws !== undefined) {
+    let { accessKey, secretKey } = aws;
+    let awsSecret = new AwsSecret();
+    awsSecret.setAccessKey(accessKey);
+    awsSecret.setSecretKey(secretKey);
+    secretToUpdate.setAws(awsSecret);
+  }
+
+  if (azure !== undefined) {
+    let { apiKeysMap } = azure;
+
+    let azureSecret = new AzureSecret();
+    apiKeysMap.forEach(([key, val]) => {
+      azureSecret.getApiKeysMap().set(key, val);
+    });
+    secretToUpdate.setAzure(azureSecret);
+  }
+  if (tls !== undefined) {
+    let { certChain, rootCa, privateKey } = tls;
+    let tlsSecret = new TlsSecret();
+    tlsSecret.setCertChain(certChain);
+    tlsSecret.setRootCa(rootCa);
+    tlsSecret.setPrivateKey(privateKey);
+    secretToUpdate.setTls(tlsSecret);
+  }
+
+  if (oauth !== undefined) {
+    let { clientSecret } = oauth;
+    let oauthSecret = new OauthSecret();
+    oauthSecret.setClientSecret(clientSecret);
+    secretToUpdate.setOauth(oauthSecret);
+  }
+  if (apiKey !== undefined) {
+    let { apiKey: apiKeyValue, labelsList, generateApiKey } = apiKey;
+    let apiKeySecret = new ApiKeySecret();
+    apiKeySecret.setApiKey(apiKeyValue);
+    apiKeySecret.setLabelsList(labelsList);
+    apiKeySecret.setGenerateApiKey(generateApiKey);
+    secretToUpdate.setApiKey(apiKeySecret);
+  }
+  // TODO
+  if (extensions !== undefined) {
+    let { configsMap } = extensions;
+  }
+
+  return secretToUpdate;
 }
 
-// TODO: Support other secrets
-function getCreateSecret(
+function createSecret(
   createSecretRequest: CreateSecretRequest.AsObject
 ): Promise<CreateSecretResponse.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new CreateSecretRequest();
-    let ref = new ResourceRef();
-    ref.setName(createSecretRequest.ref!.name);
-    ref.setNamespace(createSecretRequest.ref!.namespace);
-    request.setRef(ref);
-    let awsSecret = new AwsSecret();
-    let tlsSecret = new TlsSecret();
-    let azureSecret = new AzureSecret();
-
-    if (createSecretRequest.aws) {
-      const { accessKey, secretKey } = createSecretRequest.aws;
-      awsSecret.setAccessKey(accessKey);
-      awsSecret.setSecretKey(secretKey);
-      request.setAws(awsSecret);
-    }
-    if (createSecretRequest.tls) {
-      const { certChain, privateKey, rootCa } = createSecretRequest.tls;
-      tlsSecret.setCertChain(certChain);
-      tlsSecret.setPrivateKey(privateKey);
-      tlsSecret.setRootCa(rootCa);
-      request.setTls(tlsSecret);
+    let { secret } = createSecretRequest;
+    if (secret !== undefined) {
+      let inputSecret = setSecretValues(secret);
+      request.setSecret(inputSecret);
     }
 
     guardByLicense();
@@ -130,28 +156,26 @@ function getCreateSecret(
   });
 }
 
-function createSecret(params: {
-  name: string;
-  namespace: string;
-  values: SecretValuesType;
-  secretKind: Secret.KindCase;
-}) {
-  const { name, namespace, values, secretKind } = params;
-  let newSecretReq = setSecretRequest({ secretKind, values });
-  let newSecretRef = new ResourceRef();
-  newSecretRef.setName(name);
-  newSecretRef.setNamespace(namespace);
-  newSecretReq.setRef(newSecretRef);
-  return new Promise((resolve, reject) => {
-    guardByLicense();
-    client.createSecret(newSecretReq, (error, data) => {
+function updateSecret(
+  updateSecretRequest: UpdateSecretRequest.AsObject
+): Promise<UpdateSecretResponse.AsObject> {
+  return new Promise(async (resolve, reject) => {
+    let request = new UpdateSecretRequest();
+    let { secret } = updateSecretRequest;
+    if (secret !== undefined && secret.metadata !== undefined) {
+      let { name, namespace } = secret.metadata;
+      let secretToUpdate = await getSecret({ ref: { name, namespace } });
+      let updatedSecret = setSecretValues(secret, secretToUpdate);
+      request.setSecret(updatedSecret);
+    }
+    client.updateSecret(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!);
+        resolve(data!.toObject());
       }
     });
   });
@@ -186,6 +210,6 @@ export const secrets = {
   getSecretsList,
   getSecret,
   createSecret,
-  deleteSecret,
-  getCreateSecret
+  updateSecret,
+  deleteSecret
 };

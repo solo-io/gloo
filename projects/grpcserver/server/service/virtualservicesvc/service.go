@@ -12,7 +12,6 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
@@ -72,7 +71,7 @@ func (s *virtualServiceGrpcService) GetVirtualService(ctx context.Context, reque
 	}
 
 	details := s.detailsConverter.GetDetails(s.ctx, virtualService)
-	return &v1.GetVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.GetVirtualServiceResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, request *v1.ListVirtualServicesRequest) (*v1.ListVirtualServicesResponse, error) {
@@ -92,23 +91,12 @@ func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, req
 		detailsList = append(detailsList, s.detailsConverter.GetDetails(s.ctx, vs))
 	}
 
-	return &v1.ListVirtualServicesResponse{VirtualServices: virtualServiceList, VirtualServiceDetails: detailsList}, nil
+	return &v1.ListVirtualServicesResponse{VirtualServiceDetails: detailsList}, nil
 }
 
 func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, request *v1.CreateVirtualServiceRequest) (*v1.CreateVirtualServiceResponse, error) {
-	var ref *core.ResourceRef
-	var createMutation mutation.Mutation
-
-	if request.GetInputV2() != nil {
-		ref = request.GetInputV2().GetRef()
-		createMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
-	} else if request.GetInput() != nil {
-		ref = request.GetInput().GetRef()
-		createMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
-	} else {
-		return nil, InvalidInputError
-	}
-
+	ref := request.GetInputV2().GetRef()
+	createMutation := s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
 	written, err := s.mutator.Create(ref, createMutation)
 	if err != nil {
 		wrapped := FailedToCreateVirtualServiceError(err, ref)
@@ -117,23 +105,12 @@ func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, re
 	}
 
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.CreateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.CreateVirtualServiceResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, request *v1.UpdateVirtualServiceRequest) (*v1.UpdateVirtualServiceResponse, error) {
-	var ref *core.ResourceRef
-	var updateMutation mutation.Mutation
-
-	if request.GetInputV2() != nil {
-		ref = request.GetInputV2().GetRef()
-		updateMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
-	} else if request.GetInput() != nil {
-		ref = request.GetInput().GetRef()
-		updateMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
-	} else {
-		return nil, InvalidInputError
-	}
-
+	ref := request.GetInputV2().GetRef()
+	updateMutation := s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
 	written, err := s.mutator.Update(ref, updateMutation)
 	if err != nil {
 		wrapped := FailedToUpdateVirtualServiceError(err, ref)
@@ -141,7 +118,7 @@ func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, re
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.UpdateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.UpdateVirtualServiceResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) UpdateVirtualServiceYaml(ctx context.Context, request *v1.UpdateVirtualServiceYamlRequest) (*v1.UpdateVirtualServiceResponse, error) {
@@ -171,7 +148,7 @@ func (s *virtualServiceGrpcService) UpdateVirtualServiceYaml(ctx context.Context
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.UpdateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.UpdateVirtualServiceResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) DeleteVirtualService(ctx context.Context, request *v1.DeleteVirtualServiceRequest) (*v1.DeleteVirtualServiceResponse, error) {
@@ -202,7 +179,7 @@ func (s *virtualServiceGrpcService) CreateRoute(ctx context.Context, request *v1
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.CreateRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.CreateRouteResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) UpdateRoute(ctx context.Context, request *v1.UpdateRouteRequest) (*v1.UpdateRouteResponse, error) {
@@ -213,7 +190,7 @@ func (s *virtualServiceGrpcService) UpdateRoute(ctx context.Context, request *v1
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.UpdateRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.UpdateRouteResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) DeleteRoute(ctx context.Context, request *v1.DeleteRouteRequest) (*v1.DeleteRouteResponse, error) {
@@ -224,7 +201,7 @@ func (s *virtualServiceGrpcService) DeleteRoute(ctx context.Context, request *v1
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.DeleteRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.DeleteRouteResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) SwapRoutes(ctx context.Context, request *v1.SwapRoutesRequest) (*v1.SwapRoutesResponse, error) {
@@ -235,7 +212,7 @@ func (s *virtualServiceGrpcService) SwapRoutes(ctx context.Context, request *v1.
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.SwapRoutesResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.SwapRoutesResponse{VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) ShiftRoutes(ctx context.Context, request *v1.ShiftRoutesRequest) (*v1.ShiftRoutesResponse, error) {
@@ -246,5 +223,5 @@ func (s *virtualServiceGrpcService) ShiftRoutes(ctx context.Context, request *v1
 		return nil, wrapped
 	}
 	details := s.detailsConverter.GetDetails(s.ctx, written)
-	return &v1.ShiftRoutesResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
+	return &v1.ShiftRoutesResponse{VirtualServiceDetails: details}, nil
 }

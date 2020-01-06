@@ -153,8 +153,6 @@ var _ = Describe("ServiceTest", func() {
 					Return(artifact, nil)
 
 				request := &v1.CreateArtifactRequest{
-					Ref:      nil,
-					Data:     nil,
 					Artifact: artifact,
 				}
 				actual, err := apiserver.CreateArtifact(context.TODO(), request)
@@ -170,8 +168,6 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 
 				request := &v1.CreateArtifactRequest{
-					Ref:      nil,
-					Data:     nil,
 					Artifact: artifact,
 				}
 				_, err := apiserver.CreateArtifact(context.TODO(), request)
@@ -180,54 +176,6 @@ var _ = Describe("ServiceTest", func() {
 					Namespace: "ns",
 					Name:      "name",
 				})
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-		Context("with legacy input objects", func() {
-			BeforeEach(func() {
-				licenseClient.EXPECT().IsLicenseValid().Return(nil)
-			})
-			It("works when the artifact client works", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "n",
-				}
-				ref := metadata.Ref()
-				artifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "asdf"},
-					Metadata: metadata,
-				}
-
-				artifactClient.EXPECT().
-					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-					Return(&artifact, nil)
-
-				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				actual, err := apiserver.CreateArtifact(context.TODO(), request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateArtifactResponse{Artifact: &artifact}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the artifact client errors", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-				artifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "asdf"},
-					Metadata: metadata,
-				}
-
-				artifactClient.EXPECT().
-					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-					Return(nil, testErr)
-
-				request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := apiserver.CreateArtifact(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})
@@ -272,8 +220,6 @@ var _ = Describe("ServiceTest", func() {
 					Return(nil, testErr)
 
 				request := &v1.UpdateArtifactRequest{
-					Ref:      nil,
-					Data:     nil,
 					Artifact: testArtifact,
 				}
 				_, err := apiserver.UpdateArtifact(context.TODO(), request)
@@ -282,87 +228,6 @@ var _ = Describe("ServiceTest", func() {
 					Name:      name,
 					Namespace: namespace,
 				})
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-
-		Context("with legacy input objects", func() {
-			It("works when the artifact client works", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-				oldArtifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "asdf"},
-					Metadata: metadata,
-				}
-				newArtifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "qwerty"},
-					Metadata: metadata,
-				}
-
-				licenseClient.EXPECT().IsLicenseValid().Return(nil)
-				artifactClient.EXPECT().
-					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(&oldArtifact, nil)
-				artifactClient.EXPECT().
-					Write(&newArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(&newArtifact, nil)
-
-				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: newArtifact.Data}
-				actual, err := apiserver.UpdateArtifact(context.TODO(), request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateArtifactResponse{Artifact: &newArtifact}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the artifact client errors on read", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-				artifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "asdf"},
-					Metadata: metadata,
-				}
-
-				licenseClient.EXPECT().IsLicenseValid().Return(nil)
-				artifactClient.EXPECT().
-					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(nil, testErr)
-
-				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := apiserver.UpdateArtifact(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-
-			It("errors when the artifact client errors on write", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-				artifact := gloov1.Artifact{
-					Data:     map[string]string{"test": "asdf"},
-					Metadata: metadata,
-				}
-
-				licenseClient.EXPECT().IsLicenseValid().Return(nil)
-				artifactClient.EXPECT().
-					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(&artifact, nil)
-				artifactClient.EXPECT().
-					Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(nil, testErr)
-
-				request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
-				_, err := apiserver.UpdateArtifact(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})

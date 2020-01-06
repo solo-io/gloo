@@ -598,19 +598,12 @@ proto.glooeeapi.solo.io.GetProxyResponse.prototype.hasProxyDetails = function() 
  * @constructor
  */
 proto.glooeeapi.solo.io.ListProxiesRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListProxiesRequest.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.ListProxiesRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.ListProxiesRequest.displayName = 'proto.glooeeapi.solo.io.ListProxiesRequest';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.ListProxiesRequest.repeatedFields_ = [1];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -640,7 +633,7 @@ proto.glooeeapi.solo.io.ListProxiesRequest.prototype.toObject = function(opt_inc
  */
 proto.glooeeapi.solo.io.ListProxiesRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespacesList: jspb.Message.getRepeatedField(msg, 1)
+
   };
 
   if (includeInstance) {
@@ -677,10 +670,6 @@ proto.glooeeapi.solo.io.ListProxiesRequest.deserializeBinaryFromReader = functio
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaces(value);
-      break;
     default:
       reader.skipField();
       break;
@@ -710,42 +699,6 @@ proto.glooeeapi.solo.io.ListProxiesRequest.prototype.serializeBinary = function(
  */
 proto.glooeeapi.solo.io.ListProxiesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespacesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * repeated string namespaces = 1;
- * @return {!Array<string>}
- */
-proto.glooeeapi.solo.io.ListProxiesRequest.prototype.getNamespacesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
-};
-
-
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListProxiesRequest.prototype.setNamespacesList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.glooeeapi.solo.io.ListProxiesRequest.prototype.addNamespaces = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.ListProxiesRequest.prototype.clearNamespacesList = function() {
-  this.setNamespacesList([]);
 };
 
 

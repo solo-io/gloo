@@ -3,12 +3,6 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb";
@@ -64,11 +58,6 @@ export namespace GetUpstreamRequest {
 }
 
 export class GetUpstreamResponse extends jspb.Message {
-  hasUpstream(): boolean;
-  clearUpstream(): void;
-  getUpstream(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
-  setUpstream(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
-
   hasUpstreamDetails(): boolean;
   clearUpstreamDetails(): void;
   getUpstreamDetails(): UpstreamDetails | undefined;
@@ -86,17 +75,11 @@ export class GetUpstreamResponse extends jspb.Message {
 
 export namespace GetUpstreamResponse {
   export type AsObject = {
-    upstream?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
     upstreamDetails?: UpstreamDetails.AsObject,
   }
 }
 
 export class ListUpstreamsRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListUpstreamsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListUpstreamsRequest): ListUpstreamsRequest.AsObject;
@@ -109,16 +92,10 @@ export class ListUpstreamsRequest extends jspb.Message {
 
 export namespace ListUpstreamsRequest {
   export type AsObject = {
-    namespacesList: Array<string>,
   }
 }
 
 export class ListUpstreamsResponse extends jspb.Message {
-  clearUpstreamsList(): void;
-  getUpstreamsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
-  setUpstreamsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
-  addUpstreams(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
-
   clearUpstreamDetailsList(): void;
   getUpstreamDetailsList(): Array<UpstreamDetails>;
   setUpstreamDetailsList(value: Array<UpstreamDetails>): void;
@@ -136,86 +113,11 @@ export class ListUpstreamsResponse extends jspb.Message {
 
 export namespace ListUpstreamsResponse {
   export type AsObject = {
-    upstreamsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
     upstreamDetailsList: Array<UpstreamDetails.AsObject>,
   }
 }
 
-export class UpstreamInput extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  hasKube(): boolean;
-  clearKube(): void;
-  getKube(): github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec | undefined;
-  setKube(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec): void;
-
-  hasStatic(): boolean;
-  clearStatic(): void;
-  getStatic(): github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec | undefined;
-  setStatic(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec): void;
-
-  hasAws(): boolean;
-  clearAws(): void;
-  getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec | undefined;
-  setAws(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec): void;
-
-  hasAzure(): boolean;
-  clearAzure(): void;
-  getAzure(): github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec | undefined;
-  setAzure(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec): void;
-
-  hasConsul(): boolean;
-  clearConsul(): void;
-  getConsul(): github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec | undefined;
-  setConsul(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec): void;
-
-  hasAwsEc2(): boolean;
-  clearAwsEc2(): void;
-  getAwsEc2(): github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec | undefined;
-  setAwsEc2(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec): void;
-
-  getSpecCase(): UpstreamInput.SpecCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): UpstreamInput.AsObject;
-  static toObject(includeInstance: boolean, msg: UpstreamInput): UpstreamInput.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: UpstreamInput, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): UpstreamInput;
-  static deserializeBinaryFromReader(message: UpstreamInput, reader: jspb.BinaryReader): UpstreamInput;
-}
-
-export namespace UpstreamInput {
-  export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    kube?: github_com_solo_io_gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
-    pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec.AsObject,
-    aws?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec.AsObject,
-    azure?: github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec.AsObject,
-    consul?: github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.AsObject,
-    awsEc2?: github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
-  }
-
-  export enum SpecCase {
-    SPEC_NOT_SET = 0,
-    KUBE = 2,
-    STATIC = 3,
-    AWS = 4,
-    AZURE = 5,
-    CONSUL = 6,
-    AWS_EC2 = 7,
-  }
-}
-
 export class CreateUpstreamRequest extends jspb.Message {
-  hasInput(): boolean;
-  clearInput(): void;
-  getInput(): UpstreamInput | undefined;
-  setInput(value?: UpstreamInput): void;
-
   hasUpstreamInput(): boolean;
   clearUpstreamInput(): void;
   getUpstreamInput(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
@@ -233,17 +135,11 @@ export class CreateUpstreamRequest extends jspb.Message {
 
 export namespace CreateUpstreamRequest {
   export type AsObject = {
-    input?: UpstreamInput.AsObject,
     upstreamInput?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
   }
 }
 
 export class CreateUpstreamResponse extends jspb.Message {
-  hasUpstream(): boolean;
-  clearUpstream(): void;
-  getUpstream(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
-  setUpstream(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
-
   hasUpstreamDetails(): boolean;
   clearUpstreamDetails(): void;
   getUpstreamDetails(): UpstreamDetails | undefined;
@@ -261,17 +157,11 @@ export class CreateUpstreamResponse extends jspb.Message {
 
 export namespace CreateUpstreamResponse {
   export type AsObject = {
-    upstream?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
     upstreamDetails?: UpstreamDetails.AsObject,
   }
 }
 
 export class UpdateUpstreamRequest extends jspb.Message {
-  hasInput(): boolean;
-  clearInput(): void;
-  getInput(): UpstreamInput | undefined;
-  setInput(value?: UpstreamInput): void;
-
   hasUpstreamInput(): boolean;
   clearUpstreamInput(): void;
   getUpstreamInput(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
@@ -289,17 +179,11 @@ export class UpdateUpstreamRequest extends jspb.Message {
 
 export namespace UpdateUpstreamRequest {
   export type AsObject = {
-    input?: UpstreamInput.AsObject,
     upstreamInput?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
   }
 }
 
 export class UpdateUpstreamResponse extends jspb.Message {
-  hasUpstream(): boolean;
-  clearUpstream(): void;
-  getUpstream(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
-  setUpstream(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
-
   hasUpstreamDetails(): boolean;
   clearUpstreamDetails(): void;
   getUpstreamDetails(): UpstreamDetails | undefined;
@@ -317,7 +201,6 @@ export class UpdateUpstreamResponse extends jspb.Message {
 
 export namespace UpdateUpstreamResponse {
   export type AsObject = {
-    upstream?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
     upstreamDetails?: UpstreamDetails.AsObject,
   }
 }

@@ -66,41 +66,13 @@ message GetVirtualServiceRequest {
 }
 
 message GetVirtualServiceResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
-message ListVirtualServicesRequest {
-    // Deprecated. `List` calls will now query all WatchNamespaces.
-    repeated string namespaces = 1;
-}
+message ListVirtualServicesRequest {}
 
 message ListVirtualServicesResponse {
-    // Deprecated. Use virtual_service_details.
-    repeated gateway.solo.io.VirtualService virtual_services = 1;
     repeated VirtualServiceDetails virtual_service_details = 2;
-}
-
-// Deprecated. Use VirtualServiceInputV2
-message VirtualServiceInput {
-    core.solo.io.ResourceRef ref = 1;
-    string display_name = 2;
-    repeated string domains = 3;
-    repeated gateway.solo.io.Route routes = 4;
-    core.solo.io.ResourceRef secret_ref = 5;
-    ratelimit.options.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
-
-    message BasicAuthInput {
-        string realm = 1;
-        string spec_csv = 2;
-    }
-
-    oneof ext_auth_config {
-        BasicAuthInput basic_auth = 7;
-        enterprise.gloo.solo.io.OAuth oauth = 8;
-        enterprise.gloo.solo.io.CustomAuth custom_auth = 9;
-    }
 }
 
 message VirtualServiceInputV2 {
@@ -114,18 +86,14 @@ message VirtualServiceInputV2 {
 }
 
 message CreateVirtualServiceRequest {
-    VirtualServiceInput input = 1;
     VirtualServiceInputV2 input_v2 = 2;
 }
 
 message CreateVirtualServiceResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
 message UpdateVirtualServiceRequest {
-    VirtualServiceInput input = 1;
     VirtualServiceInputV2 input_v2 = 2;
 }
 
@@ -134,8 +102,6 @@ message UpdateVirtualServiceYamlRequest {
 }
 
 message UpdateVirtualServiceResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
@@ -158,8 +124,6 @@ message CreateRouteRequest {
 }
 
 message CreateRouteResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
@@ -168,8 +132,6 @@ message UpdateRouteRequest {
 }
 
 message UpdateRouteResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
@@ -179,8 +141,6 @@ message DeleteRouteRequest {
 }
 
 message DeleteRouteResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
@@ -191,8 +151,6 @@ message SwapRoutesRequest {
 }
 
 message SwapRoutesResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 
@@ -203,8 +161,6 @@ message ShiftRoutesRequest {
 }
 
 message ShiftRoutesResponse {
-    // Deprecated. Use virtual_service_details.
-    gateway.solo.io.VirtualService virtual_service = 1;
     VirtualServiceDetails virtual_service_details = 2;
 }
 

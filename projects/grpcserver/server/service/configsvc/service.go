@@ -11,11 +11,9 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
 
 	"github.com/gogo/protobuf/types"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/pkg/license"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
@@ -93,46 +91,16 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	var (
-		settingsToWrite *gloov1.Settings
-		refreshRate     *types.Duration
-		ref             *core.ResourceRef
-		err             error
-	)
 
-	if request.GetSettings() == nil {
-		refreshRate = request.GetRefreshRate()
-		watchNamespaces := request.GetWatchNamespaces()
-		ref = request.GetRef()
-
-		settingsToWrite, err = s.clientCache.GetSettingsClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
-		if err != nil {
-			wrapped := FailedToUpdateSettingsError(err)
-			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-			return nil, wrapped
-		}
-
-		settingsToWrite.WatchNamespaces = watchNamespaces
-		settingsToWrite.Status = core.Status{}
-		if refreshRate != nil {
-			settingsToWrite.RefreshRate = refreshRate
-		}
-	} else {
-		settingsToWrite = request.GetSettings()
-		settingsRef := settingsToWrite.GetMetadata().Ref()
-		ref = &settingsRef
-		refreshRate = settingsToWrite.GetRefreshRate()
-	}
-
-	if refreshRate != nil {
-		if err := validateRefreshRate(refreshRate); err != nil {
+	if request.GetSettings().GetRefreshRate() != nil {
+		if err := validateRefreshRate(request.GetSettings().GetRefreshRate()); err != nil {
 			wrapped := FailedToUpdateSettingsError(err)
 			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
 	}
 
-	written, err := s.clientCache.GetSettingsClient().Write(settingsToWrite, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	written, err := s.clientCache.GetSettingsClient().Write(request.GetSettings(), clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		wrapped := FailedToUpdateSettingsError(err)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

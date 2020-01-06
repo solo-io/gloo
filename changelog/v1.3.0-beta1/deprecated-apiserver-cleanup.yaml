@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Remove all deprecated fields and messages from apiserver protos and code.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1368

@@ -22,7 +22,6 @@ import (
 	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
-	mock_mutator "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation/mocks"
 )
 
 var (
@@ -32,8 +31,6 @@ var (
 	clientCache      *clientmocks.MockClientCache
 	upstreamSearcher *searchmocks.MockUpstreamSearcher
 	licenseClient    *mock_license.MockClient
-	mutator          *mock_mutator.MockMutator
-	factory          *mock_mutator.MockFactory
 	settingsValues   *mock_settings.MockValuesClient
 	rawGetter        *mock_rawgetter.MockRawGetter
 	truncator        *mock_truncate.MockUpstreamTruncator
@@ -60,14 +57,12 @@ var _ = Describe("ServiceTest", func() {
 		upstreamClient = mock_gloo.NewMockUpstreamClient(mockCtrl)
 		upstreamSearcher = searchmocks.NewMockUpstreamSearcher(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
-		mutator = mock_mutator.NewMockMutator(mockCtrl)
-		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 		clientCache = clientmocks.NewMockClientCache(mockCtrl)
 		truncator = mock_truncate.NewMockUpstreamTruncator(mockCtrl)
 		clientCache.EXPECT().GetUpstreamClient().Return(upstreamClient).AnyTimes()
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, mutator, factory, rawGetter, upstreamSearcher, truncator)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), clientCache, licenseClient, settingsValues, rawGetter, upstreamSearcher, truncator)
 	})
 
 	AfterEach(func() {
@@ -97,7 +92,7 @@ var _ = Describe("ServiceTest", func() {
 			request := &v1.GetUpstreamRequest{Ref: &ref}
 			actual, err := apiserver.GetUpstream(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
+			expected := &v1.GetUpstreamResponse{UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -153,7 +148,6 @@ var _ = Describe("ServiceTest", func() {
 			actual, err := apiserver.ListUpstreams(context.TODO(), &v1.ListUpstreamsRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ListUpstreamsResponse{
-				Upstreams:       []*gloov1.Upstream{upstream1, upstream2},
 				UpstreamDetails: []*v1.UpstreamDetails{getDetails(upstream1, raw1), getDetails(upstream2, raw2)},
 			}
 			ExpectEqualProtoMessages(actual, expected)
@@ -178,140 +172,11 @@ var _ = Describe("ServiceTest", func() {
 		BeforeEach(func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
-		Context("with unified input objects", func() {
-			It("works when the mutator works", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-
-				upstream := &gloov1.Upstream{
-					Metadata: metadata,
-					UpstreamType: &gloov1.Upstream_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				}
-				raw := getRaw("name")
-
-				mutator.EXPECT().
-					CreateUpstream(context.TODO(), upstream).
-					Return(upstream, nil)
-				rawGetter.EXPECT().
-					GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
-					Return(raw)
-
-				actual, err := apiserver.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{
-					UpstreamInput: upstream,
-				})
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the mutator errors", func() {
-				metadata := core.Metadata{}
-				ref := metadata.Ref()
-				upstream := &gloov1.Upstream{
-					Metadata: metadata,
-					UpstreamType: &gloov1.Upstream_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				}
-
-				mutator.EXPECT().
-					CreateUpstream(context.TODO(), upstream).
-					Return(nil, testErr)
-
-				request := &v1.CreateUpstreamRequest{
-					UpstreamInput: upstream,
-				}
-				_, err := apiserver.CreateUpstream(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, &ref)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-		Context("with legacy input objects", func() {
-			getInput := func(ref *core.ResourceRef) *v1.UpstreamInput {
-				return &v1.UpstreamInput{
-					Ref: ref,
-					Spec: &v1.UpstreamInput_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				}
-			}
-
-			It("works when the mutator works", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-
-				upstream := &gloov1.Upstream{
-					Metadata: metadata,
-					UpstreamType: &gloov1.Upstream_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				}
-				raw := getRaw("name")
-
-				factory.EXPECT().ConfigureUpstream(getInput(&ref))
-				mutator.EXPECT().
-					Create(context.TODO(), &ref, gomock.Any()).
-					Return(upstream, nil)
-				rawGetter.EXPECT().
-					GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
-					Return(raw)
-
-				actual, err := apiserver.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{Input: getInput(&ref)})
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the mutator errors", func() {
-				metadata := core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				ref := metadata.Ref()
-
-				factory.EXPECT().ConfigureUpstream(getInput(&ref))
-				mutator.EXPECT().
-					Create(context.TODO(), &ref, gomock.Any()).
-					Return(nil, testErr)
-
-				request := &v1.CreateUpstreamRequest{
-					Input: getInput(&ref),
-				}
-				_, err := apiserver.CreateUpstream(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, &ref)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-	})
-
-	Describe("UpdateUpstream", func() {
-		BeforeEach(func() {
-			licenseClient.EXPECT().IsLicenseValid().Return(nil)
-		})
-		getInput := func(ref *core.ResourceRef) *v1.UpstreamInput {
-			return &v1.UpstreamInput{
-				Ref: ref,
-				Spec: &v1.UpstreamInput_Aws{
-					Aws: &aws.UpstreamSpec{Region: "test"},
-				},
-			}
-		}
-
-		It("works when the mutator works", func() {
+		It("works when the upstreams client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
-			ref := metadata.Ref()
 
 			upstream := &gloov1.Upstream{
 				Metadata: metadata,
@@ -321,33 +186,97 @@ var _ = Describe("ServiceTest", func() {
 			}
 			raw := getRaw("name")
 
-			factory.EXPECT().ConfigureUpstream(getInput(&ref))
-			mutator.EXPECT().
-				Update(context.TODO(), &ref, gomock.Any()).
+			upstreamClient.EXPECT().
+				Write(upstream, clients.WriteOpts{Ctx: context.TODO()}).
 				Return(upstream, nil)
 			rawGetter.EXPECT().
 				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
 				Return(raw)
 
-			actual, err := apiserver.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
+			actual, err := apiserver.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{
+				UpstreamInput: upstream,
+			})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateUpstreamResponse{Upstream: upstream, UpstreamDetails: getDetails(upstream, raw)}
+			expected := &v1.CreateUpstreamResponse{UpstreamDetails: getDetails(upstream, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the mutator errors", func() {
+		It("errors when the upstream client errors", func() {
+			metadata := core.Metadata{}
+			ref := metadata.Ref()
+			upstream := &gloov1.Upstream{
+				Metadata: metadata,
+				UpstreamType: &gloov1.Upstream_Aws{
+					Aws: &aws.UpstreamSpec{Region: "test"},
+				},
+			}
+
+			upstreamClient.EXPECT().
+				Write(upstream, clients.WriteOpts{Ctx: context.TODO()}).
+				Return(nil, testErr)
+
+			request := &v1.CreateUpstreamRequest{
+				UpstreamInput: upstream,
+			}
+			_, err := apiserver.CreateUpstream(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
+
+	Describe("UpdateUpstream", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
+
+		It("works when the upstreams client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
-			ref := metadata.Ref()
 
-			factory.EXPECT().ConfigureUpstream(getInput(&ref))
-			mutator.EXPECT().
-				Update(context.TODO(), &ref, gomock.Any()).
+			upstream := &gloov1.Upstream{
+				Metadata: metadata,
+				UpstreamType: &gloov1.Upstream_Aws{
+					Aws: &aws.UpstreamSpec{Region: "test"},
+				},
+			}
+			raw := getRaw("name")
+
+			upstreamClient.EXPECT().
+				Write(upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(upstream, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
+				Return(raw)
+
+			actual, err := apiserver.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{
+				UpstreamInput: upstream,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			expected := &v1.UpdateUpstreamResponse{UpstreamDetails: getDetails(upstream, raw)}
+			ExpectEqualProtoMessages(actual, expected)
+		})
+
+		It("errors when the upstream client errors", func() {
+			metadata := core.Metadata{}
+			ref := metadata.Ref()
+			upstream := &gloov1.Upstream{
+				Metadata: metadata,
+				UpstreamType: &gloov1.Upstream_Aws{
+					Aws: &aws.UpstreamSpec{Region: "test"},
+				},
+			}
+
+			upstreamClient.EXPECT().
+				Write(upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 				Return(nil, testErr)
 
-			_, err := apiserver.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
+			request := &v1.UpdateUpstreamRequest{
+				UpstreamInput: upstream,
+			}
+			_, err := apiserver.UpdateUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

@@ -148,10 +148,7 @@ var _ = Describe("ServiceTest", func() {
 				refreshRate := types.Duration{Seconds: 1}
 				watchNamespaces := []string{"a", "b"}
 				request := &v1.UpdateSettingsRequest{
-					Ref:             nil,
-					RefreshRate:     nil,
-					WatchNamespaces: nil,
-					Settings:        buildSettings(watchNamespaces, &refreshRate),
+					Settings: buildSettings(watchNamespaces, &refreshRate),
 				}
 				writeSettings := buildSettings(watchNamespaces, &refreshRate)
 
@@ -169,9 +166,7 @@ var _ = Describe("ServiceTest", func() {
 			It("errors when the provided refresh rate is invalid", func() {
 				refreshRate := types.Duration{Nanos: 1}
 				request := &v1.UpdateSettingsRequest{
-					Ref:         nil,
-					RefreshRate: nil,
-					Settings:    buildSettings([]string{}, &refreshRate),
+					Settings: buildSettings([]string{}, &refreshRate),
 				}
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
@@ -189,152 +184,6 @@ var _ = Describe("ServiceTest", func() {
 					Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(nil, testErr)
 				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
-
-				_, err := apiserver.UpdateSettings(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-		})
-		Context("with legacy input objects", func() {
-			It("works", func() {
-				ref := core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				refreshRate := types.Duration{Seconds: 1}
-				watchNamespaces := []string{"a", "b"}
-				request := &v1.UpdateSettingsRequest{
-					Ref:             &ref,
-					RefreshRate:     &refreshRate,
-					WatchNamespaces: watchNamespaces,
-				}
-				readSettings := &gloov1.Settings{
-					Metadata: core.Metadata{
-						Namespace: ref.Namespace,
-						Name:      ref.Name,
-					},
-					RefreshRate:     &types.Duration{Seconds: 50},
-					WatchNamespaces: []string{"x", "y"},
-				}
-				writeSettings := &gloov1.Settings{
-					Metadata: core.Metadata{
-						Namespace: ref.Namespace,
-						Name:      ref.Name,
-					},
-					RefreshRate:     &refreshRate,
-					WatchNamespaces: watchNamespaces,
-				}
-
-				settingsClient.EXPECT().
-					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(readSettings, nil)
-				settingsClient.EXPECT().
-					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(writeSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
-
-				actual, err := apiserver.UpdateSettings(context.TODO(), request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateSettingsResponse{Settings: writeSettings}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("clears watch namespaces but not refresh rate when a request contains only a ref", func() {
-				ref := core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				request := &v1.UpdateSettingsRequest{Ref: &ref}
-				settings := &gloov1.Settings{
-					Metadata: core.Metadata{
-						Namespace: ref.Namespace,
-						Name:      ref.Name,
-					},
-					RefreshRate:     &types.Duration{Seconds: 50},
-					WatchNamespaces: []string{"x", "y"},
-				}
-				writtenSettings := &gloov1.Settings{
-					Metadata: core.Metadata{
-						Namespace: ref.Namespace,
-						Name:      ref.Name,
-					},
-					RefreshRate: &types.Duration{Seconds: 50},
-				}
-
-				settingsClient.EXPECT().
-					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(settings, nil)
-				settingsClient.EXPECT().
-					Write(writtenSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(writtenSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
-
-				actual, err := apiserver.UpdateSettings(context.TODO(), request)
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateSettingsResponse{Settings: writtenSettings}
-				ExpectEqualProtoMessages(actual, expected)
-			})
-
-			It("errors when the provided refresh rate is invalid", func() {
-				ref := core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				refreshRate := types.Duration{Nanos: 1}
-				request := &v1.UpdateSettingsRequest{
-					Ref:         &ref,
-					RefreshRate: &refreshRate,
-				}
-				readSettings := &gloov1.Settings{}
-
-				settingsClient.EXPECT().
-					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(readSettings, nil)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
-
-				_, err := apiserver.UpdateSettings(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := configsvc.InvalidRefreshRateError(1 * time.Nanosecond)
-				wrapped := configsvc.FailedToUpdateSettingsError(expectedErr)
-				Expect(err.Error()).To(ContainSubstring(wrapped.Error()))
-			})
-
-			It("errors when the settings client fails to read", func() {
-				ref := core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				request := &v1.UpdateSettingsRequest{
-					Ref: &ref,
-				}
-
-				settingsClient.EXPECT().
-					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(nil, testErr)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
-
-				_, err := apiserver.UpdateSettings(context.TODO(), request)
-				Expect(err).To(HaveOccurred())
-				expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			})
-
-			It("errors when the settings client fails to write", func() {
-				ref := core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				}
-				request := &v1.UpdateSettingsRequest{Ref: &ref}
-				settings := &gloov1.Settings{}
-
-				settingsClient.EXPECT().
-					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(settings, nil)
-				settingsClient.EXPECT().
-					Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(nil, testErr)
-				clientCache.EXPECT().GetSettingsClient().Return(settingsClient).Times(2)
 
 				_, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).To(HaveOccurred())

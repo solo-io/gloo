@@ -13,9 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
-var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_settings_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb.js');
-var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.glooeeapi.solo.io.GetIsLicenseValidRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.GetIsLicenseValidResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.GetOAuthEndpointRequest', null, global);
@@ -1020,19 +1018,12 @@ proto.glooeeapi.solo.io.GetSettingsResponse.prototype.hasSettings = function() {
  * @constructor
  */
 proto.glooeeapi.solo.io.UpdateSettingsRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.UpdateSettingsRequest.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.UpdateSettingsRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.UpdateSettingsRequest.displayName = 'proto.glooeeapi.solo.io.UpdateSettingsRequest';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.repeatedFields_ = [2];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1062,9 +1053,6 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.UpdateSettingsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    watchNamespacesList: jspb.Message.getRepeatedField(msg, 2),
-    refreshRate: (f = msg.getRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     settings: (f = msg.getSettings()) && github_com_solo$io_gloo_projects_gloo_api_v1_settings_pb.Settings.toObject(includeInstance, f)
   };
 
@@ -1102,20 +1090,6 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.deserializeBinaryFromReader = func
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addWatchNamespaces(value);
-      break;
-    case 3:
-      var value = new google_protobuf_duration_pb.Duration;
-      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
-      msg.setRefreshRate(value);
-      break;
     case 4:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_settings_pb.Settings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_settings_pb.Settings.deserializeBinaryFromReader);
@@ -1150,29 +1124,6 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.serializeBinary = functi
  */
 proto.glooeeapi.solo.io.UpdateSettingsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getWatchNamespacesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      2,
-      f
-    );
-  }
-  f = message.getRefreshRate();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
-    );
-  }
   f = message.getSettings();
   if (f != null) {
     writer.writeMessage(
@@ -1181,95 +1132,6 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.serializeBinaryToWriter = function
       github_com_solo$io_gloo_projects_gloo_api_v1_settings_pb.Settings.serializeBinaryToWriter
     );
   }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * repeated string watch_namespaces = 2;
- * @return {!Array<string>}
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.getWatchNamespacesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
-};
-
-
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setWatchNamespacesList = function(value) {
-  jspb.Message.setField(this, 2, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.addWatchNamespaces = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.clearWatchNamespacesList = function() {
-  this.setWatchNamespacesList([]);
-};
-
-
-/**
- * optional google.protobuf.Duration refresh_rate = 3;
- * @return {?proto.google.protobuf.Duration}
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.getRefreshRate = function() {
-  return /** @type{?proto.google.protobuf.Duration} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 3));
-};
-
-
-/** @param {?proto.google.protobuf.Duration|undefined} value */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setRefreshRate = function(value) {
-  jspb.Message.setWrapperField(this, 3, value);
-};
-
-
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.clearRefreshRate = function() {
-  this.setRefreshRate(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.hasRefreshRate = function() {
-  return jspb.Message.getField(this, 3) != null;
 };
 
 

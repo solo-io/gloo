@@ -5,12 +5,6 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
@@ -25,56 +19,29 @@ message GetUpstreamRequest {
 }
 
 message GetUpstreamResponse {
-    // Deprecated, use upstream_details
-    gloo.solo.io.Upstream upstream = 1;
     UpstreamDetails upstream_details = 2;
 }
 
-message ListUpstreamsRequest {
-    // Deprecated. `List` calls will now query all WatchNamespaces.
-    repeated string namespaces = 1;
-}
+message ListUpstreamsRequest {}
 
 message ListUpstreamsResponse {
-    // Deprecated, use upstream_details
-    repeated gloo.solo.io.Upstream upstreams = 1;
     // NOTE: These upstreams are at least partially truncated.
     // As of now, that only means that the descriptor field on gRPC upstreams is omitted for performance reasons.
     repeated UpstreamDetails upstream_details = 2;
 }
 
-message UpstreamInput {
-    core.solo.io.ResourceRef ref = 1;
-    oneof spec {
-        kubernetes.options.gloo.solo.io.UpstreamSpec kube = 2;
-        static.options.gloo.solo.io.UpstreamSpec static = 3;
-        aws.options.gloo.solo.io.UpstreamSpec aws = 4;
-        azure.options.gloo.solo.io.UpstreamSpec azure = 5;
-        consul.options.gloo.solo.io.UpstreamSpec consul = 6;
-        aws_ec2.options.gloo.solo.io.UpstreamSpec aws_ec2 = 7;
-    }
-}
-
 message CreateUpstreamRequest {
-    // Deprecated: use `upstreamInput` instead
-    UpstreamInput input = 1 [deprecated=true];
     gloo.solo.io.Upstream upstream_input = 2;
 }
 
 message CreateUpstreamResponse {
-    // Deprecated, use upstream_details
-    gloo.solo.io.Upstream upstream = 1;
     UpstreamDetails upstream_details = 2;}
 
 message UpdateUpstreamRequest {
-    // Deprecated: use `upstreamInput` instead
-    UpstreamInput input = 1 [deprecated=true];
     gloo.solo.io.Upstream upstream_input = 2;
 }
 
 message UpdateUpstreamResponse {
-    // Deprecated, use upstream_details
-    gloo.solo.io.Upstream upstream = 1;
     UpstreamDetails upstream_details = 2;
 }
 

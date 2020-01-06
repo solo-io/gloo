@@ -79,38 +79,11 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	var (
-		secret *gloov1.Secret
-		ref    *core.ResourceRef
-	)
 
-	if request.GetSecret() == nil {
-		secret = &gloov1.Secret{
-			Metadata: core.Metadata{
-				Namespace: request.GetRef().GetNamespace(),
-				Name:      request.GetRef().GetName(),
-			},
-		}
-
-		switch request.GetKind().(type) {
-		case *v1.CreateSecretRequest_Aws:
-			secret.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
-		case *v1.CreateSecretRequest_Azure:
-			secret.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-		case *v1.CreateSecretRequest_Tls:
-			secret.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
-		}
-
-		ref = request.GetRef()
-	} else {
-		secret = request.GetSecret()
-		secretRef := request.GetSecret().GetMetadata().Ref()
-		ref = &secretRef
-	}
-
-	written, err := s.writeSecret(*secret, false)
+	written, err := s.clientCache.GetSecretClient().Write(request.GetSecret(), clients.WriteOpts{Ctx: s.ctx})
 	if err != nil {
-		wrapped := FailedToCreateSecretError(err, ref)
+		ref := request.GetSecret().GetMetadata().Ref()
+		wrapped := FailedToCreateSecretError(err, &ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -122,39 +95,11 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
-	var (
-		ref           *core.ResourceRef
-		secretToWrite *gloov1.Secret
-	)
 
-	if request.GetSecret() == nil {
-		ref = request.GetRef()
-
-		read, err := s.readSecret(ref)
-		if err != nil {
-			wrapped := FailedToUpdateSecretError(err, ref)
-			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-			return nil, wrapped
-		}
-
-		switch request.GetKind().(type) {
-		case *v1.UpdateSecretRequest_Aws:
-			read.Kind = &gloov1.Secret_Aws{Aws: request.GetAws()}
-		case *v1.UpdateSecretRequest_Azure:
-			read.Kind = &gloov1.Secret_Azure{Azure: request.GetAzure()}
-		case *v1.UpdateSecretRequest_Tls:
-			read.Kind = &gloov1.Secret_Tls{Tls: request.GetTls()}
-		}
-		secretToWrite = read
-	} else {
-		metadataRef := request.GetSecret().GetMetadata().Ref()
-		ref = &metadataRef
-		secretToWrite = request.GetSecret()
-	}
-
-	written, err := s.writeSecret(*secretToWrite, true)
+	written, err := s.clientCache.GetSecretClient().Write(request.GetSecret(), clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
-		wrapped := FailedToUpdateSecretError(err, ref)
+		ref := request.GetSecret().GetMetadata().Ref()
+		wrapped := FailedToUpdateSecretError(err, &ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -178,8 +123,4 @@ func (s *secretGrpcService) DeleteSecret(ctx context.Context, request *v1.Delete
 
 func (s *secretGrpcService) readSecret(ref *core.ResourceRef) (*gloov1.Secret, error) {
 	return s.clientCache.GetSecretClient().Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
-}
-
-func (s *secretGrpcService) writeSecret(secret gloov1.Secret, shouldOverWrite bool) (*gloov1.Secret, error) {
-	return s.clientCache.GetSecretClient().Write(&secret, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: shouldOverWrite})
 }

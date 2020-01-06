@@ -3,7 +3,6 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 
@@ -52,11 +51,6 @@ export namespace GetSecretResponse {
 }
 
 export class ListSecretsRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListSecretsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListSecretsRequest): ListSecretsRequest.AsObject;
@@ -69,7 +63,6 @@ export class ListSecretsRequest extends jspb.Message {
 
 export namespace ListSecretsRequest {
   export type AsObject = {
-    namespacesList: Array<string>,
   }
 }
 
@@ -96,37 +89,11 @@ export namespace ListSecretsResponse {
 }
 
 export class CreateSecretRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  hasAws(): boolean;
-  clearAws(): void;
-  getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret | undefined;
-  setAws(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret): void;
-
-  hasAzure(): boolean;
-  clearAzure(): void;
-  getAzure(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret | undefined;
-  setAzure(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret): void;
-
-  hasTls(): boolean;
-  clearTls(): void;
-  getTls(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret | undefined;
-  setTls(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret): void;
-
-  hasExtension(): boolean;
-  clearExtension(): void;
-  getExtension(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension | undefined;
-  setExtension(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension): void;
-
   hasSecret(): boolean;
   clearSecret(): void;
   getSecret(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret | undefined;
   setSecret(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret): void;
 
-  getKindCase(): CreateSecretRequest.KindCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateSecretRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CreateSecretRequest): CreateSecretRequest.AsObject;
@@ -139,20 +106,7 @@ export class CreateSecretRequest extends jspb.Message {
 
 export namespace CreateSecretRequest {
   export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    aws?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.AsObject,
-    azure?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.AsObject,
-    tls?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.AsObject,
-    extension?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension.AsObject,
     secret?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject,
-  }
-
-  export enum KindCase {
-    KIND_NOT_SET = 0,
-    AWS = 2,
-    AZURE = 3,
-    TLS = 4,
-    EXTENSION = 5,
   }
 }
 
@@ -179,37 +133,11 @@ export namespace CreateSecretResponse {
 }
 
 export class UpdateSecretRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  hasAws(): boolean;
-  clearAws(): void;
-  getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret | undefined;
-  setAws(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret): void;
-
-  hasAzure(): boolean;
-  clearAzure(): void;
-  getAzure(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret | undefined;
-  setAzure(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret): void;
-
-  hasTls(): boolean;
-  clearTls(): void;
-  getTls(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret | undefined;
-  setTls(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret): void;
-
-  hasExtension(): boolean;
-  clearExtension(): void;
-  getExtension(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension | undefined;
-  setExtension(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension): void;
-
   hasSecret(): boolean;
   clearSecret(): void;
   getSecret(): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret | undefined;
   setSecret(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret): void;
 
-  getKindCase(): UpdateSecretRequest.KindCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateSecretRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateSecretRequest): UpdateSecretRequest.AsObject;
@@ -222,20 +150,7 @@ export class UpdateSecretRequest extends jspb.Message {
 
 export namespace UpdateSecretRequest {
   export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    aws?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AwsSecret.AsObject,
-    azure?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.AzureSecret.AsObject,
-    tls?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.TlsSecret.AsObject,
-    extension?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extension.AsObject,
     secret?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject,
-  }
-
-  export enum KindCase {
-    KIND_NOT_SET = 0,
-    AWS = 2,
-    AZURE = 3,
-    TLS = 4,
-    EXTENSION = 5,
   }
 }
 
