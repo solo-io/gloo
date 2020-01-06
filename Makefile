@@ -18,6 +18,9 @@ ifeq ($(TAGGED_VERSION),)
 endif
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 
+DEFAULT_BRANCH := $(shell git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
 
@@ -469,7 +472,10 @@ ifeq ($(RELEASE),"true")
 	gsutil -m cp -r gs://$(GLOOE_CHANGELOGS_BUCKET)/$(shell cat $(OUTPUT_DIR)/gloo-enterprise-version)/* '../solo-projects/changelog'
 endif
 
-ASSETS_ONLY := false
+ASSETS_ONLY := true
+ifeq ($(DEFAULT_BRANCH), $(CURRENT_BRANCH))
+    ASSETS_ONLY = false
+endif
 
 # The code does the proper checking for a TAGGED_VERSION
 .PHONY: upload-github-release-assets
