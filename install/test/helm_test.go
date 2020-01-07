@@ -25,6 +25,17 @@ import (
 var _ = Describe("Helm Test", func() {
 	var (
 		version string
+
+		normalPromAnnotations = map[string]string{
+			"prometheus.io/path":   "/metrics",
+			"prometheus.io/port":   "9091",
+			"prometheus.io/scrape": "true",
+		}
+
+		statsEnvVar = v1.EnvVar{
+			Name:  "START_STATS_SERVER",
+			Value: "true",
+		}
 	)
 
 	Describe("gloo-ee helm tests", func() {
@@ -127,6 +138,7 @@ var _ = Describe("Helm Test", func() {
 									},
 								},
 							},
+							statsEnvVar,
 						},
 						Resources:       v1.ResourceRequirements{},
 						ImagePullPolicy: "Always",
@@ -141,6 +153,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
+				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 
 				grafanaBuilder := ResourceBuilder{
 					Namespace: "", // grafana installs to empty namespace during tests
@@ -511,6 +524,7 @@ var _ = Describe("Helm Test", func() {
 							Env: []v1.EnvVar{
 								GetPodNamespaceEnvVar(),
 								grpcPortEnvVar,
+								statsEnvVar,
 								noAuthEnvVar,
 								licenseEnvVar,
 							},
@@ -548,6 +562,7 @@ var _ = Describe("Helm Test", func() {
 								Name: "solo-io-readerbot-pull-secret",
 							},
 						}
+						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 					})
 
 					It("is there by default", func() {
@@ -580,7 +595,7 @@ var _ = Describe("Helm Test", func() {
 				Artifact:             generate.GlooWithRoUi,
 				RequirementsTemplate: "../../install/helm/gloo-os-with-ui/requirements-template.yaml",
 			}
-			glooOsVersion, err = generate.GetGlooOsVersion("../..", glooEGenerationFiles, glooOsWithReadOnlyUiGenerationFiles)
+			glooOsVersion, err = generate.GetGlooOsVersion(glooEGenerationFiles, glooOsWithReadOnlyUiGenerationFiles)
 			Expect(err).NotTo(HaveOccurred())
 			glooOsPullPolicy = v1.PullAlways
 
@@ -754,6 +769,7 @@ var _ = Describe("Helm Test", func() {
 							Env: []v1.EnvVar{
 								GetPodNamespaceEnvVar(),
 								grpcPortEnvVar,
+								statsEnvVar,
 								noAuthEnvVar,
 							},
 						}
@@ -785,6 +801,7 @@ var _ = Describe("Helm Test", func() {
 						}
 						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
+						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 					})
 
 					It("is there by default", func() {

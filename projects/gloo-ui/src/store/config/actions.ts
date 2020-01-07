@@ -1,6 +1,6 @@
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
-import { UpdateSettingsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { UpdateSettingsRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { Dispatch } from 'redux';
 import { globalStore } from 'store';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';

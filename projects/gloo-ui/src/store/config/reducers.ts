@@ -1,5 +1,5 @@
-import { OAuthEndpoint } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
+import { OAuthEndpoint } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
 import { ConfigActionTypes, ConfigAction } from './types';
 
 export interface ConfigState {

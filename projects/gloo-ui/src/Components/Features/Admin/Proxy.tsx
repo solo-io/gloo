@@ -3,7 +3,7 @@ import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import { ProxyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';

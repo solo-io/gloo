@@ -3,7 +3,7 @@ import {
   CreateUpstreamRequest,
   DeleteUpstreamRequest,
   UpdateUpstreamRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { Dispatch } from 'redux';
 import { guardByLicense } from 'store/config/actions';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';

@@ -1,19 +1,19 @@
 import { grpc } from '@improbable-eng/grpc-web';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import {
   IngressRateLimit,
   RateLimit
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
+} from 'proto/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
 import {
   CallCredentials,
   SDSConfig,
   SslConfig,
   SSLFiles,
   SslParameters
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+} from 'proto/gloo/projects/gloo/api/v1/ssl_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import {
   CreateRouteRequest,
   CreateRouteResponse,
@@ -41,8 +41,8 @@ import {
   UpdateVirtualServiceResponse,
   UpdateVirtualServiceYamlRequest,
   VirtualServiceInputV2
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import { VirtualServiceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { VirtualServiceApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
 import { host } from 'store';
 import { guardByLicense } from 'store/config/actions';
 import { setInputRouteValues } from 'store/routeTables/api';

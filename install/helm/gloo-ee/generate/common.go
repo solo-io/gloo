@@ -3,15 +3,15 @@ package generate
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
-	"github.com/solo-io/go-utils/versionutils"
-	"github.com/solo-io/solo-projects/pkg/version"
 )
 
-func GetGlooOsVersion(pathToGopkgTomlDir string, filesets ...*GenerationFiles) (string, error) {
+func GetGlooOsVersion(filesets ...*GenerationFiles) (string, error) {
 	var dl DependencyList
 	for _, fs := range filesets {
 		if err := readYaml(fs.RequirementsTemplate, &dl); err != nil {
@@ -23,21 +23,17 @@ func GetGlooOsVersion(pathToGopkgTomlDir string, filesets ...*GenerationFiles) (
 			}
 		}
 	}
-	return getGlooOsVersionFromToml(pathToGopkgTomlDir)
+	return glooGoModPackageVersion()
 }
 
-func getGlooOsVersionFromToml(pathToGopkgTomlDir string) (string, error) {
-	tomlTree, err := versionutils.ParseFullTomlFromDir(pathToGopkgTomlDir)
+func glooGoModPackageVersion() (string, error) {
+	cmd := exec.Command("go", "list", "-f", "'{{ .Version }}'", "-m", "github.com/solo-io/gloo")
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}
-
-	glooVersion, err := versionutils.GetDependencyVersionInfo(version.GlooPkg, tomlTree)
-	if err != nil {
-		return "", err
-	}
-
-	return glooVersion.Version, nil
+	cleanedOutput := strings.Trim(strings.TrimSpace(string(output)), "'")
+	return strings.TrimPrefix(cleanedOutput, "v"), nil
 }
 
 func readYaml(path string, obj interface{}) error {

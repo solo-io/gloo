@@ -6,7 +6,7 @@ import { colors, soloConstants } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
 import { useDispatch } from 'react-redux';
 import { updateDomains } from 'store/virtualServices/actions';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 
 const DomainsContainer = styled.div`
   background: ${colors.januaryGrey};

@@ -5,10 +5,10 @@ import { CreateRouteValuesType } from 'Components/Features/VirtualService/Creati
 import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
 import { useField, useFormikContext } from 'formik';
 import _ from 'lodash';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
-import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
+import { VirtualService } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 import React from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 import { AppState } from 'store';

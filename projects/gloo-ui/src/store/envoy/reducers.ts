@@ -1,4 +1,4 @@
-import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
+import { EnvoyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { EnvoyActionTypes, EnvoyAction } from './types';
 
 export interface EnvoyState {

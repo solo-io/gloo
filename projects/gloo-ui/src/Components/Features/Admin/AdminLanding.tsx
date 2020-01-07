@@ -6,9 +6,9 @@ import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg'
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
-import { EnvoyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import { EnvoyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
+import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { ProxyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RouteProps } from 'react-router';

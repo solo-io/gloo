@@ -7,7 +7,7 @@ import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStat
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';

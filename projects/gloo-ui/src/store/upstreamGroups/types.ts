@@ -1,7 +1,7 @@
 import {
   UpstreamGroupDetails,
   DeleteUpstreamGroupResponse
-} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 import { UpdateVirtualServiceYamlErrorAction } from 'store/virtualServices/types';
 
 export enum UpstreamGroupAction {

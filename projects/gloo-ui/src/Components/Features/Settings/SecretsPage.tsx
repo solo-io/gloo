@@ -1,7 +1,7 @@
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { isEqual } from 'lodash';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { Secret } from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import * as React from 'react';
 import { TableActionCircle, TableActions } from 'Styles';
 import { getIcon } from 'utils/helpers';

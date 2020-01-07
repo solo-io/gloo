@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/solo-io/anyvendor/pkg/modutils"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 
@@ -26,17 +26,26 @@ func TestScripts(t *testing.T) {
 var _ = Describe("Plugin verification script", func() {
 
 	var (
-		testAssetDir = os.ExpandEnv("$GOPATH/src/github.com/solo-io/solo-projects/test/extauth")
-
-		pluginDir           = filepath.Join(testAssetDir, "plugins")
-		validManifest       = filepath.Join(testAssetDir, "manifests", "valid.yaml")
-		wrongNameManifest   = filepath.Join(testAssetDir, "manifests", "wrong_name.yaml")
-		wrongSymbolManifest = filepath.Join(testAssetDir, "manifests", "wrong_symbol.yaml")
-		malformedManifest   = filepath.Join(testAssetDir, "manifests", "malformed.yaml")
+		testAssetDir        string
+		pluginDir           string
+		validManifest       string
+		wrongNameManifest   string
+		wrongSymbolManifest string
+		malformedManifest   string
 	)
 
 	BeforeSuite(func() {
 		contextutils.SetLogLevel(zap.DebugLevel)
+		modPackageFile, err := modutils.GetCurrentModPackageFile()
+		Expect(err).NotTo(HaveOccurred())
+		repoPath := filepath.Dir(modPackageFile)
+		testAssetDir = filepath.Join(repoPath, "test/extauth")
+
+		pluginDir = filepath.Join(testAssetDir, "plugins")
+		validManifest = filepath.Join(testAssetDir, "manifests", "valid.yaml")
+		wrongNameManifest = filepath.Join(testAssetDir, "manifests", "wrong_name.yaml")
+		wrongSymbolManifest = filepath.Join(testAssetDir, "manifests", "wrong_symbol.yaml")
+		malformedManifest = filepath.Join(testAssetDir, "manifests", "malformed.yaml")
 	})
 
 	Describe("parsing manifest file", func() {

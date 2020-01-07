@@ -1,299 +1,300 @@
 steps:
-
 # Setup SSH
 # These are required before prepare-workspace
 - name: gcr.io/cloud-builders/gcloud
   args:
-  - kms
-  - decrypt
-  - --ciphertext-file=ci/id_rsa.enc
-  - --plaintext-file=/root/.ssh/id_rsa
-  - --location=global
-  - --keyring=build
-  - --key=build-key
-  volumes:
-  - name: 'ssh'
-    path: /root/.ssh
-  id: 'get-ssh-key'
-- name: 'gcr.io/cloud-builders/git'
-  entrypoint: 'bash'
+    - kms
+    - decrypt
+    - --ciphertext-file=ci/id_rsa.enc
+    - --plaintext-file=/root/.ssh/id_rsa
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  id: "get-ssh-key"
+- name: "gcr.io/cloud-builders/git"
+  entrypoint: "bash"
   args:
-  - '-c'
-  - |
-    chmod 600 /root/.ssh/id_rsa
-    cat <<EOF >/root/.ssh/config
-    Hostname github.com
-    IdentityFile /root/.ssh/id_rsa
-    EOF
-    mv ./ci/github_known_hosts /root/.ssh/known_hosts
-    git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
-  volumes:
-  - name: 'ssh'
-    path: /root/.ssh
-  id: 'configure-git'
+    - "-c"
+    - |
+      chmod 600 /root/.ssh/id_rsa
+      cat <<EOF >/root/.ssh/config
+      Hostname github.com
+      IdentityFile /root/.ssh/id_rsa
+      EOF
+      mv ./ci/github_known_hosts /root/.ssh/known_hosts
+      git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
+  id: "configure-git"
 
-- name: 'golang:1.13.4'
-  args: ['go', 'env', '-w', 'GOPRIVATE=github.com/solo-io']
-  id: 'set-private'
-
-# Can create a dep cache by running 'gcloud builds submit . --config=cloudbuild-cache.yaml'
-- name: gcr.io/cloud-builders/gsutil
-  entrypoint: 'bash'
-  args: ['-c', 'mkdir -p ./gopath/pkg/dep && gsutil cat gs://gloo-ee-cache/solo-projects/solo-projects-dep.tar.gz | tar -xzf -']
-  id: 'download-untar-dep-cache'
+- name: "golang:1.13.4"
+  args: ["go", "env", "-w", "GOPRIVATE=github.com/solo-io"]
+  id: "set-private"
 
 - name: gcr.io/cloud-builders/gsutil
-  entrypoint: 'bash'
-  args: ['-c', 'mkdir -p ./gopath/pkg && cd ./gopath/pkg && gsutil cat gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz | tar -xzf -']
-  volumes: &vol
-  - name: 'gopath'
-    path: '/workspace/gopath/pkg/mod'
-  - name: 'ssh'
-    path: /root/.ssh
-  id: 'untar-mod-cache'
-  waitFor: ['-']
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      "mkdir -p ./gopath/pkg && cd ./gopath/pkg && gsutil cat gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz | tar -xzf -",
+    ]
+  id: "untar-mod-cache"
+  waitFor: ["-"]
 
 # Using prepare-workspace container from github.com/solo-io/cloud-builders/prepare-go-workspace
 # This copies files into the proper workspace layout and so must be run before other tasks
 # Subsequent steps should set GOPATH variable to avoid setting up unnecessary sym link
-- name: 'gcr.io/$PROJECT_ID/prepare-go-workspace:mkdev2'
+- name: "gcr.io/$PROJECT_ID/prepare-go-workspace:0.2.4"
   args:
-  - "--repo-owner"
-  - "solo-io"
-  - "--repo-name"
-  - "solo-projects"
-  - "--repo-sha"
-  - "$COMMIT_SHA"
-  - "--repo-output-dir"
-  - "/workspace/gopath/src/github.com/solo-io/"
-  - "--use-ssh"
+    - "--repo-owner"
+    - "solo-io"
+    - "--repo-name"
+    - "solo-projects"
+    - "--repo-sha"
+    - "$COMMIT_SHA"
+    - "--repo-output-dir"
+    - "."
+    - "--use-ssh"
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  volumes: *vol
-  id: 'prepare-workspace'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  id: "prepare-workspace"
 
 # Run some basic checks on the repo
 # 1) check formatting of go files
 # 2) ensure that make generated-code produces a clean diff
 
-# e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
+# e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  entrypoint: make
-  args: ['check-format']
-  waitFor: ['prepare-workspace']
-  id: 'check-format'
-  volumes: *vol
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  dir: &dir "/workspace/solo-projects"
+  args: ["check-format"]
+  waitFor: ["prepare-workspace"]
+  id: "check-format"
 - name: node:12.13.1
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-  dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  dir: "/workspace/solo-projects/projects/gloo-ui"
   entrypoint: yarn
-  args: ['install']
+  args: ["install"]
   id: yarn-install
-  waitFor: ['prepare-workspace']
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  entrypoint: 'bash'
-  args: ['ci/check-code-gen.sh']
+  waitFor: ["prepare-workspace"]
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  entrypoint: "bash"
+  args: ["ci/check-code-gen.sh"]
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-  - 'TAGGED_VERSION=$TAG_NAME'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  volumes: *vol
-  waitFor: ['prepare-workspace', 'yarn-install']
-  id: 'check-code-gen'
-- name: 'gcr.io/cloud-builders/yarn'
-  args: ['build']
-  dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
-  id: 'yarn-build'
-  waitFor: ['yarn-install','check-code-gen']
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "TAGGED_VERSION=$TAG_NAME"
+  dir: *dir
+  waitFor: ["prepare-workspace", "yarn-install"]
+  id: "check-code-gen"
+- name: "gcr.io/cloud-builders/yarn"
+  args: ["build"]
+  dir: "/workspace/solo-projects/projects/gloo-ui"
+  id: "yarn-build"
+  waitFor: ["yarn-install", "check-code-gen"]
 
 # Helm related setup
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: mkdir
-  args: ['-p', './_output/helm']
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  id: 'create-helm-dir'
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['fetch-helm']
+  args: ["-p", "./_output/helm"]
+  dir: *dir
+  id: "create-helm-dir"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["fetch-helm"]
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'TAGGED_VERSION=$TAG_NAME'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  volumes: *vol
-  id: 'fetch-helm'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "TAGGED_VERSION=$TAG_NAME"
+  dir: *dir
+  id: "fetch-helm"
 # Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
-  entrypoint: 'bash'
+  entrypoint: "bash"
   args:
-  - '-ce'
-  - |
-    ENVOY_VERSION=v$$(head -n1 ./cmd/envoyinit/Dockerfile|cut -d: -f2)
-    gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
-    chmod +x /workspace/envoy
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['prepare-workspace']
-  id: 'get-envoy'
+    - "-ce"
+    - |
+      ENVOY_VERSION=v$$(head -n1 ./cmd/envoyinit/Dockerfile|cut -d: -f2)
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
+      chmod +x /workspace/envoy
+  dir: *dir
+  waitFor: ["prepare-workspace"]
+  id: "get-envoy"
 - name: gcr.io/cloud-builders/gcloud
   args:
-  - kms
-  - decrypt
-  - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/aws_credentials.enc
-  - --plaintext-file=/workspace/aws_credentials
-  - --location=global
-  - --keyring=build
-  - --key=build-key
-  waitFor: ['prepare-workspace']
-  id: 'setup-aws-creds'
+    - kms
+    - decrypt
+    - --ciphertext-file=./ci/aws_credentials.enc
+    - --plaintext-file=/workspace/aws_credentials
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  waitFor: ["prepare-workspace"]
+  dir: *dir
+  id: "setup-aws-creds"
 
-# e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
+
+- name: gcr.io/cloud-builders/gcloud
+  args: ['config', 'set', 'compute/zone', 'us-central1-a']
+  id: 'set-test-zone'
+  # run after dep so it doesn't move our settings
+  waitFor: ['prepare-workspace']
+- name: gcr.io/cloud-builders/gcloud
+  args: ['container', 'clusters', 'get-credentials', 'test-cluster']
+  id: 'get-test-credentials'
+  waitFor: ['set-test-zone']
+
+# e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  entrypoint: 'bash'
+- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
+  dir: *dir
+  entrypoint: "bash"
   args:
-  - '-ce'
-  - |
-    go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-    /builder/bin/ginkgo.bash -r -failFast -trace -progress
+    - "-ce"
+    - |
+      go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
+      /builder/bin/ginkgo.bash -r -failFast -trace -progress
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'ENVOY_BINARY=/workspace/envoy'
-  - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
-  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-  - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
-  - 'RUN_KUBE_TESTS=1'
-  - 'CLOUD_BUILD=1'
-  - 'GOPATH=/workspace/gopath'
-  - 'HELM_HOME=/root/.helm'
-  waitFor: ['prepare-workspace', 'get-envoy', 'setup-aws-creds', 'fetch-helm', 'check-code-gen']
-  volumes: *vol
-  id: 'test'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "ENVOY_BINARY=/workspace/envoy"
+    - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
+    - "RUN_KUBE_TESTS=1"
+    - "CLOUD_BUILD=1"
+    - "HELM_HOME=/root/.helm"
+  waitFor:
+    [
+      "prepare-workspace",
+      "get-envoy",
+      "setup-aws-creds",
+      "fetch-helm",
+      "check-code-gen",
+      "get-test-credentials",
+    ]
+  id: "test"
 
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
-  secretEnv: ['QUAY_IO_PASSWORD']
-  waitFor: ['-']
-  id: 'docker-login'
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
+    ]
+  secretEnv: ["QUAY_IO_PASSWORD"]
+  waitFor: ["-"]
+  id: "docker-login"
 
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
-  entrypoint: 'bash'
-  args: ['-c', 'GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o _output/glooctl-linux-amd64 projects/gloo/cli/main.go']
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  volumes: *vol
-  waitFor: ['test','prepare-workspace']
-  id: 'build-glooctl'
+- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      "GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o _output/glooctl-linux-amd64 projects/gloo/cli/main.go",
+    ]
+  dir: *dir
+  waitFor: ["test", "prepare-workspace"]
+  id: "build-glooctl"
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['docker']
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["docker"]
   env:
-    - 'TAGGED_VERSION=$TAG_NAME'
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'BUILD_ID=$BUILD_ID'
-    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  volumes: *vol
-  waitFor: ['prepare-workspace','yarn-build', 'fetch-helm']
-  id: 'build-images'
+    - "TAGGED_VERSION=$TAG_NAME"
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "BUILD_ID=$BUILD_ID"
+    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
+  dir: *dir
+  secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
+  waitFor: ["prepare-workspace", "yarn-build", "fetch-helm"]
+  id: "build-images"
 
   # Run regression tests
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['build-test-assets']
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["build-test-assets"]
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'BUILD_ID=$BUILD_ID'
-    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
-    - 'HELM_HOME=/root/.helm'
-    - 'TAGGED_VERSION=$TAG_NAME'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  waitFor: ['build-glooctl', 'build-images', 'docker-login', 'test']
-  volumes: *vol
-  id: 'build-test-assets'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "BUILD_ID=$BUILD_ID"
+    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
+    - "HELM_HOME=/root/.helm"
+    - "TAGGED_VERSION=$TAG_NAME"
+  dir: *dir
+  waitFor: ["build-glooctl", "build-images", "docker-login", "test"]
+  id: "build-test-assets"
 - name: gcr.io/cloud-builders/gcloud
-  args: ['config', 'set', 'compute/zone', 'us-central1-a']
-  id: 'set-zone-regression'
+  args: ["config", "set", "compute/zone", "us-central1-a"]
+  id: "set-zone-regression"
 - name: gcr.io/cloud-builders/gcloud
-  args: ['container', 'clusters', 'get-credentials', 'solo-projects-regression']
-  id: 'get-credentials-regression'
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.2.1'
+  args:
+    ["container", "clusters", "get-credentials", "solo-projects-regression"]
+  id: "get-credentials-regression"
+- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=solo-projects-regressions'
-    - 'RUN_KUBE2E_TESTS=1'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  args: ['-r', '-failFast', '-trace', '-progress', 'test/regressions']
-  waitFor: ['build-test-assets', 'get-credentials-regression']
-  volumes: *vol
-  id: 'regression-tests'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "RUN_KUBE2E_TESTS=1"
+  dir: *dir
+  args: ["-r", "-failFast", "-trace", "-progress", "test/regressions"]
+  waitFor: ["build-test-assets", "get-credentials-regression"]
+  id: "regression-tests"
 
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
-  secretEnv: ['QUAY_IO_PASSWORD']
-  waitFor: ['regression-tests']
-  id: 'docker-login-push'
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
+    ]
+  secretEnv: ["QUAY_IO_PASSWORD"]
+  waitFor: ["regression-tests"]
+  id: "docker-login-push"
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['--jobs=4', 'docker-push']
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["--jobs=4", "docker-push"]
   env:
-    - 'TAGGED_VERSION=$TAG_NAME'
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  waitFor: ['docker-login-push']
-  volumes: *vol
-  id: 'push-docker-images'
+    - "TAGGED_VERSION=$TAG_NAME"
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  dir: *dir
+  secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
+  waitFor: ["docker-login-push"]
+  id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['manifest', 'upload-github-release-assets', 'upload-changelog', 'publish-dependencies']
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args:
+    [
+      "manifest",
+      "upload-github-release-assets",
+      "upload-changelog",
+      "publish-dependencies",
+    ]
   env:
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-  - 'HELM_HOME=/root/.helm' # tell helm where to find data
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  volumes: *vol
-  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  id: 'release'
+    - "TAGGED_VERSION=$TAG_NAME"
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "HELM_HOME=/root/.helm" # tell helm where to find data
+  dir: *dir
+  secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
+  id: "release"
 
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args: ['-c', 'docker logout']
-  id: 'docker-logout'
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args: ["-c", "docker logout"]
+  id: "docker-logout"
 
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
-  secretEnv: ['QUAY_IO_PASSWORD']
-  id: 'docker-login-again'
+- name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
+    ]
+  secretEnv: ["QUAY_IO_PASSWORD"]
+  id: "docker-login-again"
 
   # Sync helm chart data back to google storage bucket
-- name: 'gcr.io/$PROJECT_ID/go-make:0.2.1'
-  args: ['save-helm']
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["save-helm"]
   env:
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-    - 'GOPATH=/workspace/gopath'
-    - 'TAGGED_VERSION=$TAG_NAME'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  volumes: *vol
-  id: 'save-helm-chart'
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "TAGGED_VERSION=$TAG_NAME"
+  dir: *dir
+  id: "save-helm-chart"
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
@@ -306,8 +307,11 @@ secrets:
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 3600s
 
-tags: ['solo-projects']
+tags: ["solo-projects"]
 options:
-  machineType: 'N1_HIGHCPU_32'
-  env:
-  - "GO111MODULE=on"
+  machineType: "N1_HIGHCPU_32"
+  volumes:
+    - name: "gopath"
+      path: "/go"
+    - name: "ssh"
+      path: /root/.ssh

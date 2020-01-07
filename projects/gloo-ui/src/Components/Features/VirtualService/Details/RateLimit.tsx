@@ -5,7 +5,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { RateLimitForm, timeOptions } from './RateLimitForm';
-import { RateLimitPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { RateLimitPlugin } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 
 const ConfigItemHeader = styled.div`
   display: flex;

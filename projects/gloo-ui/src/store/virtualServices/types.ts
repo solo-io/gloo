@@ -1,7 +1,7 @@
 import {
   VirtualServiceDetails,
   DeleteVirtualServiceRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 
 export enum VirtualServiceAction {
   GET_VIRTUAL_SERVICE = 'GET_VIRTUAL_SERVICE',

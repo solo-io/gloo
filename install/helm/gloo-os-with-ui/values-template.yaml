@@ -25,13 +25,11 @@ gloo:
   gloo:
     deployment:
       runAsUser: 10101
-      stats: true
       image:
         repository: gloo
       replicas: 1
   gatewayProxies:
     gatewayProxy:
-      stats: true
       kind:
         deployment:
           replicas: 1
@@ -100,7 +98,6 @@ apiServer:
   enable: true
   enableBeta: true
   deployment:
-    stats: true
     name: "grpcserver-ui"
     server:
       image:
@@ -136,3 +133,5 @@ global:
   extensions:
     extAuth:
       enabled: false
+  glooStats:
+    enabled: true

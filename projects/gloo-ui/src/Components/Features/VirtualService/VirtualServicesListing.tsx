@@ -16,9 +16,9 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
-import { RouteTableDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
-import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import {

@@ -8,7 +8,7 @@ import {
 } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { useField } from 'formik';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';

@@ -1,8 +1,8 @@
 import {
   GetSettingsRequest,
   OAuthEndpoint
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
 
 export enum ConfigAction {
   GET_VERSION = 'GET_VERSION',

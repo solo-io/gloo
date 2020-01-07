@@ -10,8 +10,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"os"
-
 	"github.com/solo-io/ext-auth-plugins/api"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 )
@@ -19,7 +17,6 @@ import (
 var _ = Describe("Plugin Loader", func() {
 
 	var (
-		pluginFileDir        = os.ExpandEnv("$GOPATH/src/github.com/solo-io/solo-projects/test/extauth/plugins")
 		requiredHeader       = "my-header"
 		allowedHeaderValues  = []string{"value-a", "value-b"}
 		allowedHeadersPlugin = &extauth.AuthPlugin{

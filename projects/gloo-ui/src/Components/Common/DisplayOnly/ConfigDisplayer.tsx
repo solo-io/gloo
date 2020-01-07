@@ -10,7 +10,7 @@ import {
   SoloCancelButton,
   SoloButtonStyledComponent
 } from 'Styles/CommonEmotions/button';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
 import { Spin } from 'antd';

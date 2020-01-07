@@ -4,9 +4,13 @@ package v1
 
 import (
 	"fmt"
+	"hash"
+	"hash/fnv"
+	"log"
 
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
+	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/hashutils"
 	"go.uber.org/zap"
 )
@@ -21,21 +25,33 @@ func (s DashboardsSnapshot) Clone() DashboardsSnapshot {
 	}
 }
 
-func (s DashboardsSnapshot) Hash() uint64 {
-	return hashutils.HashAll(
-		s.hashUpstreams(),
-	)
+func (s DashboardsSnapshot) Hash(hasher hash.Hash64) (uint64, error) {
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	if _, err := s.hashUpstreams(hasher); err != nil {
+		return 0, err
+	}
+	return hasher.Sum64(), nil
 }
 
-func (s DashboardsSnapshot) hashUpstreams() uint64 {
-	return hashutils.HashAll(s.Upstreams.AsInterfaces()...)
+func (s DashboardsSnapshot) hashUpstreams(hasher hash.Hash64) (uint64, error) {
+	return hashutils.HashAllSafe(hasher, s.Upstreams.AsInterfaces()...)
 }
 
 func (s DashboardsSnapshot) HashFields() []zap.Field {
 	var fields []zap.Field
-	fields = append(fields, zap.Uint64("upstreams", s.hashUpstreams()))
-
-	return append(fields, zap.Uint64("snapshotHash", s.Hash()))
+	hasher := fnv.New64()
+	UpstreamsHash, err := s.hashUpstreams(hasher)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error hashing, this should never happen"))
+	}
+	fields = append(fields, zap.Uint64("upstreams", UpstreamsHash))
+	snapshotHash, err := s.Hash(hasher)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error hashing, this should never happen"))
+	}
+	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
 type DashboardsSnapshotStringer struct {
@@ -55,8 +71,12 @@ func (ss DashboardsSnapshotStringer) String() string {
 }
 
 func (s DashboardsSnapshot) Stringer() DashboardsSnapshotStringer {
+	snapshotHash, err := s.Hash(nil)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error hashing, this should never happen"))
+	}
 	return DashboardsSnapshotStringer{
-		Version:   s.Hash(),
+		Version:   snapshotHash,
 		Upstreams: s.Upstreams.NamespacesDotNames(),
 	}
 }

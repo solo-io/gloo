@@ -103,7 +103,7 @@ func (s *upstreamSearcher) searchRoutesForUpstream(
 	return found, err
 }
 
-func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *core.ResourceRef, allUpstreamGroups gloov1.UpstreamGroupList, allRouteTables gatewayv1.RouteTableList, upstreamRef *core.ResourceRef) (bool, error) {
+func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *gatewayv1.DelegateAction, allUpstreamGroups gloov1.UpstreamGroupList, allRouteTables gatewayv1.RouteTableList, upstreamRef *core.ResourceRef) (bool, error) {
 	routeTable, err := allRouteTables.Find(routeTableRef.Namespace, routeTableRef.Name)
 	if err != nil {
 		return false, err

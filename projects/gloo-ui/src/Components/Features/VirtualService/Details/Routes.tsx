@@ -22,7 +22,7 @@ import {
 import { RouteParent } from '../RouteTableDetails';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
 import css from '@emotion/css';
-import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { AppState } from 'store';
 import { NavLink } from 'react-router-dom';
 import RT from 'assets/route-table-icon.png';

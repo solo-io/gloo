@@ -15,7 +15,7 @@ import {
   UpdateRouteTableRequest,
   UpdateRouteTableYamlRequest,
   DeleteRouteTableRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 import { guardByLicense } from 'store/config/actions';
 
 export const listRouteTables = () => {

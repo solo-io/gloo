@@ -5,8 +5,8 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gloo/api/v1/artifact.proto";
-import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "gloo/projects/gloo/api/v1/artifact.proto";
+import "solo-kit/api/v1/ref.proto";
 
 message GetArtifactRequest {
     core.solo.io.ResourceRef ref = 1;

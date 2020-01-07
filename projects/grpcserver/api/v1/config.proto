@@ -5,7 +5,7 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto";
+import "gloo/projects/gloo/api/v1/settings.proto";
 
 message OAuthEndpoint {
     string url = 1;

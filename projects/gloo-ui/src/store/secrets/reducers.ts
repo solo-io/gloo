@@ -1,4 +1,4 @@
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { Secret } from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import { SecretActionTypes, SecretAction } from './types';
 
 export interface SecretState {

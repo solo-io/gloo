@@ -5,7 +5,7 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
+import "solo-projects/projects/grpcserver/api/v1/types.proto";
 
 message EnvoyDetails {
     // The name of the gateway-proxy pod running this instance of envoy.

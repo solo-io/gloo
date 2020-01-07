@@ -51,6 +51,7 @@ type RateLimitDeployment struct {
 	GlooAddress string         `json:"glooAddress"`
 	DynamoDb    DynamoDb       `json:"dynamodb"`
 	Image       *glooGen.Image `json:"image,omitempty"`
+	Stats       *glooGen.Stats `json:"stats"`
 	*glooGen.DeploymentSpec
 }
 
@@ -84,6 +85,7 @@ type Observability struct {
 
 type ObservabilityDeployment struct {
 	Image *glooGen.Image `json:"image,omitempty"`
+	Stats *glooGen.Stats `json:"stats"`
 	*glooGen.DeploymentSpec
 }
 
@@ -112,7 +114,7 @@ type ExtAuthDeployment struct {
 	GlooAddress string         `json:"glooAddress,omitempty"`
 	Port        uint           `json:"port"`
 	Image       *glooGen.Image `json:"image,omitempty"`
-	Stats       bool           `json:"stats" desc:"enable prometheus stats"`
+	Stats       *glooGen.Stats `json:"stats"`
 	*glooGen.DeploymentSpec
 }
 
@@ -144,6 +146,7 @@ type ApiServerDeployment struct {
 	Server *ApiServerServerDeployment `json:"server,omitempty"`
 	Ui     *ApiServerUiDeployment     `json:"ui,omitempty"`
 	Envoy  *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
+	Stats  *glooGen.Stats             `json:"stats"`
 	*glooGen.DeploymentSpec
 }
 

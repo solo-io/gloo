@@ -2,7 +2,7 @@ import {
   RouteTableDetails,
   DeleteRouteTableResponse,
   DeleteRouteTableRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 
 export enum RouteTableAction {
   GET_ROUTE_TABLE = 'GET_ROUTE_TABLE',

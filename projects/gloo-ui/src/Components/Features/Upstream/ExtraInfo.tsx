@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { List } from 'antd';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
 import React from 'react';
 import { colors } from 'Styles';
 import { getFunctionList } from 'utils/helpers';

@@ -1,4 +1,4 @@
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 
 export function createVirtualServiceId(
   virtualServiceMetadata: Metadata.AsObject

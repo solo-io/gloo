@@ -5,11 +5,11 @@ import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 import {
   Route,
   VirtualService
-} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { useHistory, useParams } from 'react-router-dom';

@@ -5,12 +5,12 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto";
-import "github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto";
-import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
-import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "gloo/projects/gateway/api/v1/virtual_service.proto";
+import "gloo/projects/gloo/api/v1/ssl.proto";
+import "gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto";
+import "gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto";
+import "solo-projects/projects/grpcserver/api/v1/types.proto";
+import "solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
 
 message VirtualServiceDetails {

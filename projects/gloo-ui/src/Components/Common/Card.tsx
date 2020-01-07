@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Popconfirm, Tooltip } from 'antd';
-import { Raw } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { Raw } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import * as React from 'react';
 import {
   colors,

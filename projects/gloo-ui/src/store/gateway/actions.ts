@@ -2,7 +2,7 @@ import { SoloWarning } from 'Components/Common/SoloWarningContent';
 import {
   UpdateGatewayRequest,
   UpdateGatewayYamlRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { Dispatch } from 'redux';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';
 import { gateways } from './api';

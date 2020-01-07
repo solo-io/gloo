@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { ReactComponent as InfoPrompt } from 'assets/info-prompt.svg';
-import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 import * as React from 'react';
 import { colors, healthConstants } from 'Styles';
 import { hslToHSLA } from 'Styles/colors';

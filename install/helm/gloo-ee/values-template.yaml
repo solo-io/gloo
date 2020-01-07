@@ -34,13 +34,11 @@ gloo:
       xdsPort: 9977
       validationPort: 9988
       runAsUser: 10101
-      stats: true
       image:
         repository: gloo-ee
       replicas: 1
   gatewayProxies:
     gatewayProxy:
-      stats: true
       kind:
         deployment:
           replicas: 1
@@ -105,7 +103,6 @@ apiServer:
   enable: true
   enableBeta: true
   deployment:
-    stats: true
     name: "grpcserver-ui"
     server:
       image:
@@ -135,7 +132,6 @@ rateLimit:
   # setting to false will disable rate limiting
   enabled: true
   deployment:
-    stats: true
     name: "rate-limit"
     image:
       repository: rate-limit-ee
@@ -171,7 +167,6 @@ redis:
 observability:
   enabled: true
   deployment:
-    stats: true
     name: observability
     image:
       repository: observability-ee
@@ -189,6 +184,8 @@ global:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
     pullSecret: solo-io-readerbot-pull-secret
+  glooStats:
+    enabled: true
   glooRbac:
     create: true
   extensions:
@@ -199,7 +196,6 @@ global:
       serviceName: ext-auth
       userIdHeader: x-user-id
       deployment:
-        stats: true
         name: "extauth"
         image:
           repository: extauth-ee
@@ -210,7 +206,6 @@ global:
       signingKey:
         name: extauth-signing-key
         signing-key: ""
-
 ########################################################################
 ###                                                                  ###
 ###                        Prometheus                                ###

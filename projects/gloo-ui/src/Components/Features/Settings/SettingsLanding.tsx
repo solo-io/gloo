@@ -10,10 +10,10 @@ import {
 } from 'Components/Common/ListingFilter';
 import {
   AwsSecret,
+  AzureSecret,
   Secret,
-  TlsSecret,
-  AzureSecret
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+  TlsSecret
+} from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router';
@@ -23,7 +23,7 @@ import { SecretValuesType } from './SecretForm';
 import { SecretsPage } from './SecretsPage';
 import { SecurityPage } from './SecurityPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
-import { OauthSecret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
+import { OauthSecret } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',

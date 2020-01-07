@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
 	"github.com/gogo/protobuf/proto"
@@ -33,9 +34,10 @@ func NewTranslatorSyncerExtension() *TranslatorSyncerExtension {
 func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin auth sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snap.Hash(),
+	snapHash := hashutils.MustHash(snap)
+	logger.Infof("begin auth sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snapHash,
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
-	defer logger.Infof("end auth sync %v", snap.Hash())
+	defer logger.Infof("end auth sync %v", snapHash)
 
 	return s.SyncAndSet(ctx, snap, xdsCache)
 }

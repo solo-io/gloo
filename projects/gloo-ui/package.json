@@ -115,11 +115,6 @@
     "build-readonly": "node scripts/build.js && rm -rf build-readonly && mv build build-readonly",
     "test": "node scripts/test.js"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
-    }
-  },
   "eslintConfig": {
     "extends": "react-app"
   },

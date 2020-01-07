@@ -1,7 +1,7 @@
 import {
   DeleteUpstreamRequest,
   UpstreamDetails
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 export enum UpstreamAction {
   GET_UPSTREAM = 'GET_UPSTREAM',

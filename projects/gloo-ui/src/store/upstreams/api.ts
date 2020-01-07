@@ -1,44 +1,44 @@
 import { grpc } from '@improbable-eng/grpc-web';
-import { OutlierDetection } from 'proto/github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb';
-import { HealthCheck } from 'proto/github.com/solo-io/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb';
+import { OutlierDetection } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb';
+import { HealthCheck } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb';
 import {
   InjaTemplate,
   TransformationTemplate
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb';
-import { CircuitBreakerConfig } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb';
-import { ConnectionConfig } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/connection_pb';
-import { LoadBalancerConfig } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer_pb';
-import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb';
+} from 'proto/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb';
+import { CircuitBreakerConfig } from 'proto/gloo/projects/gloo/api/v1/circuit_breaker_pb';
+import { ConnectionConfig } from 'proto/gloo/projects/gloo/api/v1/connection_pb';
+import { LoadBalancerConfig } from 'proto/gloo/projects/gloo/api/v1/load_balancer_pb';
+import { UpstreamSpec as AwsUpstreamSpec } from 'proto/gloo/projects/gloo/api/v1/options/aws/aws_pb';
 import {
   TagFilter,
   UpstreamSpec as Ec2UpstreamSpec
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb';
-import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb';
-import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul_pb';
-import { ServiceSpec as GrpcServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
-import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes_pb';
-import { UpstreamSpec as PipeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/pipe/pipe_pb';
-import { ServiceSpec as RestServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest_pb';
-import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/service_spec_pb';
+} from 'proto/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb';
+import { UpstreamSpec as AzureUpstreamSpec } from 'proto/gloo/projects/gloo/api/v1/options/azure/azure_pb';
+import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/gloo/projects/gloo/api/v1/options/consul/consul_pb';
+import { ServiceSpec as GrpcServiceSpec } from 'proto/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
+import { UpstreamSpec as KubeUpstreamSpec } from 'proto/gloo/projects/gloo/api/v1/options/kubernetes/kubernetes_pb';
+import { UpstreamSpec as PipeUpstreamSpec } from 'proto/gloo/projects/gloo/api/v1/options/pipe/pipe_pb';
+import { ServiceSpec as RestServiceSpec } from 'proto/gloo/projects/gloo/api/v1/options/rest/rest_pb';
+import { ServiceSpec } from 'proto/gloo/projects/gloo/api/v1/options/service_spec_pb';
 import {
   Host,
   UpstreamSpec as StaticUpstreamSpec
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/static/static_pb';
+} from 'proto/gloo/projects/gloo/api/v1/options/static/static_pb';
 import {
   Selector,
   SubsetSpec
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/subset_spec_pb';
+} from 'proto/gloo/projects/gloo/api/v1/options/subset_spec_pb';
 import {
   CallCredentials,
   SDSConfig,
   SSLFiles,
   SslParameters,
   UpstreamSslConfig
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
+} from 'proto/gloo/projects/gloo/api/v1/ssl_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+import { UpstreamApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
 import { host } from 'store';
 import { guardByLicense } from 'store/config/actions';
 import {
@@ -52,7 +52,7 @@ import {
   UpdateUpstreamRequest,
   UpdateUpstreamResponse,
   UpstreamDetails
-} from '../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 export const client = new UpstreamApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

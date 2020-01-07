@@ -5,50 +5,49 @@ go 1.13
 require (
 	github.com/Sirupsen/logrus v1.4.2 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
-	github.com/aws/aws-sdk-go v1.25.44
+	github.com/aws/aws-sdk-go v1.26.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/envoyproxy/go-control-plane v0.9.1
+	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/fgrosse/zaptest v1.1.0
-	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-ldap/ldap v3.0.2+incompatible // indirect
-	github.com/go-test/deep v1.0.2 // indirect
-	github.com/gogo/googleapis v1.3.0
+	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
-	github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
-	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/mitchellh/hashstructure v1.0.0
-	github.com/onsi/ginkgo v1.10.1
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.11.0
+	github.com/onsi/gomega v1.8.1
 	github.com/open-policy-agent/opa v0.15.1 // indirect
-	github.com/pierrec/lz4 v2.2.6+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
+	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.1
 	github.com/solo-io/ext-auth-service v0.6.2
-	github.com/solo-io/gloo v1.2.12
-	github.com/solo-io/go-utils v0.11.5
+	github.com/solo-io/gloo v1.3.1
+	github.com/solo-io/go-utils v0.11.7
 	github.com/solo-io/licensing v0.1.17
+	github.com/solo-io/protoc-gen-ext v0.0.7
 	github.com/solo-io/rate-limiter v0.0.3
 	github.com/solo-io/reporting-client v0.1.2
-	github.com/solo-io/solo-kit v0.11.13
+	github.com/solo-io/solo-kit v0.12.1
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
-	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11
 	google.golang.org/grpc v1.25.1
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
@@ -58,6 +57,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/code-generator v0.0.0
 	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/yaml v1.1.0
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect

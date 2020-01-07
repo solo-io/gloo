@@ -6,7 +6,7 @@ import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import * as yup from 'yup';
 

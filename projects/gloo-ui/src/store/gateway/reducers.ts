@@ -1,5 +1,5 @@
 import { GatewayActionTypes, GatewayAction } from './types';
-import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
 
 export interface GatewayState {

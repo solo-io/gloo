@@ -11,12 +11,12 @@ import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
 import {
   VirtualService,
   Route
-} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import RT from 'assets/route-table-icon.png';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 type Resource =
   | VirtualService.AsObject
   | Upstream.AsObject

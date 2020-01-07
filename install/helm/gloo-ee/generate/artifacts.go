@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	pathToGopkgTomlDir = "."
-
 	devPullPolicy          = string(v1.PullAlways)
 	distributionPullPolicy = string(v1.PullIfNotPresent)
 )
@@ -66,7 +64,7 @@ func ArtifactName(artifact Artifact) string {
 // Run generates the helm artifacts for the corresponding file sets
 func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
 
-	osGlooVersion, err := GetGlooOsVersion(pathToGopkgTomlDir, fileSets...)
+	osGlooVersion, err := GetGlooOsVersion(fileSets...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")
 	}
@@ -118,7 +116,7 @@ func (gc *GenerationConfig) runGeneration() error {
 		return errors.Wrapf(err, "generating Chart.yaml failed")
 	}
 	if err := generateRequirementsYaml(gc.GenerationFiles.RequirementsTemplate, gc.GenerationFiles.RequirementsOutput, gc.OsGlooVersion); err != nil {
-		return errors.Wrapf(err, "unable to parse Gopkg.toml for proper gloo version")
+		return errors.Wrapf(err, "unable to parse requirements.yaml")
 	}
 	return nil
 }

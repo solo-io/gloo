@@ -34,14 +34,14 @@ WORKDIR /go/src/github.com/solo-io/solo-projects
 RUN cp -a vendor/. /go/src/ && rm -rf vendor
 
 # Build ext-auth server with CGO enabled
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
+RUN GO111MODULE=off CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION" \
     -o extauth-linux-amd64 \
     projects/extauth/cmd/main.go
 
 # Build script to verify if a plugin can be loaded by the ext-auth server
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
+RUN GO111MODULE=off CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -o verify-plugins-linux-amd64 \
     projects/extauth/scripts/verify_plugins.go

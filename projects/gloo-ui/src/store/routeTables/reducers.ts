@@ -1,4 +1,4 @@
-import { RouteTableDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 import { RouteTableActionTypes, RouteTableAction } from './types';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
 

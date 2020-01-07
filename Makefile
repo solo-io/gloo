@@ -67,24 +67,26 @@ init:
 .PHONY: update-all-deps
 update-all-deps: update-deps update-ui-deps
 
+.PHONY: mod-download
+mod-download:
+	go mod download
+
 .PHONY: update-deps
-update-deps:
+update-deps: mod-download
 	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
 	GO111MODULE=off go get -u github.com/gogo/protobuf/gogoproto
 	GO111MODULE=off go get -u github.com/gogo/protobuf/protoc-gen-gogo
 	GO111MODULE=off go get -u github.com/solo-io/protoc-gen-ext
 	GO111MODULE=off go get -u github.com/google/wire/cmd/wire
-	mkdir -p $$GOPATH/src/github.com/envoyproxy
-	# use a specific commit (c15f2c24fb27b136e722fa912accddd0c8db9dfa) until v0.0.15 is released, as in v0.0.14 the import paths were not yet changed
-	cd $$GOPATH/src/github.com/envoyproxy && if [ ! -e protoc-gen-validate ];then git clone https://github.com/envoyproxy/protoc-gen-validate; fi && cd protoc-gen-validate && git fetch && git checkout c15f2c24fb27b136e722fa912accddd0c8db9dfa
 	GO111MODULE=off go get -u github.com/golang/mock/gomock
 	GO111MODULE=off go install github.com/golang/mock/mockgen
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
-.PHONY: pin-repos
-pin-repos:
-	$(GO_BUILD_FLAGS) go run pin_repos.go
+
+.PHONY: fmt-changed
+fmt-changed:
+	git diff --name-only | grep '.*.go$$' | xargs goimports -w
 
 .PHONY: check-format
 check-format:
@@ -106,10 +108,11 @@ clean:
 #----------------------------------------------------------------------------------
 # Generated Code
 #----------------------------------------------------------------------------------
-
+VENDOR_FOLDER:=vendor_any
+PROTOC_IMPORT_PATH:=$(VENDOR_FOLDER)
 
 .PHONY: generate-all
-generate-all: generated-ui generated-code
+generate-all: generated-code generated-ui
 
 
 SUBDIRS:=projects install pkg test
@@ -121,12 +124,12 @@ generated-code:
 	mkdir -p $(OUTPUT_DIR)
 
 UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/solo-io/solo-kit/api/external \
-		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1 \
-		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1 \
-		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise \
-		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io \
+		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
+		-I$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
 		--ts_out=service=grpc-web:projects/gloo-ui/src/proto
 
@@ -136,51 +139,53 @@ generated-ui:
 	mkdir -p projects/gloo-ui/src/proto
 	ci/check-protoc.sh
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/gogo/protobuf/gogoproto/gogo.proto
+		$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf/gogoproto/gogo.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/http.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/http.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/validate/validate.proto
+		$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate/validate/validate.proto
 	protoc $(UI_PROTOC_FLAGS) \
-	 	$(GOPATH)/src/github.com/solo-io/solo-kit/api/v1/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/ext.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
+	 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
-		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
@@ -293,7 +298,7 @@ $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-EXTAUTH_GO_BUILD_IMAGE=golang:1.12.7-alpine
+EXTAUTH_GO_BUILD_IMAGE=golang:1.13.5-alpine
 
 $(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
 	cp $< $@
@@ -308,6 +313,7 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		.
+	rm -rf vendor
 	touch $@
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
@@ -338,6 +344,7 @@ auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
 		.
+	rm -rf vendor
 
 # Build extauth server docker image
 .PHONY: extauth-docker
@@ -510,7 +517,7 @@ DEPS_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
 publish-dependencies: $(DEPS_DIR)/go.mod $(DEPS_DIR)/go.sum $(DEPS_DIR)/dependencies $(DEPS_DIR)/dependencies.json \
-	$(DEPS_DIR)/Gopkg.lock $(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64
+	$(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64
 	gsutil cp -r $(DEPS_DIR) gs://$(DEPS_BUCKET)
 
 $(DEPS_DIR):
@@ -527,9 +534,6 @@ $(DEPS_DIR)/go.mod: $(DEPS_DIR) go.mod
 
 $(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
 	cp go.sum $(DEPS_DIR)
-
-$(DEPS_DIR)/Gopkg.lock: $(DEPS_DIR) Gopkg.lock
-	cp Gopkg.lock $(DEPS_DIR)
 
 $(DEPS_DIR)/build_env: $(DEPS_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@

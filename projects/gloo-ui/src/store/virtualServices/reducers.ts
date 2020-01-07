@@ -1,5 +1,5 @@
 import { VirtualServiceActionTypes, VirtualServiceAction } from './types';
-import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
 
 export interface VirtualServiceState {

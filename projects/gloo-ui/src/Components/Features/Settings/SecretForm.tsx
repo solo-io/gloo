@@ -10,8 +10,8 @@ import {
   AzureSecret,
   Secret,
   TlsSecret
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+} from 'proto/gloo/projects/gloo/api/v1/secret_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from 'store';

@@ -1,4 +1,4 @@
-import { SecretApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb_service';
+import { SecretApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/secret_pb_service';
 import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
@@ -12,21 +12,21 @@ import {
   DeleteSecretResponse,
   UpdateSecretRequest,
   UpdateSecretResponse
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { SecretValuesType } from 'Components/Features/Settings/SecretForm';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import {
   Secret,
   AwsSecret,
   TlsSecret,
   AzureSecret
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+} from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import { guardByLicense } from 'store/config/actions';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 import {
   OauthSecret,
   ApiKeySecret
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
+} from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 
 const client = new SecretApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

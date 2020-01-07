@@ -1,32 +1,36 @@
 package main
 
 import (
-	"os"
-
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
-	"github.com/solo-io/solo-projects/pkg/version"
+	"github.com/solo-io/solo-kit/pkg/code-generator/sk_anyvendor"
 )
+
+const GlooPkg = "github.com/solo-io/gloo"
 
 //go:generate go run generate.go
 
 func main() {
-	err := version.CheckVersions()
-	if err != nil {
-		log.Fatalf("generate failed!: %s", err.Error())
-	}
 	log.Printf("Starting generate...")
 
+	imports := sk_anyvendor.CreateDefaultMatchOptions(
+		[]string{
+			"projects/observability/**/*.proto",
+			"projects/grpcserver/**/*.proto",
+			sk_anyvendor.SoloKitMatchPattern,
+		},
+	)
+	imports.External[GlooPkg] = []string{"projects/**/*.proto"}
+
 	generateOptions := cmd.GenerateOptions{
-		SkipGenMocks:  true,
-		CustomImports: []string{
-			os.ExpandEnv("$GOPATH/src/github.com/solo-io/gloo/projects/gloo/api/external"),
-			os.ExpandEnv("$GOPATH/src/github.com/solo-io/protoc-gen-ext")},
-		SkipDirs:      []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"},
-		RelativeRoot:  ".",
-		CompileProtos: true,
+		SkipGenMocks:    true,
+		SkipDirs:        []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"},
+		RelativeRoot:    ".",
+		CompileProtos:   true,
+		ExternalImports: imports,
 	}
 	if err := cmd.Generate(generateOptions); err != nil {
 		log.Fatalf("generate failed!: %v", err)
 	}
+	log.Printf("Finished generating code")
 }

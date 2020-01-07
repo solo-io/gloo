@@ -1,6 +1,7 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- if .Values.global.extensions.extAuth.standaloneDeployment }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
+{{- $statsConfig := coalesce $extAuth.deployment.stats .Values.global.glooStats -}}
 {{- $image := $extAuth.deployment.image }}
 {{- if .Values.global  }}
 {{- $image = merge $extAuth.deployment.image .Values.global.image }}
@@ -22,7 +23,7 @@ spec:
     metadata:
       labels:
         gloo: {{ $extAuth.deployment.name }}
-      {{- if $extAuth.deployment.stats }}
+      {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"

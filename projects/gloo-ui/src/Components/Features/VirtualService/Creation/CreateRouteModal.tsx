@@ -14,14 +14,14 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import { uniqBy } from 'lodash';
-import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 import {
   Route,
   VirtualService
-} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
+import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
@@ -34,11 +34,11 @@ import * as yup from 'yup';
 import { RouteParent } from '../RouteTableDetails';
 import { DestinationForm } from './DestinationForm';
 import { updateRouteTable } from 'store/routeTables/actions';
-import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
+import { DestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options_pb';
 import {
   HeaderMatcher,
   QueryParameterMatcher
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
+} from 'proto/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
 
 const FormContainer = styled.form`
   display: flex;

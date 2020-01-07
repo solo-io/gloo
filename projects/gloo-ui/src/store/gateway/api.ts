@@ -5,9 +5,9 @@ import {
   BoolValue,
   UInt32Value
 } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { HttpConnectionManagerSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/hcm/hcm_pb';
-import { ListenerTracingSettings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { HttpConnectionManagerSettings } from 'proto/gloo/projects/gloo/api/v1/options/hcm/hcm_pb';
+import { ListenerTracingSettings } from 'proto/gloo/projects/gloo/api/v1/options/tracing/tracing_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import {
   GetGatewayRequest,
   GetGatewayResponse,
@@ -16,33 +16,33 @@ import {
   UpdateGatewayRequest,
   UpdateGatewayResponse,
   UpdateGatewayYamlRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import { GatewayApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
-import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { GatewayApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
+import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { host } from 'store';
 import { guardByLicense } from 'store/config/actions';
 import {
   Gateway,
   HttpGateway,
   TcpGateway
-} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+} from 'proto/gloo/projects/gateway/api/v1/gateway_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 import {
   HttpListenerOptions,
   ListenerOptions
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
-import { GrpcWeb } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web_pb';
-import { HealthCheck } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb';
+} from 'proto/gloo/projects/gloo/api/v1/options_pb';
+import { GrpcWeb } from 'proto/gloo/projects/gloo/api/v1/options/grpc_web/grpc_web_pb';
+import { HealthCheck } from 'proto/gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb';
 import {
   Settings as WafSettings,
   CoreRuleSet
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb';
+} from 'proto/gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb';
 import {
   FilterConfig,
   DlpRule
-} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb';
-import { RuleSet } from 'proto/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/waf/waf_pb';
-import { TcpHost } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+} from 'proto/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb';
+import { RuleSet } from 'proto/gloo/projects/gloo/api/external/envoy/extensions/waf/waf_pb';
+import { TcpHost } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 const { warning } = Modal;
 
 const client = new GatewayApiClient(host, {

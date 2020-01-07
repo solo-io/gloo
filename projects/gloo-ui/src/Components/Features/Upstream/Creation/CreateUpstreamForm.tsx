@@ -23,8 +23,8 @@ import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
 import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { CreateUpstreamRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { CreateUpstreamRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;

@@ -15,8 +15,8 @@ import {
   ListNamespacesResponse,
   UpdateSettingsRequest,
   UpdateSettingsResponse
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { ConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb_service';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { ConfigApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
 
 const client = new ConfigApiClient(host, {

@@ -1,4 +1,4 @@
-import { ProxyDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/proxy_pb';
+import { ProxyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { ProxyActionTypes, ProxyAction } from './types';
 
 export interface ProxyState {

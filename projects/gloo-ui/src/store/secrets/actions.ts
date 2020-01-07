@@ -2,7 +2,7 @@ import {
   ListSecretsRequest,
   CreateSecretRequest,
   DeleteSecretRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { Dispatch } from 'redux';
 import { showLoading, hideLoading } from 'react-redux-loading-bar';
 import { secrets } from './api';

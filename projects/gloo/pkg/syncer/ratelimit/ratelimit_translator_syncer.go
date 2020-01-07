@@ -6,6 +6,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/go-utils/hashutils"
 	"go.uber.org/zap"
 
 	"github.com/mitchellh/hashstructure"
@@ -39,9 +40,10 @@ func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorS
 func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snap.Hash(),
+	snapHash := hashutils.MustHash(snap)
+	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snapHash,
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
-	defer logger.Infof("end sync %v", snap.Hash())
+	defer logger.Infof("end sync %v", snapHash)
 
 	var customrl *v1.RateLimitConfig
 	if s.settings.GetDescriptors() != nil {

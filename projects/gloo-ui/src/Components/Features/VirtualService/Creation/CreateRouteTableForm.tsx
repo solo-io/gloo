@@ -12,7 +12,7 @@ import { createVirtualService } from 'store/virtualServices/actions';
 import * as yup from 'yup';
 import { useHistory, useLocation } from 'react-router';
 import { createRouteTable } from 'store/routeTables/actions';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 
 const Footer = styled.div`
   display: flex;

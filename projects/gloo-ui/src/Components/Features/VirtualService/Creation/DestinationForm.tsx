@@ -7,7 +7,7 @@ import { useField } from 'formik';
 import React from 'react';
 import { getFunctionList } from 'utils/helpers';
 import { HalfColumn } from './CreateRouteModal';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
 
 interface DestiantionFormProps {
   name: string;

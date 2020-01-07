@@ -10,10 +10,13 @@
 
 # IDEA files
 *.idea/
+.vscode
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-vendor/
+*.tmp
+vendor*/
+debug*/
 _output/
 _test/
 doc/site/

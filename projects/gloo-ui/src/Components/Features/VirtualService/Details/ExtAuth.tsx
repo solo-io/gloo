@@ -2,11 +2,11 @@ import styled from '@emotion/styled';
 import { Button, Spin } from 'antd';
 import { Label } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { OAuth } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
+import { OAuth } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 import * as React from 'react';
 import { colors } from 'Styles';
 import { ExtAuthForm } from './ExtAuthForm';
-import { ExtAuthPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { ExtAuthPlugin } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 
 const ConfigItemHeader = styled.div`
   display: flex;

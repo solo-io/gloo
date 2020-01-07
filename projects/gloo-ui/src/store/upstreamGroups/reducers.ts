@@ -1,4 +1,4 @@
-import { UpstreamGroupDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
+import { UpstreamGroupDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 import { UpstreamGroupActionTypes, UpstreamGroupAction } from './types';
 
 export interface UpstreamGroupState {

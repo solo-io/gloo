@@ -49,6 +49,7 @@ Expand the name of the chart.
 {{- define "gloo.extauthcontainer" -}}
 {{- $extAuth := .Values.global.extensions.extAuth -}}
 {{- $image := $extAuth.deployment.image -}}
+{{- $statsConfig := coalesce $extAuth.deployment.stats .Values.global.glooStats -}}
 {{- if .Values.global -}}
 {{- $image = merge $extAuth.deployment.image .Values.global.image -}}
 {{- end -}}
@@ -94,7 +95,7 @@ Expand the name of the chart.
     - name: USER_ID_HEADER
       value: {{ $extAuth.userIdHeader  | quote }}
     {{- end }}
-    {{- if $extAuth.deployment.stats }}
+    {{- if $statsConfig.enabled }}
     - name: START_STATS_SERVER
       value: "true"
     {{- end}}

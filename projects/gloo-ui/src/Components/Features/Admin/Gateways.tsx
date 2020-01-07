@@ -3,7 +3,7 @@ import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
 import _ from 'lodash/fp';
-import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from 'store';

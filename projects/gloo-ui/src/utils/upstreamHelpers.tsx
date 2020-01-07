@@ -3,9 +3,8 @@ import {
   RadioFilterProps
 } from 'Components/Common/ListingFilter';
 import _ from 'lodash';
-import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */

@@ -1,7 +1,7 @@
 import { Modal } from 'antd';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
-import { IngressRateLimit } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { IngressRateLimit } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import {
   CreateRouteRequest,
   CreateVirtualServiceRequest,
@@ -11,7 +11,7 @@ import {
   ShiftRoutesRequest,
   UpdateVirtualServiceRequest,
   UpdateVirtualServiceYamlRequest
-} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+} from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { Dispatch } from 'redux';
 import { guardByLicense } from 'store/config/actions';
 import { virtualServices } from './api';
