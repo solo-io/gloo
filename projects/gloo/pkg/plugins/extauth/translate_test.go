@@ -95,11 +95,12 @@ var _ = Describe("Translate", func() {
 				Configs: []*extauth.AuthConfig_Config{{
 					AuthConfig: &extauth.AuthConfig_Config_Oauth{
 						Oauth: &extauth.OAuth{
-							ClientSecretRef: &secretRef,
-							ClientId:        "ClientId",
-							IssuerUrl:       "IssuerUrl",
-							AppUrl:          "AppUrl",
-							CallbackPath:    "CallbackPath",
+							ClientSecretRef:         &secretRef,
+							ClientId:                "ClientId",
+							IssuerUrl:               "IssuerUrl",
+							AuthEndpointQueryParams: map[string]string{"test": "additional_query_params"},
+							AppUrl:                  "AppUrl",
+							CallbackPath:            "CallbackPath",
 						},
 					},
 				}},
@@ -155,6 +156,7 @@ var _ = Describe("Translate", func() {
 			actual := translated.Configs[0].GetOauth()
 			expected := authConfig.Configs[0].GetOauth()
 			Expect(actual.IssuerUrl).To(Equal(expected.IssuerUrl))
+			Expect(actual.AuthEndpointQueryParams).To(Equal(expected.AuthEndpointQueryParams))
 			Expect(actual.ClientId).To(Equal(expected.ClientId))
 			Expect(actual.ClientSecret).To(Equal(clientSecret.ClientSecret))
 			Expect(actual.AppUrl).To(Equal(expected.AppUrl))

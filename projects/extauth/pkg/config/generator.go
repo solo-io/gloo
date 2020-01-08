@@ -233,7 +233,8 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		if cb == "" {
 			cb = DefaultCallback
 		}
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb, cfg.Oauth.Scopes, stateSigner)
+		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
+			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner)
 		if err != nil {
 			return nil, "", err
 		}

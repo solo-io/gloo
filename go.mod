@@ -3,15 +3,14 @@ module github.com/solo-io/solo-projects
 go 1.13
 
 require (
-	github.com/Sirupsen/logrus v1.4.2 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.26.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.1
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-ldap/ldap v3.0.2+incompatible // indirect
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.3.1
@@ -34,7 +33,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.1
-	github.com/solo-io/ext-auth-service v0.6.2
+	github.com/solo-io/ext-auth-service v0.6.4
 	github.com/solo-io/gloo v1.3.1
 	github.com/solo-io/go-utils v0.11.7
 	github.com/solo-io/licensing v0.1.17
@@ -42,7 +41,6 @@ require (
 	github.com/solo-io/rate-limiter v0.0.3
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-kit v0.12.1
-	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245 // indirect
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
@@ -50,7 +48,6 @@ require (
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11
 	google.golang.org/grpc v1.25.1
-	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.0.0
 	k8s.io/api v0.0.0
@@ -60,7 +57,6 @@ require (
 	k8s.io/code-generator v0.0.0
 	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/yaml v1.1.0
-	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 replace (
