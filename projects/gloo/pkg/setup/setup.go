@@ -4,25 +4,24 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/utils/usage"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/metrics/pkg/metricsservice"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
-	"go.uber.org/zap"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
-	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
-	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
-
-	"github.com/solo-io/gloo/pkg/utils/setuputils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
+	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
+	"go.uber.org/zap"
 )
 
 const (
@@ -41,6 +40,7 @@ func Main() error {
 		SetupFunc:     syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions(cancellableCtx)),
 		ExitOnError:   true,
 		LoggerName:    "gloo-ee",
+		Version:       version.Version,
 		UsageReporter: enterpriseUsageReader,
 		CustomCtx:     cancellableCtx,
 	})

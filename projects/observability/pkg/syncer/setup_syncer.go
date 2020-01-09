@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
-
-	"github.com/solo-io/gloo/pkg/utils/setuputils"
-
 	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	gloodefaults "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -19,7 +16,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-projects/pkg/version"
 	v1 "github.com/solo-io/solo-projects/projects/observability/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 	"k8s.io/client-go/rest"
 )
 
@@ -35,6 +34,7 @@ const (
 func Main() error {
 	return setuputils.Main(setuputils.SetupOpts{
 		LoggerName:  observability,
+		Version:     version.Version,
 		ExitOnError: true,
 		SetupFunc:   Setup,
 	})

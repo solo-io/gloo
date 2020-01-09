@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Add version information to each log line in the enterprise pods.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1364

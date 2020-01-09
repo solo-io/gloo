@@ -3,15 +3,14 @@ package client
 import (
 	"context"
 
-	"github.com/solo-io/go-utils/contextutils"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-	"k8s.io/client-go/rest"
-
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-projects/pkg/version"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
+	"k8s.io/client-go/rest"
 )
 
 //go:generate mockgen -destination mocks/mock_client_updater.go -package mocks github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client Updater
@@ -46,6 +45,7 @@ func (u *updater) StartWatch(ctx context.Context) {
 		// setuputils.Main will block until the watch loop ends
 		err := setuputils.Main(setuputils.SetupOpts{
 			LoggerName:  clientUpdaterLogger,
+			Version:     version.Version,
 			SetupFunc:   u.buildReceiverFunc(),
 			ExitOnError: false,
 		})
