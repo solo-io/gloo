@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Do not generate UI code for grpc services that do not exist.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1434

@@ -123,7 +123,8 @@ generated-code:
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)
 
-UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
+# Flags for all UI code generation
+COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io \
 		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
 		-I$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf \
@@ -131,6 +132,13 @@ UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
+
+# Flags for UI code generation when we do not need to generate GRPC Web service code
+UI_TYPES_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
+		--ts_out=projects/gloo-ui/src/proto
+
+# Flags for UI code generation when we need to generate GRPC Web service code
+GRPC_WEB_SERVICE_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
 		--ts_out=service=grpc-web:projects/gloo-ui/src/proto
 
 .PHONY: generated-ui
@@ -138,53 +146,53 @@ generated-ui:
 	rm -rf projects/gloo-ui/src/proto
 	mkdir -p projects/gloo-ui/src/proto
 	ci/check-protoc.sh
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf/gogoproto/gogo.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/http.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate/validate/validate.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/ext.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 	 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
-	protoc $(UI_PROTOC_FLAGS) \
+	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh
 	gofmt -w $(SUBDIRS)
