@@ -246,7 +246,7 @@ steps:
   id: "docker-login-push"
 
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
-  args: ["--jobs=4", "docker-push"]
+  args: ["docker-push"]
   env:
     - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
