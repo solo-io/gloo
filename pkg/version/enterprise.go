@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/solo-io/go-utils/errors"
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/githubutils"
 	"github.com/solo-io/go-utils/versionutils"
 	"github.com/solo-io/go-utils/versionutils/git"
@@ -93,7 +93,7 @@ func LatestVersionFromRepoWithMaxVersion(file string, stableOnly bool, maxVersio
 	}
 
 	if largestTag == "" {
-		return "", errors.Errorf("Couldn't find any %s versions in index file %s that satisfies constraints: [stable]: %v, [maxVersion]: %v",
+		return "", eris.Errorf("Couldn't find any %s versions in index file %s that satisfies constraints: [stable]: %v, [maxVersion]: %v",
 			GlooEE, file, stableOnly, maxVersion)
 	}
 

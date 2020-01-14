@@ -1,9 +1,9 @@
 package install
 
 import (
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
-	"github.com/solo-io/go-utils/errors"
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -30,7 +30,7 @@ func enterpriseCmd(opts *options.Options) *cobra.Command {
 				Enterprise:     true, // will be overwritten in Install in case of a helm chart override
 				Verbose:        opts.Top.Verbose,
 			}); err != nil {
-				return errors.Wrapf(err, "installing Gloo Enterprise in gateway mode")
+				return eris.Wrapf(err, "installing Gloo Enterprise in gateway mode")
 			}
 
 			return nil

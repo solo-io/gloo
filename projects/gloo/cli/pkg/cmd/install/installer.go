@@ -9,33 +9,29 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
-
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
-	"github.com/solo-io/gloo/pkg/cliutil/helm"
-
 	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/gloo/pkg/cliutil/helm"
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/go-utils/errors"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/cli/values"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/release"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/yaml"
 )
 
 var (
 	ChartAndReleaseFlagErr = func(chartOverride, versionOverride string) error {
-		return errors.Errorf("you may not specify both a chart with -f and a release version with --version. Received: %s and %s", chartOverride, versionOverride)
+		return eris.Errorf("you may not specify both a chart with -f and a release version with --version. Received: %s and %s", chartOverride, versionOverride)
 	}
 )
 
@@ -307,7 +303,7 @@ func getChartUri(chartOverride, versionOverride string, withUi, enterprise bool)
 	}
 
 	if path.Ext(helmChartArchiveUri) != ".tgz" && !strings.HasSuffix(helmChartArchiveUri, ".tar.gz") {
-		return "", errors.Errorf("unsupported file extension for Helm chart URI: [%s]. Extension must either be .tgz or .tar.gz", helmChartArchiveUri)
+		return "", eris.Errorf("unsupported file extension for Helm chart URI: [%s]. Extension must either be .tgz or .tar.gz", helmChartArchiveUri)
 	}
 	return helmChartArchiveUri, nil
 }
@@ -318,7 +314,7 @@ func getDefaultGlooInstallVersion(chartOverride string) (string, error) {
 		return "", err
 	}
 	if !isReleaseVersion && chartOverride == "" {
-		return "", errors.Errorf("you must provide a Gloo Helm chart URI via the 'file' option " +
+		return "", eris.Errorf("you must provide a Gloo Helm chart URI via the 'file' option " +
 			"when running an unreleased version of glooctl")
 	}
 	return version.Version, nil
