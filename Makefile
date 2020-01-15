@@ -379,6 +379,12 @@ package-chart: generate-helm-files
 	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)
 	helm repo index $(HELM_SYNC_DIR)
 
+push-chart-to-registry: generate-helm-files
+	mkdir -p $(HELM_REPOSITORY_CACHE)
+	cp $(DOCKER_CONFIG)/config.json $(HELM_REPOSITORY_CACHE)/config.json
+	HELM_EXPERIMENTAL_OCI=1 helm chart save $(HELM_DIR) gcr.io/solo-public/gloo-helm:$(VERSION)
+	HELM_EXPERIMENTAL_OCI=1 helm chart push gcr.io/solo-public/gloo-helm:$(VERSION)
+
 .PHONY: fetch-helm
 fetch-helm:
 	gsutil -m rsync -r gs://solo-public-helm/ './_output/helm'

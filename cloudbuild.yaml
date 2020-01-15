@@ -124,7 +124,6 @@ steps:
   - 'RUN_CONSUL_TESTS=1'
   - 'RUN_VAULT_TESTS=1'
   - 'DOCKER_CONFIG=/workspace/.docker/'
-  - 'HELM_HOME=/root/.helm'
   dir: *dir
   args: ['-r', '-failFast', '-trace', '-progress', '-race', '-compilers=4', '--noColor']
   waitFor: ['get-envoy', 'setup-aws-creds', 'fetch-helm', 'check-code-and-docs-gen', 'set-test-zone', 'get-test-credentials']
@@ -158,23 +157,30 @@ steps:
   - 'DOCKER_CONFIG=/workspace/docker-config'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'PROJECT_ROOT=github.com/solo-io/gloo'
-  - 'HELM_HOME=/root/.helm' # tell helm where to find data
   dir: *dir
   secretEnv: ['GITHUB_TOKEN']
   waitFor: ['compile']
   id: 'docker-push'
 # 2) Publish helm chart, compile manifests, produce release artifacts, deploy docs
 # isolating this portion of the release in order to force the manifest to be regenerated with the tagged version
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.2.1'
-  args: ['package-chart', 'render-manifests', 'upload-github-release-assets', 'download-glooe-changelog', 'publish-docs', '-B']
+- name: gcr.io/cloud-builders/gcloud
+  args: ['auth', 'configure-docker']
   env:
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'PROJECT_ROOT=github.com/solo-io/gloo'
-  - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
-  - 'HELM_HOME=/root/.helm' # tell helm where to find data
+    - 'DOCKER_CONFIG=/workspace/docker-config'
+  dir: *dir
+  waitFor: ['compile']
+  id: 'gcr-auth'
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.2.1'
+  args: ['package-chart', 'render-manifests', 'upload-github-release-assets', 'download-glooe-changelog', 'publish-docs', 'push-chart-to-registry', '-B']
+  env:
+    - 'DOCKER_CONFIG=/workspace/docker-config'
+    - 'HELM_REPOSITORY_CACHE=/builder/home/.cache/helm/registry'
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/gloo'
+    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
   dir: *dir
   secretEnv: ['GITHUB_TOKEN']
-  waitFor: ['compile']
+  waitFor: ['compile', 'gcr-auth']
   id: 'release-chart'
 
 - name: gcr.io/cloud-builders/gcloud
@@ -189,7 +195,6 @@ steps:
     - 'PROJECT_ROOT=github.com/solo-io/gloo'
     - 'BUILD_ID=$BUILD_ID'
     - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
-    - 'HELM_HOME=/root/.helm'
     - 'TAGGED_VERSION=$TAG_NAME'
   dir: *dir
   waitFor: ['compile', 'docker-login', 'docker-push', 'test']
