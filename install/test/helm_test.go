@@ -646,6 +646,23 @@ var _ = Describe("Helm Test", func() {
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
+					It("supports multiple deployments", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gatewayProxies.gatewayProxyInternal.kind.deployment.replicas=1",
+								"gatewayProxies.gatewayProxyInternal.configMap.data=null",
+								"gatewayProxies.gatewayProxyInternal.service.extraAnnotations=null",
+								"gatewayProxies.gatewayProxyInternal.service.type=ClusterIP",
+								"gatewayProxies.gatewayProxyInternal.podTemplate.httpPort=8081",
+								"gatewayProxies.gatewayProxyInternal.podTemplate.image.tag=dev",
+							},
+						})
+						deploymentName := "gateway-proxy-internal"
+						// deployment exists for for second declaration of gateway proxy
+						testManifest.Expect("Deployment", namespace, deploymentName).NotTo(BeNil())
+						testManifest.Expect("Deployment", namespace, "gateway-proxy").NotTo(BeNil())
+					})
+
 					It("creates a deployment with gloo wasm envoy", func() {
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{"global.wasm.enabled=true"},
@@ -1538,6 +1555,24 @@ metadata:
 						}
 						proxy := cmRb.GetConfigMap()
 						testManifest.ExpectConfigMapWithYamlData(proxy)
+					})
+				})
+				Describe("supports multiple gateway proxy config maps", func() {
+					It("can parse multiple config maps", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gatewayProxies.gatewayProxyInternal.kind.deployment.replicas=1",
+								"gatewayProxies.gatewayProxyInternal.configMap.data=null",
+								"gatewayProxies.gatewayProxyInternal.service.extraAnnotations=null",
+								"gatewayProxies.gatewayProxyInternal.service.type=ClusterIP",
+								"gatewayProxies.gatewayProxyInternal.podTemplate.httpPort=8081",
+								"gatewayProxies.gatewayProxyInternal.podTemplate.image.tag=dev",
+							},
+						})
+						cmName := "gateway-proxy-internal-envoy-config"
+						// cm exists for for second declaration of gateway proxy
+						testManifest.Expect("ConfigMap", namespace, cmName).NotTo(BeNil())
+						testManifest.Expect("ConfigMap", namespace, "gateway-proxy-envoy-config").NotTo(BeNil())
 					})
 				})
 
