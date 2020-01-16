@@ -29,7 +29,7 @@ type upstreamGrpcService struct {
 }
 
 // this client is not mocked by gloo, so mock it ourselves here
-//go:generate mockgen -destination mocks/upstream_group_client_mock.go -self_package github.com/solo-io/gloo/projects/gloo/pkg/api/v1 -package mocks github.com/solo-io/gloo/projects/gloo/pkg/api/v1 UpstreamGroupClient
+//go:generate mockgen -destination mocks/upstream_group_client_mock.go -package mocks github.com/solo-io/gloo/projects/gloo/pkg/api/v1 UpstreamGroupClient
 
 func NewUpstreamGroupGrpcService(
 	ctx context.Context,

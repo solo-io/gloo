@@ -1,0 +1,6 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-plugins
+  dependencyTag: v0.1.2
+  description: Update go-utils to version 0.1.2

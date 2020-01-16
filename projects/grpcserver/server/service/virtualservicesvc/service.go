@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -destination mocks/virtual_service_client_mock.go -self_package github.com/solo-io/gloo/projects/gateway/pkg/api/v1 -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 VirtualServiceClient
+//go:generate mockgen -destination mocks/virtual_service_client_mock.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 VirtualServiceClient
 
 type virtualServiceGrpcService struct {
 	ctx              context.Context

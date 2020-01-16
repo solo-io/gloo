@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -destination mocks/route_table_client_mock.go -self_package github.com/solo-io/gloo/projects/gateway/pkg/api/v1 -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 RouteTableClient
+//go:generate mockgen -destination mocks/route_table_client_mock.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/api/v1 RouteTableClient
 
 type routeTableGrpcService struct {
 	ctx            context.Context
