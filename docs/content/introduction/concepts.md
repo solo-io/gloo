@@ -63,20 +63,20 @@ In this case, we are setting up an HTTP listener on port 8443. When [VirtualServ
 
 ## Virtual Services
 
-**Virtual Services** define a set of route rules, an optional SNI configuration for a given domain or set of domains.
+**Virtual Services** define a set of route rules, security configuration (including [TLS, mTLS, SNI]({{% versioned_link_path fromRoot="/gloo_routing/tls/" %}}), [WAF]({{% versioned_link_path fromRoot="/security/waf/" %}}), [OAuth]({{% versioned_link_path fromRoot="/security/auth/oauth/" %}}), [Data Loss Prevention]({{% versioned_link_path fromRoot="/security/data_loss_prevention/" %}}), and [others]({{% versioned_link_path fromRoot="/security/" %}})), rate limiting, transformations, and other core routing capabilities supported by Gloo.
 
 Gloo will select the appropriate virtual service (set of routes) based on the domain specified in a request's `Host` header
 (in HTTP 1.1) or `:authority` header (HTTP 2.0).
 
-Virtual Services support wildcard domains (starting with `*`).
+Virtual Services also support wildcard domains (starting with `*`).
 
 Gloo will create a `default` virtual service for the user if the user does not provide one. The `default` virtual service
 matches the `*` domain, which will serve routes for any request that does not include a `Host`/`:authority` header,
-or a request that requests a domain that does not match another virtual service.
+or a request that requests a domain that does not match another virtual service. You'll note in the [Hello World tutorial]({{% versioned_link_path fromRoot="/gloo_routing/hello_world/" %}}) we create a `default` `VirtualService`.
 
-The each domain specified for a `virtualservice` must be unique across the set of all virtual services provided to Gloo.
+Each domain specified for a `virtualservice` must be unique across the set of all virtual services provided to Gloo. In previous versions, we used to support VirtualService merging which means you could have multiple VirtualServices with the same domain and we would just merge the routes. The preferred way to segment out routes and have multiple owners of the virtual service is to use [delegation]({{% versioned_link_path fromRoot="/gloo_routing/virtual_services/delegation/" %}}). Please see the [introduction to the decentralized Gloo API]({{% versioned_link_path fromRoot="/introduction/decentralized_routing/" %}}) and [delegation]({{% versioned_link_path fromRoot="/gloo_routing/virtual_services/delegation/" %}}) for more. 
 
-For many use cases, it may be sufficient to let all routes live on a single virtual service. In this scenario,
+For some use cases, it may be sufficient to let all routes live on a single virtual service. In this scenario,
 Gloo will use the same set of route rules to for requests, regardless of their `Host` or `:authority` header.
 
 Route rules consist of *matchers*, which specify the kind of function calls to match (requests and events,
