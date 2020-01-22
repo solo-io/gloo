@@ -33,7 +33,10 @@ import { DestinationSpec as AwsDestinationSpec } from 'proto/gloo/projects/gloo/
 import { DestinationSpec as AzureDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/azure/azure_pb';
 import { DestinationSpec as GrpcDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
 import { DestinationSpec as RestDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/rest/rest_pb';
-import { Route, DelegateAction } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+import {
+  Route,
+  DelegateAction
+} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
@@ -71,7 +74,7 @@ function getRouteTable(
   });
 }
 
-function listRouteTables(): Promise<ListRouteTablesResponse.AsObject> {
+function listRouteTables(): Promise<RouteTableDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListRouteTablesRequest();
     client.listRouteTables(request, (error, data) => {
@@ -81,7 +84,7 @@ function listRouteTables(): Promise<ListRouteTablesResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().routeTableDetailsList);
       }
     });
   });
@@ -426,7 +429,7 @@ function deleteRouteTable(
   });
 }
 
-export const routeTables = {
+export const routeTableAPI = {
   listRouteTables,
   getRouteTable,
   deleteRouteTable,

@@ -38,37 +38,9 @@ const App = () => {
   const dispatch = useDispatch();
 
   React.useEffect(() => {
-    dispatch(listNamespaces());
-    dispatch(getSettings());
-    dispatch(getPodNamespace());
     dispatch(getIsLicenseValid());
-    dispatch(getVersion());
-    dispatch(listEnvoyDetails());
-    dispatch(listUpstreams());
-    dispatch(listVirtualServices());
-    dispatch(listSecrets());
-    dispatch(listGateways());
-    dispatch(listProxies());
-    dispatch(listRouteTables());
   }, []);
 
-  useInterval(() => {
-    dispatch(listVirtualServices());
-    dispatch(listSecrets());
-    dispatch(listGateways());
-    dispatch(listProxies());
-    dispatch(listNamespaces());
-    dispatch(getSettings());
-    dispatch(getPodNamespace());
-    dispatch(getVersion());
-    dispatch(listEnvoyDetails());
-    dispatch(listRouteTables());
-    dispatch(listUpstreams());
-  }, 3000);
-
-  useInterval(() => {
-    dispatch(getIsLicenseValid());
-  }, 60000);
   const showModal = useSelector((state: AppState) => state.modal.showModal);
   const modalMessage = useSelector((state: AppState) => state.modal.message);
   return (

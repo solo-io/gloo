@@ -2,11 +2,7 @@ import styled from '@emotion/styled';
 import { Popconfirm } from 'antd';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
-import {
-  CatalogTableToggle,
-  TileIcon,
-  ListIcon
-} from 'Components/Common/CatalogTableToggle';
+import { ListIcon, TileIcon } from 'Components/Common/CatalogTableToggle';
 import { FileDownloadActionCircle } from 'Components/Common/FileDownloadLink';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { HealthInformation } from 'Components/Common/HealthInformation';
@@ -25,18 +21,18 @@ import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
 import { UpstreamDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
-import { LoadingBar } from 'react-redux-loading-bar';
+import { useDispatch } from 'react-redux';
 import { useHistory, useLocation, useRouteMatch } from 'react-router';
-import { Route, NavLink } from 'react-router-dom';
-import { AppState } from 'store';
-import { deleteUpstream, listUpstreams } from 'store/upstreams/actions';
+import { NavLink, Route } from 'react-router-dom';
+import { deleteUpstream } from 'store/upstreams/actions';
+import { upstreamAPI } from 'store/upstreams/api';
 import {
   healthConstants,
   TableActionCircle,
   TableActions,
   TableHealthCircleHolder
 } from 'Styles';
+import useSWR from 'swr';
 import {
   CheckboxFilters,
   getFunctionInfo,
@@ -46,8 +42,8 @@ import {
   groupBy,
   RadioFilters
 } from 'utils/helpers';
-import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 import { CreateRouteModal } from '../VirtualService/Creation/CreateRouteModal';
+import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 
 const TypeHolder = styled.div`
   display: flex;
@@ -199,18 +195,10 @@ export const UpstreamsListing = () => {
   let history = useHistory();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = React.useState(false);
-  const upstreamsList = useSelector(
-    (state: AppState) => state.upstreams.upstreamsList,
-    shallowEqual
+  const { data: upstreamsList, error } = useSWR(
+    'listUpstreams',
+    upstreamAPI.listUpstreams
   );
-
-  React.useEffect(() => {
-    if (upstreamsList.length) {
-      setIsLoading(false);
-    } else {
-      dispatch(listUpstreams());
-    }
-  }, [upstreamsList.length]);
 
   let params = new URLSearchParams(location.search);
 
@@ -228,7 +216,7 @@ export const UpstreamsListing = () => {
     }
   }, []);
 
-  if (isLoading) {
+  if (!upstreamsList) {
     return <div>Loading...</div>;
   }
 
@@ -395,10 +383,10 @@ export const UpstreamsListing = () => {
           params.set('status', selectedRadio);
           // group by type
 
-          let upstreamsByType = React.useMemo(
-            () => groupBy(upstreamsList, u => getUpstreamType(u.upstream!)),
-            [upstreamsList.length]
+          let upstreamsByType = groupBy(upstreamsList, u =>
+            getUpstreamType(u.upstream!)
           );
+
           let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
           let checkboxesNotSet = checkboxes.every(c => !c.value!);
           return (

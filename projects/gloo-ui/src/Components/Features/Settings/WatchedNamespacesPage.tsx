@@ -1,19 +1,20 @@
+import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 import { InputNumber } from 'antd';
 import { ReactComponent as RelatedCircles } from 'assets/related-circles.svg';
+import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { StringCardsList } from 'Components/Common/StringCardsList';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { useDispatch } from 'react-redux';
 import {
   getSettings,
   updateRefreshRate,
   updateWatchNamespaces
 } from 'store/config/actions';
+import { configAPI } from 'store/config/api';
 import { colors } from 'Styles';
-import { css } from '@emotion/core';
-import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
+import useSWR from 'swr';
 
 interface Props {}
 
@@ -94,15 +95,18 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
 // TODO: consolidate update functions to avoid repetition
 export const WatchedNamespacesPage = (props: Props) => {
   const dispatch = useDispatch();
-  const { namespacesList } = useSelector((store: AppState) => store.config);
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: settings, error: settingsError } = useSWR(
+    'getSettings',
+    configAPI.getSettings
+  );
 
-  const settings = useSelector((state: AppState) => state.config.settings);
-  const currentRefreshRate = useSelector(
-    (state: AppState) => state.config.settings.refreshRate
-  );
-  const watchNamespacesList = useSelector(
-    (state: AppState) => state.config.settings.watchNamespacesList
-  );
+  const currentRefreshRate = settings?.refreshRate;
+
+  const watchNamespacesList = settings?.watchNamespacesList;
 
   const [availableNS, setAvailableNS] = React.useState(namespacesList);
 
@@ -125,11 +129,11 @@ export const WatchedNamespacesPage = (props: Props) => {
     if (!settings) {
       dispatch(getSettings());
     }
-  }, [settings.refreshRate, settings.watchNamespacesList]);
+  }, [settings?.refreshRate, settings?.watchNamespacesList]);
 
   React.useEffect(() => {
     setAvailableNS(
-      namespacesList.filter(ns => !watchNamespacesList.includes(ns))
+      namespacesList?.filter(ns => !watchNamespacesList?.includes(ns))
     );
   }, [watchNamespacesList]);
 

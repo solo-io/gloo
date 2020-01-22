@@ -4,7 +4,8 @@ import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   ListEnvoyDetailsResponse,
-  ListEnvoyDetailsRequest
+  ListEnvoyDetailsRequest,
+  EnvoyDetails
 } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 
 const client = new EnvoyApiClient(host, {
@@ -12,7 +13,7 @@ const client = new EnvoyApiClient(host, {
   debug: true
 });
 
-function getEnvoyList(): Promise<ListEnvoyDetailsResponse> {
+function getEnvoyList(): Promise<EnvoyDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let req = new ListEnvoyDetailsRequest();
 
@@ -23,12 +24,12 @@ function getEnvoyList(): Promise<ListEnvoyDetailsResponse> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!);
+        resolve(data!.toObject().envoyDetailsList);
       }
     });
   });
 }
 
-export const envoy = {
+export const envoyAPI = {
   getEnvoyList
 };

@@ -9,16 +9,15 @@ import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInfo
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
-import { AppState } from 'store';
-import { listUpstreams } from 'store/upstreams/actions';
-import { listVirtualServices } from 'store/virtualServices/actions';
+import { upstreamAPI } from 'store/upstreams/api';
+import { virtualServiceAPI } from 'store/virtualServices/api';
 import { healthConstants, soloConstants } from 'Styles';
 import { colors } from 'Styles/colors';
 import { CardCSS } from 'Styles/CommonEmotions/card';
+import useSWR from 'swr';
 import { getIcon, getUpstreamType, groupBy } from 'utils/helpers';
-import { getHealth } from './Admin/Envoy';
+import { envoyAPI } from '../../store/envoy/api';
 
 const Container = styled.div`
   ${CardCSS};
@@ -158,11 +157,12 @@ export const Overview = () => {
 
 const HealthStatus = () => {
   let history = useHistory();
-  const envoysList = useSelector(
-    (state: AppState) => state.envoy.envoyDetailsList
+  const { data: envoyList, error } = useSWR(
+    'listEnvoys',
+    envoyAPI.getEnvoyList
   );
 
-  if (!envoysList.length) {
+  if (!envoyList) {
     return <div>Loading...</div>;
   }
 
@@ -172,7 +172,7 @@ const HealthStatus = () => {
 
   let envoyStatus = healthConstants.Pending.value;
   let envoyErrorCount = 0;
-  envoysList.forEach(envoy => {
+  envoyList.forEach(envoy => {
     if (envoy.status!.code === 0) {
       envoyStatus = healthConstants.Pending.value;
       envoyErrorCount += 1;
@@ -201,9 +201,9 @@ const HealthStatus = () => {
             <Link onClick={goToAdmin}>Go to Admin View</Link>
           </EnvoyHealthHeader>
 
-          {!envoysList.length ? (
+          {!envoyList.length ? (
             <div>Loading...</div>
-          ) : !!envoysList.length ? (
+          ) : !!envoyList.length ? (
             <div>
               {envoyStatus === healthConstants.Error.value ? (
                 <TallyInformationDisplay
@@ -224,9 +224,9 @@ const HealthStatus = () => {
               )}
               {envoyStatus === healthConstants.Pending.value && (
                 <TallyInformationDisplay
-                  tallyCount={envoysList.length}
+                  tallyCount={envoyList.length}
                   tallyDescription={`envoy${
-                    envoysList.length === 1 ? '' : 's'
+                    envoyList.length === 1 ? '' : 's'
                   } configuration pending`}
                   color='yellow'
                   moreInfoLink={{
@@ -237,9 +237,9 @@ const HealthStatus = () => {
               )}
               {envoyStatus === healthConstants.Good.value && (
                 <TallyInformationDisplay
-                  tallyCount={envoysList.length}
+                  tallyCount={envoyList.length}
                   tallyDescription={`envoy${
-                    envoysList.length === 1 ? '' : 's'
+                    envoyList.length === 1 ? '' : 's'
                   } configured`}
                   color='blue'
                 />
@@ -255,15 +255,13 @@ const HealthStatus = () => {
 };
 
 const VirtualServicesOverview = () => {
-  const dispatch = useDispatch();
-  const {
-    virtualServices: { virtualServicesList }
-  } = useSelector((state: AppState) => state);
-  React.useEffect(() => {
-    if (!virtualServicesList.length) {
-      dispatch(listVirtualServices());
-    }
-  }, [virtualServicesList.length]);
+  const { data: virtualServicesList, error } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
+  );
+  if (!virtualServicesList) {
+    return <div>Loading...</div>;
+  }
 
   const virtualServiceErrorCount = virtualServicesList.reduce(
     (total, vs) =>
@@ -345,9 +343,11 @@ const UpstreamDetail = styled.div`
 const IconContainer = styled.div`
   padding: 0 3px;
 `;
-const UpstreamDetails: React.FC<UpstreamDetailsProps> = props => {
+const UpstreamDetails: React.FC<UpstreamDetailsProps> = ({
+  upstreamsList = []
+}) => {
   let groupedUS = Array.from(
-    groupBy(props.upstreamsList, us => getUpstreamType(us)).entries()
+    groupBy(upstreamsList, us => getUpstreamType(us)).entries()
   );
 
   return (
@@ -367,25 +367,20 @@ const UpstreamDetails: React.FC<UpstreamDetailsProps> = props => {
 };
 
 const UpstreamsOverview = () => {
-  const dispatch = useDispatch();
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList
+  const { data: upstreamsList, error } = useSWR(
+    'listUpstreams',
+    upstreamAPI.listUpstreams
   );
 
-  const upstreamsList = useSelector((state: AppState) =>
-    state.upstreams.upstreamsList.map(u => u.upstream!)
-  );
-  React.useEffect(() => {
-    if (!upstreamsList.length) {
-      dispatch(listUpstreams());
-    }
-  }, [upstreamsList.length]);
-
+  if (!upstreamsList) {
+    return <div>Loading...</div>;
+  }
   const upstreamErrorCount = upstreamsList.reduce(
     (total, upstream) =>
       total +
       (!(
-        upstream.status && upstream.status.state !== healthConstants.Error.value
+        upstream?.upstream?.status &&
+        upstream?.upstream.status.state !== healthConstants.Error.value
       )
         ? 1
         : 0),
@@ -427,7 +422,11 @@ const UpstreamsOverview = () => {
               } configured`}
               color='blue'
             />
-            <UpstreamDetails upstreamsList={upstreamsList} />
+            <UpstreamDetails
+              upstreamsList={upstreamsList.map(
+                upstreamDetails => upstreamDetails.upstream!
+              )}
+            />
           </>
         ) : (
           <div>You have no upstreams configured yet.</div>

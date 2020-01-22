@@ -35,6 +35,12 @@ import { Label, SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
+import { secretAPI } from 'store/secrets/api';
+import useSWR from 'swr';
+import { configAPI } from 'store/config/api';
+import { upstreamAPI } from 'store/upstreams/api';
+import { routeTableAPI } from 'store/routeTables/api';
+import { virtualServiceAPI } from 'store/virtualServices/api';
 const { Option, OptGroup } = Select;
 
 type ErrorTextProps = { errorExists?: boolean };
@@ -304,19 +310,23 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
     const form = useFormikContext<CreateRouteValuesType>();
     const field = form.getFieldProps(props.name);
     const meta = form.getFieldMeta(props.name);
-    const namespacesList = useSelector(
-      (state: AppState) => state.config.namespacesList,
-      shallowEqual
+
+    const { data: namespacesList, error: listNamespacesError } = useSWR(
+      'listNamespaces',
+      configAPI.listNamespaces
     );
 
-    const upstreamsList = useSelector(
-      (state: AppState) => state.upstreams.upstreamsList!,
-      shallowEqual
+    const { data: upstreamsList, error: upstreamsError } = useSWR(
+      'listUpstreams',
+      upstreamAPI.listUpstreams
     );
-    const routeTablesList = useSelector(
-      (state: AppState) => state.routeTables.routeTablesList,
-      shallowEqual
+    const { data: routeTablesList, error: routeTablesError } = useSWR(
+      'listRouteTables',
+      routeTableAPI.listRouteTables
     );
+    if (!namespacesList || !upstreamsList || !routeTablesList) {
+      return <div>Loading...</div>;
+    }
 
     let defaultValue = upstreamsList.find(
       ud =>
@@ -326,12 +336,12 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
 
     function handleChange(value: any) {
       if (form.values.destinationType === 'Route Table') {
-        let routeTable = routeTablesList.find(
+        let routeTable = routeTablesList?.find(
           rt => rt!.routeTable!.metadata!.name === value
         );
         form.setFieldValue('routeDestination', routeTable!.routeTable);
       } else if (form.values.destinationType === 'Upstream') {
-        let upstream = upstreamsList.find(
+        let upstream = upstreamsList?.find(
           us => us!.upstream!.metadata!.name === value
         );
         form.setFieldValue('routeDestination', upstream!.upstream);
@@ -346,7 +356,7 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
       } else {
         return getIcon(
           getUpstreamType(
-            upstreamsList.find(
+            upstreamsList?.find(
               us => us?.upstream!.metadata!.name === option.name
             )!.upstream!
           )
@@ -428,9 +438,10 @@ interface VirtualServiceTypeaheadProps extends TypeaheadProps {
 export const SoloFormVirtualServiceTypeahead: React.FC<VirtualServiceTypeaheadProps> = ({
   ...props
 }) => {
-  const {
-    config: { namespace: podNamespace }
-  } = useSelector((state: AppState) => state);
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -543,13 +554,14 @@ export const SoloFormSecretRefInput: React.FC<{
   asColumn?: boolean;
   name: string;
 }> = props => {
-  const namespacesList = useSelector(
-    (state: AppState) => state.config.namespacesList,
-    shallowEqual
-  );
-  const secretsList = useSelector(
-    (state: AppState) => state.secrets.secretsList,
-    shallowEqual
+  const {
+    data: namespacesList,
+    error: listNamespacesError
+  } = useSWR('listNamespaces', configAPI.listNamespaces, { initialData: [] });
+  const { data: secretsList, error } = useSWR(
+    'listSecrets',
+    secretAPI.getSecretsList,
+    { initialData: [] }
   );
   const { name, type } = props;
   const form = useFormikContext<any>();
@@ -563,9 +575,9 @@ export const SoloFormSecretRefInput: React.FC<{
   const [noSecrets, setNoSecrets] = React.useState(false);
 
   const [secretsFound, setSecretsFound] = React.useState(
-    secretsList.length
+    secretsList?.length
       ? secretsList
-          .filter(secret => {
+          ?.filter(secret => {
             // TODO: are these the only forms requiring a secret ref?
             if (type === 'aws') return !!secret.aws;
             if (type === 'azure') return !!secret.azure;
@@ -592,7 +604,9 @@ export const SoloFormSecretRefInput: React.FC<{
       setNoSecrets(true);
     }
   }, [selectedNS]);
-
+  if (!namespacesList || !secretsList) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <div>
@@ -636,19 +650,28 @@ export const SoloAWSSecretsList: React.FC<{
   name: string;
   testId: string;
 }> = React.memo(props => {
-  const secretsList = useSelector(
-    (state: AppState) => state.secrets.secretsList
+  const { data: secretsList, error } = useSWR(
+    'listSecrets',
+    secretAPI.getSecretsList
   );
+
   const { name, type } = props;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
 
+  if (!secretsList) {
+    return <div>Loading...</div>;
+  }
+
   const groupedSecrets = Array.from(
-    groupBy(secretsList, secret => secret.metadata!.namespace).entries()
+    groupBy(
+      secretsList.filter(s => s.aws !== undefined),
+      secret => secret.metadata!.namespace
+    ).entries()
   );
   const awsSecretsList = groupedSecrets.filter(([ns, secrets]) =>
-    secrets.filter(s => !!s.aws)
+    secrets.filter(s => s.aws !== undefined)
   );
 
   return (
@@ -706,32 +729,24 @@ export const SoloRouteParentDropdown: React.FC<{
   title: string;
   defaultValue: string;
 }> = React.memo(props => {
-  const routeTablesList = useSelector(
-    (state: AppState) =>
-      state.routeTables.routeTablesList.map(rtd => !!rtd && rtd.routeTable!),
-    shallowEqual
+  const { data: routeTablesList, error: routeTablesError } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
+  );
+
+  const { data: virtualServicesList, error: virtualServicesError } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
   );
   const groupedRouteTables = React.useMemo(
-    () => Array.from(groupBy(routeTablesList, () => 'Route Table')),
-    [routeTablesList.length]
+    () => Array.from(groupBy(routeTablesList!, () => 'Route Table')),
+    [routeTablesList?.length]
   );
 
-  const virtualServicesList = useSelector(
-    (state: AppState) =>
-      state.virtualServices.virtualServicesList.map(
-        vsd => !!vsd && vsd.virtualService!
-      ),
-    shallowEqual
-  );
   const groupedVirtualServices = React.useMemo(
-    () => Array.from(groupBy(virtualServicesList, () => 'Virtual Service')),
-    [virtualServicesList.length]
+    () => Array.from(groupBy(virtualServicesList!, () => 'Virtual Service')),
+    [virtualServicesList?.length]
   );
-
-  const routeParents: [string, RouteParentType[]][] = [
-    ...groupedRouteTables,
-    ...groupedVirtualServices
-  ];
 
   const { name, title } = props;
   const form = useFormikContext<any>();
@@ -758,10 +773,10 @@ export const SoloRouteParentDropdown: React.FC<{
             <OptGroup key={label} label={label}>
               {resources.map(s => (
                 <Option
-                  key={`${s.metadata!.name}::${
-                    s.metadata!.namespace
+                  key={`${s?.virtualService?.metadata!.name}::${
+                    s?.virtualService?.metadata!.namespace
                   }::virtualService`}>
-                  {`${s.metadata!.name}`}
+                  {`${s?.virtualService?.metadata!.name}`}
                 </Option>
               ))}
             </OptGroup>
@@ -772,10 +787,10 @@ export const SoloRouteParentDropdown: React.FC<{
             <OptGroup key={label} label={label}>
               {resources.map(s => (
                 <Option
-                  key={`${s.metadata!.name}::${
-                    s.metadata!.namespace
+                  key={`${s?.routeTable?.metadata!.name}::${
+                    s?.routeTable?.metadata!.namespace
                   }::routeTable`}>
-                  {`${s.metadata!.name}`}
+                  {`${s?.routeTable?.metadata!.name}`}
                 </Option>
               ))}
             </OptGroup>

@@ -1,6 +1,6 @@
 import { Dispatch } from 'redux';
 import { guardByLicense } from 'store/config/actions';
-import { upstreamGroups } from './api';
+import { upstreamGroupAPI } from './api';
 import {
   ListUpstreamGroupsAction,
   UpstreamGroupAction,
@@ -19,7 +19,7 @@ export const listUpstreamGroups = () => {
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await upstreamGroups.listUpstreamGroups();
+      const response = await upstreamGroupAPI.listUpstreamGroups();
       dispatch<ListUpstreamGroupsAction>({
         type: UpstreamGroupAction.LIST_UPSTREAM_GROUPS,
         payload: response.upstreamGroupDetailsList!
@@ -34,7 +34,7 @@ export const createUpstreamGroup = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await upstreamGroups.createUpstreamGroup(
+      const response = await upstreamGroupAPI.createUpstreamGroup(
         createUpstreamGroupRequest
       );
       dispatch<CreateUpstreamGroupAction>({
@@ -53,7 +53,7 @@ export const updateUpstreamGroup = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await upstreamGroups.updateUpstreamGroup(
+      const response = await upstreamGroupAPI.updateUpstreamGroup(
         updateUpstreamGroupRequest
       );
       dispatch<UpdateUpstreamGroupAction>({
@@ -72,7 +72,7 @@ export const deleteUpstreamGroup = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await upstreamGroups.deleteUpstreamGroup(
+      const response = await upstreamGroupAPI.deleteUpstreamGroup(
         deleteUpstreamGroupRequest
       );
       dispatch<DeleteUpstreamGroupAction>({

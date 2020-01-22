@@ -86,7 +86,7 @@ function getUpstream(
   });
 }
 
-function listUpstreams(): Promise<ListUpstreamsResponse.AsObject> {
+function listUpstreams(): Promise<UpstreamDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListUpstreamsRequest();
 
@@ -97,7 +97,7 @@ function listUpstreams(): Promise<ListUpstreamsResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().upstreamDetailsList);
       }
     });
   });
@@ -592,7 +592,7 @@ function deleteUpstream(
   });
 }
 
-export const upstreams = {
+export const upstreamAPI = {
   getUpstream,
   listUpstreams,
   createUpstream,

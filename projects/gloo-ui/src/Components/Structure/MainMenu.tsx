@@ -6,11 +6,10 @@ import { ReactComponent as GlooE } from 'assets/GlooEE.svg';
 import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
 import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import { AppState } from 'store';
 import { colors } from 'Styles';
-import G from 'glob';
+import useSWR from 'swr';
+import { configAPI } from '../../store/config/api';
 
 const NavLinkStyles = {
   display: 'inline-block',
@@ -98,16 +97,34 @@ const VersionDisplay = styled.div`
 `;
 
 export const MainMenu = () => {
-  const version = useSelector((state: AppState) => state.config.version);
-  const hasValidLicense = useSelector((state: AppState) => state.config.isLicenseValid);
+  const { data: version, error: versionError } = useSWR(
+    'getVersion',
+    configAPI.getVersion,
+    { refreshInterval: 0 }
+  );
+  const { data: licenseData, error: licenseError } = useSWR(
+    'hasValidLicense',
+    configAPI.getIsLicenseValid,
+    { refreshInterval: 0 }
+  );
+
+  if (!version || !licenseData?.isLicenseValid) {
+    return <div>Loading...</div>;
+  }
+  const hasValidLicense = licenseData.isLicenseValid;
   return (
     <Container>
       <InnerContainer>
         <TitleDiv>
-          {hasValidLicense
-            ? <><GlooE /> Gloo Enterprise</>
-            : <><Gloo /> Gloo</>
-          }
+          {hasValidLicense ? (
+            <>
+              <GlooE /> Gloo Enterprise
+            </>
+          ) : (
+            <>
+              <Gloo /> Gloo
+            </>
+          )}
         </TitleDiv>
         <NavLink
           data-testid='overview-navlink'
@@ -170,12 +187,12 @@ export const MainMenu = () => {
                 </DocumentationLink>
 
                 <VersionDisplay>
-                  {hasValidLicense ? "Version: " : "UI Version: "}
+                  {hasValidLicense ? 'Version: ' : 'UI Version: '}
                   {version
                     ? version
                     : // : versionLoading
-                    // ? 'loading...'
-                    'unknown'}
+                      // ? 'loading...'
+                      'unknown'}
                 </VersionDisplay>
               </div>
             }>

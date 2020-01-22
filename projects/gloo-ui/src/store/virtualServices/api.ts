@@ -40,7 +40,8 @@ import {
   UpdateVirtualServiceRequest,
   UpdateVirtualServiceResponse,
   UpdateVirtualServiceYamlRequest,
-  VirtualServiceInputV2
+  VirtualServiceInputV2,
+  VirtualServiceDetails
 } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { VirtualServiceApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
 import { host } from 'store';
@@ -54,9 +55,7 @@ const client = new VirtualServiceApiClient(host, {
   debug: true
 });
 
-function getListVirtualServices(): Promise<
-  ListVirtualServicesResponse.AsObject
-> {
+function listVirtualServices(): Promise<VirtualServiceDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListVirtualServicesRequest();
     client.listVirtualServices(request, (error, data) => {
@@ -66,7 +65,7 @@ function getListVirtualServices(): Promise<
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().virtualServiceDetailsList);
       }
     });
   });
@@ -860,8 +859,8 @@ function getUpdateRateLimit(updateRateLimitRequest: {
   });
 }
 
-export const virtualServices = {
-  getListVirtualServices,
+export const virtualServiceAPI = {
+  listVirtualServices,
   getGetVirtualService,
   getDeleteVirtualService,
   getUpdateVirtualServiceYaml,

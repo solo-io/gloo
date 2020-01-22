@@ -1,18 +1,18 @@
 import styled from '@emotion/styled';
 import {
   SoloFormInput,
-  SoloFormTypeahead,
-  SoloFormStringsList
+  SoloFormStringsList,
+  SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppState } from 'store';
-import { createVirtualService } from 'store/virtualServices/actions';
-import * as yup from 'yup';
+import { useDispatch } from 'react-redux';
 import { useHistory, useLocation } from 'react-router';
-import { Domains } from '../Details/Domains';
+import { configAPI } from 'store/config/api';
+import { createVirtualService } from 'store/virtualServices/actions';
+import useSWR from 'swr';
+import * as yup from 'yup';
 
 const Footer = styled.div`
   display: flex;
@@ -56,10 +56,20 @@ interface Props {
 export const CreateVirtualServiceForm = (props: Props) => {
   let history = useHistory();
   let location = useLocation();
-  const {
-    config: { namespacesList, namespace: podNamespace }
-  } = useSelector((state: AppState) => state);
+
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+
   const dispatch = useDispatch();
+  if (!podNamespace || !namespacesList) {
+    return <div>Loading...</div>;
+  }
   // this is to match the value displayed by the typeahead
   initialValues.namespace = podNamespace;
 

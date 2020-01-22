@@ -1,20 +1,13 @@
 import styled from '@emotion/styled';
+import { Spin } from 'antd';
+import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
 import Highlight, { defaultProps } from 'prism-react-renderer';
-import Editor from 'react-simple-code-editor';
 import theme from 'prism-react-renderer/themes/github';
 import * as React from 'react';
+import Editor from 'react-simple-code-editor';
 import { colors, soloConstants } from 'Styles';
-import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
+import { SoloCancelButton } from 'Styles/CommonEmotions/button';
 import { SoloButton } from '../SoloButton';
-import {
-  SoloCancelButton,
-  SoloButtonStyledComponent
-} from 'Styles/CommonEmotions/button';
-import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
-import { Spin } from 'antd';
-import { AppState } from 'store';
 
 type ContainerProps = { whiteBacked?: boolean };
 const Container = styled.div`
@@ -188,10 +181,6 @@ export const ConfigDisplayer = React.memo((props: Props) => {
     initialState
   );
 
-  const dispatch = useDispatch();
-  const yamlError = useSelector(
-    (state: AppState) => state.virtualServices.yamlParseError
-  );
   const [editingContent, setEditingContent] = React.useState(props.content);
 
   React.useEffect(() => {

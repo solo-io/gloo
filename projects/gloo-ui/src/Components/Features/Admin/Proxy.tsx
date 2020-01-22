@@ -3,11 +3,10 @@ import { ReactComponent as ProxyLogo } from 'assets/proxy-icon.svg';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { ProxyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { proxyAPI } from 'store/proxy/api';
 import { colors, healthConstants } from 'Styles';
+import useSWR from 'swr';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -26,28 +25,21 @@ const ProxyLogoFullSize = styled(ProxyLogo)`
 interface Props {}
 
 export const Proxys = (props: Props) => {
-  const proxiesList = useSelector(
-    (state: AppState) => state.proxies.proxiesList
+  const { data: proxiesList, error } = useSWR(
+    'listProxies',
+    proxyAPI.getListProxies
   );
 
-  const [allProxies, setAllProxies] = React.useState<ProxyDetails.AsObject[]>(
-    []
-  );
-
-  React.useEffect(() => {
-    if (!!proxiesList) {
-      const newProxies = proxiesList.filter(proxy => !!proxy.proxy);
-      setAllProxies(newProxies);
-    }
-  }, [proxiesList.length]);
-
-  if (!allProxies.length) {
+  if (!proxiesList) {
+    return <div>Loading...</div>;
+  }
+  if (!proxiesList.length) {
     return <div>You have no Proxy configurations.</div>;
   }
 
   return (
     <>
-      {allProxies.map((proxy, ind) => {
+      {proxiesList.map((proxy, ind) => {
         return (
           <SectionCard
             key={proxy.proxy!.metadata!.name + ind}

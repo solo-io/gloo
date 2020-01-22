@@ -13,8 +13,8 @@ import {
 } from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { configAPI } from 'store/config/api';
+import useSWR from 'swr';
 
 // TODO: modify for use outside a table
 // TODO: set one source of truth for column names/order
@@ -37,9 +37,19 @@ interface Props {
 
 export const SecretForm: React.FC<Props> = props => {
   const { secretKind, onCreateSecret } = props;
-  const {
-    config: { namespace: podNamespace, namespacesList }
-  } = useSelector((state: AppState) => state);
+
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+  if (!podNamespace || !namespacesList) {
+    return <div>Loading...</div>;
+  }
+
   const initialValues: SecretValuesType = {
     secretResourceRef: {
       name: '',

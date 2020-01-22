@@ -6,15 +6,14 @@ import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg'
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
-import { EnvoyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
-import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
-import { ProxyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { RouteProps } from 'react-router';
-import { AppState } from 'store';
+import { envoyAPI } from 'store/envoy/api';
+import { gatewayAPI } from 'store/gateway/api';
+import { proxyAPI } from 'store/proxy/api';
 import { colors, healthConstants, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
+import useSWR from 'swr';
 import { getResourceStatus } from 'utils/helpers';
 
 const Container = styled.div`
@@ -136,26 +135,16 @@ const Envoy = styled.div`
 `;
 
 const GatewayOverview = () => {
-  const gatewaysList = useSelector(
-    (state: AppState) => state.gateways.gatewaysList
+  const { data: gatewaysList, error } = useSWR(
+    'listGateways',
+    gatewayAPI.listGateways
   );
 
-  const [allGateways, setAllGateways] = React.useState<
-    GatewayDetails.AsObject[]
-  >([]);
-
-  React.useEffect(() => {
-    if (!!gatewaysList.length) {
-      const newGateways = gatewaysList.filter(gateway => !!gateway.gateway);
-      setAllGateways(newGateways);
-    }
-  }, [gatewaysList.length]);
-
-  if (!gatewaysList.length) {
+  if (!gatewaysList) {
     return <div>Loading...</div>;
   }
 
-  const gatewayErrorCount = allGateways.reduce((total, gateway) => {
+  const gatewayErrorCount = gatewaysList.reduce((total, gateway) => {
     if (getResourceStatus(gateway!.gateway!.status?.state!) !== 'Rejected') {
       return total;
     }
@@ -181,7 +170,7 @@ const GatewayOverview = () => {
             : healthConstants.Good.value
         }
         descriptionMinHeight={'95px'}>
-        {!!allGateways.length ? (
+        {!!gatewaysList.length ? (
           <>
             {!!gatewayErrorCount ? (
               <TallyInformationDisplay
@@ -199,7 +188,7 @@ const GatewayOverview = () => {
               <GoodStateCongratulations typeOfItem={'gateway configurations'} />
             )}
             <TallyInformationDisplay
-              tallyCount={allGateways.length}
+              tallyCount={gatewaysList.length}
               tallyDescription={`gateway configuration${
                 gatewaysList.length === 1 ? '' : 's'
               } `}
@@ -215,10 +204,14 @@ const GatewayOverview = () => {
 };
 
 const ProxyOverview = () => {
-  const proxiesList = useSelector(
-    (state: AppState) => state.proxies.proxiesList
+  const { data: proxiesList, error } = useSWR(
+    'listProxies',
+    proxyAPI.getListProxies
   );
 
+  if (!proxiesList) {
+    return <div>Loading...</div>;
+  }
   let proxyStatus = healthConstants.Pending.value;
   let proxyErrorCount = 0;
   proxiesList.forEach(proxy => {
@@ -277,28 +270,14 @@ const ProxyOverview = () => {
 };
 
 const EnvoyOverview = () => {
-  const envoysList = useSelector(
-    (state: AppState) => state.envoy.envoyDetailsList
+  const { data: envoysList, error } = useSWR(
+    'listEnvoys',
+    envoyAPI.getEnvoyList
   );
 
-  const [allEnvoy, setAllEnvoy] = React.useState<EnvoyDetails.AsObject[]>([]);
-  const [envoyConfigs, setEnvoyConfigs] = React.useState<any[]>([]);
-  React.useEffect(() => {
-    if (!!envoysList.length) {
-      setEnvoyConfigs(
-        envoysList.map(envoy => {
-          if (
-            envoy.raw!.contentRenderError === '' &&
-            envoy.raw!.content !== ''
-          ) {
-            return JSON.parse(envoy.raw!.content);
-          }
-        })
-      );
-
-      setAllEnvoy(envoysList);
-    }
-  }, [envoysList.length]);
+  if (!envoysList) {
+    return <div>Loading...</div>;
+  }
 
   let envoyStatus = healthConstants.Pending.value;
   let envoyErrorCount = 0;

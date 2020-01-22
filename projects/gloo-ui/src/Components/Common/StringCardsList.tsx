@@ -163,7 +163,7 @@ export const StringCardsList = (props: StringCardsListProps) => {
                 placeholder={createNewPromptText}
                 defaultValue={createNewPromptText}
                 onChange={value => setNewValue(value)}
-                presetOptions={presetOptions!.map(pO => {
+                presetOptions={presetOptions?.map(pO => {
                   return { value: pO };
                 })}
                 onKeyPress={(e: React.KeyboardEvent) =>

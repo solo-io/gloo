@@ -18,13 +18,14 @@ import {
 } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { ConfigApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
+import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });
 
-function getVersion(): Promise<GetVersionResponse.AsObject> {
+function getVersion(): Promise<string> {
   return new Promise((resolve, reject) => {
     let request = new GetVersionRequest();
     client.getVersion(request, (error, data) => {
@@ -34,7 +35,7 @@ function getVersion(): Promise<GetVersionResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().version);
       }
     });
   });
@@ -55,7 +56,8 @@ function getOAuthEndpoint(): Promise<GetOAuthEndpointResponse.AsObject> {
     });
   });
 }
-function getSettings(): Promise<GetSettingsResponse> {
+
+function getSettingsGrpc(): Promise<GetSettingsResponse> {
   return new Promise((resolve, reject) => {
     let request = new GetSettingsRequest();
     client.getSettings(request, (error, data) => {
@@ -71,11 +73,27 @@ function getSettings(): Promise<GetSettingsResponse> {
   });
 }
 
+function getSettings(): Promise<Settings.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new GetSettingsRequest();
+    client.getSettings(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().settings);
+      }
+    });
+  });
+}
+
 function updateWatchNamespaces(updateWatchNamespacesRequest: {
   watchNamespacesList: string[];
 }): Promise<UpdateSettingsResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
-    let currentSettingsReq = await config.getSettings();
+    let currentSettingsReq = await configAPI.getSettingsGrpc();
     let settingsToUpdate = currentSettingsReq.getSettings();
     let request = new UpdateSettingsRequest();
     let { watchNamespacesList } = updateWatchNamespacesRequest;
@@ -101,7 +119,7 @@ function updateRefreshRate(updateRefreshRateRequest: {
   refreshRate: Duration.AsObject;
 }): Promise<UpdateSettingsResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
-    let currentSettingsReq = await config.getSettings();
+    let currentSettingsReq = await configAPI.getSettingsGrpc();
     let settingsToUpdate = currentSettingsReq.getSettings();
     let newRefreshRate = new Duration();
     newRefreshRate.setNanos(updateRefreshRateRequest.refreshRate.nanos);
@@ -159,7 +177,7 @@ function getIsLicenseValid(): Promise<GetIsLicenseValidResponse.AsObject> {
   });
 }
 
-function listNamespaces(): Promise<ListNamespacesResponse.AsObject> {
+function listNamespaces(): Promise<string[]> {
   return new Promise((resolve, reject) => {
     let request = new ListNamespacesRequest();
     client.listNamespaces(request, (error, data) => {
@@ -169,13 +187,13 @@ function listNamespaces(): Promise<ListNamespacesResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().namespacesList);
       }
     });
   });
 }
 
-function getPodNamespace(): Promise<GetPodNamespaceResponse.AsObject> {
+function getPodNamespace(): Promise<string> {
   return new Promise((resolve, reject) => {
     let request = new GetPodNamespaceRequest();
     client.getPodNamespace(request, (error, data) => {
@@ -185,16 +203,17 @@ function getPodNamespace(): Promise<GetPodNamespaceResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().namespace);
       }
     });
   });
 }
 
-export const config = {
+export const configAPI = {
   getVersion,
-  getOAuthEndpoint,
   getSettings,
+  getOAuthEndpoint,
+  getSettingsGrpc,
   updateSettings,
   getIsLicenseValid,
   listNamespaces,

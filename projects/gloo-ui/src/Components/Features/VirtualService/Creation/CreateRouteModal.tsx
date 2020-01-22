@@ -19,26 +19,27 @@ import {
   Route,
   VirtualService
 } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
-import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
-import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import * as React from 'react';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
-import { AppState } from 'store';
-import { createRoute } from 'store/virtualServices/actions';
-import { colors, soloConstants } from 'Styles';
-import { ButtonProgress } from 'Styles/CommonEmotions/button';
-import { getRouteMatcher } from 'utils/helpers';
-import * as yup from 'yup';
-import { RouteParent } from '../RouteTableDetails';
-import { DestinationForm } from './DestinationForm';
-import { updateRouteTable } from 'store/routeTables/actions';
-import { DestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options_pb';
 import {
   HeaderMatcher,
   QueryParameterMatcher
 } from 'proto/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
+import { DestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options_pb';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import * as React from 'react';
+import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router';
+import { updateRouteTable } from 'store/routeTables/actions';
+import { routeTableAPI } from 'store/routeTables/api';
+import { upstreamAPI } from 'store/upstreams/api';
+import { createRoute } from 'store/virtualServices/actions';
+import { virtualServiceAPI } from 'store/virtualServices/api';
+import { colors, soloConstants } from 'Styles';
+import { ButtonProgress } from 'Styles/CommonEmotions/button';
+import useSWR from 'swr';
+import { getRouteMatcher } from 'utils/helpers';
+import * as yup from 'yup';
+import { DestinationForm } from './DestinationForm';
 
 const FormContainer = styled.form`
   display: flex;
@@ -187,30 +188,25 @@ export const CreateRouteModal = React.memo((props: Props) => {
 
   let history = useHistory();
   const dispatch = useDispatch();
-  const virtualServicesList = useSelector(
-    (state: AppState) => state.virtualServices.virtualServicesList,
-    shallowEqual
-  );
-  const upstreamsList = useSelector(
-    (state: AppState) => state.upstreams.upstreamsList.map(u => u.upstream!),
-    shallowEqual
-  );
 
-  const routeTablesList = useSelector(
-    (state: AppState) => state.routeTables?.routeTablesList
+  const { data: virtualServicesList, error: virtualServicesError } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
   );
+  const { data: upstreamsList, error: upstreamsError } = useSWR(
+    'listUpstreams',
+    upstreamAPI.listUpstreams
+  );
+  const { data: routeTablesList, error: routeTablesError } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
+  );
+  if (!virtualServicesList || !upstreamsList || !routeTablesList) {
+    return <div>Loading...</div>;
+  }
+  const upstreamsListMD = upstreamsList.map(_ => _.upstream!.metadata!);
 
-  const upstreamsListMD = useSelector(
-    (state: AppState) =>
-      state.upstreams.upstreamsList.map(_ => _.upstream!.metadata!),
-    shallowEqual
-  );
-
-  const routeTablesListMD = useSelector(
-    (state: AppState) =>
-      state.routeTables.routeTablesList.map(_ => _.routeTable!.metadata!),
-    shallowEqual
-  );
+  const routeTablesListMD = routeTablesList.map(_ => _.routeTable!.metadata!);
 
   let RToptionsList = uniqBy(routeTablesListMD, obj => obj.name);
   let USoptionsList = uniqBy(upstreamsListMD, obj => obj.name);
@@ -407,9 +403,9 @@ export const CreateRouteModal = React.memo((props: Props) => {
 
     const existingRouteUpstream = upstreamsList.find(
       upstream =>
-        upstream?.metadata?.name ===
+        upstream?.upstream?.metadata?.name ===
           existingRoute?.routeAction?.single?.upstream?.name &&
-        upstream?.metadata?.namespace ===
+        upstream?.upstream?.metadata?.namespace ===
           existingRoute?.routeAction?.single?.upstream?.namespace
     );
 

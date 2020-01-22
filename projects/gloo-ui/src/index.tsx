@@ -6,12 +6,18 @@ import { GlooIApp } from './GlooIApp';
 import * as serviceWorker from './serviceWorker';
 import { globalStore } from './store';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
+import { SWRConfig } from 'swr';
 
 ReactDOM.render(
   <Provider store={globalStore}>
-    <ErrorBoundary fallback={<div> there was an error</div>}>
-      <GlooIApp />
-    </ErrorBoundary>
+    <SWRConfig
+      value={{
+        refreshInterval: 3000
+      }}>
+      <ErrorBoundary fallback={<div> there was an error</div>}>
+        <GlooIApp />
+      </ErrorBoundary>
+    </SWRConfig>
   </Provider>,
   document.getElementById('root')
 );

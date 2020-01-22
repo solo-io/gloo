@@ -1,4 +1,3 @@
-import css from '@emotion/css';
 import styled from '@emotion/styled';
 import { Popconfirm } from 'antd';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
@@ -19,32 +18,30 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
 import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
-import React, { useEffect, useState } from 'react';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   NavLink,
   useHistory,
   useLocation,
   useRouteMatch
 } from 'react-router-dom';
-import { AppState } from 'store';
-import { deleteRouteTable, listRouteTables } from 'store/routeTables/actions';
-import {
-  deleteVirtualService,
-  listVirtualServices
-} from 'store/virtualServices/actions';
+import { deleteRouteTable } from 'store/routeTables/actions';
+import { routeTableAPI } from 'store/routeTables/api';
+import { deleteVirtualService } from 'store/virtualServices/actions';
+import { virtualServiceAPI } from 'store/virtualServices/api';
 import { colors, healthConstants } from 'Styles';
 import {
   TableActionCircle,
   TableActions,
   TableHealthCircleHolder
 } from 'Styles/table';
+import useSWR from 'swr';
 import { getResourceStatus, getVSDomains, RadioFilters } from 'utils/helpers';
 import { CreateRouteModal } from './Creation/CreateRouteModal';
 import { CreateRouteTableModal } from './Creation/CreateRouteTableModal';
 import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 import { RouteParent } from './RouteTableDetails';
-import { CardType } from 'Components/Common/Card';
 
 const FilterHeader = styled.div`
   ${StyledHeader};
@@ -282,6 +279,14 @@ const getTableColumns = (
 };
 
 export const VirtualServicesListing = () => {
+  const { data: virtualServicesList, error: listVirtualServicesError } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
+  );
+  const { data: routeTablesList, error: listRouteTablesError } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
+  );
   let history = useHistory();
   let location = useLocation();
   let match = useRouteMatch({
@@ -298,31 +303,6 @@ export const VirtualServicesListing = () => {
   // redux
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
-  const virtualServicesList = useSelector(
-    (state: AppState) => state.virtualServices.virtualServicesList,
-    shallowEqual
-  );
-
-  const routeTablesList = useSelector(
-    (state: AppState) => state.routeTables.routeTablesList,
-    shallowEqual
-  );
-
-  useEffect(() => {
-    if (virtualServicesList.length) {
-      setIsLoading(false);
-    } else {
-      dispatch(listVirtualServices());
-    }
-  }, [virtualServicesList.length]);
-
-  useEffect(() => {
-    if (routeTablesList.length) {
-      setIsLoading(false);
-    } else {
-      dispatch(listRouteTables());
-    }
-  }, [routeTablesList.length]);
 
   const [
     routeParentForRouteCreation,
@@ -567,6 +547,10 @@ export const VirtualServicesListing = () => {
     path: `${match.path}table`,
     exact: true
   });
+
+  if (!virtualServicesList || !routeTablesList) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <VSListingContainer>

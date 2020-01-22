@@ -1,6 +1,7 @@
 import {
   ListProxiesRequest,
-  ListProxiesResponse
+  ListProxiesResponse,
+  ProxyDetails
 } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb';
 import { ProxyApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/proxy_pb_service';
 import { host } from 'store';
@@ -11,7 +12,7 @@ const client = new ProxyApiClient(host, {
   debug: true
 });
 
-function getListProxies(): Promise<ListProxiesResponse.AsObject> {
+function getListProxies(): Promise<ProxyDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListProxiesRequest();
     client.listProxies(request, (error, data) => {
@@ -21,13 +22,12 @@ function getListProxies(): Promise<ListProxiesResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        // TODO: normalize
-        resolve(data!.toObject());
+        resolve(data!.toObject().proxyDetailsList);
       }
     });
   });
 }
 
-export const proxys = {
+export const proxyAPI = {
   getListProxies
 };

@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { routeTables } from './api';
+import { routeTableAPI } from './api';
 import {
   ListRouteTablesAction,
   RouteTableAction,
@@ -21,10 +21,10 @@ import { guardByLicense } from 'store/config/actions';
 export const listRouteTables = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await routeTables.listRouteTables();
+      const response = await routeTableAPI.listRouteTables();
       dispatch<ListRouteTablesAction>({
         type: RouteTableAction.LIST_ROUTE_TABLES,
-        payload: response.routeTableDetailsList!
+        payload: response
       });
     } catch (error) {}
   };
@@ -36,7 +36,7 @@ export const createRouteTable = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await routeTables.createRouteTable(
+      const response = await routeTableAPI.createRouteTable(
         createRouteTableRequest
       );
       dispatch<CreateRouteTableAction>({
@@ -55,7 +55,7 @@ export const updateRouteTable = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await routeTables.updateRouteTable(
+      const response = await routeTableAPI.updateRouteTable(
         updateRouteTableRequest
       );
       dispatch<UpdateRouteTableAction>({
@@ -74,7 +74,7 @@ export const updateRouteTableYaml = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await routeTables.updateRouteTableYaml(
+      const response = await routeTableAPI.updateRouteTableYaml(
         updateRouteTableYamlRequest
       );
       dispatch<UpdateRouteTableYamlAction>({
@@ -97,7 +97,7 @@ export const deleteRouteTable = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await routeTables.deleteRouteTable(
+      const response = await routeTableAPI.deleteRouteTable(
         deleteRouteTableRequest
       );
       dispatch<DeleteRouteTableAction>({

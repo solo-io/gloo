@@ -14,7 +14,7 @@ import {
 } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { Dispatch } from 'redux';
 import { guardByLicense } from 'store/config/actions';
-import { virtualServices } from './api';
+import { virtualServiceAPI } from './api';
 import {
   CreateRouteAction,
   CreateVirtualServiceAction,
@@ -34,10 +34,10 @@ const { warning } = Modal;
 export const listVirtualServices = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getListVirtualServices();
+      const response = await virtualServiceAPI.listVirtualServices();
       dispatch<ListVirtualServicesAction>({
         type: VirtualServiceAction.LIST_VIRTUAL_SERVICES,
-        payload: response.virtualServiceDetailsList!
+        payload: response!
       });
     } catch (error) {}
   };
@@ -49,7 +49,7 @@ export const createVirtualService = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await virtualServices.getCreateVirtualService(
+      const response = await virtualServiceAPI.getCreateVirtualService(
         createVirtualServiceRequest
       );
       dispatch<CreateVirtualServiceAction>({
@@ -70,7 +70,7 @@ export const updateVirtualService = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getUpdateVirtualService(
+      const response = await virtualServiceAPI.getUpdateVirtualService(
         updateVirtualServiceRequest
       );
       dispatch<UpdateVirtualServiceAction>({
@@ -91,7 +91,9 @@ export const createRoute = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getCreateRoute(createRouteRequest);
+      const response = await virtualServiceAPI.getCreateRoute(
+        createRouteRequest
+      );
       dispatch<CreateRouteAction>({
         type: VirtualServiceAction.CREATE_ROUTE,
         payload: response.virtualServiceDetails!
@@ -111,7 +113,7 @@ export const updateDomains = (updateDomainsRequest: {
 }) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getUpdateDomains(
+      const response = await virtualServiceAPI.getUpdateDomains(
         updateDomainsRequest
       );
       dispatch<UpdateVirtualServiceAction>({
@@ -133,7 +135,7 @@ export const deleteVirtualService = (
   return async (dispatch: Dispatch) => {
     try {
       guardByLicense();
-      const response = await virtualServices.getDeleteVirtualService(
+      const response = await virtualServiceAPI.getDeleteVirtualService(
         deleteVirtualServiceRequest
       );
       dispatch<DeleteVirtualServiceAction>({
@@ -151,7 +153,7 @@ export const updateVirtualServiceYaml = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getUpdateVirtualServiceYaml(
+      const response = await virtualServiceAPI.getUpdateVirtualServiceYaml(
         updateVirtualServiceYamlRequest
       );
       dispatch<UpdateVirtualServiceYamlAction>({
@@ -173,7 +175,9 @@ export const deleteRoute = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getDeleteRoute(deleteRouteRequest);
+      const response = await virtualServiceAPI.getDeleteRoute(
+        deleteRouteRequest
+      );
       dispatch<DeleteRouteAction>({
         type: VirtualServiceAction.DELETE_ROUTE,
         payload: response.virtualServiceDetails!
@@ -189,7 +193,9 @@ export const shiftRoutes = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getShiftRoutes(shiftRoutesRequest);
+      const response = await virtualServiceAPI.getShiftRoutes(
+        shiftRoutesRequest
+      );
       dispatch<ShiftRoutesAction>({
         type: VirtualServiceAction.SHIFT_ROUTES,
         payload: response.virtualServiceDetails!
@@ -205,7 +211,7 @@ export const updateRateLimit = (updateRateLimitRequest: {
   let { rateLimit, ref } = updateRateLimitRequest;
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getUpdateRateLimit({
+      const response = await virtualServiceAPI.getUpdateRateLimit({
         ref,
         rateLimitConfig: rateLimit
       });
@@ -225,7 +231,7 @@ export const updateExtAuth = (updateExtAuthRequest: {
 
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServices.getUpdateExtAuth({
+      const response = await virtualServiceAPI.getUpdateExtAuth({
         ref,
         extAuthConfig
       });

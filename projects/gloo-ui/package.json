@@ -97,7 +97,7 @@
     "sass-loader": "8.0.0",
     "semver": "6.3.0",
     "style-loader": "1.0.0",
-    "swr": "^0.1.12",
+    "swr": "^0.1.16",
     "terser-webpack-plugin": "2.2.2",
     "ts-pnp": "1.1.4",
     "ts-protoc-gen": "^0.11.0",

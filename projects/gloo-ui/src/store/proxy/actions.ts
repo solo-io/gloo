@@ -1,14 +1,14 @@
 import { Dispatch } from 'redux';
-import { proxys } from './api';
+import { proxyAPI } from './api';
 import { ListProxiesAction, ProxyAction } from './types';
 
 export const listProxies = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await proxys.getListProxies();
+      const response = await proxyAPI.getListProxies();
       dispatch<ListProxiesAction>({
         type: ProxyAction.LIST_PROXIES,
-        payload: response.proxyDetailsList
+        payload: response
       });
     } catch (error) {}
   };

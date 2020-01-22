@@ -3,12 +3,12 @@ import { ReactComponent as GatewayLogo } from 'assets/gateway-icon.svg';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
 import _ from 'lodash/fp';
-import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { useDispatch } from 'react-redux';
 import { updateGateway } from 'store/gateway/actions';
 import { colors, healthConstants } from 'Styles';
+import useSWR from 'swr';
+import { gatewayAPI } from 'store/gateway/api';
 import { GatewayForm, HttpConnectionManagerSettingsForm } from './GatewayForm';
 
 const InsideHeader = styled.div`
@@ -35,23 +35,19 @@ const Link = styled.div`
 export const Gateways = () => {
   const dispatch = useDispatch();
   const [gatewaysOpen, setGatewaysOpen] = React.useState<boolean[]>([]);
-  const gatewaysList = useSelector(
-    (state: AppState) => state.gateways.gatewaysList
+
+  const { data: gatewaysList, error } = useSWR(
+    'listGateways',
+    gatewayAPI.listGateways
   );
 
-  const [allGateways, setAllGateways] = React.useState<
-    GatewayDetails.AsObject[]
-  >([]);
-
   React.useEffect(() => {
-    if (!!gatewaysList.length) {
-      const newGateways = gatewaysList.filter(gateway => !!gateway.gateway);
-      setAllGateways(newGateways);
-      setGatewaysOpen(Array.from({ length: newGateways.length }, () => false));
+    if (!!gatewaysList && !!gatewaysList.length) {
+      setGatewaysOpen(Array.from({ length: gatewaysList.length }, () => false));
     }
-  }, [gatewaysList.length]);
+  }, [gatewaysList?.length]);
 
-  if (!gatewaysList.length) {
+  if (!gatewaysList) {
     return <div>Loading...</div>;
   }
 

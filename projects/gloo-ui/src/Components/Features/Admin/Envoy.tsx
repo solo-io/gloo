@@ -4,12 +4,11 @@ import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { EnvoyDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 import { Status } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { envoyAPI } from 'store/envoy/api';
 import { colors, healthConstants, soloConstants } from 'Styles';
+import useSWR from 'swr';
 
 const InsideHeader = styled.div`
   display: flex;
@@ -54,31 +53,24 @@ export const getHealth = (code: number): number => {
 };
 
 export const Envoy = (props: Props) => {
-  const envoysList = useSelector(
-    (state: AppState) => state.envoy.envoyDetailsList
+  const { data: envoysList, error } = useSWR(
+    'listEnvoys',
+    envoyAPI.getEnvoyList
   );
-  const [allEnvoys, setAllEnvoys] = React.useState<EnvoyDetails.AsObject[]>([]);
-
-  React.useEffect(() => {
-    if (!!envoysList.length) {
-      setAllEnvoys(envoysList);
-    }
-  }, [envoysList.length]);
 
   const [envoysOpen, setEnvoysOpen] = React.useState<boolean[]>([]);
 
   React.useEffect(() => {
-    if (!!envoysList.length) {
-      setAllEnvoys(envoysList);
+    if (!!envoysList && !!envoysList.length) {
       setEnvoysOpen(envoysList.map(e => false));
     }
-  }, [envoysList.length]);
+  }, [envoysList?.length]);
 
-  if (!envoysList.length) {
+  if (!envoysList) {
     return <div>Loading...</div>;
   }
 
-  if (!allEnvoys.length) {
+  if (!envoysList.length) {
     return <div>You have no Envoy configurations.</div>;
   }
 
@@ -96,7 +88,7 @@ export const Envoy = (props: Props) => {
 
   return (
     <>
-      {allEnvoys.map((envoy, ind) => {
+      {envoysList.map((envoy, ind) => {
         const hasConfigDump = !!envoy.raw && envoy.raw.content.length > 0;
         return (
           <SectionCard

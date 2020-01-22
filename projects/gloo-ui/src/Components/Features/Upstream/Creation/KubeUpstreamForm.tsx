@@ -7,8 +7,8 @@ import {
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { configAPI } from 'store/config/api';
+import useSWR from 'swr';
 import * as yup from 'yup';
 
 // TODO: handle servicespec and subset spec
@@ -34,9 +34,18 @@ export const kubeValidationSchema = yup.object().shape({
 });
 
 export const KubeUpstreamForm: React.FC<Props> = () => {
-  const {
-    config: { namespacesList, namespace: podNamespace }
-  } = useSelector((state: AppState) => state);
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+
+  if (!podNamespace || !namespacesList) {
+    return <div>Loading...</div>;
+  }
   return (
     <SoloFormTemplate formHeader='Kubernetes Upstream Settings'>
       <InputRow>

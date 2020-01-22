@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: AWS Upstreams status updates automatically without refreshing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1451
+  - type: FIX
+    description: Only show AWS Secrets in the dropdown in the Create Upstream Form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1449
+  - type: NON_USER_FACING
+    description: Optimize api calls.
+ 

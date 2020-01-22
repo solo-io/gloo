@@ -91,7 +91,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
     disabled,
     placeholder,
     testId,
-    presetOptions,
+    presetOptions = [],
     onChange,
     defaultValue,
     hideArrow,
@@ -102,7 +102,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
     onChange!(value as string);
   };
   const getOptions = (): DataSourceItemType[] => {
-    return presetOptions!
+    return presetOptions
       .filter(
         opt =>
           opt.value.toLowerCase().includes(typeInText.toLowerCase()) &&
@@ -132,9 +132,9 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
         defaultValue={
           defaultValue
             ? defaultValue
-            : props.presetOptions!.length
-            ? props.presetOptions![0].displayValue ||
-              props.presetOptions![0].value
+            : props.presetOptions?.length
+            ? props.presetOptions[0]?.displayValue ||
+              props.presetOptions[0]?.value
             : ''
         }
         onSearch={setTypeInText}

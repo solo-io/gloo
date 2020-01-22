@@ -6,16 +6,18 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import {
   Footer,
-  InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
+import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
+import { CreateUpstreamRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
-import { AppState } from 'store';
+import { configAPI } from 'store/config/api';
 import { createUpstream } from 'store/upstreams/actions';
+import useSWR from 'swr';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
@@ -23,8 +25,6 @@ import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
 import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
-import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
-import { CreateUpstreamRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 
 interface Props {
   toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -136,10 +136,20 @@ const validationSchema = yup.object().shape({
 
 export const CreateUpstreamForm: React.FC<Props> = props => {
   let history = useHistory();
-  const {
-    config: { namespace, namespacesList }
-  } = useSelector((state: AppState) => state);
+
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: namespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+
   const dispatch = useDispatch();
+  if (!namespace || !namespacesList) {
+    return <div>Loading...</div>;
+  }
   const initialValues = {
     name: '',
     type: '',

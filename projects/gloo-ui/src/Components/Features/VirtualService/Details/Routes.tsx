@@ -1,32 +1,32 @@
+import css from '@emotion/css';
 import styled from '@emotion/styled';
 import { Popconfirm, Popover } from 'antd';
-import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { ReactComponent as RouteTableIcon } from 'assets/route-table-icon.svg';
 import { ReactComponent as GlooIcon } from 'assets/GlooEE.svg';
+import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
+import RT from 'assets/route-table-icon.png';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
+import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import * as React from 'react';
-import { useDispatch, shallowEqual, useSelector } from 'react-redux';
-import { shiftRoutes, deleteRoute } from 'store/virtualServices/actions';
+import { shallowEqual, useDispatch } from 'react-redux';
+import { NavLink } from 'react-router-dom';
+import { updateRouteTable } from 'store/routeTables/actions';
+import { routeTableAPI } from 'store/routeTables/api';
+import { upstreamAPI } from 'store/upstreams/api';
+import { deleteRoute, shiftRoutes } from 'store/virtualServices/actions';
 import { colors, TableActionCircle, TableActions } from 'Styles';
+import useSWR from 'swr';
 import {
+  getIconFromSpec,
   getRouteHeaders,
   getRouteMatcher,
   getRouteMethods,
   getRouteQueryParams,
-  getRouteSingleUpstream,
-  getIcon,
-  getIconFromSpec
+  getRouteSingleUpstream
 } from 'utils/helpers';
-import { RouteParent } from '../RouteTableDetails';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
-import css from '@emotion/css';
-import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { AppState } from 'store';
-import { NavLink } from 'react-router-dom';
-import RT from 'assets/route-table-icon.png';
-import { updateRouteTable } from 'store/routeTables/actions';
+import { RouteParent } from '../RouteTableDetails';
 const RouteMatch = styled.div`
   max-width: 200px;
   max-height: 70px;
@@ -81,9 +81,13 @@ interface Props {
 const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
   let icon = <GlooIcon style={{ width: '20px', paddingRight: '5px' }} />;
   let destination = '';
-  const upstreamsList = useSelector(
-    (state: AppState) => state.upstreams.upstreamsList
+  const { data: upstreamsList, error } = useSWR(
+    'listUpstreams',
+    upstreamAPI.listUpstreams
   );
+  if (!upstreamsList) {
+    return <div>Loading...</div>;
+  }
   if (route.routeAction !== undefined) {
     let upstreamDestination = upstreamsList.find(
       upstreamDetails =>
@@ -124,9 +128,9 @@ function checkRoutesProps(
   return shallowEqual(oldProps.routes, newProps.routes);
 }
 export const Routes: React.FC<Props> = React.memo(props => {
-  const routeTablesList = useSelector(
-    (state: AppState) => state.routeTables.routeTablesList,
-    shallowEqual
+  const { data: routeTablesList, error } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
   );
 
   const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
@@ -143,6 +147,10 @@ export const Routes: React.FC<Props> = React.memo(props => {
   React.useEffect(() => {
     setRoutesList([...props.routes]);
   }, [props.routes.length]);
+
+  if (!routeTablesList) {
+    return <div>Loading...</div>;
+  }
 
   const getRouteData = () => {
     const existingRoutes = props.routes.map(route => {
@@ -169,7 +177,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
     let routeTableDestination = route?.delegateAction?.name;
 
     // get the routes of the route table
-    const previewRouteTable = routeTablesList.find(
+    const previewRouteTable = routeTablesList!.find(
       rt => rt?.routeTable?.metadata?.name === routeTableDestination
     );
     // if its a route or an upstream

@@ -7,13 +7,14 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import { ExtAuthPlugin } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppState } from 'store';
+import { useDispatch } from 'react-redux';
+import { useParams } from 'react-router';
+import { configAPI } from 'store/config/api';
 import { updateExtAuth } from 'store/virtualServices/actions';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import useSWR from 'swr';
 import * as yup from 'yup';
-import { useParams } from 'react-router';
 
 const FormContainer = styled.div`
   display: grid;
@@ -82,10 +83,14 @@ export const ExtAuthForm = (props: Props) => {
   let { virtualservicename, virtualservicenamespace } = useParams();
   const dispatch = useDispatch();
   const { externalAuth } = props;
-  const {
-    config: { namespacesList, namespace: podNamespace }
-  } = useSelector((state: AppState) => state);
-
+  const { data: namespacesList, error: listNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
   const initialValues: ValuesType = { ...defaultValues, ...externalAuth };
 
   const invalid = (values: ValuesType, errors: FormikErrors<ValuesType>) => {
@@ -133,7 +138,9 @@ export const ExtAuthForm = (props: Props) => {
       })
     );
   };
-
+  if (!podNamespace || !namespacesList) {
+    return <div>Loading...</div>;
+  }
   return (
     <Formik
       initialValues={initialValues}

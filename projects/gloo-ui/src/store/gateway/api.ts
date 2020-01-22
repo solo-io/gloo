@@ -15,7 +15,8 @@ import {
   ListGatewaysResponse,
   UpdateGatewayRequest,
   UpdateGatewayResponse,
-  UpdateGatewayYamlRequest
+  UpdateGatewayYamlRequest,
+  GatewayDetails
 } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { GatewayApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb_service';
 import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
@@ -72,7 +73,7 @@ function getGateway(
   });
 }
 
-function listGateways(): Promise<ListGatewaysResponse.AsObject> {
+function listGateways(): Promise<GatewayDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListGatewaysRequest();
     client.listGateways(request, (error, data) => {
@@ -82,8 +83,7 @@ function listGateways(): Promise<ListGatewaysResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        // TODO: normalize
-        resolve(data!.toObject());
+        resolve(data?.toObject().gatewayDetailsList);
       }
     });
   });
@@ -485,7 +485,7 @@ function getUpdateGatewayYaml(
   });
 }
 
-export const gateways = {
+export const gatewayAPI = {
   listGateways,
   getGateway,
   getUpdateGatewayYaml,

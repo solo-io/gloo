@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { Spin } from 'antd';
 import { ReactComponent as RouteTableIcon } from 'assets/route-table-icon.svg';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -11,15 +12,15 @@ import {
   VirtualService
 } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import React from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useHistory, useParams } from 'react-router-dom';
-import { AppState } from 'store';
 import {
-  listRouteTables,
   updateRouteTable,
   updateRouteTableYaml
 } from 'store/routeTables/actions';
+import { routeTableAPI } from 'store/routeTables/api';
 import { colors, healthConstants } from 'Styles';
+import useSWR from 'swr';
 import {
   getRouteHeaders,
   getRouteMatcher,
@@ -38,7 +39,6 @@ import {
   DetailsSection,
   DetailsSectionTitle
 } from './Details/VirtualServiceDetails';
-import { Breadcrumb } from 'Components/Common/Breadcrumb';
 
 const RouteSectionTitle = styled.div`
   font-size: 18px;
@@ -67,23 +67,17 @@ export const RouteTableDetails = () => {
     Route.AsObject | undefined
   >(undefined);
 
-  const routeTablesList = useSelector(
-    (state: AppState) => state.routeTables.routeTablesList,
-    shallowEqual
+  const { data: routeTablesList, error } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
   );
 
-  const yamlError = useSelector(
-    (state: AppState) => state.virtualServices.yamlParseError,
-    shallowEqual
-  );
-
+  const [yamlError, setYamlError] = React.useState(false);
   const dispatch = useDispatch();
 
-  React.useEffect(() => {
-    if (routeTablesList.length || !routeTableDetails) {
-      dispatch(listRouteTables());
-    }
-  }, [routeTablesList.length]);
+  if (!routeTablesList) {
+    return <div>Loading...</div>;
+  }
 
   let routeTableDetails = routeTablesList.find(
     rtD =>
@@ -92,15 +86,13 @@ export const RouteTableDetails = () => {
       rtD.routeTable.metadata!.name === routetablename
   )!;
 
-  const routesList = useSelector((state: AppState) =>
-    state.routeTables.routeTablesList
-      .filter(
-        rtd =>
-          rtd?.routeTable?.metadata?.name === routetablename &&
-          rtd?.routeTable?.metadata?.namespace === routetablenamespace
-      )
-      .flatMap(rtd => rtd!.routeTable!.routesList)
-  );
+  const routesList = routeTablesList
+    .filter(
+      rtd =>
+        rtd?.routeTable?.metadata?.name === routetablename &&
+        rtd?.routeTable?.metadata?.namespace === routetablenamespace
+    )
+    .flatMap(rtd => rtd!.routeTable!.routesList);
 
   if (!routeTablesList || !routeTableDetails || !routeTableDetails.routeTable) {
     return (

@@ -33,7 +33,7 @@ const client = new SecretApiClient(host, {
   debug: true
 });
 
-function getSecretsList(): Promise<ListSecretsResponse.AsObject> {
+function getSecretsList(): Promise<Secret.AsObject[]> {
   return new Promise((resolve, reject) => {
     let req = new ListSecretsRequest();
     client.listSecrets(req, (error, data) => {
@@ -43,7 +43,7 @@ function getSecretsList(): Promise<ListSecretsResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().secretsList);
       }
     });
   });
@@ -206,7 +206,7 @@ function deleteSecret(
     });
   });
 }
-export const secrets = {
+export const secretAPI = {
   getSecretsList,
   getSecret,
   createSecret,

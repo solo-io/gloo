@@ -4,7 +4,7 @@ import { UpdateSettingsRequest } from 'proto/solo-projects/projects/grpcserver/a
 import { Dispatch } from 'redux';
 import { globalStore } from 'store';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';
-import { config } from './api';
+import { configAPI } from './api';
 import {
   ConfigAction,
   GetIsLicenseValidAction,
@@ -17,15 +17,16 @@ import {
   UpdateSettingsAction,
   UpdateWatchNamespacesAction
 } from './types';
+import useSWR from 'swr';
 
 export const getVersion = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.getVersion();
+      const response = await configAPI.getVersion();
       dispatch<GetVersionAction>({
         type: ConfigAction.GET_VERSION,
-        payload: response.version
+        payload: response
       });
     } catch (error) {}
   };
@@ -34,10 +35,10 @@ export const getSettings = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.getSettings();
+      const response = await configAPI.getSettings();
       dispatch<GetSettingsAction>({
         type: ConfigAction.GET_SETTINGS,
-        payload: response.toObject().settings!
+        payload: response
       });
     } catch (error) {}
   };
@@ -47,10 +48,10 @@ export const listNamespaces = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.listNamespaces();
+      const response = await configAPI.listNamespaces();
       dispatch<ListNamespacesAction>({
         type: ConfigAction.LIST_NAMESPACES,
-        payload: response.namespacesList!
+        payload: response
       });
     } catch (error) {}
   };
@@ -60,7 +61,7 @@ export const getOAuthEndpoint = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.getOAuthEndpoint();
+      const response = await configAPI.getOAuthEndpoint();
       dispatch<GetOAuthEndpointAction>({
         type: ConfigAction.GET_OAUTH_ENDPOINT,
         payload: response.oAuthEndpoint!
@@ -73,7 +74,7 @@ export const getIsLicenseValid = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.getIsLicenseValid();
+      const response = await configAPI.getIsLicenseValid();
       dispatch<GetIsLicenseValidAction>({
         type: ConfigAction.GET_IS_LICENSE_VALID,
         payload: response.isLicenseValid!
@@ -85,10 +86,10 @@ export const getPodNamespace = () => {
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await config.getPodNamespace();
+      const response = await configAPI.getPodNamespace();
       dispatch<GetPodNamespaceAction>({
         type: ConfigAction.GET_POD_NAMESPACE,
-        payload: response.namespace
+        payload: response
       });
     } catch (error) {}
   };
@@ -101,7 +102,7 @@ export const updateWatchNamespaces = (updateWatchNamespacesRequest: {
     // dispatch(showLoading());
     try {
       guardByLicense();
-      const response = await config.updateWatchNamespaces(
+      const response = await configAPI.updateWatchNamespaces(
         updateWatchNamespacesRequest
       );
       dispatch<UpdateWatchNamespacesAction>({
@@ -126,7 +127,9 @@ export const updateRefreshRate = (updateRefreshRateRequest: {
     // dispatch(showLoading());
     try {
       guardByLicense();
-      const response = await config.updateRefreshRate(updateRefreshRateRequest);
+      const response = await configAPI.updateRefreshRate(
+        updateRefreshRateRequest
+      );
       dispatch<UpdateRefreshRateAction>({
         type: ConfigAction.UPDATE_REFRESH_RATE,
         payload: response.settings!
@@ -149,7 +152,7 @@ export const updateSettings = (
     // dispatch(showLoading());
     try {
       guardByLicense();
-      const response = await config.updateSettings(updateSettingsRequest);
+      const response = await configAPI.updateSettings(updateSettingsRequest);
       dispatch<UpdateSettingsAction>({
         type: ConfigAction.UPDATE_SETTINGS,
         payload: response.settings!
@@ -170,7 +173,11 @@ export const INVALID_LICENSE_ERROR_ID =
   "This feature requires an Enterprise Gloo license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license.";
 
 export const guardByLicense = (): void => {
-  const isValid = globalStore.getState().config.isLicenseValid;
+  const { data: licenseData, error: licenseError } = useSWR(
+    'hasValidLicense',
+    configAPI.getIsLicenseValid
+  );
+  const isValid = licenseData?.isLicenseValid;
   if (isValid !== true) {
     throw new Error(INVALID_LICENSE_ERROR_ID);
   }

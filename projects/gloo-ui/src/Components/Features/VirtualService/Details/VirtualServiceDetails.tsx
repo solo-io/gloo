@@ -16,6 +16,8 @@ import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
 import { Routes } from './Routes';
 import { RouteParent } from '../RouteTableDetails';
+import { virtualServiceAPI } from 'store/virtualServices/api';
+import useSWR from 'swr';
 
 export const ConfigContainer = styled.div`
   display: grid;
@@ -74,8 +76,9 @@ export const VirtualServiceDetails = () => {
 
   const [showConfiguration, setShowConfiguration] = React.useState(false);
 
-  const virtualServicesList = useSelector(
-    (state: AppState) => state.virtualServices.virtualServicesList
+  const { data: virtualServicesList, error } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
   );
 
   const yamlError = useSelector(
@@ -84,9 +87,12 @@ export const VirtualServiceDetails = () => {
 
   const dispatch = useDispatch();
 
+  if (!virtualServicesList) {
+    return <div>Loading...</div>;
+  }
   let virtualServiceDetails = virtualServicesList.find(
     vsD => vsD?.virtualService?.metadata?.name === virtualservicename
-  )!;
+  );
 
   if (!virtualServiceDetails?.virtualService?.virtualHost) {
     return (

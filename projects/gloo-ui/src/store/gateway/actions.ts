@@ -5,7 +5,7 @@ import {
 } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import { Dispatch } from 'redux';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';
-import { gateways } from './api';
+import { gatewayAPI } from './api';
 import {
   GatewayAction,
   ListGatewaysAction,
@@ -19,10 +19,10 @@ export const listGateways = () => {
     // dispatch(showLoading());
 
     try {
-      const response = await gateways.listGateways();
+      const response = await gatewayAPI.listGateways();
       dispatch<ListGatewaysAction>({
         type: GatewayAction.LIST_GATEWAYS,
-        payload: response.gatewayDetailsList
+        payload: response
       });
       // dispatch(hideLoading());
     } catch (error) {}
@@ -35,7 +35,7 @@ export const updateGateway = (
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await gateways.updateGateway(updateGatewayRequest);
+      const response = await gatewayAPI.updateGateway(updateGatewayRequest);
       dispatch<UpdateGatewayAction>({
         type: GatewayAction.UPDATE_GATEWAY,
         payload: response.gatewayDetails!
@@ -61,7 +61,7 @@ export const updateGatewayYaml = (
   return async (dispatch: Dispatch) => {
     // dispatch(showLoading());
     try {
-      const response = await gateways.getUpdateGatewayYaml(
+      const response = await gatewayAPI.getUpdateGatewayYaml(
         updateGatewayYamlRequest
       );
       dispatch<UpdateGatewayYamlAction>({

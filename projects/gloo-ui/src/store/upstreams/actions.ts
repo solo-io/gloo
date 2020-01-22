@@ -7,7 +7,7 @@ import {
 import { Dispatch } from 'redux';
 import { guardByLicense } from 'store/config/actions';
 import { MessageAction, SuccessMessageAction } from 'store/modal/types';
-import { upstreams } from './api';
+import { upstreamAPI } from './api';
 import {
   CreateUpstreamAction,
   DeleteUpstreamAction,
@@ -19,10 +19,10 @@ import {
 export const listUpstreams = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await upstreams.listUpstreams();
+      const response = await upstreamAPI.listUpstreams();
       dispatch<ListUpstreamsAction>({
         type: UpstreamAction.LIST_UPSTREAMS,
-        payload: response.upstreamDetailsList
+        payload: response
       });
     } catch (error) {}
   };
@@ -36,7 +36,7 @@ export const deleteUpstream = (
 
     try {
       guardByLicense();
-      const response = await upstreams.deleteUpstream(deleteUpstreamRequest);
+      const response = await upstreamAPI.deleteUpstream(deleteUpstreamRequest);
       dispatch<DeleteUpstreamAction>({
         type: UpstreamAction.DELETE_UPSTREAM,
         payload: deleteUpstreamRequest
@@ -54,7 +54,7 @@ export const createUpstream = (
   return async (dispatch: Dispatch) => {
     guardByLicense();
     try {
-      const response = await upstreams.createUpstream(createUpstreamRequest);
+      const response = await upstreamAPI.createUpstream(createUpstreamRequest);
       dispatch<CreateUpstreamAction>({
         type: UpstreamAction.CREATE_UPSTREAM,
         payload: response.upstreamDetails!
@@ -79,7 +79,7 @@ export const updateUpstream = (
     // dispatch(showLoading());
     guardByLicense();
     try {
-      const response = await upstreams.updateUpstream(updateUpstreamRequest);
+      const response = await upstreamAPI.updateUpstream(updateUpstreamRequest);
       dispatch<UpdateUpstreamAction>({
         type: UpstreamAction.UPDATE_UPSTREAM,
         payload: response.upstreamDetails!

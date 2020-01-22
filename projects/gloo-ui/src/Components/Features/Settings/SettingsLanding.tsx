@@ -8,6 +8,7 @@ import {
   StringFilterProps,
   TypeFilterProps
 } from 'Components/Common/ListingFilter';
+import { OauthSecret } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 import {
   AwsSecret,
   AzureSecret,
@@ -15,15 +16,15 @@ import {
   TlsSecret
 } from 'proto/gloo/projects/gloo/api/v1/secret_pb';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router';
-import { AppState } from 'store';
-import { createSecret, deleteSecret, listSecrets } from 'store/secrets/actions';
+import { createSecret, deleteSecret } from 'store/secrets/actions';
+import { secretAPI } from 'store/secrets/api';
+import useSWR from 'swr';
 import { SecretValuesType } from './SecretForm';
 import { SecretsPage } from './SecretsPage';
 import { SecurityPage } from './SecurityPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
-import { OauthSecret } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -59,35 +60,22 @@ export const SettingsLanding = () => {
 
   // Redux
   const dispatch = useDispatch();
-  const {
-    secrets: { secretsList }
-  } = useSelector((state: AppState) => state);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [allSecrets, setAllSecrets] = React.useState<Secret.AsObject[]>([]);
+
+  const { data: secretsList, error } = useSWR(
+    'listSecrets',
+    secretAPI.getSecretsList
+  );
 
   React.useEffect(() => {
-    if (secretsList.length) {
-      setIsLoading(false);
-      setAllSecrets(secretsList);
-    } else {
-      dispatch(listSecrets());
-      setIsLoading(true);
+    if (secretsList && secretsList.length) {
+      setAwsSecrets(secretsList.filter(s => !!s.aws));
+      setAzureSecrets(secretsList.filter(s => !!s.azure));
+      setOAuthSecrets(secretsList.filter(s => !!s.oauth));
+      setTlsSecrets(secretsList.filter(s => !!s.tls));
     }
-    return () => {
-      setShowSuccessModal(false);
-    };
-  }, [secretsList.length, showSuccessModal]);
+  }, [secretsList?.length, showSuccessModal]);
 
-  React.useEffect(() => {
-    if (secretsList && allSecrets) {
-      setAwsSecrets(allSecrets.filter(s => !!s.aws));
-      setAzureSecrets(allSecrets.filter(s => !!s.azure));
-      setOAuthSecrets(allSecrets.filter(s => !!s.oauth));
-      setTlsSecrets(allSecrets.filter(s => !!s.tls));
-    }
-  }, [allSecrets.length, showSuccessModal]);
-
-  if (!secretsList || (!secretsList && isLoading)) {
+  if (!secretsList) {
     return <div>Loading...</div>;
   }
 

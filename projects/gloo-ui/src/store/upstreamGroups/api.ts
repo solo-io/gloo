@@ -213,7 +213,7 @@ function deleteUpstreamGroup(
     });
   });
 }
-export const upstreamGroups = {
+export const upstreamGroupAPI = {
   listUpstreamGroups,
   createUpstreamGroup,
   updateUpstreamGroup,
