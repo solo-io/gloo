@@ -41,6 +41,10 @@ message UpdateUpstreamRequest {
     gloo.solo.io.Upstream upstream_input = 2;
 }
 
+message UpdateUpstreamYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
+}
+
 message UpdateUpstreamResponse {
     UpstreamDetails upstream_details = 2;
 }
@@ -56,5 +60,6 @@ service UpstreamApi {
     rpc ListUpstreams(ListUpstreamsRequest) returns (ListUpstreamsResponse) {}
     rpc CreateUpstream(CreateUpstreamRequest) returns (CreateUpstreamResponse) {}
     rpc UpdateUpstream(UpdateUpstreamRequest) returns (UpdateUpstreamResponse) {}
+    rpc UpdateUpstreamYaml(UpdateUpstreamYamlRequest) returns (UpdateUpstreamResponse) {}
     rpc DeleteUpstream(DeleteUpstreamRequest) returns (DeleteUpstreamResponse) {}
 }

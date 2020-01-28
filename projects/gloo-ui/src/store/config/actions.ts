@@ -173,11 +173,8 @@ export const INVALID_LICENSE_ERROR_ID =
   "This feature requires an Enterprise Gloo license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license.";
 
 export const guardByLicense = (): void => {
-  const { data: licenseData, error: licenseError } = useSWR(
-    'hasValidLicense',
-    configAPI.getIsLicenseValid
-  );
-  const isValid = licenseData?.isLicenseValid;
+  const isValid = globalStore.getState().config.isLicenseValid;
+
   if (isValid !== true) {
     throw new Error(INVALID_LICENSE_ERROR_ID);
   }

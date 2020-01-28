@@ -40,6 +40,15 @@ type UpstreamGroupApiUpdateUpstreamGroup = {
   readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse;
 };
 
+type UpstreamGroupApiUpdateUpstreamGroupYaml = {
+  readonly methodName: string;
+  readonly service: typeof UpstreamGroupApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupYamlRequest;
+  readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse;
+};
+
 type UpstreamGroupApiDeleteUpstreamGroup = {
   readonly methodName: string;
   readonly service: typeof UpstreamGroupApi;
@@ -55,6 +64,7 @@ export class UpstreamGroupApi {
   static readonly ListUpstreamGroups: UpstreamGroupApiListUpstreamGroups;
   static readonly CreateUpstreamGroup: UpstreamGroupApiCreateUpstreamGroup;
   static readonly UpdateUpstreamGroup: UpstreamGroupApiUpdateUpstreamGroup;
+  static readonly UpdateUpstreamGroupYaml: UpstreamGroupApiUpdateUpstreamGroupYaml;
   static readonly DeleteUpstreamGroup: UpstreamGroupApiDeleteUpstreamGroup;
 }
 
@@ -124,6 +134,15 @@ export class UpstreamGroupApiClient {
   ): UnaryResponse;
   updateUpstreamGroup(
     requestMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupRequest,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse|null) => void
+  ): UnaryResponse;
+  updateUpstreamGroupYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse|null) => void
+  ): UnaryResponse;
+  updateUpstreamGroupYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupYamlRequest,
     callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse|null) => void
   ): UnaryResponse;
   deleteUpstreamGroup(

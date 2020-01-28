@@ -27,6 +27,7 @@ type ContentProps = {
 };
 const ModalBlock = styled.div`
   position: relative;
+  max-width: 100%;
   width: ${(props: ContentProps) =>
     props.width === 'auto' ? props.width : `${props.width}px`};
   border-radius: 10px;
@@ -61,7 +62,7 @@ const Content = styled.div`
 interface ModalProps {
   visible: boolean;
   width: number;
-  title: string | React.ReactNode;
+  title?: string | React.ReactNode;
   children: React.ReactChild;
   onClose: () => any;
 }

@@ -41,6 +41,9 @@ import { configAPI } from 'store/config/api';
 import { upstreamAPI } from 'store/upstreams/api';
 import { routeTableAPI } from 'store/routeTables/api';
 import { virtualServiceAPI } from 'store/virtualServices/api';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+import { upstreamGroupAPI } from 'store/upstreamGroups/api';
+import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 const { Option, OptGroup } = Select;
 
 type ErrorTextProps = { errorExists?: boolean };
@@ -53,6 +56,7 @@ export const ErrorText = styled.div`
 `;
 
 export const SoloFormInput = ({ ...props }) => {
+  const { hideError = false } = props;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -66,9 +70,11 @@ export const SoloFormInput = ({ ...props }) => {
         value={field.value}
         onChange={field.onChange}
       />
-      <ErrorText errorExists={!!meta.error && meta.touched}>
-        {meta.error}
-      </ErrorText>
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
     </>
   );
 };
@@ -107,10 +113,12 @@ export const SoloFormDurationEditor: React.FC<FormDurationProps> = ({
 
 interface FormTypeaheadProps extends TypeaheadProps {
   name: string;
+  hideError?: boolean;
 }
 export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
   ...props
 }) => {
+  const { hideError } = props;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -123,7 +131,9 @@ export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
         presetOptions={props.presetOptions}
         onChange={value => form.setFieldValue(props.name, value)}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      )}
     </>
   );
 };
@@ -289,7 +299,7 @@ type CompareProps = {
 const MemoSelect = React.memo(Select, compareSelect);
 const MemoOption = React.memo(Option, compareOptions);
 interface RouteDestinationDropdownProps {
-  value: RouteTable.AsObject | Upstream.AsObject;
+  value: RouteTable.AsObject | Upstream.AsObject | UpstreamGroup.AsObject;
   testId: string;
   name: string;
   onChange?: (newValue: any) => void;
@@ -320,11 +330,22 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
       'listUpstreams',
       upstreamAPI.listUpstreams
     );
+
+    const { data: upstreamGroupsList, error: upstreamGroupError } = useSWR(
+      'listUpstreamGroups',
+      upstreamGroupAPI.listUpstreamGroups
+    );
+
     const { data: routeTablesList, error: routeTablesError } = useSWR(
       'listRouteTables',
       routeTableAPI.listRouteTables
     );
-    if (!namespacesList || !upstreamsList || !routeTablesList) {
+    if (
+      !namespacesList ||
+      !upstreamsList ||
+      !routeTablesList ||
+      !upstreamGroupsList
+    ) {
       return <div>Loading...</div>;
     }
 
@@ -348,11 +369,18 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
         if (upstream?.upstream?.aws === undefined) {
           form.setFieldValue('destinationSpec', undefined);
         }
+      } else if (form.values.destinationType === 'Upstream Group') {
+        let upstreamGroup = upstreamGroupsList?.find(
+          usgD => usgD.upstreamGroup?.metadata?.name === value
+        );
+        form.setFieldValue('routeDestination', upstreamGroup?.upstreamGroup);
       }
     }
     function getDestinationIcon(option: Metadata.AsObject): React.ReactNode {
       if (props.destinationType === 'Route Table') {
         return getIcon(props.destinationType);
+      } else if (props.destinationType === 'Upstream Group') {
+        return getIcon('Upstream Group');
       } else {
         return getIcon(
           getUpstreamType(
@@ -639,81 +667,90 @@ export const SoloFormSecretRefInput: React.FC<{
 };
 
 const compareFn = (
-  prevProps: Readonly<{ type: string; name: string; testId: string }>,
-  newProps: Readonly<{ type: string; name: string; testId: string }>
+  prevProps: Readonly<AWSSecretsListProps>,
+  newProps: Readonly<AWSSecretsListProps>
 ) => {
   return _.isEqual(prevProps, newProps);
 };
 
-export const SoloAWSSecretsList: React.FC<{
+interface AWSSecretsListProps {
   type: string;
   name: string;
   testId: string;
-}> = React.memo(props => {
-  const { data: secretsList, error } = useSWR(
-    'listSecrets',
-    secretAPI.getSecretsList
-  );
+  hideError?: boolean;
+  defaultValue?: string;
+}
+export const SoloAWSSecretsList: React.FC<AWSSecretsListProps> = React.memo(
+  props => {
+    const { data: secretsList, error } = useSWR(
+      'listSecrets',
+      secretAPI.getSecretsList
+    );
 
-  const { name, type } = props;
-  const form = useFormikContext<any>();
-  const field = form.getFieldProps(props.name);
-  const meta = form.getFieldMeta(props.name);
+    const { name, type, hideError = false } = props;
+    const form = useFormikContext<any>();
+    const field = form.getFieldProps(props.name);
+    const meta = form.getFieldMeta(props.name);
 
-  if (!secretsList) {
-    return <div>Loading...</div>;
-  }
+    if (!secretsList) {
+      return <div>Loading...</div>;
+    }
 
-  const groupedSecrets = Array.from(
-    groupBy(
-      secretsList.filter(s => s.aws !== undefined),
-      secret => secret.metadata!.namespace
-    ).entries()
-  );
-  const awsSecretsList = groupedSecrets.filter(([ns, secrets]) =>
-    secrets.filter(s => s.aws !== undefined)
-  );
+    const groupedSecrets = Array.from(
+      groupBy(
+        secretsList.filter(s => s.aws !== undefined),
+        secret => secret.metadata!.namespace
+      ).entries()
+    );
+    const awsSecretsList = groupedSecrets.filter(([ns, secrets]) =>
+      secrets.filter(s => s.aws !== undefined)
+    );
 
-  return (
-    <div style={{ width: '100%' }}>
-      {name && <Label>AWS Secret</Label>}
-      <SoloDropdownBlock
-        data-testid={props.testId}
-        style={{ width: '200px' }}
-        onChange={(value: any) => {
-          let [name, namespace] = value.split('::');
-          let selectedSecret = secretsList.find(
-            s =>
-              s.metadata!.name === name && s.metadata!.namespace === namespace
-          );
+    return (
+      <div style={{ width: '100%' }}>
+        {name && <Label>AWS Secret</Label>}
+        <SoloDropdownBlock
+          data-testid={props.testId}
+          style={{ minWidth: '200px' }}
+          onChange={(value: any) => {
+            let [name, namespace] = value.split('::');
+            let selectedSecret = secretsList.find(
+              s =>
+                s.metadata!.name === name && s.metadata!.namespace === namespace
+            );
 
-          form.setFieldValue(
-            `${field.name}.name`,
-            selectedSecret!.metadata!.name
-          );
-          form.setFieldValue(
-            `${field.name}.namespace`,
-            selectedSecret!.metadata!.namespace
-          );
-        }}>
-        {awsSecretsList.map(([namespace, secrets]) => {
-          return (
-            <OptGroup key={namespace} label={namespace}>
-              {secrets.map(s => (
-                <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
-                  {s.metadata!.name}
-                </Option>
-              ))}
-            </OptGroup>
-          );
-        })}
-      </SoloDropdownBlock>
-      <ErrorText errorExists={!!meta.error && meta.touched}>
-        {meta.error}
-      </ErrorText>
-    </div>
-  );
-}, compareFn);
+            form.setFieldValue(
+              `${field.name}.name`,
+              selectedSecret!.metadata!.name
+            );
+            form.setFieldValue(
+              `${field.name}.namespace`,
+              selectedSecret!.metadata!.namespace
+            );
+          }}
+          {...props}>
+          {awsSecretsList.map(([namespace, secrets]) => {
+            return (
+              <OptGroup key={namespace} label={namespace}>
+                {secrets.map(s => (
+                  <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
+                    {s.metadata!.name}
+                  </Option>
+                ))}
+              </OptGroup>
+            );
+          })}
+        </SoloDropdownBlock>
+        {hideError ? null : (
+          <ErrorText errorExists={!!meta.error && meta.touched}>
+            {meta.error}
+          </ErrorText>
+        )}
+      </div>
+    );
+  },
+  compareFn
+);
 
 const compare = (
   prevProps: Readonly<{ name: string; title: string; defaultValue: string }>,

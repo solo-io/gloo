@@ -46,6 +46,15 @@ UpstreamGroupApi.UpdateUpstreamGroup = {
   responseType: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse
 };
 
+UpstreamGroupApi.UpdateUpstreamGroupYaml = {
+  methodName: "UpdateUpstreamGroupYaml",
+  service: UpstreamGroupApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupYamlRequest,
+  responseType: solo_projects_projects_grpcserver_api_v1_upstreamgroup_pb.UpdateUpstreamGroupResponse
+};
+
 UpstreamGroupApi.DeleteUpstreamGroup = {
   methodName: "DeleteUpstreamGroup",
   service: UpstreamGroupApi,
@@ -160,6 +169,37 @@ UpstreamGroupApiClient.prototype.updateUpstreamGroup = function updateUpstreamGr
     callback = arguments[1];
   }
   var client = grpc.unary(UpstreamGroupApi.UpdateUpstreamGroup, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+UpstreamGroupApiClient.prototype.updateUpstreamGroupYaml = function updateUpstreamGroupYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(UpstreamGroupApi.UpdateUpstreamGroupYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

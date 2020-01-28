@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { Popconfirm, Popover } from 'antd';
 import { ReactComponent as GlooIcon } from 'assets/GlooEE.svg';
 import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
+import { ReactComponent as UpstreamGroupLogo } from 'assets/upstream-group-icon.svg';
 import RT from 'assets/route-table-icon.png';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
@@ -27,6 +28,7 @@ import {
 } from 'utils/helpers';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
 import { RouteParent } from '../RouteTableDetails';
+import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 const RouteMatch = styled.div`
   max-width: 200px;
   max-height: 70px;
@@ -66,6 +68,7 @@ const RouteTablePopoverContainer = css`
   grid-template-rows: 24px 1fr;
   grid-gap: 10px;
 `;
+
 const RouteTablePopoverRoutesContainer = css`
   grid-area: content;
   display: grid;
@@ -85,23 +88,39 @@ const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
     'listUpstreams',
     upstreamAPI.listUpstreams
   );
+  const { data: upstreamGroupsList, error: upstreamGroupError } = useSWR(
+    'listUpstreamGroups',
+    upstreamGroupAPI.listUpstreamGroups
+  );
   if (!upstreamsList) {
     return <div>Loading...</div>;
   }
   if (route.routeAction !== undefined) {
-    let upstreamDestination = upstreamsList.find(
-      upstreamDetails =>
-        upstreamDetails?.upstream?.metadata?.name ===
-        route?.routeAction?.single?.upstream?.name
-    );
-    let upstreamSpec = upstreamDestination?.upstream;
-    if (upstreamSpec !== undefined) {
-      icon = getIconFromSpec(upstreamSpec);
-    } else {
-      icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
-    }
+    if (route.routeAction?.single !== undefined) {
+      let upstreamDestination = upstreamsList.find(
+        upstreamDetails =>
+          upstreamDetails?.upstream?.metadata?.name ===
+          route?.routeAction?.single?.upstream?.name
+      );
+      let upstreamSpec = upstreamDestination?.upstream;
+      if (upstreamSpec !== undefined) {
+        icon = getIconFromSpec(upstreamSpec);
+      } else {
+        icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
+      }
 
-    destination = getRouteSingleUpstream(route);
+      destination = getRouteSingleUpstream(route);
+    } else if (route.routeAction?.upstreamGroup !== undefined) {
+      let upstreamGroupDestination = upstreamGroupsList?.find(
+        upstreamGroupDetails =>
+          upstreamGroupDetails?.upstreamGroup?.metadata?.name ===
+          route?.routeAction?.upstreamGroup?.name
+      );
+      destination = upstreamGroupDestination?.upstreamGroup?.metadata?.name!;
+      icon = (
+        <UpstreamGroupLogo style={{ width: '25px', paddingRight: '5px' }} />
+      );
+    }
   }
   if (route.delegateAction !== undefined) {
     icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
@@ -128,9 +147,18 @@ function checkRoutesProps(
   return shallowEqual(oldProps.routes, newProps.routes);
 }
 export const Routes: React.FC<Props> = React.memo(props => {
+  const { data: upstreamsList, error: upstreamError } = useSWR(
+    'listUpstreams',
+    upstreamAPI.listUpstreams
+  );
   const { data: routeTablesList, error } = useSWR(
     'listRouteTables',
     routeTableAPI.listRouteTables
+  );
+
+  const { data: upstreamGroupsList, error: upstreamGroupsError } = useSWR(
+    'listUpstreamGroups',
+    upstreamGroupAPI.listUpstreamGroups
   );
 
   const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
@@ -148,7 +176,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
     setRoutesList([...props.routes]);
   }, [props.routes.length]);
 
-  if (!routeTablesList) {
+  if (!routeTablesList || !upstreamsList) {
     return <div>Loading...</div>;
   }
 
@@ -173,28 +201,43 @@ export const Routes: React.FC<Props> = React.memo(props => {
   };
 
   function getDestinationIcon(route: Route.AsObject): React.ReactNode {
-    let upstreamDestination = route?.routeAction?.single?.upstream?.name;
-    let routeTableDestination = route?.delegateAction?.name;
-
+    let upstreamDestination = route?.routeAction?.single?.upstream;
+    let upstreamGroupDestination = route?.routeAction?.upstreamGroup;
+    let routeTableDestination = route?.delegateAction;
+    const currentUpstream = upstreamsList?.find(
+      us =>
+        us?.upstream?.metadata?.name === upstreamDestination?.name &&
+        us?.upstream?.metadata?.namespace === upstreamDestination?.namespace
+    );
+    const currentUpstreamGroup = upstreamGroupsList?.find(
+      usg =>
+        usg.upstreamGroup?.metadata?.name === upstreamGroupDestination?.name &&
+        usg.upstreamGroup?.metadata?.namespace ===
+          upstreamGroupDestination?.namespace
+    );
     // get the routes of the route table
-    const previewRouteTable = routeTablesList!.find(
-      rt => rt?.routeTable?.metadata?.name === routeTableDestination
+    const previewRouteTable = routeTablesList?.find(
+      rt =>
+        rt?.routeTable?.metadata?.name === routeTableDestination?.name &&
+        rt?.routeTable?.metadata?.namespace === routeTableDestination?.namespace
     );
     // if its a route or an upstream
     // get type
-    let type: 'Upstream' | 'Route Table';
+    let type: 'Upstream' | 'Upstream Group' | 'Route Table';
     if (routeTableDestination !== undefined) {
       type = 'Route Table';
+    } else if (upstreamGroupDestination !== undefined) {
+      type = 'Upstream Group';
     } else {
       type = 'Upstream';
     }
 
-    // style to match design
-    return (
-      <Popover
-        placement='bottom'
-        content={
-          type === 'Route Table' ? (
+    let content;
+    if (type === 'Route Table') {
+      content = (
+        <Popover
+          placement='bottom'
+          content={
             <>
               <div css={RouteTablePopoverContainer}>
                 <div
@@ -211,7 +254,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
                 </div>
                 <div css={RouteTablePopoverRoutesContainer}>
                   {previewRouteTable?.routeTable?.routesList.map(route => (
-                    <>
+                    <React.Fragment key={`${route.matchersList[0]?.prefix}`}>
                       <div
                         css={css`
                           display: flex;
@@ -223,7 +266,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
                       </div>
 
                       <DestinationIcon route={route} />
-                    </>
+                    </React.Fragment>
                   ))}
                 </div>
               </div>
@@ -231,20 +274,85 @@ export const Routes: React.FC<Props> = React.memo(props => {
                 {`${previewRouteTable?.routeTable?.routesList.length} total routes`}
               </div>
             </>
-          ) : (
-            <div
-              css={css`
-                display: flex;
-                justify-content: center;
-              `}>
-              Upstream
-            </div>
-          )
-        }
-        trigger='hover'>
-        {!!previewRouteTable ? (
+          }
+          trigger='hover'>
+          {!!previewRouteTable && (
+            <NavLink
+              to={`/routetables/${previewRouteTable?.routeTable?.metadata?.namespace}/${previewRouteTable?.routeTable?.metadata?.name}`}>
+              <div
+                css={css`
+                  color: #2196c9;
+                  cursor: pointer;
+                  font-weight: bold;
+                `}>
+                <DestinationIcon route={route} />
+              </div>
+            </NavLink>
+          )}
+        </Popover>
+      );
+    } else if (type === 'Upstream Group') {
+      content = (
+        <Popover
+          placement='bottom'
+          content={
+            <>
+              <div
+                css={css`
+                  display: grid;
+                  grid-template-areas:
+                    'upstream destination'
+                    'content content';
+                  grid-template-columns: 1fr 1fr;
+                  grid-template-rows: 24px 1fr;
+                  grid-gap: 10px;
+                `}>
+                <div
+                  css={css`
+                    grid-area: upstream;
+                  `}>
+                  Upstream
+                </div>
+                <div
+                  css={css`
+                    grid-area: destination;
+                  `}>
+                  Weight
+                </div>
+                <div
+                  css={css`
+                    grid-area: content;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    grid-column-gap: 10px;
+                  `}>
+                  {currentUpstreamGroup?.upstreamGroup?.destinationsList?.map(
+                    dest => (
+                      <React.Fragment
+                        key={`${dest.destination?.upstream?.name}`}>
+                        <div
+                          css={css`
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: flex-start;
+                            align-items: center;
+                          `}>
+                          {dest.destination?.upstream?.name}
+                        </div>
+                        <div>{dest.weight}%</div>
+                      </React.Fragment>
+                    )
+                  )}
+                </div>
+              </div>
+              <div>
+                {`${currentUpstreamGroup?.upstreamGroup?.destinationsList.length} upsteams`}
+              </div>
+            </>
+          }
+          trigger='hover'>
           <NavLink
-            to={`/routetables/${previewRouteTable?.routeTable?.metadata?.namespace}/${previewRouteTable?.routeTable?.metadata?.name}`}>
+            to={`/upstreams/upstreamgroups/${currentUpstreamGroup?.upstreamGroup?.metadata?.namespace}/${currentUpstreamGroup?.upstreamGroup?.metadata?.name}`}>
             <div
               css={css`
                 color: #2196c9;
@@ -254,7 +362,12 @@ export const Routes: React.FC<Props> = React.memo(props => {
               <DestinationIcon route={route} />
             </div>
           </NavLink>
-        ) : (
+        </Popover>
+      );
+    } else if (type === 'Upstream') {
+      content = (
+        <NavLink
+          to={`/upstreams/${currentUpstream?.upstream?.metadata?.namespace}/${currentUpstream?.upstream?.metadata?.name}`}>
           <div
             css={css`
               color: #2196c9;
@@ -263,9 +376,12 @@ export const Routes: React.FC<Props> = React.memo(props => {
             `}>
             <DestinationIcon route={route} />
           </div>
-        )}
-      </Popover>
-    );
+        </NavLink>
+      );
+    }
+
+    // style to match design
+    return <>{content}</>;
   }
 
   const handleDeleteRoute = (matcherToDelete: string, row: any) => {

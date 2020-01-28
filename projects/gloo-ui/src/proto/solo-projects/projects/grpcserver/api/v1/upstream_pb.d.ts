@@ -183,6 +183,28 @@ export namespace UpdateUpstreamRequest {
   }
 }
 
+export class UpdateUpstreamYamlRequest extends jspb.Message {
+  hasEditedYamlData(): boolean;
+  clearEditedYamlData(): void;
+  getEditedYamlData(): solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml | undefined;
+  setEditedYamlData(value?: solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateUpstreamYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateUpstreamYamlRequest): UpdateUpstreamYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateUpstreamYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateUpstreamYamlRequest;
+  static deserializeBinaryFromReader(message: UpdateUpstreamYamlRequest, reader: jspb.BinaryReader): UpdateUpstreamYamlRequest;
+}
+
+export namespace UpdateUpstreamYamlRequest {
+  export type AsObject = {
+    editedYamlData?: solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml.AsObject,
+  }
+}
+
 export class UpdateUpstreamResponse extends jspb.Message {
   hasUpstreamDetails(): boolean;
   clearUpstreamDetails(): void;

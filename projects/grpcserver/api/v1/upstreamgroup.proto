@@ -41,6 +41,10 @@ message UpdateUpstreamGroupRequest {
     gloo.solo.io.UpstreamGroup upstream_group = 1;
 }
 
+message UpdateUpstreamGroupYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
+}
+
 message UpdateUpstreamGroupResponse {
     UpstreamGroupDetails upstream_group_details = 1;
 }
@@ -56,5 +60,6 @@ service UpstreamGroupApi {
     rpc ListUpstreamGroups(ListUpstreamGroupsRequest) returns (ListUpstreamGroupsResponse) {}
     rpc CreateUpstreamGroup(CreateUpstreamGroupRequest) returns (CreateUpstreamGroupResponse) {}
     rpc UpdateUpstreamGroup(UpdateUpstreamGroupRequest) returns (UpdateUpstreamGroupResponse) {}
+    rpc UpdateUpstreamGroupYaml(UpdateUpstreamGroupYamlRequest) returns (UpdateUpstreamGroupResponse) {}
     rpc DeleteUpstreamGroup(DeleteUpstreamGroupRequest) returns (DeleteUpstreamGroupResponse) {}
 }

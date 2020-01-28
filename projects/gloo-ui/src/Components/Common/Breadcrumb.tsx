@@ -28,6 +28,7 @@ const CapitalizedCrumbLink = styled(CrumbLink)`
 const rootNameMap: { [key: string]: string } = {
   virtualservices: 'Virtual Services',
   upstreams: 'Upstreams',
+  upstreamgroups: 'Upstream Groups',
   routetables: 'Route Tables',
   stats: 'Stats',
   settings: 'Settings',
@@ -44,7 +45,13 @@ export interface RouteParams {
 export const Breadcrumb = () => {
   let location = useLocation();
   let history = useHistory();
-  let { virtualservicename, sublocation, routetablename } = useParams();
+  let {
+    virtualservicename,
+    sublocation,
+    routetablename,
+    upstreamname,
+    upstreamgroupname
+  } = useParams();
 
   const goToRoot = () => {
     history.push({
@@ -68,6 +75,19 @@ export const Breadcrumb = () => {
         <AntdBreadcrumb.Item>
           <CrumbLink>{virtualservicename}</CrumbLink>
         </AntdBreadcrumb.Item>
+      )}
+      {!!upstreamname && (
+        <AntdBreadcrumb.Item>
+          <CrumbLink>{upstreamname}</CrumbLink>
+        </AntdBreadcrumb.Item>
+      )}
+      {!!upstreamgroupname && (
+        <>
+          <AntdBreadcrumb.Item>Upstream Groups</AntdBreadcrumb.Item>
+          <AntdBreadcrumb.Item>
+            <CrumbLink>{upstreamgroupname}</CrumbLink>
+          </AntdBreadcrumb.Item>
+        </>
       )}
       {!!routetablename && (
         <AntdBreadcrumb.Item>

@@ -40,6 +40,15 @@ type UpstreamApiUpdateUpstream = {
   readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamResponse;
 };
 
+type UpstreamApiUpdateUpstreamYaml = {
+  readonly methodName: string;
+  readonly service: typeof UpstreamApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamYamlRequest;
+  readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamResponse;
+};
+
 type UpstreamApiDeleteUpstream = {
   readonly methodName: string;
   readonly service: typeof UpstreamApi;
@@ -55,6 +64,7 @@ export class UpstreamApi {
   static readonly ListUpstreams: UpstreamApiListUpstreams;
   static readonly CreateUpstream: UpstreamApiCreateUpstream;
   static readonly UpdateUpstream: UpstreamApiUpdateUpstream;
+  static readonly UpdateUpstreamYaml: UpstreamApiUpdateUpstreamYaml;
   static readonly DeleteUpstream: UpstreamApiDeleteUpstream;
 }
 
@@ -124,6 +134,15 @@ export class UpstreamApiClient {
   ): UnaryResponse;
   updateUpstream(
     requestMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamRequest,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamResponse|null) => void
+  ): UnaryResponse;
+  updateUpstreamYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamResponse|null) => void
+  ): UnaryResponse;
+  updateUpstreamYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamYamlRequest,
     callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_upstream_pb.UpdateUpstreamResponse|null) => void
   ): UnaryResponse;
   deleteUpstream(

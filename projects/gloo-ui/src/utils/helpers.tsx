@@ -2,6 +2,8 @@ import styled from '@emotion/styled';
 import { ReactComponent as AWSLogo } from 'assets/aws-logo.svg';
 import { ReactComponent as AzureLogo } from 'assets/azure-logo.svg';
 import Gloo from 'assets/Gloo.svg';
+import { ReactComponent as UpstreamGroupLogo } from 'assets/upstream-group-icon.svg';
+
 // TODO: get svg format GRPC logo
 // import { ReactComponent as GRPCLogo } from 'assets/grpc-logo.svg';
 import GRPCLogo from 'assets/grpc-logo.png';
@@ -17,9 +19,11 @@ import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import RT from 'assets/route-table-icon.png';
 import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
+import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 type Resource =
   | VirtualService.AsObject
   | Upstream.AsObject
+  | UpstreamGroup.AsObject
   | RouteTable.AsObject
   | number;
 
@@ -77,6 +81,8 @@ export function getIcon(type: string) {
       return <StaticLogo />;
     case 'REST':
       return <RESTLogo />;
+    case 'Upstream Group':
+      return <UpstreamGroupLogo />;
     case 'Route Table':
       return <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
     default:
@@ -90,6 +96,7 @@ export function getIconFromSpec(spec: Upstream.AsObject) {
       <KubeLogo
         style={{
           width: '25px',
+          height: '20px',
           paddingRight: '5px'
         }}
       />
@@ -99,6 +106,7 @@ export function getIconFromSpec(spec: Upstream.AsObject) {
       <AWSLogo
         style={{
           width: '25px',
+          height: '20px',
           paddingRight: '5px'
         }}
       />
@@ -108,6 +116,7 @@ export function getIconFromSpec(spec: Upstream.AsObject) {
       <AzureLogo
         style={{
           width: '25px',
+          height: '20px',
           paddingRight: '5px'
         }}
       />
@@ -117,6 +126,7 @@ export function getIconFromSpec(spec: Upstream.AsObject) {
       <StaticLogo
         style={{
           width: '25px',
+          height: '20px',
           paddingRight: '5px'
         }}
       />

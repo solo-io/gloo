@@ -11,7 +11,8 @@ import {
   UpdateUpstreamGroupRequest,
   UpdateUpstreamGroupResponse,
   DeleteUpstreamGroupRequest,
-  DeleteUpstreamGroupResponse
+  DeleteUpstreamGroupResponse,
+  UpdateUpstreamGroupYamlRequest
 } from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import {
@@ -20,14 +21,44 @@ import {
   Destination
 } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
+import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 export const client = new UpstreamGroupApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });
 
+function updateUpstreamGroupYaml(
+  updateUpstreamGroupYamlRequest: UpdateUpstreamGroupYamlRequest.AsObject
+): Promise<UpstreamGroupDetails.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new UpdateUpstreamGroupYamlRequest();
+    let upstreamGroupRef = new ResourceRef();
+
+    let editedYamlData = new EditedResourceYaml();
+    let { ref, editedYaml } = updateUpstreamGroupYamlRequest.editedYamlData!;
+    upstreamGroupRef.setName(ref!.name);
+    upstreamGroupRef.setNamespace(ref!.namespace);
+
+    editedYamlData.setRef(upstreamGroupRef);
+    editedYamlData.setEditedYaml(editedYaml);
+    request.setEditedYamlData(editedYamlData);
+
+    client.updateUpstreamGroupYaml(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().upstreamGroupDetails);
+      }
+    });
+  });
+}
+
 // get
-function getUpstreamGroup(
+function getUpstreamGroupGRpc(
   getUpstreamGroupRequest: GetUpstreamGroupRequest.AsObject
 ): Promise<UpstreamGroupDetails> {
   return new Promise((resolve, reject) => {
@@ -50,8 +81,31 @@ function getUpstreamGroup(
   });
 }
 
+function getUpstreamGroup(
+  getUpstreamGroupRequest: GetUpstreamGroupRequest.AsObject
+): Promise<UpstreamGroupDetails.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new GetUpstreamGroupRequest();
+    let ref = new ResourceRef();
+    ref.setName(getUpstreamGroupRequest.ref!.name);
+    ref.setNamespace(getUpstreamGroupRequest.ref!.namespace);
+    request.setRef(ref);
+
+    client.getUpstreamGroup(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().upstreamGroupDetails);
+      }
+    });
+  });
+}
+
 // list
-function listUpstreamGroups(): Promise<ListUpstreamGroupsResponse.AsObject> {
+function listUpstreamGroups(): Promise<UpstreamGroupDetails.AsObject[]> {
   return new Promise((resolve, reject) => {
     let request = new ListUpstreamGroupsRequest();
 
@@ -62,7 +116,7 @@ function listUpstreamGroups(): Promise<ListUpstreamGroupsResponse.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().upstreamGroupDetailsList);
       }
     });
   });
@@ -115,10 +169,11 @@ function setUpstreamGroupValues(
 ): UpstreamGroup {
   let { destinationsList, metadata, status } = upstreamGroup!;
   if (metadata !== undefined) {
-    let { name, namespace } = metadata;
+    let { name, namespace, resourceVersion } = metadata;
     let newMetadata = new Metadata();
     newMetadata.setName(name);
     newMetadata.setNamespace(namespace);
+    newMetadata.setResourceVersion(resourceVersion);
     upstreamGroupToUpdate.setMetadata(newMetadata);
   }
   if (destinationsList !== undefined) {
@@ -135,7 +190,7 @@ function setUpstreamGroupValues(
 // create
 function createUpstreamGroup(
   createUpstreamGroupRequest: CreateUpstreamGroupRequest.AsObject
-): Promise<CreateUpstreamGroupResponse.AsObject> {
+): Promise<UpstreamGroupDetails.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new CreateUpstreamGroupRequest();
     let { upstreamGroup } = createUpstreamGroupRequest!;
@@ -152,7 +207,7 @@ function createUpstreamGroup(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().upstreamGroupDetails);
       }
     });
   });
@@ -161,13 +216,13 @@ function createUpstreamGroup(
 // update
 function updateUpstreamGroup(
   updateUpstreamGroupRequest: UpdateUpstreamGroupRequest.AsObject
-): Promise<UpdateUpstreamGroupResponse.AsObject> {
+): Promise<UpstreamGroupDetails.AsObject> {
   return new Promise(async (resolve, reject) => {
     let request = new UpdateUpstreamGroupRequest();
     let { upstreamGroup } = updateUpstreamGroupRequest;
     if (upstreamGroup !== undefined && upstreamGroup.metadata !== undefined) {
       let { name, namespace } = upstreamGroup.metadata;
-      let upstreamGroupToUpdate = await getUpstreamGroup({
+      let upstreamGroupToUpdate = await getUpstreamGroupGRpc({
         ref: { name, namespace }
       });
       let updatedUpstreamGroup = setUpstreamGroupValues(
@@ -183,7 +238,7 @@ function updateUpstreamGroup(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().upstreamGroupDetails);
       }
     });
   });
@@ -213,9 +268,12 @@ function deleteUpstreamGroup(
     });
   });
 }
+
 export const upstreamGroupAPI = {
+  updateUpstreamGroupYaml,
   listUpstreamGroups,
   createUpstreamGroup,
   updateUpstreamGroup,
-  deleteUpstreamGroup
+  deleteUpstreamGroup,
+  getUpstreamGroup
 };

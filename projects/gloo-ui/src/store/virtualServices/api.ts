@@ -71,6 +71,28 @@ function listVirtualServices(): Promise<VirtualServiceDetails.AsObject[]> {
   });
 }
 
+function getVirtualService(
+  getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
+): Promise<VirtualServiceDetails.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new GetVirtualServiceRequest();
+    let ref = new ResourceRef();
+    ref.setName(getVirtualServiceRequest.ref!.name);
+    ref.setNamespace(getVirtualServiceRequest.ref!.namespace);
+    request.setRef(ref);
+    client.getVirtualService(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().virtualServiceDetails);
+      }
+    });
+  });
+}
+
 function getGetVirtualService(
   getVirtualServiceRequest: GetVirtualServiceRequest.AsObject
 ): Promise<GetVirtualServiceResponse> {
@@ -503,9 +525,9 @@ function getUpdateSslConfig(updateSslConfigRequest: {
   });
 }
 
-function getCreateRoute(
+function createRoute(
   createRouteRequest: CreateRouteRequest.AsObject
-): Promise<CreateRouteResponse.AsObject> {
+): Promise<VirtualServiceDetails.AsObject> {
   return new Promise((resolve, reject) => {
     let createRequest = new CreateRouteRequest();
     let inputRoute = new RouteInput();
@@ -533,7 +555,7 @@ function getCreateRoute(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().virtualServiceDetails);
       }
     });
   });
@@ -541,7 +563,7 @@ function getCreateRoute(
 
 function getUpdateVirtualService(
   updateVirtualServiceRequest: UpdateVirtualServiceRequest.AsObject
-): Promise<UpdateVirtualServiceResponse.AsObject> {
+): Promise<VirtualServiceDetails.AsObject> {
   return new Promise(async (resolve, reject) => {
     let updateRequest = new UpdateVirtualServiceRequest();
     // input V2
@@ -623,7 +645,7 @@ function getUpdateVirtualService(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().virtualServiceDetails);
       }
     });
   });
@@ -861,6 +883,7 @@ function getUpdateRateLimit(updateRateLimitRequest: {
 
 export const virtualServiceAPI = {
   listVirtualServices,
+  getVirtualService,
   getGetVirtualService,
   getDeleteVirtualService,
   getUpdateVirtualServiceYaml,
@@ -874,7 +897,7 @@ export const virtualServiceAPI = {
   getUpdateRoutes,
   setInputSslConfigValues,
   getUpdateSslConfig,
-  getCreateRoute,
+  createRoute,
   getUpdateVirtualService,
   getCreateVirtualService,
   setInputExtAuthValues,

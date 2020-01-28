@@ -51,8 +51,10 @@ import {
   ListUpstreamsResponse,
   UpdateUpstreamRequest,
   UpdateUpstreamResponse,
-  UpstreamDetails
+  UpstreamDetails,
+  UpdateUpstreamYamlRequest
 } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 export const client = new UpstreamApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -63,7 +65,36 @@ export const client = new UpstreamApiClient(host, {
 // update
 // delete
 
-function getUpstream(
+function updateUpstreamYaml(
+  updateUpstreamYamlRequest: UpdateUpstreamYamlRequest.AsObject
+): Promise<UpstreamDetails.AsObject> {
+  return new Promise((resolve, reject) => {
+    let request = new UpdateUpstreamYamlRequest();
+    let upstreamRef = new ResourceRef();
+
+    let editedYamlData = new EditedResourceYaml();
+    let { ref, editedYaml } = updateUpstreamYamlRequest.editedYamlData!;
+    upstreamRef.setName(ref!.name);
+    upstreamRef.setNamespace(ref!.namespace);
+
+    editedYamlData.setRef(upstreamRef);
+    editedYamlData.setEditedYaml(editedYaml);
+    request.setEditedYamlData(editedYamlData);
+
+    client.updateUpstreamYaml(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().upstreamDetails);
+      }
+    });
+  });
+}
+
+function getUpstreamGrpc(
   getUpstreamRequest: GetUpstreamRequest.AsObject
 ): Promise<UpstreamDetails> {
   return new Promise((resolve, reject) => {
@@ -81,6 +112,28 @@ function getUpstream(
         reject(error);
       } else {
         resolve(data!.getUpstreamDetails());
+      }
+    });
+  });
+}
+function getUpstream(
+  getUpstreamRequest: GetUpstreamRequest.AsObject
+): Promise<UpstreamDetails.AsObject> {
+  return new Promise((resolve, reject) => {
+    let req = new GetUpstreamRequest();
+    let ref = new ResourceRef();
+    ref.setName(getUpstreamRequest.ref!.name);
+    ref.setNamespace(getUpstreamRequest.ref!.namespace);
+    req.setRef(ref);
+
+    client.getUpstream(req, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().upstreamDetails);
       }
     });
   });
@@ -128,10 +181,11 @@ function setUpstreamValues(
   } = upstream;
 
   if (metadata !== undefined) {
-    let { name, namespace } = metadata;
+    let { name, namespace, resourceVersion } = metadata;
     let newMetadata = new Metadata();
     newMetadata.setName(name);
     newMetadata.setNamespace(namespace);
+    newMetadata.setResourceVersion(resourceVersion);
     upstreamToUpdate.setMetadata(newMetadata);
   }
 
@@ -537,13 +591,13 @@ function createUpstream(
 
 function updateUpstream(
   updateUpstreamRequest: UpdateUpstreamRequest.AsObject
-): Promise<UpdateUpstreamResponse.AsObject> {
+): Promise<UpstreamDetails.AsObject> {
   return new Promise(async (resolve, reject) => {
     let request = new UpdateUpstreamRequest();
     let { upstreamInput } = updateUpstreamRequest!;
     if (upstreamInput !== undefined && upstreamInput.metadata !== undefined) {
       let { name, namespace } = upstreamInput.metadata;
-      let upstreamToUpdate = await getUpstream({
+      let upstreamToUpdate = await getUpstreamGrpc({
         ref: {
           name,
           namespace
@@ -563,7 +617,7 @@ function updateUpstream(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().upstreamDetails);
       }
     });
   });
@@ -594,8 +648,10 @@ function deleteUpstream(
 
 export const upstreamAPI = {
   getUpstream,
+  getUpstreamGrpc,
   listUpstreams,
   createUpstream,
   updateUpstream,
+  updateUpstreamYaml,
   deleteUpstream
 };

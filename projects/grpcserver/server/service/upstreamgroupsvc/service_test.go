@@ -67,7 +67,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("GetUpstreamGroup", func() {
-		It("works when the upstream client works", func() {
+		It("works when the upstream group client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -93,7 +93,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors", func() {
+		It("errors when the upstream group client errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -113,7 +113,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("ListUpstreamGroups", func() {
-		It("works when the upstream client works", func() {
+		It("works when the upstream group client works", func() {
 			ns1, ns2 := "one", "two"
 			n1, n2 := "n1", "n2"
 			upstream1 := &gloov1.UpstreamGroup{
@@ -148,7 +148,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors", func() {
+		It("errors when the upstream group client errors", func() {
 			ns := "ns"
 
 			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns})
@@ -223,7 +223,7 @@ var _ = Describe("ServiceTest", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
 
-		It("works when the upstream client works", func() {
+		It("works when the upstream group client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -253,7 +253,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors", func() {
+		It("errors when the upstream group client errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -275,12 +275,109 @@ var _ = Describe("ServiceTest", func() {
 		})
 	})
 
+	Describe("UpdateUpstreamGroupYaml", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
+
+		It("works on valid input", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			upstreamGroup := &gloov1.UpstreamGroup{
+				Metadata: metadata,
+				Status:   core.Status{State: core.Status_Accepted},
+			}
+			request := &v1.UpdateUpstreamGroupYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			upstreamGroupClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(upstreamGroup, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.TODO(), upstreamGroup, gloov1.UpstreamGroupCrd).
+				Return(getRaw(metadata.Name))
+
+			actual, err := apiserver.UpdateUpstreamGroupYaml(context.TODO(), request)
+			Expect(err).NotTo(HaveOccurred())
+			upstreamGroupDetails := &v1.UpstreamGroupDetails{
+				UpstreamGroup: upstreamGroup,
+				Raw:           getRaw(metadata.Name),
+			}
+			expected := &v1.UpdateUpstreamGroupResponse{
+				UpstreamGroupDetails: upstreamGroupDetails,
+			}
+			ExpectEqualProtoMessages(actual, expected)
+		})
+
+		It("errors with an invalid yaml", func() {
+			yamlString := "totally-invalid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateUpstreamGroupYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(testErr)
+
+			_, err := apiserver.UpdateUpstreamGroupYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := upstreamgroupsvc.FailedToParseUpstreamGroupFromYamlError(testErr, metadata.Namespace, metadata.Name)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		It("errors when the upstream group client errors", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateUpstreamGroupYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			upstreamGroupClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(nil, testErr)
+
+			_, err := apiserver.UpdateUpstreamGroupYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := upstreamgroupsvc.FailedToUpdateUpstreamGroupError(testErr, metadata.Namespace, metadata.Name)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
+
 	Describe("DeleteUpstreamGroup", func() {
 		BeforeEach(func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
 
-		It("works when the upstream client works", func() {
+		It("works when the upstream group client works", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
 				Name:      "unreferenced-name",
@@ -300,7 +397,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors", func() {
+		It("errors when the upstream group client errors", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
 				Name:      "unreferenced-name",

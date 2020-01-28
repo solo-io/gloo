@@ -36,10 +36,12 @@ import { createRoute } from 'store/virtualServices/actions';
 import { virtualServiceAPI } from 'store/virtualServices/api';
 import { colors, soloConstants } from 'Styles';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { getRouteMatcher } from 'utils/helpers';
 import * as yup from 'yup';
 import { DestinationForm } from './DestinationForm';
+import { upstreamGroupAPI } from 'store/upstreamGroups/api';
+import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 
 const FormContainer = styled.form`
   display: flex;
@@ -100,8 +102,12 @@ let httpMethods = ['POST', 'PUT', 'GET', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 export interface CreateRouteValuesType {
   routeParent: { name: string; namespace: string };
   routeParentKind: 'virtualService' | 'routeTable' | '';
-  destinationType: 'Upstream' | 'Route Table';
-  routeDestination: Upstream.AsObject | RouteTable.AsObject | undefined;
+  destinationType: 'Upstream' | 'Upstream Group' | 'Route Table';
+  routeDestination:
+    | Upstream.AsObject
+    | RouteTable.AsObject
+    | UpstreamGroup.AsObject
+    | undefined;
   destinationSpec: DestinationSpec.AsObject | undefined;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
@@ -156,7 +162,7 @@ const validationSchema = yup.object().shape({
 
 interface Props {
   defaultRouteParent?: RouteTable.AsObject | VirtualService.AsObject;
-  defaultUpstream?: Upstream.AsObject;
+  defaultUpstream?: Upstream.AsObject | UpstreamGroup.AsObject;
   completeCreation: () => any;
   existingRoute?: Route.AsObject;
   createRouteFn?: (values: CreateRouteValuesType) => void;
@@ -170,6 +176,40 @@ function arePropsEqual(
 }
 
 export const CreateRouteModal = React.memo((props: Props) => {
+  const { data: currentVirtualService, error: currentVSError } = useSWR(
+    !!props.defaultRouteParent && 'virtualHost' in props.defaultRouteParent
+      ? [
+          'getVirtualService',
+          props.defaultRouteParent?.metadata?.name,
+          props.defaultRouteParent?.metadata?.namespace
+        ]
+      : null,
+    (key: string, name: string, namespace: string) =>
+      virtualServiceAPI.getVirtualService({
+        ref: {
+          name,
+          namespace
+        }
+      })
+  );
+
+  const { data: currentRouteTable, error: currentRTError } = useSWR(
+    !!props.defaultRouteParent && !('virtualHost' in props.defaultRouteParent)
+      ? [
+          'getRouteTable',
+          props.defaultRouteParent?.metadata?.name,
+          props.defaultRouteParent?.metadata?.namespace
+        ]
+      : null,
+    (key: string, name: string, namespace: string) =>
+      routeTableAPI.getRouteTable({
+        ref: {
+          name,
+          namespace
+        }
+      })
+  );
+
   const createRouteDefaultValues: CreateRouteValuesType = {
     routeParent: { name: '', namespace: '' },
     routeParentKind:
@@ -201,16 +241,25 @@ export const CreateRouteModal = React.memo((props: Props) => {
     'listRouteTables',
     routeTableAPI.listRouteTables
   );
+
+  const { data: upstreamGroupsList, error: upstreamGroupsError } = useSWR(
+    'listUpstreamGroups',
+    upstreamGroupAPI.listUpstreamGroups
+  );
   if (!virtualServicesList || !upstreamsList || !routeTablesList) {
     return <div>Loading...</div>;
   }
+
+  const upstreamGroupsListMD = upstreamGroupsList?.map(
+    _ => _.upstreamGroup?.metadata!
+  );
   const upstreamsListMD = upstreamsList.map(_ => _.upstream!.metadata!);
 
   const routeTablesListMD = routeTablesList.map(_ => _.routeTable!.metadata!);
 
   let RToptionsList = uniqBy(routeTablesListMD, obj => obj.name);
   let USoptionsList = uniqBy(upstreamsListMD, obj => obj.name);
-
+  let USGoptionsList = uniqBy(upstreamGroupsListMD, obj => obj.name);
   const [fallbackVS, setFallbackVS] = React.useState<
     VirtualServiceDetails.AsObject
   >();
@@ -241,6 +290,15 @@ export const CreateRouteModal = React.memo((props: Props) => {
             namespace: values.routeDestination!.metadata!.namespace
           }
         };
+      } else if (values.destinationType === 'Upstream Group') {
+        destination = {
+          routeAction: {
+            upstreamGroup: {
+              name: values.routeDestination?.metadata?.name!,
+              namespace: values.routeDestination?.metadata?.namespace!
+            }
+          }
+        };
       } else if (values.destinationType === 'Upstream') {
         let destinationSpec;
         if (values.destinationSpec !== undefined) {
@@ -258,6 +316,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
           }
         };
       }
+
       dispatch(
         updateRouteTable({
           routeTable: {
@@ -321,6 +380,43 @@ export const CreateRouteModal = React.memo((props: Props) => {
                   name: values.routeDestination!.metadata!.name,
                   namespace: values.routeDestination!.metadata!.namespace
                 }
+              }
+            }
+          })
+        );
+        props.completeCreation();
+      } else if (values.destinationType === 'Upstream Group') {
+        let newRoute = new Route().toObject();
+        mutate(
+          [
+            'getVirtualService',
+            values.routeParent?.name,
+            values.routeParent?.namespace
+          ],
+          virtualServiceAPI.createRoute({
+            input: {
+              index: 0,
+              route: {
+                matchersList: [
+                  {
+                    prefix: values.matchType === 'PREFIX' ? values.path : '',
+                    exact: values.matchType === 'EXACT' ? values.path : '',
+                    regex: values.matchType === 'REGEX' ? values.path : '',
+                    methodsList: values.methods,
+                    headersList: values.headers,
+                    queryParametersList: values.queryParameters
+                  }
+                ],
+                routeAction: {
+                  upstreamGroup: {
+                    name: values.routeDestination!.metadata!.name,
+                    namespace: values.routeDestination!.metadata!.namespace
+                  }
+                }
+              },
+              virtualServiceRef: {
+                name: values.routeParent?.name!,
+                namespace: values.routeParent?.namespace!
               }
             }
           })
@@ -430,7 +526,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
     },
 
     destinationSpec:
-      defaultUpstream && defaultUpstream?.aws !== undefined
+      defaultUpstream && 'aws' in defaultUpstream !== undefined
         ? {
             aws: {
               logicalName: '',
@@ -480,9 +576,11 @@ export const CreateRouteModal = React.memo((props: Props) => {
                     testId='destination-dropdown'
                     title='Destination Type'
                     defaultValue={'Upstream'}
-                    options={['Upstream', 'Route Table'].map(dest => {
-                      return { key: dest, value: dest };
-                    })}
+                    options={['Upstream', 'Upstream Group', 'Route Table'].map(
+                      dest => {
+                        return { key: dest, value: dest };
+                      }
+                    )}
                   />
                 </Thirds>
                 {upstreamsList.length > 0 && (
@@ -495,6 +593,8 @@ export const CreateRouteModal = React.memo((props: Props) => {
                       optionsList={
                         values.destinationType === 'Route Table'
                           ? RToptionsList
+                          : values.destinationType === 'Upstream Group'
+                          ? USGoptionsList
                           : USoptionsList
                       }
                       destinationType={values.destinationType}

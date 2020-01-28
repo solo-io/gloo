@@ -283,6 +283,103 @@ var _ = Describe("ServiceTest", func() {
 		})
 	})
 
+	Describe("UpdateUpstreamYaml", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
+
+		It("works on valid input", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			upstream := &gloov1.Upstream{
+				Metadata: metadata,
+				Status:   core.Status{State: core.Status_Accepted},
+			}
+			request := &v1.UpdateUpstreamYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			upstreamClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(upstream, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.TODO(), upstream, gloov1.UpstreamCrd).
+				Return(getRaw(metadata.Name))
+
+			actual, err := apiserver.UpdateUpstreamYaml(context.TODO(), request)
+			Expect(err).NotTo(HaveOccurred())
+			upstreamDetails := &v1.UpstreamDetails{
+				Upstream: upstream,
+				Raw:      getRaw(metadata.Name),
+			}
+			expected := &v1.UpdateUpstreamResponse{
+				UpstreamDetails: upstreamDetails,
+			}
+			ExpectEqualProtoMessages(actual, expected)
+		})
+
+		It("errors with an invalid yaml", func() {
+			yamlString := "totally-invalid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateUpstreamYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(testErr)
+
+			_, err := apiserver.UpdateUpstreamYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := upstreamsvc.FailedToParseUpstreamFromYamlError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		It("errors when the upstream group client errors", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateUpstreamYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			upstreamClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(nil, testErr)
+
+			_, err := apiserver.UpdateUpstreamYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
+
 	Describe("DeleteUpstream", func() {
 		BeforeEach(func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)

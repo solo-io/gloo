@@ -117,6 +117,35 @@ func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.Up
 	return &v1.UpdateUpstreamResponse{UpstreamDetails: s.getDetails(written)}, nil
 }
 
+func (s *upstreamGrpcService) UpdateUpstreamYaml(ctx context.Context, request *v1.UpdateUpstreamYamlRequest) (*v1.UpdateUpstreamResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
+
+	var (
+		editedYaml  = request.GetEditedYamlData().GetEditedYaml()
+		upstreamRef = request.GetEditedYamlData().GetRef()
+	)
+
+	upstreamGroupFromYaml := &gloov1.Upstream{}
+	err := s.rawGetter.InitResourceFromYamlString(s.ctx, editedYaml, upstreamRef, upstreamGroupFromYaml)
+
+	if err != nil {
+		wrapped := FailedToParseUpstreamFromYamlError(err, upstreamRef)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	written, err := s.clientCache.GetUpstreamClient().Write(upstreamGroupFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	if err != nil {
+		wrapped := FailedToUpdateUpstreamError(err, upstreamRef)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	return &v1.UpdateUpstreamResponse{UpstreamDetails: s.getDetails(written)}, nil
+}
+
 func (s *upstreamGrpcService) DeleteUpstream(ctx context.Context, request *v1.DeleteUpstreamRequest) (*v1.DeleteUpstreamResponse, error) {
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err

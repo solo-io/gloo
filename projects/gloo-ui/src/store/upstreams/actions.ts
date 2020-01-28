@@ -82,7 +82,7 @@ export const updateUpstream = (
       const response = await upstreamAPI.updateUpstream(updateUpstreamRequest);
       dispatch<UpdateUpstreamAction>({
         type: UpstreamAction.UPDATE_UPSTREAM,
-        payload: response.upstreamDetails!
+        payload: response
       });
     } catch (error) {
       SoloWarning('There was an error updating the upstream.', error);

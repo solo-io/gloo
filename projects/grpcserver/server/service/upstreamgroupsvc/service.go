@@ -107,26 +107,55 @@ func (s *upstreamGrpcService) UpdateUpstreamGroup(ctx context.Context, request *
 	return &v1.UpdateUpstreamGroupResponse{UpstreamGroupDetails: s.getDetails(written)}, nil
 }
 
+func (s *upstreamGrpcService) UpdateUpstreamGroupYaml(ctx context.Context, request *v1.UpdateUpstreamGroupYamlRequest) (*v1.UpdateUpstreamGroupResponse, error) {
+	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
+		return nil, err
+	}
+
+	var (
+		editedYaml       = request.GetEditedYamlData().GetEditedYaml()
+		upstreamGroupRef = request.GetEditedYamlData().GetRef()
+	)
+
+	upstreamGroupFromYaml := &gloov1.UpstreamGroup{}
+	err := s.rawGetter.InitResourceFromYamlString(s.ctx, editedYaml, upstreamGroupRef, upstreamGroupFromYaml)
+
+	if err != nil {
+		wrapped := FailedToParseUpstreamGroupFromYamlError(err, upstreamGroupRef.GetNamespace(), upstreamGroupRef.GetName())
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	written, err := s.clientCache.GetUpstreamGroupClient().Write(upstreamGroupFromYaml, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
+	if err != nil {
+		wrapped := FailedToUpdateUpstreamGroupError(err, upstreamGroupRef.GetNamespace(), upstreamGroupRef.GetName())
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	return &v1.UpdateUpstreamGroupResponse{UpstreamGroupDetails: s.getDetails(written)}, nil
+}
+
 func (s *upstreamGrpcService) DeleteUpstreamGroup(ctx context.Context, request *v1.DeleteUpstreamGroupRequest) (*v1.DeleteUpstreamGroupResponse, error) {
 	if err := svccodes.CheckLicenseForGlooUiMutations(ctx, s.licenseClient); err != nil {
 		return nil, err
 	}
 
 	var (
-		namespace   = request.GetRef().GetNamespace()
-		name        = request.GetRef().GetName()
-		upstreamRef = request.GetRef()
+		namespace        = request.GetRef().GetNamespace()
+		name             = request.GetRef().GetName()
+		upstreamGroupRef = request.GetRef()
 	)
 
 	// make sure we aren't trying to delete an upstream that's referenced in some virtual service
-	containingVirtualServiceRefs, err := s.upstreamSearcher.FindContainingVirtualServices(s.ctx, upstreamRef)
+	containingVirtualServiceRefs, err := s.upstreamSearcher.FindContainingVirtualServices(s.ctx, upstreamGroupRef)
 
 	if err != nil {
-		return nil, s.wrapAndLogDeletionError(FailedToCheckIsUpstreamGroupReferencedError(err, upstreamRef), request)
+		return nil, s.wrapAndLogDeletionError(FailedToCheckIsUpstreamGroupReferencedError(err, upstreamGroupRef), request)
 	}
 
 	if len(containingVirtualServiceRefs) > 0 {
-		return nil, s.wrapAndLogDeletionError(CannotDeleteReferencedUpstreamGroupError(upstreamRef, containingVirtualServiceRefs), request)
+		return nil, s.wrapAndLogDeletionError(CannotDeleteReferencedUpstreamGroupError(upstreamGroupRef, containingVirtualServiceRefs), request)
 	}
 
 	err = s.clientCache.GetUpstreamGroupClient().Delete(namespace, name, clients.DeleteOpts{Ctx: s.ctx})

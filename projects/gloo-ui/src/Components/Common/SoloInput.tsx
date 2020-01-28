@@ -82,6 +82,7 @@ export const SoloInput: React.FC<InputProps> = props => {
         disabled={disabled}
         error={error}
         onKeyPress={onKeyPress}
+        {...props}
       />
     </div>
   );

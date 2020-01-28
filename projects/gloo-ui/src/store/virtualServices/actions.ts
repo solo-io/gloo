@@ -75,7 +75,7 @@ export const updateVirtualService = (
       );
       dispatch<UpdateVirtualServiceAction>({
         type: VirtualServiceAction.UPDATE_VIRTUAL_SERVICE,
-        payload: response.virtualServiceDetails!
+        payload: response
       });
     } catch (error) {
       warning({
@@ -91,12 +91,10 @@ export const createRoute = (
 ) => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await virtualServiceAPI.getCreateRoute(
-        createRouteRequest
-      );
+      const response = await virtualServiceAPI.createRoute(createRouteRequest);
       dispatch<CreateRouteAction>({
         type: VirtualServiceAction.CREATE_ROUTE,
-        payload: response.virtualServiceDetails!
+        payload: response
       });
     } catch (error) {
       warning({

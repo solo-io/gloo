@@ -6,7 +6,8 @@ import {
   UpstreamGroupAction,
   CreateUpstreamGroupAction,
   UpdateUpstreamGroupAction,
-  DeleteUpstreamGroupAction
+  DeleteUpstreamGroupAction,
+  SetCurrentUpstreamGroupAction
 } from './types';
 import { SoloWarning } from 'Components/Common/SoloWarningContent';
 import {
@@ -17,12 +18,11 @@ import {
 
 export const listUpstreamGroups = () => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
       const response = await upstreamGroupAPI.listUpstreamGroups();
       dispatch<ListUpstreamGroupsAction>({
         type: UpstreamGroupAction.LIST_UPSTREAM_GROUPS,
-        payload: response.upstreamGroupDetailsList!
+        payload: response
       });
     } catch (error) {}
   };
@@ -39,7 +39,7 @@ export const createUpstreamGroup = (
       );
       dispatch<CreateUpstreamGroupAction>({
         type: UpstreamGroupAction.CREATE_UPSTREAM_GROUP,
-        payload: response.upstreamGroupDetails!
+        payload: response
       });
     } catch (error) {
       SoloWarning('There was an error creating the upstream group', error);
@@ -56,9 +56,13 @@ export const updateUpstreamGroup = (
       const response = await upstreamGroupAPI.updateUpstreamGroup(
         updateUpstreamGroupRequest
       );
+      dispatch<SetCurrentUpstreamGroupAction>({
+        type: UpstreamGroupAction.SET_CURRENT_UPSTREAM_GROUP,
+        payload: response
+      });
       dispatch<UpdateUpstreamGroupAction>({
         type: UpstreamGroupAction.UPDATE_UPSTREAM_GROUP,
-        payload: response.upstreamGroupDetails!
+        payload: response
       });
     } catch (error) {
       SoloWarning('There was an error updating the upstream group', error);

@@ -7,14 +7,6 @@ changelog:
     dependencyOwner: serialize-javascript
     dependencyRepo: gloo-ui
     dependencyTag: 2.1.1
-  - type: FIX
-    description: AWS Upstreams status updates automatically without refreshing.
-    issueLink: https://github.com/solo-io/solo-projects/issues/1451
-  - type: FIX
-    description: Only show AWS Secrets in the dropdown in the Create Upstream Form.
-    issueLink: https://github.com/solo-io/solo-projects/issues/1449
-  - type: NON_USER_FACING
-    description: Optimize api calls.
   - type: NEW_FEATURE
     description: Add Upstream Details, create Upstream Group, Upstream Group Details views to UI.
     issueLink: https://github.com/solo-io/solo-projects/issues/1455

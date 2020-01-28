@@ -123,19 +123,21 @@ export enum UPSTREAM_SPEC_TYPES {
   CONSUL = 'Consul'
 }
 
-export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
-  Upstream.UpstreamTypeCase
-)
-  .filter(str => str !== 'UPSTREAM_TYPE_NOT_SET') // auto generated for oneof fields
-  .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
-  .filter(str => str !== 'AWS_EC2')
-  .map(str => {
-    return {
-      displayName: _.startCase(_.toLower(str)),
-      value: false
-    };
-  })
-  .concat({ displayName: 'Other', value: false });
+export const CheckboxFilters: CheckboxFilterProps[] = [
+  { displayName: 'Upstream Groups', value: false }
+].concat(
+  Object.keys(Upstream.UpstreamTypeCase)
+    .filter(str => str !== 'UPSTREAM_TYPE_NOT_SET') // auto generated for oneof fields
+    .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
+    .filter(str => str !== 'AWS_EC2')
+    .map(str => {
+      return {
+        displayName: _.startCase(_.toLower(str)),
+        value: false
+      };
+    })
+    .concat({ displayName: 'Other', value: false })
+);
 
 export const RadioFilters: RadioFilterProps = {
   options: [

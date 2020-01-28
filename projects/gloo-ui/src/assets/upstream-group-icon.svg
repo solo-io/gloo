@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28.898" height="28.898" viewBox="0 0 28.898 28.898">
+    <defs>
+        <style>
+            .upstream-group-icon{fill:#54b7e3}
+        </style>
+    </defs>
+    <g transform="translate(-47.541 1.726)">
+        <g transform="translate(75.689 26.422) rotate(180)">
+            <circle class="upstream-group-icon" cx="2.225" cy="2.225" transform="translate(11.908 19.206)" r="2.225"/>
+            <circle class="upstream-group-icon" cx="1.725" cy="1.725" transform="translate(6.191 7.49)" r="1.725"/>
+            <ellipse class="upstream-group-icon" cx="3.026" cy="3.025" rx="3.026" ry="3.025" transform="translate(11.392 10.123)"/>
+            <circle class="upstream-group-icon" cx="1.692" cy="1.692" transform="translate(19.108 7.091)" r="1.692"/>
+            <circle class="upstream-group-icon" cx="1.725" cy="1.725" transform="translate(19.624 15.922)" r="1.725"/>
+            <circle cx="13.699" cy="13.699" r="13.699" transform="translate(0 0)" style="fill:none;stroke:#54b7e3;stroke-linecap:round;stroke-miterlimit:10;stroke-width:1.5px"/>
+            <circle class="upstream-group-icon" cx="1.192" cy="1.192" transform="translate(14.106 4.289)" r="1.192"/>
+            <circle class="upstream-group-icon" cx="1.692" cy="1.692" transform="translate(5.107 15.091)" r="1.692"/>
+        </g>
+    </g>
+</svg>

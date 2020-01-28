@@ -22,6 +22,10 @@ var (
 		return errors.Wrapf(err, "Failed to update upstream group %v.%v", namespace, name)
 	}
 
+	FailedToParseUpstreamGroupFromYamlError = func(err error, namespace, name string) error {
+		return errors.Wrapf(err, "Failed to parse upstream group %s.%s from YAML", namespace, name)
+	}
+
 	FailedToDeleteUpstreamGroupError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to delete upstream group %v.%v", ref.GetNamespace(), ref.GetName())
 	}

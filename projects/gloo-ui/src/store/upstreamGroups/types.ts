@@ -11,13 +11,18 @@ export enum UpstreamGroupAction {
   UPDATE_UPSTREAM_GROUP = 'UPDATE_UPSTREAM_GROUP',
   UPDATE_UPSTREAM_GROUP_YAML = 'UPDATE_UPSTREAM_GROUPYAML',
   UPDATE_UPSTREAM_GROUP_YAML_ERROR = 'UPDATE_UPSTREAM_GROUP_YAML_ERROR',
-
+  SET_CURRENT_UPSTREAM_GROUP = 'SET_CURRENT_UPSTREAM_GROUP',
   DELETE_UPSTREAM_GROUP = 'DELETE_UPSTREAM_GROUP'
 }
 
 export interface GetUpstreamGroupAction {
   type: typeof UpstreamGroupAction.GET_UPSTREAM_GROUP;
   payload: UpstreamGroupDetails;
+}
+
+export interface SetCurrentUpstreamGroupAction {
+  type: typeof UpstreamGroupAction.SET_CURRENT_UPSTREAM_GROUP;
+  payload: UpstreamGroupDetails.AsObject;
 }
 
 export interface ListUpstreamGroupsAction {
@@ -56,4 +61,5 @@ export type UpstreamGroupActionTypes =
   | UpdateUpstreamGroupAction
   | DeleteUpstreamGroupAction
   | UpdateUpstreamGroupYamlAction
+  | SetCurrentUpstreamGroupAction
   | UpdateUpstreamGroupYamlError;

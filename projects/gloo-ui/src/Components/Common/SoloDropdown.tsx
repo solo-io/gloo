@@ -85,7 +85,8 @@ export const SoloDropdown = React.memo((props: DropdownProps) => {
         onChange={onChange}
         onBlur={onBlur}
         disabled={disabled}
-        placeholder={placeholder}>
+        placeholder={placeholder}
+        {...props}>
         {options.map((opt: OptionType) => (
           <Select.Option
             key={opt.key}

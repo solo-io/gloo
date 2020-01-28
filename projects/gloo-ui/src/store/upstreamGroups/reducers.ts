@@ -4,10 +4,12 @@ import { UpstreamGroupActionTypes, UpstreamGroupAction } from './types';
 export interface UpstreamGroupState {
   upstreamGroupsList: UpstreamGroupDetails.AsObject[];
   yamlParseError: boolean;
+  currentUpstreamGroup?: UpstreamGroupDetails.AsObject;
 }
 
 const initialState: UpstreamGroupState = {
   upstreamGroupsList: [],
+  currentUpstreamGroup: undefined,
   yamlParseError: false
 };
 
@@ -20,6 +22,11 @@ export function upstreamGroupsReducer(
       return {
         ...state,
         upstreamGroupsList: action.payload
+      };
+    case UpstreamGroupAction.SET_CURRENT_UPSTREAM_GROUP:
+      return {
+        ...state,
+        currentUpstreamGroup: action.payload
       };
     case UpstreamGroupAction.UPDATE_UPSTREAM_GROUP_YAML_ERROR:
       return {

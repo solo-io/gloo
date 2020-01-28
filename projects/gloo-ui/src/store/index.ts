@@ -12,6 +12,7 @@ import { gatewaysReducer } from './gateway/reducers';
 import { proxyReducer } from './proxy/reducers';
 import { modalReducer } from './modal/reducers';
 import { routeTablesReducer } from './routeTables/reducers';
+import { upstreamGroupsReducer } from './upstreamGroups/reducers';
 
 export const host = `${
   process.env.NODE_ENV === 'production'
@@ -21,6 +22,7 @@ export const host = `${
 
 const rootReducer = combineReducers({
   upstreams: upstreamsReducer,
+  upstreamGroups: upstreamGroupsReducer,
   virtualServices: virtualServicesReducer,
   secrets: secretsReducer,
   config: configReducer,

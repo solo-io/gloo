@@ -11,6 +11,8 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
+import { UpstreamDetails } from 'Components/Features/Upstream/UpstreamDetails';
+import { UpstreamGroupDetails } from 'Components/Features/Upstream/UpstreamGroupDetails';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -48,6 +50,22 @@ export const Content = () => (
             <div>There was an error with the Virtual Services Listing</div>
           }>
           <VirtualServicesListing />
+        </ErrorBoundary>
+      </Route>
+      <Route path='/upstreams/:upstreamnamespace/:upstreamname' exact>
+        <ErrorBoundary
+          fallback={<div>There was an error with the Upstreams Details</div>}>
+          <UpstreamDetails />
+        </ErrorBoundary>
+      </Route>
+      <Route
+        path='/upstreams/upstreamgroups/:upstreamgroupnamespace/:upstreamgroupname'
+        exact>
+        <ErrorBoundary
+          fallback={
+            <div>There was an error with the Upstream Group Details</div>
+          }>
+          <UpstreamGroupDetails />
         </ErrorBoundary>
       </Route>
       <Route path='/upstreams/'>
