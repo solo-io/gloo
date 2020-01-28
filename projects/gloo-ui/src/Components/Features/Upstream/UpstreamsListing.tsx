@@ -48,9 +48,13 @@ import { CreateUpstreamGroupModal } from './Creation/CreateUpstreamGroupModal';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { UpstreamGroupDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
+import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon-circle.svg';
+
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { css } from '@emotion/core';
+
 const UpstreamsListingContainer = styled.div`
   display: grid;
   grid-template-areas:
@@ -106,7 +110,19 @@ const getUpstreamGroupTableColumns = () => {
   return [
     {
       title: 'Name',
-      dataIndex: 'metadata.name'
+      dataIndex: 'metadata.name',
+      render: (name: string, resource: any) => (
+        <>
+          <NavLink
+            css={css`
+              cursor: pointer;
+              color: ${colors.seaBlue};
+            `}
+            to={`/upstreams/upstreamgroups/${resource?.metadata?.namespace}/${resource?.metadata?.name}`}>
+            {name}
+          </NavLink>
+        </>
+      )
     },
 
     {
@@ -183,7 +199,19 @@ const getTableColumns = (
   return [
     {
       title: 'Name',
-      dataIndex: 'name'
+      dataIndex: 'name',
+      render: (name: string, resource: any) => (
+        <>
+          <NavLink
+            css={css`
+              cursor: pointer;
+              color: ${colors.seaBlue};
+            `}
+            to={`/upstreams/${resource?.metadata?.namespace}/${resource?.metadata?.name}`}>
+            {name}
+          </NavLink>
+        </>
+      )
     },
 
     {
@@ -702,7 +730,7 @@ export const UpstreamsListing = () => {
                         noPadding
                         data-testid='upstreamgroups-listing-section'
                         cardName={'Upstream Groups'}
-                        logoIcon={null}>
+                        logoIcon={<UpstreamGroupIcon />}>
                         <SoloTable
                           dataSource={formatUpstreamGroupTableData(
                             upstreamGroupsList,
@@ -718,7 +746,7 @@ export const UpstreamsListing = () => {
                       noPadding
                       data-testid='upstreams-listing-section'
                       cardName={'Upstreams'}
-                      logoIcon={null}>
+                      logoIcon={<UpstreamIcon />}>
                       <div style={{ padding: '-20px' }}>
                         <SoloTable
                           dataSource={getUsableTableData(

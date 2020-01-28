@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add default weights to upstream group creation and fix bug that prevented creation from completing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1456

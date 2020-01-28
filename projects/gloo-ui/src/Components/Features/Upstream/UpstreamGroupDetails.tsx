@@ -16,7 +16,10 @@ import { colors } from 'Styles';
 import useSWR, { mutate } from 'swr';
 import { ConfigurationToggle } from '../VirtualService/Details/VirtualServiceDetails';
 
-export const WeightInput = ({ ...props }) => {
+export const WeightInput: React.FC<{ name: string; step?: number }> = ({
+  ...props
+}) => {
+  const { step = 5 } = props;
   let shadow = `box-shadow: 0px 0px 3px ${colors.lakeBlue};
   border: 1px solid ${colors.seaBlue}; color: ${colors.septemberGrey}`;
 
@@ -50,7 +53,7 @@ export const WeightInput = ({ ...props }) => {
         value={field.value}
         min={0}
         max={100}
-        step={5}
+        step={step}
         formatter={value => `${value}%`}
         parser={value => value!.replace('%', '')}
         onChange={value => form.setFieldValue(field.name, value)}

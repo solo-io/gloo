@@ -13,12 +13,17 @@ import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { upstreamAPI } from 'store/upstreams/api';
 import { colors } from 'Styles';
-import useSWR, { mutate } from 'swr';
+import useSWR, { mutate, trigger } from 'swr';
 import { getIconFromSpec } from 'utils/helpers';
 import * as yup from 'yup';
 import { WeightInput } from '../UpstreamGroupDetails';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 interface Props {}
+interface Values {
+  name: string;
+  namespace: string;
+  upstreams: { name: string; namespace: string; weight: number }[];
+}
 
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
@@ -77,37 +82,33 @@ export const CreateUpstreamGroupModal = (props: Props) => {
   const open = () => setShowModal(true);
   const close = () => setShowModal(false);
 
-  function handleCreateUpstreamGroup(values: any) {
+  function handleCreateUpstreamGroup(values: Values) {
     const { name, namespace, upstreams } = values;
     const newUpstreamGroup = new UpstreamGroup().toObject();
     mutate(
-      !!name && !!namespace ? ['createUpstreamGroup', name, namespace] : null,
-      (key: string, name: string, namespace: string) =>
-        upstreamGroupAPI.createUpstreamGroup({
-          upstreamGroup: {
-            ...newUpstreamGroup,
-            metadata: {
-              ...newUpstreamGroup.metadata!,
-              name,
-              namespace
-            },
-            destinationsList: values.upstreams.map(
-              (us: { name: string; namespace: string; weight: number }) => {
-                return {
-                  weight: us.weight,
-                  destination: {
-                    upstream: {
-                      name: us.name!,
-                      namespace: us.namespace!
-                    }
-                  }
-                };
+      !!name && !!namespace ? ['getUpstreamGroup', name, namespace] : null,
+      upstreamGroupAPI.createUpstreamGroup({
+        upstreamGroup: {
+          ...newUpstreamGroup,
+          metadata: {
+            ...newUpstreamGroup.metadata!,
+            name,
+            namespace
+          },
+          destinationsList: values.upstreams.map(us => {
+            return {
+              weight: us.weight,
+              destination: {
+                upstream: {
+                  name: us.name!,
+                  namespace: us.namespace!
+                }
               }
-            )
-          }
-        })
+            };
+          })
+        }
+      })
     );
-
     setShowModal(false);
   }
   function formatUpstreamData() {
@@ -241,9 +242,21 @@ export const CreateUpstreamGroupModal = (props: Props) => {
                               return {
                                 name: usD?.upstream?.metadata?.name!,
                                 namespace: usD?.upstream?.metadata?.namespace!,
-                                weight: 0
+                                weight: Math.floor(100 / targetKeys.length)
                               };
                             });
+                          //account for odd numbers
+                          if (
+                            Math.floor(100 / targetKeys.length) *
+                              targetKeys.length !==
+                              100 &&
+                            targetKeys.length > 1
+                          ) {
+                            selected[0].weight +=
+                              100 -
+                              Math.floor(100 / targetKeys.length) *
+                                targetKeys.length;
+                          }
                           setSelectedUpstreams(selected!);
                           setFieldValue('upstreams', selected);
                         }}
@@ -285,6 +298,7 @@ export const CreateUpstreamGroupModal = (props: Props) => {
                             return (
                               <>
                                 <WeightInput
+                                  step={1}
                                   name={`upstreams[${index}].weight`}
                                 />
                               </>
