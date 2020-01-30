@@ -169,6 +169,9 @@ func initRoutes(in *v1.Route, routeReport *validationapi.RouteReport) []*envoyro
 		out[i] = &envoyroute.Route{
 			Match: &match,
 		}
+		if in.Name != "" {
+			out[i].Name = fmt.Sprintf("%s-%d", in.Name, i)
+		}
 	}
 
 	return out
