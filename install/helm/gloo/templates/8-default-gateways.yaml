@@ -11,10 +11,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     app: gloo
-  # We need this because the gateway controller will try to write default gateway objects
-  # and if it is able to do so before this resource gets applied, installation will fail.
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   bindAddress: "::"
   bindPort: {{ $spec.podTemplate.httpPort }}
@@ -38,10 +37,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     app: gloo
-  # We need this because the gateway controller will try to write default gateway objects
-  # and if it is able to do so before this resource gets applied, installation will fail.
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   bindAddress: "::"
   bindPort: {{ $spec.podTemplate.httpsPort }}
