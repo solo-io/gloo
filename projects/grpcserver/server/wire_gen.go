@@ -69,7 +69,7 @@ func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcServ
 	namespaceClient := kube.NewNamespaceClient(namespacesGetter)
 	oAuthEndpoint := setup.NewOAuthEndpoint()
 	buildVersion := setup.GetBuildVersion()
-	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, oAuthEndpoint, buildVersion, string2)
+	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, rawGetter, oAuthEndpoint, buildVersion, string2)
 	if err != nil {
 		return nil, err
 	}

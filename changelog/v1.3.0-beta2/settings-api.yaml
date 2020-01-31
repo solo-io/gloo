@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Modify getSettings API call to return YAML file, and allow for updating that YAML.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1458

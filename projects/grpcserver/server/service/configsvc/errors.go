@@ -19,6 +19,10 @@ var (
 		return errors.Wrap(err, "Failed to update settings")
 	}
 
+	FailedToParseSettingsFromYamlError = func(err error) error {
+		return errors.Wrap(err, "Failed to parse settings from YAML")
+	}
+
 	InvalidRefreshRateError = func(d time.Duration) error {
 		return errors.Errorf("Refresh rate must be at least one second. %v seconds provided", d.Seconds())
 	}

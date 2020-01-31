@@ -14,11 +14,15 @@ import {
   ListNamespacesRequest,
   ListNamespacesResponse,
   UpdateSettingsRequest,
-  UpdateSettingsResponse
+  UpdateSettingsResponse,
+  SettingsDetails,
+  UpdateSettingsYamlRequest
 } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { ConfigApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
 import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
+import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -73,7 +77,7 @@ function getSettingsGrpc(): Promise<GetSettingsResponse> {
   });
 }
 
-function getSettings(): Promise<Settings.AsObject> {
+function getSettings(): Promise<SettingsDetails.AsObject> {
   return new Promise((resolve, reject) => {
     let request = new GetSettingsRequest();
     client.getSettings(request, (error, data) => {
@@ -83,7 +87,7 @@ function getSettings(): Promise<Settings.AsObject> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().settings);
+        resolve(data!.toObject().settingsDetails);
       }
     });
   });
@@ -94,7 +98,9 @@ function updateWatchNamespaces(updateWatchNamespacesRequest: {
 }): Promise<UpdateSettingsResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
     let currentSettingsReq = await configAPI.getSettingsGrpc();
-    let settingsToUpdate = currentSettingsReq.getSettings();
+    let settingsToUpdate = currentSettingsReq
+      .getSettingsDetails()
+      ?.getSettings();
     let request = new UpdateSettingsRequest();
     let { watchNamespacesList } = updateWatchNamespacesRequest;
     if (settingsToUpdate !== undefined) {
@@ -120,7 +126,9 @@ function updateRefreshRate(updateRefreshRateRequest: {
 }): Promise<UpdateSettingsResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
     let currentSettingsReq = await configAPI.getSettingsGrpc();
-    let settingsToUpdate = currentSettingsReq.getSettings();
+    let settingsToUpdate = currentSettingsReq
+      .getSettingsDetails()
+      ?.getSettings();
     let newRefreshRate = new Duration();
     newRefreshRate.setNanos(updateRefreshRateRequest.refreshRate.nanos);
     newRefreshRate.setSeconds(updateRefreshRateRequest.refreshRate.seconds);
@@ -156,6 +164,34 @@ function updateSettings(
         reject(error);
       } else {
         resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+function updateSettingsYaml(
+  updateSettingsYamlRequest: UpdateSettingsYamlRequest.AsObject
+): Promise<SettingsDetails.AsObject> {
+  return new Promise(async (resolve, reject) => {
+    let request = new UpdateSettingsYamlRequest();
+    let settingsRef = new ResourceRef();
+
+    let editedYamlData = new EditedResourceYaml();
+    let { ref, editedYaml } = updateSettingsYamlRequest.editedYamlData!;
+    settingsRef.setName(ref!.name);
+    settingsRef.setNamespace(ref!.namespace);
+
+    editedYamlData.setRef(settingsRef);
+    editedYamlData.setEditedYaml(editedYaml);
+    request.setEditedYamlData(editedYamlData);
+    client.updateSettingsYaml(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().settingsDetails);
       }
     });
   });
@@ -215,6 +251,7 @@ export const configAPI = {
   getOAuthEndpoint,
   getSettingsGrpc,
   updateSettings,
+  updateSettingsYaml,
   getIsLicenseValid,
   listNamespaces,
   getPodNamespace,

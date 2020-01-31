@@ -103,19 +103,22 @@ export const WatchedNamespacesPage = (props: Props) => {
     'getSettings',
     configAPI.getSettings
   );
+  const currentRefreshRate = settings?.settings?.refreshRate;
 
-  const currentRefreshRate = settings?.refreshRate;
-
-  const watchNamespacesList = settings?.watchNamespacesList;
+  const watchNamespacesList = settings?.settings?.watchNamespacesList;
 
   const [availableNS, setAvailableNS] = React.useState(namespacesList);
 
   const [refreshRateSeconds, setRefreshRateSeconds] = React.useState(
-    settings && settings.refreshRate ? settings.refreshRate!.seconds : 1
+    settings && settings.settings?.refreshRate
+      ? settings.settings?.refreshRate!.seconds
+      : 1
   );
 
   const [refreshRateNanos, setRefreshRateNanos] = React.useState(
-    settings && settings.refreshRate ? settings.refreshRate!.nanos : 0
+    settings && settings.settings?.refreshRate
+      ? settings.settings?.refreshRate!.nanos
+      : 0
   );
 
   React.useEffect(() => {
@@ -129,7 +132,10 @@ export const WatchedNamespacesPage = (props: Props) => {
     if (!settings) {
       dispatch(getSettings());
     }
-  }, [settings?.refreshRate, settings?.watchNamespacesList]);
+  }, [
+    settings?.settings?.refreshRate,
+    settings?.settings?.watchNamespacesList
+  ]);
 
   React.useEffect(() => {
     setAvailableNS(

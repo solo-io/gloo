@@ -210,6 +210,52 @@ func (m *GetOAuthEndpointResponse) GetOAuthEndpoint() *OAuthEndpoint {
 	return nil
 }
 
+type SettingsDetails struct {
+	Settings             *v1.Settings `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	Raw                  *Raw         `protobuf:"bytes,2,opt,name=raw,proto3" json:"raw,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *SettingsDetails) Reset()         { *m = SettingsDetails{} }
+func (m *SettingsDetails) String() string { return proto.CompactTextString(m) }
+func (*SettingsDetails) ProtoMessage()    {}
+func (*SettingsDetails) Descriptor() ([]byte, []int) {
+	return fileDescriptor_104b686756049d1d, []int{5}
+}
+func (m *SettingsDetails) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SettingsDetails.Unmarshal(m, b)
+}
+func (m *SettingsDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SettingsDetails.Marshal(b, m, deterministic)
+}
+func (m *SettingsDetails) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SettingsDetails.Merge(m, src)
+}
+func (m *SettingsDetails) XXX_Size() int {
+	return xxx_messageInfo_SettingsDetails.Size(m)
+}
+func (m *SettingsDetails) XXX_DiscardUnknown() {
+	xxx_messageInfo_SettingsDetails.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SettingsDetails proto.InternalMessageInfo
+
+func (m *SettingsDetails) GetSettings() *v1.Settings {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+func (m *SettingsDetails) GetRaw() *Raw {
+	if m != nil {
+		return m.Raw
+	}
+	return nil
+}
+
 type GetSettingsRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -220,7 +266,7 @@ func (m *GetSettingsRequest) Reset()         { *m = GetSettingsRequest{} }
 func (m *GetSettingsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetSettingsRequest) ProtoMessage()    {}
 func (*GetSettingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{5}
+	return fileDescriptor_104b686756049d1d, []int{6}
 }
 func (m *GetSettingsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetSettingsRequest.Unmarshal(m, b)
@@ -241,17 +287,17 @@ func (m *GetSettingsRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_GetSettingsRequest proto.InternalMessageInfo
 
 type GetSettingsResponse struct {
-	Settings             *v1.Settings `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	SettingsDetails      *SettingsDetails `protobuf:"bytes,1,opt,name=settings_details,json=settingsDetails,proto3" json:"settings_details,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *GetSettingsResponse) Reset()         { *m = GetSettingsResponse{} }
 func (m *GetSettingsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetSettingsResponse) ProtoMessage()    {}
 func (*GetSettingsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{6}
+	return fileDescriptor_104b686756049d1d, []int{7}
 }
 func (m *GetSettingsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetSettingsResponse.Unmarshal(m, b)
@@ -271,15 +317,15 @@ func (m *GetSettingsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetSettingsResponse proto.InternalMessageInfo
 
-func (m *GetSettingsResponse) GetSettings() *v1.Settings {
+func (m *GetSettingsResponse) GetSettingsDetails() *SettingsDetails {
 	if m != nil {
-		return m.Settings
+		return m.SettingsDetails
 	}
 	return nil
 }
 
 type UpdateSettingsRequest struct {
-	Settings             *v1.Settings `protobuf:"bytes,4,opt,name=settings,proto3" json:"settings,omitempty"`
+	Settings             *v1.Settings `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
 	XXX_unrecognized     []byte       `json:"-"`
 	XXX_sizecache        int32        `json:"-"`
@@ -289,7 +335,7 @@ func (m *UpdateSettingsRequest) Reset()         { *m = UpdateSettingsRequest{} }
 func (m *UpdateSettingsRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSettingsRequest) ProtoMessage()    {}
 func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{7}
+	return fileDescriptor_104b686756049d1d, []int{8}
 }
 func (m *UpdateSettingsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateSettingsRequest.Unmarshal(m, b)
@@ -317,17 +363,17 @@ func (m *UpdateSettingsRequest) GetSettings() *v1.Settings {
 }
 
 type UpdateSettingsResponse struct {
-	Settings             *v1.Settings `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	SettingsDetails      *SettingsDetails `protobuf:"bytes,1,opt,name=settings_details,json=settingsDetails,proto3" json:"settings_details,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *UpdateSettingsResponse) Reset()         { *m = UpdateSettingsResponse{} }
 func (m *UpdateSettingsResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateSettingsResponse) ProtoMessage()    {}
 func (*UpdateSettingsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{8}
+	return fileDescriptor_104b686756049d1d, []int{9}
 }
 func (m *UpdateSettingsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateSettingsResponse.Unmarshal(m, b)
@@ -347,9 +393,47 @@ func (m *UpdateSettingsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateSettingsResponse proto.InternalMessageInfo
 
-func (m *UpdateSettingsResponse) GetSettings() *v1.Settings {
+func (m *UpdateSettingsResponse) GetSettingsDetails() *SettingsDetails {
 	if m != nil {
-		return m.Settings
+		return m.SettingsDetails
+	}
+	return nil
+}
+
+type UpdateSettingsYamlRequest struct {
+	EditedYamlData       *EditedResourceYaml `protobuf:"bytes,1,opt,name=edited_yaml_data,json=editedYamlData,proto3" json:"edited_yaml_data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *UpdateSettingsYamlRequest) Reset()         { *m = UpdateSettingsYamlRequest{} }
+func (m *UpdateSettingsYamlRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateSettingsYamlRequest) ProtoMessage()    {}
+func (*UpdateSettingsYamlRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_104b686756049d1d, []int{10}
+}
+func (m *UpdateSettingsYamlRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateSettingsYamlRequest.Unmarshal(m, b)
+}
+func (m *UpdateSettingsYamlRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateSettingsYamlRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateSettingsYamlRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSettingsYamlRequest.Merge(m, src)
+}
+func (m *UpdateSettingsYamlRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateSettingsYamlRequest.Size(m)
+}
+func (m *UpdateSettingsYamlRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSettingsYamlRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSettingsYamlRequest proto.InternalMessageInfo
+
+func (m *UpdateSettingsYamlRequest) GetEditedYamlData() *EditedResourceYaml {
+	if m != nil {
+		return m.EditedYamlData
 	}
 	return nil
 }
@@ -364,7 +448,7 @@ func (m *GetIsLicenseValidRequest) Reset()         { *m = GetIsLicenseValidReque
 func (m *GetIsLicenseValidRequest) String() string { return proto.CompactTextString(m) }
 func (*GetIsLicenseValidRequest) ProtoMessage()    {}
 func (*GetIsLicenseValidRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{9}
+	return fileDescriptor_104b686756049d1d, []int{11}
 }
 func (m *GetIsLicenseValidRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetIsLicenseValidRequest.Unmarshal(m, b)
@@ -396,7 +480,7 @@ func (m *GetIsLicenseValidResponse) Reset()         { *m = GetIsLicenseValidResp
 func (m *GetIsLicenseValidResponse) String() string { return proto.CompactTextString(m) }
 func (*GetIsLicenseValidResponse) ProtoMessage()    {}
 func (*GetIsLicenseValidResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{10}
+	return fileDescriptor_104b686756049d1d, []int{12}
 }
 func (m *GetIsLicenseValidResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetIsLicenseValidResponse.Unmarshal(m, b)
@@ -440,7 +524,7 @@ func (m *GetPodNamespaceRequest) Reset()         { *m = GetPodNamespaceRequest{}
 func (m *GetPodNamespaceRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPodNamespaceRequest) ProtoMessage()    {}
 func (*GetPodNamespaceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{11}
+	return fileDescriptor_104b686756049d1d, []int{13}
 }
 func (m *GetPodNamespaceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetPodNamespaceRequest.Unmarshal(m, b)
@@ -471,7 +555,7 @@ func (m *GetPodNamespaceResponse) Reset()         { *m = GetPodNamespaceResponse
 func (m *GetPodNamespaceResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPodNamespaceResponse) ProtoMessage()    {}
 func (*GetPodNamespaceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{12}
+	return fileDescriptor_104b686756049d1d, []int{14}
 }
 func (m *GetPodNamespaceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetPodNamespaceResponse.Unmarshal(m, b)
@@ -508,7 +592,7 @@ func (m *ListNamespacesRequest) Reset()         { *m = ListNamespacesRequest{} }
 func (m *ListNamespacesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListNamespacesRequest) ProtoMessage()    {}
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{13}
+	return fileDescriptor_104b686756049d1d, []int{15}
 }
 func (m *ListNamespacesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNamespacesRequest.Unmarshal(m, b)
@@ -539,7 +623,7 @@ func (m *ListNamespacesResponse) Reset()         { *m = ListNamespacesResponse{}
 func (m *ListNamespacesResponse) String() string { return proto.CompactTextString(m) }
 func (*ListNamespacesResponse) ProtoMessage()    {}
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_104b686756049d1d, []int{14}
+	return fileDescriptor_104b686756049d1d, []int{16}
 }
 func (m *ListNamespacesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNamespacesResponse.Unmarshal(m, b)
@@ -572,10 +656,12 @@ func init() {
 	proto.RegisterType((*GetVersionResponse)(nil), "glooeeapi.solo.io.GetVersionResponse")
 	proto.RegisterType((*GetOAuthEndpointRequest)(nil), "glooeeapi.solo.io.GetOAuthEndpointRequest")
 	proto.RegisterType((*GetOAuthEndpointResponse)(nil), "glooeeapi.solo.io.GetOAuthEndpointResponse")
+	proto.RegisterType((*SettingsDetails)(nil), "glooeeapi.solo.io.SettingsDetails")
 	proto.RegisterType((*GetSettingsRequest)(nil), "glooeeapi.solo.io.GetSettingsRequest")
 	proto.RegisterType((*GetSettingsResponse)(nil), "glooeeapi.solo.io.GetSettingsResponse")
 	proto.RegisterType((*UpdateSettingsRequest)(nil), "glooeeapi.solo.io.UpdateSettingsRequest")
 	proto.RegisterType((*UpdateSettingsResponse)(nil), "glooeeapi.solo.io.UpdateSettingsResponse")
+	proto.RegisterType((*UpdateSettingsYamlRequest)(nil), "glooeeapi.solo.io.UpdateSettingsYamlRequest")
 	proto.RegisterType((*GetIsLicenseValidRequest)(nil), "glooeeapi.solo.io.GetIsLicenseValidRequest")
 	proto.RegisterType((*GetIsLicenseValidResponse)(nil), "glooeeapi.solo.io.GetIsLicenseValidResponse")
 	proto.RegisterType((*GetPodNamespaceRequest)(nil), "glooeeapi.solo.io.GetPodNamespaceRequest")
@@ -589,45 +675,52 @@ func init() {
 }
 
 var fileDescriptor_104b686756049d1d = []byte{
-	// 600 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0x4d, 0x6f, 0xd3, 0x40,
-	0x10, 0x6d, 0x29, 0x1f, 0xed, 0x54, 0x49, 0xd3, 0x6d, 0x9b, 0xa6, 0x16, 0x2a, 0x95, 0x45, 0x51,
-	0x5a, 0xc0, 0x16, 0xe1, 0x00, 0x12, 0xa7, 0x14, 0xa1, 0xb4, 0x22, 0x02, 0x14, 0x44, 0x0f, 0x20,
-	0x61, 0xb9, 0xce, 0xe0, 0x6c, 0xe5, 0xec, 0x1a, 0xef, 0x26, 0xbf, 0x89, 0xdf, 0xc5, 0x85, 0xbf,
-	0x81, 0xbc, 0x5e, 0x3b, 0xb1, 0xb3, 0x55, 0x23, 0xf5, 0xe4, 0xdd, 0x99, 0x37, 0xef, 0x8d, 0xc6,
-	0x6f, 0xb4, 0x70, 0x1e, 0x52, 0x39, 0x9a, 0x5c, 0x39, 0x01, 0x1f, 0xbb, 0x82, 0x47, 0xfc, 0x25,
-	0xe5, 0xd9, 0x37, 0x4e, 0xf8, 0x35, 0x06, 0x52, 0xb8, 0xc5, 0x21, 0x4c, 0xe2, 0x40, 0x60, 0x32,
-	0xc5, 0xc4, 0xf5, 0x63, 0xea, 0x4e, 0x5f, 0xb9, 0x01, 0x67, 0xbf, 0x68, 0xe8, 0xc4, 0x09, 0x97,
-	0x9c, 0x6c, 0x87, 0x11, 0xe7, 0x88, 0x7e, 0x4c, 0x9d, 0x94, 0xc0, 0xa1, 0xdc, 0xda, 0x0d, 0x79,
-	0xc8, 0x55, 0xd6, 0x4d, 0x4f, 0x19, 0xd0, 0x6a, 0xa7, 0xc0, 0x39, 0xda, 0xf4, 0xa6, 0x09, 0x05,
-	0x4a, 0x49, 0x59, 0x28, 0x32, 0xa4, 0x7d, 0x06, 0xb5, 0xcf, 0xdd, 0x89, 0x1c, 0x7d, 0x60, 0xc3,
-	0x98, 0x53, 0x26, 0x49, 0x03, 0xd6, 0x26, 0x49, 0xd4, 0x5a, 0x3d, 0x5a, 0x6d, 0x6f, 0x0c, 0xd2,
-	0x23, 0x79, 0x02, 0x9b, 0x41, 0x44, 0x91, 0x49, 0x8f, 0xf9, 0x63, 0x6c, 0xdd, 0x53, 0x19, 0xc8,
-	0x42, 0x9f, 0xfc, 0x31, 0xda, 0x3b, 0xb0, 0xdd, 0x43, 0x79, 0x89, 0x89, 0xa0, 0x9c, 0x0d, 0xf0,
-	0xf7, 0x04, 0x85, 0xb4, 0x1d, 0x20, 0xf3, 0x41, 0x11, 0x73, 0x26, 0x90, 0xb4, 0xe0, 0xd1, 0x34,
-	0x0b, 0x69, 0x85, 0xfc, 0x6a, 0x1f, 0xc0, 0x7e, 0x0f, 0x65, 0xa9, 0x97, 0x9c, 0x6a, 0x08, 0xad,
-	0xc5, 0x94, 0x26, 0x3c, 0x87, 0x2d, 0xee, 0xf9, 0x13, 0x39, 0xf2, 0x50, 0xa7, 0x14, 0xf1, 0x66,
-	0xe7, 0xc8, 0x59, 0x18, 0x96, 0x53, 0xa6, 0xa8, 0xf1, 0xf9, 0xab, 0xbd, 0xab, 0x1a, 0xfe, 0xaa,
-	0xc7, 0x93, 0x6b, 0x5f, 0xc0, 0x4e, 0x29, 0xaa, 0x65, 0x3b, 0xb0, 0x9e, 0x0f, 0x52, 0xeb, 0x35,
-	0x95, 0x5e, 0x21, 0x55, 0x54, 0x14, 0x38, 0xfb, 0x23, 0xec, 0x7d, 0x8b, 0x87, 0xbe, 0xc4, 0x8a,
-	0x46, 0x89, 0xec, 0xfe, 0x92, 0x64, 0x7d, 0x68, 0x56, 0xc9, 0xee, 0xd0, 0x9a, 0xa5, 0x26, 0x7c,
-	0x21, 0xfa, 0x34, 0x40, 0x26, 0xf0, 0xd2, 0x8f, 0xe8, 0x30, 0x9f, 0x40, 0x04, 0x07, 0x86, 0x9c,
-	0x16, 0x6b, 0x43, 0x83, 0x0a, 0x2f, 0xca, 0x52, 0xde, 0x34, 0xcd, 0x29, 0xd1, 0xf5, 0x41, 0x9d,
-	0x96, 0x2a, 0xc8, 0x31, 0xd4, 0x29, 0x53, 0x00, 0x2f, 0x41, 0x5f, 0x70, 0xa6, 0x8d, 0x54, 0xd3,
-	0xd1, 0x81, 0x0a, 0xda, 0x2d, 0x68, 0xf6, 0x50, 0x7e, 0xe1, 0xc3, 0xd4, 0x59, 0x22, 0xf6, 0x03,
-	0xcc, 0xfb, 0x78, 0xa3, 0x0c, 0x52, 0xce, 0xe8, 0x2e, 0x1e, 0xc3, 0x06, 0xcb, 0x83, 0xda, 0x57,
-	0xb3, 0x80, 0xbd, 0x0f, 0x7b, 0x7d, 0x2a, 0x64, 0x51, 0x56, 0xfc, 0xdb, 0xb7, 0xd0, 0xac, 0x26,
-	0x34, 0xe1, 0x21, 0x40, 0x51, 0x9f, 0x4e, 0x71, 0x2d, 0x75, 0xfc, 0x2c, 0xd2, 0xf9, 0xf7, 0x00,
-	0x36, 0xde, 0xab, 0xcd, 0xec, 0xc6, 0x94, 0xfc, 0x00, 0x98, 0x59, 0x9d, 0x3c, 0x35, 0x18, 0x6f,
-	0x61, 0x3d, 0xac, 0xe3, 0x5b, 0x50, 0x59, 0x23, 0xf6, 0x0a, 0x19, 0x43, 0xa3, 0x6a, 0x7e, 0x72,
-	0x6a, 0x2e, 0x36, 0x2d, 0x8f, 0xf5, 0x7c, 0x29, 0x6c, 0x21, 0x17, 0xab, 0x5d, 0x2e, 0xff, 0x6d,
-	0x72, 0x03, 0x87, 0xd1, 0x2f, 0xd6, 0x8b, 0xe5, 0xc0, 0x85, 0xe2, 0x4f, 0xd8, 0x9c, 0xdb, 0x30,
-	0x72, 0xc3, 0x60, 0x2a, 0x3b, 0x63, 0x3d, 0xbb, 0x0d, 0x56, 0xf0, 0x87, 0x50, 0x2f, 0x6f, 0x0a,
-	0x69, 0x1b, 0x6a, 0x8d, 0x9b, 0x69, 0x9d, 0x2c, 0x81, 0x9c, 0x17, 0x2a, 0xdb, 0xc9, 0x28, 0x64,
-	0xb4, 0xa2, 0x51, 0xc8, 0xec, 0x4d, 0x7b, 0x85, 0x5c, 0xc3, 0x56, 0x65, 0x13, 0xc8, 0x89, 0x79,
-	0x1c, 0x86, 0x3d, 0xb2, 0x4e, 0x97, 0x81, 0xe6, 0x5a, 0x67, 0xdd, 0x3f, 0x7f, 0x0f, 0x57, 0xbf,
-	0xbf, 0xbb, 0xc3, 0x13, 0x76, 0xf5, 0x50, 0xbd, 0x34, 0xaf, 0xff, 0x07, 0x00, 0x00, 0xff, 0xff,
-	0x15, 0xd0, 0x56, 0xbd, 0x08, 0x07, 0x00, 0x00,
+	// 718 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xe1, 0x4e, 0xd4, 0x40,
+	0x10, 0x06, 0x49, 0x10, 0x86, 0x70, 0x77, 0x2c, 0x70, 0x1c, 0x8d, 0x41, 0xd2, 0x88, 0x39, 0x10,
+	0xef, 0x22, 0x9a, 0x68, 0xe2, 0x2f, 0x10, 0x02, 0x46, 0x14, 0x53, 0x23, 0x89, 0x9a, 0xd8, 0x2c,
+	0xed, 0x58, 0x96, 0xf4, 0xba, 0xb5, 0xbb, 0x77, 0x84, 0x37, 0xf2, 0x91, 0xfc, 0xed, 0x93, 0x98,
+	0x6e, 0xb7, 0xe5, 0xda, 0x5b, 0xc2, 0xa9, 0xf1, 0x17, 0xdb, 0x99, 0x6f, 0xbe, 0x6f, 0x66, 0x76,
+	0x67, 0x38, 0x38, 0x0a, 0x98, 0x3c, 0xef, 0x9f, 0x75, 0x3c, 0xde, 0xeb, 0x0a, 0x1e, 0xf2, 0xc7,
+	0x8c, 0x67, 0x7f, 0xe3, 0x84, 0x5f, 0xa0, 0x27, 0x45, 0xb7, 0x38, 0x04, 0x49, 0xec, 0x09, 0x4c,
+	0x06, 0x98, 0x74, 0x69, 0xcc, 0xba, 0x83, 0x27, 0x5d, 0x8f, 0x47, 0xdf, 0x58, 0xd0, 0x89, 0x13,
+	0x2e, 0x39, 0x59, 0x08, 0x42, 0xce, 0x11, 0x69, 0xcc, 0x3a, 0x29, 0x41, 0x87, 0x71, 0x6b, 0x29,
+	0xe0, 0x01, 0x57, 0xde, 0x6e, 0x7a, 0xca, 0x80, 0x56, 0x3b, 0x05, 0x0e, 0xd1, 0xa6, 0x5f, 0x9a,
+	0x50, 0xa0, 0x94, 0x2c, 0x0a, 0x84, 0x46, 0x3e, 0x1b, 0x3b, 0x13, 0x79, 0x15, 0xa3, 0x8e, 0xb2,
+	0xf7, 0x60, 0xfe, 0x64, 0xb7, 0x2f, 0xcf, 0x0f, 0x22, 0x3f, 0xe6, 0x2c, 0x92, 0xa4, 0x01, 0x53,
+	0xfd, 0x24, 0x6c, 0x4d, 0xae, 0x4f, 0xb6, 0x67, 0x9d, 0xf4, 0x48, 0xee, 0xc3, 0x9c, 0x17, 0x32,
+	0x8c, 0xa4, 0x1b, 0xd1, 0x1e, 0xb6, 0xee, 0x28, 0x0f, 0x64, 0xa6, 0x77, 0xb4, 0x87, 0xf6, 0x22,
+	0x2c, 0x1c, 0xa2, 0x3c, 0xc5, 0x44, 0x30, 0x1e, 0x39, 0xf8, 0xbd, 0x8f, 0x42, 0xda, 0x1d, 0x20,
+	0xc3, 0x46, 0x11, 0xf3, 0x48, 0x20, 0x69, 0xc1, 0xdd, 0x41, 0x66, 0xd2, 0x0a, 0xf9, 0xa7, 0xbd,
+	0x0a, 0x2b, 0x87, 0x28, 0x4b, 0xb9, 0xe4, 0x54, 0x3e, 0xb4, 0x46, 0x5d, 0x9a, 0xf0, 0x08, 0xea,
+	0xdc, 0xa5, 0x7d, 0x79, 0xee, 0xa2, 0x76, 0x29, 0xe2, 0xb9, 0x9d, 0xf5, 0xce, 0x48, 0x8b, 0x3b,
+	0x65, 0x8a, 0x79, 0x3e, 0xfc, 0x69, 0x73, 0xa8, 0x7f, 0xd0, 0x1d, 0xdd, 0x47, 0x49, 0x59, 0x28,
+	0xc8, 0x0e, 0xcc, 0xe4, 0x4d, 0xd6, 0xac, 0x4d, 0xc5, 0x5a, 0x10, 0xe6, 0x01, 0x4e, 0x81, 0x23,
+	0x6d, 0x98, 0x4a, 0xe8, 0xa5, 0xea, 0x52, 0x0e, 0x2f, 0x27, 0xe1, 0xd0, 0x4b, 0x27, 0x85, 0xd8,
+	0x4b, 0xaa, 0x43, 0x05, 0x45, 0x51, 0xec, 0x62, 0xc9, 0xaa, 0xeb, 0x7c, 0x0b, 0x8d, 0x5c, 0xc2,
+	0xf5, 0xb3, 0xf4, 0x74, 0x4a, 0xb6, 0x41, 0xa3, 0x52, 0x88, 0x53, 0x17, 0x65, 0x83, 0xfd, 0x06,
+	0x96, 0x3f, 0xc6, 0x3e, 0x95, 0x58, 0x91, 0xff, 0x9b, 0x92, 0xed, 0x00, 0x9a, 0x55, 0xb2, 0xff,
+	0x93, 0x75, 0x08, 0xab, 0x65, 0xa1, 0x4f, 0xb4, 0x17, 0xe6, 0x99, 0x9f, 0x40, 0x03, 0x7d, 0x26,
+	0xd1, 0x77, 0xaf, 0x68, 0x2f, 0x74, 0x7d, 0x2a, 0xa9, 0xd6, 0xda, 0x30, 0x68, 0x1d, 0x28, 0xa8,
+	0x83, 0x82, 0xf7, 0x13, 0x0f, 0x15, 0x4f, 0x2d, 0x0b, 0x4f, 0xcf, 0xfb, 0x54, 0x52, 0xdb, 0x52,
+	0xcf, 0xee, 0xb5, 0x38, 0x66, 0x1e, 0x46, 0x02, 0x4f, 0x69, 0xc8, 0xfc, 0xfc, 0x96, 0x42, 0x58,
+	0x35, 0xf8, 0x74, 0xd5, 0x6d, 0x68, 0x30, 0xe1, 0x86, 0x99, 0xcb, 0x1d, 0xa4, 0x3e, 0x95, 0xc9,
+	0x8c, 0x53, 0x63, 0xa5, 0x08, 0xb2, 0x01, 0x35, 0x16, 0x29, 0x80, 0x9b, 0x20, 0x15, 0x3c, 0xd2,
+	0xd3, 0x35, 0xaf, 0xad, 0x8e, 0x32, 0xda, 0x2d, 0x68, 0x1e, 0xa2, 0x7c, 0xcf, 0xfd, 0x74, 0xdc,
+	0x44, 0x4c, 0x3d, 0xcc, 0xf3, 0x78, 0xae, 0xa6, 0xa6, 0xec, 0xd1, 0x59, 0xdc, 0x83, 0xd9, 0x28,
+	0x37, 0xea, 0x61, 0xbb, 0x36, 0xd8, 0x2b, 0xb0, 0x7c, 0xcc, 0x84, 0x2c, 0xc2, 0x8a, 0xf7, 0xf7,
+	0x02, 0x9a, 0x55, 0x87, 0x26, 0x5c, 0x03, 0x28, 0xe2, 0xd3, 0x6b, 0x9c, 0x4a, 0xd7, 0xc0, 0xb5,
+	0x65, 0xe7, 0xe7, 0x34, 0xcc, 0xbe, 0x52, 0x4b, 0x6e, 0x37, 0x66, 0xe4, 0x0b, 0xc0, 0xf5, 0xfc,
+	0x93, 0x07, 0x86, 0x2b, 0x18, 0xd9, 0x19, 0xd6, 0xc6, 0x2d, 0xa8, 0x2c, 0x11, 0x7b, 0x82, 0xf4,
+	0xa0, 0x51, 0xdd, 0x08, 0x64, 0xcb, 0x1c, 0x6c, 0xda, 0x28, 0xd6, 0xa3, 0xb1, 0xb0, 0x85, 0x5c,
+	0xac, 0x16, 0x5c, 0xf9, 0xb6, 0xc9, 0x0d, 0x1c, 0xc6, 0xf7, 0x62, 0x6d, 0x8f, 0x07, 0x2e, 0x14,
+	0xbf, 0xc2, 0xdc, 0xd0, 0x16, 0x20, 0x37, 0x34, 0xa6, 0x32, 0xbc, 0xd6, 0xc3, 0xdb, 0x60, 0x05,
+	0x7f, 0x00, 0xb5, 0xf2, 0x24, 0x91, 0xb6, 0x21, 0xd6, 0xb8, 0x22, 0xac, 0xcd, 0x31, 0x90, 0x85,
+	0x10, 0x07, 0x32, 0x3a, 0xb2, 0x64, 0xfb, 0x56, 0x8a, 0xa1, 0xc9, 0xfe, 0x33, 0xc1, 0x00, 0x6a,
+	0xe5, 0xf7, 0x6b, 0xac, 0xcc, 0xf8, 0xf6, 0x8d, 0x42, 0xe6, 0x61, 0xb0, 0x27, 0xc8, 0x05, 0xd4,
+	0x2b, 0xa3, 0x47, 0x36, 0xcd, 0xfd, 0x37, 0x0c, 0xae, 0xb5, 0x35, 0x0e, 0x34, 0xd7, 0xda, 0xdb,
+	0xfd, 0xf1, 0x6b, 0x6d, 0xf2, 0xf3, 0xcb, 0x7f, 0xf8, 0xf9, 0x71, 0x36, 0xad, 0xfe, 0xdf, 0x3f,
+	0xfd, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x31, 0x2d, 0x5e, 0xc8, 0xc4, 0x08, 0x00, 0x00,
 }
 
 func (this *OAuthEndpoint) Equal(that interface{}) bool {
@@ -762,6 +855,36 @@ func (this *GetOAuthEndpointResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *SettingsDetails) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*SettingsDetails)
+	if !ok {
+		that2, ok := that.(SettingsDetails)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Settings.Equal(that1.Settings) {
+		return false
+	}
+	if !this.Raw.Equal(that1.Raw) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
 func (this *GetSettingsRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
@@ -805,7 +928,7 @@ func (this *GetSettingsResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Settings.Equal(that1.Settings) {
+	if !this.SettingsDetails.Equal(that1.SettingsDetails) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -859,7 +982,34 @@ func (this *UpdateSettingsResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Settings.Equal(that1.Settings) {
+	if !this.SettingsDetails.Equal(that1.SettingsDetails) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *UpdateSettingsYamlRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*UpdateSettingsYamlRequest)
+	if !ok {
+		that2, ok := that.(UpdateSettingsYamlRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.EditedYamlData.Equal(that1.EditedYamlData) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -1046,6 +1196,7 @@ type ConfigApiClient interface {
 	GetIsLicenseValid(ctx context.Context, in *GetIsLicenseValidRequest, opts ...grpc.CallOption) (*GetIsLicenseValidResponse, error)
 	GetSettings(ctx context.Context, in *GetSettingsRequest, opts ...grpc.CallOption) (*GetSettingsResponse, error)
 	UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*UpdateSettingsResponse, error)
+	UpdateSettingsYaml(ctx context.Context, in *UpdateSettingsYamlRequest, opts ...grpc.CallOption) (*UpdateSettingsResponse, error)
 	// Returns a list of all available namespaces on the cluster.
 	// This is NOT the same as WatchNamespaces in Settings.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
@@ -1105,6 +1256,15 @@ func (c *configApiClient) UpdateSettings(ctx context.Context, in *UpdateSettings
 	return out, nil
 }
 
+func (c *configApiClient) UpdateSettingsYaml(ctx context.Context, in *UpdateSettingsYamlRequest, opts ...grpc.CallOption) (*UpdateSettingsResponse, error) {
+	out := new(UpdateSettingsResponse)
+	err := c.cc.Invoke(ctx, "/glooeeapi.solo.io.ConfigApi/UpdateSettingsYaml", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *configApiClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
 	out := new(ListNamespacesResponse)
 	err := c.cc.Invoke(ctx, "/glooeeapi.solo.io.ConfigApi/ListNamespaces", in, out, opts...)
@@ -1130,6 +1290,7 @@ type ConfigApiServer interface {
 	GetIsLicenseValid(context.Context, *GetIsLicenseValidRequest) (*GetIsLicenseValidResponse, error)
 	GetSettings(context.Context, *GetSettingsRequest) (*GetSettingsResponse, error)
 	UpdateSettings(context.Context, *UpdateSettingsRequest) (*UpdateSettingsResponse, error)
+	UpdateSettingsYaml(context.Context, *UpdateSettingsYamlRequest) (*UpdateSettingsResponse, error)
 	// Returns a list of all available namespaces on the cluster.
 	// This is NOT the same as WatchNamespaces in Settings.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
@@ -1154,6 +1315,9 @@ func (*UnimplementedConfigApiServer) GetSettings(ctx context.Context, req *GetSe
 }
 func (*UnimplementedConfigApiServer) UpdateSettings(ctx context.Context, req *UpdateSettingsRequest) (*UpdateSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSettings not implemented")
+}
+func (*UnimplementedConfigApiServer) UpdateSettingsYaml(ctx context.Context, req *UpdateSettingsYamlRequest) (*UpdateSettingsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSettingsYaml not implemented")
 }
 func (*UnimplementedConfigApiServer) ListNamespaces(ctx context.Context, req *ListNamespacesRequest) (*ListNamespacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
@@ -1256,6 +1420,24 @@ func _ConfigApi_UpdateSettings_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ConfigApi_UpdateSettingsYaml_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSettingsYamlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigApiServer).UpdateSettingsYaml(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/glooeeapi.solo.io.ConfigApi/UpdateSettingsYaml",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigApiServer).UpdateSettingsYaml(ctx, req.(*UpdateSettingsYamlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ConfigApi_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNamespacesRequest)
 	if err := dec(in); err != nil {
@@ -1315,6 +1497,10 @@ var _ConfigApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSettings",
 			Handler:    _ConfigApi_UpdateSettings_Handler,
+		},
+		{
+			MethodName: "UpdateSettingsYaml",
+			Handler:    _ConfigApi_UpdateSettingsYaml_Handler,
 		},
 		{
 			MethodName: "ListNamespaces",

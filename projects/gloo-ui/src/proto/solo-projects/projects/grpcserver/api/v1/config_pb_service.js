@@ -55,6 +55,15 @@ ConfigApi.UpdateSettings = {
   responseType: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse
 };
 
+ConfigApi.UpdateSettingsYaml = {
+  methodName: "UpdateSettingsYaml",
+  service: ConfigApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsYamlRequest,
+  responseType: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse
+};
+
 ConfigApi.ListNamespaces = {
   methodName: "ListNamespaces",
   service: ConfigApi,
@@ -209,6 +218,37 @@ ConfigApiClient.prototype.updateSettings = function updateSettings(requestMessag
     callback = arguments[1];
   }
   var client = grpc.unary(ConfigApi.UpdateSettings, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ConfigApiClient.prototype.updateSettingsYaml = function updateSettingsYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ConfigApi.UpdateSettingsYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

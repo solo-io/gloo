@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -33,6 +34,7 @@ var (
 	licenseClient     *mock_license.MockClient
 	namespaceClient   *mock_namespace.MockNamespaceClient
 	clientCache       *mocks.MockClientCache
+	rawGetter         *mock_rawgetter.MockRawGetter
 	podNamespace      = "pod-ns"
 	testVersion       = setup.BuildVersion("test-version")
 	testOAuthEndpoint = v1.OAuthEndpoint{Url: "test", ClientName: "name"}
@@ -40,14 +42,28 @@ var (
 )
 
 var _ = Describe("ServiceTest", func() {
+	getDetails := func(settings *gloov1.Settings, raw *v1.Raw) *v1.SettingsDetails {
+		return &v1.SettingsDetails{
+			Settings: settings,
+			Raw:      raw,
+		}
+	}
+
+	getRaw := func(name string) *v1.Raw {
+		return &v1.Raw{
+			FileName: name + ".yaml",
+		}
+	}
+
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		settingsClient = mock_gloo.NewMockSettingsClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
 		clientCache = mocks.NewMockClientCache(mockCtrl)
+		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
 
-		server, err := configsvc.NewConfigGrpcService(context.TODO(), clientCache, licenseClient, namespaceClient, testOAuthEndpoint, testVersion, podNamespace)
+		server, err := configsvc.NewConfigGrpcService(context.TODO(), clientCache, licenseClient, namespaceClient, rawGetter, testOAuthEndpoint, testVersion, podNamespace)
 		Expect(err).NotTo(HaveOccurred())
 
 		apiserver = server
@@ -97,16 +113,22 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetSettings", func() {
 		It("works when the settings client works", func() {
-			settings := &gloov1.Settings{RefreshRate: &types.Duration{Seconds: 1}}
-
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			settings := &gloov1.Settings{RefreshRate: &types.Duration{Seconds: 1}, Metadata: metadata}
+			raw := getRaw(metadata.Name)
 			settingsClient.EXPECT().
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(settings, nil)
 			clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
-
+			rawGetter.EXPECT().
+				GetRaw(context.Background(), settings, gloov1.SettingsCrd).
+				Return(raw)
 			actual, err := apiserver.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetSettingsResponse{Settings: settings}
+			expected := &v1.GetSettingsResponse{SettingsDetails: getDetails(settings, raw)}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -145,6 +167,11 @@ var _ = Describe("ServiceTest", func() {
 				}
 			}
 			It("works", func() {
+				metadata := core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
+				}
+				raw := getRaw(metadata.Name)
 				refreshRate := types.Duration{Seconds: 1}
 				watchNamespaces := []string{"a", "b"}
 				request := &v1.UpdateSettingsRequest{
@@ -156,10 +183,13 @@ var _ = Describe("ServiceTest", func() {
 					Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
 					Return(writeSettings, nil)
 				clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
+				rawGetter.EXPECT().
+					GetRaw(context.Background(), writeSettings, gloov1.SettingsCrd).
+					Return(raw)
 
 				actual, err := apiserver.UpdateSettings(context.TODO(), request)
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateSettingsResponse{Settings: writeSettings}
+				expected := &v1.UpdateSettingsResponse{SettingsDetails: getDetails(writeSettings, raw)}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -190,6 +220,104 @@ var _ = Describe("ServiceTest", func() {
 				expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
+		})
+	})
+
+	Describe("UpdateSettingsYaml", func() {
+		BeforeEach(func() {
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
+		})
+
+		It("works on valid input", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			settings := &gloov1.Settings{
+				Metadata: metadata,
+			}
+			request := &v1.UpdateSettingsYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			settingsClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(settings, nil)
+			rawGetter.EXPECT().
+				GetRaw(context.TODO(), settings, gloov1.SettingsCrd).
+				Return(getRaw(metadata.Name))
+
+			clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
+			actual, err := apiserver.UpdateSettingsYaml(context.TODO(), request)
+			Expect(err).NotTo(HaveOccurred())
+			settingsDetails := &v1.SettingsDetails{
+				Settings: settings,
+				Raw:      getRaw(metadata.Name),
+			}
+			expected := &v1.UpdateSettingsResponse{
+				SettingsDetails: settingsDetails,
+			}
+			ExpectEqualProtoMessages(actual, expected)
+		})
+
+		It("errors with an invalid yaml", func() {
+			yamlString := "totally-invalid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateSettingsYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(testErr)
+
+			_, err := apiserver.UpdateSettingsYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := configsvc.FailedToParseSettingsFromYamlError(testErr)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		It("errors when the settings client errors", func() {
+			yamlString := "totally-valid-yaml"
+			metadata := core.Metadata{
+				Namespace: "ns",
+				Name:      "name",
+			}
+			ref := metadata.Ref()
+			request := &v1.UpdateSettingsYamlRequest{
+				EditedYamlData: &v1.EditedResourceYaml{
+					Ref:        &ref,
+					EditedYaml: yamlString,
+				},
+			}
+
+			rawGetter.EXPECT().
+				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				Return(nil)
+			settingsClient.EXPECT().
+				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+				Return(nil, testErr)
+
+			clientCache.EXPECT().GetSettingsClient().Return(settingsClient)
+			_, err := apiserver.UpdateSettingsYaml(context.TODO(), request)
+			Expect(err).To(HaveOccurred())
+			expectedErr := configsvc.FailedToUpdateSettingsError(testErr)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
 

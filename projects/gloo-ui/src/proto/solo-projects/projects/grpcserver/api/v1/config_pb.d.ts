@@ -4,6 +4,7 @@
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
 import * as gloo_projects_gloo_api_v1_settings_pb from "../../../../../gloo/projects/gloo/api/v1/settings_pb";
+import * as solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../solo-projects/projects/grpcserver/api/v1/types_pb";
 
 export class OAuthEndpoint extends jspb.Message {
   getUrl(): string;
@@ -103,6 +104,34 @@ export namespace GetOAuthEndpointResponse {
   }
 }
 
+export class SettingsDetails extends jspb.Message {
+  hasSettings(): boolean;
+  clearSettings(): void;
+  getSettings(): gloo_projects_gloo_api_v1_settings_pb.Settings | undefined;
+  setSettings(value?: gloo_projects_gloo_api_v1_settings_pb.Settings): void;
+
+  hasRaw(): boolean;
+  clearRaw(): void;
+  getRaw(): solo_projects_projects_grpcserver_api_v1_types_pb.Raw | undefined;
+  setRaw(value?: solo_projects_projects_grpcserver_api_v1_types_pb.Raw): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SettingsDetails.AsObject;
+  static toObject(includeInstance: boolean, msg: SettingsDetails): SettingsDetails.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SettingsDetails, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SettingsDetails;
+  static deserializeBinaryFromReader(message: SettingsDetails, reader: jspb.BinaryReader): SettingsDetails;
+}
+
+export namespace SettingsDetails {
+  export type AsObject = {
+    settings?: gloo_projects_gloo_api_v1_settings_pb.Settings.AsObject,
+    raw?: solo_projects_projects_grpcserver_api_v1_types_pb.Raw.AsObject,
+  }
+}
+
 export class GetSettingsRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetSettingsRequest.AsObject;
@@ -120,10 +149,10 @@ export namespace GetSettingsRequest {
 }
 
 export class GetSettingsResponse extends jspb.Message {
-  hasSettings(): boolean;
-  clearSettings(): void;
-  getSettings(): gloo_projects_gloo_api_v1_settings_pb.Settings | undefined;
-  setSettings(value?: gloo_projects_gloo_api_v1_settings_pb.Settings): void;
+  hasSettingsDetails(): boolean;
+  clearSettingsDetails(): void;
+  getSettingsDetails(): SettingsDetails | undefined;
+  setSettingsDetails(value?: SettingsDetails): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetSettingsResponse.AsObject;
@@ -137,7 +166,7 @@ export class GetSettingsResponse extends jspb.Message {
 
 export namespace GetSettingsResponse {
   export type AsObject = {
-    settings?: gloo_projects_gloo_api_v1_settings_pb.Settings.AsObject,
+    settingsDetails?: SettingsDetails.AsObject,
   }
 }
 
@@ -164,10 +193,10 @@ export namespace UpdateSettingsRequest {
 }
 
 export class UpdateSettingsResponse extends jspb.Message {
-  hasSettings(): boolean;
-  clearSettings(): void;
-  getSettings(): gloo_projects_gloo_api_v1_settings_pb.Settings | undefined;
-  setSettings(value?: gloo_projects_gloo_api_v1_settings_pb.Settings): void;
+  hasSettingsDetails(): boolean;
+  clearSettingsDetails(): void;
+  getSettingsDetails(): SettingsDetails | undefined;
+  setSettingsDetails(value?: SettingsDetails): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateSettingsResponse.AsObject;
@@ -181,7 +210,29 @@ export class UpdateSettingsResponse extends jspb.Message {
 
 export namespace UpdateSettingsResponse {
   export type AsObject = {
-    settings?: gloo_projects_gloo_api_v1_settings_pb.Settings.AsObject,
+    settingsDetails?: SettingsDetails.AsObject,
+  }
+}
+
+export class UpdateSettingsYamlRequest extends jspb.Message {
+  hasEditedYamlData(): boolean;
+  clearEditedYamlData(): void;
+  getEditedYamlData(): solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml | undefined;
+  setEditedYamlData(value?: solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateSettingsYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateSettingsYamlRequest): UpdateSettingsYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateSettingsYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateSettingsYamlRequest;
+  static deserializeBinaryFromReader(message: UpdateSettingsYamlRequest, reader: jspb.BinaryReader): UpdateSettingsYamlRequest;
+}
+
+export namespace UpdateSettingsYamlRequest {
+  export type AsObject = {
+    editedYamlData?: solo_projects_projects_grpcserver_api_v1_types_pb.EditedResourceYaml.AsObject,
   }
 }
 

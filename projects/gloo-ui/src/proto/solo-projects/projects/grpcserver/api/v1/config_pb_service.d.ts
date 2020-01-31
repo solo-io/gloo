@@ -49,6 +49,15 @@ type ConfigApiUpdateSettings = {
   readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse;
 };
 
+type ConfigApiUpdateSettingsYaml = {
+  readonly methodName: string;
+  readonly service: typeof ConfigApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsYamlRequest;
+  readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse;
+};
+
 type ConfigApiListNamespaces = {
   readonly methodName: string;
   readonly service: typeof ConfigApi;
@@ -74,6 +83,7 @@ export class ConfigApi {
   static readonly GetIsLicenseValid: ConfigApiGetIsLicenseValid;
   static readonly GetSettings: ConfigApiGetSettings;
   static readonly UpdateSettings: ConfigApiUpdateSettings;
+  static readonly UpdateSettingsYaml: ConfigApiUpdateSettingsYaml;
   static readonly ListNamespaces: ConfigApiListNamespaces;
   static readonly GetPodNamespace: ConfigApiGetPodNamespace;
 }
@@ -153,6 +163,15 @@ export class ConfigApiClient {
   ): UnaryResponse;
   updateSettings(
     requestMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsRequest,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse|null) => void
+  ): UnaryResponse;
+  updateSettingsYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse|null) => void
+  ): UnaryResponse;
+  updateSettingsYaml(
+    requestMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsYamlRequest,
     callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.UpdateSettingsResponse|null) => void
   ): UnaryResponse;
   listNamespaces(

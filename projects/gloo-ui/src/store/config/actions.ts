@@ -38,7 +38,7 @@ export const getSettings = () => {
       const response = await configAPI.getSettings();
       dispatch<GetSettingsAction>({
         type: ConfigAction.GET_SETTINGS,
-        payload: response
+        payload: response.settings!
       });
     } catch (error) {}
   };
@@ -107,7 +107,7 @@ export const updateWatchNamespaces = (updateWatchNamespacesRequest: {
       );
       dispatch<UpdateWatchNamespacesAction>({
         type: ConfigAction.UPDATE_WATCH_NAMESPACES,
-        payload: response.settings!
+        payload: response.settingsDetails?.settings!
       });
       // dispatch(hideLoading());
       dispatch<SuccessMessageAction>({
@@ -132,7 +132,7 @@ export const updateRefreshRate = (updateRefreshRateRequest: {
       );
       dispatch<UpdateRefreshRateAction>({
         type: ConfigAction.UPDATE_REFRESH_RATE,
-        payload: response.settings!
+        payload: response.settingsDetails?.settings!
       });
       // dispatch(hideLoading());
       dispatch<SuccessMessageAction>({
@@ -155,7 +155,7 @@ export const updateSettings = (
       const response = await configAPI.updateSettings(updateSettingsRequest);
       dispatch<UpdateSettingsAction>({
         type: ConfigAction.UPDATE_SETTINGS,
-        payload: response.settings!
+        payload: response.settingsDetails?.settings!
       });
       // dispatch(hideLoading());
       dispatch<SuccessMessageAction>({

@@ -6,6 +6,7 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "gloo/projects/gloo/api/v1/settings.proto";
+import "solo-projects/projects/grpcserver/api/v1/types.proto";
 
 message OAuthEndpoint {
     string url = 1;
@@ -24,18 +25,27 @@ message GetOAuthEndpointResponse {
     OAuthEndpoint o_auth_endpoint = 1;
 }
 
+message SettingsDetails {
+    gloo.solo.io.Settings settings = 1;
+    Raw raw = 2;
+}
+
 message GetSettingsRequest {}
 
 message GetSettingsResponse {
-    gloo.solo.io.Settings settings = 1;
+    SettingsDetails settings_details = 1;
 }
 
 message UpdateSettingsRequest {
-    gloo.solo.io.Settings settings = 4;
+    gloo.solo.io.Settings settings = 1;
 }
 
 message UpdateSettingsResponse {
-    gloo.solo.io.Settings settings = 1;
+    SettingsDetails settings_details = 1;
+}
+
+message UpdateSettingsYamlRequest {
+    EditedResourceYaml edited_yaml_data = 1;
 }
 
 message GetIsLicenseValidRequest {}
@@ -64,6 +74,7 @@ service ConfigApi {
 
     rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
     rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}
+    rpc UpdateSettingsYaml(UpdateSettingsYamlRequest) returns (UpdateSettingsResponse) {}
 
     // Returns a list of all available namespaces on the cluster.
     // This is NOT the same as WatchNamespaces in Settings.
