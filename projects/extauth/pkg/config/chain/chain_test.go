@@ -10,8 +10,8 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/ext-auth-plugins/api"
-	"github.com/solo-io/go-utils/errors"
 	chainmocks "github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain/mocks"
 )
 

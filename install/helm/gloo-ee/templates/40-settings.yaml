@@ -8,11 +8,10 @@ metadata:
     gloo: settings
   name: default
   namespace: {{ .Release.Namespace }}
-  annotations:
-    "helm.sh/hook": pre-install
 spec:
   gloo:
     xdsBindAddr: "0.0.0.0:{{ .Values.gloo.gloo.deployment.xdsPort }}"
+    disableKubernetesDestinations: {{ .Values.settings.disableKubernetesDestinations | default false }}
   {{- $releasenamespace := .Release.Namespace}}
   discoveryNamespace: {{ .Values.settings.writeNamespace | default $releasenamespace }}
   kubernetesArtifactSource: {}

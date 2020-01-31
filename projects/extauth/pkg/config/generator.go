@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/go-utils/hashutils"
 
 	"github.com/hashicorp/go-multierror"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/ext-auth-plugins/api"
-	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 

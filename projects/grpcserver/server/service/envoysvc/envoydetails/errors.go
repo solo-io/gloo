@@ -3,7 +3,7 @@ package envoydetails
 import (
 	"fmt"
 
-	"github.com/solo-io/go-utils/errors"
+	errors "github.com/rotisserie/eris"
 )
 
 // Go errors

@@ -9,9 +9,9 @@ import (
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
+	errors "github.com/rotisserie/eris"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/go-utils/errors"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"

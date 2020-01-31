@@ -1,7 +1,7 @@
 package grafana
 
 import (
-	"github.com/solo-io/go-utils/errors"
+	errors "github.com/rotisserie/eris"
 )
 
 var (

@@ -3753,7 +3753,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     awsOptions: (f = msg.getAwsOptions()) && proto.gloo.solo.io.GlooOptions.AWSOptions.toObject(includeInstance, f),
     invalidConfigPolicy: (f = msg.getInvalidConfigPolicy()) && proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.toObject(includeInstance, f),
     disableKubernetesDestinations: jspb.Message.getFieldWithDefault(msg, 7, false),
-    disableGrpcWeb: (f = msg.getDisableGrpcWeb()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    disableGrpcWeb: (f = msg.getDisableGrpcWeb()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3826,6 +3827,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDisableGrpcWeb(value);
+      break;
+    case 9:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setDisableProxyGarbageCollection(value);
       break;
     default:
       reader.skipField();
@@ -3913,6 +3919,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
   if (f != null) {
     writer.writeMessage(
       8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisableProxyGarbageCollection();
+  if (f != null) {
+    writer.writeMessage(
+      9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -4456,6 +4470,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearDisableGrpcWeb = function() {
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasDisableGrpcWeb = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue disable_proxy_garbage_collection = 9;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getDisableProxyGarbageCollection = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setDisableProxyGarbageCollection = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearDisableProxyGarbageCollection = function() {
+  this.setDisableProxyGarbageCollection(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasDisableProxyGarbageCollection = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

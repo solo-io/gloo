@@ -3,7 +3,7 @@ package rawgetter
 import (
 	"fmt"
 
-	"github.com/solo-io/go-utils/errors"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 

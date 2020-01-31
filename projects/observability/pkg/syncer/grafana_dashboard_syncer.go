@@ -9,8 +9,8 @@ import (
 
 	"github.com/avast/retry-go"
 	"github.com/hashicorp/go-multierror"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/errors"
 	v1 "github.com/solo-io/solo-projects/projects/observability/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"

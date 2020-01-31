@@ -1,0 +1,23 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.3.3
+  description: Update Gloo OS dependency to version 1.3.3.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.13.1
+  description: Update go-utils to version 0.13.1.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.6.5
+  description: Update ext-auth-service to version v0.6.5.
+- type: HELM
+  description: >
+    The Helm template for the `Settings` resource was defined as a `pre-install` Helm hook until now. This was done to
+    avoid races with the Gloo pods, which used to create a default `Settings` resource if none was present. Since we
+    removed this feature, the `Settings` template does not need to be a hook anymore. This change promotes it to a
+    regular Helm release resource.
+  issueLink: https://github.com/solo-io/gloo/issues/2317

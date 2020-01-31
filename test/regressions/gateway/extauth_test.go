@@ -13,8 +13,8 @@ import (
 
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 
+	errors "github.com/rotisserie/eris"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/go-utils/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"

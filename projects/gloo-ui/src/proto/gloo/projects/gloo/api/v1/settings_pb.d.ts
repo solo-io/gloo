@@ -582,6 +582,11 @@ export class GlooOptions extends jspb.Message {
   getDisableGrpcWeb(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setDisableGrpcWeb(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasDisableProxyGarbageCollection(): boolean;
+  clearDisableProxyGarbageCollection(): void;
+  getDisableProxyGarbageCollection(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableProxyGarbageCollection(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -602,6 +607,7 @@ export namespace GlooOptions {
     invalidConfigPolicy?: GlooOptions.InvalidConfigPolicy.AsObject,
     disableKubernetesDestinations: boolean,
     disableGrpcWeb?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    disableProxyGarbageCollection?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {

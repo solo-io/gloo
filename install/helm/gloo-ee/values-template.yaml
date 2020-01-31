@@ -7,6 +7,11 @@
 # Enable creation of the GlooE settings template, disable the Gloo one (see below)
 settings:
   create: true
+  # Gloo allows you to directly reference a Kubernetes service as a routing destination. To enable this feature,
+  # Gloo scans the cluster for Kubernetes services and creates a special type of in-memory Upstream to represent them.
+  # If the cluster contains a lot of services and you do not restrict the namespaces Gloo is watching, this can result
+  # in significant overhead. If you do not plan on using this feature, you can set this flag to true to turn it off.
+  disableKubernetesDestinations: false
 
 ########################################################################
 ###                                                                  ###

@@ -329,7 +329,7 @@ var _ = Describe("ServiceTest", func() {
 
 			Expect(response).To(BeNil())
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(Equal(gatewaysvc.FailedToParseGatewayFromYamlError(testErr, &ref)))
+			Expect(err).To(MatchError(gatewaysvc.FailedToParseGatewayFromYamlError(testErr, &ref)))
 		})
 	})
 

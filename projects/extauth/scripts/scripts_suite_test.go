@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/anyvendor/pkg/modutils"
-	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 
 	"github.com/gogo/protobuf/types"

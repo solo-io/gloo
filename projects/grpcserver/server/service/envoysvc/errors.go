@@ -1,6 +1,6 @@
 package envoysvc
 
-import "github.com/solo-io/go-utils/errors"
+import errors "github.com/rotisserie/eris"
 
 var (
 	FailedToListEnvoyDetailsError = func(err error) error {

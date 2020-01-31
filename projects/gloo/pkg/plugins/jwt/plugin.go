@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"sort"
 
+	errors "github.com/rotisserie/eris"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
-	"github.com/solo-io/go-utils/errors"
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"

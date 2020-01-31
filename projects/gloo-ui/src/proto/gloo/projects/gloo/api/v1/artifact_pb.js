@@ -13,7 +13,6 @@ var goog = jspb;
 var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../gogoproto/gogo_pb.js');
-var extproto_ext_pb = require('../../../../../protoc-gen-ext/extproto/ext_pb.js');
 var solo$kit_api_v1_metadata_pb = require('../../../../../solo-kit/api/v1/metadata_pb.js');
 var solo$kit_api_v1_solo$kit_pb = require('../../../../../solo-kit/api/v1/solo-kit_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.Artifact', null, global);
