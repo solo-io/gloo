@@ -189,6 +189,10 @@ var _ = Describe("Upstream Search Test", func() {
 				Name:      "upstream4",
 				Namespace: "ns",
 			}
+			upstreamFiveRef := &core.ResourceRef{
+				Name:      "upstream5",
+				Namespace: "ns-5",
+			}
 			virtualServiceOneMetadata := &core.Metadata{
 				Name:      "vs1",
 				Namespace: "ns",
@@ -204,6 +208,10 @@ var _ = Describe("Upstream Search Test", func() {
 			virtualServiceFourMetadata := &core.Metadata{
 				Name:      "vs4",
 				Namespace: "ns",
+			}
+			virtualServiceFiveMetadata := &core.Metadata{
+				Name:      "vs5",
+				Namespace: "ns-5",
 			}
 			testCases := []struct {
 				upstreamRef                      *core.ResourceRef
@@ -224,6 +232,10 @@ var _ = Describe("Upstream Search Test", func() {
 				{
 					upstreamRef:                      upstreamFourRef,
 					containingVirtualServiceMetadata: virtualServiceFourMetadata,
+				},
+				{
+					upstreamRef:                      upstreamFiveRef,
+					containingVirtualServiceMetadata: virtualServiceFiveMetadata,
 				},
 			}
 

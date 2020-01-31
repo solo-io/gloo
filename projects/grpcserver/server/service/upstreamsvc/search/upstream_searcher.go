@@ -3,6 +3,8 @@ package search
 import (
 	"context"
 
+	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 
@@ -18,6 +20,20 @@ import (
 type UpstreamSearcher interface {
 	// find the refs of all the virtual services that contain this upstream
 	FindContainingVirtualServices(ctx context.Context, upstreamRef *core.ResourceRef) ([]*core.ResourceRef, error)
+}
+
+// We define this interface to abstract both virtual services and route tables
+type resourceWithRoutes interface {
+	GetMetadata() core.Metadata
+	GetRoutes() []*gatewayv1.Route
+}
+
+type searchableVirtualService struct {
+	*gatewayv1.VirtualService
+}
+
+func (v *searchableVirtualService) GetRoutes() []*gatewayv1.Route {
+	return v.GetVirtualHost().GetRoutes()
 }
 
 type upstreamSearcher struct {
@@ -46,28 +62,28 @@ func (s *upstreamSearcher) FindContainingVirtualServices(ctx context.Context, up
 
 	var results []*core.ResourceRef
 
-	for _, virtualService := range allVirtualServices {
-		if virtualService.GetVirtualHost().GetRoutes() == nil {
+	for _, vs := range allVirtualServices {
+		if vs.GetVirtualHost().GetRoutes() == nil {
 			continue
 		}
 
-		virtualServiceRef := virtualService.GetMetadata().Ref()
+		vsRef := vs.GetMetadata().Ref()
 
-		found, err := s.searchRoutesForUpstream(virtualService.GetVirtualHost().GetRoutes(), allUpstreamGroups, allRouteTables, upstreamRef)
+		found, err := s.searchResourceForUpstream(&searchableVirtualService{vs}, allUpstreamGroups, allRouteTables, upstreamRef)
 
 		if err != nil {
 			return nil, err
 		}
 		if found {
-			results = append(results, &virtualServiceRef)
+			results = append(results, &vsRef)
 		}
 	}
 
 	return results, nil
 }
 
-func (s *upstreamSearcher) searchRoutesForUpstream(
-	routes []*gatewayv1.Route,
+func (s *upstreamSearcher) searchResourceForUpstream(
+	resource resourceWithRoutes,
 	allUpstreamGroups gloov1.UpstreamGroupList,
 	allRouteTables gatewayv1.RouteTableList,
 	upstreamRef *core.ResourceRef,
@@ -76,12 +92,13 @@ func (s *upstreamSearcher) searchRoutesForUpstream(
 		found bool
 		err   error
 	)
-	for _, route := range routes {
+outerLoop:
+	for _, route := range resource.GetRoutes() {
 		switch route.Action.(type) {
 		case *gatewayv1.Route_RouteAction:
 			found, err = s.searchRouteActionForUpstream(route.GetRouteAction(), allUpstreamGroups, upstreamRef)
 			if err != nil || found {
-				break
+				break outerLoop
 			}
 		// these next two types can't possibly reference an upstream
 		case *gatewayv1.Route_RedirectAction:
@@ -89,10 +106,17 @@ func (s *upstreamSearcher) searchRoutesForUpstream(
 		case *gatewayv1.Route_DirectResponseAction:
 			continue
 		case *gatewayv1.Route_DelegateAction:
-			routeTableRef := route.GetDelegateAction()
-			found, err = s.searchRouteTableForUpstream(routeTableRef, allUpstreamGroups, allRouteTables, upstreamRef)
-			if err != nil || found {
-				break
+			routeTablesToSearch, err := findDelegatedRouteTables(route.GetDelegateAction(), allRouteTables, resource.GetMetadata().Namespace)
+			if err != nil {
+				break outerLoop
+			}
+
+			for _, rt := range routeTablesToSearch {
+				// Recursive call
+				found, err = s.searchResourceForUpstream(rt, allUpstreamGroups, allRouteTables, upstreamRef)
+				if err != nil || found {
+					break outerLoop
+				}
 			}
 		default:
 			// allow deletions to happen in unknown cases, even if it gets a virtual service into a bad state
@@ -101,15 +125,6 @@ func (s *upstreamSearcher) searchRoutesForUpstream(
 	}
 
 	return found, err
-}
-
-func (s *upstreamSearcher) searchRouteTableForUpstream(routeTableRef *gatewayv1.DelegateAction, allUpstreamGroups gloov1.UpstreamGroupList, allRouteTables gatewayv1.RouteTableList, upstreamRef *core.ResourceRef) (bool, error) {
-	routeTable, err := allRouteTables.Find(routeTableRef.Namespace, routeTableRef.Name)
-	if err != nil {
-		return false, err
-	}
-
-	return s.searchRoutesForUpstream(routeTable.GetRoutes(), allUpstreamGroups, allRouteTables, upstreamRef)
 }
 
 func (s *upstreamSearcher) loadResources(ctx context.Context) (gatewayv1.VirtualServiceList, gloov1.UpstreamGroupList, gatewayv1.RouteTableList, error) {
@@ -187,4 +202,38 @@ func (s *upstreamSearcher) searchDestinationForUpstream(destination *gloov1.Dest
 		// only care about upstreams
 		return false
 	}
+}
+
+// Return the route tables that this action delegates to
+func findDelegatedRouteTables(
+	action *gatewayv1.DelegateAction,
+	allRouteTables gatewayv1.RouteTableList,
+	ownerNamespace string,
+) (result gatewayv1.RouteTableList, err error) {
+	if action == nil {
+		return
+	}
+
+	if name, namespace := action.Name, action.Namespace; name != "" || namespace != "" {
+		routeTable, err := allRouteTables.Find(namespace, name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, routeTable)
+
+	} else if ref := action.GetRef(); ref != nil {
+		routeTable, err := allRouteTables.Find(ref.Strings())
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, routeTable)
+
+	} else if selector := action.GetSelector(); selector != nil {
+		matchingRouteTables := translator.RouteTablesForSelector(allRouteTables, selector, ownerNamespace)
+		for _, rt := range matchingRouteTables {
+			result = append(result, rt)
+		}
+	}
+
+	return result, nil
 }

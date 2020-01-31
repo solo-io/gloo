@@ -5,16 +5,18 @@
       "namespace": "ns"
     },
     "virtualHost": {
-      "routes": [{
-        "routeAction": {
-          "single": {
-            "upstream": {
-              "name": "upstream1",
-              "namespace": "ns"
+      "routes": [
+        {
+          "routeAction": {
+            "single": {
+              "upstream": {
+                "name": "upstream1",
+                "namespace": "ns"
+              }
             }
           }
         }
-      }]
+      ]
     }
   },
   {
@@ -23,22 +25,24 @@
       "namespace": "ns"
     },
     "virtualHost": {
-      "routes": [{
-        "routeAction": {
-          "multi": {
-            "destinations": [
-              {
-              "destination": {
-                  "upstream": {
-                    "name": "upstream2",
-                    "namespace": "ns"
+      "routes": [
+        {
+          "routeAction": {
+            "multi": {
+              "destinations": [
+                {
+                  "destination": {
+                    "upstream": {
+                      "name": "upstream2",
+                      "namespace": "ns"
+                    }
                   }
                 }
-              }
-            ]
+              ]
+            }
           }
         }
-      }]
+      ]
     }
   },
   {
@@ -47,14 +51,16 @@
       "namespace": "ns"
     },
     "virtualHost": {
-      "routes": [{
-        "routeAction": {
-          "upstreamGroup": {
-            "name": "upstream-group",
-            "namespace": "ns"
+      "routes": [
+        {
+          "routeAction": {
+            "upstreamGroup": {
+              "name": "upstream-group",
+              "namespace": "ns"
+            }
           }
         }
-      }]
+      ]
     }
   },
   {
@@ -63,12 +69,54 @@
       "namespace": "ns"
     },
     "virtualHost": {
-      "routes": [{
-        "delegateAction": {
-          "name": "route-table-1",
-          "namespace": "ns"
+      "routes": [
+        {
+          "delegateAction": {
+            "name": "route-table-1",
+            "namespace": "ns"
+          }
         }
-      }]
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "name": "vs5",
+      "namespace": "ns-5"
+    },
+    "virtualHost": {
+      "routes": [
+        {
+          "delegateAction": {
+            "selector": {
+              "labels": {
+                "foo": "bar"
+              },
+              "namespaces": ["*"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "name": "vs6",
+      "namespace": "ns-5"
+    },
+    "virtualHost": {
+      "routes": [
+        {
+          "delegateAction": {
+            "selector": {
+              "labels": {
+                "foo": "bar"
+              },
+              "namespaces": []
+            }
+          }
+        }
+      ]
     }
   }
 ]

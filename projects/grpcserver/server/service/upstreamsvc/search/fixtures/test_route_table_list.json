@@ -4,15 +4,56 @@
       "name": "route-table-1",
       "namespace": "ns"
     },
-    "routes": [{
-      "routeAction": {
-        "single": {
-          "upstream": {
-            "name": "upstream4",
-            "namespace": "ns"
+    "routes": [
+      {
+        "routeAction": {
+          "single": {
+            "upstream": {
+              "name": "upstream4",
+              "namespace": "ns"
+            }
           }
         }
       }
-    }]
+    ]
+  },
+  {
+    "metadata": {
+      "name": "route-table-2",
+      "namespace": "ns-5"
+    },
+    "routes": [
+      {
+        "routeAction": {
+          "single": {
+            "upstream": {
+              "name": "upstream5",
+              "namespace": "ns-5"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "name": "route-table-3",
+      "namespace": "ns-6",
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "routes": [
+      {
+        "routeAction": {
+          "single": {
+            "upstream": {
+              "name": "upstream5",
+              "namespace": "ns-5"
+            }
+          }
+        }
+      }
+    ]
   }
 ]

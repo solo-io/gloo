@@ -301,9 +301,23 @@ export function setInputRouteValues(route: Route.AsObject) {
     // updatedRoute.setDirectResponseAction();
 
     if (route.delegateAction !== undefined) {
+      let routeTableRef = new ResourceRef();
+
+      // Handle deprecated route table ref format
+      // TODO: handle selector
+      if (
+        route.delegateAction.name !== '' ||
+        route.delegateAction.namespace !== ''
+      ) {
+        routeTableRef.setName(route.delegateAction.name);
+        routeTableRef.setNamespace(route.delegateAction.namespace);
+      } else if (route.delegateAction.ref !== undefined) {
+        routeTableRef.setName(route.delegateAction.ref.name);
+        routeTableRef.setNamespace(route.delegateAction.ref.namespace);
+      }
+
       let delegateAction = new DelegateAction();
-      delegateAction.setName(route.delegateAction.name);
-      delegateAction.setNamespace(route.delegateAction.namespace);
+      delegateAction.setRef(routeTableRef);
 
       updatedRoute.setDelegateAction(delegateAction);
     }

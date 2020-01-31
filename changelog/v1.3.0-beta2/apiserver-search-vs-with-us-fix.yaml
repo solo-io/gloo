@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Update logic to find all Virtual Services that contain a given Upstream in the apiserver to take into account the
+    fact that a delegated route can not match multiple Route Tables.
