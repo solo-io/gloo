@@ -1,0 +1,9 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      On the VirtualService and RouteTable details views, the admin UI now displays 
+      the number of route tables that match a delegated route which uses a RouteTable selector. 
+      By hovering over the text, you display details about the selector and navigate to any 
+      of the matching RouteTables.
+    issueLink: https://github.com/solo-io/gloo/issues/2054
+    resolvesIssue: false

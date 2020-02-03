@@ -1,19 +1,21 @@
 import css from '@emotion/css';
 import styled from '@emotion/styled';
-import { Popconfirm, Popover } from 'antd';
+import { Popconfirm, Popover, Tag } from 'antd';
 import { ReactComponent as GlooIcon } from 'assets/GlooEE.svg';
 import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
-import { ReactComponent as UpstreamGroupLogo } from 'assets/upstream-group-icon.svg';
 import RT from 'assets/route-table-icon.png';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as UpstreamGroupLogo } from 'assets/upstream-group-icon.svg';
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
+
 import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
 import * as React from 'react';
 import { shallowEqual, useDispatch } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { updateRouteTable } from 'store/routeTables/actions';
 import { routeTableAPI } from 'store/routeTables/api';
+import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { upstreamAPI } from 'store/upstreams/api';
 import { deleteRoute, shiftRoutes } from 'store/virtualServices/actions';
 import { colors, TableActionCircle, TableActions } from 'Styles';
@@ -28,7 +30,9 @@ import {
 } from 'utils/helpers';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
 import { RouteParent } from '../RouteTableDetails';
-import { upstreamGroupAPI } from 'store/upstreamGroups/api';
+import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+
 const RouteMatch = styled.div`
   max-width: 200px;
   max-height: 70px;
@@ -63,17 +67,15 @@ const RouteTablePopoverContainer = css`
   display: grid;
   grid-template-areas:
     'matcher destination'
-    'content content';
-  grid-template-columns: 1fr 3fr;
+    'content content-2';
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 24px 1fr;
-  grid-gap: 10px;
+  grid-gap: 5px;
 `;
 
 const RouteTablePopoverRoutesContainer = css`
   grid-area: content;
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  grid-column-gap: 10px;
+  grid-column-gap: 5px;
 `;
 interface Props {
   routes: Route.AsObject[];
@@ -81,7 +83,12 @@ interface Props {
   deleteRouteFromRouteTable?: (matcher: string) => void;
 }
 
-const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
+const DestinationIcon: React.FC<{
+  route: Route.AsObject;
+  routeTable?: RouteTable.AsObject;
+  multipleRouteTables?: RouteTableDetails.AsObject[];
+}> = props => {
+  const { route, routeTable, multipleRouteTables } = props;
   let icon = <GlooIcon style={{ width: '20px', paddingRight: '5px' }} />;
   let destination = '';
   const { data: upstreamsList, error } = useSWR(
@@ -95,7 +102,7 @@ const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
   if (!upstreamsList) {
     return <div>Loading...</div>;
   }
-  if (route.routeAction !== undefined) {
+  if (!!route && route?.routeAction !== undefined) {
     if (route.routeAction?.single !== undefined) {
       let upstreamDestination = upstreamsList.find(
         upstreamDetails =>
@@ -109,34 +116,66 @@ const DestinationIcon: React.FC<{ route: Route.AsObject }> = ({ route }) => {
         icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
       }
 
-      destination = getRouteSingleUpstream(route);
-    } else if (route.routeAction?.upstreamGroup !== undefined) {
-      let upstreamGroupDestination = upstreamGroupsList?.find(
-        upstreamGroupDetails =>
-          upstreamGroupDetails?.upstreamGroup?.metadata?.name ===
-          route?.routeAction?.upstreamGroup?.name
-      );
-      destination = upstreamGroupDestination?.upstreamGroup?.metadata?.name!;
-      icon = (
-        <UpstreamGroupLogo style={{ width: '25px', paddingRight: '5px' }} />
-      );
+      if (route?.routeAction !== undefined) {
+        let upstreamDestination = upstreamsList.find(
+          upstreamDetails =>
+            upstreamDetails?.upstream?.metadata?.name ===
+            route?.routeAction?.single?.upstream?.name
+        );
+        let upstreamSpec = upstreamDestination?.upstream;
+        if (upstreamSpec !== undefined) {
+          icon = getIconFromSpec(upstreamSpec);
+        } else {
+          icon = <KubeLogo style={{ width: '20px', paddingRight: '5px' }} />;
+        }
+
+        destination = getRouteSingleUpstream(route);
+      } else if (route?.routeAction!.upstreamGroup !== undefined) {
+        let upstreamGroupDestination = upstreamGroupsList?.find(
+          upstreamGroupDetails =>
+            upstreamGroupDetails?.upstreamGroup?.metadata?.name ===
+            route?.routeAction?.upstreamGroup?.name
+        );
+        destination = upstreamGroupDestination?.upstreamGroup?.metadata?.name!;
+        icon = (
+          <UpstreamGroupLogo style={{ width: '25px', paddingRight: '5px' }} />
+        );
+      }
     }
   }
-  if (route.delegateAction !== undefined) {
+  if (
+    route?.delegateAction !== undefined &&
+    route?.delegateAction?.ref !== undefined
+  ) {
     icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
-    destination = route.delegateAction.name;
+    destination = route.delegateAction?.ref?.name;
   }
+  if (!!routeTable && routeTable?.metadata?.name) {
+    icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
+    destination = routeTable?.metadata?.name;
+  }
+  if (!!multipleRouteTables) {
+    if (multipleRouteTables.length === 1) {
+      icon = <img src={RT} style={{ width: '25px', paddingRight: '5px' }} />;
+      destination = multipleRouteTables[0].routeTable?.metadata?.name || '';
+    } else {
+      destination = `${multipleRouteTables.length} Route Tables`;
+    }
+  }
+
   return (
-    <div
-      css={css`
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-      `}>
-      {icon}
-      {destination}
-    </div>
+    <>
+      <div
+        css={css`
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+        `}>
+        {icon}
+        {destination}
+      </div>
+    </>
   );
 };
 
@@ -146,7 +185,7 @@ function checkRoutesProps(
 ): boolean {
   return shallowEqual(oldProps.routes, newProps.routes);
 }
-export const Routes: React.FC<Props> = React.memo(props => {
+export const Routes: React.FC<Props> = props => {
   const { data: upstreamsList, error: upstreamError } = useSWR(
     'listUpstreams',
     upstreamAPI.listUpstreams
@@ -216,11 +255,70 @@ export const Routes: React.FC<Props> = React.memo(props => {
           upstreamGroupDestination?.namespace
     );
     // get the routes of the route table
-    const previewRouteTable = routeTablesList?.find(
+
+    // TODO: replace this logic with a call to apiserver to avoid duplication
+    let matchedRouteTables = routeTablesList?.filter(routeTable => {
+      if (!!routeTableDestination?.name || !!routeTableDestination?.namespace) {
+        // this means there is a single route table matched, so
+        return (
+          routeTable?.routeTable?.metadata?.name ===
+            routeTableDestination?.name &&
+          routeTable?.routeTable?.metadata?.namespace ===
+            routeTableDestination?.namespace
+        );
+      } else if (!!routeTableDestination?.ref) {
+        return (
+          routeTable?.routeTable?.metadata?.name ===
+            routeTableDestination?.ref?.name &&
+          routeTable?.routeTable?.metadata?.namespace ===
+            routeTableDestination?.ref?.namespace
+        );
+      } else if (!!routeTableDestination?.selector) {
+        if (!!routeTableDestination?.selector?.labelsMap) {
+          let labelsMatch = routeTableDestination?.selector?.labelsMap.every(
+            ([key, val]) =>
+              routeTable.routeTable?.metadata?.labelsMap.some(
+                ([key2, val2]) => key === key2 && val === val2
+              )
+          );
+          if (!labelsMatch) {
+            return false;
+          }
+        }
+
+        let nsList = routeTableDestination?.selector?.namespacesList;
+        if (Array.isArray(nsList) && nsList.length) {
+          let hasAllSelector = routeTableDestination.selector?.namespacesList.includes(
+            '*'
+          );
+          let matchesNs = routeTableDestination.selector.namespacesList.includes(
+            routeTable?.routeTable?.metadata?.namespace!
+          );
+          return matchesNs || hasAllSelector;
+        } else {
+          // if namespaces is [], only check route tables in the same ns as the route parent
+          return (
+            routeTable?.routeTable?.metadata?.namespace ===
+            routeParentRef.namespace
+          );
+        }
+      }
+
+      return false;
+    });
+
+    // get the routes of the route table
+    //can match either by name/namespace or by selector, so could match more than one rt
+    let previewRouteTable = routeTablesList?.find(
       rt =>
-        rt?.routeTable?.metadata?.name === routeTableDestination?.name &&
-        rt?.routeTable?.metadata?.namespace === routeTableDestination?.namespace
+        (rt?.routeTable?.metadata?.name === routeTableDestination?.name &&
+          rt?.routeTable?.metadata?.namespace ===
+            routeTableDestination?.namespace) ||
+        (rt?.routeTable?.metadata?.name === routeTableDestination?.ref?.name &&
+          rt?.routeTable?.metadata?.namespace ===
+            routeTableDestination?.ref?.namespace)
     );
+
     // if its a route or an upstream
     // get type
     let type: 'Upstream' | 'Upstream Group' | 'Route Table';
@@ -234,7 +332,100 @@ export const Routes: React.FC<Props> = React.memo(props => {
 
     let content;
     if (type === 'Route Table') {
-      content = (
+      content = !!routeTableDestination?.selector ? (
+        <Popover
+          placement='bottom'
+          title='Selector'
+          content={
+            <>
+              <div css={RouteTablePopoverContainer}>
+                <div
+                  css={css`
+                    grid-area: matcher;
+                  `}>
+                  Labels
+                </div>
+                <div
+                  css={css`
+                    grid-area: destination;
+                  `}>
+                  Namespaces
+                </div>
+                <div css={RouteTablePopoverRoutesContainer}>
+                  <>
+                    <div>
+                      {routeTableDestination?.selector?.labelsMap.map(
+                        ([key, val]) => (
+                          <Tag key={`${key}-${val}`} color='blue'>
+                            {key}: {val}
+                          </Tag>
+                        )
+                      )}
+                    </div>
+                  </>
+                </div>
+                <div
+                  css={css`
+                    grid-area: content-2;
+                    grid-column-gap: 5px;
+                  `}>
+                  <>
+                    <div>
+                      {routeTableDestination?.selector?.namespacesList.map(
+                        ns => (
+                          <Tag key={`${ns}`} color='blue'>
+                            {ns}
+                          </Tag>
+                        )
+                      )}
+                    </div>
+                  </>
+                </div>
+              </div>
+              <div
+                css={css`
+                  margin-top: 10px;
+                `}>
+                <div
+                  css={css`
+                    margin-bottom: 5px;
+                  `}>
+                  Matching Route Tables
+                </div>
+                <div>
+                  {matchedRouteTables?.map(matchedRT => (
+                    <NavLink
+                      to={`/routetables/${matchedRT?.routeTable?.metadata?.namespace}/${matchedRT?.routeTable?.metadata?.name}`}>
+                      <div
+                        css={css`
+                          color: #2196c9;
+                          cursor: pointer;
+                          font-weight: bold;
+                        `}>
+                        <DestinationIcon
+                          route={route}
+                          routeTable={matchedRT.routeTable!}
+                        />
+                      </div>
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            </>
+          }>
+          <div
+            css={css`
+              color: #2196c9;
+              cursor: pointer;
+              font-weight: bold;
+            `}>
+            <DestinationIcon
+              route={route}
+              multipleRouteTables={matchedRouteTables}
+            />
+          </div>
+        </Popover>
+      ) : (
         <Popover
           placement='bottom'
           content={
@@ -254,7 +445,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
                 </div>
                 <div css={RouteTablePopoverRoutesContainer}>
                   {previewRouteTable?.routeTable?.routesList.map(route => (
-                    <React.Fragment key={`${route.matchersList[0]?.prefix}`}>
+                    <>
                       <div
                         css={css`
                           display: flex;
@@ -266,7 +457,7 @@ export const Routes: React.FC<Props> = React.memo(props => {
                       </div>
 
                       <DestinationIcon route={route} />
-                    </React.Fragment>
+                    </>
                   ))}
                 </div>
               </div>
@@ -589,4 +780,4 @@ export const Routes: React.FC<Props> = React.memo(props => {
       </SoloModal> */}
     </>
   );
-}, checkRoutesProps);
+};
