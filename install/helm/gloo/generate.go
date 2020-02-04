@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
+	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/go-utils/installutils/helmchart"
 	"github.com/solo-io/go-utils/log"

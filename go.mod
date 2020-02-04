@@ -46,13 +46,12 @@ require (
 	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
 	github.com/opencontainers/go-digest v1.0.0-rc1
-	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
-	github.com/rotisserie/eris v0.2.1
+	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f
 	github.com/solo-io/go-utils v0.11.7
