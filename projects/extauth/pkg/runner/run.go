@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/loggingutils"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	_struct "github.com/golang/protobuf/ptypes/struct"
@@ -72,14 +73,14 @@ func RunWithSettings(ctx context.Context, clientSettings Settings) error {
 }
 
 func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth.Server) error {
-	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+	logger := contextutils.LoggerFrom(ctx)
+	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}), grpc.UnaryInterceptor(loggingutils.GrpcUnaryServerLoggerInterceptor(logger)))
 
 	pb.RegisterAuthorizationServer(srv, service)
 	hc := healthchecker.NewGrpc(clientSettings.ServiceName, health.NewServer())
 	healthpb.RegisterHealthServer(srv, hc.GetServer())
 	reflection.Register(srv)
 
-	logger := contextutils.LoggerFrom(ctx)
 	logger.Infow("Starting ext-auth server")
 
 	err := StartExtAuthWithGrpcServer(ctx, clientSettings, service)
