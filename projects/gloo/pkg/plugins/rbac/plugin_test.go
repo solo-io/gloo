@@ -55,7 +55,7 @@ var _ = Describe("Plugin", func() {
 					}},
 					Permissions: &rbac.Permissions{
 						PathPrefix: "/foo",
-						Methods:    []string{"GET"},
+						Methods:    []string{"GET", "POST"},
 					},
 				},
 			},
@@ -132,14 +132,28 @@ var _ = Describe("Plugin", func() {
 								},
 							},
 						}, {
-							Rule: &envoycfgauthz.Permission_Header{
-								Header: &envoyroute.HeaderMatcher{
-									Name: ":method",
-									HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
-										ExactMatch: "GET",
-									},
-								},
-							},
+							Rule: &envoycfgauthz.Permission_OrRules{
+								OrRules: &envoycfgauthz.Permission_Set{
+									Rules: []*envoycfgauthz.Permission{{
+										Rule: &envoycfgauthz.Permission_Header{
+											Header: &envoyroute.HeaderMatcher{
+												Name: ":method",
+												HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
+													ExactMatch: "GET",
+												},
+											},
+										},
+									}, {
+										Rule: &envoycfgauthz.Permission_Header{
+											Header: &envoyroute.HeaderMatcher{
+												Name: ":method",
+												HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
+													ExactMatch: "POST",
+												},
+											},
+										},
+									}},
+								}},
 						}},
 					},
 				},

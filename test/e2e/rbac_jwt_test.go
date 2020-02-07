@@ -47,8 +47,9 @@ const (
 	issuer   = "issuer"
 	audience = "thats-us"
 
-	admin = "admin"
-	user  = "user"
+	admin  = "admin"
+	editor = "editor"
+	user   = "user"
 )
 
 func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
@@ -411,6 +412,13 @@ var _ = Describe("JWT + RBAC", func() {
 
 		})
 
+		Context("editor user", func() {
+			It("should allow most things", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addToken(req, "editor") })
+			})
+		})
+
 		Context("admin user", func() {
 			It("should allow everything", func() {
 				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
@@ -470,6 +478,20 @@ func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef
 				Permissions: &rbac.Permissions{
 					PathPrefix: "/foo",
 					Methods:    []string{"GET"},
+				},
+			},
+			"editor": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"iss": issuer,
+							"sub": editor,
+						},
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/foo",
+					Methods:    []string{"GET", "POST"},
 				},
 			},
 			"admin": {

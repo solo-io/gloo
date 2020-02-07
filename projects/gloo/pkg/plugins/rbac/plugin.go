@@ -128,6 +128,33 @@ func translateRbac(ctx context.Context, vhostname string, userPolicies map[strin
 	}
 	return res, nil
 }
+func translatedMethods(methods []string) *envoycfgauthz.Permission {
+	var allPermissions []*envoycfgauthz.Permission
+	for _, method := range methods {
+		allPermissions = append(allPermissions, &envoycfgauthz.Permission{
+			Rule: &envoycfgauthz.Permission_Header{
+				Header: &envoyroute.HeaderMatcher{
+					Name: ":method",
+					HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
+						ExactMatch: method,
+					},
+				},
+			},
+		})
+	}
+
+	if len(allPermissions) == 1 {
+		return allPermissions[0]
+	}
+
+	return &envoycfgauthz.Permission{
+		Rule: &envoycfgauthz.Permission_OrRules{
+			OrRules: &envoycfgauthz.Permission_Set{
+				Rules: allPermissions,
+			},
+		},
+	}
+}
 
 func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *envoycfgauthz.Policy {
 	outPolicy := &envoycfgauthz.Policy{}
@@ -138,8 +165,8 @@ func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *env
 		}
 	}
 
+	var allPermissions []*envoycfgauthz.Permission
 	if permission := p.GetPermissions(); permission != nil {
-		var allPermissions []*envoycfgauthz.Permission
 		if permission.PathPrefix != "" {
 			allPermissions = append(allPermissions, &envoycfgauthz.Permission{
 				Rule: &envoycfgauthz.Permission_Header{
@@ -154,38 +181,26 @@ func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *env
 		}
 
 		if len(permission.Methods) != 0 {
-			for _, method := range permission.Methods {
-				allPermissions = append(allPermissions, &envoycfgauthz.Permission{
-					Rule: &envoycfgauthz.Permission_Header{
-						Header: &envoyroute.HeaderMatcher{
-							Name: ":method",
-							HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
-								ExactMatch: method,
-							},
-						},
-					},
-				})
-			}
+			allPermissions = append(allPermissions, translatedMethods(permission.Methods))
 		}
+	}
 
-		if len(allPermissions) == 0 {
-			outPolicy.Permissions = []*envoycfgauthz.Permission{{
-				Rule: &envoycfgauthz.Permission_Any{
-					Any: true,
+	if len(allPermissions) == 0 {
+		outPolicy.Permissions = []*envoycfgauthz.Permission{{
+			Rule: &envoycfgauthz.Permission_Any{
+				Any: true,
+			},
+		}}
+	} else if len(allPermissions) == 1 {
+		outPolicy.Permissions = []*envoycfgauthz.Permission{allPermissions[0]}
+	} else {
+		outPolicy.Permissions = []*envoycfgauthz.Permission{{
+			Rule: &envoycfgauthz.Permission_AndRules{
+				AndRules: &envoycfgauthz.Permission_Set{
+					Rules: allPermissions,
 				},
-			}}
-		} else if len(allPermissions) == 1 {
-			outPolicy.Permissions = []*envoycfgauthz.Permission{allPermissions[0]}
-		} else {
-			outPolicy.Permissions = []*envoycfgauthz.Permission{{
-				Rule: &envoycfgauthz.Permission_AndRules{
-					AndRules: &envoycfgauthz.Permission_Set{
-						Rules: allPermissions,
-					},
-				},
-			}}
-		}
-
+			},
+		}}
 	}
 
 	return outPolicy

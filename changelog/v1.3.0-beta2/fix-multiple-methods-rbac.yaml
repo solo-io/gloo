@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Fixes an issue where specifying multiple HTTP methods in an RBAC role would restrict traffic to that role.
+  issueLink: https://github.com/solo-io/gloo/issues/2371
