@@ -17,8 +17,11 @@ var (
 )
 
 func RunContainer(containerName string, args []string) error {
+	updatedContainerName := getUpdatedContainerName(containerName)
+	runArgs := []string{"run", "--name", updatedContainerName}
+	runArgs = append(runArgs, args...)
 	fmt.Fprintln(ginkgo.GinkgoWriter, args)
-	cmd := exec.Command("docker", args...)
+	cmd := exec.Command("docker", runArgs...)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
 	err := cmd.Run()
@@ -30,7 +33,8 @@ func RunContainer(containerName string, args []string) error {
 
 // Returns an empty string if the container does not exist
 func ContainerExistsWithName(containerName string) string {
-	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+containerName+"$")
+	updatedContainerName := getUpdatedContainerName(containerName)
+	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+updatedContainerName+"$")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cmd.Run() [%s %s] failed with %s\n", cmd.Path, cmd.Args, err)
@@ -45,7 +49,8 @@ func MustStopContainer(containerName string) {
 }
 
 func StopContainer(containerName string) error {
-	cmd := exec.Command("docker", "kill", containerName)
+	updatedContainerName := getUpdatedContainerName(containerName)
+	cmd := exec.Command("docker", "kill", updatedContainerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
 	err := cmd.Run()
@@ -63,6 +68,14 @@ func RunningInDocker() bool {
 	return true
 }
 
+func GetDockerHost(containerName string) string {
+	if RunningInDocker() {
+		return getUpdatedContainerName(containerName)
+	} else {
+		return "127.0.0.1"
+	}
+}
+
 func GetContainerNetwork() string {
 	network := dockerDefaultNetwork
 	if RunningInDocker() {
@@ -70,6 +83,17 @@ func GetContainerNetwork() string {
 		network = "cloudbuild"
 	}
 	return network
+}
+
+func getUpdatedContainerName(containerName string) string {
+	gcloudId := os.Getenv("GCLOUD_BUILD_ID")
+	if len(gcloudId) > 0 {
+		// we are running in CI - let's suffix our container with gcloud build ID
+		// so a concurrent build on the host doesn't try to create a container with
+		// a conflicting name
+		return containerName + "_" + gcloudId
+	}
+	return containerName
 }
 
 // If docker containers are running on the same host and their own docker cli is configured on the same

@@ -1,0 +1,6 @@
+# Ignore all files because we will clone repo in CI anyways
+/[!.]*
+/.?*
+
+# Except the ssh creds we need to clone the repo
+!ci*

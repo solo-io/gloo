@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Fixes an issue where concurrent DynamoDb tests could fail each other by starting/killing containers on the
+      docker host (build VM) with the same name.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1440

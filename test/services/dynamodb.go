@@ -13,7 +13,7 @@ const (
 
 func RunDynamoDbContainer() error {
 	image := "amazon/dynamodb-local:latest"
-	args := []string{"run", "-d", "--rm", "--name", DynamoDbContainerName,
+	args := []string{"-d", "--rm",
 		// we need to port-forward to docker host for locally running tests
 		// (i.e., e2e tests not in docker on the same network)
 		"-p", DynamoDbPort + ":" + DynamoDbPort,
@@ -24,11 +24,7 @@ func RunDynamoDbContainer() error {
 }
 
 func GetDynamoDbHost() string {
-	if RunningInDocker() {
-		return DynamoDbContainerName
-	} else {
-		return "127.0.0.1"
-	}
+	return GetDockerHost(DynamoDbContainerName)
 }
 
 type HealthCheck struct {
