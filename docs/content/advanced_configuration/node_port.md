@@ -4,9 +4,7 @@ weight: 30
 description: Exposing Gloo's listeners on a Kubernetes Service Node Port
 ---
 
-## Motivation
-By default, microservices deployed in Kubernetes have an internal flat network that is not accessible from the outside
-of the cluster. This is true even if you use Kubernetes on a public cloud (like Amazon AWS or Google Cloud).
+By default, microservices deployed in Kubernetes have an internal flat network that is not accessible from the outside of the cluster. This is true even if you use Kubernetes on a public cloud (like Amazon AWS or Google Cloud).
 
 A NodePort service is a way to make Kubernetes services available from outside the cluster (and potentially allow access from the internet) by opening ports on all of the nodes in the cluster and allowing traffic to go directly to the pods running within the cluster.
 
@@ -19,8 +17,10 @@ In this document, we will review how to expose Gloo via a NodePort service. It's
 
 See [this article](https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0) for more.
 
+---
 
 ## What is NodePort Service?
+
 A Kubernetes cluster is composed of one or more nodes. A node VM is a (most likely) Linux machine (can be a virtual machine or bare-metal) that actually runs the Kubernetes pods. 
 
 When a Kubernetes service is created with NodePort type, Kubernetes chooses a port number and assigns it to the service. In addition, every node in the cluster is configured to forward traffic from this port to the pods belonging service.
@@ -28,6 +28,8 @@ When a Kubernetes service is created with NodePort type, Kubernetes chooses a po
 This allows you to access the service simply by connecting to a `node-ip:node-port` where `node-ip` is the ip of any node in the cluster, and `node-port` is the NodePort assigned by Kubernetes.
 
 One advantage of using a NodePort is that it allows relatively easy deployment on bare metal, as it does not depend on any load-balancing component outside the cluster.
+
+---
 
 ## How to use Gloo with NodePort?
 
@@ -82,5 +84,3 @@ kubectl -n gloo-system expose deploy/gateway-proxy \
 ```
 
 Note, if we manually expose it like this, we will only get a single port exposed. By default Gloo will use two ports, one for HTTP and one for HTTPS traffic. If you need to expose two ports, then you can do this directly in a `yaml` file.
-
-
