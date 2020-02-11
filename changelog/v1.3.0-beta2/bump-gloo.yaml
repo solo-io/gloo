@@ -1,11 +1,6 @@
 changelog:
 - type: DEPENDENCY_BUMP
   dependencyOwner: solo-io
-  dependencyRepo: gloo
-  dependencyTag: v1.3.3
-  description: Update Gloo OS dependency to version 1.3.3.
-- type: DEPENDENCY_BUMP
-  dependencyOwner: solo-io
   dependencyRepo: go-utils
   dependencyTag: v0.13.1
   description: Update go-utils to version 0.13.1.

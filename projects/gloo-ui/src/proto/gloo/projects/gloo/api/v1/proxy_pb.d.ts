@@ -291,6 +291,9 @@ export class Route extends jspb.Message {
   getMetadata(): google_protobuf_struct_pb.Struct | undefined;
   setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
+  getName(): string;
+  setName(value: string): void;
+
   getActionCase(): Route.ActionCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Route.AsObject;
@@ -310,6 +313,7 @@ export namespace Route {
     directResponseAction?: DirectResponseAction.AsObject,
     options?: gloo_projects_gloo_api_v1_options_pb.RouteOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
+    name: string,
   }
 
   export enum ActionCase {

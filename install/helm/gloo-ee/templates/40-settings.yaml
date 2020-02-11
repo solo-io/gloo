@@ -12,6 +12,7 @@ spec:
   gloo:
     xdsBindAddr: "0.0.0.0:{{ .Values.gloo.gloo.deployment.xdsPort }}"
     disableKubernetesDestinations: {{ .Values.settings.disableKubernetesDestinations | default false }}
+    disableProxyGarbageCollection: {{ .Values.settings.disableProxyGarbageCollection | default false }}
   {{- $releasenamespace := .Release.Namespace}}
   discoveryNamespace: {{ .Values.settings.writeNamespace | default $releasenamespace }}
   kubernetesArtifactSource: {}

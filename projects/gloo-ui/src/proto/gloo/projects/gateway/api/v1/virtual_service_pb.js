@@ -686,7 +686,8 @@ proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
     redirectAction: (f = msg.getRedirectAction()) && gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
     delegateAction: (f = msg.getDelegateAction()) && proto.gateway.solo.io.DelegateAction.toObject(includeInstance, f),
-    options: (f = msg.getOptions()) && gloo_projects_gloo_api_v1_options_pb.RouteOptions.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && gloo_projects_gloo_api_v1_options_pb.RouteOptions.toObject(includeInstance, f),
+    name: jspb.Message.getFieldWithDefault(msg, 7, "")
   };
 
   if (includeInstance) {
@@ -752,6 +753,10 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
       var value = new gloo_projects_gloo_api_v1_options_pb.RouteOptions;
       reader.readMessage(value,gloo_projects_gloo_api_v1_options_pb.RouteOptions.deserializeBinaryFromReader);
       msg.setOptions(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
       break;
     default:
       reader.skipField();
@@ -828,6 +833,13 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
       6,
       f,
       gloo_projects_gloo_api_v1_options_pb.RouteOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
     );
   }
 };
@@ -1011,6 +1023,21 @@ proto.gateway.solo.io.Route.prototype.clearOptions = function() {
  */
 proto.gateway.solo.io.Route.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional string name = 7;
+ * @return {string}
+ */
+proto.gateway.solo.io.Route.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.gateway.solo.io.Route.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
 };
 
 

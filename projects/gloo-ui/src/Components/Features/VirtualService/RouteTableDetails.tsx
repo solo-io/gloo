@@ -202,6 +202,7 @@ export const RouteTableDetails = () => {
           routesList: [
             ...newRoutesList,
             {
+              name: values.name,
               matchersList: [
                 {
                   prefix: values.matchType === 'PREFIX' ? values.path : '',

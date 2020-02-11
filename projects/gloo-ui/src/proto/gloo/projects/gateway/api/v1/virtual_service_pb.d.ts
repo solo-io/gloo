@@ -122,6 +122,9 @@ export class Route extends jspb.Message {
   getOptions(): gloo_projects_gloo_api_v1_options_pb.RouteOptions | undefined;
   setOptions(value?: gloo_projects_gloo_api_v1_options_pb.RouteOptions): void;
 
+  getName(): string;
+  setName(value: string): void;
+
   getActionCase(): Route.ActionCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Route.AsObject;
@@ -141,6 +144,7 @@ export namespace Route {
     directResponseAction?: gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,
     delegateAction?: DelegateAction.AsObject,
     options?: gloo_projects_gloo_api_v1_options_pb.RouteOptions.AsObject,
+    name: string,
   }
 
   export enum ActionCase {

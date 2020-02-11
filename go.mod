@@ -35,13 +35,13 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.6
-	github.com/solo-io/gloo v1.3.3
+	github.com/solo-io/gloo v1.3.5
 	github.com/solo-io/go-utils v0.13.3
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.7
 	github.com/solo-io/rate-limiter v0.0.3
 	github.com/solo-io/reporting-client v0.1.2
-	github.com/solo-io/solo-kit v0.13.0
+	github.com/solo-io/solo-kit v0.13.1
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0

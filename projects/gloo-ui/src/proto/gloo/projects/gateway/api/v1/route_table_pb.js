@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var solo$kit_api_v1_metadata_pb = require('../../../../../solo-kit/api/v1/metadata_pb.js');
 var solo$kit_api_v1_status_pb = require('../../../../../solo-kit/api/v1/status_pb.js');
 var solo$kit_api_v1_solo$kit_pb = require('../../../../../solo-kit/api/v1/solo-kit_pb.js');
@@ -75,6 +76,7 @@ proto.gateway.solo.io.RouteTable.toObject = function(includeInstance, msg) {
   var f, obj = {
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     gloo_projects_gateway_api_v1_virtual_service_pb.Route.toObject, includeInstance),
+    weight: (f = msg.getWeight()) && google_protobuf_wrappers_pb.Int32Value.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f)
   };
@@ -117,6 +119,11 @@ proto.gateway.solo.io.RouteTable.deserializeBinaryFromReader = function(msg, rea
       var value = new gloo_projects_gateway_api_v1_virtual_service_pb.Route;
       reader.readMessage(value,gloo_projects_gateway_api_v1_virtual_service_pb.Route.deserializeBinaryFromReader);
       msg.addRoutes(value);
+      break;
+    case 2:
+      var value = new google_protobuf_wrappers_pb.Int32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.Int32Value.deserializeBinaryFromReader);
+      msg.setWeight(value);
       break;
     case 6:
       var value = new solo$kit_api_v1_status_pb.Status;
@@ -163,6 +170,14 @@ proto.gateway.solo.io.RouteTable.serializeBinaryToWriter = function(message, wri
       1,
       f,
       gloo_projects_gateway_api_v1_virtual_service_pb.Route.serializeBinaryToWriter
+    );
+  }
+  f = message.getWeight();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_wrappers_pb.Int32Value.serializeBinaryToWriter
     );
   }
   f = message.getStatus();
@@ -212,6 +227,36 @@ proto.gateway.solo.io.RouteTable.prototype.addRoutes = function(opt_value, opt_i
 
 proto.gateway.solo.io.RouteTable.prototype.clearRoutesList = function() {
   this.setRoutesList([]);
+};
+
+
+/**
+ * optional google.protobuf.Int32Value weight = 2;
+ * @return {?proto.google.protobuf.Int32Value}
+ */
+proto.gateway.solo.io.RouteTable.prototype.getWeight = function() {
+  return /** @type{?proto.google.protobuf.Int32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.Int32Value, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Int32Value|undefined} value */
+proto.gateway.solo.io.RouteTable.prototype.setWeight = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gateway.solo.io.RouteTable.prototype.clearWeight = function() {
+  this.setWeight(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.RouteTable.prototype.hasWeight = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

@@ -114,6 +114,7 @@ export interface CreateRouteValuesType {
   headers: HeaderMatcher.AsObject[];
   queryParameters: QueryParameterMatcher.AsObject[];
   methods: string[];
+  name: string;
 }
 
 const validationSchema = yup.object().shape({
@@ -223,7 +224,8 @@ export const CreateRouteModal = React.memo((props: Props) => {
     matchType: 'PREFIX',
     headers: [],
     queryParameters: [],
-    methods: []
+    methods: [],
+    name: ''
   };
 
   let history = useHistory();
@@ -328,6 +330,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
             },
             routesList: [
               {
+                name: values.name,
                 matchersList: [
                   {
                     prefix: values.matchType === 'PREFIX' ? values.path : '',
@@ -366,6 +369,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
               }),
               index: 0,
               route: {
+                name: values.name,
                 matchersList: [
                   {
                     prefix: values.matchType === 'PREFIX' ? values.path : '',
@@ -397,6 +401,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
             input: {
               index: 0,
               route: {
+                name: values.name,
                 matchersList: [
                   {
                     prefix: values.matchType === 'PREFIX' ? values.path : '',
@@ -439,6 +444,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
               }),
               index: 0,
               route: {
+                name: values.name,
                 matchersList: [
                   {
                     prefix: values.matchType === 'PREFIX' ? values.path : '',
