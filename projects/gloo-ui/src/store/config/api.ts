@@ -23,6 +23,7 @@ import { host } from 'store';
 import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
 import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { guardByLicense } from './actions';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -156,6 +157,8 @@ function updateSettings(
   updateSettingsRequest: UpdateSettingsRequest
 ): Promise<UpdateSettingsResponse.AsObject> {
   return new Promise(async (resolve, reject) => {
+    guardByLicense();
+
     client.updateSettings(updateSettingsRequest, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
@@ -173,6 +176,8 @@ function updateSettingsYaml(
   updateSettingsYamlRequest: UpdateSettingsYamlRequest.AsObject
 ): Promise<SettingsDetails.AsObject> {
   return new Promise(async (resolve, reject) => {
+    guardByLicense();
+
     let request = new UpdateSettingsYamlRequest();
     let settingsRef = new ResourceRef();
 
@@ -184,6 +189,7 @@ function updateSettingsYaml(
     editedYamlData.setRef(settingsRef);
     editedYamlData.setEditedYaml(editedYaml);
     request.setEditedYamlData(editedYamlData);
+
     client.updateSettingsYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);

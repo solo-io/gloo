@@ -108,10 +108,10 @@ export const MainMenu = () => {
     { refreshInterval: 0 }
   );
 
-  if (!version || !licenseData?.isLicenseValid) {
-    return <div>Loading...</div>;
-  }
-  const hasValidLicense = licenseData.isLicenseValid;
+  // if (!version || !licenseData?.isLicenseValid) {
+  //   return <div>Loading...</div>;
+  // }
+  const hasValidLicense = licenseData?.isLicenseValid;
   return (
     <Container>
       <InnerContainer>
@@ -188,11 +188,7 @@ export const MainMenu = () => {
 
                 <VersionDisplay>
                   {hasValidLicense ? 'Version: ' : 'UI Version: '}
-                  {version
-                    ? version
-                    : // : versionLoading
-                      // ? 'loading...'
-                      'unknown'}
+                  {version !== undefined ? version : 'unknown'}
                 </VersionDisplay>
               </div>
             }>

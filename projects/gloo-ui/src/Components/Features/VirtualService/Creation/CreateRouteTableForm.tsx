@@ -13,6 +13,7 @@ import { configAPI } from 'store/config/api';
 import { createRouteTable } from 'store/routeTables/actions';
 import useSWR from 'swr';
 import * as yup from 'yup';
+import { routeTableAPI } from 'store/routeTables/api';
 
 const Footer = styled.div`
   display: flex;
@@ -49,7 +50,10 @@ interface Props {
 export const CreateRouteTableForm = (props: Props) => {
   let history = useHistory();
   let location = useLocation();
-
+  const { data: routeTablesList, error: rtError } = useSWR(
+    'listRouteTables',
+    routeTableAPI.listRouteTables
+  );
   const { data: namespacesList, error: listNamespacesError } = useSWR(
     'listNamespaces',
     configAPI.listNamespaces
@@ -81,10 +85,17 @@ export const CreateRouteTableForm = (props: Props) => {
         }
       })
     );
+
     setTimeout(() => {
-      history.push({
-        pathname: `/routetables/${values.namespace}/${values.routeTableName}`
-      });
+      if (
+        routeTablesList?.find(
+          rtD => rtD.routeTable?.metadata?.name === values.routeTableName
+        ) !== undefined
+      ) {
+        history.push({
+          pathname: `/routetables/${values.namespace}/${values.routeTableName}`
+        });
+      }
     }, 500);
     props.toggleModal(s => !s);
   };

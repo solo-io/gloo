@@ -7,12 +7,15 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router';
 import { configAPI } from 'store/config/api';
 import { createVirtualService } from 'store/virtualServices/actions';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import * as yup from 'yup';
+import { virtualServiceAPI } from 'store/virtualServices/api';
+import { AppState } from 'store';
+import { guardByLicense } from 'store/config/actions';
 
 const Footer = styled.div`
   display: flex;
@@ -55,8 +58,12 @@ interface Props {
 
 export const CreateVirtualServiceForm = (props: Props) => {
   let history = useHistory();
+  const licenseError = useSelector((state: AppState) => state.modal.error);
   let location = useLocation();
-
+  const { data: virtualServicesList, error } = useSWR(
+    'listVirtualServices',
+    virtualServiceAPI.listVirtualServices
+  );
   const { data: namespacesList, error: listNamespacesError } = useSWR(
     'listNamespaces',
     configAPI.listNamespaces
@@ -75,7 +82,6 @@ export const CreateVirtualServiceForm = (props: Props) => {
 
   const handleCreateVirtualService = (values: typeof initialValues) => {
     let { namespace, virtualServiceName, displayName, domainsList } = values;
-
     dispatch(
       createVirtualService({
         inputV2: {
@@ -94,9 +100,16 @@ export const CreateVirtualServiceForm = (props: Props) => {
     );
 
     setTimeout(() => {
-      history.push({
-        pathname: `${location.pathname}${values.namespace}/${values.virtualServiceName}`
-      });
+      if (
+        virtualServicesList?.find(
+          vsD =>
+            vsD.virtualService?.metadata?.name === values.virtualServiceName
+        ) !== undefined
+      ) {
+        history.push({
+          pathname: `${location.pathname}${values.namespace}/${values.virtualServiceName}`
+        });
+      }
     }, 500);
     props.toggleModal(s => !s);
   };

@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  description: >
+    Read-only UI now displays a modal with a helpful error message, rather than hanging and logging an error in
+    the browser console.
+  issueLink: https://github.com/solo-io/gloo/issues/2378

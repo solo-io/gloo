@@ -34,8 +34,8 @@ export const createRouteTable = (
   createRouteTableRequest: CreateRouteTableRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
+      guardByLicense();
       const response = await routeTableAPI.createRouteTable(
         createRouteTableRequest
       );
@@ -53,8 +53,8 @@ export const updateRouteTable = (
   updateRouteTableRequest: UpdateRouteTableRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
+      guardByLicense();
       const response = await routeTableAPI.updateRouteTable(
         updateRouteTableRequest
       );
@@ -72,8 +72,8 @@ export const updateRouteTableYaml = (
   updateRouteTableYamlRequest: UpdateRouteTableYamlRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
+      guardByLicense();
       const response = await routeTableAPI.updateRouteTableYaml(
         updateRouteTableYamlRequest
       );
@@ -95,8 +95,8 @@ export const deleteRouteTable = (
   deleteRouteTableRequest: DeleteRouteTableRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
+      guardByLicense();
       const response = await routeTableAPI.deleteRouteTable(
         deleteRouteTableRequest
       );

@@ -18,6 +18,7 @@ import { CardCSS } from 'Styles/CommonEmotions/card';
 import useSWR from 'swr';
 import { getIcon, getUpstreamType, groupBy } from 'utils/helpers';
 import { envoyAPI } from '../../store/envoy/api';
+import { configAPI } from 'store/config/api';
 
 const Container = styled.div`
   ${CardCSS};
@@ -130,12 +131,17 @@ const HealthScoreContainer = styled.div`
 `;
 
 export const Overview = () => {
+  const { data: licenseData, error: licenseError } = useSWR(
+    'hasValidLicense',
+    configAPI.getIsLicenseValid,
+    { refreshInterval: 0 }
+  );
   return (
     <>
       <Container>
         <Header>
           <div>
-            <PageTitle>Enterprise Gloo Overview</PageTitle>
+            <PageTitle>{`${licenseData?.isLicenseValid ? 'Enterprise' : ''} Gloo Overview`}</PageTitle>
             <PageSubtitle>
               Your current configuration health at a glance
             </PageSubtitle>

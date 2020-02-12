@@ -47,8 +47,8 @@ export const createVirtualService = (
   createVirtualServiceRequest: CreateVirtualServiceRequest.AsObject
 ) => {
   return async (dispatch: Dispatch) => {
-    guardByLicense();
     try {
+      guardByLicense();
       const response = await virtualServiceAPI.getCreateVirtualService(
         createVirtualServiceRequest
       );

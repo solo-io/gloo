@@ -2,7 +2,7 @@ import { MessageActionTypes, MessageAction } from './types';
 
 export interface ModalState {
   message: string;
-  error?: Error | null;
+  error?: string | null;
   showModal?: boolean;
 }
 

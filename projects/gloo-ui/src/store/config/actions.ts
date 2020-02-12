@@ -3,7 +3,11 @@ import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 import { UpdateSettingsRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { Dispatch } from 'redux';
 import { globalStore } from 'store';
-import { MessageAction, SuccessMessageAction } from 'store/modal/types';
+import {
+  MessageAction,
+  SuccessMessageAction,
+  ErrorMessageAction
+} from 'store/modal/types';
 import { configAPI } from './api';
 import {
   ConfigAction,
@@ -18,6 +22,7 @@ import {
   UpdateWatchNamespacesAction
 } from './types';
 import useSWR from 'swr';
+import { useHistory } from 'react-router';
 
 export const getVersion = () => {
   return async (dispatch: Dispatch) => {
@@ -172,10 +177,17 @@ export const updateSettings = (
 export const INVALID_LICENSE_ERROR_ID =
   "This feature requires an Enterprise Gloo license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license.";
 
-export const guardByLicense = (): void => {
-  const isValid = globalStore.getState().config.isLicenseValid;
+export const guardByLicense = () => {
+  return async (dispatch: Dispatch) => {
+    const isValid = globalStore.getState().config.isLicenseValid;
 
-  if (isValid !== true) {
-    throw new Error(INVALID_LICENSE_ERROR_ID);
-  }
+    if (isValid !== true) {
+      dispatch<ErrorMessageAction>({
+        type: MessageAction.ERROR_MESSAGE,
+        message: INVALID_LICENSE_ERROR_ID,
+        error: INVALID_LICENSE_ERROR_ID
+      });
+      throw new Error();
+    }
+  };
 };

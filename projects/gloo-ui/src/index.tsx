@@ -7,18 +7,17 @@ import * as serviceWorker from './serviceWorker';
 import { globalStore } from './store';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 import { SWRConfig } from 'swr';
+import { SoloWarning } from 'Components/Common/SoloWarningContent';
+import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.render(
-  <Provider store={globalStore}>
-    <SWRConfig
-      value={{
-        refreshInterval: 3000
-      }}>
-      <ErrorBoundary fallback={<div> there was an error</div>}>
+  <ErrorBoundary fallback={<div> there was an error</div>}>
+    <Provider store={globalStore}>
+      <BrowserRouter>
         <GlooIApp />
-      </ErrorBoundary>
-    </SWRConfig>
-  </Provider>,
+      </BrowserRouter>
+    </Provider>
+  </ErrorBoundary>,
   document.getElementById('root')
 );
 

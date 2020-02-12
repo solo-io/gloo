@@ -19,7 +19,7 @@ export interface HideModalAction {
 }
 export interface ErrorMessageAction {
   type: typeof MessageAction.ERROR_MESSAGE;
-  error: Error | null;
+  error: string | null;
   message: string;
 }
 

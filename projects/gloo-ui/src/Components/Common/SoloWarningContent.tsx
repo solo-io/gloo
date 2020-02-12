@@ -1,6 +1,7 @@
 import { INVALID_LICENSE_ERROR_ID } from '../../store/config/actions';
 import * as React from 'react';
 import { Modal } from 'antd';
+import { useHistory } from 'react-router';
 const { warning } = Modal;
 
 export interface SoloWarningContentProps {
@@ -28,9 +29,9 @@ export const SoloWarningContent = (
   }
 };
 
-export const SoloWarning = (title: string, error: Error): void => {
+export const SoloWarning = (title: string, error?: Error): void => {
   warning({
     title: title,
-    content: SoloWarningContent({ content: error.message })
+    content: SoloWarningContent({ content: error?.message || 'Error' })
   });
 };

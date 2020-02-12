@@ -9,6 +9,11 @@ import (
 	"github.com/solo-io/licensing/pkg/defaults"
 )
 
+var (
+	LicenseEmptyError   = fmt.Errorf("license is empty")
+	LicenseExpiredError = fmt.Errorf("license expired")
+)
+
 func LicenseStatus(ctx context.Context) error {
 	license := os.Getenv("GLOO_LICENSE_KEY")
 	license = strings.TrimSpace(license)
@@ -17,7 +22,7 @@ func LicenseStatus(ctx context.Context) error {
 
 func IsLicenseValid(ctx context.Context, license string) error {
 	if license == "" {
-		return fmt.Errorf("license is empty")
+		return LicenseEmptyError
 	}
 	km, err := defaults.GetKeyManager()
 	if err != nil {
@@ -30,7 +35,7 @@ func IsLicenseValid(ctx context.Context, license string) error {
 		return err
 	}
 	if decryptedLicense.IsExpired() {
-		return fmt.Errorf("license expired")
+		return LicenseExpiredError
 	}
 
 	return nil

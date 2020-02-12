@@ -665,7 +665,7 @@ function getCreateVirtualService(
     let inputV2SslConfig = new SslConfigValue(); // updatable
     let inputV2RateLimitConfig = new IngressRateLimitValue(); // updatable
     let inputV2ExtAuthConfig = new ExtAuthInput(); // updatable
-
+    guardByLicense();
     if (createVirtualSeviceRequest.inputV2 !== undefined) {
       let {
         extAuthConfig,

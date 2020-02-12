@@ -15,6 +15,7 @@ import { colors, healthConstants, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import useSWR from 'swr';
 import { getResourceStatus } from 'utils/helpers';
+import { configAPI } from 'store/config/api';
 
 const Container = styled.div`
   ${CardCSS};
@@ -99,12 +100,17 @@ const HealthScoreContainer = styled.div`
 `;
 
 export const AdminLanding: React.FC<RouteProps> = props => {
+  const { data: licenseData, error: licenseError } = useSWR(
+    'hasValidLicense',
+    configAPI.getIsLicenseValid,
+    { refreshInterval: 0 }
+  );
   return (
     <>
       <Container>
         <Header>
           <div>
-            <PageTitle>Enterprise Gloo Administration</PageTitle>
+            <PageTitle>{`${licenseData?.isLicenseValid ? 'Enterprise' :''} Gloo Administration`}</PageTitle>
             <PageSubtitle>
               Advanced Administration for your Gloo Configuration
             </PageSubtitle>
