@@ -7,14 +7,14 @@ require (
 	github.com/aws/aws-sdk-go v1.26.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
-	github.com/envoyproxy/go-control-plane v0.9.1
+	github.com/envoyproxy/go-control-plane v0.9.3
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/mock v1.3.1
-	github.com/golang/protobuf v1.3.2
+	github.com/golang/mock v1.4.0
+	github.com/golang/protobuf v1.3.3
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
@@ -35,13 +35,13 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.6
-	github.com/solo-io/gloo v1.3.5
+	github.com/solo-io/gloo v1.3.6
 	github.com/solo-io/go-utils v0.13.3
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.7
 	github.com/solo-io/rate-limiter v0.0.3
 	github.com/solo-io/reporting-client v0.1.2
-	github.com/solo-io/solo-kit v0.13.1
+	github.com/solo-io/solo-kit v0.13.2
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
@@ -51,11 +51,11 @@ require (
 	google.golang.org/grpc v1.25.1
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.0.0
-	k8s.io/api v0.0.0
+	k8s.io/api v0.17.1
 	k8s.io/apiextensions-apiserver v0.0.0
-	k8s.io/apimachinery v0.0.0
+	k8s.io/apimachinery v0.17.1
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.0.0
+	k8s.io/code-generator v0.17.1
 	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/yaml v1.1.0
 )
