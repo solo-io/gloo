@@ -48,6 +48,10 @@ spec:
             - name: static
               containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
               protocol: TCP
+          {{- if .Values.apiServer.deployment.ui.resources }}
+          resources:
+{{ toYaml .Values.apiServer.deployment.ui.resources | indent 12 }}
+          {{- end}}
         - name: apiserver
           image: {{template  "gloo.image" $apiServerImage}}
           imagePullPolicy: {{$apiServerImage.pullPolicy}}
@@ -70,6 +74,10 @@ spec:
                 secretKeyRef:
                   name: license
                   key: license-key
+          {{- if .Values.apiServer.deployment.server.resources }}
+          resources:
+{{ toYaml .Values.apiServer.deployment.server.resources | indent 12}}
+          {{- end}}
       {{- end}} # .Values.apiServer.enterprise
           ports:
             - name: grpcport
@@ -78,6 +86,10 @@ spec:
         - name: gloo-grpcserver-envoy
           image: {{template "gloo.image" $envoyImage}}
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
+          {{- if .Values.apiServer.deployment.envoy.resources }}
+          resources:
+{{ toYaml .Values.apiServer.deployment.envoy.resources | indent 12}}
+          {{- end}}
           readinessProbe:
             httpGet:
               path: /

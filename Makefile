@@ -8,14 +8,15 @@ RELATIVE_OUTPUT_DIR ?= _output
 OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 # Kind of a hack to make sure _output exists
 z := $(shell mkdir -p $(OUTPUT_DIR))
-SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
+SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 RELEASE := "true"
+
+# TODO: use $(shell git describe --tags)
 ifeq ($(TAGGED_VERSION),)
-	# TAGGED_VERSION := $(shell git describe --tags)
-	# This doesn't work in CI, need to find another way...
 	TAGGED_VERSION := vdev
 	RELEASE := "false"
 endif
+
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'

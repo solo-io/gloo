@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -475,8 +477,9 @@ var _ = Describe("Helm Test", func() {
 
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 				})
+
 				Context("apiserver deployment", func() {
-					var deploy *appsv1.Deployment
+					var expectedDeployment *appsv1.Deployment
 
 					BeforeEach(func() {
 						labels = map[string]string{
@@ -548,27 +551,85 @@ var _ = Describe("Helm Test", func() {
 							Name:      "api-server",
 							Labels:    labels,
 						}
-						deploy = rb.GetDeploymentAppsv1()
-						deploy.Spec.Selector.MatchLabels = selector
-						deploy.Spec.Template.ObjectMeta.Labels = selector
-						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+						expectedDeployment = rb.GetDeploymentAppsv1()
+						expectedDeployment.Spec.Selector.MatchLabels = selector
+						expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+						expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
 							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 						}
-						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
-						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
-						deploy.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
+						expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
+						expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
+						expectedDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
 							{
 								Name: "solo-io-readerbot-pull-secret",
 							},
 						}
-						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+						expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 					})
 
 					It("is there by default", func() {
 						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 						Expect(err).NotTo(HaveOccurred())
-						testManifest.ExpectDeploymentAppsV1(deploy)
+						testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+					})
+
+					It("correctly sets resource limits", func() {
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesArgs: []string{
+								"apiServer.deployment.ui.resources.limits.cpu=300m",
+								"apiServer.deployment.ui.resources.limits.memory=300Mi",
+								"apiServer.deployment.ui.resources.requests.cpu=30m",
+								"apiServer.deployment.ui.resources.requests.memory=30Mi",
+								"apiServer.deployment.envoy.resources.limits.cpu=100m",
+								"apiServer.deployment.envoy.resources.limits.memory=100Mi",
+								"apiServer.deployment.envoy.resources.requests.cpu=10m",
+								"apiServer.deployment.envoy.resources.requests.memory=10Mi",
+								"apiServer.deployment.server.resources.limits.cpu=200m",
+								"apiServer.deployment.server.resources.limits.memory=200Mi",
+								"apiServer.deployment.server.resources.requests.cpu=20m",
+								"apiServer.deployment.server.resources.requests.memory=20Mi",
+							},
+						})
+						Expect(err).NotTo(HaveOccurred())
+
+						// UI
+						expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
+							Limits: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("300m"),
+								v1.ResourceMemory: resource.MustParse("300Mi"),
+							},
+							Requests: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("30m"),
+								v1.ResourceMemory: resource.MustParse("30Mi"),
+							},
+						}
+
+						// Server
+						expectedDeployment.Spec.Template.Spec.Containers[1].Resources = v1.ResourceRequirements{
+							Limits: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("200m"),
+								v1.ResourceMemory: resource.MustParse("200Mi"),
+							},
+							Requests: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("20m"),
+								v1.ResourceMemory: resource.MustParse("20Mi"),
+							},
+						}
+
+						// Envoy
+						expectedDeployment.Spec.Template.Spec.Containers[2].Resources = v1.ResourceRequirements{
+							Limits: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("100m"),
+								v1.ResourceMemory: resource.MustParse("100Mi"),
+							},
+							Requests: v1.ResourceList{
+								v1.ResourceCPU:    resource.MustParse("10m"),
+								v1.ResourceMemory: resource.MustParse("10Mi"),
+							},
+						}
+
+						testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 					})
 				})
 			})
