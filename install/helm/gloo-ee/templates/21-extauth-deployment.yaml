@@ -15,7 +15,7 @@ metadata:
   name: {{ $extAuth.deployment.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: {{ $extAuth.deployment.replicas }}
   selector:
     matchLabels:
       gloo: {{ $extAuth.deployment.name }}

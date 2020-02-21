@@ -1,0 +1,5 @@
+changelog:
+- type: HELM
+  description: >
+    Add a new Helm value to allow setting the number of replicas for the external auth deployment.
+  issueLink: https://github.com/solo-io/gloo/issues/2432

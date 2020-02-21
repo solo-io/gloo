@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -258,6 +260,127 @@ var _ = Describe("Helm Test", func() {
 
 					testManifest.Expect(grafanaDeployment.Kind, grafanaDeployment.Namespace, grafanaDeployment.Name).To(BeNil())
 				})
+			})
+		})
+
+		Context("external auth server", func() {
+
+			var expectedDeployment *appsv1.Deployment
+
+			BeforeEach(func() {
+				labels = map[string]string{
+					"app":  "gloo",
+					"gloo": "extauth",
+				}
+				selector = map[string]string{
+					"gloo": "extauth",
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "extauth",
+					Labels:    labels,
+				}
+				expectedDeployment = rb.GetDeploymentAppsv1()
+
+				expectedDeployment.Spec.Replicas = aws.Int32(1)
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:            "extauth",
+						Image:           "quay.io/solo-io/extauth-ee:dev",
+						ImagePullPolicy: "Always",
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "SERVICE_NAME",
+								Value: "ext-auth",
+							},
+							{
+								Name:  "GLOO_ADDRESS",
+								Value: "gloo:9977",
+							},
+							{
+								Name: "SIGNING_KEY",
+								ValueFrom: &v1.EnvVarSource{
+									SecretKeyRef: &v1.SecretKeySelector{
+										LocalObjectReference: v1.LocalObjectReference{
+											Name: "extauth-signing-key",
+										},
+										Key: "signing-key",
+									},
+								},
+							},
+							{
+								Name:  "SERVER_PORT",
+								Value: "8083",
+							},
+							{
+								Name:  "USER_ID_HEADER",
+								Value: "x-user-id",
+							},
+							statsEnvVar,
+						},
+						Resources: v1.ResourceRequirements{},
+					},
+				}
+				expectedDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
+					{
+						Name: "solo-io-readerbot-pull-secret",
+					},
+				}
+				expectedDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+
+				expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &k8s.LabelSelector{
+										MatchLabels: map[string]string{
+											"gloo": "gateway-proxy",
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					}}
+			})
+
+			It("produces expected default deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("allows setting the number of replicas for the deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.extAuth.deployment.replicas=3"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+
+				expectedDeployment.Spec.Replicas = aws.Int32(3)
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 		})
 
