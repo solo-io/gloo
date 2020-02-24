@@ -310,5 +310,15 @@ type Stats struct {
 }
 
 type Mtls struct {
-	Enabled bool `json:"enabled,omitempty" desc:"Enables internal mtls authentication"`
+	Enabled      bool                  `json:"enabled" desc:"Enables internal mtls authentication"`
+	Sds          SdsContainer          `json:"sds,omitempty"`
+	EnvoySidecar EnvoySidecarContainer `json:"envoy,omitempty"`
+}
+
+type SdsContainer struct {
+	Image *Image `json:"image,omitempty"`
+}
+
+type EnvoySidecarContainer struct {
+	Image *Image `json:"image,omitempty"`
 }
