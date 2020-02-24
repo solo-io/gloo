@@ -16,3 +16,14 @@ Test that extraListenersHelper is rendered correctly
 {{- define "gloo.testlistener" -}}
 - name: test_listener
 {{- end -}}
+
+{{- define "gloo.testVolume" -}}
+- hostPath:
+    path: /var/run/sds
+  name: sds-uds-path
+{{- end }}
+
+{{- define "gloo.testVolumeMount" -}}
+- mountPath: /var/run/sds
+  name: sds-uds-path
+{{- end }}
