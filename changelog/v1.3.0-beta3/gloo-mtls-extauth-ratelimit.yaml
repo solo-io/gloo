@@ -1,0 +1,14 @@
+changelog:
+- type: NEW_FEATURE
+  description: |
+    Enable mTLS authentication in between Gloo and our default Extauth and Rate Limiting server. When the environment variable GLOO_MTLS is set to `enabled` in the rate-limit or extauth deployments, those processes will look for keys, certs, and trusted CAs in the following file locations:
+    - /etc/envoy/ssl/tls.key
+    - /etc/envoy/ssl/tls.crt
+    - /etc/envoy/ssl/ca.crt
+    Then, they will connect to Gloo using TLS instead of an insecure gRPC connection. This is all done by default if Gloo Enterprise is installed through Helm with the helm setting `global.glooMtls.enabled` is set to true.
+  issueLink: https://github.com/solo-io/gloo/issues/2382
+- type: DEPENDENCY_BUMP
+  description: Update gloo to version v1.3.9
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.3.9

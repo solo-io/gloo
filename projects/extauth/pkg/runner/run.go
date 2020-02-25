@@ -179,6 +179,8 @@ func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node
 		err = client.Start(ctx, conn)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Errorw("failed to start xDS client", zap.Any("error", err))
+		} else {
+			contextutils.LoggerFrom(ctx).Info("successfully started xDS client")
 		}
 		return err
 	})

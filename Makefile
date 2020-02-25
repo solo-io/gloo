@@ -434,14 +434,16 @@ $(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
 .PHONY: envoyinit
 envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
 
-
 $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
+	cp $< $@
+
+$(OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
 	cp $< $@
 
 .PHONY: gloo-ee-envoy-wrapper-docker
 gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
 
-$(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+$(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit $(OUTPUT_DIR)/docker-entrypoint.sh
 	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 	touch $@
 

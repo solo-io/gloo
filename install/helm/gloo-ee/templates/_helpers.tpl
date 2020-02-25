@@ -14,6 +14,9 @@ Expand the name of the chart.
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.extauthinitcontainers" -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraVolumeHelper" "gloo.extauthpluginvolume" -}}
 {{- end -}} # if plugins
+{{- if $.Values.global.glooMtls.enabled }}
+{{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraListenersHelper" "gloo.sidecarlisteners" -}}
+{{- end -}} # end glooMtls.enabled
 {{- end -}} # end range
 {{- end -}} # if envoySidecar
 {{- end -}} # end define
@@ -22,6 +25,25 @@ Expand the name of the chart.
 {{- define "gloo.extauthpluginvolume" -}}
 - emptyDir: {}
   name: auth-plugins
+{{- end -}}
+
+{{/* Listener definition needed for ext auth setup */}}
+{{- define "gloo.sidecarlisteners" -}}
+- name: gloo_mtls_listener
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 9955
+  filter_chains:
+    - filters:
+      - name: envoy.tcp_proxy
+        config:
+          stat_prefix: gloo_mtls
+          {{- if $.Values.k8s }}
+          cluster: gloo.{{ $.Release.Namespace }}.svc.{{ $.Values.k8s.clusterName}}:{{ $.Values.gloo.deployment.xdsPort }}
+          {{- else }}
+          cluster: gloo.{{ $.Release.Namespace }}.svc.{{ $.Values.gloo.k8s.clusterName}}:{{ $.Values.gloo.gloo.deployment.xdsPort }}
+          {{- end}}
 {{- end -}}
 
 {{/* Init container definition for extauth plugin setup */}}
@@ -68,10 +90,14 @@ Expand the name of the chart.
 {{- if $extAuth.deployment.glooAddress }}
       value: {{ $extAuth.deployment.glooAddress }}
 {{- else }}
+      {{- if .Values.global.glooMtls.enabled }}
+      value: "127.0.0.1:9955"
+      {{- else }}
       {{- if .Values.gloo.gloo }}
       value: gloo:{{ .Values.gloo.gloo.deployment.xdsPort }}
       {{- else }}
       value: gloo:{{ .Values.gloo.deployment.xdsPort }}
+      {{- end }}
       {{- end }}
 {{- end }}
     - name: SIGNING_KEY

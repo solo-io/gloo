@@ -11,8 +11,15 @@ fi
 git config user.name "bot"
 git config user.email "bot@solo.io"
 
-make update-deps
+go mod tidy
 
+if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
+  echo "Need to run go mod tidy before committing"
+  git diff
+  exit 1;
+fi
+
+make update-deps
 
 set +e
 
@@ -24,7 +31,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
   echo "Generating code produced a non-empty diff."
-  echo "Try running 'dep ensure && make update-deps update-ui-deps generated-code generated-ui -B' then re-pushing."
+  echo "Try running 'go mod tidy; make update-all-deps generate-all -B' then re-pushing."
   git status --porcelain
   git diff | cat
   exit 1;

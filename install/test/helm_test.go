@@ -2,21 +2,22 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
 	"github.com/aws/aws-sdk-go/aws"
-
-	"k8s.io/apimachinery/pkg/api/resource"
-
-	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	"github.com/solo-io/go-utils/installutils/kuberesource"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/pkg/install"
+	jobsv1 "k8s.io/api/batch/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	k8s "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	. "github.com/onsi/ginkgo"
@@ -754,6 +755,126 @@ var _ = Describe("Helm Test", func() {
 
 						testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 					})
+				})
+			})
+		})
+
+		Context("gloo mtls settings", func() {
+			var (
+				glooMtlsSecretVolume = v1.Volume{
+					Name: "gloo-mtls-certs",
+					VolumeSource: v1.VolumeSource{
+						Secret: &v1.SecretVolumeSource{
+							SecretName:  "gloo-mtls-certs",
+							Items:       nil,
+							DefaultMode: proto.Int(420),
+						},
+					},
+				}
+
+				haveEnvoySidecar = func(containers []v1.Container) bool {
+					for _, c := range containers {
+						if c.Name == "envoy-sidecar" {
+							return true
+						}
+					}
+					return false
+				}
+
+				haveSdsSidecar = func(containers []v1.Container) bool {
+					for _, c := range containers {
+						if c.Name == "sds" {
+							return true
+						}
+					}
+					return false
+				}
+
+				haveGlooAddress = func(containers []v1.Container, address string) bool {
+					for _, c := range containers {
+						if c.Name == "rate-limit" || c.Name == "extauth" {
+							Expect(c.Env).To(ContainElement(v1.EnvVar{Name: "GLOO_ADDRESS", Value: address}))
+							return true
+						}
+					}
+					return false
+				}
+			)
+
+			It("should put the secret volume in the Gloo and Gateway-Proxy Deployment and add a sidecar in the Gloo Deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.glooMtls.enabled=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				foundGlooMtlsCertgenJob := false
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Job"
+				}).ExpectAll(func(job *unstructured.Unstructured) {
+					jobObject, err := kuberesource.ConvertUnstructured(job)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Job %+v should be able to convert from unstructured", job))
+					structuredDeployment, ok := jobObject.(*jobsv1.Job)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Job %+v should be able to cast to a structured job", job))
+
+					if structuredDeployment.GetName() == "gloo-mtls-certgen" {
+						foundGlooMtlsCertgenJob = true
+					}
+				})
+				Expect(foundGlooMtlsCertgenJob).To(BeTrue(), "Did not find the gloo-mtls-certgen job")
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					if structuredDeployment.GetName() == "gloo" {
+						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+					}
+
+					if structuredDeployment.GetName() == "gateway-proxy" {
+						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+					}
+
+					// should add envoy sidecars to the Extauth and Rate-Limit Deployment
+					if structuredDeployment.GetName() == "rate-limit" {
+						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Ω(haveGlooAddress(structuredDeployment.Spec.Template.Spec.Containers, "127.0.0.1:9955")).To(BeTrue())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+					}
+
+					if structuredDeployment.GetName() == "extauth" {
+						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Ω(haveGlooAddress(structuredDeployment.Spec.Template.Spec.Containers, "127.0.0.1:9955")).To(BeTrue())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+					}
+				})
+			})
+
+			It("should add an additional listener to the gateway-proxy-envoy-config for extauth sidecar", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.glooMtls.enabled=true,global.extensions.extAuth.envoySidecar=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "ConfigMap"
+				}).ExpectAll(func(configMap *unstructured.Unstructured) {
+					configMapObject, err := kuberesource.ConvertUnstructured(configMap)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", configMap))
+					structuredConfigMap, ok := configMapObject.(*v1.ConfigMap)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", configMap))
+
+					if structuredConfigMap.GetName() == "gateway-proxy-envoy-config" {
+						expectedGlooMtlsListener := "    - name: gloo_mtls_listener"
+						Expect(structuredConfigMap.Data["envoy.yaml"]).To(ContainSubstring(expectedGlooMtlsListener))
+					}
 				})
 			})
 		})

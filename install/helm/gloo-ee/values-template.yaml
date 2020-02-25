@@ -210,6 +210,14 @@ global:
       signingKey:
         name: extauth-signing-key
         signing-key: ""
+  glooMtls:
+    enabled: false
+    sds:
+      image:
+        repository: sds
+    envoy:
+      image:
+        repository: gloo-ee-envoy-wrapper
 ########################################################################
 ###                                                                  ###
 ###                        Prometheus                                ###

@@ -160,6 +160,8 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ApiServer.Deployment.Envoy.Image.Tag = version
 	config.ApiServer.Deployment.Ui.Image.Tag = version
+	config.Global.GlooMtls.Sds.Image.Tag = gc.OsGlooVersion
+	config.Global.GlooMtls.EnvoySidecar.Image.Tag = version
 
 	pullPolicy := gc.PullPolicyForVersion
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy

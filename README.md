@@ -5,8 +5,7 @@
 ```bash
 # Setup your repo
 make init
-make pin-repos
-dep ensure -v # you may need to repeat this and make pin-repos once or twice
+make update-deps
 make allprojects
 
 # for a new UI: update the version in solo-projects/install/helm/gloo-ee/generate.go

@@ -30,15 +30,49 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}} # $extAuth.deployment.stats
     spec:
-      {{- if $extAuth.plugins }}
+      {{- if or $extAuth.plugins .Values.global.glooMtls.enabled}}
       volumes:
+      {{- if .Values.global.glooMtls.enabled }}
+      - name: gloo-mtls-certs
+        secret:
+          defaultMode: 420
+          secretName: gloo-mtls-certs
+      - name: gloo-client-sidecar-config
+        configMap:
+          name: gloo-client-sidecar-config
+      {{- end }} # .Values.global.glooMtls.enabled
+      {{- if $extAuth.plugins }}
       {{- include "gloo.extauthpluginvolume" . | nindent 6 }}
       initContainers:
       {{- include "gloo.extauthinitcontainers" . | nindent 6 }}
-      {{- end}} # $extAuth.plugins
+      {{- end }} # $extAuth.plugins
+      {{- end}}
       containers:
       {{- $data := dict "Values" .Values "ExtAuthMode" "standalone" -}}
       {{- include "gloo.extauthcontainer" $data | nindent 6 }}
+      {{- if .Values.global.glooMtls.enabled }}
+      {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
+      {{- $envoyImage := merge .Values.global.glooMtls.envoy.image .Values.global.image}}
+      - name: envoy-sidecar
+        env:
+        - name: ENVOY_SIDECAR
+          value: "true"
+        image: {{ template "gloo.image" $envoyImage }}
+        imagePullPolicy: {{ $envoyImage.pullPolicy }}
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: gloo-client-sidecar-config
+        - mountPath: /etc/envoy/ssl
+          name: gloo-mtls-certs
+          readOnly: true
+      - name: sds
+        image: {{ template "gloo.image" $sdsImage }}
+        imagePullPolicy: {{ $sdsImage.pullPolicy }}
+        volumeMounts:
+        - mountPath: /etc/envoy/ssl
+          name: gloo-mtls-certs
+          readOnly: true
+      {{- end }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
       affinity:

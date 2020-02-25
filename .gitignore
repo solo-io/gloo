@@ -21,6 +21,7 @@ _output/
 _test/
 doc/site/
 projects/gloo/doc/site/
+install/helm/*.tgz
 
 # Spurious files
 .DS_Store

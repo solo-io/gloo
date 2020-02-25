@@ -1,6 +1,7 @@
 FROM quay.io/solo-io/envoy-gloo-ee:0.1.28
 
 COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
+COPY docker-entrypoint.sh /
 
 ARG COMMIT=v3.1/dev
 ARG REPO=SpiderLabs/owasp-modsecurity-crs
@@ -21,5 +22,5 @@ RUN apk upgrade --update-cache \
 
 WORKDIR /modsecurity/data
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/bin/envoyinit"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/docker-entrypoint.sh"]
 CMD []

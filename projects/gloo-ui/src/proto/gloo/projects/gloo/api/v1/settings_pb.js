@@ -1998,6 +1998,9 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.toObject = function(op
 proto.gloo.solo.io.Settings.ConsulConfiguration.toObject = function(includeInstance, msg) {
   var f, obj = {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    httpAddress: jspb.Message.getFieldWithDefault(msg, 13, ""),
+    dnsAddress: jspb.Message.getFieldWithDefault(msg, 14, ""),
+    dnsPollingInterval: (f = msg.getDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     datacenter: jspb.Message.getFieldWithDefault(msg, 2, ""),
     username: jspb.Message.getFieldWithDefault(msg, 3, ""),
     password: jspb.Message.getFieldWithDefault(msg, 4, ""),
@@ -2048,6 +2051,19 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader = fu
     case 1:
       var value = /** @type {string} */ (reader.readString());
       msg.setAddress(value);
+      break;
+    case 13:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHttpAddress(value);
+      break;
+    case 14:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDnsAddress(value);
+      break;
+    case 15:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDnsPollingInterval(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -2130,6 +2146,28 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.serializeBinaryToWriter = functi
     writer.writeString(
       1,
       f
+    );
+  }
+  f = message.getHttpAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      13,
+      f
+    );
+  }
+  f = message.getDnsAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      14,
+      f
+    );
+  }
+  f = message.getDnsPollingInterval();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
   f = message.getDatacenter();
@@ -2390,6 +2428,66 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getAddress = function(
 /** @param {string} value */
 proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setAddress = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string http_address = 13;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getHttpAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 13, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setHttpAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 13, value);
+};
+
+
+/**
+ * optional string dns_address = 14;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 14, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration dns_polling_interval = 15;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsPollingInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 15));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsPollingInterval = function(value) {
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.clearDnsPollingInterval = function() {
+  this.setDnsPollingInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.hasDnsPollingInterval = function() {
+  return jspb.Message.getField(this, 15) != null;
 };
 
 

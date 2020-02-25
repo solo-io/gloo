@@ -38,7 +38,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: GLOO_ADDRESS
+              {{- if .Values.global.glooMtls.enabled }}
+              value: "127.0.0.1:9955"
+              {{- else }}
               value: {{ .Values.rateLimit.deployment.glooAddress }}
+              {{- end }}
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
@@ -68,8 +72,41 @@ spec:
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }} # .Values.rateLimit.deployment.dynamodb.secretName
+        {{- if .Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
+        {{- $envoyImage := merge .Values.global.glooMtls.envoy.image .Values.global.image}}
+        - name: envoy-sidecar
+          env:
+            - name: ENVOY_SIDECAR
+              value: "true"
+          image: {{ template "gloo.image" $envoyImage }}
+          imagePullPolicy: {{ $envoyImage.pullPolicy }}
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: gloo-client-sidecar-config
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
+        - name: sds
+          image: {{ template "gloo.image" $sdsImage }}
+          imagePullPolicy: {{ $sdsImage.pullPolicy }}
+          volumeMounts:
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
+        {{- end }}
       {{- if $image.pullSecret }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
       {{- end }}
+      {{- if .Values.global.glooMtls.enabled }}
+      volumes:
+        - name: gloo-mtls-certs
+          secret:
+            defaultMode: 420
+            secretName: gloo-mtls-certs
+        - name: gloo-client-sidecar-config
+          configMap:
+            name: gloo-client-sidecar-config
+      {{- end }} # .Values.global.glooMtls.enabled
 {{- end }}

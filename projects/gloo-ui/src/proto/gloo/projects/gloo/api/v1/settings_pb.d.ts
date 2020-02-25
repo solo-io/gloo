@@ -391,6 +391,17 @@ export namespace Settings {
     getAddress(): string;
     setAddress(value: string): void;
 
+    getHttpAddress(): string;
+    setHttpAddress(value: string): void;
+
+    getDnsAddress(): string;
+    setDnsAddress(value: string): void;
+
+    hasDnsPollingInterval(): boolean;
+    clearDnsPollingInterval(): void;
+    getDnsPollingInterval(): google_protobuf_duration_pb.Duration | undefined;
+    setDnsPollingInterval(value?: google_protobuf_duration_pb.Duration): void;
+
     getDatacenter(): string;
     setDatacenter(value: string): void;
 
@@ -443,6 +454,9 @@ export namespace Settings {
   export namespace ConsulConfiguration {
     export type AsObject = {
       address: string,
+      httpAddress: string,
+      dnsAddress: string,
+      dnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
       datacenter: string,
       username: string,
       password: string,
