@@ -20,6 +20,7 @@ settings:
 ########################################################################
 
 license_key: ""
+create_license_secret: true
 gloo:
   settings:
     # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,

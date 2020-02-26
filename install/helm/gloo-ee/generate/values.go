@@ -7,17 +7,18 @@ type HelmConfig struct {
 	Global *glooGen.Global `json:"global,omitempty"`
 }
 type Config struct {
-	Settings      *glooGen.Settings `json:"settings,omitempty"`
-	LicenseKey    string            `json:"license_key,omitempty"`
-	Gloo          *glooGen.Config   `json:"gloo,omitempty"`
-	Redis         *Redis            `json:"redis,omitempty"`
-	RateLimit     *RateLimit        `json:"rateLimit,omitempty"`
-	Observability *Observability    `json:"observability,omitempty"`
-	Rbac          *Rbac             `json:"rbac"`
-	Grafana       interface{}       `json:"grafana,omitempty"`
-	Prometheus    interface{}       `json:"prometheus,omitempty"`
-	Tags          map[string]string `json:"tags,omitempty"`
-	ApiServer     *ApiServer        `json:"apiServer,omitempty"`
+	Settings            *glooGen.Settings `json:"settings,omitempty"`
+	LicenseKey          string            `json:"license_key,omitempty"`
+	CreateLicenseSecret bool              `json:"create_license_secret"`
+	Gloo                *glooGen.Config   `json:"gloo,omitempty"`
+	Redis               *Redis            `json:"redis,omitempty"`
+	RateLimit           *RateLimit        `json:"rateLimit,omitempty"`
+	Observability       *Observability    `json:"observability,omitempty"`
+	Rbac                *Rbac             `json:"rbac"`
+	Grafana             interface{}       `json:"grafana,omitempty"`
+	Prometheus          interface{}       `json:"prometheus,omitempty"`
+	Tags                map[string]string `json:"tags,omitempty"`
+	ApiServer           *ApiServer        `json:"apiServer,omitempty"`
 }
 
 // Common
