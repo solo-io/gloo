@@ -1,0 +1,14 @@
+changelog:
+  - type: FIX
+    description: >
+      When terminating the extauth server (e.g., k8s rolling update) envoy continues to
+      route to the old extauth server endpoints in addition to the new ones (load-balancing
+      between the two 50-50) until the old one's health check completely fails five minutes
+      later. This PR adds a health check interceptor that sends a 
+      "x-envoy-immediate-health-check-fail" header to envoy when the extauth server 
+      shuts down. This tells envoy to exclusively route to the new (healthy) server. 
+    issueLink: https://github.com/solo-io/gloo/issues/2489
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.14.2

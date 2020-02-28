@@ -29,9 +29,9 @@ spec:
   use_http2: true
   healthChecks:
   - timeout: 5s
-    interval: 1m
-    unhealthyThreshold: 5
-    healthyThreshold: 5
+    interval: 10s
+    unhealthyThreshold: 3
+    healthyThreshold: 3
     grpcHealthCheck:
       serviceName: {{ $extAuth.serviceName }}
   kube:

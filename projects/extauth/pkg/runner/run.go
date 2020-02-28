@@ -5,22 +5,23 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/solo-io/go-utils/healthchecker"
+	"github.com/solo-io/go-utils/loggingutils"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
-	"google.golang.org/grpc/health"
-
 	"go.uber.org/zap"
-
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/loggingutils"
+	"google.golang.org/grpc/health"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
 	extauth "github.com/solo-io/ext-auth-service/pkg/service"
+	"github.com/solo-io/go-utils/contextutils"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
@@ -74,7 +75,12 @@ func RunWithSettings(ctx context.Context, clientSettings Settings) error {
 
 func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth.Server) error {
 	logger := contextutils.LoggerFrom(ctx)
-	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}), grpc.UnaryInterceptor(loggingutils.GrpcUnaryServerLoggerInterceptor(logger)))
+	callerCtx, cancel := context.WithCancel(ctx) // do not use callerCtx anywhere outside of the interceptors
+
+	madeHealthCheckFail := make(chan struct{}, 1)
+	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}), grpc.ChainUnaryInterceptor(
+		loggingutils.GrpcUnaryServerLoggerInterceptor(logger),
+		healthchecker.GrpcUnaryServerHealthCheckerInterceptor(callerCtx, madeHealthCheckFail)))
 
 	pb.RegisterAuthorizationServer(srv, service)
 	hc := healthchecker.NewGrpc(clientSettings.ServiceName, health.NewServer())
@@ -103,13 +109,31 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	logger.Infof("extauth server running in [%s] mode, listening at [%s]", runMode, addr)
 	lis, err := net.Listen(network, addr)
 	if err != nil {
-		logger.Errorw("Failed to announce on network", zap.Any("mode", runMode), zap.Any("address", addr), zap.Any("error", err))
+		logger.Errorw("Failed to announce on network", zap.Any("mode", runMode), zap.Any("address", addr), zap.Error(err))
 		return err
 	}
+	terminationSigs := make(chan os.Signal, 1)
+	signal.Notify(terminationSigs, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
-		<-ctx.Done()
-		srv.Stop()
-		_ = lis.Close()
+		select {
+		case <-ctx.Done():
+			logger.Infof("Context has been cancelled, shutting down.")
+		case <-terminationSigs:
+			cancel()
+			<-callerCtx.Done()
+			logger.Infof("Termination signal received, shutting down.")
+		}
+		select {
+		case <-madeHealthCheckFail:
+			logger.Infof("Health check will now fail in envoy.")
+		case <-time.NewTimer(15 * time.Second).C: // timeout must be > the extauth health check interval
+			logger.Infof("Unable to make health check fail in envoy. Shutting down anyway.")
+		}
+		srv.GracefulStop()
+		err = lis.Close()
+		if err != nil {
+			logger.Errorw("Failed to close listener on network", zap.Any("network", network), zap.Any("address", addr), zap.Error(err))
+		}
 	}()
 
 	return srv.Serve(lis)

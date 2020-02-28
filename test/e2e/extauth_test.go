@@ -10,9 +10,14 @@ import (
 	"math/big"
 	"net/http"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
@@ -636,7 +641,44 @@ var _ = Describe("External auth", func() {
 				})
 			})
 		})
+	})
 
+	Context("health checker", func() {
+
+		// NOTE: This test MUST run last, since it runs cancel()
+		It("should fail healthcheck immediately on shutdown", func() {
+
+			// Connects to the extauth service's health check
+			conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ServerPort), grpc.WithInsecure())
+			Expect(err).To(BeNil())
+			defer conn.Close()
+			healthCheckClient := grpc_health_v1.NewHealthClient(conn)
+			resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+				Service: settings.ServiceName,
+			})
+			Expect(err).To(BeNil())
+			Expect(resp.Status).To(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+
+			// Start sending health checking requests continuously
+			waitForHealthcheck := make(chan struct{})
+			go func(waitForHealthcheck chan struct{}) {
+				defer GinkgoRecover()
+				Eventually(func() bool {
+					ctx = context.Background()
+					var header metadata.MD
+					healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+						Service: settings.ServiceName,
+					}, grpc.Header(&header))
+					return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
+				}, "5s", ".1s").Should(BeTrue())
+				waitForHealthcheck <- struct{}{}
+			}(waitForHealthcheck)
+
+			// Start the health checker first, then cancel
+			time.Sleep(200 * time.Millisecond)
+			cancel()
+			Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+		})
 	})
 })
 
