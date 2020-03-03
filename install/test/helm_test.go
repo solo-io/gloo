@@ -790,10 +790,10 @@ var _ = Describe("Helm Test", func() {
 					return false
 				}
 
-				haveGlooAddress = func(containers []v1.Container, address string) bool {
+				haveEnvVariable = func(containers []v1.Container, containerName, env, value string) bool {
 					for _, c := range containers {
-						if c.Name == "rate-limit" || c.Name == "extauth" {
-							Expect(c.Env).To(ContainElement(v1.EnvVar{Name: "GLOO_ADDRESS", Value: address}))
+						if c.Name == containerName {
+							Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
 							return true
 						}
 					}
@@ -801,7 +801,7 @@ var _ = Describe("Helm Test", func() {
 				}
 			)
 
-			It("should put the secret volume in the Gloo and Gateway-Proxy Deployment and add a sidecar in the Gloo Deployment", func() {
+			It("should add or change the correct components in the resulting helm chart", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"global.glooMtls.enabled=true"},
 				})
@@ -841,17 +841,22 @@ var _ = Describe("Helm Test", func() {
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 
-					// should add envoy sidecars to the Extauth and Rate-Limit Deployment
+					// should add envoy, sds sidecars to the Extauth and Rate-Limit Deployment
 					if structuredDeployment.GetName() == "rate-limit" {
 						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
 						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveGlooAddress(structuredDeployment.Spec.Template.Spec.Containers, "127.0.0.1:9955")).To(BeTrue())
+						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+							"rate-limit", "GLOO_ADDRESS", "127.0.0.1:9955")).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 
 					if structuredDeployment.GetName() == "extauth" {
+						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
 						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveGlooAddress(structuredDeployment.Spec.Template.Spec.Containers, "127.0.0.1:9955")).To(BeTrue())
+						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+							"extauth", "GLOO_ADDRESS", "127.0.0.1:9955")).To(BeTrue())
+						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+							"extauth", "SERVER_PORT", "8084")).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 				})
@@ -872,7 +877,7 @@ var _ = Describe("Helm Test", func() {
 					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", configMap))
 
 					if structuredConfigMap.GetName() == "gateway-proxy-envoy-config" {
-						expectedGlooMtlsListener := "    - name: gloo_mtls_listener"
+						expectedGlooMtlsListener := "    - name: gloo_xds_mtls_listener"
 						Expect(structuredConfigMap.Data["envoy.yaml"]).To(ContainSubstring(expectedGlooMtlsListener))
 					}
 				})

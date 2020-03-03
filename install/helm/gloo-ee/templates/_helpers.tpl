@@ -29,7 +29,7 @@ Expand the name of the chart.
 
 {{/* Listener definition needed for ext auth setup */}}
 {{- define "gloo.sidecarlisteners" -}}
-- name: gloo_mtls_listener
+- name: gloo_xds_mtls_listener
   address:
     socket_address:
       address: 127.0.0.1
@@ -110,8 +110,13 @@ Expand the name of the chart.
       value: {{ $extAuth.deployment.debugPort | quote }}
     {{- end }}
     {{- if $extAuth.deployment.port }}
+    {{- if .Values.global.glooMtls.enabled }}
+    - name: SERVER_PORT
+      value: "8084"
+    {{- else }}
     - name: SERVER_PORT
       value: {{ $extAuth.deployment.port  | quote }}
+    {{- end }}
     {{- end }}
     {{- if eq $extAuthMode "sidecar" }}
     - name: UDS_ADDR

@@ -37,9 +37,9 @@ spec:
         secret:
           defaultMode: 420
           secretName: gloo-mtls-certs
-      - name: gloo-client-sidecar-config
+      - name: extauth-sidecar-config
         configMap:
-          name: gloo-client-sidecar-config
+          name: extauth-sidecar-config
       {{- end }} # .Values.global.glooMtls.enabled
       {{- if $extAuth.plugins }}
       {{- include "gloo.extauthpluginvolume" . | nindent 6 }}
@@ -61,10 +61,14 @@ spec:
         imagePullPolicy: {{ $envoyImage.pullPolicy }}
         volumeMounts:
         - mountPath: /etc/envoy
-          name: gloo-client-sidecar-config
+          name: extauth-sidecar-config
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh","-c","until ! $(curl --output /dev/null --silent --head --fail localhost:8084); do; sleep .1; done;"]
       - name: sds
         image: {{ template "gloo.image" $sdsImage }}
         imagePullPolicy: {{ $sdsImage.pullPolicy }}
@@ -72,6 +76,10 @@ spec:
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
           readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh","-c","until ! $(curl --output /dev/null --silent --head --fail localhost:8084); do; sleep .1; done;"]
       {{- end }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}

@@ -83,7 +83,7 @@ spec:
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
           volumeMounts:
             - mountPath: /etc/envoy
-              name: gloo-client-sidecar-config
+              name: rate-limit-sidecar-config
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
@@ -105,8 +105,8 @@ spec:
           secret:
             defaultMode: 420
             secretName: gloo-mtls-certs
-        - name: gloo-client-sidecar-config
+        - name: rate-limit-sidecar-config
           configMap:
-            name: gloo-client-sidecar-config
+            name: rate-limit-sidecar-config
       {{- end }} # .Values.global.glooMtls.enabled
 {{- end }}

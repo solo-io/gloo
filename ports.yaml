@@ -12,5 +12,7 @@ metrics-grpc: 9966
 gloo-validation: 9988
 gloo-mtls: 9999
 envoy-sidecar-admin-port: 8001
+standalone-extauth-server: 8083
+standalone-mtls-extauth-server: 8084
 
 petstore: 1234

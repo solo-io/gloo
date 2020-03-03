@@ -40,5 +40,11 @@ spec:
     servicePort:  {{ $extAuth.service.port }}
     serviceSpec:
       grpc: {}
+  {{- if .Values.global.glooMtls.enabled }}
+  sslConfig:
+    secretRef:
+      name: gloo-mtls-certs
+      namespace: gloo-system
+  {{- end }}
 {{- end }}
 {{- end }}

@@ -1,0 +1,79 @@
+{{- if .Values.gloo.gateway.updateValues -}}
+{{- include "gloo.updatevalues" . -}}
+{{- end -}}
+{{- if .Values.global.glooMtls.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rate-limit-sidecar-config
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: gloo
+    gloo: gloo
+data:
+  envoy-sidecar.yaml: |
+    node:
+      id: sds_client
+      cluster: sds_client
+    static_resources:
+      listeners:
+      {{- include "gloo.sidecarlisteners" $ | nindent 6 }}
+      clusters:
+      - name: gloo_client_sds
+        connect_timeout: 0.25s
+        http2_protocol_options: {}
+        load_assignment:
+          cluster_name: gloo_client_sds
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: 127.0.0.1
+                    port_value: 8234
+      - name: gloo.gloo-system.svc.cluster.local:9977
+        alt_stat_name: xds_cluster
+        connect_timeout: 5.000s
+        load_assignment:
+          cluster_name: gloo.gloo-system.svc.cluster.local:9977
+          endpoints:
+            - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: gloo
+                        port_value: 9977
+        http2_protocol_options: {}
+        upstream_connection_options:
+          tcp_keepalive: {}
+        type: STRICT_DNS
+        respect_dns_ttl: true
+        transport_socket:
+          name: envoy.transport_sockets.tls
+          typed_config:
+            "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
+            common_tls_context:
+              tls_certificate_sds_secret_configs:
+                - name: server_cert
+                  sds_config:
+                    api_config_source:
+                      api_type: GRPC
+                      grpc_services:
+                        - envoy_grpc:
+                            cluster_name: gloo_client_sds
+              validation_context_sds_secret_config:
+                name: validation_context
+                sds_config:
+                  api_config_source:
+                    api_type: GRPC
+                    grpc_services:
+                      - envoy_grpc:
+                          cluster_name: gloo_client_sds
+    admin:
+      access_log_path: "/dev/null"
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8001
+{{- end }}
