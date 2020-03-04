@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      When we do a GracefulStop in the extauth server, it closes the listener. We don't need to check
+      for an error when closing the listener afterwards.

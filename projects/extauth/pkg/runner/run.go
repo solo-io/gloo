@@ -130,10 +130,7 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 			logger.Infof("Unable to make health check fail in envoy. Shutting down anyway.")
 		}
 		srv.GracefulStop()
-		err = lis.Close()
-		if err != nil {
-			logger.Errorw("Failed to close listener on network", zap.Any("network", network), zap.Any("address", addr), zap.Error(err))
-		}
+		_ = lis.Close()
 	}()
 
 	return srv.Serve(lis)
