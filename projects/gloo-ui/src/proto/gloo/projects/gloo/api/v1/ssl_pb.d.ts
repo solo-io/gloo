@@ -37,6 +37,11 @@ export class SslConfig extends jspb.Message {
   getParameters(): SslParameters | undefined;
   setParameters(value?: SslParameters): void;
 
+  clearAlpnProtocolsList(): void;
+  getAlpnProtocolsList(): Array<string>;
+  setAlpnProtocolsList(value: Array<string>): void;
+  addAlpnProtocols(value: string, index?: number): string;
+
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SslConfig.AsObject;
@@ -56,6 +61,7 @@ export namespace SslConfig {
     sniDomainsList: Array<string>,
     verifySubjectAltNameList: Array<string>,
     parameters?: SslParameters.AsObject,
+    alpnProtocolsList: Array<string>,
   }
 
   export enum SslSecretsCase {

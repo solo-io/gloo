@@ -150,11 +150,6 @@ var _ = Describe("Helm Test", func() {
 					},
 				}
 				observabilityDeployment.Spec.Template.Spec.ServiceAccountName = "observability"
-				observabilityDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
-					{
-						Name: "solo-io-readerbot-pull-secret",
-					},
-				}
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
@@ -331,11 +326,6 @@ var _ = Describe("Helm Test", func() {
 						Resources: v1.ResourceRequirements{},
 					},
 				}
-				expectedDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
-					{
-						Name: "solo-io-readerbot-pull-secret",
-					},
-				}
 				expectedDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				expectedDeployment.Spec.Selector.MatchLabels = selector
 				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
@@ -479,12 +469,6 @@ var _ = Describe("Helm Test", func() {
 						},
 						ReadOnlyRootFilesystem:   &truez,
 						AllowPrivilegeEscalation: &falsez,
-					}
-
-					deploy.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
-						{
-							Name: "solo-io-readerbot-pull-secret",
-						},
 					}
 
 					deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
@@ -684,11 +668,6 @@ var _ = Describe("Helm Test", func() {
 						}
 						expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 						expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
-						expectedDeployment.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{
-							{
-								Name: "solo-io-readerbot-pull-secret",
-							},
-						}
 						expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 					})
 

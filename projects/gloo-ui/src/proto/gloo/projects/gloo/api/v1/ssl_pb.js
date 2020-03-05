@@ -46,7 +46,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gloo.solo.io.SslConfig.repeatedFields_ = [3,5];
+proto.gloo.solo.io.SslConfig.repeatedFields_ = [3,5,7];
 
 /**
  * Oneof group definitions for this message. Each group defines the field
@@ -109,7 +109,8 @@ proto.gloo.solo.io.SslConfig.toObject = function(includeInstance, msg) {
     sds: (f = msg.getSds()) && proto.gloo.solo.io.SDSConfig.toObject(includeInstance, f),
     sniDomainsList: jspb.Message.getRepeatedField(msg, 3),
     verifySubjectAltNameList: jspb.Message.getRepeatedField(msg, 5),
-    parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f)
+    parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
+    alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7)
   };
 
   if (includeInstance) {
@@ -173,6 +174,10 @@ proto.gloo.solo.io.SslConfig.deserializeBinaryFromReader = function(msg, reader)
       var value = new proto.gloo.solo.io.SslParameters;
       reader.readMessage(value,proto.gloo.solo.io.SslParameters.deserializeBinaryFromReader);
       msg.setParameters(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAlpnProtocols(value);
       break;
     default:
       reader.skipField();
@@ -247,6 +252,13 @@ proto.gloo.solo.io.SslConfig.serializeBinaryToWriter = function(message, writer)
       6,
       f,
       proto.gloo.solo.io.SslParameters.serializeBinaryToWriter
+    );
+  }
+  f = message.getAlpnProtocolsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
+      f
     );
   }
 };
@@ -427,6 +439,35 @@ proto.gloo.solo.io.SslConfig.prototype.clearParameters = function() {
  */
 proto.gloo.solo.io.SslConfig.prototype.hasParameters = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * repeated string alpn_protocols = 7;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.SslConfig.prototype.getAlpnProtocolsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.SslConfig.prototype.setAlpnProtocolsList = function(value) {
+  jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.SslConfig.prototype.addAlpnProtocols = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+proto.gloo.solo.io.SslConfig.prototype.clearAlpnProtocolsList = function() {
+  this.setAlpnProtocolsList([]);
 };
 
 

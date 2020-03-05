@@ -187,7 +187,6 @@ global:
   image:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
-    pullSecret: solo-io-readerbot-pull-secret
   glooStats:
     enabled: true
   glooRbac:

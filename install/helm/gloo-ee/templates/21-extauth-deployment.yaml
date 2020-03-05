@@ -81,8 +81,10 @@ spec:
             exec:
               command: ["/bin/sh","-c","until ! $(curl --output /dev/null --silent --head --fail localhost:8084); do; sleep .1; done;"]
       {{- end }}
+      {{- if $image.pullSecret }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
+      {{- end }}
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
