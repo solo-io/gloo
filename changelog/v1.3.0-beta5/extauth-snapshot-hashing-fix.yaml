@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    description: >
+      The extauth server was getting alternating nil and correct configs from Gloo. This was because
+      the snapshot hash was being generated from auth configs that showed up in proxy objects in the
+      snapshot. However, a new snapshot was being created once after the auth config was added, and
+      once after the gateway pod created the proxy object. The first would generate a nil config, and
+      the second would create the correct config.
+      This changes the implementation such that we only look at the auth configs to create the hash,
+      and only change whenever an auth config is added or removed. 
+    issueLink: https://github.com/solo-io/gloo/issues/2512

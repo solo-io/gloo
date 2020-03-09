@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
-	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"go.uber.org/zap"
 
 	"github.com/mitchellh/hashstructure"
@@ -49,37 +49,10 @@ type SnapshotSetter interface {
 func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
 	helper := newHelper()
 
-	for _, proxy := range snap.Proxies {
-		for _, listener := range proxy.Listeners {
-			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
-			if !ok {
-				// not an http listener - skip it as currently ext auth is only supported for http
-				continue
-			}
-
-			virtualHosts := httpListener.HttpListener.VirtualHosts
-			for _, virtualHost := range virtualHosts {
-
-				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
-				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
-
-				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetOptions().GetExtauth()); err != nil {
-					return err
-				}
-
-				for _, route := range virtualHost.Routes {
-
-					if err := helper.processAuthExtension(ctx, snap, route.GetOptions().GetExtauth()); err != nil {
-						return err
-					}
-
-					for _, weightedDestination := range route.GetRouteAction().GetMulti().GetDestinations() {
-						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetOptions().GetExtauth()); err != nil {
-							return err
-						}
-					}
-				}
-			}
+	for _, cfg := range snap.AuthConfigs {
+		configRef := cfg.GetMetadata().Ref()
+		if err := helper.processAuthExtension(ctx, snap, &configRef); err != nil {
+			return err
 		}
 	}
 
@@ -110,8 +83,7 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, config *extauth.ExtAuthExtension) error {
-	configRef := config.GetConfigRef()
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, configRef *core.ResourceRef) error {
 	if configRef == nil {
 		// Just return if there is nothing to translate
 		return nil
