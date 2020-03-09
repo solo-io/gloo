@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Use safe-regex in grpcserver envoy cors configuration.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1505
