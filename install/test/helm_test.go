@@ -373,6 +373,72 @@ var _ = Describe("Helm Test", func() {
 				expectedDeployment.Spec.Replicas = aws.Int32(3)
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
+			It("allows multiple extauth plugins", func() {
+				helmOverrideFileContents := `
+global:
+  extensions:
+    extAuth:
+      plugins:
+        first-plugin:
+          image:
+            repository: ext-auth-plugins
+            registry: quay.io/solo-io
+            pullPolicy: IfNotPresent
+            tag: 1.2.3
+        second-plugin:
+          image:
+            repository: foo
+            registry: bar
+            pullPolicy: IfNotPresent
+            tag: 1.2.3`
+				helmOverrideFile := "helm-override.yaml"
+				err := ioutil.WriteFile(helmOverrideFile, []byte(helmOverrideFileContents), 0644)
+				Expect(err).NotTo(HaveOccurred())
+				defer os.Remove(helmOverrideFile)
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesFile: helmOverrideFile,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+
+				authPluginVolumeMount := []v1.VolumeMount{
+					v1.VolumeMount{
+						Name:      "auth-plugins",
+						MountPath: "/auth-plugins",
+					},
+				}
+				expectedDeployment.Spec.Template.Spec.InitContainers = []v1.Container{
+					v1.Container{
+						Name:            "plugin-first-plugin",
+						Image:           "quay.io/solo-io/ext-auth-plugins:1.2.3",
+						ImagePullPolicy: v1.PullIfNotPresent,
+						VolumeMounts:    authPluginVolumeMount,
+					},
+					v1.Container{
+						Name:            "plugin-second-plugin",
+						Image:           "bar/foo:1.2.3",
+						ImagePullPolicy: v1.PullIfNotPresent,
+						VolumeMounts:    authPluginVolumeMount,
+					},
+				}
+				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+					v1.Volume{
+						Name: "auth-plugins",
+						VolumeSource: v1.VolumeSource{
+							EmptyDir: &v1.EmptyDirVolumeSource{},
+						},
+					},
+				}
+				for i, _ := range expectedDeployment.Spec.Template.Spec.Containers {
+					expectedDeployment.Spec.Template.Spec.Containers[i].VolumeMounts =
+						append(expectedDeployment.Spec.Template.Spec.Containers[i].VolumeMounts, authPluginVolumeMount...)
+				}
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 		})
 
 		Context("gateway", func() {

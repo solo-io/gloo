@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix the helm chart rendering in the extauth deployment when there are multiple plugins.
+    issueLink: https://github.com/solo-io/gloo/issues/2355

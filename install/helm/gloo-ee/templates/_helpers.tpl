@@ -59,7 +59,7 @@ Expand the name of the chart.
   volumeMounts:
     - name: auth-plugins
       mountPath: /auth-plugins
-{{- end}}
+{{end}} {{/* don't strip the newline here for rendering purposes */}}
 {{- end}}
 
 {{/* Container definition for extauth, used in extauth deployment and
