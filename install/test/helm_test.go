@@ -323,6 +323,16 @@ var _ = Describe("Helm Test", func() {
 							},
 							statsEnvVar,
 						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								Exec: &v1.ExecAction{
+									Command: []string{"/bin/sh", "-c", "nc -z localhost 8083"},
+								},
+							},
+							InitialDelaySeconds: 1,
+							FailureThreshold:    3,
+							SuccessThreshold:    1,
+						},
 						Resources: v1.ResourceRequirements{},
 					},
 				}

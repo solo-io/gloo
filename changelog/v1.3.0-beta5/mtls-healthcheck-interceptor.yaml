@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    description: >
+      When terminating the extauth server (e.g. k8s rolling update), we send a 
+      "x-envoy-immediate-health-check-fail" header to envoy. In MTLS mode, if the
+      sds and envoy sidecars shut down before the extauth server does, we can't send
+      this header. This change adds a lifecycle pre-stop check to the sds and
+      envoy sidecars to wait for the main extauth container to shut down first.
+    issueLink: https://github.com/solo-io/gloo/issues/2489
+  - type: FIX
+    description: >
+      Add a readinessProbe to the extauth standalone deployment. This waits for the
+      extauth server to start up before marking it as ready. During extauth upgrades,
+      this will reduce downtime.
+    issueLink: https://github.com/solo-io/gloo/issues/2489

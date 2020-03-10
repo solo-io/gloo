@@ -75,6 +75,7 @@ Expand the name of the chart.
 {{- if .Values.global -}}
 {{- $image = merge $extAuth.deployment.image .Values.global.image -}}
 {{- end -}}
+{{- $extAuthServerPort := .Values.global.glooMtls.enabled | ternary 8084 $extAuth.deployment.port -}}
 {{- $extAuthMode := default "sidecar" .ExtAuthMode -}}
 - image: {{template "gloo.image" $image}}
   imagePullPolicy: {{ $image.pullPolicy }}
@@ -109,15 +110,8 @@ Expand the name of the chart.
     - name: DEBUG_PORT
       value: {{ $extAuth.deployment.debugPort | quote }}
     {{- end }}
-    {{- if $extAuth.deployment.port }}
-    {{- if .Values.global.glooMtls.enabled }}
     - name: SERVER_PORT
-      value: "8084"
-    {{- else }}
-    - name: SERVER_PORT
-      value: {{ $extAuth.deployment.port  | quote }}
-    {{- end }}
-    {{- end }}
+      value: {{ $extAuthServerPort | quote }}
     {{- if eq $extAuthMode "sidecar" }}
     - name: UDS_ADDR
       value: "/usr/share/shared-data/.sock"
@@ -130,6 +124,17 @@ Expand the name of the chart.
     - name: START_STATS_SERVER
       value: "true"
     {{- end}}
+  {{- if ne $extAuthMode "sidecar" }}
+  readinessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - nc -z localhost {{ $extAuthServerPort }}
+    initialDelaySeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+  {{- end }}
   {{- if or $extAuth.plugins (eq $extAuthMode "sidecar") }}
   volumeMounts:
   {{- if eq $extAuthMode "sidecar" }}
