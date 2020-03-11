@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/extensions.proto
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Extensions extends jspb.Message {
   getConfigsMap(): jspb.Map<string, google_protobuf_struct_pb.Struct>;
@@ -46,4 +47,3 @@ export namespace Extension {
     config?: google_protobuf_struct_pb.Struct.AsObject,
   }
 }
-

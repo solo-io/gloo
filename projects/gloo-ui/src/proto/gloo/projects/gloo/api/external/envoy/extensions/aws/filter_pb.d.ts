@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.config.filter.http.aws_lambda.v2
 // file: gloo/projects/gloo/api/external/envoy/extensions/aws/filter.proto
 
@@ -92,4 +93,3 @@ export namespace AWSLambdaConfig {
     useDefaultCredentials?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
-

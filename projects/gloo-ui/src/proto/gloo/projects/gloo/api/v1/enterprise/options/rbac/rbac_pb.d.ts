@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: rbac.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Settings extends jspb.Message {
   getRequireRbac(): boolean;
@@ -146,4 +147,3 @@ export namespace Permissions {
     methodsList: Array<string>,
   }
 }
-

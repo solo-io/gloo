@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/secret.proto
 
@@ -213,4 +214,3 @@ export namespace DeleteSecretResponse {
   export type AsObject = {
   }
 }
-

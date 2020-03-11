@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: cors.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/cors/cors.proto
 
@@ -5,7 +6,7 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class CorsPolicy extends jspb.Message {
   clearAllowOriginList(): void;
@@ -64,4 +65,3 @@ export namespace CorsPolicy {
     disableForRoute: boolean,
   }
 }
-

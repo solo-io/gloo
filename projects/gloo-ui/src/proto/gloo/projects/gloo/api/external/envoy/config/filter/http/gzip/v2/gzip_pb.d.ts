@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: envoy.config.filter.http.gzip.v2
 // file: gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as validate_validate_pb from "../../../../../../../../../../../validate/validate_pb";
 
@@ -95,4 +96,3 @@ export namespace Gzip {
 
   export const CompressionStrategy: CompressionStrategyMap;
 }
-

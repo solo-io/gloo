@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/subset_spec.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class SubsetSpec extends jspb.Message {
   clearSelectorsList(): void;
@@ -48,4 +49,3 @@ export namespace Selector {
     keysList: Array<string>,
   }
 }
-

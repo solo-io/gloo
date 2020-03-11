@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: core.solo.io
 // file: solo-kit/api/v1/solo-kit.proto
 
@@ -41,4 +42,3 @@ export namespace Resource {
 }
 
   export const resource: jspb.ExtensionFieldInfo<Resource>;
-

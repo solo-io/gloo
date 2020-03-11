@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: core.solo.io
 // file: solo-kit/api/v1/status.proto
 
@@ -51,4 +52,3 @@ export namespace Status {
 
   export const State: StateMap;
 }
-

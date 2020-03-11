@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: envoy.type
 // file: solo-kit/api/external/envoy/type/percent.proto
 
 import * as jspb from "google-protobuf";
 import * as validate_validate_pb from "../../../../../validate/validate_pb";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Percent extends jspb.Message {
   getValue(): number;
@@ -57,4 +58,3 @@ export namespace FractionalPercent {
 
   export const DenominatorType: DenominatorTypeMap;
 }
-

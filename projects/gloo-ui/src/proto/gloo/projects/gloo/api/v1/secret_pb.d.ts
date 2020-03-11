@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/secret.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as gloo_projects_gloo_api_v1_extensions_pb from "../../../../../gloo/projects/gloo/api/v1/extensions_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
@@ -148,4 +149,3 @@ export namespace TlsSecret {
     rootCa: string,
   }
 }
-

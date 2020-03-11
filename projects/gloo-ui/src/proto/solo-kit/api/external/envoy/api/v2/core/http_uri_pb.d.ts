@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.api.v2.core
 // file: solo-kit/api/external/envoy/api/v2/core/http_uri.proto
 
@@ -5,7 +6,7 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class HttpUri extends jspb.Message {
   getUri(): string;
@@ -44,4 +45,3 @@ export namespace HttpUri {
     CLUSTER = 2,
   }
 }
-

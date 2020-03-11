@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.config.filter.http.transformation_ee.v2
 // file: gloo/projects/gloo/api/external/envoy/extensions/transformation_ee/transformation.proto
 
@@ -177,4 +178,3 @@ export namespace Action {
     maskChar: string,
   }
 }
-

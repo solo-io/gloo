@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: dlp.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp.proto
 
@@ -5,7 +6,7 @@ import * as jspb from "google-protobuf";
 import * as gloo_projects_gloo_api_v1_core_matchers_matchers_pb from "../../../../../../../../gloo/projects/gloo/api/v1/core/matchers/matchers_pb";
 import * as envoy_type_percent_pb from "../../../../../../../../envoy/type/percent_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class FilterConfig extends jspb.Message {
   clearDlpRulesList(): void;
@@ -159,4 +160,3 @@ export namespace CustomAction {
     percent?: envoy_type_percent_pb.Percent.AsObject,
   }
 }
-

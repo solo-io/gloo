@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: validate
 // file: validate/validate.proto
 
@@ -1495,4 +1496,3 @@ export namespace TimestampRules {
   export const required: jspb.ExtensionFieldInfo<boolean>;
 
   export const rules: jspb.ExtensionFieldInfo<FieldRules>;
-

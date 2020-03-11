@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: gateway.solo.io
 // file: gloo/projects/gateway/api/v1/route_table.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as solo_kit_api_v1_status_pb from "../../../../../solo-kit/api/v1/status_pb";
@@ -49,4 +50,3 @@ export namespace RouteTable {
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
 }
-

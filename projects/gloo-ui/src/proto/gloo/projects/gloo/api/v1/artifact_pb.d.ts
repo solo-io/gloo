@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/artifact.proto
 
@@ -30,4 +31,3 @@ export namespace Artifact {
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
 }
-

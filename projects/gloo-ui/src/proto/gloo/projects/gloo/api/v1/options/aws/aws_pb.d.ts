@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: aws.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/aws/aws.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../../../solo-kit/api/v1/ref_pb";
 
 export class UpstreamSpec extends jspb.Message {
@@ -100,4 +101,3 @@ export namespace DestinationSpec {
 
   export const InvocationStyle: InvocationStyleMap;
 }
-

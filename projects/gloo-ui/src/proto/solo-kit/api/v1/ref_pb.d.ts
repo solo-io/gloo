@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: core.solo.io
 // file: solo-kit/api/v1/ref.proto
 
@@ -28,4 +29,3 @@ export namespace ResourceRef {
     namespace: string,
   }
 }
-

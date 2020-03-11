@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/subset.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Subset extends jspb.Message {
   getValuesMap(): jspb.Map<string, string>;
@@ -23,4 +24,3 @@ export namespace Subset {
     valuesMap: Array<[string, string]>,
   }
 }
-

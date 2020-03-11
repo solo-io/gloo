@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.api.v2.cluster
 // file: gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection.proto
 
@@ -6,7 +7,7 @@ import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/du
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as validate_validate_pb from "../../../../../../../../../validate/validate_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class OutlierDetection extends jspb.Message {
   hasConsecutive5xx(): boolean;
@@ -111,4 +112,3 @@ export namespace OutlierDetection {
     enforcingLocalOriginSuccessRate?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 }
-

@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/upstream.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as gloo_projects_gloo_api_v1_ssl_pb from "../../../../../gloo/projects/gloo/api/v1/ssl_pb";
 import * as gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../gloo/projects/gloo/api/v1/circuit_breaker_pb";
@@ -165,4 +166,3 @@ export namespace DiscoveryMetadata {
   export type AsObject = {
   }
 }
-

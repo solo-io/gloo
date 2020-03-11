@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: grpc.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/grpc/grpc.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as gloo_projects_gloo_api_v1_options_transformation_parameters_pb from "../../../../../../../gloo/projects/gloo/api/v1/options/transformation/parameters_pb";
 
 export class ServiceSpec extends jspb.Message {
@@ -97,4 +98,3 @@ export namespace DestinationSpec {
     parameters?: gloo_projects_gloo_api_v1_options_transformation_parameters_pb.Parameters.AsObject,
   }
 }
-

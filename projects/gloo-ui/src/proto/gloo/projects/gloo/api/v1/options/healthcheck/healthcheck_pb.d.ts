@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: healthcheck.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/healthcheck/healthcheck.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../../../solo-kit/api/v1/ref_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class HealthCheck extends jspb.Message {
@@ -26,4 +27,3 @@ export namespace HealthCheck {
     path: string,
   }
 }
-

@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/gateway.proto
 
@@ -188,4 +189,3 @@ export namespace UpdateGatewayResponse {
     gatewayDetails?: GatewayDetails.AsObject,
   }
 }
-

@@ -1,0 +1,6 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Initial setup for developer portal. Specifically, we import and generate code for the dev portal protobuf definitions.
+    We also create a separate set of components to register dev portal gRPC services with the apiserver. These components
+    are disabled by default and can be activated by setting the `DEV_PORTAL_ENABLED` env on the container.

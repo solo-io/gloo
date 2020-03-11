@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/envoy.proto
 
@@ -74,4 +75,3 @@ export namespace ListEnvoyDetailsResponse {
     envoyDetailsList: Array<EnvoyDetails.AsObject>,
   }
 }
-

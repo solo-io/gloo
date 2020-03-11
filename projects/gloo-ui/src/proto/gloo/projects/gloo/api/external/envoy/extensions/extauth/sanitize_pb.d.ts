@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.config.filter.http.sanitize.v2
 // file: gloo/projects/gloo/api/external/envoy/extensions/extauth/sanitize.proto
 
@@ -24,4 +25,3 @@ export namespace Sanitize {
     headersToRemoveList: Array<string>,
   }
 }
-

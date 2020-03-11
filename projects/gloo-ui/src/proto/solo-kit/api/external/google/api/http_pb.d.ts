@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: google.api
 // file: solo-kit/api/external/google/api/http.proto
 
@@ -129,4 +130,3 @@ export namespace CustomHttpPattern {
     path: string,
   }
 }
-

@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: stats.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/stats/stats.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Stats extends jspb.Message {
   clearVirtualClustersList(): void;
@@ -54,4 +55,3 @@ export namespace VirtualCluster {
     method: string,
   }
 }
-

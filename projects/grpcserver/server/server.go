@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -29,7 +31,10 @@ func NewGlooGrpcService(
 	gatewayService v1.GatewayApiServer,
 	proxyService v1.ProxyApiServer,
 	envoyService v1.EnvoyApiServer,
-	clientUpdater client.Updater) *GlooGrpcService {
+	clientUpdater client.Updater,
+	registrar devportal.Registrar,
+) *GlooGrpcService {
+
 	server := &GlooGrpcService{
 		server:   grpc.NewServer(),
 		listener: listener,
@@ -45,6 +50,9 @@ func NewGlooGrpcService(
 	v1.RegisterGatewayApiServer(server.server, gatewayService)
 	v1.RegisterProxyApiServer(server.server, proxyService)
 	v1.RegisterEnvoyApiServer(server.server, envoyService)
+
+	// Register Dev Portal services
+	registrar.RegisterTo(server.server)
 
 	// just responsible for kicking off the settings watch loop that rebuilds all the clients
 	// (the client updater has to be passed somewhere, otherwise wire complains about an unused provider)

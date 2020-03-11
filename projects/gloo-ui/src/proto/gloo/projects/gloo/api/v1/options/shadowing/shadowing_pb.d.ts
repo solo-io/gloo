@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: shadowing.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/shadowing/shadowing.proto
 
@@ -6,7 +7,7 @@ import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../../../solo-kit/api/v1/ref_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class RouteShadowing extends jspb.Message {
   hasUpstream(): boolean;
@@ -33,4 +34,3 @@ export namespace RouteShadowing {
     percentage: number,
   }
 }
-

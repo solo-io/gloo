@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/virtualservice.proto
 
@@ -829,4 +830,3 @@ export namespace ShiftRoutesResponse {
     virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
-

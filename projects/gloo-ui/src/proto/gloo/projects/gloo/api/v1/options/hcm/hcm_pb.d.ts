@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: hcm.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/hcm/hcm.proto
 
@@ -7,7 +8,7 @@ import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wr
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as gloo_projects_gloo_api_v1_options_tracing_tracing_pb from "../../../../../../../gloo/projects/gloo/api/v1/options/tracing/tracing_pb";
 import * as gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class HttpConnectionManagerSettings extends jspb.Message {
   getSkipXffAppend(): boolean;
@@ -174,4 +175,3 @@ export namespace HttpConnectionManagerSettings {
 
   export const ForwardClientCertDetails: ForwardClientCertDetailsMap;
 }
-

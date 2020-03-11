@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/service_spec.proto
 
@@ -5,7 +6,7 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../gogoproto/gogo_pb";
 import * as gloo_projects_gloo_api_v1_options_rest_rest_pb from "../../../../../../gloo/projects/gloo/api/v1/options/rest/rest_pb";
 import * as gloo_projects_gloo_api_v1_options_grpc_grpc_pb from "../../../../../../gloo/projects/gloo/api/v1/options/grpc/grpc_pb";
-import * as extproto_ext_pb from "../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class ServiceSpec extends jspb.Message {
   hasRest(): boolean;
@@ -41,4 +42,3 @@ export namespace ServiceSpec {
     GRPC = 2,
   }
 }
-

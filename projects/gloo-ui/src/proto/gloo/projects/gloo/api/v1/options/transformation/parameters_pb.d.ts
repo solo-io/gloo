@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: transformation.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/transformation/parameters.proto
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Parameters extends jspb.Message {
   getHeadersMap(): jspb.Map<string, string>;
@@ -30,4 +31,3 @@ export namespace Parameters {
     path?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 }
-

@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: matchers.core.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/core/matchers/matchers.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Matcher extends jspb.Message {
   hasPrefix(): boolean;
@@ -124,4 +125,3 @@ export namespace QueryParameterMatcher {
     regex: boolean,
   }
 }
-

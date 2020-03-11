@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.api.v2.core
 // file: solo-kit/api/external/envoy/api/v2/core/base.proto
 
@@ -9,7 +10,7 @@ import * as envoy_api_v2_core_http_uri_pb from "../../../../../../../envoy/api/v
 import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
 import * as envoy_type_percent_pb from "../../../../../../../envoy/type/percent_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Locality extends jspb.Message {
   getRegion(): string;
@@ -502,4 +503,3 @@ export interface TrafficDirectionMap {
 }
 
 export const TrafficDirection: TrafficDirectionMap;
-

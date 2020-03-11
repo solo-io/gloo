@@ -25,3 +25,9 @@ do
   sed "s|../../../extproto/ext_pb.js|../../../protoc-gen-ext/extproto/ext_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"
 done
+
+for file in $(find projects/gloo-ui/src/proto -type f | grep "_pb.d.ts")
+do
+  sed "s|../../../../extproto/ext_pb|../../../../protoc-gen-ext/extproto/ext_pb|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"
+done

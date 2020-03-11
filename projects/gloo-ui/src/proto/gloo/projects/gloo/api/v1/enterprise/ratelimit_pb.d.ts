@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooe.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/ratelimit.proto
 
@@ -6,7 +7,7 @@ import * as envoy_api_v2_discovery_pb from "../../../../../../envoy/api/v2/disco
 import * as google_api_annotations_pb from "../../../../../../google/api/annotations_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb";
 import * as gogoproto_gogo_pb from "../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class RateLimitConfig extends jspb.Message {
   getDomain(): string;
@@ -33,4 +34,3 @@ export namespace RateLimitConfig {
     descriptorsList: Array<gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor.AsObject>,
   }
 }
-

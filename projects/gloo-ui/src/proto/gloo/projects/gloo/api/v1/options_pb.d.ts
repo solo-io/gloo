@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options.proto
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as gloo_projects_gloo_api_v1_extensions_pb from "../../../../../gloo/projects/gloo/api/v1/extensions_pb";
 import * as gloo_projects_gloo_api_v1_options_cors_cors_pb from "../../../../../gloo/projects/gloo/api/v1/options/cors/cors_pb";
 import * as gloo_projects_gloo_api_v1_options_rest_rest_pb from "../../../../../gloo/projects/gloo/api/v1/options/rest/rest_pb";
@@ -481,4 +482,3 @@ export namespace WeightedDestinationOptions {
     extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
   }
 }
-

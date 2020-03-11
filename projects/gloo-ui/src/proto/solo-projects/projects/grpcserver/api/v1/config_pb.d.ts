@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/config.proto
 
@@ -349,4 +350,3 @@ export namespace ListNamespacesResponse {
     namespacesList: Array<string>,
   }
 }
-

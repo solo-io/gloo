@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: google.rpc
 // file: solo-kit/api/external/google/rpc/status.proto
 
@@ -33,4 +34,3 @@ export namespace Status {
     detailsList: Array<google_protobuf_any_pb.Any.AsObject>,
   }
 }
-

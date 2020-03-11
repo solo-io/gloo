@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/routetable.proto
 
@@ -264,4 +265,3 @@ export namespace DeleteRouteTableResponse {
   export type AsObject = {
   }
 }
-

@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: envoy.type
 // file: gloo/projects/gloo/api/external/envoy/type/range.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Int64Range extends jspb.Message {
   getStart(): number;
@@ -52,4 +53,3 @@ export namespace DoubleRange {
     end: number,
   }
 }
-

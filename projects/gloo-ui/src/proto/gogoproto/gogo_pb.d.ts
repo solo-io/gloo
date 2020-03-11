@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: gogoproto
 // file: gogoproto/gogo.proto
 
@@ -155,4 +156,3 @@ import * as google_protobuf_descriptor_pb from "google-protobuf/google/protobuf/
   export const stdduration: jspb.ExtensionFieldInfo<boolean>;
 
   export const wktpointer: jspb.ExtensionFieldInfo<boolean>;
-

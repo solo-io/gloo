@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/load_balancer.proto
 
@@ -6,7 +7,7 @@ import * as gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb from "../../../..
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class LoadBalancerConfig extends jspb.Message {
   hasHealthyPanicThreshold(): boolean;
@@ -189,4 +190,3 @@ export namespace LoadBalancerConfig {
     MAGLEV = 7,
   }
 }
-

@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/types.proto
 
@@ -90,4 +91,3 @@ export namespace EditedResourceYaml {
     ref?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
   }
 }
-

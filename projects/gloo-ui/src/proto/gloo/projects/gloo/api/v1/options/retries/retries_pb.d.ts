@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: retries.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/retries/retries.proto
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class RetryPolicy extends jspb.Message {
   getRetryOn(): string;
@@ -35,4 +36,3 @@ export namespace RetryPolicy {
     perTryTimeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
-

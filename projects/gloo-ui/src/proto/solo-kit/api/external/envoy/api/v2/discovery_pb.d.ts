@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: envoy.api.v2
 // file: solo-kit/api/external/envoy/api/v2/discovery.proto
 
@@ -6,7 +7,7 @@ import * as envoy_api_v2_core_base_pb from "../../../../../../envoy/api/v2/core/
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_rpc_status_pb from "../../../../../../google/rpc/status_pb";
 import * as gogoproto_gogo_pb from "../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class DiscoveryRequest extends jspb.Message {
   getVersionInfo(): string;
@@ -224,4 +225,3 @@ export namespace Resource {
     resource?: google_protobuf_any_pb.Any.AsObject,
   }
 }
-

@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: jwt.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt.proto
 
 import * as jspb from "google-protobuf";
 import * as solo_kit_api_v1_ref_pb from "../../../../../../../../solo-kit/api/v1/ref_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class VhostExtension extends jspb.Message {
@@ -260,4 +261,3 @@ export namespace ClaimToHeader {
     append: boolean,
   }
 }
-

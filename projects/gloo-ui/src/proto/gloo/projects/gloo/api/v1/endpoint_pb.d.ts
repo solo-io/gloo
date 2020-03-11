@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/endpoint.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../solo-kit/api/v1/ref_pb";
 import * as solo_kit_api_v1_solo_kit_pb from "../../../../../solo-kit/api/v1/solo-kit_pb";
@@ -43,4 +44,3 @@ export namespace Endpoint {
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
 }
-

@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: waf.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/options/waf/waf.proto
 
 import * as jspb from "google-protobuf";
 import * as gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb from "../../../../../../../../gloo/projects/gloo/api/external/envoy/extensions/waf/waf_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Settings extends jspb.Message {
   getDisabled(): boolean;
@@ -76,4 +77,3 @@ export namespace CoreRuleSet {
     CUSTOM_SETTINGS_FILE = 3,
   }
 }
-

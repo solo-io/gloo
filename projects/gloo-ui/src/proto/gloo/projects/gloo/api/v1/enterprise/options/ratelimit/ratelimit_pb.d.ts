@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: ratelimit.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto
 
@@ -6,7 +7,7 @@ import * as solo_kit_api_v1_ref_pb from "../../../../../../../../solo-kit/api/v1
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Descriptor extends jspb.Message {
   getKey(): string;
@@ -553,4 +554,3 @@ export namespace QueryParameterMatcher {
     regex?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
-

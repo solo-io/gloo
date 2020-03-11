@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: glooeeapi.solo.io
 // file: solo-projects/projects/grpcserver/api/v1/upstreamgroup.proto
 
@@ -264,4 +265,3 @@ export namespace DeleteUpstreamGroupResponse {
   export type AsObject = {
   }
 }
-

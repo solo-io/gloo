@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: gloo.solo.io
 // file: gloo/projects/gloo/api/v1/proxy.proto
 
@@ -5,7 +6,7 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as solo_kit_api_v1_status_pb from "../../../../../solo-kit/api/v1/status_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../solo-kit/api/v1/ref_pb";
@@ -650,4 +651,3 @@ export namespace DirectResponseAction {
     body: string,
   }
 }
-

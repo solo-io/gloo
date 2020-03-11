@@ -1,9 +1,10 @@
+/* eslint-disable */
 // package: static.options.gloo.solo.io
 // file: gloo/projects/gloo/api/v1/options/static/static.proto
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as gloo_projects_gloo_api_v1_options_service_spec_pb from "../../../../../../../gloo/projects/gloo/api/v1/options/service_spec_pb";
 
@@ -62,4 +63,3 @@ export namespace Host {
     port: number,
   }
 }
-

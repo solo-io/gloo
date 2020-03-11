@@ -6,7 +6,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/code-generator/sk_anyvendor"
 )
 
-const GlooPkg = "github.com/solo-io/gloo"
+const (
+	GlooPkg      = "github.com/solo-io/gloo"
+	DevPortalPkg = "github.com/solo-io/dev-portal"
+)
 
 //go:generate go run generate.go
 
@@ -20,7 +23,13 @@ func main() {
 			sk_anyvendor.SoloKitMatchPattern,
 		},
 	)
-	imports.External[GlooPkg] = []string{"projects/**/*.proto"}
+	imports.External[GlooPkg] = []string{
+		"projects/**/*.proto",
+	}
+	// Import the dev portal proto files
+	imports.External[DevPortalPkg] = []string{
+		"api/**/*.proto",
+	}
 
 	generateOptions := cmd.GenerateOptions{
 		SkipGenMocks:    true,

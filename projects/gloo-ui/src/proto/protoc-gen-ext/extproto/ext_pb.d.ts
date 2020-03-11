@@ -1,3 +1,4 @@
+/* eslint-disable */
 // package: extproto
 // file: protoc-gen-ext/extproto/ext.proto
 
@@ -9,4 +10,3 @@ import * as google_protobuf_descriptor_pb from "google-protobuf/google/protobuf/
   export const equalAll: jspb.ExtensionFieldInfo<boolean>;
 
   export const skipHashing: jspb.ExtensionFieldInfo<boolean>;
-

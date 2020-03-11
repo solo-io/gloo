@@ -1,10 +1,11 @@
+/* eslint-disable */
 // package: envoy.config.wasm.v2
 // file: gloo/projects/gloo/api/external/envoy/api/v2/config/wasm/wasm.proto
 
 import * as jspb from "google-protobuf";
 import * as envoy_api_v2_core_base_pb from "../../../../../../../../../../envoy/api/v2/core/base_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
-import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
+import * as extproto_ext_pb from "../../../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class VmConfig extends jspb.Message {
   getVmId(): string;
@@ -107,4 +108,3 @@ export namespace WasmService {
     statPrefix: string,
   }
 }
-
