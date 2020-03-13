@@ -2,9 +2,14 @@ package syncer
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
+
+	errors "github.com/rotisserie/eris"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
@@ -28,6 +33,7 @@ const (
 	grafanaUsername   = "GRAFANA_USERNAME"
 	grafanaPassword   = "GRAFANA_PASSWORD"
 	grafanaApiKey     = "GRAFANA_API_KEY"
+	grafanaCaCrt      = "GRAFANA_CA_BUNDLE"
 	dashboardTemplate = "/observability/dashboard-template.json"
 )
 
@@ -96,18 +102,15 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
-	creds, err := buildRestCredentials(opts.WatchOpts.Ctx)
-	if err != nil {
-		return err
-	}
-
 	grafanaApiUrl, err := getGrafanaApiUrl()
 	if err != nil {
 		return err
 	}
 
-	httpClient := http.DefaultClient
-	restClient := grafana.NewRestClient(grafanaApiUrl, httpClient, creds)
+	restClient, err := buildRestClient(opts.WatchOpts.Ctx, grafanaApiUrl)
+	if err != nil {
+		return err
+	}
 
 	dashboardClient := grafana.NewDashboardClient(restClient)
 	snapshotClient := grafana.NewSnapshotClient(restClient)
@@ -140,6 +143,45 @@ func RunObservability(opts Opts) error {
 		}
 	}()
 	return nil
+}
+
+func buildRestClient(ctx context.Context, grafanaApiUrl string) (grafana.RestClient, error) {
+	var (
+		caCrtFile = os.Getenv(grafanaCaCrt)
+		logger    = contextutils.LoggerFrom(ctx)
+	)
+
+	creds, err := buildRestCredentials(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(grafanaApiUrl, "https") {
+		if caCrtFile == "" {
+			return nil, grafana.MissingGrafanaCredentials
+		}
+		logger.Info("Setting up HTTPS connection to grafana")
+		caCert, err := ioutil.ReadFile(caCrtFile)
+		if err != nil {
+			return nil, err
+		}
+		pool := x509.NewCertPool()
+		if ok := pool.AppendCertsFromPEM(caCert); !ok {
+			return nil, errors.Errorf("Unable to parse PEM encoded certificate at %s", caCrtFile)
+		}
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs: pool,
+				},
+			},
+		}
+		return grafana.NewRestClient(grafanaApiUrl, httpClient, creds), nil
+	}
+
+	logger.Info("Setting up HTTP connection to grafana")
+	httpClient := http.DefaultClient
+	return grafana.NewRestClient(grafanaApiUrl, httpClient, creds), nil
 }
 
 func buildRestCredentials(ctx context.Context) (*grafana.Credentials, error) {

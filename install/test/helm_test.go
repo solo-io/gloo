@@ -203,6 +203,43 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
+			Context("observability secret", func() {
+				It("it sets the correct entries when given secrets", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"observability.customGrafana.username=a",
+							"observability.customGrafana.password=b",
+							"observability.customGrafana.apiKey=c",
+							"observability.customGrafana.caBundle=d"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedSecret := &v1.Secret{
+						TypeMeta: k8s.TypeMeta{
+							Kind:       "Secret",
+							APIVersion: "v1",
+						},
+						ObjectMeta: k8s.ObjectMeta{
+							Name:      "glooe-observability-secrets",
+							Namespace: namespace,
+							Labels: map[string]string{
+								"gloo": "glooe-observability-secrets",
+								"app":  "gloo",
+							},
+						},
+						Data: map[string][]byte{
+							"GRAFANA_USERNAME":  []byte("a"),
+							"GRAFANA_PASSWORD":  []byte("b"),
+							"GRAFANA_API_KEY":   []byte("c"),
+							"GRAFANA_CA_BUNDLE": []byte("d"),
+						},
+						Type: v1.SecretTypeOpaque,
+					}
+					testManifest.Expect("Secret", namespace, "glooe-observability-secrets").
+						To(BeEquivalentTo(expectedSecret))
+				})
+			})
+
 			Context("observability RBAC rule", func() {
 
 				It("allows correct operations on upstreams", func() {

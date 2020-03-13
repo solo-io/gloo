@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Add the optional `GRAFANA_CA_BUNDLE` env variable to the observability deployment in order to
+      enable https connections with 1-way TLS to a custom Grafana instance.
+    issueLink: https://github.com/solo-io/gloo/issues/2344
+  - type: HELM
+    description: >
+      Add a new Helm value `.Values.observability.customGrafana.caBundle` to enable https connections with 1-way
+      TLS to a custom Grafana instance.
+    issueLink: https://github.com/solo-io/gloo/issues/2344

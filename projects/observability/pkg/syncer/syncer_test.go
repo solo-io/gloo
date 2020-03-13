@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
@@ -256,5 +257,46 @@ var _ = Describe("Grafana Syncer", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
+	})
+})
+
+var _ = Describe("Build Rest Client", func() {
+	It("builds a rest client for an HTTP URL when given grafana username and password", func() {
+		err := os.Setenv(grafanaUsername, "username")
+		Expect(err).NotTo(HaveOccurred())
+		err = os.Setenv(grafanaPassword, "password")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = buildRestClient(context.Background(), "http://test.com")
+		Expect(err).NotTo(HaveOccurred())
+
+		// fails without it
+		err = os.Unsetenv(grafanaUsername)
+		Expect(err).NotTo(HaveOccurred())
+		err = os.Unsetenv(grafanaPassword)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = buildRestClient(context.Background(), "http://test.com")
+		Expect(err).To(Equal(grafana.IncompleteGrafanaCredentials))
+	})
+
+	It("builds a rest client for an HTTP URL when given grafana api key", func() {
+		err := os.Setenv(grafanaApiKey, "apiKey")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = buildRestClient(context.Background(), "http://test.com")
+		Expect(err).NotTo(HaveOccurred())
+
+		// fails without it
+		err = os.Unsetenv(grafanaApiKey)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = buildRestClient(context.Background(), "http://test.com")
+		Expect(err).To(Equal(grafana.IncompleteGrafanaCredentials))
+	})
+
+	It("requires an additional CA cert file if a HTTPS URL given ", func() {
+		err := os.Setenv(grafanaApiKey, "apiKey")
+		Expect(err).NotTo(HaveOccurred())
+		err = os.Unsetenv(grafanaCaCrt)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = buildRestClient(context.Background(), "https://test.com")
+		Expect(err).To(Equal(grafana.MissingGrafanaCredentials))
 	})
 })
