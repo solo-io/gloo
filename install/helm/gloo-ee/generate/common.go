@@ -11,23 +11,38 @@ import (
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
 )
 
+const (
+	glooOsDependencyName    = "gloo"
+	glooOsModuleName        = "github.com/solo-io/gloo"
+	devPortalDependencyName = "dev-portal"
+	devPortalModuleName     = "github.com/solo-io/dev-portal"
+)
+
 func GetGlooOsVersion(filesets ...*GenerationFiles) (string, error) {
+	return getDependencyVersion(glooOsDependencyName, glooOsModuleName, filesets...)
+}
+
+func GetDevPortalVersion(filesets ...*GenerationFiles) (string, error) {
+	return getDependencyVersion(devPortalDependencyName, devPortalModuleName, filesets...)
+}
+
+func getDependencyVersion(dependencyName, moduleName string, filesets ...*GenerationFiles) (string, error) {
 	var dl DependencyList
 	for _, fs := range filesets {
 		if err := readYaml(fs.RequirementsTemplate, &dl); err != nil {
 			return "", err
 		}
 		for _, v := range dl.Dependencies {
-			if v.Name == "gloo" && v.Version != "" {
+			if v.Name == dependencyName && v.Version != "" {
 				return v.Version, nil
 			}
 		}
 	}
-	return glooGoModPackageVersion()
+	return goModPackageVersion(moduleName)
 }
 
-func glooGoModPackageVersion() (string, error) {
-	cmd := exec.Command("go", "list", "-f", "'{{ .Version }}'", "-m", "github.com/solo-io/gloo")
+func goModPackageVersion(moduleName string) (string, error) {
+	cmd := exec.Command("go", "list", "-f", "'{{ .Version }}'", "-m", moduleName)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
@@ -70,14 +85,17 @@ func readConfig(path string) (HelmConfig, error) {
 	return config, nil
 }
 
-func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string) error {
+func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion, devPortalVersion string) error {
 	var dl DependencyList
 	if err := readYaml(requirementsTemplatePath, &dl); err != nil {
 		return err
 	}
 	for i, v := range dl.Dependencies {
-		if v.Name == "gloo" && v.Version == "" {
+		if v.Name == glooOsDependencyName && v.Version == "" {
 			dl.Dependencies[i].Version = osGlooVersion
+		}
+		if v.Name == devPortalDependencyName && v.Version == "" {
+			dl.Dependencies[i].Version = devPortalVersion
 		}
 	}
 	return writeYaml(dl, outputPath)

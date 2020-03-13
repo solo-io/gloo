@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -15,7 +17,6 @@ import (
 	"github.com/solo-io/solo-projects/pkg/install"
 	jobsv1 "k8s.io/api/batch/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	k8s "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -453,19 +454,19 @@ global:
 				})
 
 				authPluginVolumeMount := []v1.VolumeMount{
-					v1.VolumeMount{
+					{
 						Name:      "auth-plugins",
 						MountPath: "/auth-plugins",
 					},
 				}
 				expectedDeployment.Spec.Template.Spec.InitContainers = []v1.Container{
-					v1.Container{
+					{
 						Name:            "plugin-first-plugin",
 						Image:           "quay.io/solo-io/ext-auth-plugins:1.2.3",
 						ImagePullPolicy: v1.PullIfNotPresent,
 						VolumeMounts:    authPluginVolumeMount,
 					},
-					v1.Container{
+					{
 						Name:            "plugin-second-plugin",
 						Image:           "bar/foo:1.2.3",
 						ImagePullPolicy: v1.PullIfNotPresent,
@@ -473,7 +474,7 @@ global:
 					},
 				}
 				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
-					v1.Volume{
+					{
 						Name: "auth-plugins",
 						VolumeSource: v1.VolumeSource{
 							EmptyDir: &v1.EmptyDirVolumeSource{},
@@ -488,7 +489,18 @@ global:
 			})
 		})
 
-		Context("gateway", func() {
+		Context("gateway-proxy deployment", func() {
+			var (
+				gatewayProxyDeployment *appsv1.Deployment
+			)
+
+			includeStatConfig := func() {
+				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-stats"] = "/stats"
+				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-ready"] = "/ready"
+				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-config_dump"] = "/config_dump"
+				gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
+			}
+
 			BeforeEach(func() {
 				labels = map[string]string{
 					"gloo":             "gateway-proxy",
@@ -496,357 +508,383 @@ global:
 					"app":              "gloo",
 				}
 				selector = map[string]string{
-					"gateway-proxy": "live",
+					"gloo":             "gateway-proxy",
+					"gateway-proxy-id": defaults.GatewayProxyName,
 				}
+				podLabels := map[string]string{
+					"gloo":             "gateway-proxy",
+					"gateway-proxy-id": defaults.GatewayProxyName,
+					"gateway-proxy":    "live",
+				}
+				podAnnotations := map[string]string{
+					"prometheus.io/path":   "/metrics",
+					"prometheus.io/port":   "8081",
+					"prometheus.io/scrape": "true",
+				}
+				podname := v1.EnvVar{
+					Name: "POD_NAME",
+					ValueFrom: &v1.EnvVarSource{
+						FieldRef: &v1.ObjectFieldSelector{
+							FieldPath: "metadata.name",
+						},
+					},
+				}
+
+				container := GetQuayContainerSpec("gloo-ee-envoy-wrapper", version, GetPodNamespaceEnvVar(), podname)
+				container.Name = defaults.GatewayProxyName
+				container.Args = []string{"--disable-hot-restart"}
+
+				rb := ResourceBuilder{
+					Namespace:  namespace,
+					Name:       defaults.GatewayProxyName,
+					Labels:     labels,
+					Containers: []ContainerSpec{container},
+				}
+				deploy := rb.GetDeploymentAppsv1()
+				deploy.Spec.Selector = &k8s.LabelSelector{
+					MatchLabels: selector,
+				}
+				deploy.Spec.Template.ObjectMeta.Labels = podLabels
+				deploy.Spec.Template.ObjectMeta.Annotations = podAnnotations
+				deploy.Spec.Template.Spec.Volumes = []v1.Volume{{
+					Name: "envoy-config",
+					VolumeSource: v1.VolumeSource{
+						ConfigMap: &v1.ConfigMapVolumeSource{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: "gateway-proxy-envoy-config",
+							},
+						},
+					},
+				}}
+				deploy.Spec.Template.Spec.Containers[0].ImagePullPolicy = getPullPolicy()
+				deploy.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
+					{Name: "http", ContainerPort: 8080, Protocol: "TCP"},
+					{Name: "https", ContainerPort: 8443, Protocol: "TCP"},
+				}
+				deploy.Spec.Template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{{
+					Name:      "envoy-config",
+					ReadOnly:  false,
+					MountPath: "/etc/envoy",
+					SubPath:   "",
+				}}
+				truez := true
+				falsez := false
+				deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+					Capabilities: &v1.Capabilities{
+						Add:  []v1.Capability{"NET_BIND_SERVICE"},
+						Drop: []v1.Capability{"ALL"},
+					},
+					ReadOnlyRootFilesystem:   &truez,
+					AllowPrivilegeEscalation: &falsez,
+				}
+
+				deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
+
+				gatewayProxyDeployment = deploy
 			})
 
-			Context("gateway-proxy deployment", func() {
-				var (
-					gatewayProxyDeployment *appsv1.Deployment
-				)
+			It("creates a deployment without envoy config annotations", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
 
-				includeStatConfig := func() {
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-stats"] = "/stats"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-ready"] = "/ready"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-config_dump"] = "/config_dump"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
+			It("creates a deployment with envoy config annotations", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.gatewayProxies.gatewayProxy.readConfig=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				includeStatConfig()
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
+
+			It("creates a deployment without extauth sidecar", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
+
+			It("creates a deployment with extauth sidecar", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.envoySidecar=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				gatewayProxyDeployment.Spec.Template.Spec.Volumes = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Volumes,
+					v1.Volume{
+						Name: "shared-data",
+						VolumeSource: v1.VolumeSource{
+							EmptyDir: &v1.EmptyDirVolumeSource{},
+						},
+					})
+
+				gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+					v1.VolumeMount{
+						Name:      "shared-data",
+						MountPath: "/usr/share/shared-data",
+					})
+
+				gatewayProxyDeployment.Spec.Template.Spec.Containers = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Containers,
+					v1.Container{
+						Name:            "extauth",
+						Image:           "quay.io/solo-io/extauth-ee:dev",
+						Ports:           nil,
+						ImagePullPolicy: getPullPolicy(),
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "SERVICE_NAME",
+								Value: "ext-auth",
+							},
+							{
+								Name:  "GLOO_ADDRESS",
+								Value: "gloo:9977",
+							},
+							{
+								Name: "SIGNING_KEY",
+								ValueFrom: &v1.EnvVarSource{
+									SecretKeyRef: &v1.SecretKeySelector{
+										LocalObjectReference: v1.LocalObjectReference{
+											Name: "extauth-signing-key",
+										},
+										Key: "signing-key",
+									},
+								},
+							},
+							{
+								Name:  "SERVER_PORT",
+								Value: "8083",
+							},
+							{
+								Name:  "UDS_ADDR",
+								Value: "/usr/share/shared-data/.sock",
+							},
+							{
+								Name:  "USER_ID_HEADER",
+								Value: "x-user-id",
+							},
+							{
+								Name:  "START_STATS_SERVER",
+								Value: "true",
+							},
+						},
+						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "shared-data",
+								MountPath: "/usr/share/shared-data",
+							},
+						},
+					})
+
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
+		})
+
+		Context("apiserver deployment", func() {
+			var expectedDeployment *appsv1.Deployment
+
+			BeforeEach(func() {
+				labels = map[string]string{
+					"gloo": "apiserver-ui",
+					"app":  "gloo",
+				}
+				selector = map[string]string{
+					"app":  "gloo",
+					"gloo": "apiserver-ui",
+				}
+				grpcPortEnvVar := v1.EnvVar{
+					Name:  "GRPC_PORT",
+					Value: "10101",
+				}
+				noAuthEnvVar := v1.EnvVar{
+					Name:  "NO_AUTH",
+					Value: "1",
+				}
+				licenseEnvVar := v1.EnvVar{
+					Name: "GLOO_LICENSE_KEY",
+					ValueFrom: &v1.EnvVarSource{
+						SecretKeyRef: &v1.SecretKeySelector{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: "license",
+							},
+							Key: "license-key",
+						},
+					},
+				}
+				uiContainer := v1.Container{
+					Name:            "apiserver-ui",
+					Image:           "quay.io/solo-io/grpcserver-ui:" + version,
+					ImagePullPolicy: v1.PullAlways,
+					VolumeMounts: []v1.VolumeMount{
+						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+						{Name: "empty-run", MountPath: "/var/run"},
+					},
+					Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
+				}
+				grpcServerContainer := v1.Container{
+					Name:            "apiserver",
+					Image:           "quay.io/solo-io/grpcserver-ee:" + version,
+					ImagePullPolicy: v1.PullAlways,
+					Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
+					Env: []v1.EnvVar{
+						GetPodNamespaceEnvVar(),
+						grpcPortEnvVar,
+						statsEnvVar,
+						noAuthEnvVar,
+						licenseEnvVar,
+					},
+				}
+				envoyContainer := v1.Container{
+					Name:            "gloo-grpcserver-envoy",
+					Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
+					ImagePullPolicy: v1.PullAlways,
+					ReadinessProbe: &v1.Probe{
+						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
+							Path: "/",
+							Port: intstr.IntOrString{IntVal: 8080},
+						}},
+						InitialDelaySeconds: 5,
+						PeriodSeconds:       10,
+					},
 				}
 
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "api-server",
+					Labels:    labels,
+				}
+				expectedDeployment = rb.GetDeploymentAppsv1()
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+					{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+					{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+				}
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
+				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+			})
+
+			It("is there by default", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("correctly sets resource limits", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"apiServer.deployment.ui.resources.limits.cpu=300m",
+						"apiServer.deployment.ui.resources.limits.memory=300Mi",
+						"apiServer.deployment.ui.resources.requests.cpu=30m",
+						"apiServer.deployment.ui.resources.requests.memory=30Mi",
+						"apiServer.deployment.envoy.resources.limits.cpu=100m",
+						"apiServer.deployment.envoy.resources.limits.memory=100Mi",
+						"apiServer.deployment.envoy.resources.requests.cpu=10m",
+						"apiServer.deployment.envoy.resources.requests.memory=10Mi",
+						"apiServer.deployment.server.resources.limits.cpu=200m",
+						"apiServer.deployment.server.resources.limits.memory=200Mi",
+						"apiServer.deployment.server.resources.requests.cpu=20m",
+						"apiServer.deployment.server.resources.requests.memory=20Mi",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// UI
+				expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("300m"),
+						v1.ResourceMemory: resource.MustParse("300Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("30m"),
+						v1.ResourceMemory: resource.MustParse("30Mi"),
+					},
+				}
+
+				// Server
+				expectedDeployment.Spec.Template.Spec.Containers[1].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("200m"),
+						v1.ResourceMemory: resource.MustParse("200Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("20m"),
+						v1.ResourceMemory: resource.MustParse("20Mi"),
+					},
+				}
+
+				// Envoy
+				expectedDeployment.Spec.Template.Spec.Containers[2].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("100m"),
+						v1.ResourceMemory: resource.MustParse("100Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("10m"),
+						v1.ResourceMemory: resource.MustParse("10Mi"),
+					},
+				}
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			When("developer portal is enabled", func() {
+
 				BeforeEach(func() {
-					selector = map[string]string{
-						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": defaults.GatewayProxyName,
-					}
-					podLabels := map[string]string{
-						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": defaults.GatewayProxyName,
-						"gateway-proxy":    "live",
-					}
-					podAnnotations := map[string]string{
-						"prometheus.io/path":   "/metrics",
-						"prometheus.io/port":   "8081",
-						"prometheus.io/scrape": "true",
-					}
-					podname := v1.EnvVar{
-						Name: "POD_NAME",
-						ValueFrom: &v1.EnvVarSource{
-							FieldRef: &v1.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
+					expectedDeployment.Spec.Template.Spec.Containers[1].Env = append(
+						expectedDeployment.Spec.Template.Spec.Containers[1].Env,
+						v1.EnvVar{
+							Name:  "DEV_PORTAL_ENABLED",
+							Value: "true",
 						},
-					}
-
-					container := GetQuayContainerSpec("gloo-ee-envoy-wrapper", version, GetPodNamespaceEnvVar(), podname)
-					container.Name = defaults.GatewayProxyName
-					container.Args = []string{"--disable-hot-restart"}
-
-					rb := ResourceBuilder{
-						Namespace:  namespace,
-						Name:       defaults.GatewayProxyName,
-						Labels:     labels,
-						Containers: []ContainerSpec{container},
-					}
-					deploy := rb.GetDeploymentAppsv1()
-					deploy.Spec.Selector = &k8s.LabelSelector{
-						MatchLabels: selector,
-					}
-					deploy.Spec.Template.ObjectMeta.Labels = podLabels
-					deploy.Spec.Template.ObjectMeta.Annotations = podAnnotations
-					deploy.Spec.Template.Spec.Volumes = []v1.Volume{{
-						Name: "envoy-config",
-						VolumeSource: v1.VolumeSource{
-							ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{
-									Name: "gateway-proxy-envoy-config",
-								},
-							},
+						v1.EnvVar{
+							Name:  "RBAC_NAMESPACED",
+							Value: "false",
 						},
-					}}
-					deploy.Spec.Template.Spec.Containers[0].ImagePullPolicy = getPullPolicy()
-					deploy.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
-						{Name: "http", ContainerPort: 8080, Protocol: "TCP"},
-						{Name: "https", ContainerPort: 8443, Protocol: "TCP"},
-					}
-					deploy.Spec.Template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{{
-						Name:      "envoy-config",
-						ReadOnly:  false,
-						MountPath: "/etc/envoy",
-						SubPath:   "",
-					}}
-					truez := true
-					falsez := false
-					deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
-						Capabilities: &v1.Capabilities{
-							Add:  []v1.Capability{"NET_BIND_SERVICE"},
-							Drop: []v1.Capability{"ALL"},
-						},
-						ReadOnlyRootFilesystem:   &truez,
-						AllowPrivilegeEscalation: &falsez,
-					}
-
-					deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
-
-					gatewayProxyDeployment = deploy
+					)
 				})
 
-				It("creates a deployment without envoy config annotations", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-					Expect(err).NotTo(HaveOccurred())
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-				})
-
-				It("creates a deployment with envoy config annotations", func() {
+				It("correctly sets additional environment variables", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{
-							"gloo.gatewayProxies.gatewayProxy.readConfig=true",
+							"devPortal.enabled=true",
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
-					includeStatConfig()
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
 
-				It("creates a deployment without extauth sidecar", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-					Expect(err).NotTo(HaveOccurred())
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-				})
-
-				It("creates a deployment with extauth sidecar", func() {
+				It("correctly sets the RBAC_NAMESPACED env", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{
-							"global.extensions.extAuth.envoySidecar=true",
+							"devPortal.enabled=true",
+							"global.glooRbac.namespaced=true",
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
-					gatewayProxyDeployment.Spec.Template.Spec.Volumes = append(
-						gatewayProxyDeployment.Spec.Template.Spec.Volumes,
-						v1.Volume{
-							Name: "shared-data",
-							VolumeSource: v1.VolumeSource{
-								EmptyDir: &v1.EmptyDirVolumeSource{},
-							},
-						})
-
-					gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
-						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
-						v1.VolumeMount{
-							Name:      "shared-data",
-							MountPath: "/usr/share/shared-data",
-						})
-
-					gatewayProxyDeployment.Spec.Template.Spec.Containers = append(
-						gatewayProxyDeployment.Spec.Template.Spec.Containers,
-						v1.Container{
-							Name:            "extauth",
-							Image:           "quay.io/solo-io/extauth-ee:dev",
-							Ports:           nil,
-							ImagePullPolicy: getPullPolicy(),
-							Env: []v1.EnvVar{
-								{
-									Name: "POD_NAMESPACE",
-									ValueFrom: &v1.EnvVarSource{
-										FieldRef: &v1.ObjectFieldSelector{
-											FieldPath: "metadata.namespace",
-										},
-									},
-								},
-								{
-									Name:  "SERVICE_NAME",
-									Value: "ext-auth",
-								},
-								{
-									Name:  "GLOO_ADDRESS",
-									Value: "gloo:9977",
-								},
-								{
-									Name: "SIGNING_KEY",
-									ValueFrom: &v1.EnvVarSource{
-										SecretKeyRef: &v1.SecretKeySelector{
-											LocalObjectReference: v1.LocalObjectReference{
-												Name: "extauth-signing-key",
-											},
-											Key: "signing-key",
-										},
-									},
-								},
-								{
-									Name:  "SERVER_PORT",
-									Value: "8083",
-								},
-								{
-									Name:  "UDS_ADDR",
-									Value: "/usr/share/shared-data/.sock",
-								},
-								{
-									Name:  "USER_ID_HEADER",
-									Value: "x-user-id",
-								},
-								{
-									Name:  "START_STATS_SERVER",
-									Value: "true",
-								},
-							},
-							VolumeMounts: []v1.VolumeMount{
-								{
-									Name:      "shared-data",
-									MountPath: "/usr/share/shared-data",
-								},
-							},
-						})
-
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-				})
-
-				Context("apiserver deployment", func() {
-					var expectedDeployment *appsv1.Deployment
-
-					BeforeEach(func() {
-						labels = map[string]string{
-							"gloo": "apiserver-ui",
-							"app":  "gloo",
+					envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
+					for i, env := range envs {
+						if env.Name == "RBAC_NAMESPACED" {
+							envs[i].Value = "true"
 						}
-						selector = map[string]string{
-							"app":  "gloo",
-							"gloo": "apiserver-ui",
-						}
-						grpcPortEnvVar := v1.EnvVar{
-							Name:  "GRPC_PORT",
-							Value: "10101",
-						}
-						noAuthEnvVar := v1.EnvVar{
-							Name:  "NO_AUTH",
-							Value: "1",
-						}
-						licenseEnvVar := v1.EnvVar{
-							Name: "GLOO_LICENSE_KEY",
-							ValueFrom: &v1.EnvVarSource{
-								SecretKeyRef: &v1.SecretKeySelector{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: "license",
-									},
-									Key: "license-key",
-								},
-							},
-						}
-						uiContainer := v1.Container{
-							Name:            "apiserver-ui",
-							Image:           "quay.io/solo-io/grpcserver-ui:" + version,
-							ImagePullPolicy: v1.PullAlways,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
-								{Name: "empty-run", MountPath: "/var/run"},
-							},
-							Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
-						}
-						grpcServerContainer := v1.Container{
-							Name:            "apiserver",
-							Image:           "quay.io/solo-io/grpcserver-ee:" + version,
-							ImagePullPolicy: v1.PullAlways,
-							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
-							Env: []v1.EnvVar{
-								GetPodNamespaceEnvVar(),
-								grpcPortEnvVar,
-								statsEnvVar,
-								noAuthEnvVar,
-								licenseEnvVar,
-							},
-						}
-						envoyContainer := v1.Container{
-							Name:            "gloo-grpcserver-envoy",
-							Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
-							ImagePullPolicy: v1.PullAlways,
-							ReadinessProbe: &v1.Probe{
-								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
-									Path: "/",
-									Port: intstr.IntOrString{IntVal: 8080},
-								}},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-						}
-
-						rb := ResourceBuilder{
-							Namespace: namespace,
-							Name:      "api-server",
-							Labels:    labels,
-						}
-						expectedDeployment = rb.GetDeploymentAppsv1()
-						expectedDeployment.Spec.Selector.MatchLabels = selector
-						expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
-						expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
-							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-						}
-						expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
-						expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
-						expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
-					})
-
-					It("is there by default", func() {
-						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-						Expect(err).NotTo(HaveOccurred())
-						testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-					})
-
-					It("correctly sets resource limits", func() {
-						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-							valuesArgs: []string{
-								"apiServer.deployment.ui.resources.limits.cpu=300m",
-								"apiServer.deployment.ui.resources.limits.memory=300Mi",
-								"apiServer.deployment.ui.resources.requests.cpu=30m",
-								"apiServer.deployment.ui.resources.requests.memory=30Mi",
-								"apiServer.deployment.envoy.resources.limits.cpu=100m",
-								"apiServer.deployment.envoy.resources.limits.memory=100Mi",
-								"apiServer.deployment.envoy.resources.requests.cpu=10m",
-								"apiServer.deployment.envoy.resources.requests.memory=10Mi",
-								"apiServer.deployment.server.resources.limits.cpu=200m",
-								"apiServer.deployment.server.resources.limits.memory=200Mi",
-								"apiServer.deployment.server.resources.requests.cpu=20m",
-								"apiServer.deployment.server.resources.requests.memory=20Mi",
-							},
-						})
-						Expect(err).NotTo(HaveOccurred())
-
-						// UI
-						expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
-							Limits: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("300m"),
-								v1.ResourceMemory: resource.MustParse("300Mi"),
-							},
-							Requests: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("30m"),
-								v1.ResourceMemory: resource.MustParse("30Mi"),
-							},
-						}
-
-						// Server
-						expectedDeployment.Spec.Template.Spec.Containers[1].Resources = v1.ResourceRequirements{
-							Limits: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("200m"),
-								v1.ResourceMemory: resource.MustParse("200Mi"),
-							},
-							Requests: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("20m"),
-								v1.ResourceMemory: resource.MustParse("20Mi"),
-							},
-						}
-
-						// Envoy
-						expectedDeployment.Spec.Template.Spec.Containers[2].Resources = v1.ResourceRequirements{
-							Limits: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("100m"),
-								v1.ResourceMemory: resource.MustParse("100Mi"),
-							},
-							Requests: v1.ResourceList{
-								v1.ResourceCPU:    resource.MustParse("10m"),
-								v1.ResourceMemory: resource.MustParse("10Mi"),
-							},
-						}
-
-						testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-					})
+					}
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
 			})
 		})
@@ -975,6 +1013,7 @@ global:
 				})
 			})
 		})
+
 	})
 
 	Describe("gloo with read-only ui helm tests", func() {
@@ -1213,7 +1252,6 @@ global:
 					})
 				})
 			})
-
 		})
 	})
 })

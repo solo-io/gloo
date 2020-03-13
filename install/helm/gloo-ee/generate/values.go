@@ -19,6 +19,7 @@ type Config struct {
 	Prometheus          interface{}       `json:"prometheus,omitempty"`
 	Tags                map[string]string `json:"tags,omitempty"`
 	ApiServer           *ApiServer        `json:"apiServer,omitempty"`
+	DevPortal           *DevPortal        `json:"devPortal,omitempty"`
 }
 
 // Common
@@ -181,4 +182,8 @@ type ApiServerConfigMap struct {
 type OAuth struct {
 	Server string `json:"server"`
 	Client string `json:"client"`
+}
+
+type DevPortal struct {
+	Enabled bool `json:"enabled" desc:"if true, deploy the developer portal. Defaults to false"`
 }

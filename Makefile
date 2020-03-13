@@ -480,6 +480,7 @@ init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm repo add dev-portal https://storage.googleapis.com/dev-portal-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates

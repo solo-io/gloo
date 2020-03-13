@@ -47,6 +47,12 @@ rules:
   - apiGroups: ["gateway.solo.io"]
     resources: ["virtualservices", "routetables"]
     verbs: ["create", "update", "delete"]
+  {{- if .Values.devPortal.enabled }}
+# Group 3: these rules only apply to the enterprise apiserver when thje developer portal is enabled
+  - apiGroups: ["devportal.solo.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  {{- end }} # .Values.devPortal.enabled
   {{- end }} # .Values.apiServer.enterprise
 {{- end }} # .Values.apiServer.enable
 {{- end }}

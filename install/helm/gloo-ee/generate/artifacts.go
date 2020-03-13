@@ -27,6 +27,7 @@ type GenerationArguments struct {
 type GenerationConfig struct {
 	Arguments            *GenerationArguments
 	OsGlooVersion        string
+	DevPortalVersion     string
 	GenerationFiles      *GenerationFiles
 	PullPolicyForVersion string
 }
@@ -68,11 +69,16 @@ func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")
 	}
-
 	log.Printf("Open source gloo version is: %v", osGlooVersion)
 
+	devPortalVersion, err := GetDevPortalVersion(fileSets...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to determine Developer Portal version")
+	}
+	log.Printf("Developer Portal version is: %v", devPortalVersion)
+
 	for _, fileSet := range fileSets {
-		genConfig := GetGenerationConfig(args, osGlooVersion, fileSet)
+		genConfig := GetGenerationConfig(args, osGlooVersion, devPortalVersion, fileSet)
 
 		if err := genConfig.runGeneration(); err != nil {
 			return errors.Wrapf(err, "unable to Run generation for glooE")
@@ -81,7 +87,7 @@ func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
 	return nil
 }
 
-func GetGenerationConfig(args *GenerationArguments, osGlooVersion string, generationFiles *GenerationFiles) *GenerationConfig {
+func GetGenerationConfig(args *GenerationArguments, osGlooVersion, devPortalVersion string, generationFiles *GenerationFiles) *GenerationConfig {
 	pullPolicyForVersion := distributionPullPolicy
 	if args.Version == "dev" {
 		pullPolicyForVersion = devPullPolicy
@@ -89,6 +95,7 @@ func GetGenerationConfig(args *GenerationArguments, osGlooVersion string, genera
 	return &GenerationConfig{
 		Arguments:            args,
 		OsGlooVersion:        osGlooVersion,
+		DevPortalVersion:     devPortalVersion,
 		PullPolicyForVersion: pullPolicyForVersion,
 		GenerationFiles:      generationFiles,
 	}
@@ -115,7 +122,12 @@ func (gc *GenerationConfig) runGeneration() error {
 	if err := gc.generateChartYaml(gc.GenerationFiles.ChartTemplate, gc.GenerationFiles.ChartOutput, gc.Arguments.Version); err != nil {
 		return errors.Wrapf(err, "generating Chart.yaml failed")
 	}
-	if err := generateRequirementsYaml(gc.GenerationFiles.RequirementsTemplate, gc.GenerationFiles.RequirementsOutput, gc.OsGlooVersion); err != nil {
+	if err := generateRequirementsYaml(
+		gc.GenerationFiles.RequirementsTemplate,
+		gc.GenerationFiles.RequirementsOutput,
+		gc.OsGlooVersion,
+		gc.DevPortalVersion,
+	); err != nil {
 		return errors.Wrapf(err, "unable to parse requirements.yaml")
 	}
 	return nil

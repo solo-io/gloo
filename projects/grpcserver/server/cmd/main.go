@@ -53,7 +53,7 @@ func getInitialContext() context.Context {
 
 func initDevPortal(ctx context.Context) (devportal.Registrar, error) {
 	// TODO(marco): temporary naive solution, to revisit
-	devPortalEnabled := os.Getenv("DEV_PORTAL_ENABLED") == "1"
+	devPortalEnabled := os.Getenv("DEV_PORTAL_ENABLED") == "true"
 
 	if devPortalEnabled {
 		return devportal.InitDevPortal(ctx)

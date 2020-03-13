@@ -74,6 +74,12 @@ spec:
                 secretKeyRef:
                   name: license
                   key: license-key
+            {{- if .Values.devPortal.enabled }}
+            - name: DEV_PORTAL_ENABLED
+              value: "true"
+            - name: RBAC_NAMESPACED
+              value: {{ quote .Values.global.glooRbac.namespaced }}{{/* Needed to set the scope of the k8s manager */}}
+            {{- end}}
           {{- if .Values.apiServer.deployment.server.resources }}
           resources:
 {{ toYaml .Values.apiServer.deployment.server.resources | indent 12}}

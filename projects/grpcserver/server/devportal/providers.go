@@ -1,6 +1,7 @@
 package devportal
 
 import (
+	"os"
 	"time"
 
 	"github.com/google/wire"
@@ -33,9 +34,14 @@ var ProviderSet = wire.NewSet(
 func NewManager(ctx context.Context, cfg *rest.Config, podNamespace string) (controllerruntime.Manager, error) {
 	mgrCtx, cancel := context.WithCancel(ctx)
 
+	watchNamespace := podNamespace
+	if os.Getenv("RBAC_NAMESPACED") == "false" {
+		// If we are not running in namespaced mode, watches all namespaces
+		watchNamespace = ""
+	}
+
 	mgr, err := manager.New(cfg, manager.Options{
-		// Dev portal resources always reside in the same namespace as Gloo
-		Namespace: podNamespace,
+		Namespace: watchNamespace,
 		// TODO(marco): should conditionally enable
 		MetricsBindAddress: "0",
 	})
