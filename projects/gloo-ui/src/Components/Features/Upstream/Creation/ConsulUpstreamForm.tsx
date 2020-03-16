@@ -19,13 +19,17 @@ export interface ConsulVauesType {
   consulServiceTagsList: string[];
   consulConnectEnabled: boolean;
   consulDataCentersList: string[];
+  consulSubsetTagsList: string[];
+  consulInstanceTagsList: string[];
 }
 
 export const consulInitialValues: ConsulVauesType = {
   consulServiceName: '',
   consulServiceTagsList: [] as string[],
   consulConnectEnabled: false,
-  consulDataCentersList: ['']
+  consulDataCentersList: [''],
+  consulSubsetTagsList: [''],
+  consulInstanceTagsList: ['']
 };
 
 interface Props {}

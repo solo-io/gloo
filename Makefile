@@ -318,7 +318,7 @@ $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-EXTAUTH_GO_BUILD_IMAGE=golang:1.13.5-alpine
+EXTAUTH_GO_BUILD_IMAGE=golang:1.14.0-alpine
 
 $(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
 	cp $< $@

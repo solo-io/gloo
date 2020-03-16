@@ -39,7 +39,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.consul.options.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2,5];
+proto.consul.options.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2,6,7,5];
 
 
 
@@ -72,6 +72,8 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
   var f, obj = {
     serviceName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     serviceTagsList: jspb.Message.getRepeatedField(msg, 2),
+    subsetTagsList: jspb.Message.getRepeatedField(msg, 6),
+    instanceTagsList: jspb.Message.getRepeatedField(msg, 7),
     serviceSpec: (f = msg.getServiceSpec()) && gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec.toObject(includeInstance, f),
     connectEnabled: jspb.Message.getFieldWithDefault(msg, 4, false),
     dataCentersList: jspb.Message.getRepeatedField(msg, 5)
@@ -118,6 +120,14 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.addServiceTags(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addSubsetTags(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addInstanceTags(value);
       break;
     case 3:
       var value = new gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec;
@@ -172,6 +182,20 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
   if (f.length > 0) {
     writer.writeRepeatedString(
       2,
+      f
+    );
+  }
+  f = message.getSubsetTagsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
+    );
+  }
+  f = message.getInstanceTagsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
       f
     );
   }
@@ -241,6 +265,64 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.addServiceTags = functi
 
 proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.clearServiceTagsList = function() {
   this.setServiceTagsList([]);
+};
+
+
+/**
+ * repeated string subset_tags = 6;
+ * @return {!Array<string>}
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.getSubsetTagsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.setSubsetTagsList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.addSubsetTags = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.clearSubsetTagsList = function() {
+  this.setSubsetTagsList([]);
+};
+
+
+/**
+ * repeated string instance_tags = 7;
+ * @return {!Array<string>}
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.getInstanceTagsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/** @param {!Array<string>} value */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.setInstanceTagsList = function(value) {
+  jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.addInstanceTags = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.clearInstanceTagsList = function() {
+  this.setInstanceTagsList([]);
 };
 
 

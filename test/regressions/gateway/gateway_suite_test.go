@@ -95,6 +95,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
+			Top: options.Top{
+				Ctx: context.Background(),
+			},
 			Metadata: core.Metadata{
 				Namespace: testHelper.InstallNamespace,
 			},

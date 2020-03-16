@@ -686,6 +686,9 @@ export class GatewayOptions extends jspb.Message {
   getReadGatewaysFromAllNamespaces(): boolean;
   setReadGatewaysFromAllNamespaces(value: boolean): void;
 
+  getAlwaysSortRouteTableRoutes(): boolean;
+  setAlwaysSortRouteTableRoutes(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -701,6 +704,7 @@ export namespace GatewayOptions {
     validationServerAddr: string,
     validation?: GatewayOptions.ValidationOptions.AsObject,
     readGatewaysFromAllNamespaces: boolean,
+    alwaysSortRouteTableRoutes: boolean,
   }
 
   export class ValidationOptions extends jspb.Message {

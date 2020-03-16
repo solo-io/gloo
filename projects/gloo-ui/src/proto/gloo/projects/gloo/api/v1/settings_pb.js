@@ -4650,7 +4650,8 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     validationServerAddr: jspb.Message.getFieldWithDefault(msg, 1, ""),
     validation: (f = msg.getValidation()) && proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject(includeInstance, f),
-    readGatewaysFromAllNamespaces: jspb.Message.getFieldWithDefault(msg, 4, false)
+    readGatewaysFromAllNamespaces: jspb.Message.getFieldWithDefault(msg, 4, false),
+    alwaysSortRouteTableRoutes: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -4700,6 +4701,10 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setReadGatewaysFromAllNamespaces(value);
       break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAlwaysSortRouteTableRoutes(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4748,6 +4753,13 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
   if (f) {
     writer.writeBool(
       4,
+      f
+    );
+  }
+  f = message.getAlwaysSortRouteTableRoutes();
+  if (f) {
+    writer.writeBool(
+      5,
       f
     );
   }
@@ -5082,6 +5094,23 @@ proto.gloo.solo.io.GatewayOptions.prototype.getReadGatewaysFromAllNamespaces = f
 /** @param {boolean} value */
 proto.gloo.solo.io.GatewayOptions.prototype.setReadGatewaysFromAllNamespaces = function(value) {
   jspb.Message.setProto3BooleanField(this, 4, value);
+};
+
+
+/**
+ * optional bool always_sort_route_table_routes = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getAlwaysSortRouteTableRoutes = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setAlwaysSortRouteTableRoutes = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
