@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix extauth initialization so stats server can be used for setting the log level.
+    issueLink: https://github.com/solo-io/gloo/issues/2630

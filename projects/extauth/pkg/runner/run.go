@@ -29,8 +29,6 @@ import (
 	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
-	"github.com/solo-io/go-utils/stats"
-
 	"google.golang.org/grpc"
 )
 
@@ -46,12 +44,6 @@ func init() {
 func Run() {
 	clientSettings := NewSettings()
 	ctx := context.Background()
-
-	if clientSettings.DebugPort != 0 {
-		// TODO(yuval-k): we need to start the stats server before calling contextutils
-		// need to think of a better way to express this dependency, or preferably, fix it.
-		stats.StartStatsServerWithPort(stats.StartupOptions{Port: clientSettings.DebugPort})
-	}
 
 	err := RunWithSettings(ctx, clientSettings)
 
