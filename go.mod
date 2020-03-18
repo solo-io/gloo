@@ -36,7 +36,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.8
-	github.com/solo-io/gloo v1.3.13
+	github.com/solo-io/gloo v1.3.14
 	github.com/solo-io/go-utils v0.14.2
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.7
@@ -72,6 +72,7 @@ replace (
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
 	// We need to pin this to the version used by solo-kit, because dev-portal currently uses v1.3.1 (incompatible)
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
+	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 	k8s.io/api => k8s.io/api v0.0.0-20191004120104-195af9ec3521
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20191204090712-e0e829f17bab
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20191028221656-72ed19daf4bb
@@ -103,5 +104,3 @@ replace (
 	k8s.io/sample-controller => k8s.io/sample-controller v0.0.0-20191004122958-d040c2be0d0b
 	k8s.io/utils => k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 )
-
-replace github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
