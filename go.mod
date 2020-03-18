@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
-	github.com/solo-io/ext-auth-service v0.6.6
+	github.com/solo-io/ext-auth-service v0.6.7
 	github.com/solo-io/gloo v1.3.13
 	github.com/solo-io/go-utils v0.14.2
 	github.com/solo-io/licensing v0.1.17
@@ -46,7 +46,7 @@ require (
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
-	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
+	golang.org/x/mod v0.2.0
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d
 	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2
@@ -103,3 +103,5 @@ replace (
 	k8s.io/sample-controller => k8s.io/sample-controller v0.0.0-20191004122958-d040c2be0d0b
 	k8s.io/utils => k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 )
+
+replace github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
