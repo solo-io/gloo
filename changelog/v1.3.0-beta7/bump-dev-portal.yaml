@@ -1,0 +1,9 @@
+changelog:
+- type: NON_USER_FACING
+  description: Bump dev-portal to 0.0.6 to pick up breaking API changes.
+- type: NON_USER_FACING
+  description: Add new apiserver endpoint to determine whether the developer portal is enabled.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: kubernetes-sigs
+  dependencyRepo: controller-runtime
+  dependencyTag: v0.5.0

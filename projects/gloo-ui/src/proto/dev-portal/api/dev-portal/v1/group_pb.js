@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var dev$portal_api_dev$portal_v1_common_pb = require('../../../../dev-portal/api/dev-portal/v1/common_pb.js');
+var dev$portal_api_dev$portal_v1_access_level_pb = require('../../../../dev-portal/api/dev-portal/v1/access_level_pb.js');
 var gogoproto_gogo_pb = require('../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../protoc-gen-ext/extproto/ext_pb.js');
 goog.exportSymbol('proto.devportal.solo.io.GroupSpec', null, global);
@@ -64,8 +65,9 @@ proto.devportal.solo.io.GroupSpec.prototype.toObject = function(opt_includeInsta
  */
 proto.devportal.solo.io.GroupSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
-    userlabelsMap: (f = msg.getUserlabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    apidoclabelsMap: (f = msg.getApidoclabelsMap()) ? f.toObject(includeInstance, undefined) : []
+    displayname: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    userlabels: (f = msg.getUserlabels()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
+    accesslevel: (f = msg.getAccesslevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -103,16 +105,18 @@ proto.devportal.solo.io.GroupSpec.deserializeBinaryFromReader = function(msg, re
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = msg.getUserlabelsMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
-         });
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayname(value);
       break;
     case 2:
-      var value = msg.getApidoclabelsMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
-         });
+      var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
+      msg.setUserlabels(value);
+      break;
+    case 4:
+      var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.deserializeBinaryFromReader);
+      msg.setAccesslevel(value);
       break;
     default:
       reader.skipField();
@@ -143,50 +147,104 @@ proto.devportal.solo.io.GroupSpec.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.GroupSpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUserlabelsMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  f = message.getDisplayname();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
   }
-  f = message.getApidoclabelsMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  f = message.getUserlabels();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.Selector.serializeBinaryToWriter
+    );
+  }
+  f = message.getAccesslevel();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.serializeBinaryToWriter
+    );
   }
 };
 
 
 /**
- * map<string, string> userLabels = 1;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
+ * optional string displayName = 1;
+ * @return {string}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getUserlabelsMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
-      null));
+proto.devportal.solo.io.GroupSpec.prototype.getDisplayname = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
-proto.devportal.solo.io.GroupSpec.prototype.clearUserlabelsMap = function() {
-  this.getUserlabelsMap().clear();
+/** @param {string} value */
+proto.devportal.solo.io.GroupSpec.prototype.setDisplayname = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * map<string, string> apiDocLabels = 2;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
+ * optional Selector userLabels = 2;
+ * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getApidoclabelsMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
-      null));
+proto.devportal.solo.io.GroupSpec.prototype.getUserlabels = function() {
+  return /** @type{?proto.devportal.solo.io.Selector} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 2));
 };
 
 
-proto.devportal.solo.io.GroupSpec.prototype.clearApidoclabelsMap = function() {
-  this.getApidoclabelsMap().clear();
+/** @param {?proto.devportal.solo.io.Selector|undefined} value */
+proto.devportal.solo.io.GroupSpec.prototype.setUserlabels = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.devportal.solo.io.GroupSpec.prototype.clearUserlabels = function() {
+  this.setUserlabels(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.devportal.solo.io.GroupSpec.prototype.hasUserlabels = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional AccessLevel accessLevel = 4;
+ * @return {?proto.devportal.solo.io.AccessLevel}
+ */
+proto.devportal.solo.io.GroupSpec.prototype.getAccesslevel = function() {
+  return /** @type{?proto.devportal.solo.io.AccessLevel} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel, 4));
+};
+
+
+/** @param {?proto.devportal.solo.io.AccessLevel|undefined} value */
+proto.devportal.solo.io.GroupSpec.prototype.setAccesslevel = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.devportal.solo.io.GroupSpec.prototype.clearAccesslevel = function() {
+  this.setAccesslevel(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.devportal.solo.io.GroupSpec.prototype.hasAccesslevel = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -213,7 +271,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.devportal.solo.io.GroupStatus.repeatedFields_ = [2,3];
+proto.devportal.solo.io.GroupStatus.repeatedFields_ = [2];
 
 
 
@@ -246,7 +304,7 @@ proto.devportal.solo.io.GroupStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     observedgeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
     usersList: jspb.Message.getRepeatedField(msg, 2),
-    apidocsList: jspb.Message.getRepeatedField(msg, 3)
+    accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -292,8 +350,9 @@ proto.devportal.solo.io.GroupStatus.deserializeBinaryFromReader = function(msg, 
       msg.addUsers(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addApidocs(value);
+      var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.deserializeBinaryFromReader);
+      msg.setAccessLevel(value);
       break;
     default:
       reader.skipField();
@@ -338,11 +397,12 @@ proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, 
       f
     );
   }
-  f = message.getApidocsList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
+  f = message.getAccessLevel();
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.serializeBinaryToWriter
     );
   }
 };
@@ -393,31 +453,32 @@ proto.devportal.solo.io.GroupStatus.prototype.clearUsersList = function() {
 
 
 /**
- * repeated string apiDocs = 3;
- * @return {!Array<string>}
+ * optional AccessLevelStatus access_level = 3;
+ * @return {?proto.devportal.solo.io.AccessLevelStatus}
  */
-proto.devportal.solo.io.GroupStatus.prototype.getApidocsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+proto.devportal.solo.io.GroupStatus.prototype.getAccessLevel = function() {
+  return /** @type{?proto.devportal.solo.io.AccessLevelStatus} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus, 3));
 };
 
 
-/** @param {!Array<string>} value */
-proto.devportal.solo.io.GroupStatus.prototype.setApidocsList = function(value) {
-  jspb.Message.setField(this, 3, value || []);
+/** @param {?proto.devportal.solo.io.AccessLevelStatus|undefined} value */
+proto.devportal.solo.io.GroupStatus.prototype.setAccessLevel = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.devportal.solo.io.GroupStatus.prototype.clearAccessLevel = function() {
+  this.setAccessLevel(undefined);
 };
 
 
 /**
- * @param {!string} value
- * @param {number=} opt_index
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.devportal.solo.io.GroupStatus.prototype.addApidocs = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
-};
-
-
-proto.devportal.solo.io.GroupStatus.prototype.clearApidocsList = function() {
-  this.setApidocsList([]);
+proto.devportal.solo.io.GroupStatus.prototype.hasAccessLevel = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

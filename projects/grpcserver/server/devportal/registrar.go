@@ -1,7 +1,7 @@
 package devportal
 
 import (
-	"github.com/solo-io/dev-portal/pkg/api/grpc/apiserver"
+	"github.com/solo-io/dev-portal/pkg/api/grpc/admin"
 	"google.golang.org/grpc"
 )
 
@@ -10,7 +10,7 @@ type Registrar interface {
 	RegisterTo(server *grpc.Server)
 }
 
-func NewRegistrar(portalService apiserver.PortalApiServer) Registrar {
+func NewRegistrar(portalService admin.PortalApiServer) Registrar {
 	return &devPortalRegistrar{
 		portalService: portalService,
 	}
@@ -18,11 +18,11 @@ func NewRegistrar(portalService apiserver.PortalApiServer) Registrar {
 
 // TODO(marco): add remaining dev portal services here
 type devPortalRegistrar struct {
-	portalService apiserver.PortalApiServer
+	portalService admin.PortalApiServer
 }
 
 func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
-	apiserver.RegisterPortalApiServer(server, r.portalService)
+	admin.RegisterPortalApiServer(server, r.portalService)
 }
 
 // This registrar is used when the portal is not enabled.

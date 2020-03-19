@@ -5,6 +5,7 @@ option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
+import "google/protobuf/empty.proto";
 import "gloo/projects/gloo/api/v1/settings.proto";
 import "solo-projects/projects/grpcserver/api/v1/types.proto";
 
@@ -67,10 +68,16 @@ message ListNamespacesResponse {
     repeated string namespaces = 1;
 }
 
+message IsDeveloperPortalEnabledResponse {
+    bool enabled = 1;
+}
+
 service ConfigApi {
     rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
     rpc GetOAuthEndpoint(GetOAuthEndpointRequest) returns (GetOAuthEndpointResponse) {}
     rpc GetIsLicenseValid(GetIsLicenseValidRequest) returns (GetIsLicenseValidResponse) {}
+    // Used by the UI to determine whether to enable the developer portal features
+    rpc IsDeveloperPortalEnabled(google.protobuf.Empty) returns (IsDeveloperPortalEnabledResponse) {}
 
     rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
     rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}

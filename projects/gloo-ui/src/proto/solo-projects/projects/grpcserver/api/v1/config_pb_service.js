@@ -2,6 +2,7 @@
 // file: solo-projects/projects/grpcserver/api/v1/config.proto
 
 var solo_projects_projects_grpcserver_api_v1_config_pb = require("../../../../../solo-projects/projects/grpcserver/api/v1/config_pb");
+var google_protobuf_empty_pb = require("google-protobuf/google/protobuf/empty_pb");
 var grpc = require("@improbable-eng/grpc-web").grpc;
 
 var ConfigApi = (function () {
@@ -35,6 +36,15 @@ ConfigApi.GetIsLicenseValid = {
   responseStream: false,
   requestType: solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidRequest,
   responseType: solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidResponse
+};
+
+ConfigApi.IsDeveloperPortalEnabled = {
+  methodName: "IsDeveloperPortalEnabled",
+  service: ConfigApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: google_protobuf_empty_pb.Empty,
+  responseType: solo_projects_projects_grpcserver_api_v1_config_pb.IsDeveloperPortalEnabledResponse
 };
 
 ConfigApi.GetSettings = {
@@ -156,6 +166,37 @@ ConfigApiClient.prototype.getIsLicenseValid = function getIsLicenseValid(request
     callback = arguments[1];
   }
   var client = grpc.unary(ConfigApi.GetIsLicenseValid, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ConfigApiClient.prototype.isDeveloperPortalEnabled = function isDeveloperPortalEnabled(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ConfigApi.IsDeveloperPortalEnabled, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -6,16 +6,42 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
+export class Selector extends jspb.Message {
+  getMatchlabelsMap(): jspb.Map<string, string>;
+  clearMatchlabelsMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Selector.AsObject;
+  static toObject(includeInstance: boolean, msg: Selector): Selector.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Selector, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Selector;
+  static deserializeBinaryFromReader(message: Selector, reader: jspb.BinaryReader): Selector;
+}
+
+export namespace Selector {
+  export type AsObject = {
+    matchlabelsMap: Array<[string, string]>,
+  }
+}
+
 export class DataSource extends jspb.Message {
-  hasInlineString(): boolean;
-  clearInlineString(): void;
-  getInlineString(): string;
-  setInlineString(value: string): void;
+  hasInlineBytes(): boolean;
+  clearInlineBytes(): void;
+  getInlineBytes(): Uint8Array | string;
+  getInlineBytes_asU8(): Uint8Array;
+  getInlineBytes_asB64(): string;
+  setInlineBytes(value: Uint8Array | string): void;
 
   hasFetchUrl(): boolean;
   clearFetchUrl(): void;
   getFetchUrl(): string;
   setFetchUrl(value: string): void;
+
+  hasConfigmap(): boolean;
+  clearConfigmap(): void;
+  getConfigmap(): DataSource.ConfigMapData | undefined;
+  setConfigmap(value?: DataSource.ConfigMapData): void;
 
   getSourcetypeCase(): DataSource.SourcetypeCase;
   serializeBinary(): Uint8Array;
@@ -30,13 +56,67 @@ export class DataSource extends jspb.Message {
 
 export namespace DataSource {
   export type AsObject = {
-    inlineString: string,
+    inlineBytes: Uint8Array | string,
     fetchUrl: string,
+    configmap?: DataSource.ConfigMapData.AsObject,
+  }
+
+  export class ConfigMapData extends jspb.Message {
+    getName(): string;
+    setName(value: string): void;
+
+    getNamespace(): string;
+    setNamespace(value: string): void;
+
+    getKey(): string;
+    setKey(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConfigMapData.AsObject;
+    static toObject(includeInstance: boolean, msg: ConfigMapData): ConfigMapData.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConfigMapData, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConfigMapData;
+    static deserializeBinaryFromReader(message: ConfigMapData, reader: jspb.BinaryReader): ConfigMapData;
+  }
+
+  export namespace ConfigMapData {
+    export type AsObject = {
+      name: string,
+      namespace: string,
+      key: string,
+    }
   }
 
   export enum SourcetypeCase {
     SOURCETYPE_NOT_SET = 0,
-    INLINE_STRING = 1,
+    INLINE_BYTES = 1,
     FETCH_URL = 2,
+    CONFIGMAP = 3,
+  }
+}
+
+export class ObjectRef extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getNamespace(): string;
+  setNamespace(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ObjectRef.AsObject;
+  static toObject(includeInstance: boolean, msg: ObjectRef): ObjectRef.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ObjectRef, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ObjectRef;
+  static deserializeBinaryFromReader(message: ObjectRef, reader: jspb.BinaryReader): ObjectRef;
+}
+
+export namespace ObjectRef {
+  export type AsObject = {
+    name: string,
+    namespace: string,
   }
 }

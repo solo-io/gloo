@@ -4,14 +4,24 @@
 
 import * as jspb from "google-protobuf";
 import * as dev_portal_api_dev_portal_v1_common_pb from "../../../../dev-portal/api/dev-portal/v1/common_pb";
+import * as dev_portal_api_dev_portal_v1_access_level_pb from "../../../../dev-portal/api/dev-portal/v1/access_level_pb";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class GroupSpec extends jspb.Message {
-  getUserlabelsMap(): jspb.Map<string, string>;
-  clearUserlabelsMap(): void;
-  getApidoclabelsMap(): jspb.Map<string, string>;
-  clearApidoclabelsMap(): void;
+  getDisplayname(): string;
+  setDisplayname(value: string): void;
+
+  hasUserlabels(): boolean;
+  clearUserlabels(): void;
+  getUserlabels(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
+  setUserlabels(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+
+  hasAccesslevel(): boolean;
+  clearAccesslevel(): void;
+  getAccesslevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
+  setAccesslevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GroupSpec.AsObject;
   static toObject(includeInstance: boolean, msg: GroupSpec): GroupSpec.AsObject;
@@ -24,8 +34,9 @@ export class GroupSpec extends jspb.Message {
 
 export namespace GroupSpec {
   export type AsObject = {
-    userlabelsMap: Array<[string, string]>,
-    apidoclabelsMap: Array<[string, string]>,
+    displayname: string,
+    userlabels?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
+    accesslevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
   }
 }
 
@@ -38,10 +49,10 @@ export class GroupStatus extends jspb.Message {
   setUsersList(value: Array<string>): void;
   addUsers(value: string, index?: number): string;
 
-  clearApidocsList(): void;
-  getApidocsList(): Array<string>;
-  setApidocsList(value: Array<string>): void;
-  addApidocs(value: string, index?: number): string;
+  hasAccessLevel(): boolean;
+  clearAccessLevel(): void;
+  getAccessLevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus | undefined;
+  setAccessLevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GroupStatus.AsObject;
@@ -57,6 +68,6 @@ export namespace GroupStatus {
   export type AsObject = {
     observedgeneration: number,
     usersList: Array<string>,
-    apidocsList: Array<string>,
+    accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }
 }

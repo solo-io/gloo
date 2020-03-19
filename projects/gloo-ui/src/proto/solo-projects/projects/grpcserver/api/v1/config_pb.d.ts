@@ -4,6 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as gloo_projects_gloo_api_v1_settings_pb from "../../../../../gloo/projects/gloo/api/v1/settings_pb";
 import * as solo_projects_projects_grpcserver_api_v1_types_pb from "../../../../../solo-projects/projects/grpcserver/api/v1/types_pb";
 
@@ -348,5 +349,25 @@ export class ListNamespacesResponse extends jspb.Message {
 export namespace ListNamespacesResponse {
   export type AsObject = {
     namespacesList: Array<string>,
+  }
+}
+
+export class IsDeveloperPortalEnabledResponse extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IsDeveloperPortalEnabledResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: IsDeveloperPortalEnabledResponse): IsDeveloperPortalEnabledResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IsDeveloperPortalEnabledResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IsDeveloperPortalEnabledResponse;
+  static deserializeBinaryFromReader(message: IsDeveloperPortalEnabledResponse, reader: jspb.BinaryReader): IsDeveloperPortalEnabledResponse;
+}
+
+export namespace IsDeveloperPortalEnabledResponse {
+  export type AsObject = {
+    enabled: boolean,
   }
 }

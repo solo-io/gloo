@@ -1,12 +1,14 @@
-// package: apiserver.devportal.solo.io
-// file: dev-portal/api/grpc/apiserver/portal.proto
+// package: admin.devportal.solo.io
+// file: dev-portal/api/grpc/admin/portal.proto
 
-var dev_portal_api_grpc_apiserver_portal_pb = require("../../../../dev-portal/api/grpc/apiserver/portal_pb");
+var dev_portal_api_grpc_admin_portal_pb = require("../../../../dev-portal/api/grpc/admin/portal_pb");
+var google_protobuf_empty_pb = require("google-protobuf/google/protobuf/empty_pb");
+var dev_portal_api_dev_portal_v1_common_pb = require("../../../../dev-portal/api/dev-portal/v1/common_pb");
 var grpc = require("@improbable-eng/grpc-web").grpc;
 
 var PortalApi = (function () {
   function PortalApi() {}
-  PortalApi.serviceName = "apiserver.devportal.solo.io.PortalApi";
+  PortalApi.serviceName = "admin.devportal.solo.io.PortalApi";
   return PortalApi;
 }());
 
@@ -15,8 +17,17 @@ PortalApi.GetPortal = {
   service: PortalApi,
   requestStream: false,
   responseStream: false,
-  requestType: dev_portal_api_grpc_apiserver_portal_pb.GetPortalRequest,
-  responseType: dev_portal_api_grpc_apiserver_portal_pb.GetPortalResponse
+  requestType: dev_portal_api_dev_portal_v1_common_pb.ObjectRef,
+  responseType: dev_portal_api_grpc_admin_portal_pb.Portal
+};
+
+PortalApi.GetPortalWithAssets = {
+  methodName: "GetPortalWithAssets",
+  service: PortalApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: dev_portal_api_dev_portal_v1_common_pb.ObjectRef,
+  responseType: dev_portal_api_grpc_admin_portal_pb.Portal
 };
 
 PortalApi.ListPortals = {
@@ -24,8 +35,8 @@ PortalApi.ListPortals = {
   service: PortalApi,
   requestStream: false,
   responseStream: false,
-  requestType: dev_portal_api_grpc_apiserver_portal_pb.ListPortalsRequest,
-  responseType: dev_portal_api_grpc_apiserver_portal_pb.ListPortalsResponse
+  requestType: google_protobuf_empty_pb.Empty,
+  responseType: dev_portal_api_grpc_admin_portal_pb.PortalList
 };
 
 PortalApi.CreatePortal = {
@@ -33,8 +44,8 @@ PortalApi.CreatePortal = {
   service: PortalApi,
   requestStream: false,
   responseStream: false,
-  requestType: dev_portal_api_grpc_apiserver_portal_pb.CreatePortalRequest,
-  responseType: dev_portal_api_grpc_apiserver_portal_pb.CreatePortalResponse
+  requestType: dev_portal_api_grpc_admin_portal_pb.PortalWriteRequest,
+  responseType: dev_portal_api_grpc_admin_portal_pb.Portal
 };
 
 PortalApi.UpdatePortal = {
@@ -42,8 +53,8 @@ PortalApi.UpdatePortal = {
   service: PortalApi,
   requestStream: false,
   responseStream: false,
-  requestType: dev_portal_api_grpc_apiserver_portal_pb.UpdatePortalRequest,
-  responseType: dev_portal_api_grpc_apiserver_portal_pb.UpdatePortalResponse
+  requestType: dev_portal_api_grpc_admin_portal_pb.PortalWriteRequest,
+  responseType: dev_portal_api_grpc_admin_portal_pb.Portal
 };
 
 PortalApi.DeletePortal = {
@@ -51,8 +62,8 @@ PortalApi.DeletePortal = {
   service: PortalApi,
   requestStream: false,
   responseStream: false,
-  requestType: dev_portal_api_grpc_apiserver_portal_pb.CreatePortalRequest,
-  responseType: dev_portal_api_grpc_apiserver_portal_pb.DeletePortalResponse
+  requestType: dev_portal_api_dev_portal_v1_common_pb.ObjectRef,
+  responseType: google_protobuf_empty_pb.Empty
 };
 
 exports.PortalApi = PortalApi;
@@ -67,6 +78,37 @@ PortalApiClient.prototype.getPortal = function getPortal(requestMessage, metadat
     callback = arguments[1];
   }
   var client = grpc.unary(PortalApi.GetPortal, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+PortalApiClient.prototype.getPortalWithAssets = function getPortalWithAssets(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(PortalApi.GetPortalWithAssets, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

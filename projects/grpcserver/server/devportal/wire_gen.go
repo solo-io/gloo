@@ -8,7 +8,8 @@ package devportal
 import (
 	"context"
 
-	"github.com/solo-io/dev-portal/pkg/services/grpc/portal"
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/portal"
+	"github.com/solo-io/dev-portal/pkg/assets"
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 )
@@ -27,7 +28,9 @@ func InitDevPortal(ctx context.Context) (Registrar, error) {
 	}
 	client := NewDynamicClient(manager)
 	portalClient := NewPortalClient(client)
-	portalApiServer := portal.NewPortalGrpcService(portalClient)
-	registrar := NewRegistrar(portalApiServer)
+	configMapClient := NewConfigMapClient(client)
+	configMapStorage := assets.NewConfigMapStorage(configMapClient)
+	grpcService := portal.NewPortalGrpcService(portalClient, configMapStorage)
+	registrar := NewRegistrar(grpcService)
 	return registrar, nil
 }

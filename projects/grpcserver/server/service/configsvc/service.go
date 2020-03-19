@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
@@ -77,6 +79,12 @@ func (s *configGrpcService) GetIsLicenseValid(context.Context, *v1.GetIsLicenseV
 	}
 
 	return &v1.GetIsLicenseValidResponse{IsLicenseValid: isValid, InvalidReason: invalidReason}, nil
+}
+
+func (s *configGrpcService) IsDeveloperPortalEnabled(context.Context, *types.Empty) (*v1.IsDeveloperPortalEnabledResponse, error) {
+	return &v1.IsDeveloperPortalEnabledResponse{
+		Enabled: devportal.IsEnabled(),
+	}, nil
 }
 
 func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSettingsRequest) (*v1.GetSettingsResponse, error) {

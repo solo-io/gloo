@@ -3,7 +3,7 @@
 // file: dev-portal/api/dev-portal/v1/user.proto
 
 import * as jspb from "google-protobuf";
-import * as dev_portal_api_dev_portal_v1_common_pb from "../../../../dev-portal/api/dev-portal/v1/common_pb";
+import * as dev_portal_api_dev_portal_v1_access_level_pb from "../../../../dev-portal/api/dev-portal/v1/access_level_pb";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
@@ -18,6 +18,11 @@ export class UserSpec extends jspb.Message {
   clearBasicauth(): void;
   getBasicauth(): UserSpec.BasicAuth | undefined;
   setBasicauth(value?: UserSpec.BasicAuth): void;
+
+  hasAccesslevel(): boolean;
+  clearAccesslevel(): void;
+  getAccesslevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
+  setAccesslevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
 
   getAuthmethodCase(): UserSpec.AuthmethodCase;
   serializeBinary(): Uint8Array;
@@ -35,6 +40,7 @@ export namespace UserSpec {
     username: string,
     email: string,
     basicauth?: UserSpec.BasicAuth.AsObject,
+    accesslevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
   }
 
   export class BasicAuth extends jspb.Message {
@@ -75,15 +81,13 @@ export class UserStatus extends jspb.Message {
   getObservedgeneration(): number;
   setObservedgeneration(value: number): void;
 
-  clearUsersList(): void;
-  getUsersList(): Array<string>;
-  setUsersList(value: Array<string>): void;
-  addUsers(value: string, index?: number): string;
+  getHasloggedin(): boolean;
+  setHasloggedin(value: boolean): void;
 
-  clearApidocsList(): void;
-  getApidocsList(): Array<string>;
-  setApidocsList(value: Array<string>): void;
-  addApidocs(value: string, index?: number): string;
+  hasAccessLevel(): boolean;
+  clearAccessLevel(): void;
+  getAccessLevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus | undefined;
+  setAccessLevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserStatus.AsObject;
@@ -98,7 +102,7 @@ export class UserStatus extends jspb.Message {
 export namespace UserStatus {
   export type AsObject = {
     observedgeneration: number,
-    usersList: Array<string>,
-    apidocsList: Array<string>,
+    hasloggedin: boolean,
+    accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }
 }

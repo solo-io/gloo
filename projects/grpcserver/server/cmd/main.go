@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"os"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
 
@@ -52,10 +51,7 @@ func getInitialContext() context.Context {
 }
 
 func initDevPortal(ctx context.Context) (devportal.Registrar, error) {
-	// TODO(marco): temporary naive solution, to revisit
-	devPortalEnabled := os.Getenv("DEV_PORTAL_ENABLED") == "true"
-
-	if devPortalEnabled {
+	if devportal.IsEnabled() {
 		return devportal.InitDevPortal(ctx)
 	}
 	return devportal.NewNoOpRegistrar(), nil

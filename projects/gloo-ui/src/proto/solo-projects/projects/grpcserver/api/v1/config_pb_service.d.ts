@@ -2,6 +2,7 @@
 // file: solo-projects/projects/grpcserver/api/v1/config.proto
 
 import * as solo_projects_projects_grpcserver_api_v1_config_pb from "../../../../../solo-projects/projects/grpcserver/api/v1/config_pb";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import {grpc} from "@improbable-eng/grpc-web";
 
 type ConfigApiGetVersion = {
@@ -29,6 +30,15 @@ type ConfigApiGetIsLicenseValid = {
   readonly responseStream: false;
   readonly requestType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidRequest;
   readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidResponse;
+};
+
+type ConfigApiIsDeveloperPortalEnabled = {
+  readonly methodName: string;
+  readonly service: typeof ConfigApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof google_protobuf_empty_pb.Empty;
+  readonly responseType: typeof solo_projects_projects_grpcserver_api_v1_config_pb.IsDeveloperPortalEnabledResponse;
 };
 
 type ConfigApiGetSettings = {
@@ -81,6 +91,7 @@ export class ConfigApi {
   static readonly GetVersion: ConfigApiGetVersion;
   static readonly GetOAuthEndpoint: ConfigApiGetOAuthEndpoint;
   static readonly GetIsLicenseValid: ConfigApiGetIsLicenseValid;
+  static readonly IsDeveloperPortalEnabled: ConfigApiIsDeveloperPortalEnabled;
   static readonly GetSettings: ConfigApiGetSettings;
   static readonly UpdateSettings: ConfigApiUpdateSettings;
   static readonly UpdateSettingsYaml: ConfigApiUpdateSettingsYaml;
@@ -146,6 +157,15 @@ export class ConfigApiClient {
   getIsLicenseValid(
     requestMessage: solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidRequest,
     callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.GetIsLicenseValidResponse|null) => void
+  ): UnaryResponse;
+  isDeveloperPortalEnabled(
+    requestMessage: google_protobuf_empty_pb.Empty,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.IsDeveloperPortalEnabledResponse|null) => void
+  ): UnaryResponse;
+  isDeveloperPortalEnabled(
+    requestMessage: google_protobuf_empty_pb.Empty,
+    callback: (error: ServiceError|null, responseMessage: solo_projects_projects_grpcserver_api_v1_config_pb.IsDeveloperPortalEnabledResponse|null) => void
   ): UnaryResponse;
   getSettings(
     requestMessage: solo_projects_projects_grpcserver_api_v1_config_pb.GetSettingsRequest,

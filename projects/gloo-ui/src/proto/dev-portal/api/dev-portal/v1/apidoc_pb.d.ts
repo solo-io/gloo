@@ -3,11 +3,21 @@
 // file: dev-portal/api/dev-portal/v1/apidoc.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as dev_portal_api_dev_portal_v1_common_pb from "../../../../dev-portal/api/dev-portal/v1/common_pb";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class ApiDocSpec extends jspb.Message {
+  getDisplayname(): string;
+  setDisplayname(value: string): void;
+
+  getVersion(): string;
+  setVersion(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
   hasDatasource(): boolean;
   clearDatasource(): void;
   getDatasource(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
@@ -31,6 +41,9 @@ export class ApiDocSpec extends jspb.Message {
 
 export namespace ApiDocSpec {
   export type AsObject = {
+    displayname: string,
+    version: string,
+    description: string,
     datasource?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
     openapi?: ApiDocSpec.OpenApi.AsObject,
   }
@@ -53,7 +66,7 @@ export namespace ApiDocSpec {
 
   export enum ApidoctypeCase {
     APIDOCTYPE_NOT_SET = 0,
-    OPENAPI = 2,
+    OPENAPI = 5,
   }
 }
 
@@ -66,6 +79,17 @@ export class ApiDocStatus extends jspb.Message {
 
   getReason(): string;
   setReason(value: string): void;
+
+  hasModifieddate(): boolean;
+  clearModifieddate(): void;
+  getModifieddate(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setModifieddate(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getNumberofendpoints(): number;
+  setNumberofendpoints(value: number): void;
+
+  getBasepath(): string;
+  setBasepath(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiDocStatus.AsObject;
@@ -82,12 +106,14 @@ export namespace ApiDocStatus {
     observedgeneration: number,
     state: ApiDocStatus.StateMap[keyof ApiDocStatus.StateMap],
     reason: string,
+    modifieddate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    numberofendpoints: number,
+    basepath: string,
   }
 
   export interface StateMap {
-    UNPUBLISHED: 0;
-    PUBLISHED: 1;
-    FAILED: 2;
+    REJECTED: 0;
+    ACCEPTED: 1;
   }
 
   export const State: StateMap;

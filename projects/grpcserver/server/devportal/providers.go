@@ -4,8 +4,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/solo-io/dev-portal/pkg/api/grpc/admin"
+	devportalkubev1 "github.com/solo-io/dev-portal/pkg/api/kube/core/v1"
+	"github.com/solo-io/dev-portal/pkg/assets"
+
 	"github.com/google/wire"
-	devportalgrpc "github.com/solo-io/dev-portal/pkg/services/grpc/portal"
+	devportalgrpc "github.com/solo-io/dev-portal/pkg/admin/grpc/portal"
 	"go.uber.org/zap"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -24,7 +28,11 @@ var ProviderSet = wire.NewSet(
 	NewManager,
 	NewDynamicClient,
 	NewPortalClient,
+	NewConfigMapClient,
+	assets.NewConfigMapStorage,
+	wire.Bind(new(assets.AssetStorage), new(*assets.ConfigMapStorage)),
 	devportalgrpc.NewPortalGrpcService,
+	wire.Bind(new(admin.PortalApiServer), new(*devportalgrpc.GrpcService)),
 	NewRegistrar,
 )
 
@@ -78,4 +86,8 @@ func NewDynamicClient(manager controllerruntime.Manager) client.Client {
 // to return the exact type that is needed for injection.
 func NewPortalClient(client client.Client) devportalv1.PortalClient {
 	return devportalv1.NewPortalClient(client)
+}
+
+func NewConfigMapClient(client client.Client) devportalkubev1.ConfigMapClient {
+	return devportalkubev1.NewConfigMapClient(client)
 }

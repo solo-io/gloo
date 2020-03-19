@@ -14,7 +14,7 @@ require (
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.4.1
-	github.com/golang/protobuf v1.3.4
+	github.com/golang/protobuf v1.3.5
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
@@ -26,12 +26,12 @@ require (
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/open-policy-agent/opa v0.15.1 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/anyvendor v0.0.1
-	github.com/solo-io/dev-portal v0.0.5
+	github.com/solo-io/dev-portal v0.0.6
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
@@ -52,13 +52,13 @@ require (
 	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.0.0
-	k8s.io/api v0.17.1
-	k8s.io/apiextensions-apiserver v0.0.0
-	k8s.io/apimachinery v0.17.1
+	k8s.io/api v0.17.2
+	k8s.io/apiextensions-apiserver v0.17.2
+	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.17.1
 	k8s.io/kubernetes v1.16.2
-	sigs.k8s.io/controller-runtime v0.4.0
+	sigs.k8s.io/controller-runtime v0.5.0
 	sigs.k8s.io/yaml v1.1.0
 )
 
