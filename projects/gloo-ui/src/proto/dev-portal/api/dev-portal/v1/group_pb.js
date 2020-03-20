@@ -65,9 +65,10 @@ proto.devportal.solo.io.GroupSpec.prototype.toObject = function(opt_includeInsta
  */
 proto.devportal.solo.io.GroupSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
-    displayname: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    userlabels: (f = msg.getUserlabels()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
-    accesslevel: (f = msg.getAccesslevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
+    displayName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    userLabels: (f = msg.getUserLabels()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
+    accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -106,17 +107,21 @@ proto.devportal.solo.io.GroupSpec.deserializeBinaryFromReader = function(msg, re
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setDisplayname(value);
+      msg.setDisplayName(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
+      break;
+    case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setUserlabels(value);
+      msg.setUserLabels(value);
       break;
     case 4:
       var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.deserializeBinaryFromReader);
-      msg.setAccesslevel(value);
+      msg.setAccessLevel(value);
       break;
     default:
       reader.skipField();
@@ -147,22 +152,29 @@ proto.devportal.solo.io.GroupSpec.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.GroupSpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getDisplayname();
+  f = message.getDisplayName();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getUserlabels();
+  f = message.getDescription();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getUserLabels();
   if (f != null) {
     writer.writeMessage(
-      2,
+      3,
       f,
       dev$portal_api_dev$portal_v1_common_pb.Selector.serializeBinaryToWriter
     );
   }
-  f = message.getAccesslevel();
+  f = message.getAccessLevel();
   if (f != null) {
     writer.writeMessage(
       4,
@@ -174,38 +186,53 @@ proto.devportal.solo.io.GroupSpec.serializeBinaryToWriter = function(message, wr
 
 
 /**
- * optional string displayName = 1;
+ * optional string display_name = 1;
  * @return {string}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getDisplayname = function() {
+proto.devportal.solo.io.GroupSpec.prototype.getDisplayName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.GroupSpec.prototype.setDisplayname = function(value) {
+proto.devportal.solo.io.GroupSpec.prototype.setDisplayName = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional Selector userLabels = 2;
+ * optional string description = 2;
+ * @return {string}
+ */
+proto.devportal.solo.io.GroupSpec.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.GroupSpec.prototype.setDescription = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional Selector user_labels = 3;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getUserlabels = function() {
+proto.devportal.solo.io.GroupSpec.prototype.getUserLabels = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
-    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 2));
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 3));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.GroupSpec.prototype.setUserlabels = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
+proto.devportal.solo.io.GroupSpec.prototype.setUserLabels = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.devportal.solo.io.GroupSpec.prototype.clearUserlabels = function() {
-  this.setUserlabels(undefined);
+proto.devportal.solo.io.GroupSpec.prototype.clearUserLabels = function() {
+  this.setUserLabels(undefined);
 };
 
 
@@ -213,29 +240,29 @@ proto.devportal.solo.io.GroupSpec.prototype.clearUserlabels = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.GroupSpec.prototype.hasUserlabels = function() {
-  return jspb.Message.getField(this, 2) != null;
+proto.devportal.solo.io.GroupSpec.prototype.hasUserLabels = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional AccessLevel accessLevel = 4;
+ * optional AccessLevel access_level = 4;
  * @return {?proto.devportal.solo.io.AccessLevel}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getAccesslevel = function() {
+proto.devportal.solo.io.GroupSpec.prototype.getAccessLevel = function() {
   return /** @type{?proto.devportal.solo.io.AccessLevel} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel, 4));
 };
 
 
 /** @param {?proto.devportal.solo.io.AccessLevel|undefined} value */
-proto.devportal.solo.io.GroupSpec.prototype.setAccesslevel = function(value) {
+proto.devportal.solo.io.GroupSpec.prototype.setAccessLevel = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.devportal.solo.io.GroupSpec.prototype.clearAccesslevel = function() {
-  this.setAccesslevel(undefined);
+proto.devportal.solo.io.GroupSpec.prototype.clearAccessLevel = function() {
+  this.setAccessLevel(undefined);
 };
 
 
@@ -243,7 +270,7 @@ proto.devportal.solo.io.GroupSpec.prototype.clearAccesslevel = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.GroupSpec.prototype.hasAccesslevel = function() {
+proto.devportal.solo.io.GroupSpec.prototype.hasAccessLevel = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
@@ -302,7 +329,7 @@ proto.devportal.solo.io.GroupStatus.prototype.toObject = function(opt_includeIns
  */
 proto.devportal.solo.io.GroupStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    observedgeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    observedGeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
     usersList: jspb.Message.getRepeatedField(msg, 2),
     accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.toObject(includeInstance, f)
   };
@@ -343,7 +370,7 @@ proto.devportal.solo.io.GroupStatus.deserializeBinaryFromReader = function(msg, 
     switch (field) {
     case 1:
       var value = /** @type {number} */ (reader.readInt64());
-      msg.setObservedgeneration(value);
+      msg.setObservedGeneration(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -383,7 +410,7 @@ proto.devportal.solo.io.GroupStatus.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getObservedgeneration();
+  f = message.getObservedGeneration();
   if (f !== 0) {
     writer.writeInt64(
       1,
@@ -409,16 +436,16 @@ proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, 
 
 
 /**
- * optional int64 observedGeneration = 1;
+ * optional int64 observed_generation = 1;
  * @return {number}
  */
-proto.devportal.solo.io.GroupStatus.prototype.getObservedgeneration = function() {
+proto.devportal.solo.io.GroupStatus.prototype.getObservedGeneration = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /** @param {number} value */
-proto.devportal.solo.io.GroupStatus.prototype.setObservedgeneration = function(value) {
+proto.devportal.solo.io.GroupStatus.prototype.setObservedGeneration = function(value) {
   jspb.Message.setProto3IntField(this, 1, value);
 };
 

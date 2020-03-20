@@ -64,8 +64,8 @@ proto.devportal.solo.io.AccessLevel.prototype.toObject = function(opt_includeIns
  */
 proto.devportal.solo.io.AccessLevel.toObject = function(includeInstance, msg) {
   var f, obj = {
-    portalselector: (f = msg.getPortalselector()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
-    apidocselector: (f = msg.getApidocselector()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
+    portalSelector: (f = msg.getPortalSelector()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
+    apiDocSelector: (f = msg.getApiDocSelector()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -105,12 +105,12 @@ proto.devportal.solo.io.AccessLevel.deserializeBinaryFromReader = function(msg, 
     case 2:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setPortalselector(value);
+      msg.setPortalSelector(value);
       break;
     case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setApidocselector(value);
+      msg.setApiDocSelector(value);
       break;
     default:
       reader.skipField();
@@ -141,7 +141,7 @@ proto.devportal.solo.io.AccessLevel.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.AccessLevel.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getPortalselector();
+  f = message.getPortalSelector();
   if (f != null) {
     writer.writeMessage(
       2,
@@ -149,7 +149,7 @@ proto.devportal.solo.io.AccessLevel.serializeBinaryToWriter = function(message, 
       dev$portal_api_dev$portal_v1_common_pb.Selector.serializeBinaryToWriter
     );
   }
-  f = message.getApidocselector();
+  f = message.getApiDocSelector();
   if (f != null) {
     writer.writeMessage(
       3,
@@ -161,23 +161,23 @@ proto.devportal.solo.io.AccessLevel.serializeBinaryToWriter = function(message, 
 
 
 /**
- * optional Selector portalSelector = 2;
+ * optional Selector portal_selector = 2;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.AccessLevel.prototype.getPortalselector = function() {
+proto.devportal.solo.io.AccessLevel.prototype.getPortalSelector = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 2));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.AccessLevel.prototype.setPortalselector = function(value) {
+proto.devportal.solo.io.AccessLevel.prototype.setPortalSelector = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.devportal.solo.io.AccessLevel.prototype.clearPortalselector = function() {
-  this.setPortalselector(undefined);
+proto.devportal.solo.io.AccessLevel.prototype.clearPortalSelector = function() {
+  this.setPortalSelector(undefined);
 };
 
 
@@ -185,29 +185,29 @@ proto.devportal.solo.io.AccessLevel.prototype.clearPortalselector = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.AccessLevel.prototype.hasPortalselector = function() {
+proto.devportal.solo.io.AccessLevel.prototype.hasPortalSelector = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional Selector apiDocSelector = 3;
+ * optional Selector api_doc_selector = 3;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.AccessLevel.prototype.getApidocselector = function() {
+proto.devportal.solo.io.AccessLevel.prototype.getApiDocSelector = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 3));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.AccessLevel.prototype.setApidocselector = function(value) {
+proto.devportal.solo.io.AccessLevel.prototype.setApiDocSelector = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.devportal.solo.io.AccessLevel.prototype.clearApidocselector = function() {
-  this.setApidocselector(undefined);
+proto.devportal.solo.io.AccessLevel.prototype.clearApiDocSelector = function() {
+  this.setApiDocSelector(undefined);
 };
 
 
@@ -215,7 +215,7 @@ proto.devportal.solo.io.AccessLevel.prototype.clearApidocselector = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.AccessLevel.prototype.hasApidocselector = function() {
+proto.devportal.solo.io.AccessLevel.prototype.hasApiDocSelector = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -275,7 +275,7 @@ proto.devportal.solo.io.AccessLevelStatus.prototype.toObject = function(opt_incl
 proto.devportal.solo.io.AccessLevelStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     portalsList: jspb.Message.getRepeatedField(msg, 3),
-    apidocsList: jspb.Message.getRepeatedField(msg, 4)
+    apiDocsList: jspb.Message.getRepeatedField(msg, 4)
   };
 
   if (includeInstance) {
@@ -318,7 +318,7 @@ proto.devportal.solo.io.AccessLevelStatus.deserializeBinaryFromReader = function
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.addApidocs(value);
+      msg.addApiDocs(value);
       break;
     default:
       reader.skipField();
@@ -356,7 +356,7 @@ proto.devportal.solo.io.AccessLevelStatus.serializeBinaryToWriter = function(mes
       f
     );
   }
-  f = message.getApidocsList();
+  f = message.getApiDocsList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       4,
@@ -396,16 +396,16 @@ proto.devportal.solo.io.AccessLevelStatus.prototype.clearPortalsList = function(
 
 
 /**
- * repeated string apiDocs = 4;
+ * repeated string api_docs = 4;
  * @return {!Array<string>}
  */
-proto.devportal.solo.io.AccessLevelStatus.prototype.getApidocsList = function() {
+proto.devportal.solo.io.AccessLevelStatus.prototype.getApiDocsList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
 };
 
 
 /** @param {!Array<string>} value */
-proto.devportal.solo.io.AccessLevelStatus.prototype.setApidocsList = function(value) {
+proto.devportal.solo.io.AccessLevelStatus.prototype.setApiDocsList = function(value) {
   jspb.Message.setField(this, 4, value || []);
 };
 
@@ -414,13 +414,13 @@ proto.devportal.solo.io.AccessLevelStatus.prototype.setApidocsList = function(va
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.devportal.solo.io.AccessLevelStatus.prototype.addApidocs = function(value, opt_index) {
+proto.devportal.solo.io.AccessLevelStatus.prototype.addApiDocs = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 4, value, opt_index);
 };
 
 
-proto.devportal.solo.io.AccessLevelStatus.prototype.clearApidocsList = function() {
-  this.setApidocsList([]);
+proto.devportal.solo.io.AccessLevelStatus.prototype.clearApiDocsList = function() {
+  this.setApiDocsList([]);
 };
 
 

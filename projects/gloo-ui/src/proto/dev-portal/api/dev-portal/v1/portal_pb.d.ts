@@ -9,8 +9,8 @@ import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class PortalSpec extends jspb.Message {
-  getDisplayname(): string;
-  setDisplayname(value: string): void;
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
 
   getDescription(): string;
   setDescription(value: string): void;
@@ -20,40 +20,40 @@ export class PortalSpec extends jspb.Message {
   setDomainsList(value: Array<string>): void;
   addDomains(value: string, index?: number): string;
 
-  hasPrimarylogo(): boolean;
-  clearPrimarylogo(): void;
-  getPrimarylogo(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
-  setPrimarylogo(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
+  hasPrimaryLogo(): boolean;
+  clearPrimaryLogo(): void;
+  getPrimaryLogo(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
+  setPrimaryLogo(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
 
   hasFavicon(): boolean;
   clearFavicon(): void;
   getFavicon(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
   setFavicon(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
 
-  hasBackgroundimage(): boolean;
-  clearBackgroundimage(): void;
-  getBackgroundimage(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
-  setBackgroundimage(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
+  hasBanner(): boolean;
+  clearBanner(): void;
+  getBanner(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
+  setBanner(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
 
-  hasCustomstyling(): boolean;
-  clearCustomstyling(): void;
-  getCustomstyling(): CustomStyling | undefined;
-  setCustomstyling(value?: CustomStyling): void;
+  hasCustomStyling(): boolean;
+  clearCustomStyling(): void;
+  getCustomStyling(): CustomStyling | undefined;
+  setCustomStyling(value?: CustomStyling): void;
 
-  clearStaticpagesList(): void;
-  getStaticpagesList(): Array<StaticPage>;
-  setStaticpagesList(value: Array<StaticPage>): void;
-  addStaticpages(value?: StaticPage, index?: number): StaticPage;
+  clearStaticPagesList(): void;
+  getStaticPagesList(): Array<StaticPage>;
+  setStaticPagesList(value: Array<StaticPage>): void;
+  addStaticPages(value?: StaticPage, index?: number): StaticPage;
 
-  hasPublishapidocs(): boolean;
-  clearPublishapidocs(): void;
-  getPublishapidocs(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
-  setPublishapidocs(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+  hasPublishApiDocs(): boolean;
+  clearPublishApiDocs(): void;
+  getPublishApiDocs(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
+  setPublishApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
 
-  clearKeyscopesList(): void;
-  getKeyscopesList(): Array<KeyScope>;
-  setKeyscopesList(value: Array<KeyScope>): void;
-  addKeyscopes(value?: KeyScope, index?: number): KeyScope;
+  clearKeyScopesList(): void;
+  getKeyScopesList(): Array<KeyScope>;
+  setKeyScopesList(value: Array<KeyScope>): void;
+  addKeyScopes(value?: KeyScope, index?: number): KeyScope;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PortalSpec.AsObject;
@@ -67,22 +67,22 @@ export class PortalSpec extends jspb.Message {
 
 export namespace PortalSpec {
   export type AsObject = {
-    displayname: string,
+    displayName: string,
     description: string,
     domainsList: Array<string>,
-    primarylogo?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
+    primaryLogo?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
     favicon?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
-    backgroundimage?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
-    customstyling?: CustomStyling.AsObject,
-    staticpagesList: Array<StaticPage.AsObject>,
-    publishapidocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
-    keyscopesList: Array<KeyScope.AsObject>,
+    banner?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
+    customStyling?: CustomStyling.AsObject,
+    staticPagesList: Array<StaticPage.AsObject>,
+    publishApiDocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
+    keyScopesList: Array<KeyScope.AsObject>,
   }
 }
 
 export class PortalStatus extends jspb.Message {
-  getObservedgeneration(): number;
-  setObservedgeneration(value: number): void;
+  getObservedGeneration(): number;
+  setObservedGeneration(value: number): void;
 
   getState(): PortalStatus.StateMap[keyof PortalStatus.StateMap];
   setState(value: PortalStatus.StateMap[keyof PortalStatus.StateMap]): void;
@@ -90,18 +90,18 @@ export class PortalStatus extends jspb.Message {
   getReason(): string;
   setReason(value: string): void;
 
-  getPublishurl(): string;
-  setPublishurl(value: string): void;
+  getPublishUrl(): string;
+  setPublishUrl(value: string): void;
 
-  clearApidocsList(): void;
-  getApidocsList(): Array<string>;
-  setApidocsList(value: Array<string>): void;
-  addApidocs(value: string, index?: number): string;
+  clearApiDocsList(): void;
+  getApiDocsList(): Array<string>;
+  setApiDocsList(value: Array<string>): void;
+  addApiDocs(value: string, index?: number): string;
 
-  clearKeyscopesList(): void;
-  getKeyscopesList(): Array<KeyScopeStatus>;
-  setKeyscopesList(value: Array<KeyScopeStatus>): void;
-  addKeyscopes(value?: KeyScopeStatus, index?: number): KeyScopeStatus;
+  clearKeyScopesList(): void;
+  getKeyScopesList(): Array<KeyScopeStatus>;
+  setKeyScopesList(value: Array<KeyScopeStatus>): void;
+  addKeyScopes(value?: KeyScopeStatus, index?: number): KeyScopeStatus;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PortalStatus.AsObject;
@@ -115,42 +115,43 @@ export class PortalStatus extends jspb.Message {
 
 export namespace PortalStatus {
   export type AsObject = {
-    observedgeneration: number,
+    observedGeneration: number,
     state: PortalStatus.StateMap[keyof PortalStatus.StateMap],
     reason: string,
-    publishurl: string,
-    apidocsList: Array<string>,
-    keyscopesList: Array<KeyScopeStatus.AsObject>,
+    publishUrl: string,
+    apiDocsList: Array<string>,
+    keyScopesList: Array<KeyScopeStatus.AsObject>,
   }
 
   export interface StateMap {
     PENDING: 0;
-    PUBLISHED: 1;
-    INVALID: 2;
-    FAILED: 3;
+    PUBLISHING: 1;
+    PUBLISHED: 2;
+    INVALID: 3;
+    FAILED: 4;
   }
 
   export const State: StateMap;
 }
 
 export class CustomStyling extends jspb.Message {
-  getPrimarycolor(): string;
-  setPrimarycolor(value: string): void;
+  getPrimaryColor(): string;
+  setPrimaryColor(value: string): void;
 
-  getSecondarycolor(): string;
-  setSecondarycolor(value: string): void;
+  getSecondaryColor(): string;
+  setSecondaryColor(value: string): void;
 
-  getBackgroundcolor(): string;
-  setBackgroundcolor(value: string): void;
+  getBackgroundColor(): string;
+  setBackgroundColor(value: string): void;
 
-  getNavigationlinkscoloroverride(): string;
-  setNavigationlinkscoloroverride(value: string): void;
+  getNavigationLinksColorOverride(): string;
+  setNavigationLinksColorOverride(value: string): void;
 
-  getButtoncoloroverride(): string;
-  setButtoncoloroverride(value: string): void;
+  getButtonColorOverride(): string;
+  setButtonColorOverride(value: string): void;
 
-  getDefaulttextcolor(): string;
-  setDefaulttextcolor(value: string): void;
+  getDefaultTextColor(): string;
+  setDefaultTextColor(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CustomStyling.AsObject;
@@ -164,12 +165,12 @@ export class CustomStyling extends jspb.Message {
 
 export namespace CustomStyling {
   export type AsObject = {
-    primarycolor: string,
-    secondarycolor: string,
-    backgroundcolor: string,
-    navigationlinkscoloroverride: string,
-    buttoncoloroverride: string,
-    defaulttextcolor: string,
+    primaryColor: string,
+    secondaryColor: string,
+    backgroundColor: string,
+    navigationLinksColorOverride: string,
+    buttonColorOverride: string,
+    defaultTextColor: string,
   }
 }
 
@@ -183,8 +184,8 @@ export class StaticPage extends jspb.Message {
   getPath(): string;
   setPath(value: string): void;
 
-  getNavigationlinkname(): string;
-  setNavigationlinkname(value: string): void;
+  getNavigationLinkName(): string;
+  setNavigationLinkName(value: string): void;
 
   hasContent(): boolean;
   clearContent(): void;
@@ -206,7 +207,7 @@ export namespace StaticPage {
     name: string,
     description: string,
     path: string,
-    navigationlinkname: string,
+    navigationLinkName: string,
     content?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
   }
 }
@@ -218,10 +219,10 @@ export class KeyScope extends jspb.Message {
   getNamespace(): string;
   setNamespace(value: string): void;
 
-  hasApidocs(): boolean;
-  clearApidocs(): void;
-  getApidocs(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
-  setApidocs(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+  hasApiDocs(): boolean;
+  clearApiDocs(): void;
+  getApiDocs(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
+  setApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): KeyScope.AsObject;
@@ -237,7 +238,7 @@ export namespace KeyScope {
   export type AsObject = {
     name: string,
     namespace: string,
-    apidocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
+    apiDocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
   }
 }
 
@@ -245,20 +246,20 @@ export class KeyScopeStatus extends jspb.Message {
   getName(): string;
   setName(value: string): void;
 
-  hasCreateddate(): boolean;
-  clearCreateddate(): void;
-  getCreateddate(): google_protobuf_timestamp_pb.Timestamp | undefined;
-  setCreateddate(value?: google_protobuf_timestamp_pb.Timestamp): void;
+  hasCreatedDate(): boolean;
+  clearCreatedDate(): void;
+  getCreatedDate(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setCreatedDate(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
-  clearAccessibleapidocsList(): void;
-  getAccessibleapidocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
-  setAccessibleapidocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
-  addAccessibleapidocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
+  clearAccessibleApiDocsList(): void;
+  getAccessibleApiDocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setAccessibleApiDocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addAccessibleApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
-  clearProvisionedkeysList(): void;
-  getProvisionedkeysList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
-  setProvisionedkeysList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
-  addProvisionedkeys(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
+  clearProvisionedKeysList(): void;
+  getProvisionedKeysList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setProvisionedKeysList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addProvisionedKeys(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): KeyScopeStatus.AsObject;
@@ -273,8 +274,8 @@ export class KeyScopeStatus extends jspb.Message {
 export namespace KeyScopeStatus {
   export type AsObject = {
     name: string,
-    createddate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    accessibleapidocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
-    provisionedkeysList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    createdDate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    accessibleApiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    provisionedKeysList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
   }
 }

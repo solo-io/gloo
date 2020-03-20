@@ -9,18 +9,21 @@ import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class GroupSpec extends jspb.Message {
-  getDisplayname(): string;
-  setDisplayname(value: string): void;
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
 
-  hasUserlabels(): boolean;
-  clearUserlabels(): void;
-  getUserlabels(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
-  setUserlabels(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+  getDescription(): string;
+  setDescription(value: string): void;
 
-  hasAccesslevel(): boolean;
-  clearAccesslevel(): void;
-  getAccesslevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
-  setAccesslevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
+  hasUserLabels(): boolean;
+  clearUserLabels(): void;
+  getUserLabels(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
+  setUserLabels(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+
+  hasAccessLevel(): boolean;
+  clearAccessLevel(): void;
+  getAccessLevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
+  setAccessLevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GroupSpec.AsObject;
@@ -34,15 +37,16 @@ export class GroupSpec extends jspb.Message {
 
 export namespace GroupSpec {
   export type AsObject = {
-    displayname: string,
-    userlabels?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
-    accesslevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
+    displayName: string,
+    description: string,
+    userLabels?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
+    accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
   }
 }
 
 export class GroupStatus extends jspb.Message {
-  getObservedgeneration(): number;
-  setObservedgeneration(value: number): void;
+  getObservedGeneration(): number;
+  setObservedGeneration(value: number): void;
 
   clearUsersList(): void;
   getUsersList(): Array<string>;
@@ -66,7 +70,7 @@ export class GroupStatus extends jspb.Message {
 
 export namespace GroupStatus {
   export type AsObject = {
-    observedgeneration: number,
+    observedGeneration: number,
     usersList: Array<string>,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }

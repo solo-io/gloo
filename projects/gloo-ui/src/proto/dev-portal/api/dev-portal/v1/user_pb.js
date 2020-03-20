@@ -49,16 +49,16 @@ proto.devportal.solo.io.UserSpec.oneofGroups_ = [[3]];
 /**
  * @enum {number}
  */
-proto.devportal.solo.io.UserSpec.AuthmethodCase = {
-  AUTHMETHOD_NOT_SET: 0,
-  BASICAUTH: 3
+proto.devportal.solo.io.UserSpec.AuthMethodCase = {
+  AUTH_METHOD_NOT_SET: 0,
+  BASIC_AUTH: 3
 };
 
 /**
- * @return {proto.devportal.solo.io.UserSpec.AuthmethodCase}
+ * @return {proto.devportal.solo.io.UserSpec.AuthMethodCase}
  */
-proto.devportal.solo.io.UserSpec.prototype.getAuthmethodCase = function() {
-  return /** @type {proto.devportal.solo.io.UserSpec.AuthmethodCase} */(jspb.Message.computeOneofCase(this, proto.devportal.solo.io.UserSpec.oneofGroups_[0]));
+proto.devportal.solo.io.UserSpec.prototype.getAuthMethodCase = function() {
+  return /** @type {proto.devportal.solo.io.UserSpec.AuthMethodCase} */(jspb.Message.computeOneofCase(this, proto.devportal.solo.io.UserSpec.oneofGroups_[0]));
 };
 
 
@@ -92,8 +92,8 @@ proto.devportal.solo.io.UserSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     username: jspb.Message.getFieldWithDefault(msg, 1, ""),
     email: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    basicauth: (f = msg.getBasicauth()) && proto.devportal.solo.io.UserSpec.BasicAuth.toObject(includeInstance, f),
-    accesslevel: (f = msg.getAccesslevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
+    basicAuth: (f = msg.getBasicAuth()) && proto.devportal.solo.io.UserSpec.BasicAuth.toObject(includeInstance, f),
+    accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -141,12 +141,12 @@ proto.devportal.solo.io.UserSpec.deserializeBinaryFromReader = function(msg, rea
     case 3:
       var value = new proto.devportal.solo.io.UserSpec.BasicAuth;
       reader.readMessage(value,proto.devportal.solo.io.UserSpec.BasicAuth.deserializeBinaryFromReader);
-      msg.setBasicauth(value);
+      msg.setBasicAuth(value);
       break;
     case 4:
       var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.deserializeBinaryFromReader);
-      msg.setAccesslevel(value);
+      msg.setAccessLevel(value);
       break;
     default:
       reader.skipField();
@@ -191,7 +191,7 @@ proto.devportal.solo.io.UserSpec.serializeBinaryToWriter = function(message, wri
       f
     );
   }
-  f = message.getBasicauth();
+  f = message.getBasicAuth();
   if (f != null) {
     writer.writeMessage(
       3,
@@ -199,7 +199,7 @@ proto.devportal.solo.io.UserSpec.serializeBinaryToWriter = function(message, wri
       proto.devportal.solo.io.UserSpec.BasicAuth.serializeBinaryToWriter
     );
   }
-  f = message.getAccesslevel();
+  f = message.getAccessLevel();
   if (f != null) {
     writer.writeMessage(
       4,
@@ -257,9 +257,9 @@ proto.devportal.solo.io.UserSpec.BasicAuth.prototype.toObject = function(opt_inc
  */
 proto.devportal.solo.io.UserSpec.BasicAuth.toObject = function(includeInstance, msg) {
   var f, obj = {
-    passwordsecretname: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    passwordsecretnamespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    passwordsecretkey: jspb.Message.getFieldWithDefault(msg, 3, "")
+    passwordSecretName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    passwordSecretNamespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    passwordSecretKey: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -298,15 +298,15 @@ proto.devportal.solo.io.UserSpec.BasicAuth.deserializeBinaryFromReader = functio
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPasswordsecretname(value);
+      msg.setPasswordSecretName(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPasswordsecretnamespace(value);
+      msg.setPasswordSecretNamespace(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPasswordsecretkey(value);
+      msg.setPasswordSecretKey(value);
       break;
     default:
       reader.skipField();
@@ -337,21 +337,21 @@ proto.devportal.solo.io.UserSpec.BasicAuth.prototype.serializeBinary = function(
  */
 proto.devportal.solo.io.UserSpec.BasicAuth.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getPasswordsecretname();
+  f = message.getPasswordSecretName();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getPasswordsecretnamespace();
+  f = message.getPasswordSecretNamespace();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
-  f = message.getPasswordsecretkey();
+  f = message.getPasswordSecretKey();
   if (f.length > 0) {
     writer.writeString(
       3,
@@ -362,46 +362,46 @@ proto.devportal.solo.io.UserSpec.BasicAuth.serializeBinaryToWriter = function(me
 
 
 /**
- * optional string passwordSecretName = 1;
+ * optional string password_secret_name = 1;
  * @return {string}
  */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordsecretname = function() {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordSecretName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordsecretname = function(value) {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordSecretName = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string passwordSecretNamespace = 2;
+ * optional string password_secret_namespace = 2;
  * @return {string}
  */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordsecretnamespace = function() {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordSecretNamespace = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordsecretnamespace = function(value) {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordSecretNamespace = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional string passwordSecretKey = 3;
+ * optional string password_secret_key = 3;
  * @return {string}
  */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordsecretkey = function() {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.getPasswordSecretKey = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordsecretkey = function(value) {
+proto.devportal.solo.io.UserSpec.BasicAuth.prototype.setPasswordSecretKey = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
 };
 
@@ -437,23 +437,23 @@ proto.devportal.solo.io.UserSpec.prototype.setEmail = function(value) {
 
 
 /**
- * optional BasicAuth basicAuth = 3;
+ * optional BasicAuth basic_auth = 3;
  * @return {?proto.devportal.solo.io.UserSpec.BasicAuth}
  */
-proto.devportal.solo.io.UserSpec.prototype.getBasicauth = function() {
+proto.devportal.solo.io.UserSpec.prototype.getBasicAuth = function() {
   return /** @type{?proto.devportal.solo.io.UserSpec.BasicAuth} */ (
     jspb.Message.getWrapperField(this, proto.devportal.solo.io.UserSpec.BasicAuth, 3));
 };
 
 
 /** @param {?proto.devportal.solo.io.UserSpec.BasicAuth|undefined} value */
-proto.devportal.solo.io.UserSpec.prototype.setBasicauth = function(value) {
+proto.devportal.solo.io.UserSpec.prototype.setBasicAuth = function(value) {
   jspb.Message.setOneofWrapperField(this, 3, proto.devportal.solo.io.UserSpec.oneofGroups_[0], value);
 };
 
 
-proto.devportal.solo.io.UserSpec.prototype.clearBasicauth = function() {
-  this.setBasicauth(undefined);
+proto.devportal.solo.io.UserSpec.prototype.clearBasicAuth = function() {
+  this.setBasicAuth(undefined);
 };
 
 
@@ -461,29 +461,29 @@ proto.devportal.solo.io.UserSpec.prototype.clearBasicauth = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.UserSpec.prototype.hasBasicauth = function() {
+proto.devportal.solo.io.UserSpec.prototype.hasBasicAuth = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
 
 /**
- * optional AccessLevel accessLevel = 4;
+ * optional AccessLevel access_level = 4;
  * @return {?proto.devportal.solo.io.AccessLevel}
  */
-proto.devportal.solo.io.UserSpec.prototype.getAccesslevel = function() {
+proto.devportal.solo.io.UserSpec.prototype.getAccessLevel = function() {
   return /** @type{?proto.devportal.solo.io.AccessLevel} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel, 4));
 };
 
 
 /** @param {?proto.devportal.solo.io.AccessLevel|undefined} value */
-proto.devportal.solo.io.UserSpec.prototype.setAccesslevel = function(value) {
+proto.devportal.solo.io.UserSpec.prototype.setAccessLevel = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.devportal.solo.io.UserSpec.prototype.clearAccesslevel = function() {
-  this.setAccesslevel(undefined);
+proto.devportal.solo.io.UserSpec.prototype.clearAccessLevel = function() {
+  this.setAccessLevel(undefined);
 };
 
 
@@ -491,7 +491,7 @@ proto.devportal.solo.io.UserSpec.prototype.clearAccesslevel = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.UserSpec.prototype.hasAccesslevel = function() {
+proto.devportal.solo.io.UserSpec.prototype.hasAccessLevel = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
@@ -543,8 +543,8 @@ proto.devportal.solo.io.UserStatus.prototype.toObject = function(opt_includeInst
  */
 proto.devportal.solo.io.UserStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    observedgeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    hasloggedin: jspb.Message.getFieldWithDefault(msg, 2, false),
+    observedGeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    hasLoggedIn: jspb.Message.getFieldWithDefault(msg, 2, false),
     accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.toObject(includeInstance, f)
   };
 
@@ -584,11 +584,11 @@ proto.devportal.solo.io.UserStatus.deserializeBinaryFromReader = function(msg, r
     switch (field) {
     case 1:
       var value = /** @type {number} */ (reader.readInt64());
-      msg.setObservedgeneration(value);
+      msg.setObservedGeneration(value);
       break;
     case 2:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setHasloggedin(value);
+      msg.setHasLoggedIn(value);
       break;
     case 3:
       var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus;
@@ -624,14 +624,14 @@ proto.devportal.solo.io.UserStatus.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.UserStatus.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getObservedgeneration();
+  f = message.getObservedGeneration();
   if (f !== 0) {
     writer.writeInt64(
       1,
       f
     );
   }
-  f = message.getHasloggedin();
+  f = message.getHasLoggedIn();
   if (f) {
     writer.writeBool(
       2,
@@ -650,33 +650,33 @@ proto.devportal.solo.io.UserStatus.serializeBinaryToWriter = function(message, w
 
 
 /**
- * optional int64 observedGeneration = 1;
+ * optional int64 observed_generation = 1;
  * @return {number}
  */
-proto.devportal.solo.io.UserStatus.prototype.getObservedgeneration = function() {
+proto.devportal.solo.io.UserStatus.prototype.getObservedGeneration = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /** @param {number} value */
-proto.devportal.solo.io.UserStatus.prototype.setObservedgeneration = function(value) {
+proto.devportal.solo.io.UserStatus.prototype.setObservedGeneration = function(value) {
   jspb.Message.setProto3IntField(this, 1, value);
 };
 
 
 /**
- * optional bool hasLoggedIn = 2;
+ * optional bool has_logged_in = 2;
  * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
  * You should avoid comparisons like {@code val === true/false} in those cases.
  * @return {boolean}
  */
-proto.devportal.solo.io.UserStatus.prototype.getHasloggedin = function() {
+proto.devportal.solo.io.UserStatus.prototype.getHasLoggedIn = function() {
   return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
 };
 
 
 /** @param {boolean} value */
-proto.devportal.solo.io.UserStatus.prototype.setHasloggedin = function(value) {
+proto.devportal.solo.io.UserStatus.prototype.setHasLoggedIn = function(value) {
   jspb.Message.setProto3BooleanField(this, 2, value);
 };
 

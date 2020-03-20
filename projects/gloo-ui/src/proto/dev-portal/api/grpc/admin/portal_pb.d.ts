@@ -71,10 +71,10 @@ export class PortalWriteRequest extends jspb.Message {
   getPortal(): Portal | undefined;
   setPortal(value?: Portal): void;
 
-  clearApidocsList(): void;
-  getApidocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
-  setApidocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
-  addApidocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
+  clearApiDocsList(): void;
+  getApiDocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setApiDocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   clearUsersList(): void;
   getUsersList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
@@ -99,7 +99,7 @@ export class PortalWriteRequest extends jspb.Message {
 export namespace PortalWriteRequest {
   export type AsObject = {
     portal?: Portal.AsObject,
-    apidocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     groupsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
   }

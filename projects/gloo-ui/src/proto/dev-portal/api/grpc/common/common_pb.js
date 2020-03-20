@@ -66,8 +66,8 @@ proto.common.devportal.solo.io.ObjectMeta.toObject = function(includeInstance, m
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     namespace: jspb.Message.getFieldWithDefault(msg, 3, ""),
     uid: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    resourceversion: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    creationtimestamp: (f = msg.getCreationtimestamp()) && proto.common.devportal.solo.io.Time.toObject(includeInstance, f),
+    resourceVersion: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    creationTimestamp: (f = msg.getCreationTimestamp()) && proto.common.devportal.solo.io.Time.toObject(includeInstance, f),
     labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
     annotationsMap: (f = msg.getAnnotationsMap()) ? f.toObject(includeInstance, undefined) : []
   };
@@ -120,12 +120,12 @@ proto.common.devportal.solo.io.ObjectMeta.deserializeBinaryFromReader = function
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
-      msg.setResourceversion(value);
+      msg.setResourceVersion(value);
       break;
     case 8:
       var value = new proto.common.devportal.solo.io.Time;
       reader.readMessage(value,proto.common.devportal.solo.io.Time.deserializeBinaryFromReader);
-      msg.setCreationtimestamp(value);
+      msg.setCreationTimestamp(value);
       break;
     case 11:
       var value = msg.getLabelsMap();
@@ -189,14 +189,14 @@ proto.common.devportal.solo.io.ObjectMeta.serializeBinaryToWriter = function(mes
       f
     );
   }
-  f = message.getResourceversion();
+  f = message.getResourceVersion();
   if (f.length > 0) {
     writer.writeString(
       6,
       f
     );
   }
-  f = message.getCreationtimestamp();
+  f = message.getCreationTimestamp();
   if (f != null) {
     writer.writeMessage(
       8,
@@ -261,38 +261,38 @@ proto.common.devportal.solo.io.ObjectMeta.prototype.setUid = function(value) {
 
 
 /**
- * optional string resourceVersion = 6;
+ * optional string resource_version = 6;
  * @return {string}
  */
-proto.common.devportal.solo.io.ObjectMeta.prototype.getResourceversion = function() {
+proto.common.devportal.solo.io.ObjectMeta.prototype.getResourceVersion = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
 };
 
 
 /** @param {string} value */
-proto.common.devportal.solo.io.ObjectMeta.prototype.setResourceversion = function(value) {
+proto.common.devportal.solo.io.ObjectMeta.prototype.setResourceVersion = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
 };
 
 
 /**
- * optional Time creationTimestamp = 8;
+ * optional Time creation_timestamp = 8;
  * @return {?proto.common.devportal.solo.io.Time}
  */
-proto.common.devportal.solo.io.ObjectMeta.prototype.getCreationtimestamp = function() {
+proto.common.devportal.solo.io.ObjectMeta.prototype.getCreationTimestamp = function() {
   return /** @type{?proto.common.devportal.solo.io.Time} */ (
     jspb.Message.getWrapperField(this, proto.common.devportal.solo.io.Time, 8));
 };
 
 
 /** @param {?proto.common.devportal.solo.io.Time|undefined} value */
-proto.common.devportal.solo.io.ObjectMeta.prototype.setCreationtimestamp = function(value) {
+proto.common.devportal.solo.io.ObjectMeta.prototype.setCreationTimestamp = function(value) {
   jspb.Message.setWrapperField(this, 8, value);
 };
 
 
-proto.common.devportal.solo.io.ObjectMeta.prototype.clearCreationtimestamp = function() {
-  this.setCreationtimestamp(undefined);
+proto.common.devportal.solo.io.ObjectMeta.prototype.clearCreationTimestamp = function() {
+  this.setCreationTimestamp(undefined);
 };
 
 
@@ -300,7 +300,7 @@ proto.common.devportal.solo.io.ObjectMeta.prototype.clearCreationtimestamp = fun
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.common.devportal.solo.io.ObjectMeta.prototype.hasCreationtimestamp = function() {
+proto.common.devportal.solo.io.ObjectMeta.prototype.hasCreationTimestamp = function() {
   return jspb.Message.getField(this, 8) != null;
 };
 

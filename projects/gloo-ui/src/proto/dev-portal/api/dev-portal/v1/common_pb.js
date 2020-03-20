@@ -65,7 +65,7 @@ proto.devportal.solo.io.Selector.prototype.toObject = function(opt_includeInstan
  */
 proto.devportal.solo.io.Selector.toObject = function(includeInstance, msg) {
   var f, obj = {
-    matchlabelsMap: (f = msg.getMatchlabelsMap()) ? f.toObject(includeInstance, undefined) : []
+    matchLabelsMap: (f = msg.getMatchLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -103,7 +103,7 @@ proto.devportal.solo.io.Selector.deserializeBinaryFromReader = function(msg, rea
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = msg.getMatchlabelsMap();
+      var value = msg.getMatchLabelsMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
@@ -137,7 +137,7 @@ proto.devportal.solo.io.Selector.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.Selector.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getMatchlabelsMap(true);
+  f = message.getMatchLabelsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
@@ -145,20 +145,20 @@ proto.devportal.solo.io.Selector.serializeBinaryToWriter = function(message, wri
 
 
 /**
- * map<string, string> matchLabels = 1;
+ * map<string, string> match_labels = 1;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
  * @return {!jspb.Map<string,string>}
  */
-proto.devportal.solo.io.Selector.prototype.getMatchlabelsMap = function(opt_noLazyCreate) {
+proto.devportal.solo.io.Selector.prototype.getMatchLabelsMap = function(opt_noLazyCreate) {
   return /** @type {!jspb.Map<string,string>} */ (
       jspb.Message.getMapField(this, 1, opt_noLazyCreate,
       null));
 };
 
 
-proto.devportal.solo.io.Selector.prototype.clearMatchlabelsMap = function() {
-  this.getMatchlabelsMap().clear();
+proto.devportal.solo.io.Selector.prototype.clearMatchLabelsMap = function() {
+  this.getMatchLabelsMap().clear();
 };
 
 
@@ -193,18 +193,18 @@ proto.devportal.solo.io.DataSource.oneofGroups_ = [[1,2,3]];
 /**
  * @enum {number}
  */
-proto.devportal.solo.io.DataSource.SourcetypeCase = {
-  SOURCETYPE_NOT_SET: 0,
+proto.devportal.solo.io.DataSource.SourceTypeCase = {
+  SOURCE_TYPE_NOT_SET: 0,
   INLINE_BYTES: 1,
   FETCH_URL: 2,
-  CONFIGMAP: 3
+  CONFIG_MAP: 3
 };
 
 /**
- * @return {proto.devportal.solo.io.DataSource.SourcetypeCase}
+ * @return {proto.devportal.solo.io.DataSource.SourceTypeCase}
  */
-proto.devportal.solo.io.DataSource.prototype.getSourcetypeCase = function() {
-  return /** @type {proto.devportal.solo.io.DataSource.SourcetypeCase} */(jspb.Message.computeOneofCase(this, proto.devportal.solo.io.DataSource.oneofGroups_[0]));
+proto.devportal.solo.io.DataSource.prototype.getSourceTypeCase = function() {
+  return /** @type {proto.devportal.solo.io.DataSource.SourceTypeCase} */(jspb.Message.computeOneofCase(this, proto.devportal.solo.io.DataSource.oneofGroups_[0]));
 };
 
 
@@ -238,7 +238,7 @@ proto.devportal.solo.io.DataSource.toObject = function(includeInstance, msg) {
   var f, obj = {
     inlineBytes: msg.getInlineBytes_asB64(),
     fetchUrl: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    configmap: (f = msg.getConfigmap()) && proto.devportal.solo.io.DataSource.ConfigMapData.toObject(includeInstance, f)
+    configMap: (f = msg.getConfigMap()) && proto.devportal.solo.io.DataSource.ConfigMapData.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -286,7 +286,7 @@ proto.devportal.solo.io.DataSource.deserializeBinaryFromReader = function(msg, r
     case 3:
       var value = new proto.devportal.solo.io.DataSource.ConfigMapData;
       reader.readMessage(value,proto.devportal.solo.io.DataSource.ConfigMapData.deserializeBinaryFromReader);
-      msg.setConfigmap(value);
+      msg.setConfigMap(value);
       break;
     default:
       reader.skipField();
@@ -331,7 +331,7 @@ proto.devportal.solo.io.DataSource.serializeBinaryToWriter = function(message, w
       f
     );
   }
-  f = message.getConfigmap();
+  f = message.getConfigMap();
   if (f != null) {
     writer.writeMessage(
       3,
@@ -621,23 +621,23 @@ proto.devportal.solo.io.DataSource.prototype.hasFetchUrl = function() {
 
 
 /**
- * optional ConfigMapData configMap = 3;
+ * optional ConfigMapData config_map = 3;
  * @return {?proto.devportal.solo.io.DataSource.ConfigMapData}
  */
-proto.devportal.solo.io.DataSource.prototype.getConfigmap = function() {
+proto.devportal.solo.io.DataSource.prototype.getConfigMap = function() {
   return /** @type{?proto.devportal.solo.io.DataSource.ConfigMapData} */ (
     jspb.Message.getWrapperField(this, proto.devportal.solo.io.DataSource.ConfigMapData, 3));
 };
 
 
 /** @param {?proto.devportal.solo.io.DataSource.ConfigMapData|undefined} value */
-proto.devportal.solo.io.DataSource.prototype.setConfigmap = function(value) {
+proto.devportal.solo.io.DataSource.prototype.setConfigMap = function(value) {
   jspb.Message.setOneofWrapperField(this, 3, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
 };
 
 
-proto.devportal.solo.io.DataSource.prototype.clearConfigmap = function() {
-  this.setConfigmap(undefined);
+proto.devportal.solo.io.DataSource.prototype.clearConfigMap = function() {
+  this.setConfigMap(undefined);
 };
 
 
@@ -645,7 +645,7 @@ proto.devportal.solo.io.DataSource.prototype.clearConfigmap = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.DataSource.prototype.hasConfigmap = function() {
+proto.devportal.solo.io.DataSource.prototype.hasConfigMap = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 

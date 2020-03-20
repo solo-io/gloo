@@ -14,17 +14,17 @@ export class UserSpec extends jspb.Message {
   getEmail(): string;
   setEmail(value: string): void;
 
-  hasBasicauth(): boolean;
-  clearBasicauth(): void;
-  getBasicauth(): UserSpec.BasicAuth | undefined;
-  setBasicauth(value?: UserSpec.BasicAuth): void;
+  hasBasicAuth(): boolean;
+  clearBasicAuth(): void;
+  getBasicAuth(): UserSpec.BasicAuth | undefined;
+  setBasicAuth(value?: UserSpec.BasicAuth): void;
 
-  hasAccesslevel(): boolean;
-  clearAccesslevel(): void;
-  getAccesslevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
-  setAccesslevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
+  hasAccessLevel(): boolean;
+  clearAccessLevel(): void;
+  getAccessLevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel | undefined;
+  setAccessLevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel): void;
 
-  getAuthmethodCase(): UserSpec.AuthmethodCase;
+  getAuthMethodCase(): UserSpec.AuthMethodCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UserSpec): UserSpec.AsObject;
@@ -39,19 +39,19 @@ export namespace UserSpec {
   export type AsObject = {
     username: string,
     email: string,
-    basicauth?: UserSpec.BasicAuth.AsObject,
-    accesslevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
+    basicAuth?: UserSpec.BasicAuth.AsObject,
+    accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
   }
 
   export class BasicAuth extends jspb.Message {
-    getPasswordsecretname(): string;
-    setPasswordsecretname(value: string): void;
+    getPasswordSecretName(): string;
+    setPasswordSecretName(value: string): void;
 
-    getPasswordsecretnamespace(): string;
-    setPasswordsecretnamespace(value: string): void;
+    getPasswordSecretNamespace(): string;
+    setPasswordSecretNamespace(value: string): void;
 
-    getPasswordsecretkey(): string;
-    setPasswordsecretkey(value: string): void;
+    getPasswordSecretKey(): string;
+    setPasswordSecretKey(value: string): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BasicAuth.AsObject;
@@ -65,24 +65,24 @@ export namespace UserSpec {
 
   export namespace BasicAuth {
     export type AsObject = {
-      passwordsecretname: string,
-      passwordsecretnamespace: string,
-      passwordsecretkey: string,
+      passwordSecretName: string,
+      passwordSecretNamespace: string,
+      passwordSecretKey: string,
     }
   }
 
-  export enum AuthmethodCase {
-    AUTHMETHOD_NOT_SET = 0,
-    BASICAUTH = 3,
+  export enum AuthMethodCase {
+    AUTH_METHOD_NOT_SET = 0,
+    BASIC_AUTH = 3,
   }
 }
 
 export class UserStatus extends jspb.Message {
-  getObservedgeneration(): number;
-  setObservedgeneration(value: number): void;
+  getObservedGeneration(): number;
+  setObservedGeneration(value: number): void;
 
-  getHasloggedin(): boolean;
-  setHasloggedin(value: boolean): void;
+  getHasLoggedIn(): boolean;
+  setHasLoggedIn(value: boolean): void;
 
   hasAccessLevel(): boolean;
   clearAccessLevel(): void;
@@ -101,8 +101,8 @@ export class UserStatus extends jspb.Message {
 
 export namespace UserStatus {
   export type AsObject = {
-    observedgeneration: number,
-    hasloggedin: boolean,
+    observedGeneration: number,
+    hasLoggedIn: boolean,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }
 }

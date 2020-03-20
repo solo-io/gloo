@@ -16,13 +16,13 @@ export class ObjectMeta extends jspb.Message {
   getUid(): string;
   setUid(value: string): void;
 
-  getResourceversion(): string;
-  setResourceversion(value: string): void;
+  getResourceVersion(): string;
+  setResourceVersion(value: string): void;
 
-  hasCreationtimestamp(): boolean;
-  clearCreationtimestamp(): void;
-  getCreationtimestamp(): Time | undefined;
-  setCreationtimestamp(value?: Time): void;
+  hasCreationTimestamp(): boolean;
+  clearCreationTimestamp(): void;
+  getCreationTimestamp(): Time | undefined;
+  setCreationTimestamp(value?: Time): void;
 
   getLabelsMap(): jspb.Map<string, string>;
   clearLabelsMap(): void;
@@ -43,8 +43,8 @@ export namespace ObjectMeta {
     name: string,
     namespace: string,
     uid: string,
-    resourceversion: string,
-    creationtimestamp?: Time.AsObject,
+    resourceVersion: string,
+    creationTimestamp?: Time.AsObject,
     labelsMap: Array<[string, string]>,
     annotationsMap: Array<[string, string]>,
   }

@@ -77,17 +77,17 @@ proto.devportal.solo.io.PortalSpec.prototype.toObject = function(opt_includeInst
  */
 proto.devportal.solo.io.PortalSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
-    displayname: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
     domainsList: jspb.Message.getRepeatedField(msg, 3),
-    primarylogo: (f = msg.getPrimarylogo()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
+    primaryLogo: (f = msg.getPrimaryLogo()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
     favicon: (f = msg.getFavicon()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
-    backgroundimage: (f = msg.getBackgroundimage()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
-    customstyling: (f = msg.getCustomstyling()) && proto.devportal.solo.io.CustomStyling.toObject(includeInstance, f),
-    staticpagesList: jspb.Message.toObjectList(msg.getStaticpagesList(),
+    banner: (f = msg.getBanner()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
+    customStyling: (f = msg.getCustomStyling()) && proto.devportal.solo.io.CustomStyling.toObject(includeInstance, f),
+    staticPagesList: jspb.Message.toObjectList(msg.getStaticPagesList(),
     proto.devportal.solo.io.StaticPage.toObject, includeInstance),
-    publishapidocs: (f = msg.getPublishapidocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
-    keyscopesList: jspb.Message.toObjectList(msg.getKeyscopesList(),
+    publishApiDocs: (f = msg.getPublishApiDocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
+    keyScopesList: jspb.Message.toObjectList(msg.getKeyScopesList(),
     proto.devportal.solo.io.KeyScope.toObject, includeInstance)
   };
 
@@ -127,7 +127,7 @@ proto.devportal.solo.io.PortalSpec.deserializeBinaryFromReader = function(msg, r
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setDisplayname(value);
+      msg.setDisplayName(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -140,7 +140,7 @@ proto.devportal.solo.io.PortalSpec.deserializeBinaryFromReader = function(msg, r
     case 4:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.DataSource.deserializeBinaryFromReader);
-      msg.setPrimarylogo(value);
+      msg.setPrimaryLogo(value);
       break;
     case 5:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
@@ -150,27 +150,27 @@ proto.devportal.solo.io.PortalSpec.deserializeBinaryFromReader = function(msg, r
     case 6:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.DataSource.deserializeBinaryFromReader);
-      msg.setBackgroundimage(value);
+      msg.setBanner(value);
       break;
     case 7:
       var value = new proto.devportal.solo.io.CustomStyling;
       reader.readMessage(value,proto.devportal.solo.io.CustomStyling.deserializeBinaryFromReader);
-      msg.setCustomstyling(value);
+      msg.setCustomStyling(value);
       break;
     case 8:
       var value = new proto.devportal.solo.io.StaticPage;
       reader.readMessage(value,proto.devportal.solo.io.StaticPage.deserializeBinaryFromReader);
-      msg.addStaticpages(value);
+      msg.addStaticPages(value);
       break;
     case 9:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setPublishapidocs(value);
+      msg.setPublishApiDocs(value);
       break;
     case 10:
       var value = new proto.devportal.solo.io.KeyScope;
       reader.readMessage(value,proto.devportal.solo.io.KeyScope.deserializeBinaryFromReader);
-      msg.addKeyscopes(value);
+      msg.addKeyScopes(value);
       break;
     default:
       reader.skipField();
@@ -201,7 +201,7 @@ proto.devportal.solo.io.PortalSpec.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getDisplayname();
+  f = message.getDisplayName();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -222,7 +222,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       f
     );
   }
-  f = message.getPrimarylogo();
+  f = message.getPrimaryLogo();
   if (f != null) {
     writer.writeMessage(
       4,
@@ -238,7 +238,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       dev$portal_api_dev$portal_v1_common_pb.DataSource.serializeBinaryToWriter
     );
   }
-  f = message.getBackgroundimage();
+  f = message.getBanner();
   if (f != null) {
     writer.writeMessage(
       6,
@@ -246,7 +246,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       dev$portal_api_dev$portal_v1_common_pb.DataSource.serializeBinaryToWriter
     );
   }
-  f = message.getCustomstyling();
+  f = message.getCustomStyling();
   if (f != null) {
     writer.writeMessage(
       7,
@@ -254,7 +254,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       proto.devportal.solo.io.CustomStyling.serializeBinaryToWriter
     );
   }
-  f = message.getStaticpagesList();
+  f = message.getStaticPagesList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       8,
@@ -262,7 +262,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       proto.devportal.solo.io.StaticPage.serializeBinaryToWriter
     );
   }
-  f = message.getPublishapidocs();
+  f = message.getPublishApiDocs();
   if (f != null) {
     writer.writeMessage(
       9,
@@ -270,7 +270,7 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
       dev$portal_api_dev$portal_v1_common_pb.Selector.serializeBinaryToWriter
     );
   }
-  f = message.getKeyscopesList();
+  f = message.getKeyScopesList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       10,
@@ -282,16 +282,16 @@ proto.devportal.solo.io.PortalSpec.serializeBinaryToWriter = function(message, w
 
 
 /**
- * optional string displayName = 1;
+ * optional string display_name = 1;
  * @return {string}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getDisplayname = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getDisplayName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.PortalSpec.prototype.setDisplayname = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setDisplayName = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
@@ -341,23 +341,23 @@ proto.devportal.solo.io.PortalSpec.prototype.clearDomainsList = function() {
 
 
 /**
- * optional DataSource primaryLogo = 4;
+ * optional DataSource primary_logo = 4;
  * @return {?proto.devportal.solo.io.DataSource}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getPrimarylogo = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getPrimaryLogo = function() {
   return /** @type{?proto.devportal.solo.io.DataSource} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.DataSource, 4));
 };
 
 
 /** @param {?proto.devportal.solo.io.DataSource|undefined} value */
-proto.devportal.solo.io.PortalSpec.prototype.setPrimarylogo = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setPrimaryLogo = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearPrimarylogo = function() {
-  this.setPrimarylogo(undefined);
+proto.devportal.solo.io.PortalSpec.prototype.clearPrimaryLogo = function() {
+  this.setPrimaryLogo(undefined);
 };
 
 
@@ -365,7 +365,7 @@ proto.devportal.solo.io.PortalSpec.prototype.clearPrimarylogo = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.PortalSpec.prototype.hasPrimarylogo = function() {
+proto.devportal.solo.io.PortalSpec.prototype.hasPrimaryLogo = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
@@ -401,23 +401,23 @@ proto.devportal.solo.io.PortalSpec.prototype.hasFavicon = function() {
 
 
 /**
- * optional DataSource backgroundImage = 6;
+ * optional DataSource banner = 6;
  * @return {?proto.devportal.solo.io.DataSource}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getBackgroundimage = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getBanner = function() {
   return /** @type{?proto.devportal.solo.io.DataSource} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.DataSource, 6));
 };
 
 
 /** @param {?proto.devportal.solo.io.DataSource|undefined} value */
-proto.devportal.solo.io.PortalSpec.prototype.setBackgroundimage = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setBanner = function(value) {
   jspb.Message.setWrapperField(this, 6, value);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearBackgroundimage = function() {
-  this.setBackgroundimage(undefined);
+proto.devportal.solo.io.PortalSpec.prototype.clearBanner = function() {
+  this.setBanner(undefined);
 };
 
 
@@ -425,29 +425,29 @@ proto.devportal.solo.io.PortalSpec.prototype.clearBackgroundimage = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.PortalSpec.prototype.hasBackgroundimage = function() {
+proto.devportal.solo.io.PortalSpec.prototype.hasBanner = function() {
   return jspb.Message.getField(this, 6) != null;
 };
 
 
 /**
- * optional CustomStyling customStyling = 7;
+ * optional CustomStyling custom_styling = 7;
  * @return {?proto.devportal.solo.io.CustomStyling}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getCustomstyling = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getCustomStyling = function() {
   return /** @type{?proto.devportal.solo.io.CustomStyling} */ (
     jspb.Message.getWrapperField(this, proto.devportal.solo.io.CustomStyling, 7));
 };
 
 
 /** @param {?proto.devportal.solo.io.CustomStyling|undefined} value */
-proto.devportal.solo.io.PortalSpec.prototype.setCustomstyling = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setCustomStyling = function(value) {
   jspb.Message.setWrapperField(this, 7, value);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearCustomstyling = function() {
-  this.setCustomstyling(undefined);
+proto.devportal.solo.io.PortalSpec.prototype.clearCustomStyling = function() {
+  this.setCustomStyling(undefined);
 };
 
 
@@ -455,23 +455,23 @@ proto.devportal.solo.io.PortalSpec.prototype.clearCustomstyling = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.PortalSpec.prototype.hasCustomstyling = function() {
+proto.devportal.solo.io.PortalSpec.prototype.hasCustomStyling = function() {
   return jspb.Message.getField(this, 7) != null;
 };
 
 
 /**
- * repeated StaticPage staticPages = 8;
+ * repeated StaticPage static_pages = 8;
  * @return {!Array<!proto.devportal.solo.io.StaticPage>}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getStaticpagesList = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getStaticPagesList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.StaticPage>} */ (
     jspb.Message.getRepeatedWrapperField(this, proto.devportal.solo.io.StaticPage, 8));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.StaticPage>} value */
-proto.devportal.solo.io.PortalSpec.prototype.setStaticpagesList = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setStaticPagesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 8, value);
 };
 
@@ -481,34 +481,34 @@ proto.devportal.solo.io.PortalSpec.prototype.setStaticpagesList = function(value
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.StaticPage}
  */
-proto.devportal.solo.io.PortalSpec.prototype.addStaticpages = function(opt_value, opt_index) {
+proto.devportal.solo.io.PortalSpec.prototype.addStaticPages = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 8, opt_value, proto.devportal.solo.io.StaticPage, opt_index);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearStaticpagesList = function() {
-  this.setStaticpagesList([]);
+proto.devportal.solo.io.PortalSpec.prototype.clearStaticPagesList = function() {
+  this.setStaticPagesList([]);
 };
 
 
 /**
- * optional Selector publishApiDocs = 9;
+ * optional Selector publish_api_docs = 9;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getPublishapidocs = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getPublishApiDocs = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 9));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.PortalSpec.prototype.setPublishapidocs = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setPublishApiDocs = function(value) {
   jspb.Message.setWrapperField(this, 9, value);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearPublishapidocs = function() {
-  this.setPublishapidocs(undefined);
+proto.devportal.solo.io.PortalSpec.prototype.clearPublishApiDocs = function() {
+  this.setPublishApiDocs(undefined);
 };
 
 
@@ -516,23 +516,23 @@ proto.devportal.solo.io.PortalSpec.prototype.clearPublishapidocs = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.PortalSpec.prototype.hasPublishapidocs = function() {
+proto.devportal.solo.io.PortalSpec.prototype.hasPublishApiDocs = function() {
   return jspb.Message.getField(this, 9) != null;
 };
 
 
 /**
- * repeated KeyScope keyScopes = 10;
+ * repeated KeyScope key_scopes = 10;
  * @return {!Array<!proto.devportal.solo.io.KeyScope>}
  */
-proto.devportal.solo.io.PortalSpec.prototype.getKeyscopesList = function() {
+proto.devportal.solo.io.PortalSpec.prototype.getKeyScopesList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.KeyScope>} */ (
     jspb.Message.getRepeatedWrapperField(this, proto.devportal.solo.io.KeyScope, 10));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.KeyScope>} value */
-proto.devportal.solo.io.PortalSpec.prototype.setKeyscopesList = function(value) {
+proto.devportal.solo.io.PortalSpec.prototype.setKeyScopesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 10, value);
 };
 
@@ -542,13 +542,13 @@ proto.devportal.solo.io.PortalSpec.prototype.setKeyscopesList = function(value) 
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.KeyScope}
  */
-proto.devportal.solo.io.PortalSpec.prototype.addKeyscopes = function(opt_value, opt_index) {
+proto.devportal.solo.io.PortalSpec.prototype.addKeyScopes = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 10, opt_value, proto.devportal.solo.io.KeyScope, opt_index);
 };
 
 
-proto.devportal.solo.io.PortalSpec.prototype.clearKeyscopesList = function() {
-  this.setKeyscopesList([]);
+proto.devportal.solo.io.PortalSpec.prototype.clearKeyScopesList = function() {
+  this.setKeyScopesList([]);
 };
 
 
@@ -606,12 +606,12 @@ proto.devportal.solo.io.PortalStatus.prototype.toObject = function(opt_includeIn
  */
 proto.devportal.solo.io.PortalStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    observedgeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    observedGeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
     state: jspb.Message.getFieldWithDefault(msg, 2, 0),
     reason: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    publishurl: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    apidocsList: jspb.Message.getRepeatedField(msg, 5),
-    keyscopesList: jspb.Message.toObjectList(msg.getKeyscopesList(),
+    publishUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    apiDocsList: jspb.Message.getRepeatedField(msg, 5),
+    keyScopesList: jspb.Message.toObjectList(msg.getKeyScopesList(),
     proto.devportal.solo.io.KeyScopeStatus.toObject, includeInstance)
   };
 
@@ -651,7 +651,7 @@ proto.devportal.solo.io.PortalStatus.deserializeBinaryFromReader = function(msg,
     switch (field) {
     case 1:
       var value = /** @type {number} */ (reader.readInt64());
-      msg.setObservedgeneration(value);
+      msg.setObservedGeneration(value);
       break;
     case 2:
       var value = /** @type {!proto.devportal.solo.io.PortalStatus.State} */ (reader.readEnum());
@@ -663,16 +663,16 @@ proto.devportal.solo.io.PortalStatus.deserializeBinaryFromReader = function(msg,
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPublishurl(value);
+      msg.setPublishUrl(value);
       break;
     case 5:
       var value = /** @type {string} */ (reader.readString());
-      msg.addApidocs(value);
+      msg.addApiDocs(value);
       break;
     case 6:
       var value = new proto.devportal.solo.io.KeyScopeStatus;
       reader.readMessage(value,proto.devportal.solo.io.KeyScopeStatus.deserializeBinaryFromReader);
-      msg.addKeyscopes(value);
+      msg.addKeyScopes(value);
       break;
     default:
       reader.skipField();
@@ -703,7 +703,7 @@ proto.devportal.solo.io.PortalStatus.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getObservedgeneration();
+  f = message.getObservedGeneration();
   if (f !== 0) {
     writer.writeInt64(
       1,
@@ -724,21 +724,21 @@ proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message,
       f
     );
   }
-  f = message.getPublishurl();
+  f = message.getPublishUrl();
   if (f.length > 0) {
     writer.writeString(
       4,
       f
     );
   }
-  f = message.getApidocsList();
+  f = message.getApiDocsList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       5,
       f
     );
   }
-  f = message.getKeyscopesList();
+  f = message.getKeyScopesList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       6,
@@ -754,22 +754,23 @@ proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message,
  */
 proto.devportal.solo.io.PortalStatus.State = {
   PENDING: 0,
-  PUBLISHED: 1,
-  INVALID: 2,
-  FAILED: 3
+  PUBLISHING: 1,
+  PUBLISHED: 2,
+  INVALID: 3,
+  FAILED: 4
 };
 
 /**
- * optional int64 observedGeneration = 1;
+ * optional int64 observed_generation = 1;
  * @return {number}
  */
-proto.devportal.solo.io.PortalStatus.prototype.getObservedgeneration = function() {
+proto.devportal.solo.io.PortalStatus.prototype.getObservedGeneration = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /** @param {number} value */
-proto.devportal.solo.io.PortalStatus.prototype.setObservedgeneration = function(value) {
+proto.devportal.solo.io.PortalStatus.prototype.setObservedGeneration = function(value) {
   jspb.Message.setProto3IntField(this, 1, value);
 };
 
@@ -805,31 +806,31 @@ proto.devportal.solo.io.PortalStatus.prototype.setReason = function(value) {
 
 
 /**
- * optional string publishUrl = 4;
+ * optional string publish_url = 4;
  * @return {string}
  */
-proto.devportal.solo.io.PortalStatus.prototype.getPublishurl = function() {
+proto.devportal.solo.io.PortalStatus.prototype.getPublishUrl = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.PortalStatus.prototype.setPublishurl = function(value) {
+proto.devportal.solo.io.PortalStatus.prototype.setPublishUrl = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
 /**
- * repeated string apiDocs = 5;
+ * repeated string api_docs = 5;
  * @return {!Array<string>}
  */
-proto.devportal.solo.io.PortalStatus.prototype.getApidocsList = function() {
+proto.devportal.solo.io.PortalStatus.prototype.getApiDocsList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
 };
 
 
 /** @param {!Array<string>} value */
-proto.devportal.solo.io.PortalStatus.prototype.setApidocsList = function(value) {
+proto.devportal.solo.io.PortalStatus.prototype.setApiDocsList = function(value) {
   jspb.Message.setField(this, 5, value || []);
 };
 
@@ -838,28 +839,28 @@ proto.devportal.solo.io.PortalStatus.prototype.setApidocsList = function(value) 
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.devportal.solo.io.PortalStatus.prototype.addApidocs = function(value, opt_index) {
+proto.devportal.solo.io.PortalStatus.prototype.addApiDocs = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 5, value, opt_index);
 };
 
 
-proto.devportal.solo.io.PortalStatus.prototype.clearApidocsList = function() {
-  this.setApidocsList([]);
+proto.devportal.solo.io.PortalStatus.prototype.clearApiDocsList = function() {
+  this.setApiDocsList([]);
 };
 
 
 /**
- * repeated KeyScopeStatus keyScopes = 6;
+ * repeated KeyScopeStatus key_scopes = 6;
  * @return {!Array<!proto.devportal.solo.io.KeyScopeStatus>}
  */
-proto.devportal.solo.io.PortalStatus.prototype.getKeyscopesList = function() {
+proto.devportal.solo.io.PortalStatus.prototype.getKeyScopesList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.KeyScopeStatus>} */ (
     jspb.Message.getRepeatedWrapperField(this, proto.devportal.solo.io.KeyScopeStatus, 6));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.KeyScopeStatus>} value */
-proto.devportal.solo.io.PortalStatus.prototype.setKeyscopesList = function(value) {
+proto.devportal.solo.io.PortalStatus.prototype.setKeyScopesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 6, value);
 };
 
@@ -869,13 +870,13 @@ proto.devportal.solo.io.PortalStatus.prototype.setKeyscopesList = function(value
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.KeyScopeStatus}
  */
-proto.devportal.solo.io.PortalStatus.prototype.addKeyscopes = function(opt_value, opt_index) {
+proto.devportal.solo.io.PortalStatus.prototype.addKeyScopes = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.devportal.solo.io.KeyScopeStatus, opt_index);
 };
 
 
-proto.devportal.solo.io.PortalStatus.prototype.clearKeyscopesList = function() {
-  this.setKeyscopesList([]);
+proto.devportal.solo.io.PortalStatus.prototype.clearKeyScopesList = function() {
+  this.setKeyScopesList([]);
 };
 
 
@@ -926,12 +927,12 @@ proto.devportal.solo.io.CustomStyling.prototype.toObject = function(opt_includeI
  */
 proto.devportal.solo.io.CustomStyling.toObject = function(includeInstance, msg) {
   var f, obj = {
-    primarycolor: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    secondarycolor: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    backgroundcolor: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    navigationlinkscoloroverride: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    buttoncoloroverride: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    defaulttextcolor: jspb.Message.getFieldWithDefault(msg, 6, "")
+    primaryColor: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    secondaryColor: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    backgroundColor: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    navigationLinksColorOverride: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    buttonColorOverride: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    defaultTextColor: jspb.Message.getFieldWithDefault(msg, 6, "")
   };
 
   if (includeInstance) {
@@ -970,27 +971,27 @@ proto.devportal.solo.io.CustomStyling.deserializeBinaryFromReader = function(msg
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPrimarycolor(value);
+      msg.setPrimaryColor(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setSecondarycolor(value);
+      msg.setSecondaryColor(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setBackgroundcolor(value);
+      msg.setBackgroundColor(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.setNavigationlinkscoloroverride(value);
+      msg.setNavigationLinksColorOverride(value);
       break;
     case 5:
       var value = /** @type {string} */ (reader.readString());
-      msg.setButtoncoloroverride(value);
+      msg.setButtonColorOverride(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
-      msg.setDefaulttextcolor(value);
+      msg.setDefaultTextColor(value);
       break;
     default:
       reader.skipField();
@@ -1021,42 +1022,42 @@ proto.devportal.solo.io.CustomStyling.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.CustomStyling.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getPrimarycolor();
+  f = message.getPrimaryColor();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getSecondarycolor();
+  f = message.getSecondaryColor();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
-  f = message.getBackgroundcolor();
+  f = message.getBackgroundColor();
   if (f.length > 0) {
     writer.writeString(
       3,
       f
     );
   }
-  f = message.getNavigationlinkscoloroverride();
+  f = message.getNavigationLinksColorOverride();
   if (f.length > 0) {
     writer.writeString(
       4,
       f
     );
   }
-  f = message.getButtoncoloroverride();
+  f = message.getButtonColorOverride();
   if (f.length > 0) {
     writer.writeString(
       5,
       f
     );
   }
-  f = message.getDefaulttextcolor();
+  f = message.getDefaultTextColor();
   if (f.length > 0) {
     writer.writeString(
       6,
@@ -1067,91 +1068,91 @@ proto.devportal.solo.io.CustomStyling.serializeBinaryToWriter = function(message
 
 
 /**
- * optional string primaryColor = 1;
+ * optional string primary_color = 1;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getPrimarycolor = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getPrimaryColor = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setPrimarycolor = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setPrimaryColor = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string secondaryColor = 2;
+ * optional string secondary_color = 2;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getSecondarycolor = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getSecondaryColor = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setSecondarycolor = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setSecondaryColor = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional string backgroundColor = 3;
+ * optional string background_color = 3;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getBackgroundcolor = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getBackgroundColor = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setBackgroundcolor = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setBackgroundColor = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
 /**
- * optional string navigationLinksColorOverride = 4;
+ * optional string navigation_links_color_override = 4;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getNavigationlinkscoloroverride = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getNavigationLinksColorOverride = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setNavigationlinkscoloroverride = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setNavigationLinksColorOverride = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
 /**
- * optional string buttonColorOverride = 5;
+ * optional string button_color_override = 5;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getButtoncoloroverride = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getButtonColorOverride = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setButtoncoloroverride = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setButtonColorOverride = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
 };
 
 
 /**
- * optional string defaultTextColor = 6;
+ * optional string default_text_color = 6;
  * @return {string}
  */
-proto.devportal.solo.io.CustomStyling.prototype.getDefaulttextcolor = function() {
+proto.devportal.solo.io.CustomStyling.prototype.getDefaultTextColor = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.CustomStyling.prototype.setDefaulttextcolor = function(value) {
+proto.devportal.solo.io.CustomStyling.prototype.setDefaultTextColor = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
 };
 
@@ -1206,7 +1207,7 @@ proto.devportal.solo.io.StaticPage.toObject = function(includeInstance, msg) {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
     path: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    navigationlinkname: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    navigationLinkName: jspb.Message.getFieldWithDefault(msg, 4, ""),
     content: (f = msg.getContent()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f)
   };
 
@@ -1258,7 +1259,7 @@ proto.devportal.solo.io.StaticPage.deserializeBinaryFromReader = function(msg, r
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.setNavigationlinkname(value);
+      msg.setNavigationLinkName(value);
       break;
     case 5:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
@@ -1315,7 +1316,7 @@ proto.devportal.solo.io.StaticPage.serializeBinaryToWriter = function(message, w
       f
     );
   }
-  f = message.getNavigationlinkname();
+  f = message.getNavigationLinkName();
   if (f.length > 0) {
     writer.writeString(
       4,
@@ -1379,16 +1380,16 @@ proto.devportal.solo.io.StaticPage.prototype.setPath = function(value) {
 
 
 /**
- * optional string navigationLinkName = 4;
+ * optional string navigation_link_name = 4;
  * @return {string}
  */
-proto.devportal.solo.io.StaticPage.prototype.getNavigationlinkname = function() {
+proto.devportal.solo.io.StaticPage.prototype.getNavigationLinkName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.StaticPage.prototype.setNavigationlinkname = function(value) {
+proto.devportal.solo.io.StaticPage.prototype.setNavigationLinkName = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
 };
 
@@ -1472,7 +1473,7 @@ proto.devportal.solo.io.KeyScope.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    apidocs: (f = msg.getApidocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
+    apiDocs: (f = msg.getApiDocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1520,7 +1521,7 @@ proto.devportal.solo.io.KeyScope.deserializeBinaryFromReader = function(msg, rea
     case 9:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setApidocs(value);
+      msg.setApiDocs(value);
       break;
     default:
       reader.skipField();
@@ -1565,7 +1566,7 @@ proto.devportal.solo.io.KeyScope.serializeBinaryToWriter = function(message, wri
       f
     );
   }
-  f = message.getApidocs();
+  f = message.getApiDocs();
   if (f != null) {
     writer.writeMessage(
       9,
@@ -1607,23 +1608,23 @@ proto.devportal.solo.io.KeyScope.prototype.setNamespace = function(value) {
 
 
 /**
- * optional Selector apiDocs = 9;
+ * optional Selector api_docs = 9;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.KeyScope.prototype.getApidocs = function() {
+proto.devportal.solo.io.KeyScope.prototype.getApiDocs = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 9));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.KeyScope.prototype.setApidocs = function(value) {
+proto.devportal.solo.io.KeyScope.prototype.setApiDocs = function(value) {
   jspb.Message.setWrapperField(this, 9, value);
 };
 
 
-proto.devportal.solo.io.KeyScope.prototype.clearApidocs = function() {
-  this.setApidocs(undefined);
+proto.devportal.solo.io.KeyScope.prototype.clearApiDocs = function() {
+  this.setApiDocs(undefined);
 };
 
 
@@ -1631,7 +1632,7 @@ proto.devportal.solo.io.KeyScope.prototype.clearApidocs = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.KeyScope.prototype.hasApidocs = function() {
+proto.devportal.solo.io.KeyScope.prototype.hasApiDocs = function() {
   return jspb.Message.getField(this, 9) != null;
 };
 
@@ -1691,10 +1692,10 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.toObject = function(opt_include
 proto.devportal.solo.io.KeyScopeStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    createddate: (f = msg.getCreateddate()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    accessibleapidocsList: jspb.Message.toObjectList(msg.getAccessibleapidocsList(),
+    createdDate: (f = msg.getCreatedDate()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    accessibleApiDocsList: jspb.Message.toObjectList(msg.getAccessibleApiDocsList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
-    provisionedkeysList: jspb.Message.toObjectList(msg.getProvisionedkeysList(),
+    provisionedKeysList: jspb.Message.toObjectList(msg.getProvisionedKeysList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
   };
 
@@ -1739,17 +1740,17 @@ proto.devportal.solo.io.KeyScopeStatus.deserializeBinaryFromReader = function(ms
     case 2:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setCreateddate(value);
+      msg.setCreatedDate(value);
       break;
     case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
-      msg.addAccessibleapidocs(value);
+      msg.addAccessibleApiDocs(value);
       break;
     case 4:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
-      msg.addProvisionedkeys(value);
+      msg.addProvisionedKeys(value);
       break;
     default:
       reader.skipField();
@@ -1787,7 +1788,7 @@ proto.devportal.solo.io.KeyScopeStatus.serializeBinaryToWriter = function(messag
       f
     );
   }
-  f = message.getCreateddate();
+  f = message.getCreatedDate();
   if (f != null) {
     writer.writeMessage(
       2,
@@ -1795,7 +1796,7 @@ proto.devportal.solo.io.KeyScopeStatus.serializeBinaryToWriter = function(messag
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
-  f = message.getAccessibleapidocsList();
+  f = message.getAccessibleApiDocsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       3,
@@ -1803,7 +1804,7 @@ proto.devportal.solo.io.KeyScopeStatus.serializeBinaryToWriter = function(messag
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
-  f = message.getProvisionedkeysList();
+  f = message.getProvisionedKeysList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       4,
@@ -1830,23 +1831,23 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setName = function(value) {
 
 
 /**
- * optional google.protobuf.Timestamp createdDate = 2;
+ * optional google.protobuf.Timestamp created_date = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.getCreateddate = function() {
+proto.devportal.solo.io.KeyScopeStatus.prototype.getCreatedDate = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
     jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
 
 
 /** @param {?proto.google.protobuf.Timestamp|undefined} value */
-proto.devportal.solo.io.KeyScopeStatus.prototype.setCreateddate = function(value) {
+proto.devportal.solo.io.KeyScopeStatus.prototype.setCreatedDate = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.devportal.solo.io.KeyScopeStatus.prototype.clearCreateddate = function() {
-  this.setCreateddate(undefined);
+proto.devportal.solo.io.KeyScopeStatus.prototype.clearCreatedDate = function() {
+  this.setCreatedDate(undefined);
 };
 
 
@@ -1854,23 +1855,23 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.clearCreateddate = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.hasCreateddate = function() {
+proto.devportal.solo.io.KeyScopeStatus.prototype.hasCreatedDate = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * repeated ObjectRef accessibleApiDocs = 3;
+ * repeated ObjectRef accessible_api_docs = 3;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.getAccessibleapidocsList = function() {
+proto.devportal.solo.io.KeyScopeStatus.prototype.getAccessibleApiDocsList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
     jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 3));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
-proto.devportal.solo.io.KeyScopeStatus.prototype.setAccessibleapidocsList = function(value) {
+proto.devportal.solo.io.KeyScopeStatus.prototype.setAccessibleApiDocsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 3, value);
 };
 
@@ -1880,28 +1881,28 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setAccessibleapidocsList = func
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.addAccessibleapidocs = function(opt_value, opt_index) {
+proto.devportal.solo.io.KeyScopeStatus.prototype.addAccessibleApiDocs = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
-proto.devportal.solo.io.KeyScopeStatus.prototype.clearAccessibleapidocsList = function() {
-  this.setAccessibleapidocsList([]);
+proto.devportal.solo.io.KeyScopeStatus.prototype.clearAccessibleApiDocsList = function() {
+  this.setAccessibleApiDocsList([]);
 };
 
 
 /**
- * repeated ObjectRef provisionedKeys = 4;
+ * repeated ObjectRef provisioned_keys = 4;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.getProvisionedkeysList = function() {
+proto.devportal.solo.io.KeyScopeStatus.prototype.getProvisionedKeysList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
     jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 4));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
-proto.devportal.solo.io.KeyScopeStatus.prototype.setProvisionedkeysList = function(value) {
+proto.devportal.solo.io.KeyScopeStatus.prototype.setProvisionedKeysList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
@@ -1911,13 +1912,13 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setProvisionedkeysList = functi
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.KeyScopeStatus.prototype.addProvisionedkeys = function(opt_value, opt_index) {
+proto.devportal.solo.io.KeyScopeStatus.prototype.addProvisionedKeys = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
-proto.devportal.solo.io.KeyScopeStatus.prototype.clearProvisionedkeysList = function() {
-  this.setProvisionedkeysList([]);
+proto.devportal.solo.io.KeyScopeStatus.prototype.clearProvisionedKeysList = function() {
+  this.setProvisionedKeysList([]);
 };
 
 

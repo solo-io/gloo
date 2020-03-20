@@ -490,7 +490,7 @@ proto.admin.devportal.solo.io.PortalWriteRequest.prototype.toObject = function(o
 proto.admin.devportal.solo.io.PortalWriteRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     portal: (f = msg.getPortal()) && proto.admin.devportal.solo.io.Portal.toObject(includeInstance, f),
-    apidocsList: jspb.Message.toObjectList(msg.getApidocsList(),
+    apiDocsList: jspb.Message.toObjectList(msg.getApiDocsList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     usersList: jspb.Message.toObjectList(msg.getUsersList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
@@ -540,7 +540,7 @@ proto.admin.devportal.solo.io.PortalWriteRequest.deserializeBinaryFromReader = f
     case 2:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
-      msg.addApidocs(value);
+      msg.addApiDocs(value);
       break;
     case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
@@ -589,7 +589,7 @@ proto.admin.devportal.solo.io.PortalWriteRequest.serializeBinaryToWriter = funct
       proto.admin.devportal.solo.io.Portal.serializeBinaryToWriter
     );
   }
-  f = message.getApidocsList();
+  f = message.getApiDocsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       2,
@@ -647,17 +647,17 @@ proto.admin.devportal.solo.io.PortalWriteRequest.prototype.hasPortal = function(
 
 
 /**
- * repeated devportal.solo.io.ObjectRef apiDocs = 2;
+ * repeated devportal.solo.io.ObjectRef api_docs = 2;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
-proto.admin.devportal.solo.io.PortalWriteRequest.prototype.getApidocsList = function() {
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.getApiDocsList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
     jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
-proto.admin.devportal.solo.io.PortalWriteRequest.prototype.setApidocsList = function(value) {
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.setApiDocsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
@@ -667,13 +667,13 @@ proto.admin.devportal.solo.io.PortalWriteRequest.prototype.setApidocsList = func
  * @param {number=} opt_index
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.admin.devportal.solo.io.PortalWriteRequest.prototype.addApidocs = function(opt_value, opt_index) {
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.addApiDocs = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
-proto.admin.devportal.solo.io.PortalWriteRequest.prototype.clearApidocsList = function() {
-  this.setApidocsList([]);
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.clearApiDocsList = function() {
+  this.setApiDocsList([]);
 };
 
 

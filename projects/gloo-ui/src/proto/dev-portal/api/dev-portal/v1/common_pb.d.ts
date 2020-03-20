@@ -7,8 +7,8 @@ import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Selector extends jspb.Message {
-  getMatchlabelsMap(): jspb.Map<string, string>;
-  clearMatchlabelsMap(): void;
+  getMatchLabelsMap(): jspb.Map<string, string>;
+  clearMatchLabelsMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Selector.AsObject;
   static toObject(includeInstance: boolean, msg: Selector): Selector.AsObject;
@@ -21,7 +21,7 @@ export class Selector extends jspb.Message {
 
 export namespace Selector {
   export type AsObject = {
-    matchlabelsMap: Array<[string, string]>,
+    matchLabelsMap: Array<[string, string]>,
   }
 }
 
@@ -38,12 +38,12 @@ export class DataSource extends jspb.Message {
   getFetchUrl(): string;
   setFetchUrl(value: string): void;
 
-  hasConfigmap(): boolean;
-  clearConfigmap(): void;
-  getConfigmap(): DataSource.ConfigMapData | undefined;
-  setConfigmap(value?: DataSource.ConfigMapData): void;
+  hasConfigMap(): boolean;
+  clearConfigMap(): void;
+  getConfigMap(): DataSource.ConfigMapData | undefined;
+  setConfigMap(value?: DataSource.ConfigMapData): void;
 
-  getSourcetypeCase(): DataSource.SourcetypeCase;
+  getSourceTypeCase(): DataSource.SourceTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DataSource.AsObject;
   static toObject(includeInstance: boolean, msg: DataSource): DataSource.AsObject;
@@ -58,7 +58,7 @@ export namespace DataSource {
   export type AsObject = {
     inlineBytes: Uint8Array | string,
     fetchUrl: string,
-    configmap?: DataSource.ConfigMapData.AsObject,
+    configMap?: DataSource.ConfigMapData.AsObject,
   }
 
   export class ConfigMapData extends jspb.Message {
@@ -89,11 +89,11 @@ export namespace DataSource {
     }
   }
 
-  export enum SourcetypeCase {
-    SOURCETYPE_NOT_SET = 0,
+  export enum SourceTypeCase {
+    SOURCE_TYPE_NOT_SET = 0,
     INLINE_BYTES = 1,
     FETCH_URL = 2,
-    CONFIGMAP = 3,
+    CONFIG_MAP = 3,
   }
 }
 
