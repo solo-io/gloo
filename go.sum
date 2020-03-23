@@ -1014,8 +1014,8 @@ github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4ts
 github.com/solo-io/ext-auth-service v0.6.8 h1:Io1IwEz6ePFKh/j3b1kMezanOMyeJA9zx1+TiO7BvNI=
 github.com/solo-io/ext-auth-service v0.6.8/go.mod h1:dbP8uwfwJh7Nw/+mSBywImWcVPRIhbi3F2gCklThfA0=
 github.com/solo-io/gloo v1.3.1/go.mod h1:08u6J9vpfFGRDsZybTQ65UX7UuJr+EBsZz++J1wtKkQ=
-github.com/solo-io/gloo v1.3.14 h1:hA+ZNWFYUrz+Yi28jh7hSxAKp3KwS2o7dGbFQNuK9aY=
-github.com/solo-io/gloo v1.3.14/go.mod h1:iT12oNBwH8rvlqrWYhKbXR0c4VE8Xi6349gUc5iCzKk=
+github.com/solo-io/gloo v1.3.15 h1:UT5AkCEsDa3XsJB7C75vvmVaOecvz5XgOHutOgAJxVw=
+github.com/solo-io/gloo v1.3.15/go.mod h1:GwXDuyvBJ+9C6mIA4G3qGINNbWbKj9w1kOMcNAtgHm8=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.0/go.mod h1:R8lbLuLtMaTOhD+6wGpdxj60r1Vwt63fHe1UxlObHig=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
@@ -1040,6 +1040,8 @@ github.com/solo-io/solo-kit v0.12.1/go.mod h1:oNDT3CNTgdjNh5tgkr4Wj8tj+h0VtJjfT/
 github.com/solo-io/solo-kit v0.12.2/go.mod h1:oNDT3CNTgdjNh5tgkr4Wj8tj+h0VtJjfT/ZaZ8e1/js=
 github.com/solo-io/solo-kit v0.13.2 h1:kBJxH/L8DRWWKh74Ud6/xPMn/8beCLSrW6uETlCzVCs=
 github.com/solo-io/solo-kit v0.13.2/go.mod h1:Sukhlm32r1cSJIztPQ6RZxroK0VP4TGOkTecaBXTEoo=
+github.com/solo-io/solo-kit v0.13.3 h1:uNAYYpstQy234yMuHZyUnZxjZ+2Zl+eTHRexELDTzf0=
+github.com/solo-io/solo-kit v0.13.3/go.mod h1:Sukhlm32r1cSJIztPQ6RZxroK0VP4TGOkTecaBXTEoo=
 github.com/solo-io/wasme v0.0.1 h1:SjYWzJZ2IGVGTI0WS1/Gv2I74FLvibieLgyl6+TYciU=
 github.com/solo-io/wasme v0.0.1/go.mod h1:Zb85GQMTyx7NEyEINCUiofKE9KZLjQVF6obvHOHBQE8=
 github.com/solo-io/wasme v0.0.13-rc1 h1:CcfW64lH7rL/n6+zTgC/25/nfJWAsBGXAEh4X09y6V0=
