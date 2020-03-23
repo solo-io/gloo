@@ -3,6 +3,7 @@ import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from './HealthIndicator';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 const CardBlock = styled.div`
   ${CardCSS};
@@ -102,7 +103,7 @@ interface Props {
     title?: string;
     value: string;
   }[];
-  health?: number;
+  health?: Status.StateMap[keyof Status.StateMap];
   healthMessage?: string;
   onClose?: () => any;
   secondaryComponent?: React.ReactNode;

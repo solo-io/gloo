@@ -43,6 +43,7 @@ import { CreateRouteTableModal } from './Creation/CreateRouteTableModal';
 import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 import { RouteParent } from './RouteTableDetails';
 import { css } from '@emotion/core';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
 
 const FilterHeader = styled.div`
   ${StyledHeader};
@@ -554,151 +555,156 @@ export const VirtualServicesListing = () => {
   }
 
   return (
-    <VSListingContainer>
-      <HeaderSection>
-        <Breadcrumb />
-        <Action>
-          <CreateVirtualServiceModal />
-          <CreateRouteTableModal />
-          <NavLink to={{ pathname: match.path, search: location.search }}>
-            <TileIcon selected={!location.pathname.includes('table')} />
-          </NavLink>
-          <NavLink
-            to={{ pathname: `${match.path}table`, search: location.search }}>
-            <ListIcon selected={location.pathname.includes('table')} />
-          </NavLink>
-        </Action>
-      </HeaderSection>
-      <SidebarSection>
-        <SoloInput
-          value={filterString}
-          placeholder={'Filter by name...'}
-          onChange={({ target }) => {
-            setFilterString(target.value);
-          }}
-        />
-        <FilterHeader>Status Filter</FilterHeader>
-        <SoloRadioGroup
-          options={RadioFilters.options.map(option => {
-            return {
-              displayName: option.displayName,
-              id: option.id || option.displayName
-            };
-          })}
-          currentSelection={params.get('status')!}
-          onChange={newValue => {
-            if (newValue !== undefined) {
-              history.push(`/virtualservices/?status=${newValue}`);
-            } else {
-              history.push('/virtualservices/');
-            }
-          }}
-        />
-        <FilterHeader>Types Filter</FilterHeader>
-        <SoloCheckbox
-          title={'Virtual Services'}
-          checked={showVS}
-          withWrapper={true}
-          onChange={evt => {
-            setShowVS(evt.target.checked);
-          }}
-        />
-        <SoloCheckbox
-          title={'Route Tables'}
-          checked={showRT}
-          withWrapper={true}
-          onChange={evt => {
-            setShowRT(evt.target.checked);
-          }}
-        />
-      </SidebarSection>
+    <ErrorBoundary
+      fallback={
+        <div>There was an error with the Virtual Services Listing</div>
+      }>
+      <VSListingContainer>
+        <HeaderSection>
+          <Breadcrumb />
+          <Action>
+            <CreateVirtualServiceModal />
+            <CreateRouteTableModal />
+            <NavLink to={{ pathname: match.path, search: location.search }}>
+              <TileIcon selected={!location.pathname.includes('table')} />
+            </NavLink>
+            <NavLink
+              to={{ pathname: `${match.path}table`, search: location.search }}>
+              <ListIcon selected={location.pathname.includes('table')} />
+            </NavLink>
+          </Action>
+        </HeaderSection>
+        <SidebarSection>
+          <SoloInput
+            value={filterString}
+            placeholder={'Filter by name...'}
+            onChange={({ target }) => {
+              setFilterString(target.value);
+            }}
+          />
+          <FilterHeader>Status Filter</FilterHeader>
+          <SoloRadioGroup
+            options={RadioFilters.options.map(option => {
+              return {
+                displayName: option.displayName,
+                id: option.id || option.displayName
+              };
+            })}
+            currentSelection={params.get('status')!}
+            onChange={newValue => {
+              if (newValue !== undefined) {
+                history.push(`/virtualservices/?status=${newValue}`);
+              } else {
+                history.push('/virtualservices/');
+              }
+            }}
+          />
+          <FilterHeader>Types Filter</FilterHeader>
+          <SoloCheckbox
+            title={'Virtual Services'}
+            checked={showVS}
+            withWrapper={true}
+            onChange={evt => {
+              setShowVS(evt.target.checked);
+            }}
+          />
+          <SoloCheckbox
+            title={'Route Tables'}
+            checked={showRT}
+            withWrapper={true}
+            onChange={evt => {
+              setShowRT(evt.target.checked);
+            }}
+          />
+        </SidebarSection>
 
-      <ContentSection>
-        {cardMatch && (
-          <>
-            <SectionCard
-              data-testid='vs-listing-section'
-              cardName={'Virtual Services'}
-              logoIcon={<Gloo />}>
-              {!virtualServicesList.length && !isLoading ? (
-                <EmptyPrompt>
-                  You don't have any virtual services.
-                  <CreateVirtualServiceModal
-                    promptText="Let's create one."
-                    withoutDivider
+        <ContentSection>
+          {cardMatch && (
+            <>
+              <SectionCard
+                data-testid='vs-listing-section'
+                cardName={'Virtual Services'}
+                logoIcon={<Gloo />}>
+                {!virtualServicesList.length && !isLoading ? (
+                  <EmptyPrompt>
+                    You don't have any virtual services.
+                    <CreateVirtualServiceModal
+                      promptText="Let's create one."
+                      withoutDivider
+                    />
+                  </EmptyPrompt>
+                ) : (
+                  <CardsListing
+                    cardsData={formatVSCatalogData(virtualServicesList)}
                   />
-                </EmptyPrompt>
-              ) : (
-                <CardsListing
-                  cardsData={formatVSCatalogData(virtualServicesList)}
-                />
-              )}
-            </SectionCard>
-
-            <SectionCard
-              data-testid='routetables-listing-section'
-              cardName={'Route Tables'}
-              logoIcon={<RouteTableIcon />}>
-              {!routeTablesList.length && !isLoading ? (
-                <EmptyPrompt>
-                  You don't have any Route Tables.
-                  <CreateRouteTableModal
-                    promptText="Let's create one."
-                    withoutDivider
-                  />
-                </EmptyPrompt>
-              ) : (
-                <CardsListing
-                  cardsData={formatRTCatalogData(routeTablesList)}
-                />
-              )}
-            </SectionCard>
-          </>
-        )}
-        {tableMatch && (
-          <>
-            <SectionCard
-              noPadding
-              data-testid='vs-listing-section'
-              cardName={'Virtual Services'}
-              logoIcon={<Gloo />}>
-              <SoloTable
-                dataSource={formatVSTableData(virtualServicesList)}
-                columns={getTableColumns(
-                  setRouteParentForRouteCreation,
-                  deleteVS
                 )}
-              />
-            </SectionCard>
-            <SectionCard
-              noPadding
-              data-testid='routetables-listing-section'
-              cardName={'Route Tables'}
-              logoIcon={<RouteTableIcon />}>
-              <div style={{ padding: '-20px' }}>
+              </SectionCard>
+
+              <SectionCard
+                data-testid='routetables-listing-section'
+                cardName={'Route Tables'}
+                logoIcon={<RouteTableIcon />}>
+                {!routeTablesList.length && !isLoading ? (
+                  <EmptyPrompt>
+                    You don't have any Route Tables.
+                    <CreateRouteTableModal
+                      promptText="Let's create one."
+                      withoutDivider
+                    />
+                  </EmptyPrompt>
+                ) : (
+                  <CardsListing
+                    cardsData={formatRTCatalogData(routeTablesList)}
+                  />
+                )}
+              </SectionCard>
+            </>
+          )}
+          {tableMatch && (
+            <>
+              <SectionCard
+                noPadding
+                data-testid='vs-listing-section'
+                cardName={'Virtual Services'}
+                logoIcon={<Gloo />}>
                 <SoloTable
-                  dataSource={formatRTTableData(routeTablesList)}
-                  columns={getRouteTableColumns(
+                  dataSource={formatVSTableData(virtualServicesList)}
+                  columns={getTableColumns(
                     setRouteParentForRouteCreation,
-                    deleteRT
+                    deleteVS
                   )}
                 />
-              </div>
-            </SectionCard>
-          </>
-        )}
-      </ContentSection>
+              </SectionCard>
+              <SectionCard
+                noPadding
+                data-testid='routetables-listing-section'
+                cardName={'Route Tables'}
+                logoIcon={<RouteTableIcon />}>
+                <div style={{ padding: '-20px' }}>
+                  <SoloTable
+                    dataSource={formatRTTableData(routeTablesList)}
+                    columns={getRouteTableColumns(
+                      setRouteParentForRouteCreation,
+                      deleteRT
+                    )}
+                  />
+                </div>
+              </SectionCard>
+            </>
+          )}
+        </ContentSection>
 
-      <SoloModal
-        visible={!!routeParentForRouteCreation}
-        width={500}
-        title={'Create Route'}
-        onClose={() => setRouteParentForRouteCreation(undefined)}>
-        <CreateRouteModal
-          defaultRouteParent={routeParentForRouteCreation}
-          completeCreation={() => setRouteParentForRouteCreation(undefined)}
-        />
-      </SoloModal>
-    </VSListingContainer>
+        <SoloModal
+          visible={!!routeParentForRouteCreation}
+          width={500}
+          title={'Create Route'}
+          onClose={() => setRouteParentForRouteCreation(undefined)}>
+          <CreateRouteModal
+            defaultRouteParent={routeParentForRouteCreation}
+            completeCreation={() => setRouteParentForRouteCreation(undefined)}
+          />
+        </SoloModal>
+      </VSListingContainer>
+    </ErrorBoundary>
   );
 };

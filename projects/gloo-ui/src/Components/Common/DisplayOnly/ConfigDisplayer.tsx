@@ -26,10 +26,12 @@ const Container = styled.div`
   > div {
     > textarea {
       outline: none !important;
+
       border: 1px solid ${colors.mayGrey} !important;
     }
     > pre {
-      overflow: visible;
+      overflow-x: auto;
+      overflow-wrap: normal;
     }
   }
 `;

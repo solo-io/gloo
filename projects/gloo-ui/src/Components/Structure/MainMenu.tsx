@@ -50,6 +50,9 @@ const TitleDiv = styled.div`
     width: auto;
     height: 35px;
   }
+  .settings-gear-a {
+    stroke: white;
+  }
 `;
 
 const activeStyle = {
@@ -108,6 +111,13 @@ export const MainMenu = () => {
     { refreshInterval: 0 }
   );
 
+  const {
+    data: isDeveloperPortalEnabled,
+    error: isDeveloperPortalEnabledError
+  } = useSWR('isDeveloperPortalEnabled', configAPI.isDeveloperPortalEnabled, {
+    refreshInterval: 0
+  });
+
   // if (!version || !licenseData?.isLicenseValid) {
   //   return <div>Loading...</div>;
   // }
@@ -147,13 +157,16 @@ export const MainMenu = () => {
           activeStyle={activeStyle}>
           Upstreams
         </NavLink>
-        <NavLink
-          data-testid='admin-navlink'
-          style={NavLinkStyles}
-          to='/admin'
-          activeStyle={activeStyle}>
-          Admin
-        </NavLink>
+
+        {isDeveloperPortalEnabled && (
+          <NavLink
+            data-testid='dev-portal-navlink'
+            style={NavLinkStyles}
+            to='/dev-portal'
+            activeStyle={activeStyle}>
+            Dev Portal
+          </NavLink>
+        )}
         {/*<NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
           Stats
         </NavLink>*/}
@@ -169,7 +182,7 @@ export const MainMenu = () => {
             lineHeight: '36px',
             alignItems: 'center'
           }}
-          to='/settings/'
+          to='/admin/'
           activeStyle={activeSettingsStyle}>
           <SettingsGear />
         </NavLink>

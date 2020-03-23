@@ -16,19 +16,39 @@ import {
   UpdateSettingsRequest,
   UpdateSettingsResponse,
   SettingsDetails,
-  UpdateSettingsYamlRequest
+  UpdateSettingsYamlRequest,
+  IsDeveloperPortalEnabledResponse
 } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { ConfigApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
+import {
+  ConfigApiClient,
+  ConfigApi
+} from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
 import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
 import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { guardByLicense } from './actions';
+import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 
 const client = new ConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true
 });
+
+export const configAPI = {
+  getVersion,
+  getSettings,
+  getOAuthEndpoint,
+  getSettingsGrpc,
+  updateSettings,
+  updateSettingsYaml,
+  getIsLicenseValid,
+  listNamespaces,
+  getPodNamespace,
+  updateRefreshRate,
+  updateWatchNamespaces,
+  isDeveloperPortalEnabled
+};
 
 function getVersion(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -251,16 +271,31 @@ function getPodNamespace(): Promise<string> {
   });
 }
 
-export const configAPI = {
-  getVersion,
-  getSettings,
-  getOAuthEndpoint,
-  getSettingsGrpc,
-  updateSettings,
-  updateSettingsYaml,
-  getIsLicenseValid,
-  listNamespaces,
-  getPodNamespace,
-  updateRefreshRate,
-  updateWatchNamespaces
-};
+function isDeveloperPortalEnabled(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ConfigApi.IsDeveloperPortalEnabled, {
+      request: new Empty(),
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {
+        // console.log('onheaders', headers);
+      },
+      onMessage: (message: IsDeveloperPortalEnabledResponse) => {
+        // console.log('message', message);
+        if (message) {
+          resolve(message.toObject().enabled);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        // console.log('onEnd', status, statusMessage, trailers);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}

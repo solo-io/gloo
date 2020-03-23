@@ -713,11 +713,6 @@ export const Routes: React.FC<Props> = props => {
         render: (matcher: string, row: any) => {
           return (
             <TableActions>
-              {/* disallowing edits until further notice TODO: (ascampos) */}
-              {/* <TableActionCircle onClick={() => showEditRouteModal(matcher)}>
-              <EditPencil />
-            </TableActionCircle> */}
-
               <div style={{ marginLeft: '5px' }}>
                 <Popconfirm
                   onConfirm={() => deleteRoute(matcher, row)}

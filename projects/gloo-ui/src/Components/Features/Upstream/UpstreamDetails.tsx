@@ -23,6 +23,7 @@ import { SoloButtonCSS } from 'Styles/CommonEmotions/button';
 import useSWR, { mutate } from 'swr';
 import { AWS_REGIONS, getUpstreamType } from 'utils/helpers';
 import { ConfigurationToggle } from '../VirtualService/Details/VirtualServiceDetails';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
 
 const UpstreamDetailsContainer = styled.div`
   display: grid;
@@ -73,7 +74,6 @@ export const UpstreamDetails = () => {
         ref: { name: upstreamname, namespace: upstreamnamespace }
       })
   );
-
   const awsRegions = AWS_REGIONS.map(item => item.name);
 
   React.useEffect(() => {
@@ -140,298 +140,303 @@ export const UpstreamDetails = () => {
 
   // TODO: update settings/ revert settings buttons
   return (
-    <Formik
-      onSubmit={handleUpdateUpstream}
-      enableReinitialize
-      initialValues={{
-        region: currentUpstream.upstream?.aws?.region,
-        secret: {
-          name: currentUpstream.upstream?.aws?.secretRef?.name || '',
-          namespace: currentUpstream.upstream?.aws?.secretRef?.namespace || ''
-        },
-        rootCert: currentUpstream?.upstream?.sslConfig?.sslFiles?.rootCa,
-        tlsCert: currentUpstream?.upstream?.sslConfig?.sslFiles?.tlsCert,
-        tlsPrivateKey: currentUpstream?.upstream?.sslConfig?.sslFiles?.tlsKey
-      }}>
-      {formikStuff => (
-        <Form>
-          {/* <pre>{JSON.stringify(formikStuff, null, 2)}</pre> */}
-          <div>
-            <Breadcrumb />
-            <SectionCard
-              cardName={currentUpstream?.upstream?.metadata?.name || ''}
-              logoIcon={<UpstreamIconSectionCardSize />}
-              health={currentUpstream?.upstream?.status?.state}
-              headerSecondaryInformation={[
-                {
-                  title: 'namespace',
-                  value: upstreamnamespace!
-                },
-                {
-                  title: 'type',
-                  value: getUpstreamType(currentUpstream?.upstream!)
+    <ErrorBoundary
+      fallback={<div>There was an error with the Upstreams Details</div>}>
+      <Formik
+        onSubmit={handleUpdateUpstream}
+        enableReinitialize
+        initialValues={{
+          region: currentUpstream.upstream?.aws?.region,
+          secret: {
+            name: currentUpstream.upstream?.aws?.secretRef?.name || '',
+            namespace: currentUpstream.upstream?.aws?.secretRef?.namespace || ''
+          },
+          rootCert: currentUpstream?.upstream?.sslConfig?.sslFiles?.rootCa,
+          tlsCert: currentUpstream?.upstream?.sslConfig?.sslFiles?.tlsCert,
+          tlsPrivateKey: currentUpstream?.upstream?.sslConfig?.sslFiles?.tlsKey
+        }}>
+        {formikStuff => (
+          <Form>
+            {/* <pre>{JSON.stringify(formikStuff, null, 2)}</pre> */}
+            <div>
+              <Breadcrumb />
+              <SectionCard
+                cardName={currentUpstream?.upstream?.metadata?.name || ''}
+                logoIcon={<UpstreamIconSectionCardSize />}
+                health={currentUpstream?.upstream?.status?.state}
+                headerSecondaryInformation={[
+                  {
+                    title: 'namespace',
+                    value: upstreamnamespace!
+                  },
+                  {
+                    title: 'type',
+                    value: getUpstreamType(currentUpstream?.upstream!)
+                  }
+                ]}
+                healthMessage={
+                  currentUpstream?.upstream?.status &&
+                  currentUpstream?.upstream?.status!.reason.length
+                    ? currentUpstream?.upstream?.status!.reason
+                    : 'Service Status'
                 }
-              ]}
-              healthMessage={
-                currentUpstream?.upstream?.status &&
-                currentUpstream?.upstream?.status!.reason.length
-                  ? currentUpstream?.upstream?.status!.reason
-                  : 'Service Status'
-              }
-              onClose={() => history.push(`/upstreams/`)}>
-              <>
-                <div
-                  css={css`
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                  `}>
-                  <ConfigurationToggle onClick={() => setShowConfig(s => !s)}>
-                    {showConfig ? `Hide ` : `View `}
-                    YAML Configuration
-                  </ConfigurationToggle>
+                onClose={() => history.push(`/upstreams/`)}>
+                <>
+                  <div
+                    css={css`
+                      display: flex;
+                      flex-direction: row;
+                      justify-content: flex-end;
+                    `}>
+                    <ConfigurationToggle onClick={() => setShowConfig(s => !s)}>
+                      {showConfig ? `Hide ` : `View `}
+                      YAML Configuration
+                    </ConfigurationToggle>
 
-                  <FileDownloadLink
-                    fileContent={currentUpstream?.raw?.content!}
-                    fileName={currentUpstream?.raw?.fileName!}
-                  />
-                </div>
-                <div>
-                  {showConfig && (
-                    <ConfigDisplayer
-                      content={currentUpstream?.raw?.content || ''}
-                      asEditor
-                      yamlError={undefined}
-                      saveEdits={handleSaveYamlEdit}
+                    <FileDownloadLink
+                      fileContent={currentUpstream?.raw?.content!}
+                      fileName={currentUpstream?.raw?.fileName!}
                     />
-                  )}
-                </div>
-                <UpstreamDetailsContainer>
-                  <ConfigSectionHeader>
-                    <div
-                      css={css`
-                        font-size: 18px;
-                        color: black;
-                      `}>
-                      Configuration
-                    </div>
-                  </ConfigSectionHeader>
-                  {/* different depending on the upstream type   */}
-                  <>
-                    <div
-                      css={css`
-                        grid-area: c;
-                        background: ${colors.januaryGrey};
-                        padding: 16px;
-                        display: grid;
-                        grid-template-columns: 1fr 2fr;
-                        grid-gap: 15px;
-                      `}>
-                      {currentUpstream?.upstream?.aws && (
+                  </div>
+                  <div>
+                    {showConfig && (
+                      <ConfigDisplayer
+                        content={currentUpstream?.raw?.content || ''}
+                        asEditor
+                        yamlError={undefined}
+                        saveEdits={handleSaveYamlEdit}
+                      />
+                    )}
+                  </div>
+                  <UpstreamDetailsContainer>
+                    <ConfigSectionHeader>
+                      <div
+                        css={css`
+                          font-size: 18px;
+                          color: black;
+                        `}>
+                        Configuration
+                      </div>
+                    </ConfigSectionHeader>
+                    {/* different depending on the upstream type   */}
+                    <>
+                      <div
+                        css={css`
+                          grid-area: c;
+                          background: ${colors.januaryGrey};
+                          padding: 16px;
+                          display: grid;
+                          grid-template-columns: 1fr 2fr;
+                          grid-gap: 15px;
+                        `}>
+                        {currentUpstream?.upstream?.aws && (
+                          <div>
+                            <p
+                              css={css`
+                                font-size: 18px;
+                                color: black;
+                              `}>
+                              AWS Upstream Settings
+                            </p>
+                            <div
+                              css={css`
+                                background: white;
+                                padding: 5px;
+                              `}>
+                              <SoloFormTypeahead
+                                hideError
+                                testId='aws-region'
+                                name='region'
+                                title='Region'
+                                defaultValue={
+                                  currentUpstream?.upstream?.aws?.region
+                                }
+                                presetOptions={awsRegions.map(region => {
+                                  return { value: region };
+                                })}
+                              />
+                              <SoloAWSSecretsList
+                                hideError
+                                defaultValue={
+                                  currentUpstream?.upstream?.aws?.secretRef
+                                    ?.name
+                                }
+                                testId='aws-secret'
+                                name='secret'
+                                type='aws'
+                              />
+                            </div>
+                          </div>
+                        )}
+
                         <div>
                           <p
                             css={css`
                               font-size: 18px;
                               color: black;
                             `}>
-                            AWS Upstream Settings
+                            Security
                           </p>
                           <div
                             css={css`
                               background: white;
-                              padding: 5px;
+                              display: grid;
+                              grid-template-columns: 1fr 1fr;
+                              grid-template-rows: 1fr 1fr;
                             `}>
-                            <SoloFormTypeahead
-                              hideError
-                              testId='aws-region'
-                              name='region'
-                              title='Region'
-                              defaultValue={
-                                currentUpstream?.upstream?.aws?.region
-                              }
-                              presetOptions={awsRegions.map(region => {
-                                return { value: region };
-                              })}
-                            />
-                            <SoloAWSSecretsList
-                              hideError
-                              defaultValue={
-                                currentUpstream?.upstream?.aws?.secretRef?.name
-                              }
-                              testId='aws-secret'
-                              name='secret'
-                              type='aws'
-                            />
+                            <div
+                              css={css`
+                                padding: 5px;
+                              `}>
+                              <SoloFormInput
+                                hideError
+                                name='tlsCert'
+                                title='TLS Certificate'
+                              />
+                            </div>
+                            <div
+                              css={css`
+                                padding: 5px;
+                              `}>
+                              <SoloFormInput
+                                hideError
+                                name='tlsPrivateKey'
+                                title='TLS Private Key'
+                              />
+                            </div>
+
+                            <div
+                              css={css`
+                                padding: 5px;
+                              `}>
+                              <SoloFormInput
+                                hideError
+                                name='rootCert'
+                                title='Root Certificate'
+                              />
+                            </div>
                           </div>
                         </div>
-                      )}
-                      <div>
-                        <p
-                          css={css`
-                            font-size: 18px;
-                            color: black;
-                          `}>
-                          Security
-                        </p>
+                      </div>
+                      {(!!currentUpstream?.upstream?.aws?.lambdaFunctionsList ||
+                        !!currentUpstream?.upstream?.kube?.serviceSpec) && (
                         <div
                           css={css`
-                            background: white;
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            grid-template-rows: 1fr 1fr;
+                            grid-area: fh;
+                            color: black;
+                            font-size: 18px;
+                            align-self: center;
                           `}>
-                          <div
-                            css={css`
-                              padding: 5px;
-                            `}>
-                            <SoloFormInput
-                              hideError
-                              name='tlsCert'
-                              title='TLS Certificate'
-                            />
-                          </div>
-                          <div
-                            css={css`
-                              padding: 5px;
-                            `}>
-                            <SoloFormInput
-                              hideError
-                              name='tlsPrivateKey'
-                              title='TLS Private Key'
-                            />
-                          </div>
-
-                          <div
-                            css={css`
-                              padding: 5px;
-                            `}>
-                            <SoloFormInput
-                              hideError
-                              name='rootCert'
-                              title='Root Certificate'
-                            />
-                          </div>
+                          Functions
                         </div>
-                      </div>
-                    </div>
-                    {(!!currentUpstream?.upstream?.aws?.lambdaFunctionsList ||
-                      !!currentUpstream?.upstream?.kube?.serviceSpec) && (
-                      <div
-                        css={css`
-                          grid-area: fh;
-                          color: black;
-                          font-size: 18px;
-                          align-self: center;
-                        `}>
-                        Functions
-                      </div>
-                    )}
-                    {currentUpstream?.upstream?.aws?.lambdaFunctionsList && (
-                      <>
+                      )}
+                      {currentUpstream?.upstream?.aws?.lambdaFunctionsList && (
+                        <>
+                          <div
+                            css={css`
+                              grid-area: f;
+                            `}>
+                            <Spin
+                              spinning={
+                                isLoading ||
+                                !currentUpstream?.upstream?.aws
+                                  ?.lambdaFunctionsList
+                              }>
+                              <SoloTable
+                                dataSource={
+                                  currentUpstream?.upstream?.aws
+                                    ?.lambdaFunctionsList
+                                }
+                                columns={[
+                                  {
+                                    title: 'Name',
+                                    dataIndex: 'lambdaFunctionName'
+                                  },
+                                  {
+                                    title: 'Logical Name',
+                                    dataIndex: 'logicalName'
+                                  },
+                                  {
+                                    title: 'Qualifier',
+                                    dataIndex: 'qualifier'
+                                  }
+                                ]}
+                              />
+                            </Spin>
+                          </div>
+                        </>
+                      )}
+
+                      {currentUpstream?.upstream?.kube?.serviceSpec?.rest
+                        ?.transformationsMap && (
                         <div
                           css={css`
                             grid-area: f;
                           `}>
-                          <Spin
-                            spinning={
-                              isLoading ||
-                              !currentUpstream?.upstream?.aws
-                                ?.lambdaFunctionsList
-                            }>
-                            <SoloTable
-                              dataSource={
-                                currentUpstream?.upstream?.aws
-                                  ?.lambdaFunctionsList
+                          <SoloTable
+                            columns={[
+                              {
+                                title: 'Name',
+                                dataIndex: 'name'
+                              },
+                              {
+                                title: 'Body',
+                                dataIndex: 'body'
+                              },
+                              {
+                                title: 'Headers',
+                                dataIndex: 'headers'
                               }
-                              columns={[
-                                {
-                                  title: 'Name',
-                                  dataIndex: 'lambdaFunctionName'
-                                },
-                                {
-                                  title: 'Logical Name',
-                                  dataIndex: 'logicalName'
-                                },
-                                {
-                                  title: 'Qualifier',
-                                  dataIndex: 'qualifier'
-                                }
-                              ]}
-                            />
-                          </Spin>
+                            ]}
+                            dataSource={formatRestFunctions(
+                              currentUpstream?.upstream?.kube.serviceSpec.rest
+                                .transformationsMap
+                            )}
+                          />
                         </div>
-                      </>
-                    )}
-
-                    {currentUpstream?.upstream?.kube?.serviceSpec?.rest
-                      ?.transformationsMap && (
+                      )}
                       <div
                         css={css`
-                          grid-area: f;
+                          display: grid;
+                          grid-template-columns: 150px 150px;
+                          grid-gap: 15px;
+                          margin-top: 10px;
                         `}>
-                        <SoloTable
-                          columns={[
-                            {
-                              title: 'Name',
-                              dataIndex: 'name'
-                            },
-                            {
-                              title: 'Body',
-                              dataIndex: 'body'
-                            },
-                            {
-                              title: 'Headers',
-                              dataIndex: 'headers'
+                        <Button
+                          css={SoloButtonCSS}
+                          type='primary'
+                          htmlType='submit'>
+                          Update Settings
+                        </Button>
+                        <SoloButton
+                          css={css`
+                            background-color: ${colors.juneGrey};
+                            &:disabled {
+                              background: ${colors.juneGrey};
                             }
-                          ]}
-                          dataSource={formatRestFunctions(
-                            currentUpstream?.upstream?.kube.serviceSpec.rest
-                              .transformationsMap
-                          )}
+
+                            &:hover {
+                              background: ${colors.juneGrey};
+                            }
+
+                            &:focus,
+                            &:active {
+                              background: ${colors.juneGrey};
+                            }
+                          `}
+                          onClick={() => {}}
+                          text='Cancel'
+                          // disabled={!editMode}
                         />
                       </div>
-                    )}
-                    <div
-                      css={css`
-                        display: grid;
-                        grid-template-columns: 150px 150px;
-                        grid-gap: 15px;
-                        margin-top: 10px;
-                      `}>
-                      <Button
-                        css={SoloButtonCSS}
-                        type='primary'
-                        htmlType='submit'>
-                        Update Settings
-                      </Button>
-                      <SoloButton
-                        css={css`
-                          background-color: ${colors.juneGrey};
-                          &:disabled {
-                            background: ${colors.juneGrey};
-                          }
-
-                          &:hover {
-                            background: ${colors.juneGrey};
-                          }
-
-                          &:focus,
-                          &:active {
-                            background: ${colors.juneGrey};
-                          }
-                        `}
-                        onClick={() => {}}
-                        text='Cancel'
-                        // disabled={!editMode}
-                      />
-                    </div>
-                  </>
-                </UpstreamDetailsContainer>
-              </>
-            </SectionCard>
-          </div>
-        </Form>
-      )}
-    </Formik>
+                    </>
+                  </UpstreamDetailsContainer>
+                </>
+              </SectionCard>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </ErrorBoundary>
   );
 };

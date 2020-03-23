@@ -19,6 +19,7 @@ import useSWR from 'swr';
 import { getIcon, getUpstreamType, groupBy } from 'utils/helpers';
 import { envoyAPI } from '../../store/envoy/api';
 import { configAPI } from 'store/config/api';
+import { ErrorBoundary } from './Errors/ErrorBoundary';
 
 const Container = styled.div`
   ${CardCSS};
@@ -137,11 +138,13 @@ export const Overview = () => {
     { refreshInterval: 0 }
   );
   return (
-    <>
+    <ErrorBoundary fallback={<div>There was an error with the Overview</div>}>
       <Container>
         <Header>
           <div>
-            <PageTitle>{`${licenseData?.isLicenseValid ? 'Enterprise' : ''} Gloo Overview`}</PageTitle>
+            <PageTitle>{`${
+              licenseData?.isLicenseValid ? 'Enterprise' : ''
+            } Gloo Overview`}</PageTitle>
             <PageSubtitle>
               Your current configuration health at a glance
             </PageSubtitle>
@@ -157,7 +160,7 @@ export const Overview = () => {
           <UpstreamsOverview />
         </Row>
       </Container>
-    </>
+    </ErrorBoundary>
   );
 };
 

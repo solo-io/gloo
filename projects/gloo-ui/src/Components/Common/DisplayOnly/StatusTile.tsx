@@ -3,6 +3,8 @@ import * as React from 'react';
 import { useHistory } from 'react-router';
 import { colors, soloConstants } from 'Styles';
 import { HealthIndicator } from '../HealthIndicator';
+import { css } from '@emotion/core';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 const StatusTileContainer = styled.div`
   height: 100%;
@@ -16,11 +18,13 @@ const StatusTileInformation = styled.div`
   position: relative;
   border-radius: 8px;
   background: white;
+  display: flex;
+
   padding: 15px 18px 18px 15px;
   height: 100%;
 
   ${(props: StatusTileInformationProps) =>
-    props.horizontal ? `display: flex;` : ''}
+    props.horizontal ? ` flex-direction: row;` : ' flex-direction: column;'}
 `;
 
 const Title = styled.div`
@@ -33,7 +37,7 @@ const Title = styled.div`
   margin-bottom: 10px;
 
   svg {
-    height: 24px;
+    min-height: 24px;
     margin-left: 8px;
   }
 `;
@@ -59,7 +63,10 @@ const Description = styled.div`
   color: ${colors.novemberGrey};
   font-size: 16px;
   line-height: 19px;
-  margin-bottom: 23px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-height: ${(props: DescriptionProps) =>
     props.minHeight !== undefined ? props.minHeight : '0'};
 `;
@@ -107,7 +114,7 @@ interface Props {
     testId?: string;
   };
   horizontal?: boolean;
-  healthStatus?: number;
+  healthStatus?: Status.StateMap[keyof Status.StateMap];
   descriptionMinHeight?: string;
 }
 
@@ -123,7 +130,11 @@ export const StatusTile = (props: Props) => {
         {!props.horizontal ? (
           <>
             <Title>
-              <div>
+              <div
+                css={css`
+                  display: flex;
+                  align-items: center;
+                `}>
                 {props.titleText}
                 {props.titleIcon}
               </div>

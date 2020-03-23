@@ -132,6 +132,7 @@ COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/dev-portal/pkg/api/apiserver/v1 \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
 
 # Flags for UI code generation when we do not need to generate GRPC Web service code
@@ -270,6 +271,10 @@ run-apiserver:
 run-envoy:
 	envoy -c $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) -l debug
 
+.PHONY: run-ui
+run-ui:
+	yarn --cwd projects/gloo-ui install && \
+	yarn --cwd projects/gloo-ui start
 #----------------------------------------------------------------------------------
 # UI
 #----------------------------------------------------------------------------------

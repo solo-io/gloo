@@ -12,6 +12,7 @@ import { hslToHSLA } from 'Styles/colors';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { FileDownloadActionCircle } from './FileDownloadLink';
 import { HealthIndicator } from './HealthIndicator';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 const Container = styled.div`
   ${CardCSS};
@@ -169,7 +170,7 @@ export interface CardType {
     value: string;
     valueDisplay?: React.ReactNode | Element;
   }[];
-  healthStatus?: number;
+  healthStatus?: Status.StateMap[keyof Status.StateMap];
   onCreate?: () => any;
   ExtraInfoComponent?: React.ReactNode;
   downloadableContent?: Raw.AsObject;

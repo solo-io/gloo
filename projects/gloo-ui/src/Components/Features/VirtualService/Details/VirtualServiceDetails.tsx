@@ -18,6 +18,7 @@ import { Routes } from './Routes';
 import { RouteParent } from '../RouteTableDetails';
 import { virtualServiceAPI } from 'store/virtualServices/api';
 import useSWR from 'swr';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 export const ConfigContainer = styled.div`
   display: grid;
@@ -139,7 +140,8 @@ export const VirtualServiceDetails = () => {
     }
   ];
   return (
-    <>
+    <ErrorBoundary
+      fallback={<div>There was an error with Virtual Service Details</div>}>
       <Breadcrumb />
 
       <SectionCard
@@ -217,6 +219,6 @@ export const VirtualServiceDetails = () => {
           </DetailsSection>
         </DetailsContent>
       </SectionCard>
-    </>
+    </ErrorBoundary>
   );
 };

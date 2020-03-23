@@ -1,40 +1,24 @@
 import styled from '@emotion/styled';
 import { Breadcrumb as AntdBreadcrumb } from 'antd';
 import * as React from 'react';
-import { useHistory, useLocation, useParams } from 'react-router';
-import { colors } from 'Styles';
+import { useLocation } from 'react-router';
+import { Link } from 'react-router-dom';
 
 const BreadcrumbContainer = styled(AntdBreadcrumb)`
   margin-bottom: 15px;
 `;
 
-type CrumbLinkProps = { clickable?: boolean };
-const CrumbLink = styled.span<CrumbLinkProps>`
-  font-size: 14px;
-
-  ${(props: CrumbLinkProps) =>
-    props.clickable
-      ? `
-      color: ${colors.seaBlue};
-      cursor: pointer;`
-      : `
-      color: ${colors.septemberGrey};`};
-`;
-
-const CapitalizedCrumbLink = styled(CrumbLink)`
-  text-transform: capitalize;
-`;
-
-const rootNameMap: { [key: string]: string } = {
-  virtualservices: 'Virtual Services',
-  upstreams: 'Upstreams',
-  upstreamgroups: 'Upstream Groups',
-  routetables: 'Route Tables',
-  stats: 'Stats',
-  settings: 'Settings',
-  admin: 'Administration'
+const breadcrumbNameMap: { [key: string]: string } = {
+  '/overview': 'Overview',
+  '/virtualservices': 'Virtual Services',
+  '/routetables': 'Route Tables',
+  '/upstreams': 'Upstreams',
+  '/upstreams/upstreamgroups': 'Upstream Groups',
+  '/admin': 'Admin',
+  '/settings': 'Settings',
+  '/settings/secrets': 'Secrets',
+  '/dev-portal': 'Developer Portal'
 };
-
 export interface RouteParams {
   virtualservicename?: string;
   routetablename?: string;
@@ -44,61 +28,42 @@ export interface RouteParams {
 
 export const Breadcrumb = () => {
   let location = useLocation();
-  let history = useHistory();
-  let {
-    virtualservicename,
-    sublocation,
-    routetablename,
-    upstreamname,
-    upstreamgroupname
-  } = useParams();
 
-  const goToRoot = () => {
-    history.push({
-      pathname: `/${location.pathname.split('/')[1]}/`
-    });
-  };
+  // https://ant.design/components/breadcrumb/
+  let pathSnippets = location.pathname.split('/').filter(i => i);
+
+  let extraBreadcrumbItems = pathSnippets.map((_, index) => {
+    const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
+
+    if (breadcrumbNameMap[url] !== undefined) {
+      return (
+        <AntdBreadcrumb.Item key={url}>
+          <Link to={url}>{breadcrumbNameMap[url]}</Link>
+        </AntdBreadcrumb.Item>
+      );
+    } else {
+      return (
+        <AntdBreadcrumb.Item key={url}>
+          <Link to={url}>{pathSnippets[pathSnippets.length - 1]}</Link>
+        </AntdBreadcrumb.Item>
+      );
+    }
+  });
+
+  // do not make a breadcrumb for the namespace part of the url
+  if (pathSnippets.length >= 3) {
+    delete extraBreadcrumbItems[pathSnippets.length - 2];
+  }
+
+  const breadcrumbItems = [
+    <AntdBreadcrumb.Item key='home'>
+      <Link to='/'>Home</Link>
+    </AntdBreadcrumb.Item>
+  ].concat(extraBreadcrumbItems);
 
   return (
     <BreadcrumbContainer separator='>'>
-      <AntdBreadcrumb.Item onClick={goToRoot}>
-        <CrumbLink clickable={true}>
-          {rootNameMap[location.pathname.split('/')[1]] as string}
-        </CrumbLink>
-      </AntdBreadcrumb.Item>
-      {!!location.search && (
-        <AntdBreadcrumb.Item>
-          <CrumbLink>{location.search.split('=')[1]}</CrumbLink>
-        </AntdBreadcrumb.Item>
-      )}
-      {!!virtualservicename && (
-        <AntdBreadcrumb.Item>
-          <CrumbLink>{virtualservicename}</CrumbLink>
-        </AntdBreadcrumb.Item>
-      )}
-      {!!upstreamname && (
-        <AntdBreadcrumb.Item>
-          <CrumbLink>{upstreamname}</CrumbLink>
-        </AntdBreadcrumb.Item>
-      )}
-      {!!upstreamgroupname && (
-        <>
-          <AntdBreadcrumb.Item>Upstream Groups</AntdBreadcrumb.Item>
-          <AntdBreadcrumb.Item>
-            <CrumbLink>{upstreamgroupname}</CrumbLink>
-          </AntdBreadcrumb.Item>
-        </>
-      )}
-      {!!routetablename && (
-        <AntdBreadcrumb.Item>
-          <CrumbLink>{routetablename}</CrumbLink>
-        </AntdBreadcrumb.Item>
-      )}
-      {!!sublocation && (
-        <AntdBreadcrumb.Item>
-          <CapitalizedCrumbLink>{sublocation}</CapitalizedCrumbLink>
-        </AntdBreadcrumb.Item>
-      )}
+      {extraBreadcrumbItems}
     </BreadcrumbContainer>
   );
 };

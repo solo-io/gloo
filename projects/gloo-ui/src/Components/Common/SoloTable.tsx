@@ -125,6 +125,7 @@ export const SoloTable = (props: TableProps) => {
         dataSource={props.dataSource}
         columns={props.columns}
         components={components}
+        pagination={{ defaultPageSize: 20 }}
         onRow={(record: any) => ({
           record,
           lastRowID,

@@ -420,7 +420,6 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
           data-testid={props.testId}
           placeholder='Destination...'
           defaultValue={defaultValue?.upstream?.metadata?.name}
-          dropdownMatchSelectWidth={false}
           onChange={handleChange}>
           {namespacesList.map((ns: string) => (
             <Select.OptGroup key={ns} label={ns}>
@@ -511,7 +510,7 @@ export const SoloFormVirtualServiceTypeahead: React.FC<VirtualServiceTypeaheadPr
       // @ts-ignore
       tempVirtualService.metadata = {
         name: newValueId,
-        namespace: podNamespace
+        namespace: podNamespace!
       };
     }
 
@@ -733,7 +732,9 @@ export const SoloAWSSecretsList: React.FC<AWSSecretsListProps> = React.memo(
             return (
               <OptGroup key={namespace} label={namespace}>
                 {secrets.map(s => (
-                  <Option key={`${s.metadata!.name}::${s.metadata!.namespace}`}>
+                  <Option
+                    key={`${s.metadata!.name}::${s.metadata!.namespace}`}
+                    value={`${s.metadata!.name}::${s.metadata!.namespace}`}>
                     {s.metadata!.name}
                   </Option>
                 ))}
@@ -812,6 +813,9 @@ export const SoloRouteParentDropdown: React.FC<{
                 <Option
                   key={`${s?.virtualService?.metadata!.name}::${
                     s?.virtualService?.metadata!.namespace
+                  }::virtualService`}
+                  value={`${s?.virtualService?.metadata!.name}::${
+                    s?.virtualService?.metadata!.namespace
                   }::virtualService`}>
                   {`${s?.virtualService?.metadata!.name}`}
                 </Option>
@@ -825,6 +829,9 @@ export const SoloRouteParentDropdown: React.FC<{
               {resources.map(s => (
                 <Option
                   key={`${s?.routeTable?.metadata!.name}::${
+                    s?.routeTable?.metadata!.namespace
+                  }::routeTable`}
+                  value={`${s?.routeTable?.metadata!.name}::${
                     s?.routeTable?.metadata!.namespace
                   }::routeTable`}>
                   {`${s?.routeTable?.metadata!.name}`}

@@ -3,6 +3,10 @@ import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
 import { ReactComponent as GatewayConfigLogo } from 'assets/gateway-config-icon.svg';
 import { ReactComponent as HealthScoreIcon } from 'assets/health-score-icon.svg';
 import { ReactComponent as ProxyConfigLogo } from 'assets/proxy-config-icon.svg';
+import { ReactComponent as WatchedNamespaceIcon } from 'assets/watched-namespace-icon.svg';
+import { ReactComponent as SecretsIcon } from 'assets/secrets-icon.svg';
+import { ReactComponent as SecurityIcon } from 'assets/key-on-ring.svg';
+
 import { GoodStateCongratulations } from 'Components/Common/DisplayOnly/GoodStateCongratulations';
 import { StatusTile } from 'Components/Common/DisplayOnly/StatusTile';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
@@ -15,9 +19,12 @@ import { colors, healthConstants, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import useSWR from 'swr';
 import { getResourceStatus } from 'utils/helpers';
+import { css } from '@emotion/core';
 import { configAPI } from 'store/config/api';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
+import { secretAPI } from 'store/secrets/api';
 
-const Container = styled.div`
+export const Container = styled.div`
   ${CardCSS};
   display: flex;
   flex-direction: column;
@@ -26,7 +33,7 @@ const Container = styled.div`
   padding: 30px ${soloConstants.buffer}px ${soloConstants.buffer}px;
 `;
 
-const Header = styled.div`
+export const Header = styled.div`
   display: flex;
   justify-content: space-between;
   height: 50px;
@@ -34,16 +41,18 @@ const Header = styled.div`
   margin-bottom: ${soloConstants.smallBuffer}px;
   color: ${colors.novemberGrey};
 `;
-const PageTitle = styled.div`
+
+export const PageTitle = styled.div`
   font-size: 22px;
   line-height: 26px;
 `;
-const PageSubtitle = styled.div`
+
+export const PageSubtitle = styled.div`
   font-size: 18px;
   line-height: 22px;
 `;
 
-const Row = styled.div`
+export const Row = styled.div`
   display: grid;
   width: 100%;
   grid-template-columns: minmax(200px, 33.3%) minmax(200px, 33.3%) minmax(
@@ -68,7 +77,7 @@ const Link = styled.div`
 `;
 
 type HealthScoreContainerProps = { health: number };
-const HealthScoreContainer = styled.div`
+export const HealthScoreContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -86,17 +95,6 @@ const HealthScoreContainer = styled.div`
         ? `fill: ${colors.grapefruitOrange};`
         : `fill: ${colors.sunGold};`}
   }
-
-  & span {
-    ${(props: HealthScoreContainerProps) =>
-      props.health === healthConstants.Good.value
-        ? '' //`fill: ${colors.forestGreen};`
-        : props.health === healthConstants.Error.value
-        ? `color: ${colors.grapefruitOrange};`
-        : `color: ${colors.sunGold};`}
-    padding: 5px;
-    font-weight: bold;
-  }
 `;
 
 export const AdminLanding: React.FC<RouteProps> = props => {
@@ -105,12 +103,33 @@ export const AdminLanding: React.FC<RouteProps> = props => {
     configAPI.getIsLicenseValid,
     { refreshInterval: 0 }
   );
+  const { data: settingsDetails, error: settingsError } = useSWR(
+    'getSettings',
+    configAPI.getSettings
+  );
+
+  const { data: secretsList, error: secretsError } = useSWR(
+    'listSecrets',
+    secretAPI.getSecretsList
+  );
+
+  const { data: watchedNamespacesList, error: watchedNamespacesError } = useSWR(
+    'listNamespaces',
+    configAPI.listNamespaces
+  );
+  if (!settingsDetails || !secretsList || !watchedNamespacesList) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <>
+    <ErrorBoundary
+      fallback={<div>There was an error with the Admin section</div>}>
       <Container>
         <Header>
           <div>
-            <PageTitle>{`${licenseData?.isLicenseValid ? 'Enterprise' :''} Gloo Administration`}</PageTitle>
+            <PageTitle>{`${
+              licenseData?.isLicenseValid ? 'Enterprise' : ''
+            } Gloo Administration`}</PageTitle>
             <PageSubtitle>
               Advanced Administration for your Gloo Configuration
             </PageSubtitle>
@@ -125,8 +144,45 @@ export const AdminLanding: React.FC<RouteProps> = props => {
           <ProxyOverview />
           <EnvoyOverview />
         </Row>
+        <div>
+          <div className='mt-2 text-2xl text-gray-900'> Settings</div>
+        </div>
+        <div className='grid grid-cols-3 px-4 py-4 sm:p-6'>
+          <StatusTile
+            titleIcon={
+              <span className='text-blue-500'>
+                <SecurityIcon className='fill-current ' />
+              </span>
+            }
+            titleText='Security'
+            exploreMoreLink={{
+              prompt: 'View Setttings',
+              link: `/admin/settings/${settingsDetails.settings?.metadata?.namespace}/${settingsDetails.settings?.metadata?.name}`
+            }}
+            description={`Represents global settings for all of Gloo's components.`}></StatusTile>
+          <StatusTile
+            titleIcon={<WatchedNamespaceIcon className='w-8 h-8' />}
+            exploreMoreLink={{
+              prompt: 'View Watched Namespaces',
+              link: '/admin/watched-namespaces'
+            }}
+            titleText='Watched Namespaces'
+            description='Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.In a usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. '></StatusTile>
+          <StatusTile
+            titleIcon={
+              <span className='text-blue-500'>
+                <SecretsIcon className='fill-current ' />
+              </span>
+            }
+            exploreMoreLink={{
+              prompt: 'View Secrets',
+              link: '/admin/secrets/'
+            }}
+            titleText='Secrets'
+            description='Certain features such as the AWS Lambda option require the use of secrets for authentication, configuration of SSL Certificates, and other data that should not be stored in plaintext configuration. Gloo runs an independent (goroutine) controller to monitor secrets. Secrets are stored in their own secret storage layer.'></StatusTile>
+        </div>
       </Container>
-    </>
+    </ErrorBoundary>
   );
 };
 
@@ -300,7 +356,13 @@ const EnvoyOverview = () => {
     <Envoy>
       <StatusTile
         titleText={'Envoy Configuration'}
-        titleIcon={<EnvoyLogo />}
+        titleIcon={
+          <EnvoyLogo
+            css={css`
+              height: 32px;
+            `}
+          />
+        }
         description={
           'This is the live config dump from Envoy. This is translated directly from the proxy config and should be updated any time the proxy configuration changes.'
         }

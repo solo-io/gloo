@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
 import { colors, healthConstants } from 'Styles';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 type HealthIndicatorCircleProps = { health: number };
 const HealthIndicatorCircle = styled.div`
@@ -18,7 +19,7 @@ const HealthIndicatorCircle = styled.div`
 `;
 
 interface Props {
-  healthStatus: number;
+  healthStatus: Status.StateMap[keyof Status.StateMap];
 }
 
 export const HealthIndicator = (props: Props) => {

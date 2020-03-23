@@ -1,0 +1,15 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Settings are now as an overview page that links to either the Secrets view or the Settings Details view where users can configure
+       the namespaces watched by Gloo and edit the Settings YAML file directly.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1469
+  - type: FIX
+    description: Envoy details view now shows correct Helm values needed to surface the Envoy config in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1470
+  - type: FIX
+    description: The word 'Enterprise' should not show up in the overview page when in read-only (non-enterprise) mode.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1123
+  - type: NON_USER_FACING
+    description: Add a make target to easily run the UI from the root directory like make-envoy and make-apiserver.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1468

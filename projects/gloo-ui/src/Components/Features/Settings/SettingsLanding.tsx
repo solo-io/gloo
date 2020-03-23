@@ -73,7 +73,7 @@ export const SettingsLanding = () => {
       setOAuthSecrets(secretsList.filter(s => !!s.oauth));
       setTlsSecrets(secretsList.filter(s => !!s.tls));
     }
-  }, [secretsList?.length, showSuccessModal]);
+  }, [secretsList?.length]);
 
   if (!secretsList) {
     return <div>Loading...</div>;
@@ -130,17 +130,7 @@ export const SettingsLanding = () => {
             path='/settings/namespaces/'
             render={() => <WatchedNamespacesPage />}
           />
-          <Route
-            path='/settings/secrets/'
-            render={() => (
-              <SecretsPage
-                awsSecrets={awsSecrets}
-                azureSecrets={azureSecrets}
-                onCreateSecret={handleCreateSecret}
-                onDeleteSecret={handleDeleteSecret}
-              />
-            )}
-          />
+          <Route path='/settings/secrets/' render={() => <SecretsPage />} />
 
           <Redirect exact from='/settings/' to='/settings/security/' />
         </Switch>
@@ -241,14 +231,7 @@ export const SettingsLanding = () => {
               <Route
                 data-testid='secrets'
                 path='/settings/secrets/'
-                render={() => (
-                  <SecretsPage
-                    awsSecrets={awsSecrets}
-                    azureSecrets={azureSecrets}
-                    onCreateSecret={handleCreateSecret}
-                    onDeleteSecret={handleDeleteSecret}
-                  />
-                )}
+                render={() => <SecretsPage />}
               />
 
               <Redirect exact from='/settings/' to='/settings/security/' />

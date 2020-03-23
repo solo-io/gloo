@@ -54,7 +54,7 @@ const TallyDetail = styled<'div', { showLink: boolean }>('div')`
 `;
 
 interface Props {
-  tallyCount: number | null;
+  tallyCount?: number | null;
   tallyDescription: string | null;
   moreInfoLink?: {
     prompt: string;
@@ -72,7 +72,7 @@ export const TallyInformationDisplay = (props: Props) => {
   const countDisplay = (): string | number => {
     const count = props.tallyCount;
 
-    if (count !== null) {
+    if (count !== null && count !== undefined) {
       if (count < 10) {
         return `0${count}`;
       } else {

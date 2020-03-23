@@ -5,6 +5,7 @@ import { TallyContainer } from 'Components/Common/DisplayOnly/TallyInformationDi
 import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { Status } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { Status as SoloKitStatus } from 'proto/solo-kit/api/v1/status_pb';
 import * as React from 'react';
 import { envoyAPI } from 'store/envoy/api';
 import { colors, healthConstants, soloConstants } from 'Styles';
@@ -20,7 +21,8 @@ const InsideHeader = styled.div`
 `;
 
 const EnvoyLogoFullSize = styled(EnvoyLogo)`
-  width: 33px !important;
+  width: 35px !important;
+  height: 35px;
   max-height: none !important;
 `;
 
@@ -41,7 +43,9 @@ const Link = styled.div`
 `;
 
 interface Props {}
-export const getHealth = (code: number): number => {
+export const getHealth = (
+  code: number
+): SoloKitStatus.StateMap[keyof SoloKitStatus.StateMap] => {
   switch (code) {
     case Status.Code.ERROR:
       return healthConstants.Error.value;
@@ -127,7 +131,7 @@ export const Envoy = (props: Props) => {
             ) : (
               <div>
                 <i>Install Gloo with </i>
-                <code>gloo.gatewayProxies.gatewayProxyV2.readConfig</code>{' '}
+                <code>gloo.gatewayProxies.gatewayProxy.readConfig</code>{' '}
                 <i>enabled to view Envoy config.</i>
               </div>
             )}

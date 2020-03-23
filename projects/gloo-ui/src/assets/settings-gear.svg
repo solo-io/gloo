@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24.707" height="24.703" viewBox="0 0 24.707 24.703">
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24.707 30">
     <defs>
         <style>
-            .settings-gear-a{fill:#fff;stroke:#fff;stroke-width:0.5px;}
+            .settings-gear-a{fill:#54b7e3;stroke:#fff;stroke-width:0.8px;}
         </style>
     </defs>
     <g transform="translate(0.25 0.25)">

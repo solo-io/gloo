@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
 import React from 'react';
 import { RouteProps } from 'react-router';
-import useSWR from 'swr';
 import { configAPI } from 'store/config/api';
+import useSWR from 'swr';
 
 const Container = styled.div`
   display: grid;
@@ -33,7 +33,9 @@ export const Admin: React.FC<RouteProps> = props => {
     <>
       <Container>
         <Header>
-          <div>{`${licenseData?.isLicenseValid ? 'Enterprise' :''} Gloo Administration`}</div>
+          <div>{`${
+            licenseData?.isLicenseValid ? 'Enterprise' : ''
+          } Gloo Administration`}</div>
           <div>Advanced Administration for your Gloo Configuration</div>
         </Header>
         <GatewayContainer>gatway</GatewayContainer>

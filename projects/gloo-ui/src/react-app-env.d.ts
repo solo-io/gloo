@@ -74,3 +74,5 @@ declare module '@emotion/css/macro' {
   export * from '@emotion/css';
   export default css;
 }
+
+declare module 'swagger-ui';

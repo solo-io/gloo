@@ -12,6 +12,10 @@ import { Route, Switch, useHistory, useParams } from 'react-router';
 import { Envoy } from './Envoy';
 import { Gateways } from './Gateways';
 import { Proxys } from './Proxy';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
+import { SecretsPage } from '../Settings/SecretsPage';
+import { WatchedNamespacesPage } from '../Settings/WatchedNamespacesPage';
+import { Settings } from '../Settings/SettingsDetails';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -24,6 +28,15 @@ const PageChoiceFilter: TypeFilterProps = {
     },
     {
       displayName: 'Envoy'
+    },
+    {
+      displayName: 'Settings'
+    },
+    {
+      displayName: 'Watched Namespaces'
+    },
+    {
+      displayName: 'Secrets'
     }
   ],
   choice: 'Gateways'
@@ -49,30 +62,42 @@ export const AdminHub = () => {
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) => {
-    const newChoice = types.find(type => type.id === 'pageChoice')!.choice!;
+    let newChoice = types.find(type => type.id === 'pageChoice')!.choice!;
+    if (newChoice === 'Watched Namespaces') {
+      newChoice = 'watched-namespaces';
+    }
     history.replace({
       pathname: `/admin/${newChoice.toLowerCase()}`
     });
   };
 
   return (
-    <div>
-      <Heading>
-        <Breadcrumb />
-      </Heading>
-      <ListingFilter
-        types={[{ ...PageChoiceFilter, choice: locationChoice }]}
-        onChange={pageChanged}>
-        {() => (
-          <>
-            <Switch>
-              <Route path='/admin/gateways/' component={Gateways} />
-              <Route path='/admin/proxy/' component={Proxys} />
-              <Route path='/admin/envoy/' component={Envoy} />
-            </Switch>
-          </>
-        )}
-      </ListingFilter>
-    </div>
+    <ErrorBoundary
+      fallback={<div>There was an error with the Admin section</div>}>
+      <div>
+        <Heading>
+          <Breadcrumb />
+        </Heading>
+        <ListingFilter
+          types={[{ ...PageChoiceFilter, choice: locationChoice }]}
+          onChange={pageChanged}>
+          {() => (
+            <>
+              <Switch>
+                <Route path='/admin/gateways/' component={Gateways} />
+                <Route path='/admin/proxy/' component={Proxys} />
+                <Route path='/admin/envoy/' component={Envoy} />
+                <Route path='/admin/settings' component={Settings} />
+                <Route
+                  path='/admin/watched-namespaces/'
+                  component={WatchedNamespacesPage}
+                />
+                <Route path='/admin/secrets/' component={SecretsPage} />
+              </Switch>
+            </>
+          )}
+        </ListingFilter>
+      </div>
+    </ErrorBoundary>
   );
 };

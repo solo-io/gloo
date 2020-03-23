@@ -39,6 +39,7 @@ import {
   DetailsSection,
   DetailsSectionTitle
 } from './Details/VirtualServiceDetails';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
 
 const RouteSectionTitle = styled.div`
   font-size: 18px;
@@ -247,7 +248,8 @@ export const RouteTableDetails = () => {
     }
   ];
   return (
-    <>
+    <ErrorBoundary
+      fallback={<div>There was an error with Route Table Details</div>}>
       <Breadcrumb />
 
       <SectionCard
@@ -336,6 +338,6 @@ export const RouteTableDetails = () => {
           </DetailsSection>
         </DetailsContent>
       </SectionCard>
-    </>
+    </ErrorBoundary>
   );
 };

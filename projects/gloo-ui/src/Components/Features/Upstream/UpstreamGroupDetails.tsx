@@ -15,6 +15,7 @@ import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { colors } from 'Styles';
 import useSWR, { mutate } from 'swr';
 import { ConfigurationToggle } from '../VirtualService/Details/VirtualServiceDetails';
+import { ErrorBoundary } from '../Errors/ErrorBoundary';
 
 export const WeightInput: React.FC<{ name: string; step?: number }> = ({
   ...props
@@ -134,7 +135,8 @@ export const UpstreamGroupDetails = () => {
   }
 
   return (
-    <>
+    <ErrorBoundary
+      fallback={<div>There was an error with the Upstream Group Details</div>}>
       <Breadcrumb />
       <SectionCard
         cardName={upstreamgroupname!}
@@ -267,6 +269,6 @@ export const UpstreamGroupDetails = () => {
           }}
         </Formik>
       </SectionCard>
-    </>
+    </ErrorBoundary>
   );
 };
