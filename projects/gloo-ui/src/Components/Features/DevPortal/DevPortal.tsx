@@ -22,6 +22,7 @@ import { UserGroups } from './users/UserGroups';
 import { APIListing } from './apis/APIListing';
 import { useHistory } from 'react-router-dom';
 import { useLocation } from 'react-router';
+import { APIKeyScopes } from 'Components/Features/DevPortal/api-key-scopes/ApiKeyScopes';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
 
 export const EmptyPortalsPanel: React.FC<{ itemName: string }> = props => {
@@ -147,10 +148,7 @@ export function DevPortal() {
           </TabPanel>
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
-              <span className='absolute top-0 right-0 -mt-8'>
-                <span></span> create an API Key Scope
-              </span>
-              <EmptyPortalsPanel itemName=''></EmptyPortalsPanel>
+              <APIKeyScopes />
             </div>
           </TabPanel>
           <TabPanel className='focus:outline-none'>

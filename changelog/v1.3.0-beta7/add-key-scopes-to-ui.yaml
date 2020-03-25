@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Key scopes are now listed and CRUD-interactable within the UI. !Not connected to backend!
+    issueLink: https://github.com/solo-io/solo-projects/issues/1528

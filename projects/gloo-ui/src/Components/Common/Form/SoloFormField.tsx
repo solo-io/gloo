@@ -44,6 +44,7 @@ import { virtualServiceAPI } from 'store/virtualServices/api';
 import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { SoloTextarea } from '../SoloTextarea';
 const { Option, OptGroup } = Select;
 
 type ErrorTextProps = { errorExists?: boolean };
@@ -63,6 +64,30 @@ export const SoloFormInput = ({ ...props }) => {
   return (
     <>
       <SoloInput
+        {...field}
+        {...props}
+        error={!!meta.error && meta.touched}
+        title={props.title}
+        value={field.value}
+        onChange={field.onChange}
+      />
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
+    </>
+  );
+};
+
+export const SoloFormTextarea = ({ ...props }) => {
+  const { hideError = false } = props;
+  const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
+  return (
+    <>
+      <SoloTextarea
         {...field}
         {...props}
         error={!!meta.error && meta.touched}
@@ -139,6 +164,7 @@ export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
 };
 
 export const SoloFormDropdown = (props: any) => {
+  const { hideError } = props;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -151,9 +177,11 @@ export const SoloFormDropdown = (props: any) => {
         onChange={value => form.setFieldValue(field.name, value)}
         onBlur={value => form.setFieldValue(field.name, value)}
       />
-      <ErrorText errorExists={!!meta.error && meta.touched}>
-        {meta.error}
-      </ErrorText>
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
     </>
   );
 };

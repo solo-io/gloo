@@ -1,4 +1,5 @@
 const colorsList = {
+  kumquatOrange: 'hsl(22, 100%, 94%)', //#FFEADE
   tangerineOrange: 'hsl(20, 92%, 84%)', //#FCCCB3
   peachOrange: 'hsl(20, 75%, 64%)', //#E98D5E
   grapefruitOrange: 'hsl(20, 76%, 47%)', //#D75B1D

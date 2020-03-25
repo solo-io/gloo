@@ -13,30 +13,30 @@ import (
 	v10 "k8s.io/api/core/v1"
 )
 
-// MockProxyStatusGetter is a mock of ProxyStatusGetter interface
+// MockProxyStatusGetter is a mock of ProxyStatusGetter interface.
 type MockProxyStatusGetter struct {
 	ctrl     *gomock.Controller
 	recorder *MockProxyStatusGetterMockRecorder
 }
 
-// MockProxyStatusGetterMockRecorder is the mock recorder for MockProxyStatusGetter
+// MockProxyStatusGetterMockRecorder is the mock recorder for MockProxyStatusGetter.
 type MockProxyStatusGetterMockRecorder struct {
 	mock *MockProxyStatusGetter
 }
 
-// NewMockProxyStatusGetter creates a new mock instance
+// NewMockProxyStatusGetter creates a new mock instance.
 func NewMockProxyStatusGetter(ctrl *gomock.Controller) *MockProxyStatusGetter {
 	mock := &MockProxyStatusGetter{ctrl: ctrl}
 	mock.recorder = &MockProxyStatusGetterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockProxyStatusGetter) EXPECT() *MockProxyStatusGetterMockRecorder {
 	return m.recorder
 }
 
-// GetProxyStatus mocks base method
+// GetProxyStatus mocks base method.
 func (m *MockProxyStatusGetter) GetProxyStatus(arg0 context.Context, arg1 v10.Pod) *v1.Status {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyStatus", arg0, arg1)
@@ -44,7 +44,7 @@ func (m *MockProxyStatusGetter) GetProxyStatus(arg0 context.Context, arg1 v10.Po
 	return ret0
 }
 
-// GetProxyStatus indicates an expected call of GetProxyStatus
+// GetProxyStatus indicates an expected call of GetProxyStatus.
 func (mr *MockProxyStatusGetterMockRecorder) GetProxyStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyStatus", reflect.TypeOf((*MockProxyStatusGetter)(nil).GetProxyStatus), arg0, arg1)

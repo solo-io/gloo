@@ -11,30 +11,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockValuesClient is a mock of ValuesClient interface
+// MockValuesClient is a mock of ValuesClient interface.
 type MockValuesClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockValuesClientMockRecorder
 }
 
-// MockValuesClientMockRecorder is the mock recorder for MockValuesClient
+// MockValuesClientMockRecorder is the mock recorder for MockValuesClient.
 type MockValuesClientMockRecorder struct {
 	mock *MockValuesClient
 }
 
-// NewMockValuesClient creates a new mock instance
+// NewMockValuesClient creates a new mock instance.
 func NewMockValuesClient(ctrl *gomock.Controller) *MockValuesClient {
 	mock := &MockValuesClient{ctrl: ctrl}
 	mock.recorder = &MockValuesClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockValuesClient) EXPECT() *MockValuesClientMockRecorder {
 	return m.recorder
 }
 
-// GetRefreshRate mocks base method
+// GetRefreshRate mocks base method.
 func (m *MockValuesClient) GetRefreshRate() time.Duration {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRefreshRate")
@@ -42,13 +42,13 @@ func (m *MockValuesClient) GetRefreshRate() time.Duration {
 	return ret0
 }
 
-// GetRefreshRate indicates an expected call of GetRefreshRate
+// GetRefreshRate indicates an expected call of GetRefreshRate.
 func (mr *MockValuesClientMockRecorder) GetRefreshRate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshRate", reflect.TypeOf((*MockValuesClient)(nil).GetRefreshRate))
 }
 
-// GetWatchNamespaces mocks base method
+// GetWatchNamespaces mocks base method.
 func (m *MockValuesClient) GetWatchNamespaces() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWatchNamespaces")
@@ -56,7 +56,7 @@ func (m *MockValuesClient) GetWatchNamespaces() []string {
 	return ret0
 }
 
-// GetWatchNamespaces indicates an expected call of GetWatchNamespaces
+// GetWatchNamespaces indicates an expected call of GetWatchNamespaces.
 func (mr *MockValuesClientMockRecorder) GetWatchNamespaces() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWatchNamespaces", reflect.TypeOf((*MockValuesClient)(nil).GetWatchNamespaces))

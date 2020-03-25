@@ -11,36 +11,36 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockUpdater is a mock of Updater interface
+// MockUpdater is a mock of Updater interface.
 type MockUpdater struct {
 	ctrl     *gomock.Controller
 	recorder *MockUpdaterMockRecorder
 }
 
-// MockUpdaterMockRecorder is the mock recorder for MockUpdater
+// MockUpdaterMockRecorder is the mock recorder for MockUpdater.
 type MockUpdaterMockRecorder struct {
 	mock *MockUpdater
 }
 
-// NewMockUpdater creates a new mock instance
+// NewMockUpdater creates a new mock instance.
 func NewMockUpdater(ctrl *gomock.Controller) *MockUpdater {
 	mock := &MockUpdater{ctrl: ctrl}
 	mock.recorder = &MockUpdaterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUpdater) EXPECT() *MockUpdaterMockRecorder {
 	return m.recorder
 }
 
-// StartWatch mocks base method
+// StartWatch mocks base method.
 func (m *MockUpdater) StartWatch(arg0 context.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "StartWatch", arg0)
 }
 
-// StartWatch indicates an expected call of StartWatch
+// StartWatch indicates an expected call of StartWatch.
 func (mr *MockUpdaterMockRecorder) StartWatch(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartWatch", reflect.TypeOf((*MockUpdater)(nil).StartWatch), arg0)

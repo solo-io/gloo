@@ -13,30 +13,30 @@ import (
 	mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
 
-// MockMutator is a mock of Mutator interface
+// MockMutator is a mock of Mutator interface.
 type MockMutator struct {
 	ctrl     *gomock.Controller
 	recorder *MockMutatorMockRecorder
 }
 
-// MockMutatorMockRecorder is the mock recorder for MockMutator
+// MockMutatorMockRecorder is the mock recorder for MockMutator.
 type MockMutatorMockRecorder struct {
 	mock *MockMutator
 }
 
-// NewMockMutator creates a new mock instance
+// NewMockMutator creates a new mock instance.
 func NewMockMutator(ctrl *gomock.Controller) *MockMutator {
 	mock := &MockMutator{ctrl: ctrl}
 	mock.recorder = &MockMutatorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMutator) EXPECT() *MockMutatorMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method
+// Create mocks base method.
 func (m *MockMutator) Create(arg0 *core.ResourceRef, arg1 mutation.Mutation) (*v1.VirtualService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
@@ -45,13 +45,13 @@ func (m *MockMutator) Create(arg0 *core.ResourceRef, arg1 mutation.Mutation) (*v
 	return ret0, ret1
 }
 
-// Create indicates an expected call of Create
+// Create indicates an expected call of Create.
 func (mr *MockMutatorMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockMutator)(nil).Create), arg0, arg1)
 }
 
-// Update mocks base method
+// Update mocks base method.
 func (m *MockMutator) Update(arg0 *core.ResourceRef, arg1 mutation.Mutation) (*v1.VirtualService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
@@ -60,7 +60,7 @@ func (m *MockMutator) Update(arg0 *core.ResourceRef, arg1 mutation.Mutation) (*v
 	return ret0, ret1
 }
 
-// Update indicates an expected call of Update
+// Update indicates an expected call of Update.
 func (mr *MockMutatorMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMutator)(nil).Update), arg0, arg1)

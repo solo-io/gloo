@@ -15,30 +15,30 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
-// MockRawGetter is a mock of RawGetter interface
+// MockRawGetter is a mock of RawGetter interface.
 type MockRawGetter struct {
 	ctrl     *gomock.Controller
 	recorder *MockRawGetterMockRecorder
 }
 
-// MockRawGetterMockRecorder is the mock recorder for MockRawGetter
+// MockRawGetterMockRecorder is the mock recorder for MockRawGetter.
 type MockRawGetterMockRecorder struct {
 	mock *MockRawGetter
 }
 
-// NewMockRawGetter creates a new mock instance
+// NewMockRawGetter creates a new mock instance.
 func NewMockRawGetter(ctrl *gomock.Controller) *MockRawGetter {
 	mock := &MockRawGetter{ctrl: ctrl}
 	mock.recorder = &MockRawGetterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRawGetter) EXPECT() *MockRawGetterMockRecorder {
 	return m.recorder
 }
 
-// GetRaw mocks base method
+// GetRaw mocks base method.
 func (m *MockRawGetter) GetRaw(arg0 context.Context, arg1 resources.InputResource, arg2 crd.Crd) *v1.Raw {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRaw", arg0, arg1, arg2)
@@ -46,13 +46,13 @@ func (m *MockRawGetter) GetRaw(arg0 context.Context, arg1 resources.InputResourc
 	return ret0
 }
 
-// GetRaw indicates an expected call of GetRaw
+// GetRaw indicates an expected call of GetRaw.
 func (mr *MockRawGetterMockRecorder) GetRaw(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockRawGetter)(nil).GetRaw), arg0, arg1, arg2)
 }
 
-// InitResourceFromYamlString mocks base method
+// InitResourceFromYamlString mocks base method.
 func (m *MockRawGetter) InitResourceFromYamlString(arg0 context.Context, arg1 string, arg2 *core.ResourceRef, arg3 resources.InputResource) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InitResourceFromYamlString", arg0, arg1, arg2, arg3)
@@ -60,7 +60,7 @@ func (m *MockRawGetter) InitResourceFromYamlString(arg0 context.Context, arg1 st
 	return ret0
 }
 
-// InitResourceFromYamlString indicates an expected call of InitResourceFromYamlString
+// InitResourceFromYamlString indicates an expected call of InitResourceFromYamlString.
 func (mr *MockRawGetterMockRecorder) InitResourceFromYamlString(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitResourceFromYamlString", reflect.TypeOf((*MockRawGetter)(nil).InitResourceFromYamlString), arg0, arg1, arg2, arg3)

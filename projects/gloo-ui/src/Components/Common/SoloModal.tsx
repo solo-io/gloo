@@ -22,13 +22,13 @@ const BlockHolder = styled.div`
   max-height: 80vh;
 `;
 
-type ContentProps = {
+type ModalBlockProps = {
   width: number | string;
 };
 const ModalBlock = styled.div`
   position: relative;
   max-width: 100%;
-  width: ${(props: ContentProps) =>
+  width: ${(props: ModalBlockProps) =>
     props.width === 'auto' ? props.width : `${props.width}px`};
   border-radius: 10px;
   background: white;
@@ -55,8 +55,15 @@ const CloseXContainer = styled.div`
   }
 `;
 
+interface ContentProps {
+  noPadding?: boolean;
+}
 const Content = styled.div`
-  padding: 0 ${soloConstants.smallBuffer}px ${soloConstants.largeBuffer}px;
+  padding: 0
+    ${(props: ContentProps) =>
+      !!props.noPadding
+        ? '0'
+        : `${soloConstants.smallBuffer}px ${soloConstants.largeBuffer}px`};
 `;
 
 interface ModalProps {
@@ -64,11 +71,12 @@ interface ModalProps {
   width: number;
   title?: string | React.ReactNode;
   children: React.ReactChild;
-  onClose: () => any;
+  onClose?: () => any;
+  noPadding?: boolean;
 }
 
 export const SoloModal = (props: ModalProps) => {
-  const { visible, width, title, children, onClose } = props;
+  const { visible, width, title, children, onClose, noPadding } = props;
 
   if (!visible) {
     document.body.style.overflow = 'auto';
@@ -78,15 +86,17 @@ export const SoloModal = (props: ModalProps) => {
   document.body.style.overflow = 'hidden';
 
   return (
-    <ModalWindow onClick={onClose}>
+    <ModalWindow>
       <BlockHolder
         onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
         <ModalBlock width={width}>
-          <CloseXContainer onClick={onClose}>
-            <CloseX />
-          </CloseXContainer>
-          <Title>{title}</Title>
-          <Content>{children}</Content>
+          {!!onClose && (
+            <CloseXContainer onClick={onClose}>
+              <CloseX />
+            </CloseXContainer>
+          )}
+          {!!title && <Title>{title}</Title>}
+          <Content noPadding={noPadding}>{children}</Content>
         </ModalBlock>
       </BlockHolder>
     </ModalWindow>

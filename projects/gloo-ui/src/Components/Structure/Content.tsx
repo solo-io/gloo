@@ -100,7 +100,7 @@ export const Content = () => {
           <DevPortal />
         </DevPortalRoute>
         <DevPortalRoute path='/dev-portal/api-key-scopes' exact>
-          <DevPortal />
+          <DevPortal />{' '}
         </DevPortalRoute>
         <DevPortalRoute path='/dev-portal/api-keys' exact>
           <DevPortal />

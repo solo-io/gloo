@@ -12,30 +12,30 @@ import (
 	clients "github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
-// MockGatewayClient is a mock of GatewayClient interface
+// MockGatewayClient is a mock of GatewayClient interface.
 type MockGatewayClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockGatewayClientMockRecorder
 }
 
-// MockGatewayClientMockRecorder is the mock recorder for MockGatewayClient
+// MockGatewayClientMockRecorder is the mock recorder for MockGatewayClient.
 type MockGatewayClientMockRecorder struct {
 	mock *MockGatewayClient
 }
 
-// NewMockGatewayClient creates a new mock instance
+// NewMockGatewayClient creates a new mock instance.
 func NewMockGatewayClient(ctrl *gomock.Controller) *MockGatewayClient {
 	mock := &MockGatewayClient{ctrl: ctrl}
 	mock.recorder = &MockGatewayClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGatewayClient) EXPECT() *MockGatewayClientMockRecorder {
 	return m.recorder
 }
 
-// BaseClient mocks base method
+// BaseClient mocks base method.
 func (m *MockGatewayClient) BaseClient() clients.ResourceClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BaseClient")
@@ -43,13 +43,13 @@ func (m *MockGatewayClient) BaseClient() clients.ResourceClient {
 	return ret0
 }
 
-// BaseClient indicates an expected call of BaseClient
+// BaseClient indicates an expected call of BaseClient.
 func (mr *MockGatewayClientMockRecorder) BaseClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BaseClient", reflect.TypeOf((*MockGatewayClient)(nil).BaseClient))
 }
 
-// Delete mocks base method
+// Delete mocks base method.
 func (m *MockGatewayClient) Delete(arg0, arg1 string, arg2 clients.DeleteOpts) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
@@ -57,13 +57,13 @@ func (m *MockGatewayClient) Delete(arg0, arg1 string, arg2 clients.DeleteOpts) e
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
+// Delete indicates an expected call of Delete.
 func (mr *MockGatewayClientMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGatewayClient)(nil).Delete), arg0, arg1, arg2)
 }
 
-// List mocks base method
+// List mocks base method.
 func (m *MockGatewayClient) List(arg0 string, arg1 clients.ListOpts) (v1.GatewayList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", arg0, arg1)
@@ -72,13 +72,13 @@ func (m *MockGatewayClient) List(arg0 string, arg1 clients.ListOpts) (v1.Gateway
 	return ret0, ret1
 }
 
-// List indicates an expected call of List
+// List indicates an expected call of List.
 func (mr *MockGatewayClientMockRecorder) List(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGatewayClient)(nil).List), arg0, arg1)
 }
 
-// Read mocks base method
+// Read mocks base method.
 func (m *MockGatewayClient) Read(arg0, arg1 string, arg2 clients.ReadOpts) (*v1.Gateway, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Read", arg0, arg1, arg2)
@@ -87,13 +87,13 @@ func (m *MockGatewayClient) Read(arg0, arg1 string, arg2 clients.ReadOpts) (*v1.
 	return ret0, ret1
 }
 
-// Read indicates an expected call of Read
+// Read indicates an expected call of Read.
 func (mr *MockGatewayClientMockRecorder) Read(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockGatewayClient)(nil).Read), arg0, arg1, arg2)
 }
 
-// Register mocks base method
+// Register mocks base method.
 func (m *MockGatewayClient) Register() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register")
@@ -101,13 +101,13 @@ func (m *MockGatewayClient) Register() error {
 	return ret0
 }
 
-// Register indicates an expected call of Register
+// Register indicates an expected call of Register.
 func (mr *MockGatewayClientMockRecorder) Register() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockGatewayClient)(nil).Register))
 }
 
-// Watch mocks base method
+// Watch mocks base method.
 func (m *MockGatewayClient) Watch(arg0 string, arg1 clients.WatchOpts) (<-chan v1.GatewayList, <-chan error, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0, arg1)
@@ -117,13 +117,13 @@ func (m *MockGatewayClient) Watch(arg0 string, arg1 clients.WatchOpts) (<-chan v
 	return ret0, ret1, ret2
 }
 
-// Watch indicates an expected call of Watch
+// Watch indicates an expected call of Watch.
 func (mr *MockGatewayClientMockRecorder) Watch(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockGatewayClient)(nil).Watch), arg0, arg1)
 }
 
-// Write mocks base method
+// Write mocks base method.
 func (m *MockGatewayClient) Write(arg0 *v1.Gateway, arg1 clients.WriteOpts) (*v1.Gateway, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Write", arg0, arg1)
@@ -132,7 +132,7 @@ func (m *MockGatewayClient) Write(arg0 *v1.Gateway, arg1 clients.WriteOpts) (*v1
 	return ret0, ret1
 }
 
-// Write indicates an expected call of Write
+// Write indicates an expected call of Write.
 func (mr *MockGatewayClientMockRecorder) Write(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockGatewayClient)(nil).Write), arg0, arg1)

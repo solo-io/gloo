@@ -13,30 +13,30 @@ import (
 	v10 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
-// MockVirtualServiceDetailsConverter is a mock of VirtualServiceDetailsConverter interface
+// MockVirtualServiceDetailsConverter is a mock of VirtualServiceDetailsConverter interface.
 type MockVirtualServiceDetailsConverter struct {
 	ctrl     *gomock.Controller
 	recorder *MockVirtualServiceDetailsConverterMockRecorder
 }
 
-// MockVirtualServiceDetailsConverterMockRecorder is the mock recorder for MockVirtualServiceDetailsConverter
+// MockVirtualServiceDetailsConverterMockRecorder is the mock recorder for MockVirtualServiceDetailsConverter.
 type MockVirtualServiceDetailsConverterMockRecorder struct {
 	mock *MockVirtualServiceDetailsConverter
 }
 
-// NewMockVirtualServiceDetailsConverter creates a new mock instance
+// NewMockVirtualServiceDetailsConverter creates a new mock instance.
 func NewMockVirtualServiceDetailsConverter(ctrl *gomock.Controller) *MockVirtualServiceDetailsConverter {
 	mock := &MockVirtualServiceDetailsConverter{ctrl: ctrl}
 	mock.recorder = &MockVirtualServiceDetailsConverterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockVirtualServiceDetailsConverter) EXPECT() *MockVirtualServiceDetailsConverterMockRecorder {
 	return m.recorder
 }
 
-// GetDetails mocks base method
+// GetDetails mocks base method.
 func (m *MockVirtualServiceDetailsConverter) GetDetails(arg0 context.Context, arg1 *v1.VirtualService) *v10.VirtualServiceDetails {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDetails", arg0, arg1)
@@ -44,7 +44,7 @@ func (m *MockVirtualServiceDetailsConverter) GetDetails(arg0 context.Context, ar
 	return ret0
 }
 
-// GetDetails indicates an expected call of GetDetails
+// GetDetails indicates an expected call of GetDetails.
 func (mr *MockVirtualServiceDetailsConverterMockRecorder) GetDetails(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockVirtualServiceDetailsConverter)(nil).GetDetails), arg0, arg1)

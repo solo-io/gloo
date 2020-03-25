@@ -32,6 +32,7 @@ export const SoloButtonCSS = css`
   &:focus {
     color: white;
     background: ${colors.lakeBlue};
+    outline: none;
   }
 
   &:active {
