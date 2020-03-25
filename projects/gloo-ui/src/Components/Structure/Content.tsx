@@ -17,6 +17,7 @@ import { UpstreamGroupDetails } from 'Components/Features/Upstream/UpstreamGroup
 import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing';
 import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
 import { VirtualServicesListing } from 'Components/Features/VirtualService/VirtualServicesListing';
+import { PortalPageEditor } from 'Components/Features/DevPortal/portals/PortalPageEditor';
 import React from 'react';
 import { Redirect, Route, Switch, RouteProps } from 'react-router-dom';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
@@ -41,6 +42,11 @@ const DevPortalRoute: React.FC<RouteProps> = props => {
   } = useSWR('isDeveloperPortalEnabled', configAPI.isDeveloperPortalEnabled, {
     refreshInterval: 0
   });
+
+  if (isDeveloperPortalEnabled === undefined) {
+    return null;
+  }
+
   return (
     <Route {...props}>
       {isDeveloperPortalEnabled ? props.children : <Redirect to='/overview/' />}
@@ -49,13 +55,6 @@ const DevPortalRoute: React.FC<RouteProps> = props => {
 };
 
 export const Content = () => {
-  const {
-    data: isDeveloperPortalEnabled,
-    error: isDeveloperPortalEnabledError
-  } = useSWR('isDeveloperPortalEnabled', configAPI.isDeveloperPortalEnabled, {
-    refreshInterval: 0
-  });
-
   return (
     <Container>
       <Switch>
@@ -107,6 +106,11 @@ export const Content = () => {
         </DevPortalRoute>
         <DevPortalRoute path='/dev-portal/portals/:portalname' exact>
           <PortalDetails />
+        </DevPortalRoute>
+        <DevPortalRoute
+          path='/dev-portal/portals/:portalname/page-editor/:pagename'
+          exact>
+          <PortalPageEditor />
         </DevPortalRoute>
         <DevPortalRoute path='/dev-portal/apis/:apiname'>
           <APIDetails />

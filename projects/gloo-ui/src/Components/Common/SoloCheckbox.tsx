@@ -79,7 +79,7 @@ export const SoloCheckbox: React.FC<CheckboxProps> = props => {
   if (!!withWrapper) {
     return (
       <CheckboxWrapper checked={checked}>
-        {label ? <Label>{title}</Label> : title}
+        {!title ? null : label ? <Label>{title}</Label> : title}
         <Checkbox disabled={disabled} checked={checked} onChange={onChange} />
       </CheckboxWrapper>
     );
@@ -87,7 +87,7 @@ export const SoloCheckbox: React.FC<CheckboxProps> = props => {
 
   return (
     <OnlyCheckbox>
-      {label ? <Label>{title}</Label> : title}
+      {!title ? null : label ? <Label>{title}</Label> : title}
       <Checkbox disabled={disabled} checked={checked} onChange={onChange} />
     </OnlyCheckbox>
   );

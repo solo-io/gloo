@@ -47,6 +47,7 @@ const CloseXContainer = styled.div`
   display: flex;
   right: 16px;
   top: 16px;
+  z-index: 2;
 
   > svg {
     width: 16px;

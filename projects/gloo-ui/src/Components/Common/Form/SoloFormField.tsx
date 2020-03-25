@@ -187,6 +187,7 @@ export const SoloFormDropdown = (props: any) => {
 };
 
 export const SoloFormCheckbox = (props: any) => {
+  const { hideError } = props;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -200,9 +201,11 @@ export const SoloFormCheckbox = (props: any) => {
         onChange={value => form.setFieldValue(field.name, value.target.checked)}
         label
       />
-      <ErrorText errorExists={!!meta.touched && !!meta.error}>
-        {meta.error}
-      </ErrorText>
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
     </>
   );
 };

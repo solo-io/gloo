@@ -196,27 +196,29 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                     </div>
 
                     <div className='mt-4'>
-                      <SoloTransfer
-                        allOptionsListName='Available APIs'
-                        allOptions={
-                          !!portalSelected?.status?.apiDocsList
-                            ? portalSelected?.status?.apiDocsList.map(
-                                apiDoc => {
-                                  return {
-                                    value: apiDoc
-                                  };
-                                }
-                              )
-                            : []
-                        }
-                        chosenOptionsListName='Selected APIs'
-                        chosenOptions={values.chosenAPIs.map(api => {
-                          return { value: api.name + api.namespace };
-                        })}
-                        onChange={newChosenOptions => {
-                          setFieldValue('chosenAPIs', newChosenOptions);
-                        }}
-                      />
+                      {!!portalSelected?.status?.apiDocsList ? (
+                        <SoloTransfer
+                          allOptionsListName='Available APIs'
+                          allOptions={portalSelected?.status?.apiDocsList.map(
+                            apiDoc => {
+                              return {
+                                value: apiDoc
+                              };
+                            }
+                          )}
+                          chosenOptionsListName='Selected APIs'
+                          chosenOptions={values.chosenAPIs.map(api => {
+                            return { value: api.name + api.namespace };
+                          })}
+                          onChange={newChosenOptions => {
+                            setFieldValue('chosenAPIs', newChosenOptions);
+                          }}
+                        />
+                      ) : (
+                        <div className='font-normal'>
+                          No APIs are available on this portal to assign.
+                        </div>
+                      )}
                     </div>
 
                     <div className='mt-8 flex items-center justify-between'>
