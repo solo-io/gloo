@@ -21,7 +21,7 @@ function formatHealthStatus(
 ): Status.StateMap[keyof Status.StateMap] {
   if (
     status === PortalStatus.State.PENDING ||
-    status === PortalStatus.State.PUBLISHING
+    status === PortalStatus.State.PROCESSING
   ) {
     return Status.State.PENDING;
   } else if (

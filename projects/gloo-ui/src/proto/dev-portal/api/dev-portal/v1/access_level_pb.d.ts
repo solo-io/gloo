@@ -37,14 +37,14 @@ export namespace AccessLevel {
 
 export class AccessLevelStatus extends jspb.Message {
   clearPortalsList(): void;
-  getPortalsList(): Array<string>;
-  setPortalsList(value: Array<string>): void;
-  addPortals(value: string, index?: number): string;
+  getPortalsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setPortalsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addPortals(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   clearApiDocsList(): void;
-  getApiDocsList(): Array<string>;
-  setApiDocsList(value: Array<string>): void;
-  addApiDocs(value: string, index?: number): string;
+  getApiDocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setApiDocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AccessLevelStatus.AsObject;
@@ -58,7 +58,7 @@ export class AccessLevelStatus extends jspb.Message {
 
 export namespace AccessLevelStatus {
   export type AsObject = {
-    portalsList: Array<string>,
-    apiDocsList: Array<string>,
+    portalsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
   }
 }

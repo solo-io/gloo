@@ -92,10 +92,8 @@ proto.devportal.solo.io.ApiDocSpec.prototype.toObject = function(opt_includeInst
  */
 proto.devportal.solo.io.ApiDocSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
-    displayName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    description: jspb.Message.getFieldWithDefault(msg, 3, ""),
     dataSource: (f = msg.getDataSource()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
+    image: (f = msg.getImage()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f),
     openApi: (f = msg.getOpenApi()) && proto.devportal.solo.io.ApiDocSpec.OpenApi.toObject(includeInstance, f)
   };
 
@@ -133,22 +131,15 @@ proto.devportal.solo.io.ApiDocSpec.deserializeBinaryFromReader = function(msg, r
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDisplayName(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setVersion(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDescription(value);
-      break;
     case 4:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.DataSource.deserializeBinaryFromReader);
       msg.setDataSource(value);
+      break;
+    case 6:
+      var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.DataSource.deserializeBinaryFromReader);
+      msg.setImage(value);
       break;
     case 5:
       var value = new proto.devportal.solo.io.ApiDocSpec.OpenApi;
@@ -184,31 +175,18 @@ proto.devportal.solo.io.ApiDocSpec.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.ApiDocSpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getDisplayName();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getVersion();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
-  f = message.getDescription();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
   f = message.getDataSource();
   if (f != null) {
     writer.writeMessage(
       4,
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.DataSource.serializeBinaryToWriter
+    );
+  }
+  f = message.getImage();
+  if (f != null) {
+    writer.writeMessage(
+      6,
       f,
       dev$portal_api_dev$portal_v1_common_pb.DataSource.serializeBinaryToWriter
     );
@@ -341,51 +319,6 @@ proto.devportal.solo.io.ApiDocSpec.OpenApi.serializeBinaryToWriter = function(me
 
 
 /**
- * optional string display_name = 1;
- * @return {string}
- */
-proto.devportal.solo.io.ApiDocSpec.prototype.getDisplayName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.devportal.solo.io.ApiDocSpec.prototype.setDisplayName = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string version = 2;
- * @return {string}
- */
-proto.devportal.solo.io.ApiDocSpec.prototype.getVersion = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/** @param {string} value */
-proto.devportal.solo.io.ApiDocSpec.prototype.setVersion = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional string description = 3;
- * @return {string}
- */
-proto.devportal.solo.io.ApiDocSpec.prototype.getDescription = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/** @param {string} value */
-proto.devportal.solo.io.ApiDocSpec.prototype.setDescription = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
  * optional DataSource data_source = 4;
  * @return {?proto.devportal.solo.io.DataSource}
  */
@@ -412,6 +345,36 @@ proto.devportal.solo.io.ApiDocSpec.prototype.clearDataSource = function() {
  */
 proto.devportal.solo.io.ApiDocSpec.prototype.hasDataSource = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional DataSource image = 6;
+ * @return {?proto.devportal.solo.io.DataSource}
+ */
+proto.devportal.solo.io.ApiDocSpec.prototype.getImage = function() {
+  return /** @type{?proto.devportal.solo.io.DataSource} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.DataSource, 6));
+};
+
+
+/** @param {?proto.devportal.solo.io.DataSource|undefined} value */
+proto.devportal.solo.io.ApiDocSpec.prototype.setImage = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.devportal.solo.io.ApiDocSpec.prototype.clearImage = function() {
+  this.setImage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.devportal.solo.io.ApiDocSpec.prototype.hasImage = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 
@@ -496,8 +459,11 @@ proto.devportal.solo.io.ApiDocStatus.toObject = function(includeInstance, msg) {
     state: jspb.Message.getFieldWithDefault(msg, 2, 0),
     reason: jspb.Message.getFieldWithDefault(msg, 3, ""),
     modifiedDate: (f = msg.getModifiedDate()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    numberOfEndpoints: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    basePath: jspb.Message.getFieldWithDefault(msg, 6, "")
+    displayName: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    version: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    numberOfEndpoints: jspb.Message.getFieldWithDefault(msg, 8, 0),
+    basePath: jspb.Message.getFieldWithDefault(msg, 9, "")
   };
 
   if (includeInstance) {
@@ -552,10 +518,22 @@ proto.devportal.solo.io.ApiDocStatus.deserializeBinaryFromReader = function(msg,
       msg.setModifiedDate(value);
       break;
     case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setVersion(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
+      break;
+    case 8:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setNumberOfEndpoints(value);
       break;
-    case 6:
+    case 9:
       var value = /** @type {string} */ (reader.readString());
       msg.setBasePath(value);
       break;
@@ -617,17 +595,38 @@ proto.devportal.solo.io.ApiDocStatus.serializeBinaryToWriter = function(message,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
+  f = message.getDisplayName();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getVersion();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = message.getDescription();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
   f = message.getNumberOfEndpoints();
   if (f !== 0) {
     writer.writeInt32(
-      5,
+      8,
       f
     );
   }
   f = message.getBasePath();
   if (f.length > 0) {
     writer.writeString(
-      6,
+      9,
       f
     );
   }
@@ -718,32 +717,77 @@ proto.devportal.solo.io.ApiDocStatus.prototype.hasModifiedDate = function() {
 
 
 /**
- * optional int32 number_of_endpoints = 5;
- * @return {number}
+ * optional string display_name = 5;
+ * @return {string}
  */
-proto.devportal.solo.io.ApiDocStatus.prototype.getNumberOfEndpoints = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+proto.devportal.solo.io.ApiDocStatus.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
-/** @param {number} value */
-proto.devportal.solo.io.ApiDocStatus.prototype.setNumberOfEndpoints = function(value) {
-  jspb.Message.setProto3IntField(this, 5, value);
+/** @param {string} value */
+proto.devportal.solo.io.ApiDocStatus.prototype.setDisplayName = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
 };
 
 
 /**
- * optional string base_path = 6;
+ * optional string version = 6;
  * @return {string}
  */
-proto.devportal.solo.io.ApiDocStatus.prototype.getBasePath = function() {
+proto.devportal.solo.io.ApiDocStatus.prototype.getVersion = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.ApiDocStatus.prototype.setBasePath = function(value) {
+proto.devportal.solo.io.ApiDocStatus.prototype.setVersion = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional string description = 7;
+ * @return {string}
+ */
+proto.devportal.solo.io.ApiDocStatus.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.ApiDocStatus.prototype.setDescription = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional int32 number_of_endpoints = 8;
+ * @return {number}
+ */
+proto.devportal.solo.io.ApiDocStatus.prototype.getNumberOfEndpoints = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 8, 0));
+};
+
+
+/** @param {number} value */
+proto.devportal.solo.io.ApiDocStatus.prototype.setNumberOfEndpoints = function(value) {
+  jspb.Message.setProto3IntField(this, 8, value);
+};
+
+
+/**
+ * optional string base_path = 9;
+ * @return {string}
+ */
+proto.devportal.solo.io.ApiDocStatus.prototype.getBasePath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.ApiDocStatus.prototype.setBasePath = function(value) {
+  jspb.Message.setProto3StringField(this, 9, value);
 };
 
 

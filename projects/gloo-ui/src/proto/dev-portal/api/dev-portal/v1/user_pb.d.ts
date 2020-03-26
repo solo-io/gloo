@@ -81,13 +81,16 @@ export class UserStatus extends jspb.Message {
   getObservedGeneration(): number;
   setObservedGeneration(value: number): void;
 
-  getHasLoggedIn(): boolean;
-  setHasLoggedIn(value: boolean): void;
+  getState(): UserStatus.StateMap[keyof UserStatus.StateMap];
+  setState(value: UserStatus.StateMap[keyof UserStatus.StateMap]): void;
 
   hasAccessLevel(): boolean;
   clearAccessLevel(): void;
   getAccessLevel(): dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus | undefined;
   setAccessLevel(value?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus): void;
+
+  getHasLoggedIn(): boolean;
+  setHasLoggedIn(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserStatus.AsObject;
@@ -102,7 +105,16 @@ export class UserStatus extends jspb.Message {
 export namespace UserStatus {
   export type AsObject = {
     observedGeneration: number,
-    hasLoggedIn: boolean,
+    state: UserStatus.StateMap[keyof UserStatus.StateMap],
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
+    hasLoggedIn: boolean,
   }
+
+  export interface StateMap {
+    PENDING: 0;
+    ACCEPTED: 1;
+    INVALID: 2;
+  }
+
+  export const State: StateMap;
 }

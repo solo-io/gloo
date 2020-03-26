@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Bump dev-portal to 0.0.8 to pick up new gRPC services. All the operations for the dev-portal resources
+    (`Portals`, `ApiDocs`, `Users`, `Groups`) are now implemented by the apiserver.

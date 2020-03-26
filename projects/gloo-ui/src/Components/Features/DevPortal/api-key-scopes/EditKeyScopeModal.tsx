@@ -119,19 +119,19 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
             </TabList>
 
             <TabPanels className='bg-white rounded-r-lg'>
-              <div className='pt-5 pr-6 pb-6 pl-8'>
+              <div className='pt-5 pb-6 pl-8 pr-6'>
                 <TabPanel className='focus:outline-none'>
                   <div className='relative flex flex-col'>
-                    <div className='text-lg flex items-center font-medium'>
+                    <div className='flex items-center text-lg font-medium'>
                       {textTopic} an API Key Scope{' '}
                       <StacksIcon className='w-8 h-8 ml-2' />
                     </div>
 
-                    <div className='rounded-lg bg-gray-100 p-3 mt-3 text-gray-700'>
+                    <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
                       Lorem Ipsum
                     </div>
 
-                    <div className='mt-4 grid grid-cols-2 gap-4'>
+                    <div className='grid grid-cols-2 gap-4 mt-4'>
                       <div className='mb-4'>
                         <SoloFormInput
                           testId={`edit-key-scope-name`}
@@ -186,12 +186,12 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                 </TabPanel>
                 <TabPanel className='focus:outline-none'>
                   <div className='relative flex flex-col '>
-                    <div className='text-lg flex items-center font-medium'>
+                    <div className='flex items-center text-lg font-medium'>
                       {textTopic} an API Key Scope: APIs{' '}
-                      <StacksIcon className='w-8 h-8  ml-2' />
+                      <StacksIcon className='w-8 h-8 ml-2' />
                     </div>
 
-                    <div className='rounded-lg bg-gray-100 p-3 mt-3 text-gray-700'>
+                    <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
                       Lorem Ipsum
                     </div>
 
@@ -202,7 +202,8 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                           allOptions={portalSelected?.status?.apiDocsList.map(
                             apiDoc => {
                               return {
-                                value: apiDoc
+                                value: apiDoc.name,
+                                displayValue: apiDoc.name
                               };
                             }
                           )}
@@ -221,7 +222,7 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                       )}
                     </div>
 
-                    <div className='mt-8 flex items-center justify-between'>
+                    <div className='flex items-center justify-between mt-8'>
                       <div
                         onClick={onCancel}
                         className='text-blue-500 cursor-pointer'>

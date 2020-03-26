@@ -24,7 +24,7 @@ const ListTitle = styled.div`
 const ListHolder = styled.div`
   color: ${colors.septemberGrey};
   padding: 9px;
-  border 1px solid ${colors.aprilGrey};
+  border: 1px solid ${colors.aprilGrey};
   background: white;
 `;
 

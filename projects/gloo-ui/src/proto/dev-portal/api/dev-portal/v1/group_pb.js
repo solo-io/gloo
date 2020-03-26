@@ -67,7 +67,7 @@ proto.devportal.solo.io.GroupSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     displayName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    userLabels: (f = msg.getUserLabels()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
+    userSelector: (f = msg.getUserSelector()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f),
     accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel.toObject(includeInstance, f)
   };
 
@@ -116,7 +116,7 @@ proto.devportal.solo.io.GroupSpec.deserializeBinaryFromReader = function(msg, re
     case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.Selector.deserializeBinaryFromReader);
-      msg.setUserLabels(value);
+      msg.setUserSelector(value);
       break;
     case 4:
       var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevel;
@@ -166,7 +166,7 @@ proto.devportal.solo.io.GroupSpec.serializeBinaryToWriter = function(message, wr
       f
     );
   }
-  f = message.getUserLabels();
+  f = message.getUserSelector();
   if (f != null) {
     writer.writeMessage(
       3,
@@ -216,23 +216,23 @@ proto.devportal.solo.io.GroupSpec.prototype.setDescription = function(value) {
 
 
 /**
- * optional Selector user_labels = 3;
+ * optional Selector user_selector = 3;
  * @return {?proto.devportal.solo.io.Selector}
  */
-proto.devportal.solo.io.GroupSpec.prototype.getUserLabels = function() {
+proto.devportal.solo.io.GroupSpec.prototype.getUserSelector = function() {
   return /** @type{?proto.devportal.solo.io.Selector} */ (
     jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.Selector, 3));
 };
 
 
 /** @param {?proto.devportal.solo.io.Selector|undefined} value */
-proto.devportal.solo.io.GroupSpec.prototype.setUserLabels = function(value) {
+proto.devportal.solo.io.GroupSpec.prototype.setUserSelector = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.devportal.solo.io.GroupSpec.prototype.clearUserLabels = function() {
-  this.setUserLabels(undefined);
+proto.devportal.solo.io.GroupSpec.prototype.clearUserSelector = function() {
+  this.setUserSelector(undefined);
 };
 
 
@@ -240,7 +240,7 @@ proto.devportal.solo.io.GroupSpec.prototype.clearUserLabels = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.GroupSpec.prototype.hasUserLabels = function() {
+proto.devportal.solo.io.GroupSpec.prototype.hasUserSelector = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -330,7 +330,8 @@ proto.devportal.solo.io.GroupStatus.prototype.toObject = function(opt_includeIns
 proto.devportal.solo.io.GroupStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     observedGeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    usersList: jspb.Message.getRepeatedField(msg, 2),
+    usersList: jspb.Message.toObjectList(msg.getUsersList(),
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.toObject(includeInstance, f)
   };
 
@@ -373,7 +374,8 @@ proto.devportal.solo.io.GroupStatus.deserializeBinaryFromReader = function(msg, 
       msg.setObservedGeneration(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addUsers(value);
       break;
     case 3:
@@ -419,9 +421,10 @@ proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, 
   }
   f = message.getUsersList();
   if (f.length > 0) {
-    writer.writeRepeatedString(
+    writer.writeRepeatedMessage(
       2,
-      f
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
   f = message.getAccessLevel();
@@ -451,26 +454,28 @@ proto.devportal.solo.io.GroupStatus.prototype.setObservedGeneration = function(v
 
 
 /**
- * repeated string users = 2;
- * @return {!Array<string>}
+ * repeated ObjectRef users = 2;
+ * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.GroupStatus.prototype.getUsersList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
 };
 
 
-/** @param {!Array<string>} value */
+/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.GroupStatus.prototype.setUsersList = function(value) {
-  jspb.Message.setField(this, 2, value || []);
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
 
 /**
- * @param {!string} value
+ * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
  * @param {number=} opt_index
+ * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.GroupStatus.prototype.addUsers = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+proto.devportal.solo.io.GroupStatus.prototype.addUsers = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 

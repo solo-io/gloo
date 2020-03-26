@@ -10,19 +10,32 @@ type Registrar interface {
 	RegisterTo(server *grpc.Server)
 }
 
-func NewRegistrar(portalService admin.PortalApiServer) Registrar {
+func NewRegistrar(
+	portalService admin.PortalApiServer,
+	apiDocService admin.ApiDocApiServer,
+	userService admin.UserApiServer,
+	groupService admin.GroupApiServer,
+) Registrar {
 	return &devPortalRegistrar{
 		portalService: portalService,
+		apiDocService: apiDocService,
+		userService:   userService,
+		groupService:  groupService,
 	}
 }
 
-// TODO(marco): add remaining dev portal services here
 type devPortalRegistrar struct {
 	portalService admin.PortalApiServer
+	apiDocService admin.ApiDocApiServer
+	userService   admin.UserApiServer
+	groupService  admin.GroupApiServer
 }
 
 func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
 	admin.RegisterPortalApiServer(server, r.portalService)
+	admin.RegisterApiDocApiServer(server, r.apiDocService)
+	admin.RegisterUserApiServer(server, r.userService)
+	admin.RegisterGroupApiServer(server, r.groupService)
 }
 
 // This registrar is used when the portal is not enabled.
@@ -32,5 +45,4 @@ func NewNoOpRegistrar() Registrar {
 	return &noOpRegistrar{}
 }
 
-func (*noOpRegistrar) RegisterTo(server *grpc.Server) {
-}
+func (*noOpRegistrar) RegisterTo(_ *grpc.Server) {}

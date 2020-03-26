@@ -188,16 +188,17 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.devportal.solo.io.DataSource.oneofGroups_ = [[1,2,3]];
+proto.devportal.solo.io.DataSource.oneofGroups_ = [[1,2,3,4]];
 
 /**
  * @enum {number}
  */
 proto.devportal.solo.io.DataSource.SourceTypeCase = {
   SOURCE_TYPE_NOT_SET: 0,
-  INLINE_BYTES: 1,
-  FETCH_URL: 2,
-  CONFIG_MAP: 3
+  INLINE_STRING: 1,
+  INLINE_BYTES: 2,
+  FETCH_URL: 3,
+  CONFIG_MAP: 4
 };
 
 /**
@@ -236,8 +237,9 @@ proto.devportal.solo.io.DataSource.prototype.toObject = function(opt_includeInst
  */
 proto.devportal.solo.io.DataSource.toObject = function(includeInstance, msg) {
   var f, obj = {
+    inlineString: jspb.Message.getFieldWithDefault(msg, 1, ""),
     inlineBytes: msg.getInlineBytes_asB64(),
-    fetchUrl: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    fetchUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     configMap: (f = msg.getConfigMap()) && proto.devportal.solo.io.DataSource.ConfigMapData.toObject(includeInstance, f)
   };
 
@@ -276,14 +278,18 @@ proto.devportal.solo.io.DataSource.deserializeBinaryFromReader = function(msg, r
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInlineString(value);
+      break;
+    case 2:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setInlineBytes(value);
       break;
-    case 2:
+    case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setFetchUrl(value);
       break;
-    case 3:
+    case 4:
       var value = new proto.devportal.solo.io.DataSource.ConfigMapData;
       reader.readMessage(value,proto.devportal.solo.io.DataSource.ConfigMapData.deserializeBinaryFromReader);
       msg.setConfigMap(value);
@@ -317,24 +323,31 @@ proto.devportal.solo.io.DataSource.prototype.serializeBinary = function() {
  */
 proto.devportal.solo.io.DataSource.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = /** @type {!(string|Uint8Array)} */ (jspb.Message.getField(message, 1));
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
   if (f != null) {
-    writer.writeBytes(
+    writer.writeString(
       1,
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  f = /** @type {!(string|Uint8Array)} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
   if (f != null) {
     writer.writeString(
-      2,
+      3,
       f
     );
   }
   f = message.getConfigMap();
   if (f != null) {
     writer.writeMessage(
-      3,
+      4,
       f,
       proto.devportal.solo.io.DataSource.ConfigMapData.serializeBinaryToWriter
     );
@@ -539,16 +552,45 @@ proto.devportal.solo.io.DataSource.ConfigMapData.prototype.setKey = function(val
 
 
 /**
- * optional bytes inline_bytes = 1;
- * @return {!(string|Uint8Array)}
+ * optional string inline_string = 1;
+ * @return {string}
  */
-proto.devportal.solo.io.DataSource.prototype.getInlineBytes = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+proto.devportal.solo.io.DataSource.prototype.getInlineString = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.DataSource.prototype.setInlineString = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
+};
+
+
+proto.devportal.solo.io.DataSource.prototype.clearInlineString = function() {
+  jspb.Message.setOneofField(this, 1, proto.devportal.solo.io.DataSource.oneofGroups_[0], undefined);
 };
 
 
 /**
- * optional bytes inline_bytes = 1;
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.devportal.solo.io.DataSource.prototype.hasInlineString = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional bytes inline_bytes = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.devportal.solo.io.DataSource.prototype.getInlineBytes = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes inline_bytes = 2;
  * This is a type-conversion wrapper around `getInlineBytes()`
  * @return {string}
  */
@@ -559,7 +601,7 @@ proto.devportal.solo.io.DataSource.prototype.getInlineBytes_asB64 = function() {
 
 
 /**
- * optional bytes inline_bytes = 1;
+ * optional bytes inline_bytes = 2;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
  * This is a type-conversion wrapper around `getInlineBytes()`
@@ -573,40 +615,11 @@ proto.devportal.solo.io.DataSource.prototype.getInlineBytes_asU8 = function() {
 
 /** @param {!(string|Uint8Array)} value */
 proto.devportal.solo.io.DataSource.prototype.setInlineBytes = function(value) {
-  jspb.Message.setOneofField(this, 1, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
-};
-
-
-proto.devportal.solo.io.DataSource.prototype.clearInlineBytes = function() {
-  jspb.Message.setOneofField(this, 1, proto.devportal.solo.io.DataSource.oneofGroups_[0], undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.devportal.solo.io.DataSource.prototype.hasInlineBytes = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional string fetch_url = 2;
- * @return {string}
- */
-proto.devportal.solo.io.DataSource.prototype.getFetchUrl = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/** @param {string} value */
-proto.devportal.solo.io.DataSource.prototype.setFetchUrl = function(value) {
   jspb.Message.setOneofField(this, 2, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
 };
 
 
-proto.devportal.solo.io.DataSource.prototype.clearFetchUrl = function() {
+proto.devportal.solo.io.DataSource.prototype.clearInlineBytes = function() {
   jspb.Message.setOneofField(this, 2, proto.devportal.solo.io.DataSource.oneofGroups_[0], undefined);
 };
 
@@ -615,24 +628,53 @@ proto.devportal.solo.io.DataSource.prototype.clearFetchUrl = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.devportal.solo.io.DataSource.prototype.hasFetchUrl = function() {
+proto.devportal.solo.io.DataSource.prototype.hasInlineBytes = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional ConfigMapData config_map = 3;
+ * optional string fetch_url = 3;
+ * @return {string}
+ */
+proto.devportal.solo.io.DataSource.prototype.getFetchUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.DataSource.prototype.setFetchUrl = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
+};
+
+
+proto.devportal.solo.io.DataSource.prototype.clearFetchUrl = function() {
+  jspb.Message.setOneofField(this, 3, proto.devportal.solo.io.DataSource.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.devportal.solo.io.DataSource.prototype.hasFetchUrl = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional ConfigMapData config_map = 4;
  * @return {?proto.devportal.solo.io.DataSource.ConfigMapData}
  */
 proto.devportal.solo.io.DataSource.prototype.getConfigMap = function() {
   return /** @type{?proto.devportal.solo.io.DataSource.ConfigMapData} */ (
-    jspb.Message.getWrapperField(this, proto.devportal.solo.io.DataSource.ConfigMapData, 3));
+    jspb.Message.getWrapperField(this, proto.devportal.solo.io.DataSource.ConfigMapData, 4));
 };
 
 
 /** @param {?proto.devportal.solo.io.DataSource.ConfigMapData|undefined} value */
 proto.devportal.solo.io.DataSource.prototype.setConfigMap = function(value) {
-  jspb.Message.setOneofWrapperField(this, 3, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 4, proto.devportal.solo.io.DataSource.oneofGroups_[0], value);
 };
 
 
@@ -646,7 +688,7 @@ proto.devportal.solo.io.DataSource.prototype.clearConfigMap = function() {
  * @return {!boolean}
  */
 proto.devportal.solo.io.DataSource.prototype.hasConfigMap = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

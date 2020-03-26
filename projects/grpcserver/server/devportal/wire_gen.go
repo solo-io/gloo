@@ -8,7 +8,11 @@ package devportal
 import (
 	"context"
 
+	"github.com/solo-io/dev-portal/pkg/admin"
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/apidoc"
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/group"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/portal"
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/user"
 	"github.com/solo-io/dev-portal/pkg/assets"
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
@@ -28,9 +32,17 @@ func InitDevPortal(ctx context.Context) (Registrar, error) {
 	}
 	client := NewDynamicClient(manager)
 	portalClient := NewPortalClient(client)
+	apiDocClient := NewApiDocClient(client)
+	userClient := NewUserClient(client)
+	groupClient := NewGroupClient(client)
 	configMapClient := NewConfigMapClient(client)
 	configMapStorage := assets.NewConfigMapStorage(configMapClient)
-	grpcService := portal.NewPortalGrpcService(portalClient, configMapStorage)
-	registrar := NewRegistrar(grpcService)
+	resourceLabeler := admin.NewResourceLabeler()
+	grpcService := portal.NewPortalGrpcService(portalClient, apiDocClient, userClient, groupClient, configMapStorage, resourceLabeler)
+	apidocGrpcService := apidoc.NewApiDocGrpcService(apiDocClient, portalClient, userClient, groupClient, configMapStorage, resourceLabeler)
+	secretClient := NewSecretClient(client)
+	userGrpcService := user.NewUserGrpcService(userClient, groupClient, portalClient, apiDocClient, secretClient, resourceLabeler)
+	groupGrpcService := group.NewGroupGrpcService(apiDocClient, portalClient, userClient, groupClient, resourceLabeler)
+	registrar := NewRegistrar(grpcService, apidocGrpcService, userGrpcService, groupGrpcService)
 	return registrar, nil
 }

@@ -31,7 +31,7 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/anyvendor v0.0.1
-	github.com/solo-io/dev-portal v0.0.7
+	github.com/solo-io/dev-portal v0.0.8
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
@@ -56,9 +56,9 @@ require (
 	k8s.io/apiextensions-apiserver v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.17.1
+	k8s.io/code-generator v0.17.2
 	k8s.io/kubernetes v1.16.2
-	sigs.k8s.io/controller-runtime v0.5.0
+	sigs.k8s.io/controller-runtime v0.5.1
 	sigs.k8s.io/yaml v1.1.0
 )
 

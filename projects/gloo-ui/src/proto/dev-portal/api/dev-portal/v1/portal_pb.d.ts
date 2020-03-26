@@ -94,9 +94,9 @@ export class PortalStatus extends jspb.Message {
   setPublishUrl(value: string): void;
 
   clearApiDocsList(): void;
-  getApiDocsList(): Array<string>;
-  setApiDocsList(value: Array<string>): void;
-  addApiDocs(value: string, index?: number): string;
+  getApiDocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setApiDocsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addApiDocs(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   clearKeyScopesList(): void;
   getKeyScopesList(): Array<KeyScopeStatus>;
@@ -119,13 +119,13 @@ export namespace PortalStatus {
     state: PortalStatus.StateMap[keyof PortalStatus.StateMap],
     reason: string,
     publishUrl: string,
-    apiDocsList: Array<string>,
+    apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     keyScopesList: Array<KeyScopeStatus.AsObject>,
   }
 
   export interface StateMap {
     PENDING: 0;
-    PUBLISHING: 1;
+    PROCESSING: 1;
     PUBLISHED: 2;
     INVALID: 3;
     FAILED: 4;
@@ -219,6 +219,9 @@ export class KeyScope extends jspb.Message {
   getNamespace(): string;
   setNamespace(value: string): void;
 
+  getDescription(): string;
+  setDescription(value: string): void;
+
   hasApiDocs(): boolean;
   clearApiDocs(): void;
   getApiDocs(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
@@ -238,6 +241,7 @@ export namespace KeyScope {
   export type AsObject = {
     name: string,
     namespace: string,
+    description: string,
     apiDocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
   }
 }
@@ -245,11 +249,6 @@ export namespace KeyScope {
 export class KeyScopeStatus extends jspb.Message {
   getName(): string;
   setName(value: string): void;
-
-  hasCreatedDate(): boolean;
-  clearCreatedDate(): void;
-  getCreatedDate(): google_protobuf_timestamp_pb.Timestamp | undefined;
-  setCreatedDate(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
   clearAccessibleApiDocsList(): void;
   getAccessibleApiDocsList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
@@ -274,7 +273,6 @@ export class KeyScopeStatus extends jspb.Message {
 export namespace KeyScopeStatus {
   export type AsObject = {
     name: string,
-    createdDate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     accessibleApiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     provisionedKeysList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
   }

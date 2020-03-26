@@ -15,10 +15,10 @@ export class GroupSpec extends jspb.Message {
   getDescription(): string;
   setDescription(value: string): void;
 
-  hasUserLabels(): boolean;
-  clearUserLabels(): void;
-  getUserLabels(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
-  setUserLabels(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
+  hasUserSelector(): boolean;
+  clearUserSelector(): void;
+  getUserSelector(): dev_portal_api_dev_portal_v1_common_pb.Selector | undefined;
+  setUserSelector(value?: dev_portal_api_dev_portal_v1_common_pb.Selector): void;
 
   hasAccessLevel(): boolean;
   clearAccessLevel(): void;
@@ -39,7 +39,7 @@ export namespace GroupSpec {
   export type AsObject = {
     displayName: string,
     description: string,
-    userLabels?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
+    userSelector?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevel.AsObject,
   }
 }
@@ -49,9 +49,9 @@ export class GroupStatus extends jspb.Message {
   setObservedGeneration(value: number): void;
 
   clearUsersList(): void;
-  getUsersList(): Array<string>;
-  setUsersList(value: Array<string>): void;
-  addUsers(value: string, index?: number): string;
+  getUsersList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
+  setUsersList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
+  addUsers(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
   hasAccessLevel(): boolean;
   clearAccessLevel(): void;
@@ -71,7 +71,7 @@ export class GroupStatus extends jspb.Message {
 export namespace GroupStatus {
   export type AsObject = {
     observedGeneration: number,
-    usersList: Array<string>,
+    usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }
 }

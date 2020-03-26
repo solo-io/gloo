@@ -274,8 +274,10 @@ proto.devportal.solo.io.AccessLevelStatus.prototype.toObject = function(opt_incl
  */
 proto.devportal.solo.io.AccessLevelStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    portalsList: jspb.Message.getRepeatedField(msg, 3),
-    apiDocsList: jspb.Message.getRepeatedField(msg, 4)
+    portalsList: jspb.Message.toObjectList(msg.getPortalsList(),
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
+    apiDocsList: jspb.Message.toObjectList(msg.getApiDocsList(),
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -313,11 +315,13 @@ proto.devportal.solo.io.AccessLevelStatus.deserializeBinaryFromReader = function
     var field = reader.getFieldNumber();
     switch (field) {
     case 3:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addPortals(value);
       break;
     case 4:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addApiDocs(value);
       break;
     default:
@@ -351,42 +355,46 @@ proto.devportal.solo.io.AccessLevelStatus.serializeBinaryToWriter = function(mes
   var f = undefined;
   f = message.getPortalsList();
   if (f.length > 0) {
-    writer.writeRepeatedString(
+    writer.writeRepeatedMessage(
       3,
-      f
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
   f = message.getApiDocsList();
   if (f.length > 0) {
-    writer.writeRepeatedString(
+    writer.writeRepeatedMessage(
       4,
-      f
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * repeated string portals = 3;
- * @return {!Array<string>}
+ * repeated ObjectRef portals = 3;
+ * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.AccessLevelStatus.prototype.getPortalsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 3));
 };
 
 
-/** @param {!Array<string>} value */
+/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.AccessLevelStatus.prototype.setPortalsList = function(value) {
-  jspb.Message.setField(this, 3, value || []);
+  jspb.Message.setRepeatedWrapperField(this, 3, value);
 };
 
 
 /**
- * @param {!string} value
+ * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
  * @param {number=} opt_index
+ * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.AccessLevelStatus.prototype.addPortals = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+proto.devportal.solo.io.AccessLevelStatus.prototype.addPortals = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
@@ -396,26 +404,28 @@ proto.devportal.solo.io.AccessLevelStatus.prototype.clearPortalsList = function(
 
 
 /**
- * repeated string api_docs = 4;
- * @return {!Array<string>}
+ * repeated ObjectRef api_docs = 4;
+ * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.AccessLevelStatus.prototype.getApiDocsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 4));
 };
 
 
-/** @param {!Array<string>} value */
+/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.AccessLevelStatus.prototype.setApiDocsList = function(value) {
-  jspb.Message.setField(this, 4, value || []);
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
 
 /**
- * @param {!string} value
+ * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
  * @param {number=} opt_index
+ * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.AccessLevelStatus.prototype.addApiDocs = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+proto.devportal.solo.io.AccessLevelStatus.prototype.addApiDocs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 

@@ -26,6 +26,11 @@ export namespace Selector {
 }
 
 export class DataSource extends jspb.Message {
+  hasInlineString(): boolean;
+  clearInlineString(): void;
+  getInlineString(): string;
+  setInlineString(value: string): void;
+
   hasInlineBytes(): boolean;
   clearInlineBytes(): void;
   getInlineBytes(): Uint8Array | string;
@@ -56,6 +61,7 @@ export class DataSource extends jspb.Message {
 
 export namespace DataSource {
   export type AsObject = {
+    inlineString: string,
     inlineBytes: Uint8Array | string,
     fetchUrl: string,
     configMap?: DataSource.ConfigMapData.AsObject,
@@ -91,9 +97,10 @@ export namespace DataSource {
 
   export enum SourceTypeCase {
     SOURCE_TYPE_NOT_SET = 0,
-    INLINE_BYTES = 1,
-    FETCH_URL = 2,
-    CONFIG_MAP = 3,
+    INLINE_STRING = 1,
+    INLINE_BYTES = 2,
+    FETCH_URL = 3,
+    CONFIG_MAP = 4,
   }
 }
 

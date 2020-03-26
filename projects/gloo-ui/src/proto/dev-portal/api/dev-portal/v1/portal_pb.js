@@ -610,7 +610,8 @@ proto.devportal.solo.io.PortalStatus.toObject = function(includeInstance, msg) {
     state: jspb.Message.getFieldWithDefault(msg, 2, 0),
     reason: jspb.Message.getFieldWithDefault(msg, 3, ""),
     publishUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    apiDocsList: jspb.Message.getRepeatedField(msg, 5),
+    apiDocsList: jspb.Message.toObjectList(msg.getApiDocsList(),
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     keyScopesList: jspb.Message.toObjectList(msg.getKeyScopesList(),
     proto.devportal.solo.io.KeyScopeStatus.toObject, includeInstance)
   };
@@ -666,7 +667,8 @@ proto.devportal.solo.io.PortalStatus.deserializeBinaryFromReader = function(msg,
       msg.setPublishUrl(value);
       break;
     case 5:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
+      reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addApiDocs(value);
       break;
     case 6:
@@ -733,9 +735,10 @@ proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message,
   }
   f = message.getApiDocsList();
   if (f.length > 0) {
-    writer.writeRepeatedString(
+    writer.writeRepeatedMessage(
       5,
-      f
+      f,
+      dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
   f = message.getKeyScopesList();
@@ -754,7 +757,7 @@ proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message,
  */
 proto.devportal.solo.io.PortalStatus.State = {
   PENDING: 0,
-  PUBLISHING: 1,
+  PROCESSING: 1,
   PUBLISHED: 2,
   INVALID: 3,
   FAILED: 4
@@ -821,26 +824,28 @@ proto.devportal.solo.io.PortalStatus.prototype.setPublishUrl = function(value) {
 
 
 /**
- * repeated string api_docs = 5;
- * @return {!Array<string>}
+ * repeated ObjectRef api_docs = 5;
+ * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.PortalStatus.prototype.getApiDocsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
+  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 5));
 };
 
 
-/** @param {!Array<string>} value */
+/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.PortalStatus.prototype.setApiDocsList = function(value) {
-  jspb.Message.setField(this, 5, value || []);
+  jspb.Message.setRepeatedWrapperField(this, 5, value);
 };
 
 
 /**
- * @param {!string} value
+ * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
  * @param {number=} opt_index
+ * @return {!proto.devportal.solo.io.ObjectRef}
  */
-proto.devportal.solo.io.PortalStatus.prototype.addApiDocs = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
+proto.devportal.solo.io.PortalStatus.prototype.addApiDocs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
@@ -1473,6 +1478,7 @@ proto.devportal.solo.io.KeyScope.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 3, ""),
     apiDocs: (f = msg.getApiDocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
   };
 
@@ -1517,6 +1523,10 @@ proto.devportal.solo.io.KeyScope.deserializeBinaryFromReader = function(msg, rea
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setNamespace(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
       break;
     case 9:
       var value = new dev$portal_api_dev$portal_v1_common_pb.Selector;
@@ -1566,6 +1576,13 @@ proto.devportal.solo.io.KeyScope.serializeBinaryToWriter = function(message, wri
       f
     );
   }
+  f = message.getDescription();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getApiDocs();
   if (f != null) {
     writer.writeMessage(
@@ -1604,6 +1621,21 @@ proto.devportal.solo.io.KeyScope.prototype.getNamespace = function() {
 /** @param {string} value */
 proto.devportal.solo.io.KeyScope.prototype.setNamespace = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string description = 3;
+ * @return {string}
+ */
+proto.devportal.solo.io.KeyScope.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.KeyScope.prototype.setDescription = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -1660,7 +1692,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.devportal.solo.io.KeyScopeStatus.repeatedFields_ = [3,4];
+proto.devportal.solo.io.KeyScopeStatus.repeatedFields_ = [2,3];
 
 
 
@@ -1692,7 +1724,6 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.toObject = function(opt_include
 proto.devportal.solo.io.KeyScopeStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    createdDate: (f = msg.getCreatedDate()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     accessibleApiDocsList: jspb.Message.toObjectList(msg.getAccessibleApiDocsList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     provisionedKeysList: jspb.Message.toObjectList(msg.getProvisionedKeysList(),
@@ -1738,16 +1769,11 @@ proto.devportal.solo.io.KeyScopeStatus.deserializeBinaryFromReader = function(ms
       msg.setName(value);
       break;
     case 2:
-      var value = new google_protobuf_timestamp_pb.Timestamp;
-      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setCreatedDate(value);
-      break;
-    case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addAccessibleApiDocs(value);
       break;
-    case 4:
+    case 3:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addProvisionedKeys(value);
@@ -1788,18 +1814,10 @@ proto.devportal.solo.io.KeyScopeStatus.serializeBinaryToWriter = function(messag
       f
     );
   }
-  f = message.getCreatedDate();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
-    );
-  }
   f = message.getAccessibleApiDocsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      3,
+      2,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
@@ -1807,7 +1825,7 @@ proto.devportal.solo.io.KeyScopeStatus.serializeBinaryToWriter = function(messag
   f = message.getProvisionedKeysList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      4,
+      3,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
@@ -1831,48 +1849,18 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setName = function(value) {
 
 
 /**
- * optional google.protobuf.Timestamp created_date = 2;
- * @return {?proto.google.protobuf.Timestamp}
- */
-proto.devportal.solo.io.KeyScopeStatus.prototype.getCreatedDate = function() {
-  return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
-};
-
-
-/** @param {?proto.google.protobuf.Timestamp|undefined} value */
-proto.devportal.solo.io.KeyScopeStatus.prototype.setCreatedDate = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
-};
-
-
-proto.devportal.solo.io.KeyScopeStatus.prototype.clearCreatedDate = function() {
-  this.setCreatedDate(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.devportal.solo.io.KeyScopeStatus.prototype.hasCreatedDate = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * repeated ObjectRef accessible_api_docs = 3;
+ * repeated ObjectRef accessible_api_docs = 2;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.KeyScopeStatus.prototype.getAccessibleApiDocsList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 3));
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.KeyScopeStatus.prototype.setAccessibleApiDocsList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 3, value);
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
 
@@ -1882,7 +1870,7 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setAccessibleApiDocsList = func
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
 proto.devportal.solo.io.KeyScopeStatus.prototype.addAccessibleApiDocs = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
@@ -1892,18 +1880,18 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.clearAccessibleApiDocsList = fu
 
 
 /**
- * repeated ObjectRef provisioned_keys = 4;
+ * repeated ObjectRef provisioned_keys = 3;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.KeyScopeStatus.prototype.getProvisionedKeysList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 4));
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 3));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.KeyScopeStatus.prototype.setProvisionedKeysList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 4, value);
+  jspb.Message.setRepeatedWrapperField(this, 3, value);
 };
 
 
@@ -1913,7 +1901,7 @@ proto.devportal.solo.io.KeyScopeStatus.prototype.setProvisionedKeysList = functi
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
 proto.devportal.solo.io.KeyScopeStatus.prototype.addProvisionedKeys = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 

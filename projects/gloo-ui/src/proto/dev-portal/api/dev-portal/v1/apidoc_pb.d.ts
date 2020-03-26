@@ -9,19 +9,15 @@ import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class ApiDocSpec extends jspb.Message {
-  getDisplayName(): string;
-  setDisplayName(value: string): void;
-
-  getVersion(): string;
-  setVersion(value: string): void;
-
-  getDescription(): string;
-  setDescription(value: string): void;
-
   hasDataSource(): boolean;
   clearDataSource(): void;
   getDataSource(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
   setDataSource(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
+
+  hasImage(): boolean;
+  clearImage(): void;
+  getImage(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
+  setImage(value?: dev_portal_api_dev_portal_v1_common_pb.DataSource): void;
 
   hasOpenApi(): boolean;
   clearOpenApi(): void;
@@ -41,10 +37,8 @@ export class ApiDocSpec extends jspb.Message {
 
 export namespace ApiDocSpec {
   export type AsObject = {
-    displayName: string,
-    version: string,
-    description: string,
     dataSource?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
+    image?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
     openApi?: ApiDocSpec.OpenApi.AsObject,
   }
 
@@ -85,6 +79,15 @@ export class ApiDocStatus extends jspb.Message {
   getModifiedDate(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setModifiedDate(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
+
+  getVersion(): string;
+  setVersion(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
   getNumberOfEndpoints(): number;
   setNumberOfEndpoints(value: number): void;
 
@@ -107,6 +110,9 @@ export namespace ApiDocStatus {
     state: ApiDocStatus.StateMap[keyof ApiDocStatus.StateMap],
     reason: string,
     modifiedDate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    displayName: string,
+    version: string,
+    description: string,
     numberOfEndpoints: number,
     basePath: string,
   }
