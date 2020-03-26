@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: Bump the version of the apiserver Envoy to 1.13.0 to fix CORS config.
+- type: NON_USER_FACING
+  description: Bump dev-portal to 0.0.9 so the gRPC services expose resource UIDs.

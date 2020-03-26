@@ -31,7 +31,7 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/anyvendor v0.0.1
-	github.com/solo-io/dev-portal v0.0.8
+	github.com/solo-io/dev-portal v0.0.9
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
