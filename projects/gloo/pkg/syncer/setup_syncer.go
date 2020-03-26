@@ -453,7 +453,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	warmTimeout := opts.Settings.GetGloo().GetEndpointsWarmingTimeout()
-	if warmTimeout != nil {
+
+	if warmTimeout == nil {
+		warmTimeout = &types.Duration{
+			Seconds: 5 * 60,
+		}
+	}
+	if warmTimeout.Seconds != 0 || warmTimeout.Nanos != 0 {
 		warmTimeoutDuration, err := types.DurationFromProto(warmTimeout)
 		ctx := opts.WatchOpts.Ctx
 		err = channelutils.WaitForReady(ctx, warmTimeoutDuration, edsEventLoop.Ready(), disc.Ready())
