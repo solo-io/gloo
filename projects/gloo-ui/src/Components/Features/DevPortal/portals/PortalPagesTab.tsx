@@ -6,7 +6,7 @@ import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.s
 import { ReactComponent as PortalPageIcon } from 'assets/portal-page-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import useSWR from 'swr';
-import { DevPortalApi } from '../api';
+import { devPortalApi } from '../api';
 import { useParams, useHistory, useLocation } from 'react-router';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
@@ -19,7 +19,7 @@ export const PortalPagesTab = () => {
 
   const { data: portalsList, error: portalListError } = useSWR(
     'listPortals',
-    DevPortalApi.listPortals,
+    devPortalApi.listPortals,
     { refreshInterval: 0 }
   );
 
@@ -61,7 +61,7 @@ export const PortalPagesTab = () => {
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
-        className='absolute top-4 right-4 flex font-normal cursor-pointer'
+        className='absolute flex font-normal cursor-pointer top-4 right-4'
         onClick={openCreatePage}>
         <GreenPlus className='w-5 h-5 mr-2' /> Add a Page
       </span>
@@ -173,7 +173,7 @@ export const PortalPagesTab = () => {
         <div className=''>
           <div className='flex items-center w-full h-full bg-white rounded-lg md:flex-row'>
             <div className='mr-6 text-gray-500'>
-              <PortalPageIcon className='rounded-lg w-32 fill-current' />
+              <PortalPageIcon className='w-32 rounded-lg fill-current' />
             </div>
             <div className='flex flex-col h-full'>
               <p className='h-auto mb-6 text-lg font-medium'>

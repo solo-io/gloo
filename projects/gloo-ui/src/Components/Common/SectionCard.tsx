@@ -105,7 +105,7 @@ interface Props {
   }[];
   health?: Status.StateMap[keyof Status.StateMap];
   healthMessage?: string;
-  onClose?: () => any;
+  onClose?: () => void;
   secondaryComponent?: React.ReactNode;
   noPadding?: boolean;
 }

@@ -11,7 +11,7 @@ import { useHistory } from 'react-router';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { css } from '@emotion/core';
 import useSWR from 'swr';
-import { DevPortalApi } from '../api';
+import { devPortalApi } from '../api';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { PortalStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
@@ -20,7 +20,7 @@ import { CreatePortalModal } from './CreatePortalModal';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 
-function formatHealthStatus(
+export function formatHealthStatus(
   status: PortalStatus.StateMap[keyof PortalStatus.StateMap] | undefined
 ): Status.StateMap[keyof Status.StateMap] {
   if (
@@ -41,7 +41,7 @@ export const PortalsListing = () => {
   let isEmpty = false;
   const { data: portalsList, error: portalListError } = useSWR(
     'listPortals',
-    DevPortalApi.listPortals,
+    devPortalApi.listPortals,
     { refreshInterval: 0 }
   );
   const [showCreatePortalModal, setShowCreatePortalModal] = React.useState(
@@ -89,13 +89,11 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
 
   return (
     <div
-      className='w-full max-w-md rounded-lg shadow lg:max-w-full lg:flex'
+      className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'
       onClick={() =>
         history.push(`/dev-portal/portals/${portal.metadata?.name}`)
       }>
-      <div
-        className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'
-        title='Woman holding a mug'>
+      <div className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
         <PlaceholderPortal className='rounded-l-lg ' />
       </div>
       <div className='relative flex flex-col justify-between w-full p-2 leading-normal bg-white rounded-r'>
@@ -107,7 +105,6 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
         </span>
         <div className='mb-4'>
           <div className='text-xl text-gray-900 '>
-            {' '}
             {portal.spec?.displayName}
           </div>
 

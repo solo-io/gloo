@@ -15,8 +15,27 @@ import { healthConstants } from 'Styles';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
 import { SwaggerExplorer } from './SwaggerExplorer';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
+import useSWR from 'swr';
+import { devPortalApi } from './api';
+import { formatHealthStatus } from './portals/PortalsListing';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 export const DevPortalOverview = () => {
+  const { data: portalsList, error: portalsListError } = useSWR(
+    'listPortals',
+    devPortalApi.listPortals
+  );
+
+  if (!portalsList) {
+    return <div>Loading...</div>;
+  }
+
+  let portalErrorPresent = portalsList.some(
+    portal =>
+      formatHealthStatus(portal.status?.state) === Status.State.PENDING ||
+      formatHealthStatus(portal.status?.state) === Status.State.REJECTED
+  );
+
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Dev Portal section</div>}>
@@ -25,7 +44,7 @@ export const DevPortalOverview = () => {
           <div>
             <div className='text-2xl '>Developer Portal</div>
             <div className='text-lg text-gray-700'>
-              Advanced Administration for your Gloo Configuration
+              Create and share APIs through custom-branded client portals.{' '}
             </div>
           </div>
           <HealthScoreContainer health={healthConstants.Good.value}>
@@ -40,7 +59,11 @@ export const DevPortalOverview = () => {
               prompt: 'View Portals',
               link: '/dev-portal/portals'
             }}
-            healthStatus={1}
+            healthStatus={
+              portalErrorPresent
+                ? healthConstants.Pending.value
+                : healthConstants.Good.value
+            }
             titleText='Portals'
             description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'
             titleIcon={
@@ -50,7 +73,7 @@ export const DevPortalOverview = () => {
             }>
             <div className='grid grid-cols-2 gap-4 '>
               <TallyInformationDisplay
-                tallyCount={2}
+                tallyCount={portalsList.length}
                 tallyDescription={`portals`}
                 color='blue'
               />
