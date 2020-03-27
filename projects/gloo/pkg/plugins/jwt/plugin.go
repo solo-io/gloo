@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 
@@ -241,6 +242,7 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 		}
 		out.JwksSourceSpecifier = &envoyauth.JwtProvider_RemoteJwks{
 			RemoteJwks: &envoyauth.RemoteJwks{
+				CacheDuration: gogoutils.DurationGogoToProto(jwks.Remote.GetCacheDuration()),
 				HttpUri: &envoycore.HttpUri{
 					Timeout: &duration.Duration{Seconds: RemoteJwksTimeoutSecs},
 					Uri:     jwks.Remote.Url,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+	"github.com/gogo/protobuf/types"
 	duration "github.com/golang/protobuf/ptypes/duration"
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -91,8 +92,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					Jwks: &jwt.Jwks{
 						Jwks: &jwt.Jwks_Remote{
 							Remote: &jwt.RemoteJwks{
-								Url:         "testium",
-								UpstreamRef: &core.ResourceRef{Name: "test", Namespace: "testns"},
+								CacheDuration: &types.Duration{Seconds: 5},
+								Url:           "testium",
+								UpstreamRef:   &core.ResourceRef{Name: "test", Namespace: "testns"},
 							},
 						},
 					},
@@ -210,6 +212,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						PayloadInMetadata: providerName,
 						JwksSourceSpecifier: &envoyauth.JwtProvider_RemoteJwks{
 							RemoteJwks: &envoyauth.RemoteJwks{
+								CacheDuration: &duration.Duration{Seconds: 5},
 								HttpUri: &envoycore.HttpUri{
 									Timeout: &duration.Duration{Seconds: RemoteJwksTimeoutSecs},
 									Uri:     jwtVhost.Providers["provider1"].GetJwks().GetRemote().Url,
