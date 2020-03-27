@@ -253,7 +253,9 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
                 }
                 onClick={sendCreateNew}
                 withRegex={!!booleanFieldText && !!booleanFieldText.length}>
-                <GreenPlus />
+                <span className='text-green-400 cursor-pointer hover:text-green-300'>
+                  <GreenPlus className='fill-current' />
+                </span>
               </PlusHolder>
             </NewStringPrompt>
           </div>

@@ -8,9 +8,6 @@ if [ ! -f .gitignore ]; then
   echo "_output" > .gitignore
 fi
 
-git config user.name "bot"
-git config user.email "bot@solo.io"
-
 go mod tidy
 
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then

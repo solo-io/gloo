@@ -19,7 +19,7 @@ const CreationButtonArea = styled.div`
   position: absolute;
   top: -42px;
   right: 0;
-
+  cursor: pointer;
   display: flex;
   font-size: 14px;
   cursor: pointer;
@@ -70,16 +70,21 @@ export const APIKeyScopes = () => {
   return (
     <APIKeyScopesBlock>
       <CreationButtonArea onClick={openCreateScope}>
-        <GreenPlus /> Create a Scope
+        <span className='flex items-center text-green-400 cursor-pointer hover:text-green-300'>
+          <GreenPlus className='fill-current' />
+          <span className='text-gray-700'> Create a Scope</span>
+        </span>
       </CreationButtonArea>
       {portalsList?.map(portalInfo => (
         <SectionCard
+          key={portalInfo.metadata?.uid}
           cardName={portalInfo.metadata!.name}
           logoIcon={<PortalIcon />}>
           <div>
             {/*portalInfo.spec?.keyScopesList*/ [{ name: 'dig' }].map(
               (scopeInfo, ind) => (
                 <ApiKeyScopeCard
+                  key={scopeInfo.name}
                   name={scopeInfo.name}
                   onClick={() =>
                     expandCard(portalInfo.metadata!.uid, scopeInfo.name)

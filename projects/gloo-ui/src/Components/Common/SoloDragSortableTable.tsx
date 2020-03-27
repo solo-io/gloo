@@ -88,12 +88,14 @@ export const SoloDragSortableTable = (props: Props) => {
           dataSource={props.dataSource}
           columns={props.columns}
           components={components}
-          onRow={(record: any, index) => ({
-            index,
-            moveRow: props.moveRow,
-            record,
-            cols: props.columns
-          })}
+          onRow={(record, index) => {
+            return {
+              ...record,
+              index,
+              moveRow: props.moveRow,
+              cols: props.columns
+            };
+          }}
         />
       </DndProvider>
     </TableContainer>

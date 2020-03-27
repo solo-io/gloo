@@ -11,9 +11,6 @@ interface Props {}
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
   margin-right: 7px;
-  .a {
-    fill: ${colors.forestGreen};
-  }
 `;
 
 const ModalContainer = styled.div`
@@ -42,7 +39,9 @@ export const CreateUpstreamModal = (props: Props) => {
     <ModalContainer data-testid='create-upstream-modal'>
       <ModalTrigger onClick={() => setShowModal(s => !s)}>
         <>
-          <StyledGreenPlus />
+          <span className='text-green-400 cursor-pointer hover:text-green-300'>
+            <StyledGreenPlus className='fill-current' />
+          </span>
           Create Upstream
         </>
         <Divider type='vertical' style={{ height: '1.5em' }} />

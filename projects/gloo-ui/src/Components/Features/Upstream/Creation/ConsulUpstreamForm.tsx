@@ -56,12 +56,14 @@ export const SoloFormTagSelect = ({ ...props }) => {
         {...field}
         {...props}
         mode='tags'
-        size={'default'}
+        size='middle'
         placeholder={placeholder}
         onChange={handleChange}
         style={{ width: '100%' }}>
         {field.value.map((opt: any) => (
-          <Option key={opt}>{opt}</Option>
+          <Option key={opt} value={opt}>
+            {opt}
+          </Option>
         ))}
       </Select>
       <ErrorText errorExists={!!meta.error && meta.touched}>

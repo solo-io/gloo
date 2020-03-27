@@ -104,11 +104,14 @@ export const SecretForm: React.FC<Props> = props => {
             {secretKind === Secret.KindCase.TLS && <TlsSecretFields />}
             {secretKind === Secret.KindCase.OAUTH && <OAuthSecretFields />}
             <TableFormWrapper>
-              <GreenPlus
-                data-testid={`${secretKind}-secret-green-plus`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleSubmit()}
-              />
+              <span className='text-green-400 cursor-pointer hover:text-green-300'>
+                <GreenPlus
+                  className='fill-current'
+                  data-testid={`${secretKind}-secret-green-plus`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleSubmit()}
+                />
+              </span>
             </TableFormWrapper>
           </>
         )}

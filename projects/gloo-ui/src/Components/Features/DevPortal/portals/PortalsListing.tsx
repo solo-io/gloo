@@ -15,6 +15,10 @@ import { DevPortalApi } from '../api';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { PortalStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { format } from 'timeago.js';
+import { CreatePortalModal } from './CreatePortalModal';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 
 function formatHealthStatus(
   status: PortalStatus.StateMap[keyof PortalStatus.StateMap] | undefined
@@ -40,12 +44,22 @@ export const PortalsListing = () => {
     DevPortalApi.listPortals,
     { refreshInterval: 0 }
   );
+  const [showCreatePortalModal, setShowCreatePortalModal] = React.useState(
+    false
+  );
+
   if (!portalsList) {
     return <div>Loading...</div>;
   }
   console.log('portalsList', portalsList);
   return (
     <div className='container mx-auto'>
+      <span
+        onClick={() => setShowCreatePortalModal(true)}
+        className='absolute top-0 right-0 flex items-center -mt-8 text-green-400 cursor-pointer hover:text-green-300'>
+        <GreenPlus className='mr-1 fill-current' />
+        <span className='text-gray-700'> Create a Portal</span>
+      </span>
       {isEmpty ? (
         <EmptyPortalsPanel itemName='Portal'>
           <PlaceholderPortalTile /> <PlaceholderPortalTile />
@@ -55,6 +69,14 @@ export const PortalsListing = () => {
           {portalsList.map(portal => (
             <PortalItem key={portal.metadata?.uid} portal={portal} />
           ))}
+          <SoloModal
+            visible={showCreatePortalModal}
+            width={750}
+            noPadding={true}>
+            <CreatePortalModal
+              onClose={() => setShowCreatePortalModal(false)}
+            />
+          </SoloModal>
         </>
       )}
     </div>
@@ -64,6 +86,7 @@ export const PortalsListing = () => {
 const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
   const { portal } = props;
   const history = useHistory();
+
   return (
     <div
       className='w-full max-w-md rounded-lg shadow lg:max-w-full lg:flex'
@@ -94,7 +117,10 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
           </p>
           <p className='text-base text-gray-700'>{portal.spec?.description}</p>
         </div>
-        <div className='text-sm text-gray-600 '>Modified: Feb 26, 2020</div>
+        <div className='text-sm text-gray-600 '>
+          Modified:{' '}
+          {format(portal.metadata?.creationTimestamp?.seconds!, 'en_US')}
+        </div>
         <div className='flex items-center justify-between'>
           <div className='pb-2'>
             <CompanyLogo className='w-1/2 h-1/2' />

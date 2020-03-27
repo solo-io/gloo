@@ -19,6 +19,9 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
     /* .ant-select-selection--single {
       height: 36px;
     } */
+    .ant-select-selector {
+      border-radius: 8px;
+    }
   }
 
   .ant-select-selection {
@@ -57,7 +60,6 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
 
     .ant-select-arrow {
       display: ${(props: { hideArrow: boolean }) =>
-        // @ts-ignore
         props.hideArrow ? 'none' : 'block'};
     }
   }
@@ -101,7 +103,7 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
   const handleChange = (value: SelectValue): void => {
     onChange!(value as string);
   };
-  const getOptions = (): DataSourceItemType[] => {
+  const getOptions = () => {
     return presetOptions
       .filter(
         opt =>
@@ -120,10 +122,9 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
   };
 
   return (
-    <div>
+    <>
       {title && <Label>{title}</Label>}
-      {/*
-       // @ts-ignore */}
+
       <SoloAutocompleteBlock
         data-testid={testId}
         hideArrow={hideArrow}
@@ -142,6 +143,6 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
         placeholder={placeholder}
         onKeyPress={onKeyPress}
       />
-    </div>
+    </>
   );
 };

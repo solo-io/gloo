@@ -18,7 +18,7 @@ export const APIKeys = () => {
         </span>
       }
       onClose={() => history.push(`/dev-portal/`)}>
-      <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
+      <div className='relative flex flex-col p-2 rounded-lg'>
         <div className='w-full mb-4'>
           <SoloInput
             placeholder='Search group by user name or email...'

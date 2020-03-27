@@ -2,15 +2,11 @@ import styled from '@emotion/styled';
 import { AdminHub } from 'Components/Features/Admin/AdminHub';
 import { AdminLanding } from 'Components/Features/Admin/AdminLanding';
 import { APIDetails } from 'Components/Features/DevPortal/apis/APIDetails';
-import { APIListing } from 'Components/Features/DevPortal/apis/APIListing';
+import { DevPortal } from 'Components/Features/DevPortal/DevPortal';
 import { DevPortalOverview } from 'Components/Features/DevPortal/DevPortalOverview';
 import { PortalDetails } from 'Components/Features/DevPortal/portals/PortalDetails';
-import { PortalsListing } from 'Components/Features/DevPortal/portals/PortalsListing';
-import { SwaggerExplorer } from 'Components/Features/DevPortal/SwaggerExplorer';
-import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 import { Overview } from 'Components/Features/Overview';
 import { Settings } from 'Components/Features/Settings/SettingsDetails';
-import { SettingsOverview } from 'Components/Features/Settings/SettingsOverview';
 import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
 import { UpstreamDetails } from 'Components/Features/Upstream/UpstreamDetails';
 import { UpstreamGroupDetails } from 'Components/Features/Upstream/UpstreamGroupDetails';
@@ -19,14 +15,10 @@ import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTable
 import { VirtualServicesListing } from 'Components/Features/VirtualService/VirtualServicesListing';
 import { PortalPageEditor } from 'Components/Features/DevPortal/portals/PortalPageEditor';
 import React from 'react';
-import { Redirect, Route, Switch, RouteProps } from 'react-router-dom';
-import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
-import { UserGroups } from 'Components/Features/DevPortal/users/UserGroups';
-import { DevPortal } from 'Components/Features/DevPortal/DevPortal';
-import useSWR, { cache } from 'swr';
+import { Redirect, Route, RouteProps, Switch } from 'react-router-dom';
 import { configAPI } from 'store/config/api';
-import { WatchedNamespacesPage } from 'Components/Features/Settings/WatchedNamespacesPage';
-import { SecretsPage } from 'Components/Features/Settings/SecretsPage';
+import useSWR from 'swr';
+import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 
 const Container = styled.div`
   padding: 35px 0 20px;

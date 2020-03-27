@@ -6,23 +6,37 @@ import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.s
 import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { css } from '@emotion/core';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { CreateAPIModal } from './CreateAPIModal';
+import { SoloModal } from 'Components/Common/SoloModal';
 
 export const APIListing = () => {
   let isEmpty = false;
+  const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
   return (
-    <div className='container mx-auto'>
-      {isEmpty ? (
-        <EmptyPortalsPanel itemName='API'>
-          <PlaceholderPortalTile /> <PlaceholderPortalTile />
-        </EmptyPortalsPanel>
-      ) : (
-        <>
-          <APIItem />
-          <APIItem />
-        </>
-      )}
-    </div>
+    <>
+      <div className='container relative mx-auto '>
+        <span
+          onClick={() => setShowCreateApiModal(true)}
+          className='absolute top-0 right-0 flex items-center -mt-8 text-green-400 cursor-pointer hover:text-green-300'>
+          <GreenPlus className='mr-1 fill-current' />
+          <span className='text-gray-700'> Create an API</span>
+        </span>
+        {isEmpty ? (
+          <EmptyPortalsPanel itemName='API'>
+            <PlaceholderPortalTile /> <PlaceholderPortalTile />
+          </EmptyPortalsPanel>
+        ) : (
+          <>
+            <APIItem />
+            <APIItem />
+          </>
+        )}
+      </div>
+      <SoloModal visible={showCreateApiModal} width={750} noPadding={true}>
+        <CreateAPIModal onClose={() => setShowCreateApiModal(false)} />
+      </SoloModal>
+    </>
   );
 };
 

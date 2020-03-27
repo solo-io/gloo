@@ -88,7 +88,7 @@ export const SoloTransfer = (props: TransferProps) => {
             )
             .map(item => (
               <Item key={item.value}>
-                {item.displayValue || item.value}{' '}
+                {item.displayValue || item.value}
                 <GreenPlus onClick={() => addItem(item)} />
               </Item>
             ))}
@@ -100,7 +100,7 @@ export const SoloTransfer = (props: TransferProps) => {
         <ListHolder>
           {chosenOptions.map(item => (
             <Item key={item.value}>
-              {item.displayValue || item.value}{' '}
+              {item.displayValue || item.value}
               <RedX onClick={() => removeItem(item)} />
             </Item>
           ))}

@@ -191,9 +191,12 @@ export const StringCardsList = (props: StringCardsListProps) => {
                 (!!valueIsValid ? !valueIsValid(newValue) : false)
               }
               onClick={sendCreateNew}>
-              <GreenPlus
-                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-              />
+              <span className='text-green-400 cursor-pointer hover:text-green-300'>
+                <GreenPlus
+                  className='fill-current'
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+              </span>
             </PlusHolder>
           </NewStringPrompt>
         )}

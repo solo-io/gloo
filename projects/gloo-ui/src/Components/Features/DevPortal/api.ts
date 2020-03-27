@@ -3,7 +3,7 @@ import { grpc } from '@improbable-eng/grpc-web';
 import { PortalApi } from 'proto/dev-portal/api/grpc/admin/portal_pb_service';
 import { host } from 'store';
 import { Portal, PortalList } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-
+ 
 export const DevPortalApi = {
   listPortals
 };

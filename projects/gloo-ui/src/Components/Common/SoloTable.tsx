@@ -126,13 +126,15 @@ export const SoloTable = (props: TableProps) => {
         columns={props.columns}
         components={components}
         pagination={{ defaultPageSize: 20 }}
-        onRow={(record: any) => ({
-          record,
-          lastRowID,
-          isEmpty: props.dataSource.length === 1,
-          cols: props.columns,
-          formComponent: props.formComponent
-        })}
+        onRow={record => {
+          return {
+            ...record,
+            lastRowID,
+            isEmpty: props.dataSource.length === 1,
+            cols: props.columns,
+            formComponent: props.formComponent
+          };
+        }}
       />
     </TableContainer>
   );

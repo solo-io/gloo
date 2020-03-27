@@ -20,6 +20,15 @@ const colorsList = {
   lakeBlue: 'hsl(198, 71%, 60%)', //#54B7E3
   seaBlue: 'hsl(198, 72%, 46%)', //#2196C9
   oceanBlue: 'hsl(198, 84%, 37%)', //##0F7FB1
+  blue100: '#F7FCFF' as '#F7FCFF',
+  blue200: '#EAF8FF' as '#EAF8FF',
+  blue300: '#B1E7FF' as '#B1E7FF',
+  blue400: '#6AC7F0' as '#6AC7F0',
+  blue500: '#54B7E3' as '#54B7E3',
+  blue600: '#2196C9' as '#2196C9',
+  blue700: '#0F7FB1' as '#0F7FB1',
+  blue800: '#10344C' as '#10344C',
+  blue900: '#0e2636' as '#0e2636',
 
   januaryGrey: 'hsl(0, 0%, 97%)', //#F9F9F9',
   februaryGrey: 'hsl(0, 0%, 94%)', //#F2F2F2',

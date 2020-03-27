@@ -45,13 +45,20 @@ export const CreateRouteTableModal = (props: Props) => {
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
           <>
             {props.promptText || 'Create a Route Table'}
-            <StyledGreenPlus style={{ marginLeft: '7px', width: '18px' }} />
+            <span className='text-green-400 cursor-pointer hover:text-green-300'>
+              <StyledGreenPlus
+                className='fill-current'
+                style={{ marginLeft: '7px', width: '18px' }}
+              />
+            </span>
           </>
         </ModalTrigger>
       ) : (
         <ModalTrigger onClick={() => setShowModal(s => !s)}>
           <>
-            <StyledGreenPlus />
+            <span className='text-green-400 cursor-pointer hover:text-green-300'>
+              <StyledGreenPlus className='fill-current' />
+            </span>
             {props.promptText || 'Create a Route Table'}
           </>
           <Divider type='vertical' style={{ height: '1.5em' }} />

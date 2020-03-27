@@ -18,6 +18,8 @@ import { getIconFromSpec } from 'utils/helpers';
 import * as yup from 'yup';
 import { WeightInput } from '../UpstreamGroupDetails';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
+import tw from 'tailwind.macro';
+
 interface Props {}
 interface Values {
   name: string;
@@ -28,9 +30,6 @@ interface Values {
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
   margin-right: 7px;
-  .a {
-    fill: ${colors.forestGreen};
-  }
 `;
 
 const ModalContainer = styled.div`
@@ -126,7 +125,9 @@ export const CreateUpstreamGroupModal = (props: Props) => {
     <ModalContainer data-testid='create-upstream-modal'>
       <ModalTrigger onClick={open}>
         <>
-          <StyledGreenPlus />
+          <span className='text-green-400 cursor-pointer hover:text-green-300'>
+            <StyledGreenPlus className='fill-current' />
+          </span>
           Create Upstream Group
         </>
         <Divider type='vertical' style={{ height: '1.5em' }} />
@@ -212,6 +213,14 @@ export const CreateUpstreamGroupModal = (props: Props) => {
                       `}>
                       <Transfer
                         css={css`
+                          .ant-transfer-list-content-item {
+                            display: flex;
+                            align-items: center;
+                          }
+                          .ant-transfer-list-content-item-text {
+                            display: flex;
+                            align-items: center;
+                          }
                           .ant-transfer-list {
                             width: 250px;
                             height: 300px;

@@ -7,7 +7,7 @@ export const Label = styled.label`
   color: ${colors.novemberGrey};
   font-size: 16px;
   margin-bottom: 10px;
-  font-weight: 500px;
+  font-weight: 500;
 `;
 type TextareaStyleProps = { error?: boolean; borderless?: boolean };
 const Textarea = styled.textarea`
@@ -66,8 +66,6 @@ export const SoloTextarea = (props: TextareaProps) => {
   return (
     <div>
       {title && <Label>{title}</Label>}
-      {/*
-                      // @ts-ignore*/}
       <Textarea
         borderless={borderless}
         name={name}
@@ -79,6 +77,7 @@ export const SoloTextarea = (props: TextareaProps) => {
         onBlur={onBlur}
         disabled={disabled}
         error={error}
+        {...props}
       />
     </div>
   );

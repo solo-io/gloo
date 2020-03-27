@@ -467,19 +467,21 @@ export const Routes: React.FC<Props> = props => {
             </>
           }
           trigger='hover'>
-          {!!previewRouteTable && (
-            <NavLink
-              to={`/routetables/${previewRouteTable?.routeTable?.metadata?.namespace}/${previewRouteTable?.routeTable?.metadata?.name}`}>
-              <div
-                css={css`
-                  color: #2196c9;
-                  cursor: pointer;
-                  font-weight: bold;
-                `}>
-                <DestinationIcon route={route} />
-              </div>
-            </NavLink>
-          )}
+          <>
+            {!!previewRouteTable && (
+              <NavLink
+                to={`/routetables/${previewRouteTable?.routeTable?.metadata?.namespace}/${previewRouteTable?.routeTable?.metadata?.name}`}>
+                <div
+                  css={css`
+                    color: #2196c9;
+                    cursor: pointer;
+                    font-weight: bold;
+                  `}>
+                  <DestinationIcon route={route} />
+                </div>
+              </NavLink>
+            )}
+          </>
         </Popover>
       );
     } else if (type === 'Upstream Group') {
@@ -739,7 +741,9 @@ export const Routes: React.FC<Props> = props => {
           data-testid='create-new-route-modal'
           onClick={() => setShowCreateRouteModal(true)}>
           <>
-            <StyledGreenPlus />
+            <span className='text-green-400 cursor-pointer hover:text-green-300'>
+              <StyledGreenPlus className='fill-current' />
+            </span>
             Create Route
           </>
         </ModalTrigger>

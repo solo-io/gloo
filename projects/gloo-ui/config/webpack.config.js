@@ -97,8 +97,8 @@ module.exports = function(webpackEnv) {
           // https://github.com/facebook/create-react-app/issues/2677
           ident: 'postcss',
           plugins: () => [
+            require("tailwindcss")("./src/tailwind.config.js"),
             require('postcss-flexbugs-fixes'),
-            require('tailwindcss'),
             require('postcss-preset-env')({
               autoprefixer: {
                 flexbox: 'no-2009',

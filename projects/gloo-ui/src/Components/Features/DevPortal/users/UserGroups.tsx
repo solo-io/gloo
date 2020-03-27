@@ -17,6 +17,10 @@ import {
 import { SoloInput } from 'Components/Common/SoloInput';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
 import { TabCss, ActiveTabCss } from '../portals/PortalDetails';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { CreateUserModal } from './CreateUserModal';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { CreateGroupModal } from './CreateGroupModal';
 
 const StyledTab = (
   props: {
@@ -42,12 +46,28 @@ export const UserGroups = () => {
   const [tabIndex, setTabIndex] = React.useState(0);
   const [userSearchTerm, setUserSearchTerm] = React.useState('');
   const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
+  const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = React.useState(false);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
   return (
-    <div>
+    <div className='relative'>
+      <div className='absolute top-0 right-0 flex items-center-mt-8'>
+        <span
+          onClick={() => setShowCreateUserModal(true)}
+          className='flex items-center text-green-400 cursor-pointer hover:text-green-300'>
+          <GreenPlus className='mr-1 fill-current' />
+          <span className='mr-2 text-gray-700'> Create a User</span>
+        </span>
+        <span
+          onClick={() => setShowCreateGroupModal(true)}
+          className='flex items-center text-green-400 cursor-pointer hover:text-green-300'>
+          <GreenPlus className='mr-1 fill-current' />
+          <span className='text-gray-700'> Create a Group</span>
+        </span>
+      </div>
       <Tabs
         index={tabIndex}
         className='mb-4 border-none rounded-lg '
@@ -326,6 +346,12 @@ export const UserGroups = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
+      <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
+        <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
+      </SoloModal>
+      <SoloModal visible={showCreateGroupModal} width={750} noPadding={true}>
+        <CreateGroupModal onClose={() => setShowCreateGroupModal(false)} />
+      </SoloModal>
     </div>
   );
 };

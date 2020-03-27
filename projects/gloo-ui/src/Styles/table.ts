@@ -10,6 +10,9 @@ export const TableActions = styled.div`
 export const TableActionCircle = styled.div`
   width: 18px;
   height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 18px;
   text-align: center;
   font-weight: normal;

@@ -122,9 +122,9 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
               <div className='pt-5 pb-6 pl-8 pr-6'>
                 <TabPanel className='focus:outline-none'>
                   <div className='relative flex flex-col'>
-                    <div className='flex items-center text-lg font-medium'>
+                    <div className='flex items-center text-lg font-medium text-gray-900'>
                       {textTopic} an API Key Scope{' '}
-                      <StacksIcon className='w-8 h-8 ml-2' />
+                      <StacksIcon className='w-8 h-8 ml-2 ' />
                     </div>
 
                     <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>

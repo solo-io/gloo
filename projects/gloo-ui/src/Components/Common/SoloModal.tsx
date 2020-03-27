@@ -20,6 +20,7 @@ const ModalWindow = styled.div`
 
 const BlockHolder = styled.div`
   max-height: 80vh;
+  height: 60vh;
 `;
 
 type ModalBlockProps = {

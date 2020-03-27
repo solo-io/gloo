@@ -24,6 +24,7 @@ import { useHistory } from 'react-router-dom';
 import { useLocation } from 'react-router';
 import { APIKeyScopes } from 'Components/Features/DevPortal/api-key-scopes/ApiKeyScopes';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
+import { APIKeys } from './api-keys/ApiKeys';
 
 export const EmptyPortalsPanel: React.FC<{ itemName: string }> = props => {
   const { itemName = 'Portal' } = props;
@@ -123,25 +124,16 @@ export function DevPortal() {
           `}>
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
-              <span className='absolute top-0 right-0 -mt-8'>
-                <span></span> create a portal
-              </span>
               <PortalsListing />
             </div>
           </TabPanel>
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
-              <span className='absolute top-0 right-0 -mt-8'>
-                <span></span> create an API
-              </span>
               <APIListing />
             </div>
           </TabPanel>
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
-              <span className='absolute top-0 right-0 -mt-8'>
-                <span> Create a User</span> <span>Create a Group</span>
-              </span>
               <UserGroups />
               {/* <EmptyPortalsPanel itemName=''></EmptyPortalsPanel> */}
             </div>
@@ -153,10 +145,12 @@ export function DevPortal() {
           </TabPanel>
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
+              <APIKeys />
               <span className='absolute top-0 right-0 -mt-8'>
                 <span></span> create an API Key
               </span>
-              <EmptyPortalsPanel itemName=''></EmptyPortalsPanel>
+              {/* <CreateAPIModal /> */}
+              {/* <EmptyPortalsPanel itemName=''></EmptyPortalsPanel> */}
             </div>
           </TabPanel>
         </TabPanels>
