@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: open-policy-agent
+    dependencyRepo: opa
+    dependencyTag: v0.18.0
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/1536
+    description: |
+      The OPA debug-level logging now includes data about the OPA input, eval traces, and result set. 
+      The following command can be used to stream a clean OPA trace with those three things from 
+      the extauth service: 
+      `kubectl logs -n gloo-system deploy/extauth -f | jq -r -j "select(.trace != null) | .trace"`

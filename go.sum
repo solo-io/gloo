@@ -100,9 +100,10 @@ github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8/go.mod h1:oX5x61
 github.com/Netflix/go-expect v0.0.0-20180928190340-9d1f4485533b h1:sSQK05nvxs4UkgCJaxihteu+r+6ela3dNMm7NVmsS3c=
 github.com/Netflix/go-expect v0.0.0-20180928190340-9d1f4485533b/go.mod h1:oX5x61PbNXchhh0oikYAH+4Pcfw5LKv21+Jnpr6r6Pc=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
-github.com/OneOfOne/xxhash v1.2.3/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/OneOfOne/xxhash v1.2.5 h1:zl/OfRA6nftbBK9qTohYBJ5xvw6C/oNKizR7cZGl3cI=
 github.com/OneOfOne/xxhash v1.2.5/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=
+github.com/OneOfOne/xxhash v1.2.7 h1:fzrmmkskv067ZQbd9wERNGuxckWw67dyzoMG62p7LMo=
+github.com/OneOfOne/xxhash v1.2.7/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=
 github.com/PuerkitoBio/purell v1.0.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/purell v1.1.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tNFfI=
@@ -860,9 +861,8 @@ github.com/onsi/gomega v1.7.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.8.1 h1:C5Dqfs/LeauYDX0jJXIe2SWmwCbGzx9yF8C8xy3Lh34=
 github.com/onsi/gomega v1.8.1/go.mod h1:Ho0h+IUsWyvy1OpqCwxlQ/21gkhVunqlU8fDGcoTdcA=
-github.com/open-policy-agent/opa v0.13.2/go.mod h1:rlfeSeHuZmMEpmrcGla42AjkOUjP4rGIpS96H12un3o=
-github.com/open-policy-agent/opa v0.15.1 h1:4E5AySX6dcg8J4LGlIISugId52iqdSSRMwQXMno/tCE=
-github.com/open-policy-agent/opa v0.15.1/go.mod h1:P0xUE/GQAAgnvV537GzA0Ikw4+icPELRT327QJPkaKY=
+github.com/open-policy-agent/opa v0.18.0 h1:EC81mO3/517Kq5brJHydqKE5MLzJ+4cdJvUQKxLzHy8=
+github.com/open-policy-agent/opa v0.18.0/go.mod h1:6pC1cMYDI92i9EY/GoA2m+HcZlcCrh3jbfny5F7JVTA=
 github.com/opencontainers/go-digest v1.0.0-rc1 h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/image-spec v1.0.1 h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVojFA6h/TRcI=
@@ -1011,8 +1011,8 @@ github.com/solo-io/ext-auth-plugins v0.1.1 h1:n1CtH4oZFaRo2XyfPflM3U+pQgblrn2YdZ
 github.com/solo-io/ext-auth-plugins v0.1.1/go.mod h1:Z5PIhG+HDAGxMmZFkS5ztMWTOPQwfo/R33JmQYRmKBc=
 github.com/solo-io/ext-auth-plugins v0.1.2 h1:6Ia7KG+titlg6R/uF1HlYFwZU0IHh3rg3Kpb0d5pP/c=
 github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4tsgN8AMseGq6W/TlnU=
-github.com/solo-io/ext-auth-service v0.6.8 h1:Io1IwEz6ePFKh/j3b1kMezanOMyeJA9zx1+TiO7BvNI=
-github.com/solo-io/ext-auth-service v0.6.8/go.mod h1:dbP8uwfwJh7Nw/+mSBywImWcVPRIhbi3F2gCklThfA0=
+github.com/solo-io/ext-auth-service v0.6.10 h1:MsiQAW1vj9gmPmbclBkcsJj83T16+tZc8y+CJgR6jPo=
+github.com/solo-io/ext-auth-service v0.6.10/go.mod h1:oA9GsVmTPbF5pNnDZ2BPinVPszKxJqknsTu+AF2uaNk=
 github.com/solo-io/gloo v1.3.1/go.mod h1:08u6J9vpfFGRDsZybTQ65UX7UuJr+EBsZz++J1wtKkQ=
 github.com/solo-io/gloo v1.3.15 h1:UT5AkCEsDa3XsJB7C75vvmVaOecvz5XgOHutOgAJxVw=
 github.com/solo-io/gloo v1.3.15/go.mod h1:GwXDuyvBJ+9C6mIA4G3qGINNbWbKj9w1kOMcNAtgHm8=

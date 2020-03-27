@@ -25,7 +25,6 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
-	github.com/open-policy-agent/opa v0.15.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
@@ -35,7 +34,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.1
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
-	github.com/solo-io/ext-auth-service v0.6.8
+	github.com/solo-io/ext-auth-service v0.6.10
 	github.com/solo-io/gloo v1.3.15
 	github.com/solo-io/go-utils v0.14.2
 	github.com/solo-io/licensing v0.1.17
