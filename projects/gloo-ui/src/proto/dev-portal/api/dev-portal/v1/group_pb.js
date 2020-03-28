@@ -298,7 +298,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.devportal.solo.io.GroupStatus.repeatedFields_ = [2];
+proto.devportal.solo.io.GroupStatus.repeatedFields_ = [4];
 
 
 
@@ -330,6 +330,8 @@ proto.devportal.solo.io.GroupStatus.prototype.toObject = function(opt_includeIns
 proto.devportal.solo.io.GroupStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     observedGeneration: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    state: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    reason: jspb.Message.getFieldWithDefault(msg, 3, ""),
     usersList: jspb.Message.toObjectList(msg.getUsersList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     accessLevel: (f = msg.getAccessLevel()) && dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.toObject(includeInstance, f)
@@ -374,11 +376,19 @@ proto.devportal.solo.io.GroupStatus.deserializeBinaryFromReader = function(msg, 
       msg.setObservedGeneration(value);
       break;
     case 2:
+      var value = /** @type {!proto.devportal.solo.io.State} */ (reader.readEnum());
+      msg.setState(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setReason(value);
+      break;
+    case 4:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addUsers(value);
       break;
-    case 3:
+    case 5:
       var value = new dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.deserializeBinaryFromReader);
       msg.setAccessLevel(value);
@@ -419,10 +429,24 @@ proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, 
       f
     );
   }
+  f = message.getState();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      2,
+      f
+    );
+  }
+  f = message.getReason();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getUsersList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      2,
+      4,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
@@ -430,7 +454,7 @@ proto.devportal.solo.io.GroupStatus.serializeBinaryToWriter = function(message, 
   f = message.getAccessLevel();
   if (f != null) {
     writer.writeMessage(
-      3,
+      5,
       f,
       dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus.serializeBinaryToWriter
     );
@@ -454,18 +478,48 @@ proto.devportal.solo.io.GroupStatus.prototype.setObservedGeneration = function(v
 
 
 /**
- * repeated ObjectRef users = 2;
+ * optional State state = 2;
+ * @return {!proto.devportal.solo.io.State}
+ */
+proto.devportal.solo.io.GroupStatus.prototype.getState = function() {
+  return /** @type {!proto.devportal.solo.io.State} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {!proto.devportal.solo.io.State} value */
+proto.devportal.solo.io.GroupStatus.prototype.setState = function(value) {
+  jspb.Message.setProto3EnumField(this, 2, value);
+};
+
+
+/**
+ * optional string reason = 3;
+ * @return {string}
+ */
+proto.devportal.solo.io.GroupStatus.prototype.getReason = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.GroupStatus.prototype.setReason = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated ObjectRef users = 4;
  * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
  */
 proto.devportal.solo.io.GroupStatus.prototype.getUsersList = function() {
   return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
+    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 4));
 };
 
 
 /** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
 proto.devportal.solo.io.GroupStatus.prototype.setUsersList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 2, value);
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
 };
 
 
@@ -475,7 +529,7 @@ proto.devportal.solo.io.GroupStatus.prototype.setUsersList = function(value) {
  * @return {!proto.devportal.solo.io.ObjectRef}
  */
 proto.devportal.solo.io.GroupStatus.prototype.addUsers = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
 };
 
 
@@ -485,18 +539,18 @@ proto.devportal.solo.io.GroupStatus.prototype.clearUsersList = function() {
 
 
 /**
- * optional AccessLevelStatus access_level = 3;
+ * optional AccessLevelStatus access_level = 5;
  * @return {?proto.devportal.solo.io.AccessLevelStatus}
  */
 proto.devportal.solo.io.GroupStatus.prototype.getAccessLevel = function() {
   return /** @type{?proto.devportal.solo.io.AccessLevelStatus} */ (
-    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus, 3));
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_access_level_pb.AccessLevelStatus, 5));
 };
 
 
 /** @param {?proto.devportal.solo.io.AccessLevelStatus|undefined} value */
 proto.devportal.solo.io.GroupStatus.prototype.setAccessLevel = function(value) {
-  jspb.Message.setWrapperField(this, 3, value);
+  jspb.Message.setWrapperField(this, 5, value);
 };
 
 
@@ -510,7 +564,7 @@ proto.devportal.solo.io.GroupStatus.prototype.clearAccessLevel = function() {
  * @return {!boolean}
  */
 proto.devportal.solo.io.GroupStatus.prototype.hasAccessLevel = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

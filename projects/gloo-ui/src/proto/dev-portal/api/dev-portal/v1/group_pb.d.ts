@@ -48,6 +48,12 @@ export class GroupStatus extends jspb.Message {
   getObservedGeneration(): number;
   setObservedGeneration(value: number): void;
 
+  getState(): dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap];
+  setState(value: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap]): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
   clearUsersList(): void;
   getUsersList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
   setUsersList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
@@ -71,6 +77,8 @@ export class GroupStatus extends jspb.Message {
 export namespace GroupStatus {
   export type AsObject = {
     observedGeneration: number,
+    state: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap],
+    reason: string,
     usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
   }

@@ -68,8 +68,8 @@ export class ApiDocStatus extends jspb.Message {
   getObservedGeneration(): number;
   setObservedGeneration(value: number): void;
 
-  getState(): ApiDocStatus.StateMap[keyof ApiDocStatus.StateMap];
-  setState(value: ApiDocStatus.StateMap[keyof ApiDocStatus.StateMap]): void;
+  getState(): dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap];
+  setState(value: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap]): void;
 
   getReason(): string;
   setReason(value: string): void;
@@ -107,7 +107,7 @@ export class ApiDocStatus extends jspb.Message {
 export namespace ApiDocStatus {
   export type AsObject = {
     observedGeneration: number,
-    state: ApiDocStatus.StateMap[keyof ApiDocStatus.StateMap],
+    state: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap],
     reason: string,
     modifiedDate?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     displayName: string,
@@ -116,11 +116,4 @@ export namespace ApiDocStatus {
     numberOfEndpoints: number,
     basePath: string,
   }
-
-  export interface StateMap {
-    REJECTED: 0;
-    ACCEPTED: 1;
-  }
-
-  export const State: StateMap;
 }

@@ -495,7 +495,8 @@ proto.admin.devportal.solo.io.PortalWriteRequest.toObject = function(includeInst
     usersList: jspb.Message.toObjectList(msg.getUsersList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     groupsList: jspb.Message.toObjectList(msg.getGroupsList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
+    portalOnly: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -551,6 +552,10 @@ proto.admin.devportal.solo.io.PortalWriteRequest.deserializeBinaryFromReader = f
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addGroups(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPortalOnly(value);
       break;
     default:
       reader.skipField();
@@ -611,6 +616,13 @@ proto.admin.devportal.solo.io.PortalWriteRequest.serializeBinaryToWriter = funct
       4,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getPortalOnly();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
     );
   }
 };
@@ -736,6 +748,23 @@ proto.admin.devportal.solo.io.PortalWriteRequest.prototype.addGroups = function(
 
 proto.admin.devportal.solo.io.PortalWriteRequest.prototype.clearGroupsList = function() {
   this.setGroupsList([]);
+};
+
+
+/**
+ * optional bool portal_only = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.getPortalOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.admin.devportal.solo.io.PortalWriteRequest.prototype.setPortalOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

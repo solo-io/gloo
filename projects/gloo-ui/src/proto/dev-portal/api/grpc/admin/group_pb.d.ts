@@ -86,6 +86,9 @@ export class GroupWriteRequest extends jspb.Message {
   setUsersList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
   addUsers(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
+  getGroupOnly(): boolean;
+  setGroupOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GroupWriteRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GroupWriteRequest): GroupWriteRequest.AsObject;
@@ -102,6 +105,7 @@ export namespace GroupWriteRequest {
     apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     portalsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    groupOnly: boolean,
   }
 }
 

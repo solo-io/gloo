@@ -3,6 +3,7 @@
 // file: dev-portal/api/dev-portal/v1/user.proto
 
 import * as jspb from "google-protobuf";
+import * as dev_portal_api_dev_portal_v1_common_pb from "../../../../dev-portal/api/dev-portal/v1/common_pb";
 import * as dev_portal_api_dev_portal_v1_access_level_pb from "../../../../dev-portal/api/dev-portal/v1/access_level_pb";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
@@ -81,8 +82,11 @@ export class UserStatus extends jspb.Message {
   getObservedGeneration(): number;
   setObservedGeneration(value: number): void;
 
-  getState(): UserStatus.StateMap[keyof UserStatus.StateMap];
-  setState(value: UserStatus.StateMap[keyof UserStatus.StateMap]): void;
+  getState(): dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap];
+  setState(value: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap]): void;
+
+  getReason(): string;
+  setReason(value: string): void;
 
   hasAccessLevel(): boolean;
   clearAccessLevel(): void;
@@ -105,16 +109,9 @@ export class UserStatus extends jspb.Message {
 export namespace UserStatus {
   export type AsObject = {
     observedGeneration: number,
-    state: UserStatus.StateMap[keyof UserStatus.StateMap],
+    state: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap],
+    reason: string,
     accessLevel?: dev_portal_api_dev_portal_v1_access_level_pb.AccessLevelStatus.AsObject,
     hasLoggedIn: boolean,
   }
-
-  export interface StateMap {
-    PENDING: 0;
-    ACCEPTED: 1;
-    INVALID: 2;
-  }
-
-  export const State: StateMap;
 }

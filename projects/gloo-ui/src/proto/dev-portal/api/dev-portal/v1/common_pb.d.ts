@@ -127,3 +127,13 @@ export namespace ObjectRef {
     namespace: string,
   }
 }
+
+export interface StateMap {
+  PENDING: 0;
+  PROCESSING: 1;
+  INVALID: 2;
+  FAILED: 3;
+  SUCCEEDED: 4;
+}
+
+export const State: StateMap;

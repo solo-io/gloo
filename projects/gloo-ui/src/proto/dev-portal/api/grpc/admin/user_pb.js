@@ -497,7 +497,8 @@ proto.admin.devportal.solo.io.UserWriteRequest.toObject = function(includeInstan
     portalsList: jspb.Message.toObjectList(msg.getPortalsList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     groupsList: jspb.Message.toObjectList(msg.getGroupsList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
+    userOnly: jspb.Message.getFieldWithDefault(msg, 6, false)
   };
 
   if (includeInstance) {
@@ -557,6 +558,10 @@ proto.admin.devportal.solo.io.UserWriteRequest.deserializeBinaryFromReader = fun
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addGroups(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUserOnly(value);
       break;
     default:
       reader.skipField();
@@ -624,6 +629,13 @@ proto.admin.devportal.solo.io.UserWriteRequest.serializeBinaryToWriter = functio
       5,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserOnly();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
     );
   }
 };
@@ -764,6 +776,23 @@ proto.admin.devportal.solo.io.UserWriteRequest.prototype.addGroups = function(op
 
 proto.admin.devportal.solo.io.UserWriteRequest.prototype.clearGroupsList = function() {
   this.setGroupsList([]);
+};
+
+
+/**
+ * optional bool user_only = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.admin.devportal.solo.io.UserWriteRequest.prototype.getUserOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.admin.devportal.solo.io.UserWriteRequest.prototype.setUserOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

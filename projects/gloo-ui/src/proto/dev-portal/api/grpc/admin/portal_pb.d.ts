@@ -86,6 +86,9 @@ export class PortalWriteRequest extends jspb.Message {
   setGroupsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
   addGroups(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
+  getPortalOnly(): boolean;
+  setPortalOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PortalWriteRequest.AsObject;
   static toObject(includeInstance: boolean, msg: PortalWriteRequest): PortalWriteRequest.AsObject;
@@ -102,5 +105,6 @@ export namespace PortalWriteRequest {
     apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     groupsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    portalOnly: boolean,
   }
 }

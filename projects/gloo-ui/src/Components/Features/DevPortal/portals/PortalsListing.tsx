@@ -19,19 +19,14 @@ import { format } from 'timeago.js';
 import { CreatePortalModal } from './CreatePortalModal';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { StateMap, State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 
 export function formatHealthStatus(
-  status: PortalStatus.StateMap[keyof PortalStatus.StateMap] | undefined
+  status: StateMap[keyof StateMap] | undefined
 ): Status.StateMap[keyof Status.StateMap] {
-  if (
-    status === PortalStatus.State.PENDING ||
-    status === PortalStatus.State.PROCESSING
-  ) {
+  if (status === State.PENDING || status === State.PROCESSING) {
     return Status.State.PENDING;
-  } else if (
-    status === PortalStatus.State.FAILED ||
-    status === PortalStatus.State.INVALID
-  ) {
+  } else if (status === State.FAILED || status === State.INVALID) {
     return Status.State.REJECTED;
   }
   return Status.State.ACCEPTED;

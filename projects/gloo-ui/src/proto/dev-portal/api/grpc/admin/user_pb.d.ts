@@ -89,6 +89,9 @@ export class UserWriteRequest extends jspb.Message {
   setGroupsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
   addGroups(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
+  getUserOnly(): boolean;
+  setUserOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserWriteRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UserWriteRequest): UserWriteRequest.AsObject;
@@ -106,6 +109,7 @@ export namespace UserWriteRequest {
     apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     portalsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     groupsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    userOnly: boolean,
   }
 }
 

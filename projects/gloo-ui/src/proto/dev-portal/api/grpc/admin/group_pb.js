@@ -496,7 +496,8 @@ proto.admin.devportal.solo.io.GroupWriteRequest.toObject = function(includeInsta
     portalsList: jspb.Message.toObjectList(msg.getPortalsList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     usersList: jspb.Message.toObjectList(msg.getUsersList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
+    groupOnly: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -552,6 +553,10 @@ proto.admin.devportal.solo.io.GroupWriteRequest.deserializeBinaryFromReader = fu
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addUsers(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setGroupOnly(value);
       break;
     default:
       reader.skipField();
@@ -612,6 +617,13 @@ proto.admin.devportal.solo.io.GroupWriteRequest.serializeBinaryToWriter = functi
       4,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getGroupOnly();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
     );
   }
 };
@@ -737,6 +749,23 @@ proto.admin.devportal.solo.io.GroupWriteRequest.prototype.addUsers = function(op
 
 proto.admin.devportal.solo.io.GroupWriteRequest.prototype.clearUsersList = function() {
   this.setUsersList([]);
+};
+
+
+/**
+ * optional bool group_only = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.admin.devportal.solo.io.GroupWriteRequest.prototype.getGroupOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.admin.devportal.solo.io.GroupWriteRequest.prototype.setGroupOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

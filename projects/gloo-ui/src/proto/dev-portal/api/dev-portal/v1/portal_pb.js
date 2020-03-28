@@ -21,7 +21,6 @@ goog.exportSymbol('proto.devportal.solo.io.KeyScope', null, global);
 goog.exportSymbol('proto.devportal.solo.io.KeyScopeStatus', null, global);
 goog.exportSymbol('proto.devportal.solo.io.PortalSpec', null, global);
 goog.exportSymbol('proto.devportal.solo.io.PortalStatus', null, global);
-goog.exportSymbol('proto.devportal.solo.io.PortalStatus.State', null, global);
 goog.exportSymbol('proto.devportal.solo.io.StaticPage', null, global);
 
 /**
@@ -655,7 +654,7 @@ proto.devportal.solo.io.PortalStatus.deserializeBinaryFromReader = function(msg,
       msg.setObservedGeneration(value);
       break;
     case 2:
-      var value = /** @type {!proto.devportal.solo.io.PortalStatus.State} */ (reader.readEnum());
+      var value = /** @type {!proto.devportal.solo.io.State} */ (reader.readEnum());
       msg.setState(value);
       break;
     case 3:
@@ -753,17 +752,6 @@ proto.devportal.solo.io.PortalStatus.serializeBinaryToWriter = function(message,
 
 
 /**
- * @enum {number}
- */
-proto.devportal.solo.io.PortalStatus.State = {
-  PENDING: 0,
-  PROCESSING: 1,
-  PUBLISHED: 2,
-  INVALID: 3,
-  FAILED: 4
-};
-
-/**
  * optional int64 observed_generation = 1;
  * @return {number}
  */
@@ -780,14 +768,14 @@ proto.devportal.solo.io.PortalStatus.prototype.setObservedGeneration = function(
 
 /**
  * optional State state = 2;
- * @return {!proto.devportal.solo.io.PortalStatus.State}
+ * @return {!proto.devportal.solo.io.State}
  */
 proto.devportal.solo.io.PortalStatus.prototype.getState = function() {
-  return /** @type {!proto.devportal.solo.io.PortalStatus.State} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+  return /** @type {!proto.devportal.solo.io.State} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
 
-/** @param {!proto.devportal.solo.io.PortalStatus.State} value */
+/** @param {!proto.devportal.solo.io.State} value */
 proto.devportal.solo.io.PortalStatus.prototype.setState = function(value) {
   jspb.Message.setProto3EnumField(this, 2, value);
 };
@@ -1478,7 +1466,8 @@ proto.devportal.solo.io.KeyScope.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    description: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 4, ""),
     apiDocs: (f = msg.getApiDocs()) && dev$portal_api_dev$portal_v1_common_pb.Selector.toObject(includeInstance, f)
   };
 
@@ -1525,6 +1514,10 @@ proto.devportal.solo.io.KeyScope.deserializeBinaryFromReader = function(msg, rea
       msg.setNamespace(value);
       break;
     case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setDescription(value);
       break;
@@ -1576,10 +1569,17 @@ proto.devportal.solo.io.KeyScope.serializeBinaryToWriter = function(message, wri
       f
     );
   }
-  f = message.getDescription();
+  f = message.getDisplayName();
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getDescription();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -1625,17 +1625,32 @@ proto.devportal.solo.io.KeyScope.prototype.setNamespace = function(value) {
 
 
 /**
- * optional string description = 3;
+ * optional string display_name = 3;
  * @return {string}
  */
-proto.devportal.solo.io.KeyScope.prototype.getDescription = function() {
+proto.devportal.solo.io.KeyScope.prototype.getDisplayName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
 /** @param {string} value */
-proto.devportal.solo.io.KeyScope.prototype.setDescription = function(value) {
+proto.devportal.solo.io.KeyScope.prototype.setDisplayName = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string description = 4;
+ * @return {string}
+ */
+proto.devportal.solo.io.KeyScope.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.devportal.solo.io.KeyScope.prototype.setDescription = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

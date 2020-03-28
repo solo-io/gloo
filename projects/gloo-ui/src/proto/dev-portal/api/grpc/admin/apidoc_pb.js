@@ -685,7 +685,8 @@ proto.admin.devportal.solo.io.ApiDocWriteRequest.toObject = function(includeInst
     usersList: jspb.Message.toObjectList(msg.getUsersList(),
     dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
     groupsList: jspb.Message.toObjectList(msg.getGroupsList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
+    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
+    apiDocOnly: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -741,6 +742,10 @@ proto.admin.devportal.solo.io.ApiDocWriteRequest.deserializeBinaryFromReader = f
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
       msg.addGroups(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setApiDocOnly(value);
       break;
     default:
       reader.skipField();
@@ -801,6 +806,13 @@ proto.admin.devportal.solo.io.ApiDocWriteRequest.serializeBinaryToWriter = funct
       4,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getApiDocOnly();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
     );
   }
 };
@@ -926,6 +938,23 @@ proto.admin.devportal.solo.io.ApiDocWriteRequest.prototype.addGroups = function(
 
 proto.admin.devportal.solo.io.ApiDocWriteRequest.prototype.clearGroupsList = function() {
   this.setGroupsList([]);
+};
+
+
+/**
+ * optional bool api_doc_only = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.admin.devportal.solo.io.ApiDocWriteRequest.prototype.getApiDocOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.admin.devportal.solo.io.ApiDocWriteRequest.prototype.setApiDocOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

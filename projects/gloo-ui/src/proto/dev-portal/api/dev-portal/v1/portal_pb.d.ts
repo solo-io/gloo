@@ -84,8 +84,8 @@ export class PortalStatus extends jspb.Message {
   getObservedGeneration(): number;
   setObservedGeneration(value: number): void;
 
-  getState(): PortalStatus.StateMap[keyof PortalStatus.StateMap];
-  setState(value: PortalStatus.StateMap[keyof PortalStatus.StateMap]): void;
+  getState(): dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap];
+  setState(value: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap]): void;
 
   getReason(): string;
   setReason(value: string): void;
@@ -116,22 +116,12 @@ export class PortalStatus extends jspb.Message {
 export namespace PortalStatus {
   export type AsObject = {
     observedGeneration: number,
-    state: PortalStatus.StateMap[keyof PortalStatus.StateMap],
+    state: dev_portal_api_dev_portal_v1_common_pb.StateMap[keyof dev_portal_api_dev_portal_v1_common_pb.StateMap],
     reason: string,
     publishUrl: string,
     apiDocsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     keyScopesList: Array<KeyScopeStatus.AsObject>,
   }
-
-  export interface StateMap {
-    PENDING: 0;
-    PROCESSING: 1;
-    PUBLISHED: 2;
-    INVALID: 3;
-    FAILED: 4;
-  }
-
-  export const State: StateMap;
 }
 
 export class CustomStyling extends jspb.Message {
@@ -219,6 +209,9 @@ export class KeyScope extends jspb.Message {
   getNamespace(): string;
   setNamespace(value: string): void;
 
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
+
   getDescription(): string;
   setDescription(value: string): void;
 
@@ -241,6 +234,7 @@ export namespace KeyScope {
   export type AsObject = {
     name: string,
     namespace: string,
+    displayName: string,
     description: string,
     apiDocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
   }

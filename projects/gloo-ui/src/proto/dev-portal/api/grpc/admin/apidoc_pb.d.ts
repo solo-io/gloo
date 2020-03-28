@@ -112,6 +112,9 @@ export class ApiDocWriteRequest extends jspb.Message {
   setGroupsList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
   addGroups(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
 
+  getApiDocOnly(): boolean;
+  setApiDocOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiDocWriteRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ApiDocWriteRequest): ApiDocWriteRequest.AsObject;
@@ -128,6 +131,7 @@ export namespace ApiDocWriteRequest {
     portalsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     usersList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
     groupsList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    apiDocOnly: boolean,
   }
 }
 
