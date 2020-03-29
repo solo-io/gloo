@@ -1013,8 +1013,8 @@ github.com/solo-io/anyvendor v0.0.1/go.mod h1:SLucIeU8qBOYI82BveNVn2LzZFcMWJSCf8
 github.com/solo-io/autopilot v0.1.1-0.20200211163026-f295a102fd94/go.mod h1:ChONxgEh+B2WxCOiX79u+gd2+5sABOwD3EG4cKtR6KA=
 github.com/solo-io/autopilot v0.1.1-0.20200327195452-d45517fc07a8 h1:A09tGRp7dNvVfvWrp9a8HjQoe9ecdgsvYSoycD4jcpQ=
 github.com/solo-io/autopilot v0.1.1-0.20200327195452-d45517fc07a8/go.mod h1:tr1TWt9cqhs+tPDcpvR/DPT6VVzgw+6GiEu8bU4qj2E=
-github.com/solo-io/dev-portal v0.0.11 h1:krNr6bfchC9Ixpp9P6/QfDUTSYkc/20cEHXXOMiY2MA=
-github.com/solo-io/dev-portal v0.0.11/go.mod h1:eRjKEJ8ijMXSyTQRP2wQi+UA2JyUMNaRrhM9UaEW5eg=
+github.com/solo-io/dev-portal v0.0.12 h1:bPMg5LBaKU0oDDftifsdmFdsL3OSZtuA4leHusP9POo=
+github.com/solo-io/dev-portal v0.0.12/go.mod h1:UqozDxHnni++obVytxc+0ilOAhjiD0yitO9WgVxFIVg=
 github.com/solo-io/envoy-operator v0.1.1 h1:fiUN3lqvR9OwmMuktX0MjLSNwGdya+1ObvxXqQGZwsQ=
 github.com/solo-io/envoy-operator v0.1.1/go.mod h1:ZP5hB+khljAFCROj/yDjVPXCPHntdewy6mqYybcCneQ=
 github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779 h1:dExaUG91a5SHHo68NIiYsL992CHWcuQaM16WRIP8+QY=
@@ -1396,8 +1396,8 @@ golang.org/x/tools v0.0.0-20191127201027-ecd32218bd7f/go.mod h1:b+2E5dAYhXwXZwtn
 golang.org/x/tools v0.0.0-20191212051200-825cb0626375/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20200317205521-2944c61d58b4 h1:ZDNUPyBE3vtF6Sm7/3g98znzRSeFeCuIuAFxYQLm21o=
 golang.org/x/tools v0.0.0-20200317205521-2944c61d58b4/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
-golang.org/x/tools v0.0.0-20200326210457-5d86d385bf88 h1:F7fM2kxXfuWw820fa+MMCCLH6hmYe+jtLnZpwoiLK4Q=
-golang.org/x/tools v0.0.0-20200326210457-5d86d385bf88/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
+golang.org/x/tools v0.0.0-20200328031815-3db5fc6bac03 h1:XpToik3MpT5iW3iHgNwnh3a8QwugfomvxOlyDnaOils=
+golang.org/x/tools v0.0.0-20200328031815-3db5fc6bac03/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 h1:/atklqdjdhuosWIl6AIbOeHJjicWYPqR9bpxqxYG2pA=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
