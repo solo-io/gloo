@@ -15,12 +15,14 @@ func NewRegistrar(
 	apiDocService admin.ApiDocApiServer,
 	userService admin.UserApiServer,
 	groupService admin.GroupApiServer,
+	apiKeyService admin.ApiKeyApiServer,
 ) Registrar {
 	return &devPortalRegistrar{
 		portalService: portalService,
 		apiDocService: apiDocService,
 		userService:   userService,
 		groupService:  groupService,
+		apiKeyService: apiKeyService,
 	}
 }
 
@@ -29,6 +31,7 @@ type devPortalRegistrar struct {
 	apiDocService admin.ApiDocApiServer
 	userService   admin.UserApiServer
 	groupService  admin.GroupApiServer
+	apiKeyService admin.ApiKeyApiServer
 }
 
 func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
@@ -36,6 +39,7 @@ func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
 	admin.RegisterApiDocApiServer(server, r.apiDocService)
 	admin.RegisterUserApiServer(server, r.userService)
 	admin.RegisterGroupApiServer(server, r.groupService)
+	admin.RegisterApiKeyApiServer(server, r.apiKeyService)
 }
 
 // This registrar is used when the portal is not enabled.

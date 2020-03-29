@@ -4,6 +4,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/apikey"
+
 	"github.com/solo-io/dev-portal/pkg/admin"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/apidoc"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/group"
@@ -50,6 +52,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(adminapi.UserApiServer), new(*user.GrpcService)),
 	group.NewGroupGrpcService,
 	wire.Bind(new(adminapi.GroupApiServer), new(*group.GrpcService)),
+	apikey.NewApiKeyGrpcService,
+	wire.Bind(new(adminapi.ApiKeyApiServer), new(*apikey.GrpcService)),
 	NewRegistrar,
 )
 
