@@ -96,11 +96,13 @@ export const Content = () => {
         <DevPortalRoute path='/dev-portal/api-keys' exact>
           <DevPortal />
         </DevPortalRoute>
-        <DevPortalRoute path='/dev-portal/portals/:portalname' exact>
+        <DevPortalRoute
+          path='/dev-portal/portals/:portalnamespace/:portalname'
+          exact>
           <PortalDetails />
         </DevPortalRoute>
         <DevPortalRoute
-          path='/dev-portal/portals/:portalname/page-editor/:pagename'
+          path='/dev-portal/portals/:portalnamespace/:portalname/page-editor/:pagename'
           exact>
           <PortalPageEditor />
         </DevPortalRoute>

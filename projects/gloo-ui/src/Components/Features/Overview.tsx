@@ -20,6 +20,7 @@ import { getIcon, getUpstreamType, groupBy } from 'utils/helpers';
 import { envoyAPI } from '../../store/envoy/api';
 import { configAPI } from 'store/config/api';
 import { ErrorBoundary } from './Errors/ErrorBoundary';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 const Container = styled.div`
   ${CardCSS};
@@ -172,7 +173,7 @@ const HealthStatus = () => {
   );
 
   if (!envoyList) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   const goToAdmin = (): void => {

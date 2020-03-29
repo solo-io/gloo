@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="141.735" height="161.207" viewBox="0 0 141.735 161.207">
+  <defs><style>.loaderA{opacity:0.695;}.loaderB{fill:#b1e7fe;}.loaderC{fill:#b1e7ff;}.loaderD{fill:#6ac7f0;}.loaderE{fill:#54b7e3;}.loaderF{fill:#2196c9;}</style></defs>
+  <g class="loaderA" transform="translate(-672 -420)">
+    <path class="loaderB" d="M337.919,434.805l17.191,9.96v-76.8l-17.191,9.861Z" transform="translate(458.625 94.395)"/>
+    <path class="loaderC" d="M297.443,401.059,280.2,410.952l66.88,38.613v-19.85Z" transform="translate(393.665 131.642)"/>
+    <path class="loaderD" d="M296.511,377.734l-17.191-9.96v76.8l17.191-9.861Z" transform="translate(392.679 94.184)"/>
+    <path class="loaderE" d="M346.853,367.883v-19.85L280.4,386.4l17.161,9.942Z" transform="translate(393.889 71.967)"/>
+    <path class="loaderF" d="M363.221,396.494l17.246-9.893-66.8-38.569v19.85Z" transform="translate(431.329 71.967)"/>
+    <path class="loaderC" d="M313.664,429.635v19.85L380.2,411.072l-17.161-9.942Z" transform="translate(431.329 131.721)"/>
+  </g>
+</svg>

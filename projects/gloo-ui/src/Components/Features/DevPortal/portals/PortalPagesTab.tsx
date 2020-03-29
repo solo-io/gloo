@@ -1,26 +1,27 @@
 import React from 'react';
 import { ReactComponent as EditPencilIcon } from 'assets/edit-pencil.svg';
 import { ReactComponent as DeleteXIcon } from 'assets/small-grey-x.svg';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as Plus } from 'assets/small-green-plus.svg';
 import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { ReactComponent as PortalPageIcon } from 'assets/portal-page-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import useSWR from 'swr';
-import { devPortalApi } from '../api';
 import { useParams, useHistory, useLocation } from 'react-router';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { devPortalApi } from '../api';
 
 export const PortalPagesTab = () => {
   const routerLocation = useLocation();
   const routerHistory = useHistory();
-  const { portalname } = useParams();
+  const { portalname, portalnamespace } = useParams();
 
-  const { data: portalsList, error: portalListError } = useSWR(
-    'listPortals',
-    devPortalApi.listPortals,
-    { refreshInterval: 0 }
+  const { data: portal, error: portalListError } = useSWR(
+    !!portalname && !!portalnamespace
+      ? ['getPortal', portalname, portalnamespace]
+      : null,
+    (key, name, namespace) => devPortalApi.getPortal({ name, namespace })
   );
 
   const [pagesSearchTerm, setPagesSearchTerm] = React.useState('');
@@ -29,17 +30,10 @@ export const PortalPagesTab = () => {
     string
   >();
 
-  const portalOfInterest = portalsList?.find(
-    prtl => prtl.metadata?.name === portalname
-  );
-
   const openCreatePage = () => {
     setCreatePageModalOpen(true);
   };
-  const finishCreatePage = () => {
-    setCreatePageModalOpen(false);
-  };
-  const cancelCreatePage = () => {
+  const closeCreatePage = () => {
     setCreatePageModalOpen(false);
   };
 
@@ -54,18 +48,23 @@ export const PortalPagesTab = () => {
     setPageAttemptingToDelete(undefined);
   };
 
-  const filteredList = portalOfInterest?.spec?.staticPagesList.filter(page =>
+  const filteredList = portal?.spec?.staticPagesList.filter(page =>
     page.name.includes(pagesSearchTerm)
   );
+
+  console.log(portal);
 
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
         className='absolute flex font-normal cursor-pointer top-4 right-4'
         onClick={openCreatePage}>
-        <GreenPlus className='w-5 h-5 mr-2' /> Add a Page
+        <span className='text-green-400 hover:text-green-300'>
+          <Plus className='w-5 h-5 mr-2 fill-current' />
+        </span>
+        Add a Page
       </span>
-      {!!portalOfInterest?.spec?.staticPagesList.length && (
+      {!!portal?.spec?.staticPagesList.length && (
         <div className='w-1/3 m-4'>
           <SoloInput
             placeholder='Search by page name...'
@@ -177,13 +176,13 @@ export const PortalPagesTab = () => {
             </div>
             <div className='flex flex-col h-full'>
               <p className='h-auto mb-6 text-lg font-medium'>
-                {!!portalOfInterest?.spec?.staticPagesList.length
+                {!!portal?.spec?.staticPagesList.length
                   ? 'No portals match the search'
                   : `${portalname} has no Pages currently`}
                 .
               </p>
               <p className='text-base font-normal text-gray-700 '>
-                {!!portalOfInterest?.spec?.staticPagesList.length ? (
+                {!!portal?.spec?.staticPagesList.length ? (
                   <>
                     {' '}
                     Want to{' '}
@@ -214,8 +213,8 @@ export const PortalPagesTab = () => {
       <SoloModal
         visible={createPageModalOpen}
         width={625}
-        onClose={cancelCreatePage}>
-        <CreatePageModal />
+        onClose={closeCreatePage}>
+        <CreatePageModal onClose={closeCreatePage} />
       </SoloModal>
       <ConfirmationModal
         visible={!!pageAttemptingToDelete}

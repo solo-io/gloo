@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="22.321" height="22.321" viewBox="0 0 22.321 22.321">
     <defs>
         <style>
-             .small-green-plus-b{fill:none;stroke:#fff;}
+             .small-green-plus-b{fill:none;stroke:#fff;stroke-width: 2px;}
         </style>
     </defs>
     <g transform="translate(-1212.679 -1275.51)">

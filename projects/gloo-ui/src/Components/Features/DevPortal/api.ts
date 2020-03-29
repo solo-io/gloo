@@ -14,16 +14,23 @@ import {
 import {
   PortalSpec,
   PortalStatus,
-  KeyScope
+  KeyScope,
+  StaticPage
 } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
-import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
-import { ObjectMeta } from 'proto/dev-portal/api/grpc/common/common_pb';
+import { ObjectMeta, Time } from 'proto/dev-portal/api/grpc/common/common_pb';
+import {
+  createDataSourceClassFromObject,
+  createPortalClassFromObject
+} from './api-helper';
+import { rejects } from 'assert';
+import { message } from 'antd';
 
 export const devPortalApi = {
   listPortals,
   deletePortal,
   getPortal,
-  createPortal
+  createPortal,
+  createPortalPage
 };
 
 function listPortals(): Promise<Portal.AsObject[]> {
@@ -68,36 +75,6 @@ function listPortals(): Promise<Portal.AsObject[]> {
 //   rpc DeletePortal (.devportal.solo.io.ObjectRef) returns (google.protobuf.Empty) {
 //   }
 // }
-
-function getPortal(portalRef: ObjectRef.AsObject): Promise<Portal.AsObject> {
-  const { name, namespace } = portalRef;
-  let request = new ObjectRef();
-  request.setName(name);
-  request.setNamespace(namespace);
-
-  return new Promise((resolve, reject) => {
-    grpc.invoke(PortalApi.GetPortal, {
-      request,
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {},
-      onMessage: (message: Portal) => {
-        if (message) {
-          resolve(message.toObject());
-        }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        if (status !== grpc.Code.OK) {
-          reject(statusMessage);
-        }
-      }
-    });
-  });
-}
 
 function getPortalWithAssets(
   portalRef: ObjectRef.AsObject
@@ -197,12 +174,9 @@ function createPortal(
 ): Promise<Portal.AsObject> {
   const { portal, usersList, apiDocsList, groupsList } = portalWriteRequest;
   let request = new PortalWriteRequest();
-  let portalToCreate = new Portal();
 
   if (portal !== undefined) {
-    const { spec, status, metadata } = portal;
-    let portalSpecToCreate = new PortalSpec();
-    let portalStatusToCreate = new PortalStatus();
+    request.setPortal(createPortalClassFromObject(portal));
   }
   if (apiDocsList !== undefined) {
     let apiDocsRefList = apiDocsList.map(apiDocRefObj => {
@@ -283,6 +257,106 @@ function deletePortal(portalRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
         if (status !== grpc.Code.OK) {
           reject(statusMessage);
         }
+      }
+    });
+  });
+}
+
+function getPortal(portalRef: ObjectRef.AsObject): Promise<Portal.AsObject> {
+  const requestObjectRef = new ObjectRef();
+  requestObjectRef.setName(portalRef.name);
+  requestObjectRef.setNamespace(portalRef.namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(PortalApi.GetPortal, {
+      request: requestObjectRef,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {
+        // console.log('onheaders', headers);
+      },
+      onMessage: (message: Portal) => {
+        // console.log('message', message);
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        // console.log('onEnd', status, statusMessage, trailers);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function createPortalPage(
+  portalRef: ObjectRef.AsObject,
+  staticPage: StaticPage.AsObject
+): Promise<Portal.AsObject> {
+  return new Promise((resolve, reject) => {
+    const requestObjectRef = new ObjectRef();
+    requestObjectRef.setName(portalRef.name);
+    requestObjectRef.setNamespace(portalRef.namespace);
+
+    grpc.unary(PortalApi.GetPortal, {
+      request: requestObjectRef,
+      host,
+      metadata: new grpc.Metadata(),
+      onEnd: endMessage => {
+        let portal = endMessage.message as Portal;
+
+        let request = new PortalWriteRequest();
+        let portalSpec = portal.getSpec();
+
+        let staticPageClass = new StaticPage();
+        staticPageClass.setName(staticPage.name);
+        staticPageClass.setDescription(staticPage.description);
+        staticPageClass.setNavigationLinkName(staticPage.navigationLinkName);
+        staticPageClass.setPath(staticPage.path);
+        staticPageClass.setContent(
+          createDataSourceClassFromObject(staticPage.content)
+        );
+
+        portalSpec?.setStaticPagesList([
+          ...portalSpec.getStaticPagesList(),
+          staticPageClass
+        ]);
+
+        portal.setSpec(portalSpec);
+
+        request.setPortal(portal);
+        request.setPortalOnly(true);
+
+        grpc.invoke(PortalApi.UpdatePortal, {
+          request: request,
+          host,
+          metadata: new grpc.Metadata(),
+          onHeaders: (headers: grpc.Metadata) => {
+            // console.log('onheaders', headers);
+          },
+          onMessage: (message: Portal) => {
+            // console.log('message', message);
+            if (message) {
+              resolve(message.toObject());
+            }
+          },
+          onEnd: (
+            status: grpc.Code,
+            statusMessage: string,
+            trailers: grpc.Metadata
+          ) => {
+            // console.log('onEnd', status, statusMessage, trailers);
+            if (status !== grpc.Code.OK) {
+              reject(statusMessage);
+            }
+          }
+        });
       }
     });
   });

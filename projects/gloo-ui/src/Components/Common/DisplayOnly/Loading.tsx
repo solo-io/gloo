@@ -1,5 +1,14 @@
-import { Spin } from 'antd';
 import React from 'react';
+import { ReactComponent as LoadingHexagon } from 'assets/Loader.svg';
+import styled from '@emotion/styled';
+import { keyframes } from '@emotion/core';
+
+type RotaterProps = {
+  degrees: number;
+};
+const Rotater = styled.div`
+  transform: rotate(${(props: RotaterProps) => props.degrees}deg);
+`;
 
 interface LoadingProps {
   message?: string;
@@ -16,6 +25,14 @@ export const Loading = ({
   loading = true,
   offset = false
 }: LoadingProps) => {
+  const [degrees, setDegrees] = React.useState(0);
+
+  React.useEffect(() => {
+    setInterval(() => {
+      setDegrees(oldDegree => (oldDegree + 60) % 360);
+    }, 200);
+  }, []);
+
   const centering = center
     ? {
         display: 'flex',
@@ -25,14 +42,16 @@ export const Loading = ({
     : {};
 
   return (
-    <div style={{ width: '100%', ...centering }}>
-      <Spin
-        size='large'
-        tip={message ? message : ''}
-        spinning={loading}
-        style={{ width: '100%', marginTop: `${offset ? '100px' : ''}` }}>
-        {children}
-      </Spin>
+    <div
+      style={{
+        width: '100%',
+        ...centering
+      }}>
+      <div style={{ width: '141px' }}>
+        <Rotater degrees={degrees}>
+          <LoadingHexagon />
+        </Rotater>
+      </div>
     </div>
   );
 };

@@ -8,6 +8,9 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
+import { devPortalApi } from '../api';
+import useSWR, { trigger } from 'swr';
+import { useParams } from 'react-router';
 
 interface InitialPageCreationValuesType {
   name: string;
@@ -30,7 +33,21 @@ const validationSchema = yup.object().shape({
   linkName: yup.string().required('A name for the navigation link is required')
 });
 
-export const CreatePageModal = () => {
+interface CreatePageModalProps {
+  onClose: () => any;
+}
+
+export const CreatePageModal = (props: CreatePageModalProps) => {
+  const { portalname, portalnamespace } = useParams();
+  const { data: portal, error: portalListError } = useSWR(
+    !!portalname && !!portalnamespace
+      ? ['getPortal', portalname, portalnamespace]
+      : null,
+    (key, name, namespace) => devPortalApi.getPortal({ name, namespace })
+  );
+
+  const [errorMessage, setErrorMessage] = React.useState('');
+
   const initialValues: InitialPageCreationValuesType = {
     name: '',
     url: '',
@@ -40,8 +57,29 @@ export const CreatePageModal = () => {
     useFooterNav: true
   };
 
-  const attemptCreate = (values: InitialPageCreationValuesType) => {
-    console.log(values);
+  const attemptCreate = async (values: InitialPageCreationValuesType) => {
+    devPortalApi
+      .createPortalPage(
+        { name: portalname!, namespace: portalnamespace! },
+        {
+          name: values.name,
+          path: values.url,
+          description: values.description,
+          navigationLinkName: values.linkName
+        }
+      )
+      .then(portal => {
+        trigger('getPortal');
+
+        props.onClose();
+      })
+      .catch(err => {
+        setErrorMessage(err);
+
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 10000);
+      });
   };
 
   return (
@@ -62,6 +100,12 @@ export const CreatePageModal = () => {
             <div className='rounded-lg bg-gray-100 p-3 mt-3 text-gray-700'>
               Lorem Ipsum
             </div>
+
+            {!!errorMessage.length && (
+              <div className='p-4 text-orange-600 bg-orange-200'>
+                {errorMessage}
+              </div>
+            )}
 
             <div className='mt-4 grid grid-cols-2 gap-4'>
               <div className='mb-4'>

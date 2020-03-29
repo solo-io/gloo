@@ -61,9 +61,17 @@ export const PortalsListing = () => {
         </EmptyPortalsPanel>
       ) : (
         <>
-          {portalsList.map(portal => (
-            <PortalItem key={portal.metadata?.uid} portal={portal} />
-          ))}
+          {portalsList
+            .sort((a, b) =>
+              a.metadata?.name === b.metadata?.name
+                ? 0
+                : a.metadata!.name > b.metadata!.name
+                ? 1
+                : -1
+            )
+            .map(portal => (
+              <PortalItem key={portal.metadata?.uid} portal={portal} />
+            ))}
           <SoloModal
             visible={showCreatePortalModal}
             width={750}
@@ -86,7 +94,9 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
     <div
       className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'
       onClick={() =>
-        history.push(`/dev-portal/portals/${portal.metadata?.name}`)
+        history.push(
+          `/dev-portal/portals/${portal.metadata?.namespace}/${portal.metadata?.name}`
+        )
       }>
       <div className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
         <PlaceholderPortal className='rounded-l-lg ' />
