@@ -1,6 +1,10 @@
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { grpc } from '@improbable-eng/grpc-web';
 import { PortalApi } from 'proto/dev-portal/api/grpc/admin/portal_pb_service';
+import { ApiDocApi } from 'proto/dev-portal/api/grpc/admin/apidoc_pb_service';
+import { UserApi } from 'proto/dev-portal/api/grpc/admin/user_pb_service';
+import { GroupApi } from 'proto/dev-portal/api/grpc/admin/group_pb_service';
+
 import { host } from 'store';
 import {
   Portal,
@@ -8,13 +12,31 @@ import {
   PortalWriteRequest
 } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import {
+  ApiDoc,
+  ApiDocList,
+  ApiDocFilter
+} from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import {
+  User,
+  UserList,
+  UserFilter
+} from 'proto/dev-portal/api/grpc/admin/user_pb';
+import {
+  Group,
+  GroupList,
+  GroupFilter
+} from 'proto/dev-portal/api/grpc/admin/group_pb';
+import {
   ObjectRef,
-  Selector
+  Selector,
+  DataSource
 } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import {
   PortalSpec,
   PortalStatus,
   KeyScope,
+  KeyScopeStatus,
+  CustomStyling,
   StaticPage
 } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { ObjectMeta, Time } from 'proto/dev-portal/api/grpc/common/common_pb';
@@ -22,16 +44,143 @@ import {
   createDataSourceClassFromObject,
   createPortalClassFromObject
 } from './api-helper';
-import { rejects } from 'assert';
-import { message } from 'antd';
 
-export const devPortalApi = {
+export const portalApi = {
   listPortals,
   deletePortal,
   getPortal,
   createPortal,
+  updatePortal,
+  getPortalWithAssets,
   createPortalPage
 };
+
+export const apiDocApi = {
+  listApiDocs
+};
+
+export const userApi = {
+  listUsers
+};
+
+export const groupApi = {
+  listGroups
+};
+
+function listGroups(
+  groupFilter: GroupFilter.AsObject
+): Promise<Group.AsObject[]> {
+  const { portalsList } = groupFilter;
+  let request = new GroupFilter();
+
+  if (portalsList !== undefined) {
+    let portalsRefList = portalsList.map(portalObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalObj.name);
+      portalRef.setNamespace(portalObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalsRefList);
+  }
+  return new Promise((resolve, reject) => {
+    grpc.invoke(GroupApi.ListGroups, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: GroupList) => {
+        if (message) {
+          resolve(message.toObject().groupsList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function listUsers(userFilter: UserFilter.AsObject): Promise<User.AsObject[]> {
+  const { portalsList } = userFilter;
+  let request = new UserFilter();
+
+  if (portalsList !== undefined) {
+    let portalsRefList = portalsList.map(portalObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalObj.name);
+      portalRef.setNamespace(portalObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalsRefList);
+  }
+  return new Promise((resolve, reject) => {
+    grpc.invoke(UserApi.ListUsers, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: UserList) => {
+        if (message) {
+          resolve(message.toObject().usersList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function listApiDocs(
+  apiDocFilter: ApiDocFilter.AsObject
+): Promise<ApiDoc.AsObject[]> {
+  const { portalsList } = apiDocFilter;
+  let request = new ApiDocFilter();
+
+  if (portalsList !== undefined) {
+    let portalsRefList = portalsList.map(portalObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalObj.name);
+      portalRef.setNamespace(portalObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalsRefList);
+  }
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.ListApiDocs, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiDocList) => {
+        if (message) {
+          resolve(message.toObject().apidocsList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 function listPortals(): Promise<Portal.AsObject[]> {
   return new Promise((resolve, reject) => {
@@ -58,23 +207,35 @@ function listPortals(): Promise<Portal.AsObject[]> {
   });
 }
 
-// service PortalApi {
-//   // Returns a portal resource, without the corresponding static assets
-//   rpc GetPortal (.devportal.solo.io.ObjectRef) returns (Portal) {
-//   }
-//   // Returns a portal resource, including the corresponding static assets
-//   rpc GetPortalWithAssets (.devportal.solo.io.ObjectRef) returns (Portal) {
-//   }
-//   // Returns all portals (each without the corresponding static assets)
-//   rpc ListPortals (google.protobuf.Empty) returns (PortalList) {
-//   }
-//   rpc CreatePortal (PortalWriteRequest) returns (Portal) {
-//   }
-//   rpc UpdatePortal (PortalWriteRequest) returns (Portal) {
-//   }
-//   rpc DeletePortal (.devportal.solo.io.ObjectRef) returns (google.protobuf.Empty) {
-//   }
-// }
+function getPortal(portalRef: ObjectRef.AsObject): Promise<Portal.AsObject> {
+  const { name, namespace } = portalRef;
+  let request = new ObjectRef();
+  request.setName(name);
+  request.setNamespace(namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(PortalApi.GetPortal, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Portal) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 function getPortalWithAssets(
   portalRef: ObjectRef.AsObject
@@ -108,7 +269,7 @@ function getPortalWithAssets(
   });
 }
 
-function setPortalValuesToGrpc(
+function portalMessageFromObject(
   portal: Portal.AsObject,
   portalToUpdate = new Portal()
 ): Portal {
@@ -121,20 +282,106 @@ function setPortalValuesToGrpc(
     portalToUpdate.setMetadata(newMetadata);
   }
 
+  if (status !== undefined) {
+    let statusMessage = new PortalStatus();
+    const {
+      apiDocsList,
+      keyScopesList,
+      observedGeneration,
+      publishUrl,
+      reason,
+      state
+    } = status;
+    if (apiDocsList !== undefined) {
+      let apiDocsRefList = apiDocsList.map(apiDocObj => {
+        let apiDocRef = new ObjectRef();
+        apiDocRef.setName(apiDocObj.name);
+        apiDocRef.setNamespace(apiDocObj.namespace);
+        return apiDocRef;
+      });
+      statusMessage.setApiDocsList(apiDocsRefList);
+    }
+
+    if (keyScopesList !== undefined) {
+      let keyScopeStatusList = keyScopesList.map(keyScopeStatusObj => {
+        const {
+          accessibleApiDocsList,
+          name,
+          provisionedKeysList
+        } = keyScopeStatusObj;
+        let keyScopeStatus = new KeyScopeStatus();
+        if (name !== undefined) {
+          keyScopeStatus.setName(name);
+        }
+        if (accessibleApiDocsList !== undefined) {
+          let accessibleApiDocsListRefs = accessibleApiDocsList.map(
+            accessibleApiDocObj => {
+              let accessibleApiDocRef = new ObjectRef();
+              accessibleApiDocRef.setName(accessibleApiDocObj.name);
+              accessibleApiDocRef.setNamespace(accessibleApiDocObj.namespace);
+              return accessibleApiDocRef;
+            }
+          );
+          keyScopeStatus.setAccessibleApiDocsList(accessibleApiDocsListRefs);
+        }
+
+        if (provisionedKeysList !== undefined) {
+          let provisionedKeysRefList = provisionedKeysList.map(
+            provisionedKeyObj => {
+              let provisionedKeyRef = new ObjectRef();
+              provisionedKeyRef.setName(provisionedKeyObj.name);
+              provisionedKeyRef.setNamespace(provisionedKeyObj.namespace);
+              return provisionedKeyRef;
+            }
+          );
+          keyScopeStatus.setProvisionedKeysList(provisionedKeysRefList);
+        }
+        if (accessibleApiDocsList !== undefined) {
+          let accessibleApiDocsRefList = accessibleApiDocsList.map(
+            accessibleApiDocObj => {
+              let accessibleApiDocsRef = new ObjectRef();
+              accessibleApiDocsRef.setName(accessibleApiDocObj.name);
+              accessibleApiDocsRef.setNamespace(accessibleApiDocObj.namespace);
+              return accessibleApiDocsRef;
+            }
+          );
+          keyScopeStatus.setAccessibleApiDocsList(accessibleApiDocsRefList);
+        }
+        return keyScopeStatus;
+      });
+      statusMessage.setKeyScopesList(keyScopeStatusList);
+    }
+
+    if (observedGeneration !== undefined) {
+      statusMessage.setObservedGeneration(observedGeneration);
+    }
+    if (publishUrl !== undefined) {
+      statusMessage.setPublishUrl(publishUrl);
+    }
+    if (reason !== undefined) {
+      statusMessage.setReason(reason);
+    }
+    if (state !== undefined) {
+      statusMessage.setState(state);
+    }
+    portalToUpdate.setStatus(statusMessage);
+  }
+
   if (spec !== undefined) {
     let newSpec = new PortalSpec();
     const {
       description,
       displayName,
       domainsList,
-      keyScopesList, //
-      staticPagesList, //
-      banner, //
-      customStyling, //
-      favicon, //
-      primaryLogo, //
-      publishApiDocs //
+      keyScopesList,
+      staticPagesList,
+      banner,
+      customStyling,
+      favicon,
+      primaryLogo,
+      publishApiDocs
     } = spec;
+
     if (description !== undefined) {
       newSpec.setDescription(description);
     }
@@ -160,13 +407,147 @@ function setPortalValuesToGrpc(
           matchLabelsMapSelector.getMatchLabelsMap().set(key, value)
         );
         keyScope.setApiDocs(matchLabelsMapSelector);
+        return keyScope;
       });
+      newSpec.setKeyScopesList(newKeyScopesList);
     }
 
-    portalToUpdate.setSpec();
+    if (staticPagesList !== undefined) {
+      let staticPagesMessageList = staticPagesList.map(staticPageObj => {
+        const {
+          description,
+          name,
+          navigationLinkName,
+          path,
+          content
+        } = staticPageObj;
+        let staticPageMessage = new StaticPage();
+        if (description !== undefined) {
+          staticPageMessage.setDescription(description);
+        }
+        if (name !== undefined) {
+          staticPageMessage.setName(name);
+        }
+        if (navigationLinkName !== undefined) {
+          staticPageMessage.setNavigationLinkName(navigationLinkName);
+        }
+        if (path !== undefined) {
+          staticPageMessage.setPath(path);
+        }
+
+        if (content !== undefined) {
+          let newContent = dataSourceMessageFromObject(content);
+
+          staticPageMessage.setContent(newContent);
+        }
+        return staticPageMessage;
+      });
+
+      newSpec.setStaticPagesList(staticPagesMessageList);
+    }
+
+    if (banner !== undefined) {
+      let bannerMessage = dataSourceMessageFromObject(banner);
+
+      newSpec.setBanner(bannerMessage);
+    }
+    if (customStyling !== undefined) {
+      let customStylingMessage = new CustomStyling();
+      const {
+        backgroundColor,
+        buttonColorOverride,
+        defaultTextColor,
+        navigationLinksColorOverride,
+        primaryColor,
+        secondaryColor
+      } = customStyling;
+      if (backgroundColor !== undefined) {
+        customStylingMessage.setBackgroundColor(backgroundColor);
+      }
+      if (buttonColorOverride !== undefined) {
+        customStylingMessage.setButtonColorOverride(buttonColorOverride);
+      }
+      if (defaultTextColor !== undefined) {
+        customStylingMessage.setDefaultTextColor(defaultTextColor);
+      }
+      if (navigationLinksColorOverride !== undefined) {
+        customStylingMessage.setNavigationLinksColorOverride(
+          navigationLinksColorOverride
+        );
+      }
+      if (primaryColor !== undefined) {
+        customStylingMessage.setPrimaryColor(primaryColor);
+      }
+      if (secondaryColor !== undefined) {
+        customStylingMessage.setSecondaryColor(secondaryColor);
+      }
+
+      newSpec.setCustomStyling(customStylingMessage);
+    }
+
+    if (favicon !== undefined) {
+      let faviconMessage = dataSourceMessageFromObject(favicon);
+      newSpec.setFavicon(faviconMessage);
+    }
+    if (primaryLogo !== undefined) {
+      let primaryLogoMessage = dataSourceMessageFromObject(primaryLogo);
+
+      newSpec.setPrimaryLogo(primaryLogoMessage);
+    }
+
+    if (publishApiDocs !== undefined) {
+      let publishApiDocsMessage = selectorMessageFromObject(publishApiDocs);
+      newSpec.setPublishApiDocs(publishApiDocsMessage);
+    }
+
+    portalToUpdate.setSpec(newSpec);
   }
 
   return portalToUpdate;
+}
+
+function selectorMessageFromObject(
+  selectorObj: Selector.AsObject,
+  selectorMessage = new Selector()
+): Selector {
+  if (selectorObj.matchLabelsMap !== undefined) {
+    selectorObj.matchLabelsMap.forEach(([key, value], idx) =>
+      selectorMessage.getMatchLabelsMap().set(key, value)
+    );
+  }
+
+  return selectorMessage;
+}
+function dataSourceMessageFromObject(
+  dataSourceObj: DataSource.AsObject,
+  dataSourceMessage = new DataSource()
+): DataSource {
+  const { fetchUrl, inlineBytes, inlineString, configMap } = dataSourceObj;
+  if (fetchUrl !== undefined) {
+    dataSourceMessage.setFetchUrl(fetchUrl);
+  }
+  if (inlineBytes !== undefined) {
+    if (typeof inlineBytes === 'string') {
+      dataSourceMessage.setInlineBytes(inlineBytes);
+    } else {
+      let inlineBytesUint8Array = new Uint8Array(inlineBytes);
+      dataSourceMessage.setInlineBytes(inlineBytesUint8Array);
+    }
+  }
+  if (inlineString !== undefined) {
+    dataSourceMessage.setInlineString(inlineString);
+  }
+
+  if (configMap !== undefined) {
+    const { name, namespace, key } = configMap;
+    let newConfigMap = new DataSource.ConfigMapData();
+    newConfigMap.setName(name);
+    newConfigMap.setNamespace(namespace);
+    newConfigMap.setKey(key);
+    dataSourceMessage.setConfigMap(newConfigMap);
+  }
+
+  return dataSourceMessage;
 }
 
 function createPortal(
@@ -176,8 +557,10 @@ function createPortal(
   let request = new PortalWriteRequest();
 
   if (portal !== undefined) {
-    request.setPortal(createPortalClassFromObject(portal));
+    let portalToCreate = portalMessageFromObject(portalWriteRequest.portal!);
+    request.setPortal(portalToCreate);
   }
+
   if (apiDocsList !== undefined) {
     let apiDocsRefList = apiDocsList.map(apiDocRefObj => {
       let apiDocRef = new ObjectRef();
@@ -232,6 +615,71 @@ function createPortal(
   });
 }
 
+function updatePortal(
+  portalWriteRequest: PortalWriteRequest.AsObject
+): Promise<Portal.AsObject> {
+  const { portal, usersList, apiDocsList, groupsList } = portalWriteRequest;
+  let request = new PortalWriteRequest();
+
+  if (portal !== undefined) {
+    let portalToCreate = portalMessageFromObject(portalWriteRequest.portal!);
+    request.setPortal(portalToCreate);
+  }
+
+  if (apiDocsList !== undefined) {
+    let apiDocsRefList = apiDocsList.map(apiDocRefObj => {
+      let apiDocRef = new ObjectRef();
+      apiDocRef.setName(apiDocRefObj.name);
+      apiDocRef.setNamespace(apiDocRefObj.namespace);
+      return apiDocRef;
+    });
+    request.setApiDocsList(apiDocsRefList);
+  }
+
+  if (usersList !== undefined) {
+    let usersRefList = usersList.map(userRefObj => {
+      let userRef = new ObjectRef();
+      userRef.setName(userRefObj.name);
+      userRef.setNamespace(userRefObj.namespace);
+      return userRef;
+    });
+    request.setUsersList(usersRefList);
+  }
+
+  if (groupsList !== undefined) {
+    let groupsRefList = groupsList.map(groupRefObj => {
+      let groupRef = new ObjectRef();
+      groupRef.setName(groupRefObj.name);
+      groupRef.setNamespace(groupRefObj.namespace);
+      return groupRef;
+    });
+    request.setGroupsList(groupsRefList);
+  }
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(PortalApi.UpdatePortal, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Portal) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
 function deletePortal(portalRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
   const { name, namespace } = portalRef;
   let request = new ObjectRef();
@@ -254,39 +702,6 @@ function deletePortal(portalRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
         statusMessage: string,
         trailers: grpc.Metadata
       ) => {
-        if (status !== grpc.Code.OK) {
-          reject(statusMessage);
-        }
-      }
-    });
-  });
-}
-
-function getPortal(portalRef: ObjectRef.AsObject): Promise<Portal.AsObject> {
-  const requestObjectRef = new ObjectRef();
-  requestObjectRef.setName(portalRef.name);
-  requestObjectRef.setNamespace(portalRef.namespace);
-
-  return new Promise((resolve, reject) => {
-    grpc.invoke(PortalApi.GetPortal, {
-      request: requestObjectRef,
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {
-        // console.log('onheaders', headers);
-      },
-      onMessage: (message: Portal) => {
-        // console.log('message', message);
-        if (message) {
-          resolve(message.toObject());
-        }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        // console.log('onEnd', status, statusMessage, trailers);
         if (status !== grpc.Code.OK) {
           reject(statusMessage);
         }

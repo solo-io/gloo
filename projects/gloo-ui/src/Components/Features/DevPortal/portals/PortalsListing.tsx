@@ -11,7 +11,7 @@ import { useHistory } from 'react-router';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { css } from '@emotion/core';
 import useSWR from 'swr';
-import { devPortalApi } from '../api';
+import { portalApi } from '../api';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { PortalStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
@@ -36,7 +36,7 @@ export const PortalsListing = () => {
   let isEmpty = false;
   const { data: portalsList, error: portalListError } = useSWR(
     'listPortals',
-    devPortalApi.listPortals,
+    portalApi.listPortals,
     { refreshInterval: 0 }
   );
   const [showCreatePortalModal, setShowCreatePortalModal] = React.useState(
@@ -46,7 +46,6 @@ export const PortalsListing = () => {
   if (!portalsList) {
     return <div>Loading...</div>;
   }
-  console.log('portalsList', portalsList);
   return (
     <div className='container mx-auto'>
       <span

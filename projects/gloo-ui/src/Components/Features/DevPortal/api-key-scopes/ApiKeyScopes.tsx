@@ -4,7 +4,7 @@ import { useParams, useHistory } from 'react-router';
 import { ApiKeyScopeCard } from './ApiKeyScopeCard';
 import { ReactComponent as PortalIcon } from 'assets/single-portal-icon.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { devPortalApi } from '../api';
+import { portalApi } from '../api';
 import useSWR from 'swr';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
@@ -42,7 +42,7 @@ export const APIKeyScopes = () => {
 
   const { data: portalsList, error: getApiKeyDocsError } = useSWR(
     'listPortals',
-    devPortalApi.listPortals
+    portalApi.listPortals
   );
 
   const openCreateScope = () => {

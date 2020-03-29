@@ -13,7 +13,7 @@ import { KeyScopeStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Formik } from 'formik';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import useSWR from 'swr';
-import { devPortalApi } from '../api';
+import { portalApi } from '../api';
 import {
   SoloFormInput,
   SoloFormDropdown,
@@ -62,7 +62,7 @@ interface EditKeyScopeModalProps {
 export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
   const { data: portalsList, error: getApiKeyDocsError } = useSWR(
     'listPortals',
-    devPortalApi.listPortals
+    portalApi.listPortals
   );
 
   const [tabIndex, setTabIndex] = React.useState(0);

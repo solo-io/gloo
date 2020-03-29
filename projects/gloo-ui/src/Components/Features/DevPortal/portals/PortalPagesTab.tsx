@@ -10,7 +10,7 @@ import { useParams, useHistory, useLocation } from 'react-router';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
-import { devPortalApi } from '../api';
+import { portalApi } from '../api';
 
 export const PortalPagesTab = () => {
   const routerLocation = useLocation();
@@ -21,7 +21,7 @@ export const PortalPagesTab = () => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => devPortalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortal({ name, namespace })
   );
 
   const [pagesSearchTerm, setPagesSearchTerm] = React.useState('');

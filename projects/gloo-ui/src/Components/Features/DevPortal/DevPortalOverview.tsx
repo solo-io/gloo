@@ -16,24 +16,56 @@ import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInfo
 import { SwaggerExplorer } from './SwaggerExplorer';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
 import useSWR from 'swr';
-import { devPortalApi } from './api';
+import { portalApi, apiDocApi, userApi, groupApi } from './api';
 import { formatHealthStatus } from './portals/PortalsListing';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
 
 export const DevPortalOverview = () => {
   const { data: portalsList, error: portalsListError } = useSWR(
     'listPortals',
-    devPortalApi.listPortals
+    portalApi.listPortals
   );
 
-  if (!portalsList) {
+  const { data: apiDocsList, error: apiDocsError } = useSWR(
+    'listApiDocs',
+    apiDocApi.listApiDocs
+  );
+
+  const { data: userList, error: userError } = useSWR(
+    'listUsers',
+    userApi.listUsers
+  );
+
+  const { data: groupList, error: groupError } = useSWR(
+    'listGroups',
+    groupApi.listGroups
+  );
+
+  if (!portalsList || !apiDocsList || !userList || !groupList) {
     return <div>Loading...</div>;
   }
+
+  let publishedApiDocsCount = 0;
+  portalsList.forEach(portal => {
+    publishedApiDocsCount +=
+      portal.spec?.publishApiDocs?.matchLabelsMap.length || 0;
+  });
+
+  let endpointCount = 0;
+  apiDocsList.forEach(apiDoc => {
+    endpointCount += apiDoc.status?.numberOfEndpoints || 0;
+  });
 
   let portalErrorPresent = portalsList.some(
     portal =>
       formatHealthStatus(portal.status?.state) === Status.State.PENDING ||
       formatHealthStatus(portal.status?.state) === Status.State.REJECTED
+  );
+
+  let apiDocErrorPresent = apiDocsList.some(
+    apiDoc =>
+      formatHealthStatus(apiDoc.status?.state) === Status.State.PENDING ||
+      formatHealthStatus(apiDoc.status?.state) === Status.State.REJECTED
   );
 
   return (
@@ -71,25 +103,36 @@ export const DevPortalOverview = () => {
                 <PortalIcon className='w-8 h-8 fill-current ' />
               </span>
             }>
-            <div className='grid grid-cols-2 gap-4 '>
+            {portalsList.length > 0 ? (
+              <div className='grid grid-cols-2 gap-4 '>
+                <TallyInformationDisplay
+                  tallyCount={portalsList.length}
+                  tallyDescription={`portals`}
+                  color='blue'
+                />
+                <TallyInformationDisplay
+                  tallyCount={publishedApiDocsCount}
+                  tallyDescription={`published APIs`}
+                  color='blue'
+                />
+              </div>
+            ) : (
               <TallyInformationDisplay
-                tallyCount={portalsList.length}
-                tallyDescription={`portals`}
+                tallyDescription={`You have no Portals detected. Get started by creating a Portal!`}
                 color='blue'
               />
-              <TallyInformationDisplay
-                tallyCount={3}
-                tallyDescription={`published APIs`}
-                color='blue'
-              />
-            </div>
+            )}
           </StatusTile>
           <StatusTile
             exploreMoreLink={{
               prompt: 'View APIs',
               link: '/dev-portal/apis'
             }}
-            healthStatus={1}
+            healthStatus={
+              apiDocErrorPresent
+                ? healthConstants.Pending.value
+                : healthConstants.Good.value
+            }
             titleText='APIs'
             description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'
             titleIcon={
@@ -97,24 +140,25 @@ export const DevPortalOverview = () => {
                 <CodeIcon className='w-8 h-8 fill-current' />
               </span>
             }>
-            <>
-              {/* <div className='grid grid-cols-2 gap-4 '>
+            {apiDocsList.length > 0 ? (
+              <div className='grid grid-cols-2 gap-4 '>
                 <TallyInformationDisplay
-                  tallyCount={5}
-                  tallyDescription={'APIs'}
+                  tallyCount={apiDocsList.length}
+                  tallyDescription={`APIs`}
                   color='blue'
                 />
                 <TallyInformationDisplay
-                  tallyCount={25}
-                  tallyDescription={'Endpoints'}
+                  tallyCount={endpointCount}
+                  tallyDescription={`Endpoints`}
                   color='blue'
                 />
-              </div> */}
+              </div>
+            ) : (
               <TallyInformationDisplay
-                tallyDescription={`You have no APIs detected. Get started by creating an API!`}
+                tallyDescription={`You have no Portals detected. Get started by creating a Portal!`}
                 color='blue'
               />
-            </>
+            )}
           </StatusTile>
 
           <StatusTile
@@ -130,18 +174,25 @@ export const DevPortalOverview = () => {
                 <UserIcon className='w-8 h-8 fill-current ' />
               </span>
             }>
-            <div className='grid grid-cols-2 gap-4 '>
+            {userList.length > 0 ? (
+              <div className='grid grid-cols-2 gap-4 '>
+                <TallyInformationDisplay
+                  tallyCount={userList.length}
+                  tallyDescription='Users'
+                  color='blue'
+                />
+                <TallyInformationDisplay
+                  tallyCount={groupList.length}
+                  tallyDescription='Groups'
+                  color='blue'
+                />
+              </div>
+            ) : (
               <TallyInformationDisplay
-                tallyCount={2}
-                tallyDescription='Users'
+                tallyDescription={`You have no users or groups detected. Get started by creating a user or group!`}
                 color='blue'
               />
-              <TallyInformationDisplay
-                tallyCount={3}
-                tallyDescription='Groups'
-                color='blue'
-              />
-            </div>
+            )}
           </StatusTile>
         </div>
         <div>

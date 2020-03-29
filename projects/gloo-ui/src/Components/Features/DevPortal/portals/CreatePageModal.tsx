@@ -8,7 +8,7 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
-import { devPortalApi } from '../api';
+import { portalApi } from '../api';
 import useSWR, { trigger } from 'swr';
 import { useParams } from 'react-router';
 
@@ -43,7 +43,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => devPortalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortal({ name, namespace })
   );
 
   const [errorMessage, setErrorMessage] = React.useState('');
@@ -58,7 +58,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
   };
 
   const attemptCreate = async (values: InitialPageCreationValuesType) => {
-    devPortalApi
+    portalApi
       .createPortalPage(
         { name: portalname!, namespace: portalnamespace! },
         {
@@ -90,14 +90,14 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
         validationSchema={validationSchema}>
         {({ handleSubmit, values }) => (
           <>
-            <div className='text-lg flex items-center font-medium'>
+            <div className='flex items-center text-lg font-medium'>
               Create a Portal Page
               <span className='text-blue-600'>
-                <PortalPageIcon className=' ml-2 fill-current w-6 h-6' />
+                <PortalPageIcon className='w-6 h-6 ml-2 fill-current ' />
               </span>
             </div>
 
-            <div className='rounded-lg bg-gray-100 p-3 mt-3 text-gray-700'>
+            <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
               Lorem Ipsum
             </div>
 
@@ -107,7 +107,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
               </div>
             )}
 
-            <div className='mt-4 grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4 mt-4'>
               <div className='mb-4'>
                 <SoloFormInput
                   testId={`create-portal-page-name`}
@@ -145,14 +145,14 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
                 hideError={true}
               />
             </div>
-            <div className='mb-2 flex'>
+            <div className='flex mb-2'>
               <div>
                 <SoloFormCheckbox name={'useTopNav'} hideError={true} />
-                <span className='font-normal ml-1 mr-4'>Top Nav</span>
+                <span className='ml-1 mr-4 font-normal'>Top Nav</span>
               </div>
               <div>
                 <SoloFormCheckbox name={'useFooterNav'} hideError={true} />
-                <span className='font-normal ml-1 mr-4'>Footer Nav</span>
+                <span className='ml-1 mr-4 font-normal'>Footer Nav</span>
               </div>
             </div>
 
