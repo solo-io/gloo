@@ -1013,8 +1013,8 @@ github.com/solo-io/anyvendor v0.0.1/go.mod h1:SLucIeU8qBOYI82BveNVn2LzZFcMWJSCf8
 github.com/solo-io/autopilot v0.1.1-0.20200211163026-f295a102fd94/go.mod h1:ChONxgEh+B2WxCOiX79u+gd2+5sABOwD3EG4cKtR6KA=
 github.com/solo-io/autopilot v0.1.1-0.20200327195452-d45517fc07a8 h1:A09tGRp7dNvVfvWrp9a8HjQoe9ecdgsvYSoycD4jcpQ=
 github.com/solo-io/autopilot v0.1.1-0.20200327195452-d45517fc07a8/go.mod h1:tr1TWt9cqhs+tPDcpvR/DPT6VVzgw+6GiEu8bU4qj2E=
-github.com/solo-io/dev-portal v0.0.13 h1:z5MqHQ3Y6AYYA4b2cHE/fw26iyhL/kIZ+PxvpKTDNt8=
-github.com/solo-io/dev-portal v0.0.13/go.mod h1:UqozDxHnni++obVytxc+0ilOAhjiD0yitO9WgVxFIVg=
+github.com/solo-io/dev-portal v0.0.14 h1:NBAiK7g7OsclIiG4guEhBubpVaSYpEIhEkWs2RdyYiY=
+github.com/solo-io/dev-portal v0.0.14/go.mod h1:UqozDxHnni++obVytxc+0ilOAhjiD0yitO9WgVxFIVg=
 github.com/solo-io/envoy-operator v0.1.1 h1:fiUN3lqvR9OwmMuktX0MjLSNwGdya+1ObvxXqQGZwsQ=
 github.com/solo-io/envoy-operator v0.1.1/go.mod h1:ZP5hB+khljAFCROj/yDjVPXCPHntdewy6mqYybcCneQ=
 github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779 h1:dExaUG91a5SHHo68NIiYsL992CHWcuQaM16WRIP8+QY=
