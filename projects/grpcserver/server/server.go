@@ -4,6 +4,9 @@ import (
 	"context"
 	"net"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
@@ -35,8 +38,17 @@ func NewGlooGrpcService(
 	registrar devportal.Registrar,
 ) *GlooGrpcService {
 
+	logger := contextutils.LoggerFrom(ctx).Desugar()
+
+	// Make sure that log statements internal to gRPC library are logged using the zapLogger as well.
+	grpc_zap.ReplaceGrpcLogger(logger)
+
 	server := &GlooGrpcService{
-		server:   grpc.NewServer(),
+		server: grpc.NewServer(
+			grpc_middleware.WithUnaryServerChain(
+				grpc_zap.UnaryServerInterceptor(logger),
+			),
+		),
 		listener: listener,
 	}
 
