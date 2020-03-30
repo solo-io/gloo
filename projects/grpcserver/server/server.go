@@ -4,6 +4,9 @@ import (
 	"context"
 	"net"
 
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/codes"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 
@@ -46,7 +49,7 @@ func NewGlooGrpcService(
 	server := &GlooGrpcService{
 		server: grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
-				grpc_zap.UnaryServerInterceptor(logger),
+				grpc_zap.UnaryServerInterceptor(logger, logOkAtDebugLevel()),
 			),
 		),
 		listener: listener,
@@ -80,4 +83,14 @@ func (s *GlooGrpcService) Run(ctx context.Context) error {
 
 func (s *GlooGrpcService) Stop() {
 	s.server.Stop()
+}
+
+// Option to log OK responses only at Debug level to avoid flooding the logs
+func logOkAtDebugLevel() grpc_zap.Option {
+	return grpc_zap.WithLevels(func(code codes.Code) zapcore.Level {
+		if code == codes.OK {
+			return zapcore.DebugLevel
+		}
+		return grpc_zap.DefaultCodeToLevel(code)
+	})
 }
