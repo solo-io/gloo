@@ -4,6 +4,8 @@ import { Transfer } from 'antd';
 import { colors } from 'Styles';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as RedX } from 'assets/small-red-x.svg';
+import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
+import { css } from '@emotion/core';
 
 const TransferBlock = styled.div`
   display: flex;
@@ -24,6 +26,7 @@ const ListTitle = styled.div`
 const ListHolder = styled.div`
   color: ${colors.septemberGrey};
   padding: 9px;
+  border-radius: 8px;
   border: 1px solid ${colors.aprilGrey};
   height: 100%;
   background: white;
@@ -94,7 +97,7 @@ export const SoloTransfer = (props: TransferProps) => {
                 {item.displayValue || item.value}
                 <span className='text-green-400 cursor-pointer hover:text-green-300'>
                   <GreenPlus
-                    className='fill-current'
+                    className='w-4 h-4 fill-current'
                     onClick={() => addItem(item)}
                   />
                 </span>
@@ -106,6 +109,12 @@ export const SoloTransfer = (props: TransferProps) => {
       <ListHalf>
         <ListTitle>{chosenOptionsListName}</ListTitle>
         <ListHolder>
+          {chosenOptions.length === 0 && (
+            <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-lg'>
+              <NoSelectedList className='w-12 h-12' />
+              <div className='mt-2 text-gray-500'>Nothing Selected</div>
+            </div>
+          )}
           {chosenOptions.map(item => (
             <Item key={item.value}>
               {item.displayValue || item.value}

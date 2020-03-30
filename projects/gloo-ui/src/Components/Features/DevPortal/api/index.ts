@@ -4,6 +4,7 @@ import { PortalApi } from 'proto/dev-portal/api/grpc/admin/portal_pb_service';
 import { ApiDocApi } from 'proto/dev-portal/api/grpc/admin/apidoc_pb_service';
 import { UserApi } from 'proto/dev-portal/api/grpc/admin/user_pb_service';
 import { GroupApi } from 'proto/dev-portal/api/grpc/admin/group_pb_service';
+import { ApiKeyApi } from 'proto/dev-portal/api/grpc/admin/api_key_pb_service';
 
 import { host } from 'store';
 import {
@@ -22,6 +23,8 @@ import {
   GroupList,
   GroupFilter
 } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { ApiKey, ApiKeyList } from 'proto/dev-portal/api/grpc/admin/api_key_pb';
+
 import {
   ObjectRef,
   Selector,
@@ -41,7 +44,6 @@ import {
   createPortalClassFromObject
 } from '../api-helper';
 import { apiDocApi } from './apiDoc';
-
 export { apiDocApi };
 
 export const portalApi = {
@@ -62,6 +64,66 @@ export const userApi = {
 export const groupApi = {
   listGroups
 };
+
+export const apiKeyApi = {
+  listApiKeys,
+  deleteApiKey
+};
+
+function deleteApiKey(apiKeyRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
+  const { name, namespace } = apiKeyRef;
+  let request = new ObjectRef();
+  request.setName(name);
+  request.setNamespace(namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyApi.DeleteApiKey, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Empty) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function listApiKeys(): Promise<ApiKey.AsObject[]> {
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyApi.ListApiKeys, {
+      request: new Empty(),
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiKeyList) => {
+        if (message) {
+          resolve(message.toObject().apiKeysList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 function listGroups(
   groupFilter: GroupFilter.AsObject

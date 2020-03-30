@@ -146,11 +146,6 @@ export function DevPortal() {
           <TabPanel className='focus:outline-none'>
             <div className='relative flex flex-col '>
               <APIKeys />
-              <span className='absolute top-0 right-0 -mt-8'>
-                <span></span> create an API Key
-              </span>
-              {/* <CreateAPIModal /> */}
-              {/* <EmptyPortalsPanel itemName=''></EmptyPortalsPanel> */}
             </div>
           </TabPanel>
         </TabPanels>

@@ -21,6 +21,11 @@ import tw from 'tailwind.macro';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
+import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import useSWR from 'swr';
+import { portalApi } from '../api';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 
 export const SectionContainer = styled.div`
   ${tw`w-full h-full p-6 pb-0`}
@@ -179,11 +184,18 @@ const SpecSection = () => {
 };
 
 export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
+  const { data: portalsList, error: portalsListError } = useSWR(
+    'listPortals',
+    portalApi.listPortals
+  );
   const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+  if (!portalsList) {
+    return <Loading center>Loading...</Loading>;
+  }
   return (
     <>
       <div
@@ -196,100 +208,135 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
             displayName: '',
             version: '',
             description: '',
-            name: ''
+            name: '',
+            chosenPortals: [] as ObjectRef.AsObject[]
           }}
           onSubmit={() => {}}>
-          <>
-            <Tabs
-              className='bg-blue-600 rounded-lg h-96'
-              index={tabIndex}
-              onChange={handleTabsChange}
-              css={css`
-                display: grid;
-                height: 450px;
-                grid-template-columns: 190px 1fr;
-              `}>
-              <TabList className='flex flex-col mt-6'>
-                <StyledTab>General</StyledTab>
-                <StyledTab>Imagery</StyledTab>
-                <StyledTab>Portals</StyledTab>
-                <StyledTab>Access</StyledTab>
-                <StyledTab>Spec</StyledTab>
-              </TabList>
+          {formik => (
+            <>
+              <Tabs
+                className='bg-blue-600 rounded-lg h-96'
+                index={tabIndex}
+                onChange={handleTabsChange}
+                css={css`
+                  display: grid;
+                  height: 450px;
+                  grid-template-columns: 190px 1fr;
+                `}>
+                <TabList className='flex flex-col mt-6'>
+                  <StyledTab>General</StyledTab>
+                  <StyledTab>Imagery</StyledTab>
+                  <StyledTab>Portals</StyledTab>
+                  <StyledTab>Access</StyledTab>
+                  <StyledTab>Spec</StyledTab>
+                </TabList>
 
-              <TabPanels className='bg-white rounded-r-lg'>
-                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                  <GeneralSection />
-                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                    <button
-                      className='text-blue-500 cursor-pointer'
-                      onClick={props.onClose}>
-                      cancel
-                    </button>
-                    <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}>
-                      Next Step
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                  <ImagerySection />
-                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                    <button
-                      className='text-blue-500 cursor-pointer'
-                      onClick={props.onClose}>
-                      cancel
-                    </button>
-                    <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}>
-                      Next Step
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                  <PortalsSection />
-                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                    <button
-                      className='text-blue-500 cursor-pointer'
-                      onClick={props.onClose}>
-                      cancel
-                    </button>
-                    <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}>
-                      Next Step
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                  <UserSection />
-                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                    <button
-                      className='text-blue-500 cursor-pointer'
-                      onClick={props.onClose}>
-                      cancel
-                    </button>
-                    <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}>
-                      Next Step
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                  <SpecSection />
-                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                    <button
-                      className='text-blue-500 cursor-pointer'
-                      onClick={props.onClose}>
-                      cancel
-                    </button>
-                    <SoloButtonStyledComponent onClick={() => setTabIndex(0)}>
-                      Create Portal
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </>
+                <TabPanels className='bg-white rounded-r-lg'>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <GeneralSection />
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <SoloButtonStyledComponent
+                        onClick={() => setTabIndex(tabIndex + 1)}>
+                        Next Step
+                      </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <ImagerySection />
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <SoloButtonStyledComponent
+                        onClick={() => setTabIndex(tabIndex + 1)}>
+                        Next Step
+                      </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SectionContainer>
+                      <SectionHeader>Create an API: Portal</SectionHeader>
+                      <SoloTransfer
+                        allOptionsListName='Available Portals'
+                        allOptions={portalsList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(portal => {
+                            return {
+                              value: portal.metadata?.name!,
+                              displayValue: portal.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Portal'
+                        chosenOptions={formik.values.chosenPortals.map(
+                          portal => {
+                            return { value: portal.name + portal.namespace };
+                          }
+                        )}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue(
+                            'chosenPortals',
+                            newChosenOptions
+                          );
+                        }}
+                      />
+                    </SectionContainer>{' '}
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <SoloButtonStyledComponent
+                        onClick={() => setTabIndex(tabIndex + 1)}>
+                        Next Step
+                      </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <UserSection />
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <SoloButtonStyledComponent
+                        onClick={() => setTabIndex(tabIndex + 1)}>
+                        Next Step
+                      </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SpecSection />
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <SoloButtonStyledComponent onClick={() => setTabIndex(0)}>
+                        Create API
+                      </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </>
+          )}
         </Formik>
       </div>
     </>
