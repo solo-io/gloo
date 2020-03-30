@@ -11,11 +11,7 @@ import {
   PortalList,
   PortalWriteRequest
 } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import {
-  ApiDoc,
-  ApiDocList,
-  ApiDocFilter
-} from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+
 import {
   User,
   UserList,
@@ -43,7 +39,10 @@ import { ObjectMeta, Time } from 'proto/dev-portal/api/grpc/common/common_pb';
 import {
   createDataSourceClassFromObject,
   createPortalClassFromObject
-} from './api-helper';
+} from '../api-helper';
+import { apiDocApi } from './apiDoc';
+
+export { apiDocApi };
 
 export const portalApi = {
   listPortals,
@@ -53,10 +52,6 @@ export const portalApi = {
   updatePortal,
   getPortalWithAssets,
   createPortalPage
-};
-
-export const apiDocApi = {
-  listApiDocs
 };
 
 export const userApi = {
@@ -128,45 +123,6 @@ function listUsers(userFilter: UserFilter.AsObject): Promise<User.AsObject[]> {
       onMessage: (message: UserList) => {
         if (message) {
           resolve(message.toObject().usersList);
-        }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        if (status !== grpc.Code.OK) {
-          reject(statusMessage);
-        }
-      }
-    });
-  });
-}
-
-function listApiDocs(
-  apiDocFilter: ApiDocFilter.AsObject
-): Promise<ApiDoc.AsObject[]> {
-  const { portalsList } = apiDocFilter;
-  let request = new ApiDocFilter();
-
-  if (portalsList !== undefined) {
-    let portalsRefList = portalsList.map(portalObj => {
-      let portalRef = new ObjectRef();
-      portalRef.setName(portalObj.name);
-      portalRef.setNamespace(portalObj.namespace);
-      return portalRef;
-    });
-    request.setPortalsList(portalsRefList);
-  }
-  return new Promise((resolve, reject) => {
-    grpc.invoke(ApiDocApi.ListApiDocs, {
-      request,
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {},
-      onMessage: (message: ApiDocList) => {
-        if (message) {
-          resolve(message.toObject().apidocsList);
         }
       },
       onEnd: (
@@ -269,7 +225,7 @@ function getPortalWithAssets(
   });
 }
 
-function portalMessageFromObject(
+export function portalMessageFromObject(
   portal: Portal.AsObject,
   portalToUpdate = new Portal()
 ): Portal {

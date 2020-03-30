@@ -20,6 +20,9 @@ import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.s
 import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 import { TabCss, ActiveTabCss } from '../portals/PortalDetails';
+import useSWR from 'swr';
+import { formatHealthStatus } from '../portals/PortalsListing';
+import { apiDocApi } from '../api';
 
 const StyledTab = (
   props: {
@@ -43,7 +46,12 @@ const StyledTab = (
 };
 
 export const APIDetails = () => {
-  const { apiname } = useParams();
+  const { apiname, apinamespace } = useParams();
+  const { data: apiDoc, error: apiDocError } = useSWR(
+    !!apiname && !!apinamespace ? ['getApiDoc', apiname, apinamespace] : null,
+    (key, name, namespace) =>
+      apiDocApi.getApiDoc({ apidoc: { name, namespace }, withassets: false })
+  );
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
@@ -63,7 +71,7 @@ export const APIDetails = () => {
               <CodeIcon className='fill-current' />
             </span>
           }
-          health={healthConstants.Good.value}
+          health={formatHealthStatus(apiDoc?.status?.state)}
           headerSecondaryInformation={[
             {
               title: 'Modified',
@@ -79,11 +87,15 @@ export const APIDetails = () => {
               </div>
               <div className='grid w-full grid-cols-2 ml-2 h-36'>
                 <div>
-                  <span className='text-gray-900'>Portal Display Name</span>
+                  <span className='font-medium text-gray-900'>
+                    Portal Display Name
+                  </span>
                   <div>Portal Name</div>
                 </div>
                 <div>
-                  <span className='text-gray-900'>Portal Address</span>
+                  <span className='font-medium text-gray-900'>
+                    Portal Address
+                  </span>
                   <div className='flex items-center mb-2 text-sm text-blue-600'>
                     <span>
                       <ExternalLinkIcon className='w-4 h-4 ' />
@@ -98,7 +110,7 @@ export const APIDetails = () => {
                   </span>
                 </span>
                 <div className='col-span-2 '>
-                  <span className='text-gray-900'>Description</span>
+                  <span className='font-medium text-gray-900'>Description</span>
                   <div>
                     Updated - Lorem ipsum dolor sit amet, consetetur sadipscing
                     elitr, sed diam nonumy eirmod tempor invidunt ut labore et

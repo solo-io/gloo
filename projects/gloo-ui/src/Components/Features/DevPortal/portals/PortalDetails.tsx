@@ -20,6 +20,10 @@ import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.s
 import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 import { PortalPagesTab } from './PortalPagesTab';
+import useSWR from 'swr';
+import { portalApi } from '../api';
+import { formatHealthStatus } from './PortalsListing';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 export const TabCss = css`
   line-height: 40px;
@@ -63,7 +67,14 @@ const StyledTab = (
 };
 
 export const PortalDetails = () => {
-  const { portalname } = useParams();
+  const { portalname, portalnamespace } = useParams();
+  const { data: portal, error: portalListError } = useSWR(
+    !!portalname && !!portalnamespace
+      ? ['getPortal', portalname, portalnamespace]
+      : null,
+    (key, name, namespace) => portalApi.getPortal({ name, namespace })
+  );
+
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
@@ -71,6 +82,10 @@ export const PortalDetails = () => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+  if (!portal) {
+    return <Loading center>Loading...</Loading>;
+  }
+
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Dev Portal section</div>}>
@@ -83,7 +98,7 @@ export const PortalDetails = () => {
               <CodeIcon className='fill-current' />
             </span>
           }
-          health={healthConstants.Good.value}
+          health={formatHealthStatus(portal?.status?.state)}
           headerSecondaryInformation={[
             {
               title: 'Modified',
@@ -99,11 +114,15 @@ export const PortalDetails = () => {
               </div>
               <div className='grid w-full grid-cols-2 ml-2 h-36'>
                 <div>
-                  <span className='text-gray-900'>Portal Display Name</span>
-                  <div>Portal Name</div>
+                  <span className='font-medium text-gray-900'>
+                    Portal Display Name
+                  </span>
+                  <div>{portal?.spec?.displayName}</div>
                 </div>
                 <div>
-                  <span className='text-gray-900'>Portal Address</span>
+                  <span className='font-medium text-gray-900'>
+                    Portal Address
+                  </span>
                   <div className='flex items-center mb-2 text-sm text-blue-600'>
                     <span>
                       <ExternalLinkIcon className='w-4 h-4 ' />
@@ -118,15 +137,8 @@ export const PortalDetails = () => {
                   </span>
                 </span>
                 <div className='col-span-2 '>
-                  <span className='text-gray-900'>Description</span>
-                  <div>
-                    Updated - Lorem ipsum dolor sit amet, consetetur sadipscing
-                    elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-                    dolore magna aliquyam erat, sed diam voluptua. At vero eos
-                    et accusam et justo duo dolores et ea rebum. Stet clita kasd
-                    gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                    amet.
-                  </div>
+                  <span className='font-medium text-gray-900'>Description</span>
+                  <div>{}</div>
                 </div>
               </div>
             </div>

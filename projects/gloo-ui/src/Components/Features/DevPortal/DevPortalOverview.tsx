@@ -19,6 +19,7 @@ import useSWR from 'swr';
 import { portalApi, apiDocApi, userApi, groupApi } from './api';
 import { formatHealthStatus } from './portals/PortalsListing';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 export const DevPortalOverview = () => {
   const { data: portalsList, error: portalsListError } = useSWR(
@@ -42,7 +43,7 @@ export const DevPortalOverview = () => {
   );
 
   if (!portalsList || !apiDocsList || !userList || !groupList) {
-    return <div>Loading...</div>;
+    return <Loading center>Loading...</Loading>;
   }
 
   let publishedApiDocsCount = 0;
