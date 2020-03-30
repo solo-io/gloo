@@ -48,7 +48,10 @@ rules:
     resources: ["virtualservices", "routetables"]
     verbs: ["create", "update", "delete"]
   {{- if .Values.devPortal.enabled }}
-# Group 3: these rules only apply to the enterprise apiserver when thje developer portal is enabled
+# Group 3: these rules only apply to the enterprise apiserver when the developer portal is enabled
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "update", "delete"]
   - apiGroups: ["devportal.solo.io"]
     resources: ["*"]
     verbs: ["*"]
