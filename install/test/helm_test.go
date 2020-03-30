@@ -600,6 +600,49 @@ global:
 				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 			})
 
+			It("creates settings with extauth request timeout", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.requestTimeout=1s",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  extauth: 
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    requestTimeout: "1s"
+  gateway:
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+  gloo:
+    xdsBindAddr: 0.0.0.0:9977
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+  ratelimitServer:
+    ratelimit_server_ref: 
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
 			It("creates a deployment without extauth sidecar", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())

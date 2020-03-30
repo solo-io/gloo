@@ -48,6 +48,9 @@ spec:
       name: extauth-sidecar
       {{- end }}
       namespace: {{ .Release.Namespace }}
+    {{- if $extauth.requestTimeout }}
+    requestTimeout: {{ quote $extauth.requestTimeout }}
+    {{- end }}
   {{- end }}
 {{- end}}
 {{- if .Values.rateLimit.enabled }}

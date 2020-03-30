@@ -110,6 +110,7 @@ type ExtAuth struct {
 	EnvoySidecar         bool                      `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
 	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
 	ServiceName          string                    `json:"serviceName,omitempty"`
+	RequestTimeout       string                    `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
 }
 
 type ExtAuthDeployment struct {

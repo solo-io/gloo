@@ -1,0 +1,6 @@
+changelog:
+  - type: HELM
+    description: |
+      The timeout for Envoy when checking authorization with the extauth server is now exposed as `global.extensions.extAuth.requestTimeout`
+      in the helm chart. For instance, setting `global.extensions.extAuth.requestTimeout=1s` would set the timeout to one second.
+    issueLink: https://github.com/solo-io/gloo/issues/2531
