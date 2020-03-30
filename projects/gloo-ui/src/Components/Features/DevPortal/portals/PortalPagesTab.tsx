@@ -5,7 +5,7 @@ import { ReactComponent as Plus } from 'assets/small-green-plus.svg';
 import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { ReactComponent as PortalPageIcon } from 'assets/portal-page-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
-import useSWR from 'swr';
+import useSWR, { trigger } from 'swr';
 import { useParams, useHistory, useLocation } from 'react-router';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
@@ -43,9 +43,26 @@ export const PortalPagesTab = () => {
   const cancelDeletion = () => {
     setPageAttemptingToDelete(undefined);
   };
+  // TODO JOE // TODO ARTURO :: This has not been tested as the backend was erroring when
+  //  creating pages, so none were there to delete
   const finishDeletion = () => {
-    alert('Delete ' + pageAttemptingToDelete);
-    setPageAttemptingToDelete(undefined);
+    portalApi
+      .deletePortalPage(
+        { name: portalname!, namespace: portalnamespace! },
+        pageAttemptingToDelete!
+      )
+      .then(portal => {
+        trigger(['getPortal', portalname, portalnamespace]);
+
+        setPageAttemptingToDelete(undefined);
+      });
+    /*.catch(err => {
+        setErrorMessage(err);
+
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 10000);
+      });*/
   };
 
   const filteredList = portal?.spec?.staticPagesList.filter(page =>

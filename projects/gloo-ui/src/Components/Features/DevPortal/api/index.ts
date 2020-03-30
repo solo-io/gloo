@@ -51,7 +51,8 @@ export const portalApi = {
   createPortal,
   updatePortal,
   getPortalWithAssets,
-  createPortalPage
+  createPortalPage,
+  deletePortalPage
 };
 
 export const userApi = {
@@ -684,6 +685,7 @@ function createPortalPage(
 
         let request = new PortalWriteRequest();
         let portalSpec = portal.getSpec();
+        console.log(portalSpec?.toObject());
 
         let staticPageClass = new StaticPage();
         staticPageClass.setName(staticPage.name);
@@ -698,6 +700,70 @@ function createPortalPage(
           ...portalSpec.getStaticPagesList(),
           staticPageClass
         ]);
+
+        portal.setSpec(portalSpec);
+
+        request.setPortal(portal);
+        request.setPortalOnly(true);
+
+        console.log(request.getPortal()?.toObject());
+
+        grpc.invoke(PortalApi.UpdatePortal, {
+          request: request,
+          host,
+          metadata: new grpc.Metadata(),
+          onHeaders: (headers: grpc.Metadata) => {
+            // console.log('onheaders', headers);
+          },
+          onMessage: (message: Portal) => {
+            // console.log('message', message);
+            if (message) {
+              resolve(message.toObject());
+            }
+          },
+          onEnd: (
+            status: grpc.Code,
+            statusMessage: string,
+            trailers: grpc.Metadata
+          ) => {
+            // console.log('onEnd', status, statusMessage, trailers);
+            if (status !== grpc.Code.OK) {
+              reject(statusMessage);
+            }
+          }
+        });
+      }
+    });
+  });
+}
+
+function deletePortalPage(
+  portalRef: ObjectRef.AsObject,
+  deletingPortalName: string
+): Promise<Portal.AsObject> {
+  return new Promise((resolve, reject) => {
+    const requestObjectRef = new ObjectRef();
+    requestObjectRef.setName(portalRef.name);
+    requestObjectRef.setNamespace(portalRef.namespace);
+
+    grpc.unary(PortalApi.GetPortal, {
+      request: requestObjectRef,
+      host,
+      metadata: new grpc.Metadata(),
+      onEnd: endMessage => {
+        let portal = endMessage.message as Portal;
+
+        let request = new PortalWriteRequest();
+        let portalSpec = portal.getSpec();
+
+        portalSpec?.setStaticPagesList(
+          portalSpec
+            .getStaticPagesList()
+            .filter(
+              staticPageClass =>
+                staticPageClass.getName() !== deletingPortalName
+            )
+        );
 
         portal.setSpec(portalSpec);
 

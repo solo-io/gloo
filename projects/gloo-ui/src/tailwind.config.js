@@ -117,7 +117,11 @@ module.exports = {
         900: '#702459'
       }
     },
-    extend: {}
+    extend: {
+      gridTemplateColumns: {
+        pageEditor: '395px 1fr'
+      }
+    }
   },
   variants: {},
   plugins: [require('@tailwindcss/ui')]

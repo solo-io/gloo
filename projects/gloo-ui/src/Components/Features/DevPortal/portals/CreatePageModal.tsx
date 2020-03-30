@@ -8,9 +8,9 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
 import * as yup from 'yup';
-import { portalApi } from '../api';
 import useSWR, { trigger } from 'swr';
 import { useParams } from 'react-router';
+import { portalApi } from '../api';
 
 interface InitialPageCreationValuesType {
   name: string;
@@ -27,7 +27,7 @@ const validationSchema = yup.object().shape({
     .string()
     .required('The URL is required')
     .matches(/^(?:\/)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/, {
-      message: 'Organization may only include lowercase letters',
+      message: 'Must start with a backslash and follow with valid characters',
       excludeEmptyString: true
     }),
   linkName: yup.string().required('A name for the navigation link is required')
@@ -69,7 +69,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
         }
       )
       .then(portal => {
-        trigger('getPortal');
+        trigger(['getPortal', portalname, portalnamespace]);
 
         props.onClose();
       })

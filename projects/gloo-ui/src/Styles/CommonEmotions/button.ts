@@ -70,9 +70,24 @@ export const ButtonProgress = styled.div`
   ${ProgressSliderCSS};
 `;
 
-type SoloButtonProps = { inProgress?: boolean };
+type SoloButtonProps = { inProgress?: boolean; green?: boolean };
 export const SoloButtonStyledComponent = styled(Button)`
   ${SoloButtonCSS};
+
+  ${(props: SoloButtonProps) =>
+    props.green
+      ? `background: ${colors.forestGreen};
+    
+    
+        &:hover,
+        &:focus {
+            background: ${colors.standGreen};
+          }
+          
+          &:active {
+          background: ${colors.forestGreen};
+        }`
+      : ''};
 
   ${(props: SoloButtonProps) =>
     props.inProgress

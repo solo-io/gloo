@@ -1897,6 +1897,11 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
+"@types/showdown@^1.9.3":
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/@types/showdown/-/showdown-1.9.3.tgz#eaa881b03a32d3720184731754d3025fc450b970"
+  integrity sha512-akvzSmrvY4J5d3tHzUUiQr0xpjd4Nb3uzWW6dtwzYJ+qW/KdWw5F8NLatnor5q/1LURHnzDA1ReEwCVqcatRnw==
+
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -10726,6 +10731,11 @@ react-lifecycles-compat@^3.0.2, react-lifecycles-compat@^3.0.4:
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
+react-mde@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/react-mde/-/react-mde-8.2.0.tgz#4e5bc2f8365efd471b5bf69f544bd62860902cc1"
+  integrity sha512-itcbS94iN+4R7uxHTyfB4sSXivDxKo+WocqoJ5RZ5qqLfMI93Dj9XzmL3yh4nIcUyH2lWhfQ7c4HpKoT9WDFHw==
+
 react-motion@^0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/react-motion/-/react-motion-0.5.2.tgz#0dd3a69e411316567927917c6626551ba0607316"
@@ -11755,6 +11765,13 @@ shellwords@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha512-vFwSUfQvqybiICwZY5+DAWIPLKsWO31Q91JSKl3UYv+K5c2QRPzn0qzec6QPu1Qc9eHYItiP3NdJqNVqetYAww==
+
+showdown@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/showdown/-/showdown-1.9.1.tgz#134e148e75cd4623e09c21b0511977d79b5ad0ef"
+  integrity sha512-9cGuS382HcvExtf5AHk7Cb4pAeQQ+h0eTr33V1mu+crYWV4KvWAw6el92bDrqGEk5d46Ai/fhbEUwqJ/mTCNEA==
+  dependencies:
+    yargs "^14.2"
 
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
@@ -13700,6 +13717,14 @@ yargs-parser@^13.1.1:
     camelcase "^5.0.0"
     decamelize "^1.2.0"
 
+yargs-parser@^15.0.1:
+  version "15.0.1"
+  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-15.0.1.tgz#54786af40b820dcb2fb8025b11b4d659d76323b3"
+  integrity sha512-0OAMV2mAZQrs3FkNpDQcBk1x5HXb8X4twADss4S0Iuk+2dGnLOE/fRHrsYm542GduMveyA77OF4wrNJuanRCWw==
+  dependencies:
+    camelcase "^5.0.0"
+    decamelize "^1.2.0"
+
 yargs@12.0.2:
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-12.0.2.tgz#fe58234369392af33ecbef53819171eff0f5aadc"
@@ -13751,6 +13776,23 @@ yargs@^13.3.0:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^13.1.1"
+
+yargs@^14.2:
+  version "14.2.3"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-14.2.3.tgz#1a1c3edced1afb2a2fea33604bc6d1d8d688a414"
+  integrity sha512-ZbotRWhF+lkjijC/VhmOT9wSgyBQ7+zr13+YLkhfsSiTriYsMzkTUFP18pFhWwBeMa5gUc1MzbhrO6/VB7c9Xg==
+  dependencies:
+    cliui "^5.0.0"
+    decamelize "^1.2.0"
+    find-up "^3.0.0"
+    get-caller-file "^2.0.1"
+    require-directory "^2.1.1"
+    require-main-filename "^2.0.0"
+    set-blocking "^2.0.0"
+    string-width "^3.0.0"
+    which-module "^2.0.0"
+    y18n "^4.0.0"
+    yargs-parser "^15.0.1"
 
 yauzl@2.4.1:
   version "2.4.1"

@@ -153,12 +153,14 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
             })}
           </SecondaryInformation>
         )}
-        {(!!health || health === 0) && (
-          <HealthContainer>
-            {healthMessage || ''}
-            <HealthIndicator healthStatus={health} />
-          </HealthContainer>
-        )}
+        <HealthContainer>
+          {(!!health || health === 0) && (
+            <>
+              {healthMessage || ''}
+              <HealthIndicator healthStatus={health} />
+            </>
+          )}
+        </HealthContainer>
         {onClose && <CloseIcon onClick={onClose}>X</CloseIcon>}
       </Header>
       <BodyContainer noPadding={noPadding}>{children}</BodyContainer>

@@ -8,6 +8,13 @@ type RotaterProps = {
 };
 const Rotater = styled.div`
   transform: rotate(${(props: RotaterProps) => props.degrees}deg);
+  width: 141px;
+  height: 141px;
+
+  svg {
+    width: 141px;
+    height: 141px;
+  }
 `;
 
 interface LoadingProps {
@@ -28,9 +35,11 @@ export const Loading = ({
   const [degrees, setDegrees] = React.useState(0);
 
   React.useEffect(() => {
-    setInterval(() => {
+    const spinterval = setInterval(() => {
       setDegrees(oldDegree => (oldDegree + 60) % 360);
     }, 200);
+
+    return () => clearInterval(spinterval);
   }, []);
 
   const centering = center
@@ -47,7 +56,7 @@ export const Loading = ({
         width: '100%',
         ...centering
       }}>
-      <div style={{ width: '141px' }}>
+      <div style={{ width: '141px', height: '141px' }}>
         <Rotater degrees={degrees}>
           <LoadingHexagon />
         </Rotater>
