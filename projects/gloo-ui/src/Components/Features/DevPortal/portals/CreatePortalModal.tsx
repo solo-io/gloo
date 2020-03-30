@@ -25,12 +25,21 @@ import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
 
 import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
-import { portalApi, portalMessageFromObject } from '../api';
+import { portalApi, portalMessageFromObject, apiDocApi } from '../api';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import {
   PortalSpec,
   PortalStatus
 } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
+import {
+  StateMap,
+  State,
+  ObjectRef,
+  DataSource
+} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import useSWR from 'swr';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 const StyledTab = (
   props: {
@@ -60,7 +69,7 @@ const GeneralSection = () => {
       <div className='grid grid-cols-2 '>
         <div className='mr-4'>
           <SoloFormInput
-            name='name'
+            name='displayName'
             title='Name'
             placeholder='Portal name goes here'
           />
@@ -88,10 +97,16 @@ const ImagerySection = () => {
   const formik = useFormikContext();
   const [images, setImages] = React.useState<string[]>([]);
 
-  const onDrop = (files: File[], pictures: string[]) => {
+  const onDrop = async (files: File[], pictures: string[]) => {
     console.log('files', files);
     console.log('pictures', pictures);
-    formik.setFieldValue('banner', pictures[0]);
+    let buff = await files[0].arrayBuffer();
+    let newDataSource = new DataSource();
+    let uint8Arr = new Uint8Array(buff);
+    newDataSource.setInlineBytes(uint8Arr);
+    formik.setFieldValue('banner', files[0]);
+    // formik.setFieldValue('banner', files[0].arrayBuffer);
+
     setImages([...images, ...pictures]);
   };
   return (
@@ -133,7 +148,10 @@ const BrandingSection = () => {
   const [images, setImages] = React.useState<string[]>([]);
 
   const onDropPrimaryLogo = (files: File[], pictures: string[]) => {
-    formik.setFieldValue('primaryLogo', pictures[0]);
+    formik.setFieldValue(
+      'primaryLogo',
+      pictures[0].split(';')[2].split(',')[1]
+    );
     setImages([...images, ...pictures]);
   };
   const onDropFavicon = (files: File[], pictures: string[]) => {
@@ -143,7 +161,7 @@ const BrandingSection = () => {
   return (
     <SectionContainer>
       <SectionHeader>Create a Portal: Branding Logos</SectionHeader>
-      <div className='flex items-center'>
+      <div className='grid grid-cols-2'>
         <div className='flex flex-col items-center'>
           <SectionSubHeader>Primary Logo</SectionSubHeader>
           <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
@@ -209,14 +227,6 @@ const BrandingSection = () => {
   );
 };
 
-const APIsSection = () => {
-  return (
-    <SectionContainer>
-      <SectionHeader>Create a Portal: APIs</SectionHeader>
-    </SectionContainer>
-  );
-};
-
 const AccessSection = () => {
   return (
     <SectionContainer>
@@ -226,6 +236,10 @@ const AccessSection = () => {
 };
 
 export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
+  const { data: apiDocsList, error: apiDocsError } = useSWR(
+    'listApiDocs',
+    apiDocApi.listApiDocs
+  );
   const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index: number) => {
@@ -245,11 +259,9 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
 
   const handleCreatePortal = async (values: {
     displayName: string;
-    version: string;
     description: string;
     name: string;
-    namespace: string;
-    banner: string;
+    banner: File;
     favicon: string;
     primaryLogo: string;
   }) => {
@@ -258,65 +270,74 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
       description,
       displayName,
       name,
-      namespace,
       favicon,
       primaryLogo
     } = values;
     let newPortal = new Portal().toObject();
     let newPortalStatus = new PortalStatus().toObject();
+    let buff = await values.banner.arrayBuffer();
+    let uint8Arr = new Uint8Array(buff);
 
+    //@ts-ignore
     await portalApi.createPortal({
       portal: {
+        ...newPortal!,
         metadata: {
-          name,
-          namespace,
-          ...newPortal.metadata!
+          // ...newPortal.metadata!,
+          name: displayName,
+          namespace: 'gloo-system',
+          annotationsMap: [],
+          labelsMap: [],
+          resourceVersion: '',
+          uid: '',
+          creationTimestamp: { nanos: 0, seconds: 0 }
         },
         spec: {
-          publishApiDocs: {
-            matchLabelsMap: [['', '']],
-            ...newPortal.spec?.publishApiDocs
-          },
-          keyScopesList: {},
-          domainsList: [],
+          // ...newPortal.spec!,
+          domainsList: ['localhost:3001'],
+          keyScopesList: [],
           staticPagesList: [],
-          favicon: {
-            inlineString: favicon!,
-            ...newPortal.spec?.favicon!
-          },
-          primaryLogo: {
-            inlineString: primaryLogo!,
-            ...newPortal.spec?.primaryLogo!
-          },
-          displayName,
-          description,
           customStyling: {
             backgroundColor: '',
             buttonColorOverride: '',
-            defaultTextColor: '',
             navigationLinksColorOverride: '',
             primaryColor: '',
+            defaultTextColor: '',
             secondaryColor: ''
           },
+          publishApiDocs: { matchLabelsMap: [] },
+          description,
+          displayName,
           banner: {
-            inlineString: banner,
-            ...newPortal.spec?.banner!
+            ...newPortal.spec?.banner!,
+            inlineBytes: uint8Arr
           },
-          ...newPortal.spec!
+          favicon: {
+            ...newPortal.spec?.favicon!,
+            inlineString: favicon
+          },
+          primaryLogo: {
+            ...newPortal.spec?.primaryLogo!,
+            inlineString: primaryLogo
+          }
         },
         status: {
-          ...newPortalStatus,
-          state: 0,
-          reason: '',
-          publishUrl: '',
+          // ...newPortal.status!,
+          apiDocsList: [],
           keyScopesList: [],
-          observedGeneration: 0,
-          apiDocsList: []
-        },
-        ...newPortal!
+          observedGeneration: (undefined as unknown) as number,
+          publishUrl: (undefined as unknown) as string,
+          reason: (undefined as unknown) as string,
+          state: (undefined as unknown) as any
+        }
       }
-    } as any);
+    });
+    props.onClose();
   };
+
+  if (!apiDocsList) {
+    return <Loading center>Loading</Loading>;
+  }
   return (
     <>
       <div
@@ -327,18 +348,17 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         <Formik
           initialValues={{
             displayName: '',
-            version: '',
             description: '',
-            namespace: '',
             name: '',
-            banner: '',
+            banner: (undefined as unknown) as File,
             favicon: '',
-            primaryLogo: ''
+            primaryLogo: '',
+            chosenAPIs: [] as ObjectRef.AsObject[]
           }}
           onSubmit={handleCreatePortal}>
           {formik => (
             <>
-              <pre>{JSON.stringify(formik.values, null, 2)}</pre>
+              {/* <pre>{JSON.stringify(formik.values, null, 2)}</pre> */}
               <Tabs
                 className='bg-blue-600 rounded-lg h-96'
                 index={tabIndex}
@@ -357,10 +377,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                 </TabList>
 
                 <TabPanels className='bg-white rounded-r-lg'>
-                  <TabPanel className='relative focus:outline-none'>
+                  <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <GeneralSection />
 
-                    <div className='flex items-center justify-between px-6 '>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
@@ -372,9 +392,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                       </SoloButtonStyledComponent>
                     </div>
                   </TabPanel>
-                  <TabPanel className='focus:outline-none'>
+                  <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <ImagerySection />
-                    <div className='flex items-center justify-between px-6 '>
+
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
@@ -386,9 +407,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                       </SoloButtonStyledComponent>
                     </div>
                   </TabPanel>
-                  <TabPanel className='focus:outline-none'>
+                  <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <BrandingSection />
-                    <div className='flex items-center justify-between px-6 '>
+
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
@@ -400,9 +422,36 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                       </SoloButtonStyledComponent>
                     </div>
                   </TabPanel>
-                  <TabPanel className='focus:outline-none'>
-                    <APIsSection />
-                    <div className='flex items-center justify-between px-6 '>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SectionContainer>
+                      <SectionHeader>Create a Portal: APIs</SectionHeader>
+                      <SoloTransfer
+                        allOptionsListName='Available APIs'
+                        allOptions={apiDocsList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(apiDoc => {
+                            return {
+                              value: apiDoc.metadata?.name!,
+                              displayValue: apiDoc.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected APIs'
+                        chosenOptions={formik.values.chosenAPIs.map(api => {
+                          return { value: api.name + api.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue('chosenAPIs', newChosenOptions);
+                        }}
+                      />
+                    </SectionContainer>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
@@ -414,9 +463,9 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                       </SoloButtonStyledComponent>
                     </div>
                   </TabPanel>
-                  <TabPanel className='focus:outline-none'>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <AccessSection />
-                    <div className='flex items-center justify-between px-6 '>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>

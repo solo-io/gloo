@@ -13,7 +13,7 @@ import { KeyScopeStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Formik } from 'formik';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import useSWR from 'swr';
-import { portalApi } from '../api';
+import { portalApi, apiDocApi } from '../api';
 import {
   SoloFormInput,
   SoloFormDropdown,
@@ -63,6 +63,10 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
   const { data: portalsList, error: getApiKeyDocsError } = useSWR(
     'listPortals',
     portalApi.listPortals
+  );
+  const { data: apiDocsList, error: apiDocsError } = useSWR(
+    'listApiDocs',
+    apiDocApi.listApiDocs
   );
 
   const [tabIndex, setTabIndex] = React.useState(0);
@@ -196,22 +200,21 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                     </div>
 
                     <div className='mt-4'>
-                      {!!portalSelected?.status?.apiDocsList ? (
+                      {!!apiDocsList ? (
                         <SoloTransfer
                           allOptionsListName='Available APIs'
-                          allOptions={portalSelected?.status?.apiDocsList.map(
-                            apiDoc => {
-                              return {
-                                value: apiDoc.name,
-                                displayValue: apiDoc.name
-                              };
-                            }
-                          )}
+                          allOptions={apiDocsList.map(apiDoc => {
+                            return {
+                              value: apiDoc.metadata?.name!,
+                              displayValue: apiDoc.metadata?.name!
+                            };
+                          })}
                           chosenOptionsListName='Selected APIs'
                           chosenOptions={values.chosenAPIs.map(api => {
                             return { value: api.name + api.namespace };
                           })}
                           onChange={newChosenOptions => {
+                            console.log('newChosenOptions', newChosenOptions);
                             setFieldValue('chosenAPIs', newChosenOptions);
                           }}
                         />

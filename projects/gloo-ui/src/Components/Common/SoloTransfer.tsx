@@ -25,6 +25,7 @@ const ListHolder = styled.div`
   color: ${colors.septemberGrey};
   padding: 9px;
   border: 1px solid ${colors.aprilGrey};
+  height: 100%;
   background: white;
 `;
 
@@ -54,7 +55,7 @@ interface TransferProps {
   allOptions: ListItemType[];
   chosenOptionsListName: string;
   chosenOptions: ListItemType[];
-  onChange: (newChosenOptions: ListItemType[]) => any;
+  onChange: (newChosenOptions: ListItemType[]) => void;
 }
 
 export const SoloTransfer = (props: TransferProps) => {
@@ -67,6 +68,7 @@ export const SoloTransfer = (props: TransferProps) => {
   } = props;
 
   const addItem = (addedItem: ListItemType) => {
+    console.log('addItem', addedItem);
     onChange([...chosenOptions, addedItem]);
   };
 
@@ -74,6 +76,7 @@ export const SoloTransfer = (props: TransferProps) => {
     onChange(chosenOptions.filter(lItem => lItem.value !== addedItem.value));
   };
 
+  console.log('chosenOptions', chosenOptions);
   return (
     <TransferBlock>
       <ListHalf>
@@ -89,7 +92,12 @@ export const SoloTransfer = (props: TransferProps) => {
             .map(item => (
               <Item key={item.value}>
                 {item.displayValue || item.value}
-                <GreenPlus onClick={() => addItem(item)} />
+                <span className='text-green-400 cursor-pointer hover:text-green-300'>
+                  <GreenPlus
+                    className='fill-current'
+                    onClick={() => addItem(item)}
+                  />
+                </span>
               </Item>
             ))}
         </ListHolder>

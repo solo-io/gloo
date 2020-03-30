@@ -511,7 +511,6 @@ function createPortal(
 ): Promise<Portal.AsObject> {
   const { portal, usersList, apiDocsList, groupsList } = portalWriteRequest;
   let request = new PortalWriteRequest();
-
   if (portal !== undefined) {
     let portalToCreate = portalMessageFromObject(portalWriteRequest.portal!);
     request.setPortal(portalToCreate);
@@ -563,6 +562,7 @@ function createPortal(
         statusMessage: string,
         trailers: grpc.Metadata
       ) => {
+        console.log('statusMessage', statusMessage);
         if (status !== grpc.Code.OK) {
           reject(statusMessage);
         }

@@ -116,7 +116,9 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
             <ExternalLinkIcon className='w-4 h-4 mr-1' />
             https://production.subdomain.gloo.io
           </p>
-          <p className='text-base text-gray-700'>{portal.spec?.description}</p>
+          <p className='text-base text-gray-700 break-all'>
+            {portal.spec?.description}
+          </p>
         </div>
         <div className='text-sm text-gray-600 '>
           Modified:{' '}

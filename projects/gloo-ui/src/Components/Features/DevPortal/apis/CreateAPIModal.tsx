@@ -218,9 +218,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
               </TabList>
 
               <TabPanels className='bg-white rounded-r-lg'>
-                <TabPanel className='relative focus:outline-none'>
+                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                   <GeneralSection />
-                  <div className='flex items-center justify-between px-6 '>
+                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
                     <button
                       className='text-blue-500 cursor-pointer'
                       onClick={props.onClose}>
@@ -232,9 +232,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                <TabPanel className='focus:outline-none'>
+                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                   <ImagerySection />
-                  <div className='flex items-center justify-between px-6 '>
+                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
                     <button
                       className='text-blue-500 cursor-pointer'
                       onClick={props.onClose}>
@@ -246,9 +246,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                <TabPanel className='focus:outline-none'>
+                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                   <PortalsSection />
-                  <div className='flex items-center justify-between px-6 '>
+                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
                     <button
                       className='text-blue-500 cursor-pointer'
                       onClick={props.onClose}>
@@ -260,9 +260,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                <TabPanel className='focus:outline-none'>
+                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                   <UserSection />
-                  <div className='flex items-center justify-between px-6 '>
+                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
                     <button
                       className='text-blue-500 cursor-pointer'
                       onClick={props.onClose}>
@@ -274,9 +274,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                <TabPanel className='focus:outline-none'>
+                <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                   <SpecSection />
-                  <div className='flex items-center justify-between px-6 '>
+                  <div className='flex items-end justify-between h-full px-6 mb-4 '>
                     <button
                       className='text-blue-500 cursor-pointer'
                       onClick={props.onClose}>

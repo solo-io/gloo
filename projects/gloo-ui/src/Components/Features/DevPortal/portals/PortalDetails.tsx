@@ -24,6 +24,12 @@ import useSWR from 'swr';
 import { portalApi } from '../api';
 import { formatHealthStatus } from './PortalsListing';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { format } from 'timeago.js';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { CreateAPIModal } from '../apis/CreateAPIModal';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 
 export const TabCss = css`
   line-height: 40px;
@@ -72,20 +78,36 @@ export const PortalDetails = () => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => portalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
 
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
+  const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
+  const [attemptingDelete, setAttemptingDelete] = React.useState(false);
 
+  const attemptDeletePortal = () => {
+    setAttemptingDelete(true);
+  };
+  const cancelDeletion = () => {
+    setAttemptingDelete(false);
+  };
+  const deletePortal = async () => {
+    await portalApi.deletePortal({
+      name: portal?.metadata?.name!,
+      namespace: portal?.metadata?.namespace!
+    });
+    setAttemptingDelete(false);
+    history.push('/dev-portal/portals');
+  };
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
   if (!portal) {
     return <Loading center>Loading...</Loading>;
   }
-
+  console.log('portal', portal);
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Dev Portal section</div>}>
@@ -102,7 +124,10 @@ export const PortalDetails = () => {
           headerSecondaryInformation={[
             {
               title: 'Modified',
-              value: 'Feb 26, 2020'
+              value: format(
+                portal.metadata?.creationTimestamp?.seconds!,
+                'en_US'
+              )
             }
           ]}
           healthMessage={'Portal Status'}
@@ -138,7 +163,7 @@ export const PortalDetails = () => {
                 </span>
                 <div className='col-span-2 '>
                   <span className='font-medium text-gray-900'>Description</span>
-                  <div>{}</div>
+                  <div className='break-words '>{portal.spec?.description}</div>
                 </div>
               </div>
             </div>
@@ -167,8 +192,11 @@ export const PortalDetails = () => {
                 </TabPanel>
                 <TabPanel className='focus:outline-none'>
                   <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
-                    <span className='absolute top-0 right-0 p-4 '>
-                      <span></span> add an API
+                    <span
+                      onClick={() => setShowCreateApiModal(true)}
+                      className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
+                      <GreenPlus className='mr-1 fill-current' />
+                      <span className='text-gray-700'> Create an API</span>
                     </span>
                     <div className='w-1/3 m-4'>
                       <SoloInput
@@ -294,10 +322,23 @@ export const PortalDetails = () => {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            <button>Delete Portal</button>
+            <SoloNegativeButton onClick={attemptDeletePortal}>
+              Delete Portal
+            </SoloNegativeButton>{' '}
+            <ConfirmationModal
+              visible={attemptingDelete}
+              confirmationTopic='delete this portal'
+              confirmText='Delete'
+              goForIt={deletePortal}
+              cancel={cancelDeletion}
+              isNegative={true}
+            />
           </div>
         </SectionCard>
       </div>
+      <SoloModal visible={showCreateApiModal} width={750} noPadding={true}>
+        <CreateAPIModal onClose={() => setShowCreateApiModal(false)} />
+      </SoloModal>
     </ErrorBoundary>
   );
 };

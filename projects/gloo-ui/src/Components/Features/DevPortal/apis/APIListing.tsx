@@ -71,59 +71,52 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
     <div
       onClick={() => history.push(`/dev-portal/apis/${apiDoc.metadata?.name}`)}
       className='relative flex mb-4 bg-white rounded-lg shadow cursor-pointer'>
-      <div className='flex-none h-32 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
+      <span className='absolute top-0 right-0 flex items-center mt-3 mr-8 text-base font-medium text-gray-900'>
+        Publish Status
+        <HealthIndicator
+          healthStatus={formatHealthStatus(apiDoc.status?.state)}
+        />
+      </span>
+      <div className='flex-none w-40 h-40 overflow-hidden text-center bg-cover rounded-l lg:rounded-t-none lg:rounded-l'>
         <PlaceholderPortal className='rounded-l-lg ' />
       </div>
-      <div className='flex flex-col ml-4 '>
-        <div className='mb-2 text-lg text-gray-900'>
-          {apiDoc.metadata?.name}
-        </div>
-        <span className='absolute top-0 right-0 flex items-center mt-3 mr-8 text-base font-medium text-gray-900'>
-          Publish Status
-          <HealthIndicator
-            healthStatus={formatHealthStatus(apiDoc.status?.state)}
-          />
-        </span>
-        <div className='my-2'>
-          {' '}
-          Nisi cupidatat commodo id incididunt. Laboris officia anim velit
-          deserunt pariatur Lorem amet culpa sint velit amet fugiat occaecat. Do
-          cillum ad cillum sint excepteur ea aute sint. Eiusmod sit eiusmod
-          pariatur cupidatat laboris ullamco veniam minim. Aliquip minim ipsum
-          voluptate labore eiusmod quis deserunt. Anim proident ad minim
-          excepteur dolor reprehenderit. Qui ullamco commodo in laboris.{' '}
-        </div>
+      <div className='flex flex-col justify-around w-full h-40 ml-4'>
+        <div className='text-lg text-gray-900 '>{apiDoc.metadata?.name}</div>
+        <div className=''>{apiDoc.status?.description}</div>
         <div className='text-sm text-gray-600 '>
           Modified:
           {format(apiDoc.status?.modifiedDate?.seconds!, 'en_US')}
         </div>
-        <div className='flex items-center justify-between mt-4'>
+        <div className='flex items-center justify-between '>
           <div className='font-medium text-gray-900 capitalize'>
             published in
           </div>
-          <div className='flex items-center'>
-            {formatHealthStatus(apiDoc.status?.state) ===
-              Status.State.PENDING && (
-              <div className='flex items-center justify-center w-4 h-4 text-white text-orange-700 bg-orange-100 border border-orange-700 rounded-full'>
-                !
-              </div>
-            )}
-
-            <div className='flex items-center px-4'>
-              <span className='text-blue-600'>
-                <UserIcon className='w-6 h-6 fill-current' />
-              </span>
-              <span className='px-1 font-semibold'>10</span>
-              <span>Users</span>
+          <div className='flex items-center justify-between'>
+            <div>
+              {formatHealthStatus(apiDoc.status?.state) ===
+                Status.State.PENDING && (
+                <div className='flex items-center justify-center w-4 h-4 text-white text-orange-700 bg-orange-100 border border-orange-700 rounded-full'>
+                  !
+                </div>
+              )}
             </div>
-            <div className='flex items-center px-4'>
-              <span className='text-blue-600'>
-                <CodeIcon className='w-6 h-6 fill-current' />
-              </span>
-              <span className='px-1 font-semibold'>
-                {apiDoc.status?.numberOfEndpoints}
-              </span>
-              <span>Endpoints</span>
+            <div className='flex items-center'>
+              <div className='flex items-center px-4'>
+                <span className='text-blue-600'>
+                  <UserIcon className='w-6 h-6 fill-current' />
+                </span>
+                <span className='px-1 font-semibold'>10</span>
+                <span>Users</span>
+              </div>
+              <div className='flex items-center px-4'>
+                <span className='text-blue-600'>
+                  <CodeIcon className='w-6 h-6 fill-current' />
+                </span>
+                <span className='px-1 font-semibold'>
+                  {apiDoc.status?.numberOfEndpoints}
+                </span>
+                <span>Endpoints</span>
+              </div>
             </div>
           </div>
         </div>

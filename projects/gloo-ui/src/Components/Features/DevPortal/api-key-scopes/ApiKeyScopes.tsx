@@ -75,30 +75,39 @@ export const APIKeyScopes = () => {
           <span className='text-gray-700'> Create a Scope</span>
         </span>
       </CreationButtonArea>
-      {portalsList?.map(portalInfo => (
-        <SectionCard
-          key={portalInfo.metadata?.uid}
-          cardName={portalInfo.metadata!.name}
-          logoIcon={<PortalIcon />}>
-          <div>
-            {/*portalInfo.spec?.keyScopesList*/ [{ name: 'dig' }].map(
-              (scopeInfo, ind) => (
-                <ApiKeyScopeCard
-                  key={scopeInfo.name}
-                  name={scopeInfo.name}
-                  onClick={() =>
-                    expandCard(portalInfo.metadata!.uid, scopeInfo.name)
-                  }
-                  isExpanded={
-                    keyScopeExpanded?.portalUid === portalInfo.metadata?.uid &&
-                    keyScopeExpanded?.scopeName === scopeInfo.name
-                  }
-                />
-              )
-            )}
-          </div>
-        </SectionCard>
-      ))}
+      {portalsList
+        ?.sort((a, b) =>
+          a.metadata?.name === b.metadata?.name
+            ? 0
+            : a.metadata!.name > b.metadata!.name
+            ? 1
+            : -1
+        )
+        .map(portalInfo => (
+          <SectionCard
+            key={portalInfo.metadata?.uid}
+            cardName={portalInfo.metadata!.name}
+            logoIcon={<PortalIcon />}>
+            <div>
+              {/*portalInfo.spec?.keyScopesList*/ [{ name: 'dig' }].map(
+                (scopeInfo, ind) => (
+                  <ApiKeyScopeCard
+                    key={scopeInfo.name}
+                    name={scopeInfo.name}
+                    onClick={() =>
+                      expandCard(portalInfo.metadata!.uid, scopeInfo.name)
+                    }
+                    isExpanded={
+                      keyScopeExpanded?.portalUid ===
+                        portalInfo.metadata?.uid &&
+                      keyScopeExpanded?.scopeName === scopeInfo.name
+                    }
+                  />
+                )
+              )}
+            </div>
+          </SectionCard>
+        ))}
 
       <SoloModal visible={createScopeWizardOpen} width={750} noPadding={true}>
         <EditKeyScopeModal
