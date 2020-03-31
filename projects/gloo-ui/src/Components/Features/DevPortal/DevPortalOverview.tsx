@@ -98,7 +98,9 @@ export const DevPortalOverview = () => {
                 : healthConstants.Good.value
             }
             titleText='Portals'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'
+            description='Portals group APIs by business function and give end users the ability to search, browse, and sign up for API functionality made available by a particular portal. View portals to create and manage portals.
+
+'
             titleIcon={
               <span className='text-blue-500'>
                 <PortalIcon className='w-8 h-8 fill-current ' />
@@ -135,7 +137,7 @@ export const DevPortalOverview = () => {
                 : healthConstants.Good.value
             }
             titleText='APIs'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'
+            description={`APIs expose business capabilities to external users in a shape that's most erogonoimcal for them. APIs decouple backend implementation from their published representations. View APIs to manage API endpoints, interfaces, and access.`}
             titleIcon={
               <span className='text-blue-500'>
                 <CodeIcon className='w-8 h-8 fill-current' />
@@ -169,7 +171,7 @@ export const DevPortalOverview = () => {
             }}
             healthStatus={1}
             titleText='Users & Groups'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'
+            description={`Users and Groups allow you to manage identity of users and roles / premissions for accessing APIs. Users can connect to APIs using the permissions granted by the administrator.`}
             titleIcon={
               <span className='text-blue-500'>
                 <UserIcon className='w-8 h-8 fill-current ' />
@@ -205,16 +207,16 @@ export const DevPortalOverview = () => {
           <StatusTile
             exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
             titleText='Creating a Portal'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'></StatusTile>
+            description={`Documentation for adding APIs and exposing business capabilities by creating a new portal`}></StatusTile>
           <StatusTile
             exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
             titleText='Generating a Gloo API'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'></StatusTile>
+            description={`Documentation for exposing new APIs on the Gloo API gateway by selecting backend services and endpoints`}></StatusTile>
 
           <StatusTile
             exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
             titleText='Granting User Access'
-            description='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.'></StatusTile>
+            description={`Documentation for managing user access`}></StatusTile>
         </div>
       </Container>
     </ErrorBoundary>

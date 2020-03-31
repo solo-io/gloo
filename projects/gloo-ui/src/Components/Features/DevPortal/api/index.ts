@@ -7,6 +7,14 @@ import { GroupApi } from 'proto/dev-portal/api/grpc/admin/group_pb_service';
 import { ApiKeyApi } from 'proto/dev-portal/api/grpc/admin/api_key_pb_service';
 
 import { host } from 'store';
+
+import {
+  ApiDoc,
+  ApiDocList,
+  ApiDocFilter,
+  ApiDocGetRequest,
+  ApiDocWriteRequest
+} from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 import {
   Portal,
   PortalList,
@@ -16,12 +24,14 @@ import {
 import {
   User,
   UserList,
-  UserFilter
+  UserFilter,
+  UserWriteRequest
 } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import {
   Group,
   GroupList,
-  GroupFilter
+  GroupFilter,
+  GroupWriteRequest
 } from 'proto/dev-portal/api/grpc/admin/group_pb';
 import { ApiKey, ApiKeyList } from 'proto/dev-portal/api/grpc/admin/api_key_pb';
 
@@ -43,8 +53,22 @@ import {
   createDataSourceClassFromObject,
   createPortalClassFromObject
 } from '../api-helper';
-import { apiDocApi } from './apiDoc';
-export { apiDocApi };
+import {
+  ApiDocStatus,
+  ApiDocSpec
+} from 'proto/dev-portal/api/dev-portal/v1/apidoc_pb';
+import {
+  UserStatus,
+  UserSpec
+} from 'proto/dev-portal/api/dev-portal/v1/user_pb';
+import {
+  AccessLevel,
+  AccessLevelStatus
+} from 'proto/dev-portal/api/dev-portal/v1/access_level_pb';
+import {
+  GroupStatus,
+  GroupSpec
+} from 'proto/dev-portal/api/dev-portal/v1/group_pb';
 
 export const portalApi = {
   listPortals,
@@ -56,18 +80,615 @@ export const portalApi = {
   deletePortalPage
 };
 
+export const apiDocApi = {
+  listApiDocs,
+  getApiDoc,
+  createApiDoc
+};
+
 export const userApi = {
-  listUsers
+  listUsers,
+  createUser
 };
 
 export const groupApi = {
-  listGroups
+  listGroups,
+  createGroup
 };
 
 export const apiKeyApi = {
   listApiKeys,
   deleteApiKey
 };
+
+export function groupMessageFromObject(
+  group: Group.AsObject,
+  groupToUpdate = new Group()
+): Group {
+  let { spec, metadata, status } = group!;
+  if (metadata !== undefined) {
+    let { name, namespace } = metadata;
+    let newMetadata = new ObjectMeta();
+    newMetadata.setName(name);
+    newMetadata.setNamespace(namespace);
+    groupToUpdate.setMetadata(newMetadata);
+  }
+
+  if (status !== undefined) {
+    let statusMessage = new GroupStatus();
+    const {
+      usersList,
+      accessLevel,
+      observedGeneration,
+      reason,
+      state
+    } = status;
+
+    if (usersList !== undefined) {
+      let userRefList = usersList.map(userRefObj => {
+        let userRef = new ObjectRef();
+        userRef.setName(userRefObj.name);
+        userRef.setNamespace(userRefObj.namespace);
+        return userRef;
+      });
+      statusMessage.setUsersList(userRefList);
+    }
+    if (accessLevel !== undefined) {
+      let newAccessLevel = new AccessLevelStatus();
+      const { apiDocsList, portalsList } = accessLevel;
+      if (apiDocsList !== undefined) {
+        let apiDocRefList = apiDocsList.map(apiDocObj => {
+          let apiDocRef = new ObjectRef();
+          apiDocRef.setName(apiDocObj.name);
+          apiDocRef.setNamespace(apiDocObj.namespace);
+          return apiDocRef;
+        });
+        newAccessLevel.setApiDocsList(apiDocRefList);
+      }
+      if (portalsList !== undefined) {
+        let portalRefList = portalsList.map(portalRefObj => {
+          let portalRef = new ObjectRef();
+          portalRef.setName(portalRefObj.name);
+          portalRef.setNamespace(portalRefObj.namespace);
+          return portalRef;
+        });
+        newAccessLevel.setPortalsList(portalRefList);
+      }
+      statusMessage.setAccessLevel(newAccessLevel);
+    }
+
+    if (observedGeneration !== undefined) {
+      statusMessage.setObservedGeneration(observedGeneration);
+    }
+
+    if (reason !== undefined) {
+      statusMessage.setReason(reason);
+    }
+    if (state !== undefined) {
+      statusMessage.setState(state);
+    }
+    groupToUpdate.setStatus(statusMessage);
+  }
+
+  if (spec !== undefined) {
+    let newSpec = new GroupSpec();
+    const { displayName, description, userSelector, accessLevel } = spec;
+
+    if (displayName !== undefined) {
+      newSpec.setDisplayName(displayName);
+    }
+    if (description !== undefined) {
+      newSpec.setDescription(description);
+    }
+
+    if (userSelector !== undefined) {
+      let userSelectorMessage = selectorMessageFromObject(userSelector);
+      newSpec.setUserSelector(userSelectorMessage);
+    }
+    if (accessLevel !== undefined) {
+      let newAccessLevel = new AccessLevel();
+      const { apiDocSelector, portalSelector } = accessLevel;
+      if (apiDocSelector !== undefined) {
+        let apiDocSelectorMessage = selectorMessageFromObject(apiDocSelector);
+        newAccessLevel.setApiDocSelector(apiDocSelectorMessage);
+      }
+
+      if (portalSelector !== undefined) {
+        let portalSelectorMessage = selectorMessageFromObject(portalSelector);
+        newAccessLevel.setApiDocSelector(portalSelectorMessage);
+      }
+
+      newSpec.setAccessLevel(newAccessLevel);
+    }
+
+    groupToUpdate.setSpec(newSpec);
+  }
+
+  return groupToUpdate;
+}
+
+function createGroup(
+  groupWriteRequest: GroupWriteRequest.AsObject
+): Promise<Group.AsObject> {
+  const { usersList, group, apiDocsList, portalsList } = groupWriteRequest;
+  let request = new GroupWriteRequest();
+
+  if (group !== undefined) {
+    let groupToCreate = groupMessageFromObject(group);
+    request.setGroup(groupToCreate);
+  }
+
+  if (portalsList !== undefined) {
+    let portalRefList = portalsList.map(portalRefObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalRefObj.name);
+      portalRef.setNamespace(portalRefObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalRefList);
+  }
+
+  if (apiDocsList !== undefined) {
+    let apiDocRefList = apiDocsList.map(apiDocObj => {
+      let apiDocRef = new ObjectRef();
+      apiDocRef.setName(apiDocObj.name);
+      apiDocRef.setNamespace(apiDocObj.namespace);
+      return apiDocRef;
+    });
+    request.setApiDocsList(apiDocRefList);
+  }
+
+  if (usersList !== undefined) {
+    let userRefList = usersList.map(userRefObj => {
+      let userRef = new ObjectRef();
+      userRef.setName(userRefObj.name);
+      userRef.setNamespace(userRefObj.namespace);
+      return userRef;
+    });
+    request.setUsersList(userRefList);
+  }
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(GroupApi.CreateGroup, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Group) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        console.log('statusMessage', statusMessage);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+export function userMessageFromObject(
+  user: User.AsObject,
+  userToUpdate = new User()
+): User {
+  let { spec, metadata, status } = user!;
+  if (metadata !== undefined) {
+    let { name, namespace } = metadata;
+    let newMetadata = new ObjectMeta();
+    newMetadata.setName(name);
+    newMetadata.setNamespace(namespace);
+    userToUpdate.setMetadata(newMetadata);
+  }
+
+  if (status !== undefined) {
+    let statusMessage = new UserStatus();
+    const {
+      hasLoggedIn,
+      accessLevel,
+      observedGeneration,
+      reason,
+      state
+    } = status;
+
+    if (hasLoggedIn !== undefined) {
+      statusMessage.setHasLoggedIn(hasLoggedIn);
+    }
+    if (accessLevel !== undefined) {
+      let newAccessLevel = new AccessLevelStatus();
+      const { apiDocsList, portalsList } = accessLevel;
+      if (apiDocsList !== undefined) {
+        let apiDocRefList = apiDocsList.map(apiDocObj => {
+          let apiDocRef = new ObjectRef();
+          apiDocRef.setName(apiDocObj.name);
+          apiDocRef.setNamespace(apiDocObj.namespace);
+          return apiDocRef;
+        });
+        newAccessLevel.setApiDocsList(apiDocRefList);
+      }
+      if (portalsList !== undefined) {
+        let portalRefList = portalsList.map(portalRefObj => {
+          let portalRef = new ObjectRef();
+          portalRef.setName(portalRefObj.name);
+          portalRef.setNamespace(portalRefObj.namespace);
+          return portalRef;
+        });
+        newAccessLevel.setPortalsList(portalRefList);
+      }
+      statusMessage.setAccessLevel(newAccessLevel);
+    }
+
+    if (observedGeneration !== undefined) {
+      statusMessage.setObservedGeneration(observedGeneration);
+    }
+
+    if (reason !== undefined) {
+      statusMessage.setReason(reason);
+    }
+    if (state !== undefined) {
+      statusMessage.setState(state);
+    }
+    userToUpdate.setStatus(statusMessage);
+  }
+
+  if (spec !== undefined) {
+    let newSpec = new UserSpec();
+    const { email, username, accessLevel, basicAuth } = spec;
+
+    if (email !== undefined) {
+      newSpec.setEmail(email);
+    }
+    if (username !== undefined) {
+      newSpec.setUsername(username);
+    }
+
+    if (accessLevel !== undefined) {
+      let newAccessLevel = new AccessLevel();
+      const { apiDocSelector, portalSelector } = accessLevel;
+      if (apiDocSelector !== undefined) {
+        let apiDocSelectorMessage = selectorMessageFromObject(apiDocSelector);
+        newAccessLevel.setApiDocSelector(apiDocSelectorMessage);
+      }
+
+      if (portalSelector !== undefined) {
+        let portalSelectorMessage = selectorMessageFromObject(portalSelector);
+        newAccessLevel.setApiDocSelector(portalSelectorMessage);
+      }
+
+      newSpec.setAccessLevel(newAccessLevel);
+    }
+
+    if (basicAuth !== undefined) {
+      let newBasicAuth = new UserSpec.BasicAuth();
+      const {
+        passwordSecretKey,
+        passwordSecretName,
+        passwordSecretNamespace
+      } = basicAuth;
+      if (passwordSecretKey !== undefined) {
+        newBasicAuth.setPasswordSecretKey(passwordSecretKey);
+      }
+      if (passwordSecretName !== undefined) {
+        newBasicAuth.setPasswordSecretName(passwordSecretName);
+      }
+      if (passwordSecretNamespace !== undefined) {
+        newBasicAuth.setPasswordSecretNamespace(passwordSecretNamespace);
+      }
+
+      newSpec.setBasicAuth(newBasicAuth);
+    }
+
+    userToUpdate.setSpec(newSpec);
+  }
+
+  return userToUpdate;
+}
+
+function createUser(
+  userWriteRequest: UserWriteRequest.AsObject
+): Promise<User.AsObject> {
+  const {
+    user,
+    apiDocsList,
+    password,
+    groupsList,
+    portalsList
+  } = userWriteRequest;
+  let request = new UserWriteRequest();
+
+  if (user !== undefined) {
+    let userToCreate = userMessageFromObject(user);
+    request.setUser(userToCreate);
+  }
+  if (password !== undefined) {
+    request.setPassword(password);
+  }
+
+  if (portalsList !== undefined) {
+    let portalRefList = portalsList.map(portalRefObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalRefObj.name);
+      portalRef.setNamespace(portalRefObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalRefList);
+  }
+
+  if (apiDocsList !== undefined) {
+    let apiDocRefList = apiDocsList.map(apiDocObj => {
+      let apiDocRef = new ObjectRef();
+      apiDocRef.setName(apiDocObj.name);
+      apiDocRef.setNamespace(apiDocObj.namespace);
+      return apiDocRef;
+    });
+    request.setApiDocsList(apiDocRefList);
+  }
+
+  if (groupsList !== undefined) {
+    let groupsRefList = groupsList.map(groupRefObj => {
+      let groupRef = new ObjectRef();
+      groupRef.setName(groupRefObj.name);
+      groupRef.setNamespace(groupRefObj.namespace);
+      return groupRef;
+    });
+    request.setGroupsList(groupsRefList);
+  }
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(UserApi.CreateUser, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: User) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        console.log('statusMessage', statusMessage);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+export function apiDocMessageFromObject(
+  apiDoc: ApiDoc.AsObject,
+  apiDocToUpdate = new ApiDoc()
+): ApiDoc {
+  let { spec, metadata, status } = apiDoc!;
+  if (metadata !== undefined) {
+    let { name, namespace } = metadata;
+    let newMetadata = new ObjectMeta();
+    newMetadata.setName(name);
+    newMetadata.setNamespace(namespace);
+    apiDocToUpdate.setMetadata(newMetadata);
+  }
+
+  if (status !== undefined) {
+    let statusMessage = new ApiDocStatus();
+    const {
+      basePath,
+      description,
+      displayName,
+      numberOfEndpoints,
+      version,
+      modifiedDate,
+      observedGeneration,
+      reason,
+      state
+    } = status;
+    if (basePath !== undefined) {
+      statusMessage.setBasePath(basePath);
+    }
+    if (description !== undefined) {
+      statusMessage.setDescription(description);
+    }
+    if (displayName !== undefined) {
+      statusMessage.setDisplayName(displayName);
+    }
+
+    if (numberOfEndpoints !== undefined) {
+      statusMessage.setNumberOfEndpoints(numberOfEndpoints);
+    }
+
+    if (version !== undefined) {
+      statusMessage.setVersion(version);
+    }
+
+    if (observedGeneration !== undefined) {
+      statusMessage.setObservedGeneration(observedGeneration);
+    }
+
+    if (reason !== undefined) {
+      statusMessage.setReason(reason);
+    }
+    if (state !== undefined) {
+      statusMessage.setState(state);
+    }
+    apiDocToUpdate.setStatus(statusMessage);
+  }
+
+  if (spec !== undefined) {
+    let newSpec = new ApiDocSpec();
+    const { dataSource, image, openApi } = spec;
+
+    if (dataSource !== undefined) {
+      let dataSourceMessage = dataSourceMessageFromObject(dataSource);
+      newSpec.setDataSource(dataSourceMessage);
+    }
+
+    if (image !== undefined) {
+      let imageMessage = dataSourceMessageFromObject(image);
+      newSpec.setImage(imageMessage);
+    }
+
+    if (openApi !== undefined) {
+      let openApiMessage = new ApiDocSpec.OpenApi();
+
+      newSpec.setOpenApi(openApiMessage);
+    }
+
+    apiDocToUpdate.setSpec(newSpec);
+  }
+
+  return apiDocToUpdate;
+}
+
+function createApiDoc(
+  apiDocWriteRequest: ApiDocWriteRequest.AsObject
+): Promise<ApiDoc.AsObject> {
+  const { apidoc, usersList, groupsList, portalsList } = apiDocWriteRequest;
+  let request = new ApiDocWriteRequest();
+  if (apidoc !== undefined) {
+    let apiDocToCreate = apiDocMessageFromObject(apidoc);
+    request.setApidoc(apiDocToCreate);
+  }
+
+  if (portalsList !== undefined) {
+    let portalRefList = portalsList.map(portalRefObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalRefObj.name);
+      portalRef.setNamespace(portalRefObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalRefList);
+  }
+
+  if (usersList !== undefined) {
+    let usersRefList = usersList.map(userRefObj => {
+      let userRef = new ObjectRef();
+      userRef.setName(userRefObj.name);
+      userRef.setNamespace(userRefObj.namespace);
+      return userRef;
+    });
+    request.setUsersList(usersRefList);
+  }
+
+  if (groupsList !== undefined) {
+    let groupsRefList = groupsList.map(groupRefObj => {
+      let groupRef = new ObjectRef();
+      groupRef.setName(groupRefObj.name);
+      groupRef.setNamespace(groupRefObj.namespace);
+      return groupRef;
+    });
+    request.setGroupsList(groupsRefList);
+  }
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.CreateApiDoc, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiDoc) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        console.log('statusMessage', statusMessage);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function listApiDocs(
+  apiDocFilter: ApiDocFilter.AsObject
+): Promise<ApiDoc.AsObject[]> {
+  const { portalsList } = apiDocFilter;
+  let request = new ApiDocFilter();
+
+  if (portalsList !== undefined) {
+    let portalsRefList = portalsList.map(portalObj => {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portalObj.name);
+      portalRef.setNamespace(portalObj.namespace);
+      return portalRef;
+    });
+    request.setPortalsList(portalsRefList);
+  }
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.ListApiDocs, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiDocList) => {
+        if (message) {
+          resolve(message.toObject().apidocsList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function getApiDoc(
+  getApiDocRequest: ApiDocGetRequest.AsObject
+): Promise<ApiDoc.AsObject> {
+  const { apidoc, withassets } = getApiDocRequest;
+  let request = new ApiDocGetRequest();
+  let apiDocRef = new ObjectRef();
+  if (apidoc !== undefined) {
+    apiDocRef.setName(apidoc.name);
+    apiDocRef.setNamespace(apidoc.namespace);
+    request.setApidoc(apiDocRef);
+  }
+  if (withassets !== undefined) {
+    request.setWithassets(withassets);
+  }
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.GetApiDoc, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiDoc) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 function deleteApiKey(apiKeyRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
   const { name, namespace } = apiKeyRef;
@@ -506,6 +1127,7 @@ function selectorMessageFromObject(
 
   return selectorMessage;
 }
+
 function dataSourceMessageFromObject(
   dataSourceObj: DataSource.AsObject,
   dataSourceMessage = new DataSource()

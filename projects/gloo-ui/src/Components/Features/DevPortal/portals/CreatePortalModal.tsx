@@ -1,45 +1,36 @@
-import React from 'react';
-import {
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  TabPanelProps
-} from '@reach/tabs';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { css } from '@emotion/core';
-import { Formik, useField, useFormikContext } from 'formik';
+import {
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanelProps,
+  TabPanels,
+  Tabs
+} from '@reach/tabs';
+import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import {
+  SoloFormInput,
+  SoloFormTextarea
+} from 'Components/Common/Form/SoloFormField';
+import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import { Formik, useFormikContext } from 'formik';
+import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import React from 'react';
+import ImageUploader from 'react-images-upload';
+import { colors } from 'Styles';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton
+} from 'Styles/CommonEmotions/button';
+import useSWR from 'swr';
+import { apiDocApi, groupApi, portalApi, userApi } from '../api';
 import {
   SectionContainer,
   SectionHeader,
   SectionSubHeader
 } from '../apis/CreateAPIModal';
-import {
-  SoloFormInput,
-  SoloFormTextarea
-} from 'Components/Common/Form/SoloFormField';
-import ImageUploader from 'react-images-upload';
-import { colors } from 'Styles';
-import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
-
-import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
-import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
-import { portalApi, portalMessageFromObject, apiDocApi } from '../api';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import {
-  PortalSpec,
-  PortalStatus
-} from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
-import {
-  StateMap,
-  State,
-  ObjectRef,
-  DataSource
-} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { SoloTransfer } from 'Components/Common/SoloTransfer';
-import useSWR from 'swr';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 const StyledTab = (
   props: {
@@ -62,30 +53,42 @@ const StyledTab = (
   );
 };
 
+// const validationSchema = yup.object().shape({
+//   dispayName: yup.string().required('The name is required'),
+//   description: yup.string(),
+//   linkName: yup.string().required('A name for the navigation link is required')
+// });
+
 const GeneralSection = () => {
   return (
     <SectionContainer>
       <SectionHeader>Create an Portal</SectionHeader>
-      <div className='grid grid-cols-2 '>
-        <div className='mr-4'>
+      <div className='p-3 text-gray-700 bg-gray-100 rounded-lg'>
+        Create a new Portal to expose business APIs
+      </div>
+      <div className='grid grid-cols-2 mt-2'>
+        <div className='mr-4 '>
           <SoloFormInput
             name='displayName'
             title='Name'
             placeholder='Portal name goes here'
+            hideError
           />
         </div>
         <div>
           <SoloFormInput
-            name='portalAddress'
-            title='Portal Address'
+            name='domain'
+            title='Portal Domain'
             placeholder='https://subdomain.domain.io'
+            hideError
           />
         </div>
-        <div className='col-span-2 '>
+        <div className='col-span-2 mt-2'>
           <SoloFormTextarea
             name='description'
             title='Description'
             placeholder='Portal description goes here'
+            hideError
           />
         </div>
       </div>
@@ -98,20 +101,16 @@ const ImagerySection = () => {
   const [images, setImages] = React.useState<string[]>([]);
 
   const onDrop = async (files: File[], pictures: string[]) => {
-    console.log('files', files);
-    console.log('pictures', pictures);
-    let buff = await files[0].arrayBuffer();
-    let newDataSource = new DataSource();
-    let uint8Arr = new Uint8Array(buff);
-    newDataSource.setInlineBytes(uint8Arr);
     formik.setFieldValue('banner', files[0]);
-    // formik.setFieldValue('banner', files[0].arrayBuffer);
 
     setImages([...images, ...pictures]);
   };
   return (
     <SectionContainer>
       <SectionHeader>Create a Portal: Add Imagery</SectionHeader>
+      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+        Add a "Hero" image associated with your Portal
+      </div>
       <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
         <NoImageIcon />
         <ImageUploader
@@ -124,8 +123,12 @@ const ImagerySection = () => {
               box-shadow: none;
               padding: 0px;
             }
+            .uploadPictureContainer {
+              margin: 0;
+            }
           `}
           withPreview
+          singleImage
           withIcon={false}
           buttonStyles={{
             borderRadius: '8px',
@@ -148,19 +151,19 @@ const BrandingSection = () => {
   const [images, setImages] = React.useState<string[]>([]);
 
   const onDropPrimaryLogo = (files: File[], pictures: string[]) => {
-    formik.setFieldValue(
-      'primaryLogo',
-      pictures[0].split(';')[2].split(',')[1]
-    );
+    formik.setFieldValue('primaryLogo', files[0]);
     setImages([...images, ...pictures]);
   };
   const onDropFavicon = (files: File[], pictures: string[]) => {
-    formik.setFieldValue('favicon', pictures[0]);
+    formik.setFieldValue('favicon', files[0]);
     setImages([...images, ...pictures]);
   };
   return (
     <SectionContainer>
       <SectionHeader>Create a Portal: Branding Logos</SectionHeader>
+      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+        Add company logos to give a branded experience
+      </div>
       <div className='grid grid-cols-2'>
         <div className='flex flex-col items-center'>
           <SectionSubHeader>Primary Logo</SectionSubHeader>
@@ -177,6 +180,7 @@ const BrandingSection = () => {
                 }
               `}
               withPreview
+              singleImage
               withIcon={false}
               buttonStyles={{
                 borderRadius: '8px',
@@ -208,6 +212,7 @@ const BrandingSection = () => {
                 }
               `}
               withPreview
+              singleImage
               withIcon={false}
               buttonStyles={{
                 borderRadius: '8px',
@@ -234,49 +239,56 @@ const AccessSection = () => {
     </SectionContainer>
   );
 };
-
+type CreatePortalValues = {
+  displayName: string;
+  description: string;
+  domain: string;
+  banner: File;
+  favicon: File;
+  primaryLogo: File;
+  chosenAPIs: ObjectRef.AsObject[];
+  chosenUsers: ObjectRef.AsObject[];
+  chosenGroups: ObjectRef.AsObject[];
+};
 export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
   const { data: apiDocsList, error: apiDocsError } = useSWR(
     'listApiDocs',
     apiDocApi.listApiDocs
   );
+  const { data: userList, error: userError } = useSWR(
+    'listUsers',
+    userApi.listUsers
+  );
+
+  const { data: groupList, error: groupError } = useSWR(
+    'listGroups',
+    groupApi.listGroups
+  );
+
   const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
 
-  // displayName: string,
-  //   description: string,
-  //   domainsList: Array<string>,
-  //   primaryLogo?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject, asdf
-  //   favicon?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject, asdf
-  //   banner?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject, b
-  //   customStyling?: CustomStyling.AsObject,
-  //   staticPagesList: Array<StaticPage.AsObject>,
-  //   publishApiDocs?: dev_portal_api_dev_portal_v1_common_pb.Selector.AsObject,
-  //   keyScopesList: Array < KeyScope.AsObject >,
-
-  const handleCreatePortal = async (values: {
-    displayName: string;
-    description: string;
-    name: string;
-    banner: File;
-    favicon: string;
-    primaryLogo: string;
-  }) => {
+  const handleCreatePortal = async (values: CreatePortalValues) => {
     const {
       banner,
       description,
       displayName,
-      name,
+      domain,
       favicon,
       primaryLogo
     } = values;
     let newPortal = new Portal().toObject();
-    let newPortalStatus = new PortalStatus().toObject();
-    let buff = await values.banner.arrayBuffer();
-    let uint8Arr = new Uint8Array(buff);
+    let bannerBuffer = await banner.arrayBuffer();
+    let bannerUint8Arr = new Uint8Array(bannerBuffer);
+
+    let faviconBuffer = await favicon.arrayBuffer();
+    let faviconUint8Arr = new Uint8Array(faviconBuffer);
+
+    let primaryLogoBuffer = await primaryLogo.arrayBuffer();
+    let primaryLogoUint8Arr = new Uint8Array(primaryLogoBuffer);
 
     //@ts-ignore
     await portalApi.createPortal({
@@ -294,7 +306,7 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         },
         spec: {
           // ...newPortal.spec!,
-          domainsList: ['localhost:3001'],
+          domainsList: [domain],
           keyScopesList: [],
           staticPagesList: [],
           customStyling: {
@@ -310,15 +322,15 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
           displayName,
           banner: {
             ...newPortal.spec?.banner!,
-            inlineBytes: uint8Arr
+            inlineBytes: bannerUint8Arr
           },
           favicon: {
             ...newPortal.spec?.favicon!,
-            inlineString: favicon
+            inlineBytes: faviconUint8Arr
           },
           primaryLogo: {
             ...newPortal.spec?.primaryLogo!,
-            inlineString: primaryLogo
+            inlineBytes: primaryLogoUint8Arr
           }
         },
         status: {
@@ -330,12 +342,15 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
           reason: (undefined as unknown) as string,
           state: (undefined as unknown) as any
         }
-      }
+      },
+      apiDocsList: values.chosenAPIs,
+      groupsList: values.chosenGroups,
+      usersList: values.chosenUsers
     });
     props.onClose();
   };
 
-  if (!apiDocsList) {
+  if (!apiDocsList || !userList || !groupList) {
     return <Loading center>Loading</Loading>;
   }
   return (
@@ -345,15 +360,18 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
           width: 750px;
         `}
         className='bg-white rounded-lg shadow '>
-        <Formik
+        <Formik<CreatePortalValues>
+          // validationSchema={validationSchema}
           initialValues={{
             displayName: '',
             description: '',
-            name: '',
+            domain: '',
             banner: (undefined as unknown) as File,
-            favicon: '',
-            primaryLogo: '',
-            chosenAPIs: [] as ObjectRef.AsObject[]
+            favicon: (undefined as unknown) as File,
+            primaryLogo: (undefined as unknown) as File,
+            chosenAPIs: [] as ObjectRef.AsObject[],
+            chosenUsers: [] as ObjectRef.AsObject[],
+            chosenGroups: [] as ObjectRef.AsObject[]
           }}
           onSubmit={handleCreatePortal}>
           {formik => (
@@ -373,7 +391,8 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                   <StyledTab>Imagery</StyledTab>
                   <StyledTab>Branding</StyledTab>
                   <StyledTab>APIs</StyledTab>
-                  <StyledTab>Access</StyledTab>
+                  <StyledTab>User Access</StyledTab>
+                  <StyledTab>Group Access</StyledTab>
                 </TabList>
 
                 <TabPanels className='bg-white rounded-r-lg'>
@@ -386,10 +405,12 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
@@ -401,10 +422,17 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(0)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
@@ -416,15 +444,27 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(1)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a Portal: APIs</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the APIs you'd like to make available through
+                        this portal
+                      </div>
+
                       <SoloTransfer
                         allOptionsListName='Available APIs'
                         allOptions={apiDocsList
@@ -457,23 +497,126 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(2)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                    <AccessSection />
+                    <SectionContainer>
+                      <SectionHeader>Create an API: User Access</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the users and groups to which you'd like to grant
+                        access to this portal
+                      </div>
+
+                      <SoloTransfer
+                        allOptionsListName='Available Users'
+                        allOptions={userList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(user => {
+                            return {
+                              value: user.metadata?.name!,
+                              displayValue: user.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Users'
+                        chosenOptions={formik.values.chosenUsers.map(user => {
+                          return { value: user.name + user.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue('chosenUsers', newChosenOptions);
+                        }}
+                      />
+                    </SectionContainer>
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent onClick={formik.handleSubmit}>
-                        Create Portal
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(3)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SectionContainer>
+                      <SectionHeader>Create an API: Group Access</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the users and groups to which you'd like to grant
+                        access to this portal
+                      </div>
+
+                      <SoloTransfer
+                        allOptionsListName='Available Groups'
+                        allOptions={groupList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(group => {
+                            return {
+                              value: group.metadata?.name!,
+                              displayValue: group.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Groups'
+                        chosenOptions={formik.values.chosenGroups.map(group => {
+                          return { value: group.name + group.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue(
+                            'chosenGroups',
+                            newChosenOptions
+                          );
+                        }}
+                      />
+                    </SectionContainer>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(4)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={formik.handleSubmit}>
+                          Create Portal
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                 </TabPanels>

@@ -16,12 +16,16 @@ import {
   SoloFormInput,
   SoloFormTextarea
 } from 'Components/Common/Form/SoloFormField';
-import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton
+} from 'Styles/CommonEmotions/button';
 import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
-import { userApi, apiDocApi, portalApi } from '../api';
+import { userApi, apiDocApi, portalApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 
 const StyledTab = (
   props: {
@@ -48,6 +52,10 @@ const GeneralSection = () => {
   return (
     <SectionContainer>
       <SectionHeader> Create a Group</SectionHeader>
+      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+        Create a new group of users that can be treated atomically to assign
+        permissions for APIs and Portals
+      </div>
       <div className='flex flex-col items-center w-full'>
         <div className='w-full mb-4 mr-4'>
           <SoloFormInput
@@ -70,12 +78,13 @@ const GeneralSection = () => {
   );
 };
 
-const ApiSection = () => {
-  return <div>API Section</div>;
-};
+type CreateGroupValues = {
+  name: string;
+  description: string;
+  chosenAPIs: ObjectRef.AsObject[];
+  chosenPortals: ObjectRef.AsObject[];
 
-const PortalsSection = () => {
-  return <div>Portals Section</div>;
+  chosenUsers: ObjectRef.AsObject[];
 };
 
 export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
@@ -98,6 +107,40 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+
+  const handleCreateGroup = async (values: CreateGroupValues) => {
+    const {
+      chosenAPIs,
+      chosenPortals,
+      chosenUsers,
+      name,
+      description
+    } = values;
+    let newGroup = new Group().toObject();
+    //@ts-ignore
+    await groupApi.createGroup({
+      apiDocsList: chosenAPIs,
+      portalsList: chosenPortals,
+      usersList: chosenUsers,
+      group: {
+        ...newGroup!,
+        metadata: {
+          ...newGroup.metadata!,
+          name,
+          namespace: 'gloo-system'
+        },
+        spec: {
+          description,
+          displayName: name
+        },
+        status: {
+          ...newGroup.status!
+        }
+      }
+    });
+    props.onClose();
+  };
+
   if (!userList || !apiDocsList || !portalsList) {
     return <Loading center>Loading...</Loading>;
   }
@@ -108,19 +151,16 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
           width: 750px;
         `}
         className='bg-white rounded-lg shadow '>
-        <Formik
+        <Formik<CreateGroupValues>
           initialValues={{
             name: '',
-            email: '',
-            password: '',
-            group: '',
-            options: '',
+            description: '',
             chosenAPIs: [] as ObjectRef.AsObject[],
             chosenPortals: [] as ObjectRef.AsObject[],
 
             chosenUsers: [] as ObjectRef.AsObject[]
           }}
-          onSubmit={() => {}}>
+          onSubmit={handleCreateGroup}>
           {formik => (
             <>
               <Tabs
@@ -158,6 +198,9 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a Group: Users</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the users that are included in this group
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available Users'
                         allOptions={userList
@@ -190,15 +233,26 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(0)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a Group: APIs</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the APIs you'd like to make available to this
+                        group
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available APIs'
                         allOptions={apiDocsList
@@ -231,15 +285,26 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(1)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a User: Portal</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the portals you'd like to make available to this
+                        group
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available Portals'
                         allOptions={portalsList
@@ -277,9 +342,17 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent onClick={() => setTabIndex(0)}>
-                        Create Portal
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(2)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={formik.handleSubmit}>
+                          Create Portal
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                 </TabPanels>

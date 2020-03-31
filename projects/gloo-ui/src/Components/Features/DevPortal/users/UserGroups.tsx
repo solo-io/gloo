@@ -16,6 +16,8 @@ import {
 } from '@reach/tabs';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
+import { ReactComponent as NoUser } from 'assets/no-user-icon.svg';
+
 import { TabCss, ActiveTabCss } from '../portals/PortalDetails';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { CreateUserModal } from './CreateUserModal';
@@ -134,100 +136,91 @@ export const UserGroups = () => {
                         </tr>
                       </thead>
                       <tbody className='bg-white'>
-                        {userList.length === 0 ? (
-                          <div className='w-full m-auto'>
-                            <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
-                              <div className='mr-6'></div>
-                              <div className='flex flex-col h-full'>
-                                <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
-                                  There are no matching members in this
-                                  organization.
-                                </p>
-                                <p className='text-base font-normal text-gray-700 '>
-                                  Not finding what you're looking for? If you
-                                  have access, try switching organizations via
-                                  the top left dropdown.
-                                </p>
-                                <p className='py-2 text-base font-normal text-gray-700 '>
-                                  Please contact your organizations admin for
-                                  more details.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          userList
-                            .sort((a, b) =>
-                              a.metadata?.name === b.metadata?.name
-                                ? 0
-                                : a.metadata!.name > b.metadata!.name
-                                ? 1
-                                : -1
-                            )
-                            .map(user => {
-                              return (
-                                <tr key={user.metadata?.uid}>
-                                  <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                    <div className='flex items-center'>
-                                      <div className='flex-shrink-0 w-8 h-8 text-blue-400'>
-                                        <div className='flex items-center justify-center w-8 h-8 text-white bg-blue-600 rounded-full'>
-                                          <UserIcon className='w-6 h-6 fill-current' />
-                                        </div>
-                                      </div>
-                                      <div className='ml-4'>
-                                        <div className='text-sm font-medium leading-5'>
-                                          {user.spec?.username}
-                                        </div>
+                        {userList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(user => {
+                            return (
+                              <tr key={user.metadata?.uid}>
+                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                  <div className='flex items-center'>
+                                    <div className='flex-shrink-0 w-8 h-8 text-blue-400'>
+                                      <div className='flex items-center justify-center w-8 h-8 text-white bg-blue-600 rounded-full'>
+                                        <UserIcon className='w-6 h-6 fill-current' />
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                    <div className='text-sm leading-5 text-gray-700'>
-                                      <span className='flex items-center '>
-                                        {user.spec?.email}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                    <div className='text-sm leading-5 text-gray-700'>
-                                      <span className='flex items-center '>
-                                        {user.spec?.email}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                    <div className='text-sm leading-5 text-gray-700'>
-                                      <span className='flex items-center '>
-                                        View (4)
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                    <div className='text-sm leading-5 text-gray-700'>
-                                      <span className='flex items-center '>
-                                        View (2)
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
-                                    <span className='flex items-center'>
-                                      <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                        <EditIcon className='w-2 h-3 fill-current' />
+                                    <div className='ml-4'>
+                                      <div className='text-sm font-medium leading-5'>
+                                        {user.spec?.username}
                                       </div>
-
-                                      <div
-                                        className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                        onClick={() => {}}>
-                                        x
-                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                  <div className='text-sm leading-5 text-gray-700'>
+                                    <span className='flex items-center '>
+                                      {user.spec?.email}
                                     </span>
-                                  </td>
-                                </tr>
-                              );
-                            })
-                        )}
+                                  </div>
+                                </td>
+                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                  <div className='text-sm leading-5 text-gray-700'>
+                                    <span className='flex items-center '>
+                                      {user.spec?.email}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                  <div className='text-sm leading-5 text-gray-700'>
+                                    <span className='flex items-center '>
+                                      View (4)
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                  <div className='text-sm leading-5 text-gray-700'>
+                                    <span className='flex items-center '>
+                                      View (2)
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
+                                  <span className='flex items-center'>
+                                    <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
+                                      <EditIcon className='w-2 h-3 fill-current' />
+                                    </div>
+
+                                    <div
+                                      className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
+                                      onClick={() => {}}>
+                                      x
+                                    </div>
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
+                    {userList.length === 0 && (
+                      <div className='w-full m-auto'>
+                        <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
+                          <div className='mr-6'>
+                            <NoUser />
+                          </div>
+                          <div className='flex flex-col h-full'>
+                            <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
+                              There are no Users to display!{' '}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -271,123 +264,91 @@ export const UserGroups = () => {
                         </tr>
                       </thead>
                       <tbody className='bg-white'>
-                        {groupList.length === 0 ? (
-                          <div className='w-full m-auto'>
-                            <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
-                              <div className='mr-6'></div>
-                              <div className='flex flex-col h-full'>
-                                <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
-                                  There are no matching members in this
-                                  organization.
-                                </p>
-                                <p className='text-base font-normal text-gray-700 '>
-                                  Not finding what you're looking for? If you
-                                  have access, try switching organizations via
-                                  the top left dropdown.
-                                </p>
-                                <p className='py-2 text-base font-normal text-gray-700 '>
-                                  Please contact your organizations admin for
-                                  more details.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          groupList
-                            .sort((a, b) =>
-                              a.metadata?.name === b.metadata?.name
-                                ? 0
-                                : a.metadata!.name > b.metadata!.name
-                                ? 1
-                                : -1
-                            )
-                            .map(group => (
-                              <tr key={group.metadata?.uid}>
-                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='flex items-center'>
-                                    <div className='flex-shrink-0 w-8 h-8 text-blue-400'>
-                                      <div className='flex items-center justify-center w-8 h-8 text-white bg-blue-600 rounded-full'>
-                                        <UserIcon className='w-6 h-6 fill-current' />
-                                      </div>
-                                    </div>
-                                    <div className='ml-4'>
-                                      <div className='text-sm font-medium leading-5'>
-                                        {group.spec?.displayName}
-                                      </div>
+                        {groupList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(group => (
+                            <tr key={group.metadata?.uid}>
+                              <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                <div className='flex items-center'>
+                                  <div className='flex-shrink-0 w-8 h-8 text-blue-400'>
+                                    <div className='flex items-center justify-center w-8 h-8 text-white bg-blue-600 rounded-full'>
+                                      <UserIcon className='w-6 h-6 fill-current' />
                                     </div>
                                   </div>
-                                </td>
-                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
-                                    <span className='flex items-center '>
-                                      {group.spec?.description}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
-                                    <span className='flex items-center '>
-                                      {group.status?.usersList}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
-                                    <span className='flex items-center '>
-                                      api access
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
-                                    <span className='flex items-center '>
-                                      portals access
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
-                                  <span className='flex items-center'>
-                                    <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                      <EditIcon className='w-2 h-3 fill-current' />
+                                  <div className='ml-4'>
+                                    <div className='text-sm font-medium leading-5'>
+                                      {group.spec?.displayName}
                                     </div>
-
-                                    <div
-                                      className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                      onClick={() => {}}>
-                                      x
-                                    </div>
-                                    {/* )} */}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                <div className='text-sm leading-5 text-gray-700'>
+                                  <span className='flex items-center '>
+                                    {group.spec?.description}
                                   </span>
-                                </td>
-                              </tr>
-                            ))
-                        )}
+                                </div>
+                              </td>
+                              <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                <div className='text-sm leading-5 text-gray-700'>
+                                  <span className='flex items-center '>
+                                    {group.status?.usersList.map(
+                                      user => user.name
+                                    )}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                <div className='text-sm leading-5 text-gray-700'>
+                                  <span className='flex items-center '>
+                                    api access
+                                  </span>
+                                </div>
+                              </td>
+                              <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
+                                <div className='text-sm leading-5 text-gray-700'>
+                                  <span className='flex items-center '>
+                                    portals access
+                                  </span>
+                                </div>
+                              </td>
+                              <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
+                                <span className='flex items-center'>
+                                  <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
+                                    <EditIcon className='w-2 h-3 fill-current' />
+                                  </div>
+
+                                  <div
+                                    className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
+                                    onClick={() => {}}>
+                                    x
+                                  </div>
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
-                    {/* empty state */}
-                    {/* <div className='w-full m-auto'>
-                          <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
-                            <div className='mr-6'>
-                              <NoRepositories />
-                            </div>
-                            <div className='flex flex-col h-full'>
-                              <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
-                                There are no matching members in this
-                                organization.
-                              </p>
-                              <p className='text-base font-normal text-gray-700 '>
-                                Not finding what you're looking for? If you have
-                                access, try switching organizations via the top
-                                left dropdown.
-                              </p>
-                              <p className='py-2 text-base font-normal text-gray-700 '>
-                                Please contact your organizations admin for more
-                                details.
-                              </p>
-                            </div>
+                    {groupList.length === 0 && (
+                      <div className='w-full m-auto'>
+                        <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
+                          <div className='mr-6'>
+                            <NoUser />
                           </div>
-                        </div> */}
-                    {/* empty state */}
+                          <div className='flex flex-col h-full'>
+                            <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
+                              There are no Groups to display!{' '}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

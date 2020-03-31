@@ -132,7 +132,8 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                     </div>
 
                     <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
-                      Lorem Ipsum
+                      Create a new rule for access keys to APIs for a particular
+                      portal
                     </div>
 
                     <div className='grid grid-cols-2 gap-4 mt-4'>
@@ -196,7 +197,7 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                     </div>
 
                     <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
-                      Lorem Ipsum
+                      Choose selected APIs to which to apply this key scope
                     </div>
 
                     <div className='mt-4'>

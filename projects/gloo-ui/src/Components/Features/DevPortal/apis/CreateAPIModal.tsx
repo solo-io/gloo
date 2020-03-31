@@ -8,7 +8,7 @@ import {
   TabPanelProps
 } from '@reach/tabs';
 import { css } from '@emotion/core';
-import { Formik } from 'formik';
+import { Formik, useFormikContext } from 'formik';
 import {
   SoloFormInput,
   SoloFormTextarea
@@ -20,19 +20,24 @@ import styled from '@emotion/styled';
 import tw from 'tailwind.macro';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
-import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton
+} from 'Styles/CommonEmotions/button';
 import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
-import { portalApi } from '../api';
+import { portalApi, userApi, groupApi, apiDocApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { Upload, Button } from 'antd';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 
 export const SectionContainer = styled.div`
   ${tw`w-full h-full p-6 pb-0`}
 `;
 
 export const SectionHeader = styled.div`
-  ${tw`mb-6 text-lg font-medium text-gray-800`}
+  ${tw`mb-4 text-lg font-medium text-gray-800`}
 `;
 
 export const SectionSubHeader = styled.div`
@@ -64,15 +69,33 @@ const GeneralSection = () => {
   return (
     <SectionContainer>
       <SectionHeader>Create an API</SectionHeader>
+      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+        Create a new API to expose as business capabilities
+      </div>
       <div className='grid grid-cols-2 '>
         <div className='mr-4'>
-          <SoloFormInput name='name' title='Name' />
+          <SoloFormInput
+            name='name'
+            title='Name'
+            placeholder='API title goes here'
+            hideError
+          />
         </div>
         <div>
-          <SoloFormInput name='displayName' title='Display Name' />
+          <SoloFormInput
+            name='displayName'
+            title='Display Name'
+            placeholder='Display name goes here'
+            hideError
+          />
         </div>
-        <div className='col-span-2 '>
-          <SoloFormTextarea name='description' title='Description' />
+        <div className='col-span-2 mt-2'>
+          <SoloFormTextarea
+            name='description'
+            title='Description'
+            placeholder='API description goes here'
+            hideError
+          />
         </div>
       </div>
     </SectionContainer>
@@ -80,15 +103,21 @@ const GeneralSection = () => {
 };
 
 const ImagerySection = () => {
+  const formik = useFormikContext();
+
   const [images, setImages] = React.useState<any[]>([]);
 
-  const onDrop = (image: any) => {
-    console.log('image', image);
-    setImages([...images, image]);
+  const onDrop = async (files: File[], pictures: string[]) => {
+    formik.setFieldValue('image', files[0]);
+
+    setImages([...images, ...pictures]);
   };
   return (
     <SectionContainer>
       <SectionHeader>Create an API: Add Imagery</SectionHeader>
+      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+        Add an image associated with your API
+      </div>
       <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
         <NoImageIcon />
         <ImageUploader
@@ -98,6 +127,9 @@ const ImagerySection = () => {
               border-radius: 8px;
               box-shadow: none;
               padding: 0px;
+            }
+            .uploadPictureContainer {
+              margin: 0;
             }
           `}
           withPreview
@@ -118,69 +150,55 @@ const ImagerySection = () => {
   );
 };
 
-const PortalsSection = () => {
-  return (
-    <SectionContainer>
-      <SectionHeader>Portals</SectionHeader>
-      <div className='grid grid-cols-2 col-gap-6'>
-        <div>
-          <div className='mb-1 font-medium text-gray-800'>
-            Available Portals
-          </div>
-          <div className='w-full h-40 p-2 border border-gray-400 rounded-lg'>
-            <div className='flex items-center justify-between'>
-              Production Portal
-              <span className='ml-1 text-green-400 cursor-pointer hover:text-green-300'>
-                <GreenPlus className='w-4 h-4 fill-current' />
-              </span>
-            </div>
-            <div>Production Portal</div>
-          </div>
-        </div>
-        <div>
-          <div className='mb-1 font-medium text-gray-800'>Selected Portals</div>
-          <div className='w-full h-40 border border-gray-400 rounded-lg'>
-            <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-lg'>
-              <NoSelectedList className='w-12 h-12' />
-              <div className='mt-2 text-gray-500'>Nothing Selected</div>
-            </div>
-            {/* <div className='flex items-center'>
-              Production Portal
-              <span className='ml-1 text-green-400 hover:text-green-300'>
-                <GreenPlus className='w-4 h-4 fill-current' />
-              </span>
-            </div>
-            <div>Production Portal</div> */}
-          </div>
-        </div>
-      </div>
-    </SectionContainer>
-  );
-};
-
-const UserSection = () => {
-  return (
-    <SectionContainer>
-      <SectionHeader>Users and Group Access</SectionHeader>
-    </SectionContainer>
-  );
-};
-
 const SpecSection = () => {
+  const formik = useFormikContext();
+
   return (
     <SectionContainer>
-      <SectionHeader>Spec</SectionHeader>
+      <SectionHeader>Create an API: Specs</SectionHeader>
       <div className='p-2 bg-gray-100 '>
-        Upload or paste your swagger specs code below. Your API documentation
-        will be automatically generated from the specs. You will be able to
-        preview and modify your API docs from the API details page.
+        Create an API by specification document (Open API Spec, Proto, etc)
       </div>
-      <div className='mb-1 font-medium text-gray-800'>Upload Swagger File</div>
-      <div>file input</div>
-      <div className='mb-1 font-medium text-gray-800'>Paste Swagger url</div>
-      <div>file input</div>
+      <div className='mt-2 mb-1 font-medium text-gray-800'>
+        Paste Swagger url
+      </div>
+      <div>
+        <SoloFormInput name='swaggerUrl' hideError />
+      </div>
+      <div className='mt-2 mb-1 font-medium text-gray-800'>
+        Upload Swagger File
+      </div>
+      <div>
+        <Upload
+          name='uploadedSwagger'
+          onChange={info => {
+            if (info.file.status === 'done') {
+              formik.setFieldValue('uploadedSwagger', info.file.originFileObj);
+            }
+          }}>
+          <Button
+            css={css`
+              width: 100%;
+              border-radius: 9px;
+            `}>
+            Upload a spec
+          </Button>
+        </Upload>
+      </div>
     </SectionContainer>
   );
+};
+
+type CreateApiDocValues = {
+  name: string;
+  displayName: string;
+  description: string;
+  swaggerUrl: string;
+  uploadedSwagger: File;
+  image: File;
+  chosenPortals: ObjectRef.AsObject[];
+  chosenUsers: ObjectRef.AsObject[];
+  chosenGroups: ObjectRef.AsObject[];
 };
 
 export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
@@ -188,14 +206,80 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
     'listPortals',
     portalApi.listPortals
   );
+  const { data: userList, error: userError } = useSWR(
+    'listUsers',
+    userApi.listUsers
+  );
+
+  const { data: groupList, error: groupError } = useSWR(
+    'listGroups',
+    groupApi.listGroups
+  );
   const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  if (!portalsList) {
+
+  const handleCreateApiDoc = async (values: CreateApiDocValues) => {
+    const {
+      name,
+      description,
+      displayName,
+      image,
+      chosenPortals,
+      chosenGroups,
+      chosenUsers,
+      swaggerUrl,
+      uploadedSwagger
+    } = values;
+
+    let newApiDoc = new ApiDoc().toObject();
+
+    let imageBuffer = await image.arrayBuffer();
+    let imageUint8Arr = new Uint8Array(imageBuffer);
+
+    let swaggerBuffer = await uploadedSwagger.arrayBuffer();
+    let swaggerUint8Array = new Uint8Array(swaggerBuffer);
+
+    //@ts-ignore
+    await apiDocApi.createApiDoc({
+      apidoc: {
+        ...newApiDoc,
+        metadata: {
+          ...newApiDoc.metadata!,
+          name: name || displayName,
+          namespace: 'gloo-system'
+        },
+        spec: {
+          dataSource: {
+            ...newApiDoc.spec?.dataSource!
+            // fetchUrl: swaggerUrl
+            // inlineBytes: swaggerUint8Array
+          },
+          image: {
+            ...newApiDoc.spec?.image!,
+            inlineBytes: imageUint8Arr
+          }
+        },
+        status: {
+          ...newApiDoc.status!,
+          description,
+          displayName
+        }
+      },
+
+      portalsList: chosenPortals,
+      groupsList: chosenGroups,
+      usersList: chosenUsers
+    });
+    props.onClose();
+  };
+
+  if (!portalsList || !userList || !groupList) {
     return <Loading center>Loading...</Loading>;
   }
+
   return (
     <>
       <div
@@ -203,15 +287,19 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
           width: 750px;
         `}
         className='bg-white rounded-lg shadow '>
-        <Formik
+        <Formik<CreateApiDocValues>
           initialValues={{
             displayName: '',
-            version: '',
             description: '',
+            swaggerUrl: '',
+            uploadedSwagger: (undefined as unknown) as File,
+            image: (undefined as unknown) as File,
             name: '',
-            chosenPortals: [] as ObjectRef.AsObject[]
+            chosenPortals: [] as ObjectRef.AsObject[],
+            chosenUsers: [] as ObjectRef.AsObject[],
+            chosenGroups: [] as ObjectRef.AsObject[]
           }}
-          onSubmit={() => {}}>
+          onSubmit={handleCreateApiDoc}>
           {formik => (
             <>
               <Tabs
@@ -227,7 +315,8 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                   <StyledTab>General</StyledTab>
                   <StyledTab>Imagery</StyledTab>
                   <StyledTab>Portals</StyledTab>
-                  <StyledTab>Access</StyledTab>
+                  <StyledTab>User Access</StyledTab>
+                  <StyledTab>Group Access</StyledTab>
                   <StyledTab>Spec</StyledTab>
                 </TabList>
 
@@ -254,15 +343,26 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(0)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create an API: Portal</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the portals to which you'd like to publish this
+                        API
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available Portals'
                         allOptions={portalsList
@@ -300,24 +400,126 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(1)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                    <UserSection />
+                    <SectionContainer>
+                      <SectionHeader>Create an API: User Access</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the users and groups to which you'd like to grant
+                        access to this API
+                      </div>
+
+                      <SoloTransfer
+                        allOptionsListName='Available Users'
+                        allOptions={userList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(user => {
+                            return {
+                              value: user.metadata?.name!,
+                              displayValue: user.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Users'
+                        chosenOptions={formik.values.chosenUsers.map(user => {
+                          return { value: user.name + user.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue('chosenUsers', newChosenOptions);
+                        }}
+                      />
+                    </SectionContainer>
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(2)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SectionContainer>
+                      <SectionHeader>Create an API: Group Access</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the users and groups to which you'd like to grant
+                        access to this API
+                      </div>
+
+                      <SoloTransfer
+                        allOptionsListName='Available Groups'
+                        allOptions={groupList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(group => {
+                            return {
+                              value: group.metadata?.name!,
+                              displayValue: group.metadata?.name!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Groups'
+                        chosenOptions={formik.values.chosenGroups.map(user => {
+                          return { value: user.name + user.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue(
+                            'chosenGroups',
+                            newChosenOptions
+                          );
+                        }}
+                      />
+                    </SectionContainer>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(3)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
@@ -328,9 +530,17 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent onClick={() => setTabIndex(0)}>
-                        Create API
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(4)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={formik.handleSubmit}>
+                          Create API
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                 </TabPanels>

@@ -7,7 +7,7 @@ import {
   TabPanel,
   TabPanelProps
 } from '@reach/tabs';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as VewIcon } from 'assets/view-icon-blue.svg';
 import { css } from '@emotion/core';
 import { Formik } from 'formik';
 import {
@@ -19,12 +19,16 @@ import {
   SoloFormInput,
   SoloFormCheckbox
 } from 'Components/Common/Form/SoloFormField';
-import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton
+} from 'Styles/CommonEmotions/button';
 import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
-import { apiDocApi, portalApi } from '../api';
+import { apiDocApi, portalApi, userApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 
 const StyledTab = (
   props: {
@@ -48,14 +52,17 @@ const StyledTab = (
 };
 
 const GeneralSection = () => {
+  const [showPassword, setShowPassword] = React.useState(true);
   return (
     <SectionContainer>
       <SectionHeader> Create User</SectionHeader>
       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
-        Add a user and give access to specific APIs in your developer portal{' '}
+        Create a new API to expose as business capabilities
       </div>
-      <div className='grid grid-flow-col grid-cols-2 grid-rows-3 gap-2'>
-        <div className='mr-4'>
+      <div className='grid grid-flow-col grid-cols-5 grid-rows-3 gap-2'>
+        {/* <div className='grid grid-flow-col grid-cols-2 grid-rows-3 gap-2'> */}
+
+        <div className='col-span-3 mr-4'>
           <SoloFormInput
             name='name'
             title='Name'
@@ -63,7 +70,7 @@ const GeneralSection = () => {
             hideError
           />
         </div>
-        <div className='mr-4'>
+        <div className='col-span-3 mr-4'>
           <SoloFormInput
             name='email'
             title='Email'
@@ -71,27 +78,32 @@ const GeneralSection = () => {
             hideError
           />
         </div>
-        <div className='mr-4'>
+        <div className='relative col-span-3 mr-4'>
+          <span
+            className='absolute cursor-pointer bottom-2 right-4'
+            onClick={() => setShowPassword(!showPassword)}>
+            <VewIcon />
+          </span>
           <SoloFormInput
+            type={showPassword ? 'password' : 'text'}
             name='password'
             title='Password'
             placeholder='type password here'
             hideError
           />
         </div>
-        <div className='col-span-2'>
-          <SectionSubHeader>Group</SectionSubHeader>
-
-          <SoloFormCheckbox name='na' hideError />
-          <SoloFormCheckbox name='na' hideError />
-        </div>
       </div>
     </SectionContainer>
   );
 };
 
-const PortalsSection = () => {
-  return <div>Portals Section</div>;
+type CreateUserValues = {
+  name: string;
+  email: string;
+  password: string;
+  chosenAPIs: ObjectRef.AsObject[];
+  chosenPortals: ObjectRef.AsObject[];
+  chosenGroups: ObjectRef.AsObject[];
 };
 
 export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
@@ -107,6 +119,39 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+  const handleCreateUser = async (values: CreateUserValues) => {
+    const {
+      chosenAPIs,
+      name,
+      chosenPortals,
+      email,
+      chosenGroups,
+      password
+    } = values;
+    let newUser = new User().toObject();
+
+    await userApi.createUser({
+      user: {
+        ...newUser!,
+        metadata: {
+          ...newUser.metadata!,
+          name,
+          namespace: 'gloo-system'
+        },
+        spec: {
+          email,
+          username: name
+        }
+      },
+      password,
+      portalsList: chosenPortals,
+      groupsList: chosenGroups,
+      apiDocsList: chosenAPIs,
+      userOnly: false
+    });
+    props.onClose();
+  };
+
   if (!apiDocsList || !portalsList) {
     return <Loading center>Loading...</Loading>;
   }
@@ -117,17 +162,16 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
           width: 750px;
         `}
         className='bg-white rounded-lg shadow '>
-        <Formik
+        <Formik<CreateUserValues>
           initialValues={{
             name: '',
             email: '',
             password: '',
-            group: '',
-            options: '',
+            chosenGroups: [] as ObjectRef.AsObject[],
             chosenAPIs: [] as ObjectRef.AsObject[],
             chosenPortals: [] as ObjectRef.AsObject[]
           }}
-          onSubmit={() => {}}>
+          onSubmit={handleCreateUser}>
           {formik => (
             <>
               <Tabs
@@ -163,6 +207,10 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a User: APIs</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the APIs you'd like to make available to this
+                        user
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available APIs'
                         allOptions={apiDocsList
@@ -195,15 +243,26 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(0)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a User: Portal</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select the portals you'd like to make available to this
+                        user
+                      </div>
                       <SoloTransfer
                         allOptionsListName='Available Portals'
                         allOptions={portalsList
@@ -241,9 +300,17 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={props.onClose}>
                         cancel
                       </button>
-                      <SoloButtonStyledComponent onClick={() => setTabIndex(0)}>
-                        Create User
-                      </SoloButtonStyledComponent>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(1)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={formik.handleSubmit}>
+                          Create User
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                 </TabPanels>

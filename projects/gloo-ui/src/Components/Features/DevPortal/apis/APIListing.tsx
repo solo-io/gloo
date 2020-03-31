@@ -28,6 +28,7 @@ export const APIListing = () => {
   if (!apiDocsList) {
     return <div>Loading...</div>;
   }
+  console.log('apiDocsList', apiDocsList);
   return (
     <>
       <div className='container relative mx-auto '>

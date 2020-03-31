@@ -108,6 +108,11 @@ export const PortalDetails = () => {
   if (!portal) {
     return <Loading center>Loading...</Loading>;
   }
+  const domainsList = portal.spec?.domainsList.map(domain => {
+    return {
+      value: domain
+    };
+  });
   console.log('portal', portal);
   return (
     <ErrorBoundary
@@ -129,7 +134,8 @@ export const PortalDetails = () => {
                 portal.metadata?.creationTimestamp?.seconds!,
                 'en_US'
               )
-            }
+            },
+            ...domainsList!
           ]}
           healthMessage={'Portal Status'}
           onClose={() => history.push(`/dev-portal/`)}>
@@ -204,9 +210,11 @@ export const PortalDetails = () => {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            <SoloNegativeButton onClick={attemptDeletePortal}>
-              Delete Portal
-            </SoloNegativeButton>{' '}
+            <div className='flex justify-end items-bottom'>
+              <SoloNegativeButton onClick={attemptDeletePortal}>
+                Delete Portal
+              </SoloNegativeButton>
+            </div>
             <ConfirmationModal
               visible={attemptingDelete}
               confirmationTopic='delete this portal'
