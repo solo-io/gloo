@@ -1201,6 +1201,7 @@ proto.devportal.solo.io.StaticPage.toObject = function(includeInstance, msg) {
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
     path: jspb.Message.getFieldWithDefault(msg, 3, ""),
     navigationLinkName: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    displayOnHomepage: jspb.Message.getFieldWithDefault(msg, 6, false),
     content: (f = msg.getContent()) && dev$portal_api_dev$portal_v1_common_pb.DataSource.toObject(includeInstance, f)
   };
 
@@ -1253,6 +1254,10 @@ proto.devportal.solo.io.StaticPage.deserializeBinaryFromReader = function(msg, r
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setNavigationLinkName(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisplayOnHomepage(value);
       break;
     case 5:
       var value = new dev$portal_api_dev$portal_v1_common_pb.DataSource;
@@ -1313,6 +1318,13 @@ proto.devportal.solo.io.StaticPage.serializeBinaryToWriter = function(message, w
   if (f.length > 0) {
     writer.writeString(
       4,
+      f
+    );
+  }
+  f = message.getDisplayOnHomepage();
+  if (f) {
+    writer.writeBool(
+      6,
       f
     );
   }
@@ -1384,6 +1396,23 @@ proto.devportal.solo.io.StaticPage.prototype.getNavigationLinkName = function() 
 /** @param {string} value */
 proto.devportal.solo.io.StaticPage.prototype.setNavigationLinkName = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional bool display_on_homepage = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.devportal.solo.io.StaticPage.prototype.getDisplayOnHomepage = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.devportal.solo.io.StaticPage.prototype.setDisplayOnHomepage = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

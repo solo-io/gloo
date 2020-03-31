@@ -33,6 +33,7 @@ interface InitialPageEditingValuesType {
   navigationLinkName: string;
   useTopNav: boolean;
   useFooterNav: boolean;
+  displayOnHomepage: boolean;
   //published: boolean;
 }
 
@@ -86,7 +87,8 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
     description: '',
     navigationLinkName: '',
     useTopNav: true,
-    useFooterNav: true
+    useFooterNav: true,
+    displayOnHomepage: false,
   };
 
   const publishEdits = async (values: InitialPageEditingValuesType) => {
@@ -98,6 +100,7 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
           path: values.path,
           description: values.description,
           navigationLinkName: values.navigationLinkName,
+          displayOnHomepage: values.displayOnHomepage,
           content: {
             inlineString: markdownString!,
             inlineBytes: '',

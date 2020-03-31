@@ -1,13 +1,17 @@
 package devportal
 
 import (
+	admingrpc "github.com/solo-io/dev-portal/pkg/admin/grpc"
 	"github.com/solo-io/dev-portal/pkg/api/grpc/admin"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/logging"
 	"google.golang.org/grpc"
 )
 
 type Registrar interface {
 	// Registers the dev portal services to the given gRPC server.
 	RegisterTo(server *grpc.Server)
+	// Returns a function to decide whether RPC payloads should included in  debug logs
+	GetDebugLoggingDecider() logging.RequestResponseDebugDecider
 }
 
 func NewRegistrar(
@@ -42,6 +46,10 @@ func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
 	admin.RegisterApiKeyApiServer(server, r.apiKeyService)
 }
 
+func (r *devPortalRegistrar) GetDebugLoggingDecider() logging.RequestResponseDebugDecider {
+	return admingrpc.DoNotLogSensitiveInfo()
+}
+
 // This registrar is used when the portal is not enabled.
 type noOpRegistrar struct{}
 
@@ -50,3 +58,9 @@ func NewNoOpRegistrar() Registrar {
 }
 
 func (*noOpRegistrar) RegisterTo(_ *grpc.Server) {}
+
+func (r *noOpRegistrar) GetDebugLoggingDecider() logging.RequestResponseDebugDecider {
+	return func(info *grpc.UnaryServerInfo) bool {
+		return true
+	}
+}

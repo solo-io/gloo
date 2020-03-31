@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/logging"
+
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/codes"
 
@@ -46,34 +48,37 @@ func NewGlooGrpcService(
 	// Make sure that log statements internal to gRPC library are logged using the zapLogger as well.
 	grpc_zap.ReplaceGrpcLogger(logger)
 
-	server := &GlooGrpcService{
+	glooServer := &GlooGrpcService{
 		server: grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
+				// Logs generic info about responses (e.g. errors, code, etc)
 				grpc_zap.UnaryServerInterceptor(logger, logOkAtDebugLevel()),
+				// Logs request/response payloads at the debug level
+				logging.RequestResponseDebugInterceptor(logger, registrar.GetDebugLoggingDecider()),
 			),
 		),
 		listener: listener,
 	}
 
-	v1.RegisterUpstreamApiServer(server.server, upstreamService)
-	v1.RegisterUpstreamGroupApiServer(server.server, upstreamGroupService)
-	v1.RegisterArtifactApiServer(server.server, artifactService)
-	v1.RegisterConfigApiServer(server.server, configService)
-	v1.RegisterSecretApiServer(server.server, secretService)
-	v1.RegisterVirtualServiceApiServer(server.server, virtualService)
-	v1.RegisterRouteTableApiServer(server.server, routeTable)
-	v1.RegisterGatewayApiServer(server.server, gatewayService)
-	v1.RegisterProxyApiServer(server.server, proxyService)
-	v1.RegisterEnvoyApiServer(server.server, envoyService)
+	v1.RegisterUpstreamApiServer(glooServer.server, upstreamService)
+	v1.RegisterUpstreamGroupApiServer(glooServer.server, upstreamGroupService)
+	v1.RegisterArtifactApiServer(glooServer.server, artifactService)
+	v1.RegisterConfigApiServer(glooServer.server, configService)
+	v1.RegisterSecretApiServer(glooServer.server, secretService)
+	v1.RegisterVirtualServiceApiServer(glooServer.server, virtualService)
+	v1.RegisterRouteTableApiServer(glooServer.server, routeTable)
+	v1.RegisterGatewayApiServer(glooServer.server, gatewayService)
+	v1.RegisterProxyApiServer(glooServer.server, proxyService)
+	v1.RegisterEnvoyApiServer(glooServer.server, envoyService)
 
 	// Register Dev Portal services
-	registrar.RegisterTo(server.server)
+	registrar.RegisterTo(glooServer.server)
 
 	// just responsible for kicking off the settings watch loop that rebuilds all the clients
 	// (the client updater has to be passed somewhere, otherwise wire complains about an unused provider)
 	clientUpdater.StartWatch(ctx)
 
-	return server
+	return glooServer
 }
 
 func (s *GlooGrpcService) Run(ctx context.Context) error {

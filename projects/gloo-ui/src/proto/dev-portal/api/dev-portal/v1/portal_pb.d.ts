@@ -177,6 +177,9 @@ export class StaticPage extends jspb.Message {
   getNavigationLinkName(): string;
   setNavigationLinkName(value: string): void;
 
+  getDisplayOnHomepage(): boolean;
+  setDisplayOnHomepage(value: boolean): void;
+
   hasContent(): boolean;
   clearContent(): void;
   getContent(): dev_portal_api_dev_portal_v1_common_pb.DataSource | undefined;
@@ -198,6 +201,7 @@ export namespace StaticPage {
     description: string,
     path: string,
     navigationLinkName: string,
+    displayOnHomepage: boolean,
     content?: dev_portal_api_dev_portal_v1_common_pb.DataSource.AsObject,
   }
 }

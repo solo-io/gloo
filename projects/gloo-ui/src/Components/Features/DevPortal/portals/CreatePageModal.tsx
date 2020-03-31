@@ -19,6 +19,7 @@ interface InitialPageCreationValuesType {
   linkName: string;
   useTopNav: boolean;
   useFooterNav: boolean;
+  displayOnHomepage: boolean;
 }
 
 const validationSchema = yup.object().shape({
@@ -54,7 +55,8 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
     description: '',
     linkName: '',
     useTopNav: true,
-    useFooterNav: true
+    useFooterNav: true,
+    displayOnHomepage: false
   };
 
   const attemptCreate = async (values: InitialPageCreationValuesType) => {
@@ -65,7 +67,8 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
           name: values.name,
           path: values.url,
           description: values.description,
-          navigationLinkName: values.linkName
+          navigationLinkName: values.linkName,
+          displayOnHomepage: values.displayOnHomepage
         }
       )
       .then(portal => {
