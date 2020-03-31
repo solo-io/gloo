@@ -363,6 +363,16 @@ export const UpstreamsListing = () => {
     }
   }, []);
 
+  let cardMatch = useRouteMatch({
+    path: `${match.path}`,
+    exact: true
+  });
+
+  let tableMatch = useRouteMatch({
+    path: `${match.path}table`,
+    exact: true
+  });
+
   if (!upstreamsList || !upstreamGroupsList) {
     return <div>Loading...</div>;
   }
@@ -589,16 +599,6 @@ export const UpstreamsListing = () => {
         : params.get('status') || ''
     });
   }
-
-  let cardMatch = useRouteMatch({
-    path: `${match.path}`,
-    exact: true
-  });
-
-  let tableMatch = useRouteMatch({
-    path: `${match.path}table`,
-    exact: true
-  });
 
   return (
     <ErrorBoundary

@@ -232,13 +232,6 @@ const BrandingSection = () => {
   );
 };
 
-const AccessSection = () => {
-  return (
-    <SectionContainer>
-      <SectionHeader>Create a Portal: Access</SectionHeader>
-    </SectionContainer>
-  );
-};
 type CreatePortalValues = {
   displayName: string;
   description: string;
@@ -477,13 +470,13 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(apiDoc => {
                             return {
-                              value: apiDoc.metadata?.name!,
-                              displayValue: apiDoc.metadata?.name!
+                              name: apiDoc.metadata?.name!,
+                              namespace: apiDoc.metadata?.name!
                             };
                           })}
                         chosenOptionsListName='Selected APIs'
                         chosenOptions={formik.values.chosenAPIs.map(api => {
-                          return { value: api.name + api.namespace };
+                          return { name: api.name, namespace: api.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
@@ -530,13 +523,13 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(user => {
                             return {
-                              value: user.metadata?.name!,
-                              displayValue: user.metadata?.name!
+                              name: user.metadata?.name!,
+                              namespace: user.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Users'
                         chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { value: user.name + user.namespace };
+                          return { name: user.name, namespace: user.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
@@ -583,13 +576,16 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(group => {
                             return {
-                              value: group.metadata?.name!,
-                              displayValue: group.metadata?.name!
+                              name: group.metadata?.name!,
+                              namespace: group.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Groups'
                         chosenOptions={formik.values.chosenGroups.map(group => {
-                          return { value: group.name + group.namespace };
+                          return {
+                            name: group.name,
+                            namespace: group.namespace
+                          };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);

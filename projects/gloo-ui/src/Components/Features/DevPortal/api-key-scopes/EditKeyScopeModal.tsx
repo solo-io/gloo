@@ -206,13 +206,13 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                           allOptionsListName='Available APIs'
                           allOptions={apiDocsList.map(apiDoc => {
                             return {
-                              value: apiDoc.metadata?.name!,
-                              displayValue: apiDoc.metadata?.name!
+                              name: apiDoc.metadata?.name!,
+                              namespace: apiDoc.metadata?.namespace!
                             };
                           })}
                           chosenOptionsListName='Selected APIs'
                           chosenOptions={values.chosenAPIs.map(api => {
-                            return { value: api.name + api.namespace };
+                            return { name: api.name, namespace: api.namespace };
                           })}
                           onChange={newChosenOptions => {
                             console.log('newChosenOptions', newChosenOptions);

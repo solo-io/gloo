@@ -375,14 +375,17 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(portal => {
                             return {
-                              value: portal.metadata?.name!,
-                              displayValue: portal.metadata?.name!
+                              name: portal.metadata?.name!,
+                              namespace: portal.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Portal'
                         chosenOptions={formik.values.chosenPortals.map(
                           portal => {
-                            return { value: portal.name + portal.namespace };
+                            return {
+                              name: portal.name,
+                              namespace: portal.namespace
+                            };
                           }
                         )}
                         onChange={newChosenOptions => {
@@ -433,13 +436,13 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(user => {
                             return {
-                              value: user.metadata?.name!,
-                              displayValue: user.metadata?.name!
+                              name: user.metadata?.name!,
+                              namespace: user.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Users'
                         chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { value: user.name + user.namespace };
+                          return { name: user.name, namespace: user.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
@@ -486,13 +489,13 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(group => {
                             return {
-                              value: group.metadata?.name!,
-                              displayValue: group.metadata?.name!
+                              name: group.metadata?.name!,
+                              namespace: group.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Groups'
                         chosenOptions={formik.values.chosenGroups.map(user => {
-                          return { value: user.name + user.namespace };
+                          return { name: user.name, namespace: user.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);

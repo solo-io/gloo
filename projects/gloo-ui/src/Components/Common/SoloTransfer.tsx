@@ -50,9 +50,10 @@ const Item = styled.div`
 `;
 
 type ListItemType = {
-  value: string;
-  displayValue?: string;
+  name: string;
+  namespace: string;
 };
+
 interface TransferProps {
   allOptionsListName: string;
   allOptions: ListItemType[];
@@ -75,8 +76,14 @@ export const SoloTransfer = (props: TransferProps) => {
     onChange([...chosenOptions, addedItem]);
   };
 
-  const removeItem = (addedItem: ListItemType) => {
-    onChange(chosenOptions.filter(lItem => lItem.value !== addedItem.value));
+  const removeItem = (itemToRemove: ListItemType) => {
+    onChange(
+      chosenOptions.filter(
+        item =>
+          item.name !== itemToRemove.name &&
+          item.namespace !== itemToRemove.namespace
+      )
+    );
   };
 
   console.log('chosenOptions', chosenOptions);
@@ -89,12 +96,14 @@ export const SoloTransfer = (props: TransferProps) => {
             .filter(
               item =>
                 !chosenOptions.find(
-                  chosenItem => chosenItem.value === item.value
+                  chosenItem =>
+                    chosenItem.name === item.name &&
+                    chosenItem.namespace === item.namespace
                 )
             )
             .map(item => (
-              <Item key={item.value}>
-                {item.displayValue || item.value}
+              <Item key={`${item.name}-${item.namespace}`}>
+                {`${item.name}-${item.namespace}`}
                 <span className='text-green-400 cursor-pointer hover:text-green-300'>
                   <GreenPlus
                     className='w-4 h-4 fill-current'
@@ -116,8 +125,8 @@ export const SoloTransfer = (props: TransferProps) => {
             </div>
           )}
           {chosenOptions.map(item => (
-            <Item key={item.value}>
-              {item.displayValue || item.value}
+            <Item key={`${item.name}-${item.namespace}`}>
+              {`${item.name}-${item.namespace}`}
               <RedX onClick={() => removeItem(item)} />
             </Item>
           ))}

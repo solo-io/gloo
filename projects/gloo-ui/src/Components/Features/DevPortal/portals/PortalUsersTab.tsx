@@ -13,6 +13,7 @@ import { CreateUserModal } from '../users/CreateUserModal';
 type PortalUsersTabProps = {
   portal: Portal.AsObject;
 };
+
 export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
   const { data: usersList, error: usersError } = useSWR(
     `listUsers${portal.metadata?.name}${portal.metadata?.namespace}`,

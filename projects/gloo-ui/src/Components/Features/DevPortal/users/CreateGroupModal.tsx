@@ -213,13 +213,13 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(user => {
                             return {
-                              value: user.metadata?.name!,
-                              displayValue: user.metadata?.name!
+                              name: user.metadata?.name!,
+                              namespace: user.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected User'
                         chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { value: user.name + user.namespace };
+                          return { name: user.name, namespace: user.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
@@ -265,13 +265,13 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(apiDoc => {
                             return {
-                              value: apiDoc.metadata?.name!,
-                              displayValue: apiDoc.metadata?.name!
+                              name: apiDoc.metadata?.name!,
+                              namespace: apiDoc.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected APIs'
                         chosenOptions={formik.values.chosenAPIs.map(api => {
-                          return { value: api.name + api.namespace };
+                          return { name: api.name, namespace: api.namespace };
                         })}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
@@ -317,14 +317,17 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           )
                           .map(portal => {
                             return {
-                              value: portal.metadata?.name!,
-                              displayValue: portal.metadata?.name!
+                              name: portal.metadata?.name!,
+                              namespace: portal.metadata?.namespace!
                             };
                           })}
                         chosenOptionsListName='Selected Portal'
                         chosenOptions={formik.values.chosenPortals.map(
                           portal => {
-                            return { value: portal.name + portal.namespace };
+                            return {
+                              name: portal.name,
+                              namespace: portal.namespace
+                            };
                           }
                         )}
                         onChange={newChosenOptions => {

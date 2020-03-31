@@ -83,7 +83,8 @@ export const portalApi = {
 export const apiDocApi = {
   listApiDocs,
   getApiDoc,
-  createApiDoc
+  createApiDoc,
+  deleteApiDoc
 };
 
 export const userApi = {
@@ -100,6 +101,36 @@ export const apiKeyApi = {
   listApiKeys,
   deleteApiKey
 };
+
+function deleteApiDoc(apiDocRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
+  const { name, namespace } = apiDocRef;
+  let request = new ObjectRef();
+  request.setName(name);
+  request.setNamespace(namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.DeleteApiDoc, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Empty) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 export function groupMessageFromObject(
   group: Group.AsObject,
