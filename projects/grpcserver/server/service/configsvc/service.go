@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
+	"github.com/rotisserie/eris"
+
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
 
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
@@ -82,8 +85,23 @@ func (s *configGrpcService) GetIsLicenseValid(context.Context, *v1.GetIsLicenseV
 }
 
 func (s *configGrpcService) IsDeveloperPortalEnabled(context.Context, *types.Empty) (*v1.IsDeveloperPortalEnabledResponse, error) {
+	errs := &multierror.Error{}
+
+	licenseIsValid := true
+	if err := s.licenseClient.IsLicenseValid(); err != nil {
+		contextutils.LoggerFrom(s.ctx).Debugw("license is not valid, dev portal will be disabled", zap.Error(LicenseIsInvalidError(err)))
+		licenseIsValid = false
+		errs = multierror.Append(errs, err)
+	}
+
+	isDevPortalFeatureEnabled := devportal.IsEnabled()
+	if !isDevPortalFeatureEnabled {
+		errs = multierror.Append(errs, eris.New("dev portal feature is not enabled for this Gloo installation"))
+	}
+
 	return &v1.IsDeveloperPortalEnabledResponse{
-		Enabled: devportal.IsEnabled(),
+		Enabled:        devportal.IsEnabled() && licenseIsValid,
+		DisabledReason: errs.Error(),
 	}, nil
 }
 

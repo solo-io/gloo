@@ -356,6 +356,9 @@ export class IsDeveloperPortalEnabledResponse extends jspb.Message {
   getEnabled(): boolean;
   setEnabled(value: boolean): void;
 
+  getDisabledReason(): string;
+  setDisabledReason(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): IsDeveloperPortalEnabledResponse.AsObject;
   static toObject(includeInstance: boolean, msg: IsDeveloperPortalEnabledResponse): IsDeveloperPortalEnabledResponse.AsObject;
@@ -369,5 +372,6 @@ export class IsDeveloperPortalEnabledResponse extends jspb.Message {
 export namespace IsDeveloperPortalEnabledResponse {
   export type AsObject = {
     enabled: boolean,
+    disabledReason: string,
   }
 }

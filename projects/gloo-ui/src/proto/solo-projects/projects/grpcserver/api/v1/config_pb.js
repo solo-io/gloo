@@ -2562,7 +2562,8 @@ proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.prototype.toObject = fu
  */
 proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    enabled: jspb.Message.getFieldWithDefault(msg, 1, false)
+    enabled: jspb.Message.getFieldWithDefault(msg, 1, false),
+    disabledReason: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2603,6 +2604,10 @@ proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.deserializeBinaryFromRe
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEnabled(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisabledReason(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2639,6 +2644,13 @@ proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.serializeBinaryToWriter
       f
     );
   }
+  f = message.getDisabledReason();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -2656,6 +2668,21 @@ proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.prototype.getEnabled = 
 /** @param {boolean} value */
 proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.prototype.setEnabled = function(value) {
   jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional string disabled_reason = 2;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.prototype.getDisabledReason = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.IsDeveloperPortalEnabledResponse.prototype.setDisabledReason = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
