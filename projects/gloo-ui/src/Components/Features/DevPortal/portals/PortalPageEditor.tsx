@@ -1,5 +1,6 @@
 import React from 'react';
 import { SoloInput } from 'Components/Common/SoloInput';
+import styled from '@emotion/styled';
 import { useParams, useHistory } from 'react-router';
 import useSWR, { trigger } from 'swr';
 import { portalApi } from '../api';
@@ -21,49 +22,38 @@ import {
 } from 'Styles/CommonEmotions/button';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import ReactMde from 'react-mde';
 import ReactDOM from 'react-dom';
+import ReactMarkdown from 'react-markdown';
 import * as Showdown from 'showdown';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { SoloTextarea, Label } from 'Components/Common/SoloTextarea';
 
 interface InitialPageEditingValuesType {
   name: string;
   path: string;
   description: string;
   navigationLinkName: string;
-  useTopNav: boolean;
-  useFooterNav: boolean;
   displayOnHomepage: boolean;
-  //published: boolean;
 }
 
 const validationSchema = yup.object().shape({
   name: yup.string().required('The name is required'),
-  url: yup
+  path: yup
     .string()
     .required('The URL is required')
     .matches(/^(?:\/)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/, {
       message: 'Must start with a backslash and follow with valid characters',
       excludeEmptyString: true
     }),
-  linkName: yup.string().required('A name for the navigation link is required')
+  navigationLinkName: yup
+    .string()
+    .required('A name for the navigation link is required')
 });
 
-const converter = new Showdown.Converter({
-  tables: true,
-  simplifiedAutoLink: true,
-  strikethrough: true,
-  tasklists: true
-});
-
-// TODO ARTURO // TODO JOE :: This whole page has not been tested. I was not able to create a
-//   portal page through the api, so I couldn't test this with real data. I did my best off
-//   conjecture and theory, so... good luck! ::x
 interface FormProps {
   portal: Portal.AsObject;
-  togglePreviewState: (inPreview: boolean) => any;
 }
-const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
+const PortalPageEditorForm = ({ portal }: FormProps) => {
   const routerHistory = useHistory();
   const { portalname, portalnamespace, pagename } = useParams();
 
@@ -77,23 +67,24 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
 
   const [errorMessage, setErrorMessage] = React.useState('');
   const [attemptingToDelete, setAttemptingToDelete] = React.useState(false);
+  const [inPreviewState, setInPreviewState] = React.useState(false);
   const [markdownString, setMarkdownString] = React.useState(
-    portalPage.content?.inlineString || ''
+    (!!portalPage.content?.inlineBytes &&
+      portalPage.content?.inlineBytes.toString()) ||
+      ''
   );
 
   const initialValues: InitialPageEditingValuesType = {
-    name: '',
-    path: '',
-    description: '',
-    navigationLinkName: '',
-    useTopNav: true,
-    useFooterNav: true,
-    displayOnHomepage: false,
+    name: portalPage.name,
+    path: portalPage.path,
+    description: portalPage.description,
+    navigationLinkName: portalPage.navigationLinkName,
+    displayOnHomepage: portalPage.displayOnHomepage
   };
 
   const publishEdits = async (values: InitialPageEditingValuesType) => {
     portalApi
-      .createPortalPage(
+      .updatePortalPage(
         { name: portalname!, namespace: portalnamespace! },
         {
           name: values.name,
@@ -176,12 +167,13 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
                   placeholder='Gettiing Started'
                   title='Page Name'
                   hideError={true}
+                  disabled='true'
                 />
               </div>
               <div className='mb-2'>
                 <SoloFormInput
                   testId={`create-portal-page-linkname`}
-                  name='linkName'
+                  name='navigationLinkName'
                   placeholder='Getting Started'
                   title='Navigation Link Name'
                   hideError={true}
@@ -190,23 +182,11 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
               <div className='mb-4'>
                 <SoloFormInput
                   testId={`create-portal-page-url`}
-                  name='url'
+                  name='path'
                   placeholder='/getting-started'
                   title='Page URL'
                   hideError={true}
                 />
-              </div>
-              <div className='flex mb-4'>
-                <div>
-                  <SoloFormCheckbox name={'useTopNav'} hideError={true} />
-                  <span className='ml-1 mr-4 font-normal'>Top Navigation</span>
-                </div>
-                <div>
-                  <SoloFormCheckbox name={'useFooterNav'} hideError={true} />
-                  <span className='ml-1 mr-4 font-normal'>
-                    Footer Navigation
-                  </span>
-                </div>
               </div>
               <div>
                 <SoloFormTextarea
@@ -217,24 +197,29 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
                   hideError={true}
                 />
               </div>
+              <div>
+                <SoloFormCheckbox
+                  testId={`create-portal-page-homepage`}
+                  name={'displayOnHomepage'}
+                  hideError={true}
+                />
+                <span className='ml-1 mr-4 font-normal'>
+                  Display on Home Page
+                </span>
+              </div>
             </div>
             <div>
-              {/*
-              // TOODO ARTURO // TODO JOE 
-               ReactMde has a 'tab' which lets you switch between Preview and Editing.
-               https://github.com/andrerpena/react-mde
-               https://codesandbox.io/s/react-mde-latest-bm6p3
-
-               use styled emotions to wrap this and then look for the class on the tabs ('.mde-tabs') and display: none
-               then just tell it the selected tabs with a local state change based on any other buttons you want to provide
-              */}
-              <ReactMde
-                value={markdownString}
-                onChange={setMarkdownString}
-                generateMarkdownPreview={markdown =>
-                  Promise.resolve(converter.makeHtml(markdown))
-                }
-              />
+              <div>
+                {inPreviewState && <ReactMarkdown source={markdownString} />}
+                {!inPreviewState && (
+                  <SoloTextarea
+                    placeholder='Markdown-formatted page content'
+                    value={markdownString}
+                    rows={25}
+                    onChange={e => setMarkdownString(e.target.value)}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -242,14 +227,18 @@ const PortalPageEditorForm = ({ portal, togglePreviewState }: FormProps) => {
             <div>
               <SoloButtonStyledComponent
                 className='mr-4'
-                onClick={togglePreviewState(true)}>
-                Preview Changes
+                onClick={() => setInPreviewState(!inPreviewState)}>
+                {inPreviewState ? 'Edit' : 'Preview Changes'}
               </SoloButtonStyledComponent>
               <SoloButtonStyledComponent
                 className='mr-4'
-                green={true}
+                green='true'
                 onClick={handleSubmit}
-                disable={isValid && !dirty && !!markdownString?.length}>
+                disable={(
+                  isValid &&
+                  !dirty &&
+                  !!markdownString?.length
+                ).toString()}>
                 Publish Changes
               </SoloButtonStyledComponent>
               <SoloCancelButton
@@ -293,8 +282,6 @@ export const PortalPageEditor = () => {
     (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
 
-  const [inPreviewState, setInPreviewState] = React.useState(false);
-
   if (!portal) {
     return (
       <div>
@@ -320,21 +307,12 @@ export const PortalPageEditor = () => {
               <PortalPageIcon className='fill-current w-6 h-6' />
             </span>
           }
-          headerSecondaryInformation={[
-            {
-              title: 'Modified',
-              value: 'WE NEED THIS'
-            }
-          ]}
           onClose={() =>
             routerHistory.push(
               routerHistory.location.pathname.split('/page-editor/')[0]
             )
           }>
-          <PortalPageEditorForm
-            portal={portal!}
-            togglePreviewState={setInPreviewState}
-          />
+          <PortalPageEditorForm portal={portal!} />
         </SectionCard>
       </div>
     </ErrorBoundary>

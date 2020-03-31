@@ -77,6 +77,7 @@ export const portalApi = {
   updatePortal,
   getPortalWithAssets,
   createPortalPage,
+  updatePortalPage,
   deletePortalPage
 };
 
@@ -1379,6 +1380,7 @@ function createPortalPage(
         staticPageClass.setContent(
           createDataSourceClassFromObject(staticPage.content)
         );
+        staticPageClass.setDisplayOnHomepage(staticPage.displayOnHomepage);
 
         portalSpec?.setStaticPagesList([
           ...portalSpec.getStaticPagesList(),
@@ -1391,6 +1393,76 @@ function createPortalPage(
         request.setPortalOnly(true);
 
         console.log(request.getPortal()?.toObject());
+
+        grpc.invoke(PortalApi.UpdatePortal, {
+          request: request,
+          host,
+          metadata: new grpc.Metadata(),
+          onHeaders: (headers: grpc.Metadata) => {
+            // console.log('onheaders', headers);
+          },
+          onMessage: (message: Portal) => {
+            // console.log('message', message);
+            if (message) {
+              resolve(message.toObject());
+            }
+          },
+          onEnd: (
+            status: grpc.Code,
+            statusMessage: string,
+            trailers: grpc.Metadata
+          ) => {
+            // console.log('onEnd', status, statusMessage, trailers);
+            if (status !== grpc.Code.OK) {
+              reject(statusMessage);
+            }
+          }
+        });
+      }
+    });
+  });
+}
+
+function updatePortalPage(
+  portalRef: ObjectRef.AsObject,
+  staticPage: StaticPage.AsObject
+): Promise<Portal.AsObject> {
+  return new Promise((resolve, reject) => {
+    const requestObjectRef = new ObjectRef();
+    requestObjectRef.setName(portalRef.name);
+    requestObjectRef.setNamespace(portalRef.namespace);
+
+    grpc.unary(PortalApi.GetPortalWithAssets, {
+      request: requestObjectRef,
+      host,
+      metadata: new grpc.Metadata(),
+      onEnd: endMessage => {
+        let portal = endMessage.message as Portal;
+
+        let staticPageClass = new StaticPage();
+        staticPageClass.setName(staticPage.name);
+        staticPageClass.setDescription(staticPage.description);
+        staticPageClass.setNavigationLinkName(staticPage.navigationLinkName);
+        staticPageClass.setPath(staticPage.path);
+        staticPageClass.setContent(
+          createDataSourceClassFromObject(staticPage.content)
+        );
+        staticPageClass.setDisplayOnHomepage(staticPage.displayOnHomepage);
+
+        let request = new PortalWriteRequest();
+        let portalSpec = portal.getSpec();
+
+        portalSpec?.setStaticPagesList([
+          ...portalSpec
+            .getStaticPagesList()
+            .filter(spc => spc.getName() !== staticPageClass.getName()),
+          staticPageClass
+        ]);
+
+        portal.setSpec(portalSpec);
+
+        request.setPortal(portal);
+        request.setPortalOnly(true);
 
         grpc.invoke(PortalApi.UpdatePortal, {
           request: request,

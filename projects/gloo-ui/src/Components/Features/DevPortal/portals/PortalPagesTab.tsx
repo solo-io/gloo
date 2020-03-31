@@ -43,8 +43,7 @@ export const PortalPagesTab = () => {
   const cancelDeletion = () => {
     setPageAttemptingToDelete(undefined);
   };
-  // TODO JOE // TODO ARTURO :: This has not been tested as the backend was erroring when
-  //  creating pages, so none were there to delete
+
   const finishDeletion = () => {
     portalApi
       .deletePortalPage(
@@ -104,6 +103,9 @@ export const PortalPagesTab = () => {
                     <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
                       Page Url Path
                     </th>
+                    <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
+                      Homepage?
+                    </th>
 
                     <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
                       Actions
@@ -134,6 +136,13 @@ export const PortalPagesTab = () => {
                           </span>
                         </div>
                       </td>
+                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                        <div className='text-sm leading-5 text-gray-900'>
+                          <span className='flex items-center capitalize'>
+                            {page.displayOnHomepage ? 'yes' : ''}
+                          </span>
+                        </div>
+                      </td>
                       <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
                         <span className='flex items-center'>
                           <div className='flex items-center justify-center w-4 h-4 mr-3 bg-gray-400 rounded-full cursor-pointer'>
@@ -141,7 +150,7 @@ export const PortalPagesTab = () => {
                               className='w-2 h-3 fill-current'
                               onClick={() =>
                                 routerHistory.push({
-                                  pathname: `${routerLocation.pathname}/${page.name}`
+                                  pathname: `${routerLocation.pathname}/page-editor/${page.name}`
                                 })
                               }
                             />
@@ -174,7 +183,7 @@ export const PortalPagesTab = () => {
             <div className='flex flex-col h-full'>
               <p className='h-auto mb-6 text-lg font-medium'>
                 {!!portal?.spec?.staticPagesList.length
-                  ? 'No portals match the search'
+                  ? 'No pages match this search'
                   : `${portalname} has no Pages currently`}
                 .
               </p>

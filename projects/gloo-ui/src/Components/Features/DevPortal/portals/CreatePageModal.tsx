@@ -17,8 +17,6 @@ interface InitialPageCreationValuesType {
   url: string;
   description: string;
   linkName: string;
-  useTopNav: boolean;
-  useFooterNav: boolean;
   displayOnHomepage: boolean;
 }
 
@@ -54,8 +52,6 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
     url: '',
     description: '',
     linkName: '',
-    useTopNav: true,
-    useFooterNav: true,
     displayOnHomepage: false
   };
 
@@ -150,12 +146,10 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
             </div>
             <div className='flex mb-2'>
               <div>
-                <SoloFormCheckbox name={'useTopNav'} hideError={true} />
-                <span className='ml-1 mr-4 font-normal'>Top Nav</span>
-              </div>
-              <div>
-                <SoloFormCheckbox name={'useFooterNav'} hideError={true} />
-                <span className='ml-1 mr-4 font-normal'>Footer Nav</span>
+                <SoloFormCheckbox name={'displayOnHomepage'} hideError={true} />
+                <span className='ml-1 mr-4 font-normal'>
+                  Display on Home Page
+                </span>
               </div>
             </div>
 
