@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Show Gateway status errors in the Gloo UI in the Envoy status.
+    issueLink: https://github.com/solo-io/gloo/issues/2594

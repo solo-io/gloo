@@ -186,6 +186,9 @@ const HealthStatus = () => {
     if (envoy.status!.code === 0) {
       envoyStatus = healthConstants.Pending.value;
       envoyErrorCount += 1;
+    } else if (envoy.status!.code === 1) {
+      envoyStatus = healthConstants.Error.value;
+      envoyErrorCount += 1;
     } else if (envoy.status!.code === 2) {
       envoyStatus = healthConstants.Good.value;
     }

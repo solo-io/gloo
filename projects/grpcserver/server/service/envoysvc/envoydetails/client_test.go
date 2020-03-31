@@ -22,7 +22,7 @@ var (
 	podNamespacePodInterface *mocks.MockPodInterface
 	mockClientCache          *clientmocks.MockClientCache
 	httpGetter               *mocks.MockHttpGetter
-	proxyStatusGetter        *mocks.MockProxyStatusGetter
+	envoyStatusGetter        *mocks.MockEnvoyStatusGetter
 	client                   envoydetails.Client
 	podNamespace             = "test-pod-ns"
 	testErr                  = errors.New("test-error")
@@ -76,11 +76,11 @@ var _ = Describe("Envoy Details Client Test", func() {
 		podsGetter = mocks.NewMockPodsGetter(mockCtrl)
 		podNamespacePodInterface = mocks.NewMockPodInterface(mockCtrl)
 		httpGetter = mocks.NewMockHttpGetter(mockCtrl)
-		proxyStatusGetter = mocks.NewMockProxyStatusGetter(mockCtrl)
+		envoyStatusGetter = mocks.NewMockEnvoyStatusGetter(mockCtrl)
 
 		podsGetter.EXPECT().Pods(podNamespace).Return(podNamespacePodInterface)
 
-		client = envoydetails.NewClient(podsGetter, httpGetter, proxyStatusGetter)
+		client = envoydetails.NewClient(podsGetter, httpGetter, envoyStatusGetter)
 	})
 
 	Describe("List", func() {
@@ -97,9 +97,9 @@ var _ = Describe("Envoy Details Client Test", func() {
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return(dumpA, nil)
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
 				httpGetter.EXPECT().Get("ipb", "portb", "config-dump-b").Return(dumpB, nil)
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
@@ -122,8 +122,8 @@ var _ = Describe("Envoy Details Client Test", func() {
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return(dumpA, nil)
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podA).Return(getStatus())
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
@@ -146,8 +146,8 @@ var _ = Describe("Envoy Details Client Test", func() {
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipb", "portb", "config-dump-b").Return(dumpB, nil)
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podA).Return(getStatus())
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())
@@ -166,7 +166,7 @@ var _ = Describe("Envoy Details Client Test", func() {
 					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return("", testErr)
-				proxyStatusGetter.EXPECT().GetProxyStatus(context.Background(), pod).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), pod).Return(getStatus())
 
 				actual, err := client.List(context.Background(), podNamespace)
 				Expect(err).NotTo(HaveOccurred())

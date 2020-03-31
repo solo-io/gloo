@@ -67,7 +67,7 @@ func InitializeServer(ctx context.Context, listener net.Listener, registrar devp
 		selection.NewVirtualServiceSelector,
 		envoydetails.NewClient,
 		envoydetails.NewHttpGetter,
-		envoydetails.NewProxyStatusGetter,
+		envoydetails.NewEnvoyStatusGetter,
 		scrub.NewScrubber,
 		status.NewInputResourceStatusGetter,
 		truncate.NewUpstreamTruncator,

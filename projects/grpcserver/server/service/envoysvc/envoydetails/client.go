@@ -33,16 +33,16 @@ type client struct {
 	// to support accessing pods across namespaces in the future
 	podsGetter        corev1.PodsGetter
 	httpGetter        HttpGetter
-	proxyStatusGetter ProxyStatusGetter
+	envoyStatusGetter EnvoyStatusGetter
 }
 
 var _ Client = &client{}
 
-func NewClient(podsGetter corev1.PodsGetter, httpGetter HttpGetter, proxyStatusGetter ProxyStatusGetter) Client {
+func NewClient(podsGetter corev1.PodsGetter, httpGetter HttpGetter, envoyStatusGetter EnvoyStatusGetter) Client {
 	return &client{
 		podsGetter:        podsGetter,
 		httpGetter:        httpGetter,
-		proxyStatusGetter: proxyStatusGetter,
+		envoyStatusGetter: envoyStatusGetter,
 	}
 }
 
@@ -78,7 +78,7 @@ func (c *client) getEnvoyDetails(ctx context.Context, pod kubev1.Pod) *v1.EnvoyD
 			Content:            dumpString,
 			ContentRenderError: contentRenderError,
 		},
-		Status: c.proxyStatusGetter.GetProxyStatus(ctx, pod),
+		Status: c.envoyStatusGetter.GetEnvoyStatus(ctx, pod),
 	}
 	return details
 }

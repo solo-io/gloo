@@ -34,4 +34,11 @@ var (
 	ProxyResourcePending = func(namespace, name string) string {
 		return fmt.Sprintf("Proxy resource %v.%v is pending", namespace, name)
 	}
+
+	GatewayResourcesNotFound = func(namespace string) string {
+		if namespace == "" {
+			return fmt.Sprintf("Could not find `Gateway` custom resources in any namespaces")
+		}
+		return fmt.Sprintf("Could not find `Gateway` custom resources in namespace %v", namespace)
+	}
 )
