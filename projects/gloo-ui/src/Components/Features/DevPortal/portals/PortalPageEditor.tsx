@@ -287,7 +287,7 @@ export const PortalPageEditor = () => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => portalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
 
   const [inPreviewState, setInPreviewState] = React.useState(false);

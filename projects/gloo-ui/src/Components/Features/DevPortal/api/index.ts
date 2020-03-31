@@ -49,7 +49,6 @@ export { apiDocApi };
 export const portalApi = {
   listPortals,
   deletePortal,
-  getPortal,
   createPortal,
   updatePortal,
   getPortalWithAssets,
@@ -226,36 +225,6 @@ function listPortals(): Promise<Portal.AsObject[]> {
   });
 }
 
-function getPortal(portalRef: ObjectRef.AsObject): Promise<Portal.AsObject> {
-  const { name, namespace } = portalRef;
-  let request = new ObjectRef();
-  request.setName(name);
-  request.setNamespace(namespace);
-
-  return new Promise((resolve, reject) => {
-    grpc.invoke(PortalApi.GetPortal, {
-      request,
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {},
-      onMessage: (message: Portal) => {
-        if (message) {
-          resolve(message.toObject());
-        }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        if (status !== grpc.Code.OK) {
-          reject(statusMessage);
-        }
-      }
-    });
-  });
-}
-
 function getPortalWithAssets(
   portalRef: ObjectRef.AsObject
 ): Promise<Portal.AsObject> {
@@ -265,7 +234,7 @@ function getPortalWithAssets(
   request.setNamespace(namespace);
 
   return new Promise((resolve, reject) => {
-    grpc.invoke(PortalApi.GetPortal, {
+    grpc.invoke(PortalApi.GetPortalWithAssets, {
       request,
       host,
       metadata: new grpc.Metadata(),
@@ -738,7 +707,7 @@ function createPortalPage(
     requestObjectRef.setName(portalRef.name);
     requestObjectRef.setNamespace(portalRef.namespace);
 
-    grpc.unary(PortalApi.GetPortal, {
+    grpc.unary(PortalApi.GetPortalWithAssets, {
       request: requestObjectRef,
       host,
       metadata: new grpc.Metadata(),
@@ -808,7 +777,7 @@ function deletePortalPage(
     requestObjectRef.setName(portalRef.name);
     requestObjectRef.setNamespace(portalRef.namespace);
 
-    grpc.unary(PortalApi.GetPortal, {
+    grpc.unary(PortalApi.GetPortalWithAssets, {
       request: requestObjectRef,
       host,
       metadata: new grpc.Metadata(),

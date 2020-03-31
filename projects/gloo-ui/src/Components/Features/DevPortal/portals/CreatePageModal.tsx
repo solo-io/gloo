@@ -43,7 +43,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => portalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
 
   const [errorMessage, setErrorMessage] = React.useState('');

@@ -21,7 +21,7 @@ export const PortalPagesTab = () => {
     !!portalname && !!portalnamespace
       ? ['getPortal', portalname, portalnamespace]
       : null,
-    (key, name, namespace) => portalApi.getPortal({ name, namespace })
+    (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
 
   const [pagesSearchTerm, setPagesSearchTerm] = React.useState('');
@@ -69,8 +69,6 @@ export const PortalPagesTab = () => {
     page.name.includes(pagesSearchTerm)
   );
 
-  console.log(portal);
-
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
@@ -104,13 +102,7 @@ export const PortalPagesTab = () => {
                       Navigation Link
                     </th>
                     <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                      Page Url PAth
-                    </th>
-                    <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                      Modified
-                    </th>
-                    <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                      Status
+                      Page Url Path
                     </th>
 
                     <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
@@ -139,18 +131,6 @@ export const PortalPagesTab = () => {
                         <div className='text-sm leading-5 text-gray-900'>
                           <span className='flex items-center capitalize'>
                             {page.path}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center '>UNKNOWN</span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            UNKNOWN
                           </span>
                         </div>
                       </td>
