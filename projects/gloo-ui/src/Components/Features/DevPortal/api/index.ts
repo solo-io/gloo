@@ -916,10 +916,11 @@ export function portalMessageFromObject(
 ): Portal {
   let { spec, metadata, status } = portal!;
   if (metadata !== undefined) {
-    let { name, namespace } = metadata;
+    let { name, namespace, resourceVersion } = metadata;
     let newMetadata = new ObjectMeta();
     newMetadata.setName(name);
     newMetadata.setNamespace(namespace);
+    newMetadata.setResourceVersion(resourceVersion);
     portalToUpdate.setMetadata(newMetadata);
   }
 
@@ -1315,6 +1316,7 @@ function updatePortal(
         trailers: grpc.Metadata
       ) => {
         if (status !== grpc.Code.OK) {
+          console.log('statusMessage', statusMessage);
           reject(statusMessage);
         }
       }

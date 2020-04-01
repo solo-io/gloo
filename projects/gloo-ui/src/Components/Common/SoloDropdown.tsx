@@ -4,12 +4,17 @@ import { colors, soloConstants } from 'Styles';
 import styled from '@emotion/styled';
 import { Label } from './SoloInput';
 import { shallowEqual } from 'react-redux';
+import { SelectProps } from 'antd/lib/select';
 
 export const SoloDropdownBlock = styled(Select)`
   width: inherit;
   /* margin-bottom: 15px; */
   line-height: 16px;
-
+  &.ant-select {
+    .ant-select-selector {
+      border-radius: 8px;
+    }
+  }
   .ant-select-selection {
     width: 100%;
     padding: 9px 15px 9px 11px;
@@ -37,7 +42,7 @@ export interface OptionType {
   key: string;
   disabled?: boolean;
   value: string | number;
-  displayValue?: any;
+  displayValue?: string;
   icon?: JSX.Element;
 }
 export interface DropdownProps {
@@ -85,8 +90,7 @@ export const SoloDropdown = React.memo((props: DropdownProps) => {
         onChange={onChange}
         onBlur={onBlur}
         disabled={disabled}
-        placeholder={placeholder}
-        {...props}>
+        placeholder={placeholder}>
         {options.map((opt: OptionType) => (
           <Select.Option
             key={opt.key}

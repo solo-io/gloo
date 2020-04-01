@@ -312,17 +312,16 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                   grid-template-columns: 190px 1fr;
                 `}>
                 <TabList className='flex flex-col mt-6'>
-                  <StyledTab>General</StyledTab>
+                  <StyledTab>Spec</StyledTab>
                   <StyledTab>Imagery</StyledTab>
                   <StyledTab>Portals</StyledTab>
                   <StyledTab>User Access</StyledTab>
                   <StyledTab>Group Access</StyledTab>
-                  <StyledTab>Spec</StyledTab>
                 </TabList>
 
                 <TabPanels className='bg-white rounded-r-lg'>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                    <GeneralSection />
+                    <SpecSection />
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
@@ -519,13 +518,13 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           Back
                         </SoloCancelButton>
                         <SoloButtonStyledComponent
-                          onClick={() => setTabIndex(tabIndex + 1)}>
-                          Next Step
+                          onClick={formik.handleSubmit}>
+                          Create API
                         </SoloButtonStyledComponent>
                       </div>
                     </div>
                   </TabPanel>
-                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                  {/* <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SpecSection />
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
@@ -545,7 +544,7 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         </SoloButtonStyledComponent>
                       </div>
                     </div>
-                  </TabPanel>
+                  </TabPanel> */}
                 </TabPanels>
               </Tabs>
             </>

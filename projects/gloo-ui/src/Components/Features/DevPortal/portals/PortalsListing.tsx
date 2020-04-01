@@ -33,7 +33,6 @@ export function formatHealthStatus(
 }
 
 export const PortalsListing = () => {
-  let isEmpty = false;
   const { data: portalsList, error: portalListError } = useSWR(
     'listPortals',
     portalApi.listPortals,
@@ -54,7 +53,7 @@ export const PortalsListing = () => {
         <GreenPlus className='mr-1 fill-current' />
         <span className='text-gray-700'> Create a Portal</span>
       </span>
-      {isEmpty ? (
+      {portalsList.length === 0 ? (
         <EmptyPortalsPanel itemName='Portal'>
           <PlaceholderPortalTile /> <PlaceholderPortalTile />
         </EmptyPortalsPanel>

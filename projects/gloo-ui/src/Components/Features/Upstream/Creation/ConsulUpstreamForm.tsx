@@ -56,7 +56,7 @@ export const SoloFormTagSelect = ({ ...props }) => {
         {...field}
         {...props}
         mode='tags'
-        size='middle'
+        size='small'
         placeholder={placeholder}
         onChange={handleChange}
         style={{ width: '100%' }}>

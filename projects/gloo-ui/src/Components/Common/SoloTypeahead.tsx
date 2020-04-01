@@ -10,7 +10,7 @@ const { Option } = AutoComplete;
 const SoloAutocompleteBlock = styled(AutoComplete)`
   width: 100%;
   /* margin-bottom: 15px; */
-  line-height: 40px;
+  line-height: 30px;
 
   &.ant-select {
     .ant-select-search--inline {

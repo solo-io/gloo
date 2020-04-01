@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Surface empty-states for lists.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1566

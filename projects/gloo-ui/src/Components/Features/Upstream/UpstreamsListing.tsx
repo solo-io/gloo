@@ -357,12 +357,6 @@ export const UpstreamsListing = () => {
     undefined
   );
 
-  React.useEffect(() => {
-    if (location.state && location.state.showSuccess) {
-      location.state.showSuccess = false;
-    }
-  }, []);
-
   let cardMatch = useRouteMatch({
     path: `${match.path}`,
     exact: true
