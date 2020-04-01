@@ -174,6 +174,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
           onSubmit={handleCreateUser}>
           {formik => (
             <>
+              {/* <pre>{JSON.stringify(formik.values, null, 2)}</pre> */}
               <Tabs
                 className='bg-blue-600 rounded-lg h-96'
                 index={tabIndex}

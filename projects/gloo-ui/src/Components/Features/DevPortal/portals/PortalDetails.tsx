@@ -45,6 +45,7 @@ import {
 import { ChromePicker } from 'react-color';
 import { ColorPicker } from './ColorPicker';
 import { Formik } from 'formik';
+import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 
 export const TabCss = css`
   line-height: 40px;
@@ -225,8 +226,14 @@ export const PortalDetails = () => {
             {formik => (
               <div>
                 <div className='relative flex items-center'>
-                  <div>
-                    <PlaceholderPortal className='w-56 rounded-lg ' />
+                  <div className='w-64 max-h-72'>
+                    {portal.spec?.banner?.inlineBytes ? (
+                      <img
+                        className='object-cover max-h-72'
+                        src={`data:image/gif;base64,${portal.spec?.banner?.inlineBytes}`}></img>
+                    ) : (
+                      <PlaceholderPortal className='w-56 rounded-lg ' />
+                    )}
                   </div>
                   <div className='grid w-full grid-cols-2 ml-2 h-36'>
                     <div>

@@ -11,7 +11,8 @@ import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
   SoloFormInput,
-  SoloFormTextarea
+  SoloFormTextarea,
+  SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
 import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import { Formik, useFormikContext } from 'formik';
@@ -31,6 +32,7 @@ import {
   SectionHeader,
   SectionSubHeader
 } from '../apis/CreateAPIModal';
+import * as yup from 'yup';
 
 const StyledTab = (
   props: {
@@ -53,12 +55,6 @@ const StyledTab = (
   );
 };
 
-// const validationSchema = yup.object().shape({
-//   dispayName: yup.string().required('The name is required'),
-//   description: yup.string(),
-//   linkName: yup.string().required('A name for the navigation link is required')
-// });
-
 const GeneralSection = () => {
   return (
     <SectionContainer>
@@ -66,7 +62,7 @@ const GeneralSection = () => {
       <div className='p-3 text-gray-700 bg-gray-100 rounded-lg'>
         Create a new Portal to expose business APIs
       </div>
-      <div className='grid grid-cols-2 mt-2'>
+      <div className='flex flex-col w-full mt-2'>
         <div className='mr-4 '>
           <SoloFormInput
             name='displayName'
@@ -76,14 +72,14 @@ const GeneralSection = () => {
           />
         </div>
         <div>
-          <SoloFormInput
-            name='domain'
-            title='Portal Domain'
-            placeholder='https://subdomain.domain.io'
+          <SoloFormStringsList
+            name='domainsList'
+            label='Portal Domain(s)'
+            createNewPromptText='Domain'
             hideError
           />
         </div>
-        <div className='col-span-2 mt-2'>
+        <div className='mt-2 '>
           <SoloFormTextarea
             name='description'
             title='Description'
@@ -114,6 +110,7 @@ const ImagerySection = () => {
       <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
         <NoImageIcon />
         <ImageUploader
+          label='Max 1.5MiB'
           css={css`
             .fileContainer {
               background: ${colors.januaryGrey};
@@ -138,8 +135,8 @@ const ImagerySection = () => {
           }}
           buttonText='Upload an Image'
           onChange={onDrop}
-          imgExtension={['.jpg', '.gif', '.png', '.gif', '.jpeg']}
-          maxFileSize={5242880}
+          imgExtension={['.jpg', '.png', '.jpeg', 'ico']}
+          maxFileSize={1572864}
         />
       </div>
     </SectionContainer>
@@ -170,6 +167,7 @@ const BrandingSection = () => {
           <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
             <NoImageIcon />
             <ImageUploader
+              label='Max 1.5MiB'
               css={css`
                 .fileContainer {
                   background: ${colors.januaryGrey};
@@ -190,8 +188,8 @@ const BrandingSection = () => {
               }}
               buttonText='Upload an Image'
               onChange={onDropPrimaryLogo}
-              imgExtension={['.jpg', '.png']}
-              maxFileSize={5242880}
+              imgExtension={['.jpg', '.png', '.jpeg', 'ico']}
+              maxFileSize={1572864}
             />
           </div>
         </div>
@@ -201,6 +199,7 @@ const BrandingSection = () => {
           <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
             <NoImageIcon />
             <ImageUploader
+              label='Max 1.5MiB'
               css={css`
                 .fileContainer {
                   background: ${colors.januaryGrey};
@@ -222,8 +221,8 @@ const BrandingSection = () => {
               }}
               buttonText='Upload an Image'
               onChange={onDropFavicon}
-              imgExtension={['.jpg', '.png']}
-              maxFileSize={5242880}
+              imgExtension={['.jpg', '.png', '.jpeg', 'ico']}
+              maxFileSize={1572864}
             />
           </div>
         </div>
@@ -235,7 +234,7 @@ const BrandingSection = () => {
 type CreatePortalValues = {
   displayName: string;
   description: string;
-  domain: string;
+  domainsList: string[];
   banner: File;
   favicon: File;
   primaryLogo: File;
@@ -269,7 +268,7 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
       banner,
       description,
       displayName,
-      domain,
+      domainsList,
       favicon,
       primaryLogo
     } = values;
@@ -287,10 +286,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
     await portalApi.createPortal({
       portal: {
         ...newPortal!,
+        //@ts-ignore
         metadata: {
           // ...newPortal.metadata!,
           name: displayName,
-          namespace: 'gloo-system',
           annotationsMap: [],
           labelsMap: [],
           resourceVersion: '',
@@ -299,7 +298,7 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         },
         spec: {
           // ...newPortal.spec!,
-          domainsList: [domain],
+          domainsList,
           keyScopesList: [],
           staticPagesList: [],
           customStyling: {
@@ -354,11 +353,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         `}
         className='bg-white rounded-lg shadow '>
         <Formik<CreatePortalValues>
-          // validationSchema={validationSchema}
           initialValues={{
             displayName: '',
             description: '',
-            domain: '',
+            domainsList: ([] as unknown) as string[],
             banner: (undefined as unknown) as File,
             favicon: (undefined as unknown) as File,
             primaryLogo: (undefined as unknown) as File,

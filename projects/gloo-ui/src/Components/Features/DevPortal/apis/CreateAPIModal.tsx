@@ -121,6 +121,7 @@ const ImagerySection = () => {
       <div className='flex flex-col items-center p-4 pb-0 mr-4 bg-gray-100 border border-gray-400 rounded-lg'>
         <NoImageIcon />
         <ImageUploader
+          label='Max 1.5MiB'
           css={css`
             .fileContainer {
               background: ${colors.januaryGrey};
@@ -142,8 +143,8 @@ const ImagerySection = () => {
           }}
           buttonText='Upload an Image'
           onChange={onDrop}
-          imgExtension={['.jpg', '.gif', '.png', '.gif', '.jpeg']}
-          maxFileSize={5242880}
+          imgExtension={['.jpg', '.png', '.jpeg', 'ico']}
+          maxFileSize={1572864}
         />
       </div>
     </SectionContainer>

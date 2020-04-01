@@ -1,31 +1,30 @@
-import React from 'react';
-import { useParams, useHistory } from 'react-router';
-import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { healthConstants, colors, soloConstants } from 'Styles';
 import { css } from '@emotion/core';
 import {
-  Tabs,
-  TabList,
   Tab,
-  TabPanels,
+  TabList,
   TabPanel,
-  TabsProps,
-  TabPanelProps
+  TabPanelProps,
+  TabPanels,
+  Tabs
 } from '@reach/tabs';
-import { SoloInput } from 'Components/Common/SoloInput';
+import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
-import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
-import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
-import { TabCss, ActiveTabCss } from '../portals/PortalDetails';
-import useSWR from 'swr';
-import { formatHealthStatus } from '../portals/PortalsListing';
-import { apiDocApi } from '../api';
-import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
+import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import React from 'react';
+import { useHistory, useParams } from 'react-router';
+import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import useSWR from 'swr';
+import { apiDocApi } from '../api';
+import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
+import { formatHealthStatus } from '../portals/PortalsListing';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 const StyledTab = (
   props: {
@@ -53,7 +52,7 @@ export const APIDetails = () => {
   const { data: apiDoc, error: apiDocError } = useSWR(
     !!apiname && !!apinamespace ? ['getApiDoc', apiname, apinamespace] : null,
     (key, name, namespace) =>
-      apiDocApi.getApiDoc({ apidoc: { name, namespace }, withassets: false })
+      apiDocApi.getApiDoc({ apidoc: { name, namespace }, withassets: true })
   );
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
@@ -80,6 +79,10 @@ export const APIDetails = () => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+
+  if (!apiDoc) {
+    return <Loading center>Loading...</Loading>;
+  }
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Dev Portal section</div>}>
@@ -102,26 +105,40 @@ export const APIDetails = () => {
           healthMessage={'Portal Status'}
           onClose={() => history.push(`/dev-portal/`)}>
           <div>
+            {(apiDoc?.status?.state === State.PENDING ||
+              apiDoc?.status?.state === State.PROCESSING) && (
+              <div className='p-2 text-yellow-500 bg-yellow-100 rounded-lg '>
+                Updates are pending publication
+              </div>
+            )}
             <div className='relative flex items-center'>
-              <div>
-                <PlaceholderPortal className='w-56 rounded-lg ' />
+              <div className=' max-h-72'>
+                {apiDoc.spec?.image ? (
+                  <img
+                    className='object-cover max-h-72'
+                    src={`data:image/gif;base64,${apiDoc.spec?.image?.inlineBytes}`}></img>
+                ) : (
+                  <PlaceholderPortal className='w-56 rounded-lg ' />
+                )}
               </div>
               <div className='grid w-full grid-cols-2 ml-2 h-36'>
                 <div>
                   <span className='font-medium text-gray-900'>
-                    Portal Display Name
+                    Display Name
                   </span>
-                  <div>Portal Name</div>
+                  <div>
+                    {apiDoc?.status?.displayName || apiDoc?.metadata?.name}
+                  </div>
                 </div>
                 <div>
                   <span className='font-medium text-gray-900'>
-                    Portal Address
+                    Published In
                   </span>
                   <div className='flex items-center mb-2 text-sm text-blue-600'>
                     <span>
                       <ExternalLinkIcon className='w-4 h-4 ' />
                     </span>
-                    https://production.subdomain.gloo.io
+                    {apiDoc.status?.basePath}
                   </div>
                 </div>
                 <span className='absolute top-0 right-0 flex items-center'>

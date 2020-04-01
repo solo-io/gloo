@@ -87,7 +87,7 @@ export const PortalsListing = () => {
 const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
   const { portal } = props;
   const history = useHistory();
-
+  console.log('portal', portal);
   return (
     <div
       className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'
@@ -97,7 +97,13 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
         )
       }>
       <div className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
-        <PlaceholderPortal className='rounded-l-lg ' />
+        {portal.spec?.banner?.inlineBytes ? (
+          <img
+            className='object-cover max-h-72'
+            src={`data:image/gif;base64,${portal.spec?.banner?.inlineBytes}`}></img>
+        ) : (
+          <PlaceholderPortal className='rounded-lg w-72 ' />
+        )}
       </div>
       <div className='relative flex flex-col justify-between w-full p-2 leading-normal bg-white rounded-r'>
         <span className='absolute top-0 right-0 flex items-center mt-3 mr-8 text-base font-medium text-gray-900'>

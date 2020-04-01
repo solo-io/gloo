@@ -300,7 +300,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a User: Portal</SectionHeader>
+                      <SectionHeader>Create a Group: Portal</SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the portals you'd like to make available to this
                         group
@@ -353,7 +353,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                         </SoloCancelButton>
                         <SoloButtonStyledComponent
                           onClick={formik.handleSubmit}>
-                          Create Portal
+                          Create Group
                         </SoloButtonStyledComponent>
                       </div>
                     </div>

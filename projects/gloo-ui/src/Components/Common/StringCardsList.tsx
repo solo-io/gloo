@@ -6,6 +6,7 @@ import { colors } from 'Styles';
 import { soloConstants } from 'Styles/constants';
 import { SoloInput, Label } from './SoloInput';
 import { SoloTypeahead } from './SoloTypeahead';
+import { css } from '@emotion/core';
 
 export const Container = styled.div`
   display: flex;
@@ -27,7 +28,7 @@ export const StringCard = styled.div`
   line-height: 33px;
   font-size: 16px;
   width: ${(props: StringCardProps) => (props.limitWidth ? '175px' : 'auto')};
-  margin: 10px;
+  margin-left: 5px;
   white-space: nowrap;
 `;
 type HasErrorProps = { hasError?: boolean };
@@ -55,6 +56,8 @@ export const CardValue = styled.div`
       color: ${colors.novemberGrey};`}
 `;
 export const DeleteX = styled.div`
+  display: flex;
+  align-items: center;
   padding-right: 10px;
   padding-left: 5px;
   cursor: pointer;
@@ -80,7 +83,6 @@ export const NewStringPrompt = styled.div`
   justify-content: space-between;
   width: 175px;
   align-items: center;
-  margin: 10px;
 `;
 
 type PlusHolderProps = { disabled: boolean; withRegex?: boolean };
@@ -124,9 +126,18 @@ export const StringCardsList = (props: StringCardsListProps) => {
   } = props;
 
   const [newValue, setNewValue] = React.useState<string>('');
+  const [currentValues, setCurrentValues] = React.useState(values);
 
+  React.useEffect(() => {
+    setCurrentValues(values);
+  }, [valueDeleted]);
   const newValueChanged = (evt: React.ChangeEvent<HTMLInputElement>): void => {
     setNewValue(evt.target.value);
+  };
+
+  const sendDeleteValue = (idx: number) => {
+    setCurrentValues(currentValues.splice(idx, 1));
+    valueDeleted(idx);
   };
 
   const sendCreateNew = () => {
@@ -140,22 +151,6 @@ export const StringCardsList = (props: StringCardsListProps) => {
     <>
       {label && <Label>{label}</Label>}
       <Container>
-        {values.map((value, ind) => {
-          return (
-            <StringCard key={ind}>
-              <CardValue
-                title={value}
-                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
-                {value}
-              </CardValue>
-              <DeleteX
-                onClick={() => valueDeleted(ind)}
-                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
-                <GreyX style={{ marginBottom: '-3px' }} />
-              </DeleteX>
-            </StringCard>
-          );
-        })}
         {!!createNew && (
           <NewStringPrompt>
             {asTypeahead ? (
@@ -200,6 +195,22 @@ export const StringCardsList = (props: StringCardsListProps) => {
             </PlusHolder>
           </NewStringPrompt>
         )}
+        {currentValues.map((value, ind) => {
+          return (
+            <StringCard key={ind}>
+              <CardValue
+                title={value}
+                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+                {value}
+              </CardValue>
+              <DeleteX
+                onClick={() => sendDeleteValue(ind)}
+                hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+                <GreyX style={{ marginBottom: '-3px' }} />
+              </DeleteX>
+            </StringCard>
+          );
+        })}
       </Container>
     </>
   );

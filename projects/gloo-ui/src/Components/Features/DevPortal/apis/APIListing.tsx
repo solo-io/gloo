@@ -70,7 +70,11 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
   const history = useHistory();
   return (
     <div
-      onClick={() => history.push(`/dev-portal/apis/${apiDoc.metadata?.name}`)}
+      onClick={() =>
+        history.push(
+          `/dev-portal/apis/${apiDoc.metadata?.namespace}/${apiDoc.metadata?.name}`
+        )
+      }
       className='relative flex mb-4 bg-white rounded-lg shadow cursor-pointer'>
       <span className='absolute top-0 right-0 flex items-center mt-3 mr-8 text-base font-medium text-gray-900'>
         Publish Status
@@ -78,8 +82,14 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
           healthStatus={formatHealthStatus(apiDoc.status?.state)}
         />
       </span>
-      <div className='flex-none w-40 h-40 overflow-hidden text-center bg-cover rounded-l lg:rounded-t-none lg:rounded-l'>
-        <PlaceholderPortal className='rounded-l-lg ' />
+      <div className='items-center flex-none w-40 h-40 overflow-hidden text-center bg-cover rounded-l lg:rounded-t-none lg:rounded-l'>
+        {apiDoc.spec?.image ? (
+          <img
+            className='object-cover max-h-72'
+            src={`data:image/gif;base64,${apiDoc.spec?.image?.inlineBytes}`}></img>
+        ) : (
+          <PlaceholderPortal className='w-56 rounded-lg ' />
+        )}
       </div>
       <div className='flex flex-col justify-around w-full h-40 ml-4'>
         <div className='text-lg text-gray-900 '>{apiDoc.metadata?.name}</div>

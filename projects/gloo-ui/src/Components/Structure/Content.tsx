@@ -106,7 +106,7 @@ export const Content = () => {
           exact>
           <PortalPageEditor />
         </DevPortalRoute>
-        <DevPortalRoute path='/dev-portal/apis/:apiname'>
+        <DevPortalRoute path='/dev-portal/apis/:apinamespace/:apiname'>
           <APIDetails />
         </DevPortalRoute>
         <Route path='/admin/:sublocation'>

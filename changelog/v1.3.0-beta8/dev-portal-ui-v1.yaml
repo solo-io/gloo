@@ -1,0 +1,19 @@
+changelog:
+  - type: FIX
+    description: Adjust max image size of uploaded assets to 1.5MiB to match etcd.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1568
+  - type: FIX
+    description: Add .ico extension to image upload accepted files.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1569
+  - type: FIX
+    description: Use display name as metadata name, send metadata name on updates.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1570
+  - type: FIX
+    description: Allow specifying multiple domains.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1571
+  - type: FIX
+    description: Add banner to portal details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1572
+  - type: FIX
+    description: Fix transfer component in modals.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1573

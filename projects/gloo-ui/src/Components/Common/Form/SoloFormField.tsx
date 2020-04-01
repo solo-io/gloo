@@ -898,10 +898,13 @@ export const SoloFormStringsList: React.FC<any> = ({
   const meta = form.getFieldMeta(props.name);
 
   const removeValue = (index: number) => {
-    form.setFieldValue(field.name, form.values[field.name].splice(index, 1));
+    form.setFieldValue(
+      field.name,
+      _.remove(form.values[field.name], (val, idx) => idx === index)
+    );
   };
   const addValue = (value: string) => {
-    form.setFieldValue(field.name, form.values[field.name].concat(value));
+    form.setFieldValue(field.name, _.concat(form.values[field.name], [value]));
   };
 
   return (
@@ -910,14 +913,16 @@ export const SoloFormStringsList: React.FC<any> = ({
         {...props}
         {...field}
         error={!!meta.error && meta.touched}
-        values={form.values[field.name].slice(1)}
+        values={form.values[field.name]}
         valueDeleted={removeValue}
         createNew={addValue}
         createNewPromptText={createNewPromptText}
       />
-      <ErrorText errorExists={!!meta.error && meta.touched}>
-        {meta.error}
-      </ErrorText>
+      {props.hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
     </>
   );
 };

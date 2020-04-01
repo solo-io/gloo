@@ -34,6 +34,7 @@ const ListHolder = styled.div`
 
 const Item = styled.div`
   display: flex;
+  cursor: pointer;
   justify-content: space-between;
 
   svg {
