@@ -5,6 +5,7 @@ import { ReactComponent as StacksIcon } from 'assets/app-icon.svg';
 import { ReactComponent as CodeGearIcon } from 'assets/code-sprocket-icon.svg';
 import { ReactComponent as EyeIcon } from 'assets/view-icon.svg';
 import useSWR from 'swr';
+import { apiKeyScopeApi } from '../api';
 import { SoloToggleSwitch } from 'Components/Common/SoloToggleSwitch';
 import {
   SoloNegativeButton,
@@ -14,6 +15,8 @@ import {
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { EditKeyScopeModal } from './EditKeyScopeModal';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { ApiKeyScopeWithApiDocs } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
 
 const Card = styled.div`
   background: white;
@@ -26,8 +29,8 @@ type ExpandedProps = {
 };
 
 const KeyCoreInformation = styled.div`
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 6fr 1fr 4fr;
   padding: 25px 20px 20px;
   cursor: pointer;
   ${(props: ExpandedProps) =>
@@ -44,7 +47,7 @@ const StacksImageHolder = styled.div`
   height: 83px;
   border-radius: 83px;
   background: ${colors.februaryGrey};
-  margin-right: 24px;
+  margin: auto 30px auto 10px;
 
   svg {
     width: 55px;
@@ -52,13 +55,10 @@ const StacksImageHolder = styled.div`
 `;
 
 const AppTitleArea = styled.div`
-  min-width: 250px;
-  max-width: 50%;
   font-size: 16px;
   line-height: 19px;
 `;
 const AppTitle = styled.div`
-  flex: 1;
   font-size: 22px;
   line-height: 26px;
   margin-bottom: 5px;
@@ -70,7 +70,7 @@ const AppCreatedOnDate = styled.div`
 `;
 const Divider = styled.div`
   width: 1px;
-  height: 87px;
+  height: 100%;
   background: ${colors.marchGrey};
   margin: 0 85px;
 `;
@@ -180,6 +180,10 @@ const AccessDescription = styled.div`
   flex: 1;
   color: ${colors.juneGrey};
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 700px;
 `;
 const AccessToggleHolder = styled.div``;
 
@@ -217,13 +221,13 @@ const EmptyCountArea = styled.div`
 `;
 
 interface APICardProps {
-  name?: string;
+  keyScope: ApiKeyScopeWithApiDocs.AsObject;
   onClick?: () => any;
   isExpanded?: boolean;
 }
 
 export const ApiKeyScopeCard = ({
-  name,
+  keyScope,
   onClick,
   isExpanded
 }: APICardProps) => {
@@ -245,7 +249,16 @@ export const ApiKeyScopeCard = ({
   };
 
   const deleteScope = () => {
-    alert('delete scope');
+    apiKeyScopeApi.deleteKeyScope({
+      portal: {
+        namespace: keyScope.apiKeyScope!.portal!.namespace,
+        name: keyScope.apiKeyScope!.portal!.name
+      },
+      apiKeyScope: {
+        namespace: keyScope.apiKeyScope!.spec!.namespace,
+        name: keyScope.apiKeyScope!.spec!.name
+      }
+    });
     setAttemptingDelete(false);
   };
 
@@ -253,104 +266,74 @@ export const ApiKeyScopeCard = ({
     setAttemptingDelete(false);
   };
 
-  const toggleAccess = (accessIndex: number) => {
-    alert('do toggle');
-  };
-
   return (
     <>
       <Card>
-        {!!name ? (
-          <>
-            <KeyCoreInformation isExpanded={!!isExpanded} onClick={onClick}>
-              <StacksImageHolder>
-                <StacksIcon />
-              </StacksImageHolder>
-              <AppTitleArea>
-                <AppTitle>{name}</AppTitle>
-                <AppDescription>{'NEED'}</AppDescription>
-                <AppCreatedOnDate>{'NEED'}</AppCreatedOnDate>
-              </AppTitleArea>
-              <Divider />
-              <CountArea>
-                <CountIconCircle>
-                  <CodeGearIcon />
-                </CountIconCircle>
-                <CountNumeral>{-999}</CountNumeral> APIs in scope
-              </CountArea>
-            </KeyCoreInformation>
-            <KeyExtraInformation isExpanded={!!isExpanded}>
-              <AccessList>
-                <AccessListTitle>API Access</AccessListTitle>
-                {true ? (
-                  ['1'].map((accessInfo, ind) => (
-                    <APIAccessBlock key={accessInfo}>
-                      <AccessIconHolder>
-                        <CodeGearIcon />
-                      </AccessIconHolder>
-                      <AccessName>{'NEED'}</AccessName>
-                      <AccessVersion>{'NEED'}</AccessVersion>
-                      <AccessDescription>
-                        {'LOREM IPSUM DELEC'}
-                      </AccessDescription>
-                      <AccessToggleHolder>
-                        <SoloToggleSwitch
-                          checked={false /*accessInfo*/}
-                          onChange={() => toggleAccess(ind)}
-                          small={true}
-                        />
-                      </AccessToggleHolder>
-                    </APIAccessBlock>
-                  ))
-                ) : (
-                  <NothingFoundInfo>
-                    No access has been granted for this scope.
-                  </NothingFoundInfo>
-                )}
-              </AccessList>
-
-              <ButtonActionGroup>
-                <SoloButtonStyledComponent onClick={beginEditing}>
-                  Edit Scope
-                </SoloButtonStyledComponent>
-                <SoloNegativeButton onClick={attemptDeleteScope}>
-                  Delete Scope
-                </SoloNegativeButton>
-              </ButtonActionGroup>
-            </KeyExtraInformation>
-          </>
-        ) : (
-          <EmptyContentBlock>
-            <>
-              <StacksImageHolder>
-                <StacksIcon />
-              </StacksImageHolder>
-              <EmptyDescriptorsArea>
-                <EmptyTitleLine />
-                <EmptyDescriptionLine />
-                <div style={{ width: '175px' }}>
-                  <EmptyDescriptionLine />
-                </div>
-              </EmptyDescriptorsArea>
-              <Divider />
-
-              <EmptyCountArea>
-                <CountIconCircle>
-                  <CodeGearIcon />
-                </CountIconCircle>
-                <EmptyDescriptionLine />
-              </EmptyCountArea>
-            </>
-          </EmptyContentBlock>
-        )}
+        <KeyCoreInformation isExpanded={!!isExpanded} onClick={onClick}>
+          <StacksImageHolder>
+            <StacksIcon />
+          </StacksImageHolder>
+          <AppTitleArea>
+            <AppTitle>
+              {keyScope.apiKeyScope?.spec?.displayName ||
+                keyScope.apiKeyScope?.spec?.name}
+            </AppTitle>
+            <AppDescription>
+              {keyScope.apiKeyScope?.spec?.description}
+            </AppDescription>
+          </AppTitleArea>
+          <Divider />
+          <CountArea>
+            <CountIconCircle>
+              <CodeGearIcon />
+            </CountIconCircle>
+            <CountNumeral>{keyScope.apiDocsList.length}</CountNumeral> APIs in{' '}
+            scope
+          </CountArea>
+        </KeyCoreInformation>
+        <KeyExtraInformation isExpanded={!!isExpanded}>
+          <AccessList>
+            <AccessListTitle>API Access</AccessListTitle>
+            {!!keyScope.apiDocsList.length ? (
+              keyScope.apiDocsList.map(apiDoc => (
+                <APIAccessBlock key={apiDoc.metadata?.uid}>
+                  <AccessIconHolder>
+                    <CodeGearIcon />
+                  </AccessIconHolder>
+                  <AccessName>{apiDoc.status?.displayName}</AccessName>
+                  <AccessVersion>{apiDoc.status?.version}</AccessVersion>
+                  <AccessDescription>
+                    {apiDoc.status?.description}
+                  </AccessDescription>
+                </APIAccessBlock>
+              ))
+            ) : (
+              <NothingFoundInfo>
+                No access has been granted for this scope.
+              </NothingFoundInfo>
+            )}
+          </AccessList>
+          <ButtonActionGroup>
+            <SoloButtonStyledComponent onClick={beginEditing}>
+              Edit Scope
+            </SoloButtonStyledComponent>
+            <SoloNegativeButton onClick={attemptDeleteScope}>
+              Delete Scope
+            </SoloNegativeButton>
+          </ButtonActionGroup>
+        </KeyExtraInformation>
       </Card>
 
       <SoloModal visible={editWizardOpen} width={750} noPadding={true}>
-        <EditKeyScopeModal onEdit={finishEditing} onCancel={cancelEditing} />
+        <EditKeyScopeModal
+          existingKeyScope={keyScope.apiKeyScope}
+          onEdit={finishEditing}
+          onCancel={cancelEditing}
+        />
       </SoloModal>
       <ConfirmationModal
         visible={attemptingDelete}
-        confirmationTopic='delete this scope'
+        confirmationTopic='Delete this scope?'
         confirmText='Delete'
         goForIt={deleteScope}
         cancel={cancelDeletion}
@@ -359,3 +342,28 @@ export const ApiKeyScopeCard = ({
     </>
   );
 };
+
+export const EmptyKeyScopeCard = () => (
+  <EmptyContentBlock>
+    <>
+      <StacksImageHolder>
+        <StacksIcon />
+      </StacksImageHolder>
+      <EmptyDescriptorsArea>
+        <EmptyTitleLine />
+        <EmptyDescriptionLine />
+        <div style={{ width: '175px' }}>
+          <EmptyDescriptionLine />
+        </div>
+      </EmptyDescriptorsArea>
+      <Divider />
+
+      <EmptyCountArea>
+        <CountIconCircle>
+          <CodeGearIcon />
+        </CountIconCircle>
+        <EmptyDescriptionLine />
+      </EmptyCountArea>
+    </>
+  </EmptyContentBlock>
+);

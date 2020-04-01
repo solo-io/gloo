@@ -51,6 +51,30 @@ export const EmptyPortalsPanel: React.FC<{ itemName: string }> = props => {
   );
 };
 
+export const NoDataPanel: React.FC<{
+  missingContentText: string;
+  helpText: string;
+}> = ({ missingContentText, helpText, ...restProps }) => {
+  return (
+    <>
+      <div className='w-full '>
+        <div className='flex items-center justify-center mx-4 mb-2 bg-white rounded-lg shadow'>
+          <span className='text-blue-500 '>
+            <DevPortalIcon className='w-32 h-32 fill-current' />
+          </span>
+          <div className='ml-8'>
+            <div className='text-lg font-medium text-gray-900'>
+              {missingContentText}
+            </div>
+            <div>{helpText}</div>
+          </div>
+        </div>
+        {restProps.children}
+      </div>
+    </>
+  );
+};
+
 const StyledTab = (
   props: {
     disabled?: boolean | undefined;

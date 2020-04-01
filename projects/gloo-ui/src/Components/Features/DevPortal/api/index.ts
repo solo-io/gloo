@@ -5,6 +5,7 @@ import { ApiDocApi } from 'proto/dev-portal/api/grpc/admin/apidoc_pb_service';
 import { UserApi } from 'proto/dev-portal/api/grpc/admin/user_pb_service';
 import { GroupApi } from 'proto/dev-portal/api/grpc/admin/group_pb_service';
 import { ApiKeyApi } from 'proto/dev-portal/api/grpc/admin/api_key_pb_service';
+import { ApiKeyScopeApi } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb_service';
 
 import { host } from 'store';
 
@@ -69,6 +70,13 @@ import {
   GroupStatus,
   GroupSpec
 } from 'proto/dev-portal/api/dev-portal/v1/group_pb';
+import {
+  ApiKeyScopeWithApiDocs,
+  ApiKeyScopeList,
+  ApiKeyScopeRef,
+  ApiKeyScopeWriteRequest,
+  ApiKeyScope
+} from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
 
 export const portalApi = {
   listPortals,
@@ -101,6 +109,13 @@ export const groupApi = {
 export const apiKeyApi = {
   listApiKeys,
   deleteApiKey
+};
+
+export const apiKeyScopeApi = {
+  listKeyScopes,
+  createKeyScope,
+  updateKeyScope,
+  deleteKeyScope
 };
 
 function deleteApiDoc(apiDocRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
@@ -1616,6 +1631,195 @@ function deletePortalPage(
             }
           }
         });
+      }
+    });
+  });
+}
+
+function listKeyScopes(): Promise<ApiKeyScopeWithApiDocs.AsObject[]> {
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyScopeApi.ListApiKeyScopes, {
+      request: new Empty(),
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiKeyScopeList) => {
+        if (message) {
+          console.log(message.toObject());
+          resolve(message.toObject().apiKeyScopesList);
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function createKeyScope(
+  input: ApiKeyScopeWriteRequest.AsObject
+): Promise<ApiKeyScope.AsObject> {
+  if (
+    !input.apiKeyScope?.portal?.namespace ||
+    !input.apiKeyScope?.portal?.namespace ||
+    !input.apiKeyScope.spec?.namespace ||
+    !input.apiKeyScope.spec?.name ||
+    !input.apiKeyScope.spec?.displayName
+  ) {
+    return new Promise((resolve, reject) => reject('invalid request'));
+  }
+
+  let request = new ApiKeyScopeWriteRequest();
+  let keyScope = new ApiKeyScope();
+
+  let portalRef = new ObjectRef();
+  portalRef.setName(input.apiKeyScope?.portal?.name);
+  portalRef.setNamespace(input.apiKeyScope?.portal?.namespace);
+  keyScope.setPortal(portalRef);
+
+  let spec = new KeyScope();
+  spec.setNamespace(input.apiKeyScope.spec!.namespace);
+  spec.setNamespace(input.apiKeyScope.spec!.name);
+  spec.setDisplayName(input.apiKeyScope.spec!.displayName);
+  spec.setDescription(input.apiKeyScope.spec!.description || '');
+  keyScope.setSpec(spec);
+  request.setApiKeyScope(keyScope);
+
+  let docs = input.apiDocsList.map(doc => {
+    const docRef = new ObjectRef();
+    docRef.setName(doc.name);
+    docRef.setNamespace(doc.namespace);
+    return docRef;
+  });
+  request.setApiDocsList(docs);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyScopeApi.CreateApiKeyScope, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiKeyScope) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function updateKeyScope(
+  input: ApiKeyScopeWriteRequest.AsObject
+): Promise<ApiKeyScope.AsObject> {
+  if (
+    !input.apiKeyScope?.portal?.namespace ||
+    !input.apiKeyScope?.portal?.namespace ||
+    !input.apiKeyScope.spec?.namespace ||
+    !input.apiKeyScope.spec?.name ||
+    !input.apiKeyScope.spec?.displayName
+  ) {
+    return new Promise((resolve, reject) => reject('invalid request'));
+  }
+
+  let request = new ApiKeyScopeWriteRequest();
+  let keyScope = new ApiKeyScope();
+
+  let portalRef = new ObjectRef();
+  portalRef.setName(input.apiKeyScope?.portal?.name);
+  portalRef.setNamespace(input.apiKeyScope?.portal?.namespace);
+  keyScope.setPortal(portalRef);
+
+  let spec = new KeyScope();
+  spec.setNamespace(input.apiKeyScope.spec!.namespace);
+  spec.setName(input.apiKeyScope.spec!.name);
+  spec.setDisplayName(input.apiKeyScope.spec!.displayName);
+  spec.setDescription(input.apiKeyScope.spec!.description || '');
+  keyScope.setSpec(spec);
+  request.setApiKeyScope(keyScope);
+
+  let docs = input.apiDocsList.map(doc => {
+    const docRef = new ObjectRef();
+    docRef.setName(doc.name);
+    docRef.setNamespace(doc.namespace);
+    return docRef;
+  });
+  request.setApiDocsList(docs);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyScopeApi.UpdateApiKeyScope, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiKeyScope) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function deleteKeyScope(ref: ApiKeyScopeRef.AsObject): Promise<Empty.AsObject> {
+  if (!ref.portal || !ref.apiKeyScope) {
+    return new Promise((resolve, reject) => reject('invalid request'));
+  }
+
+  let request = new ApiKeyScopeRef();
+  let portalRef = new ObjectRef();
+  portalRef.setName(ref.portal.name);
+  portalRef.setNamespace(ref.portal.namespace);
+
+  let keyScopeRef = new ObjectRef();
+  keyScopeRef.setName(ref.apiKeyScope.name);
+  keyScopeRef.setNamespace(ref.apiKeyScope.namespace);
+
+  request.setPortal(portalRef);
+  request.setApiKeyScope(keyScopeRef);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiKeyScopeApi.DeleteApiKeyScope, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Empty) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
       }
     });
   });

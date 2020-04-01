@@ -70,16 +70,11 @@ export const PortalsListing = () => {
             .map(portal => (
               <PortalItem key={portal.metadata?.uid} portal={portal} />
             ))}
-          <SoloModal
-            visible={showCreatePortalModal}
-            width={750}
-            noPadding={true}>
-            <CreatePortalModal
-              onClose={() => setShowCreatePortalModal(false)}
-            />
-          </SoloModal>
         </>
       )}
+      <SoloModal visible={showCreatePortalModal} width={750} noPadding={true}>
+        <CreatePortalModal onClose={() => setShowCreatePortalModal(false)} />
+      </SoloModal>
     </div>
   );
 };
