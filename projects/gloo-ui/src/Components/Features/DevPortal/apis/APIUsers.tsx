@@ -2,30 +2,33 @@ import React from 'react';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
 import useSWR from 'swr';
-import { groupApi } from '../api';
+import { userApi } from '../api';
 import { format } from 'timeago.js';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import { CreateUserModal } from '../users/CreateUserModal';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 
-type PortalGroupsTabProps = {
-  portal: Portal.AsObject;
+type ApiDocUsersProps = {
+  apiDoc: ApiDoc.AsObject;
 };
-export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
-  const { data: groupsList, error: groupsError } = useSWR(
-    `listGroups${portal.metadata?.name}${portal.metadata?.namespace}`,
+
+export const APIUsersTab = ({ apiDoc }: ApiDocUsersProps) => {
+  const { data: usersList, error: usersError } = useSWR(
+    `listUsers${apiDoc.metadata?.name}${apiDoc.metadata?.namespace}`,
     () =>
-      groupApi.listGroups({
-        portalsList: [
-          { name: portal.metadata!.name, namespace: portal.metadata!.namespace }
+      userApi.listUsers({
+        portalsList: [],
+        apiDocsList: [
+          { name: apiDoc.metadata!.name, namespace: apiDoc.metadata!.namespace }
         ],
-        apiDocsList: []
+        groupsList: []
       })
   );
 
-  const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
+  const [userSearchTerm, setUserSearchTerm] = React.useState('');
   const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
 
   return (
@@ -34,13 +37,13 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
         onClick={() => setShowCreateUserModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Create a Group</span>
+        <span className='text-gray-700'> Create a User</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
           placeholder='Search by API name...'
-          value={groupSearchTerm}
-          onChange={e => setGroupSearchTerm(e.target.value)}
+          value={userSearchTerm}
+          onChange={e => setUserSearchTerm(e.target.value)}
         />
       </div>
       <div className='flex flex-col'>
@@ -50,13 +53,10 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
               <thead className='bg-gray-300 '>
                 <tr>
                   <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                    Group Name
+                    User Name
                   </th>
                   <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                    Description
-                  </th>
-                  <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                    Members
+                    Email
                   </th>
 
                   <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
@@ -65,8 +65,8 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {!!groupsList &&
-                  groupsList!
+                {!!usersList &&
+                  usersList!
                     .sort((a, b) =>
                       a.metadata?.name === b.metadata?.name
                         ? 0
@@ -74,30 +74,20 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                         ? 1
                         : -1
                     )
-                    .map(group => {
+                    .map(user => {
                       return (
-                        <tr key={group.metadata?.uid}>
+                        <tr key={user.metadata?.uid}>
                           <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
                             <div className='text-sm leading-5 text-gray-900'>
                               <span className='flex items-center capitalize'>
-                                {group?.spec?.displayName ||
-                                  group.metadata?.name}
+                                {user?.spec?.username}
                               </span>
                             </div>
                           </td>
                           <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
                             <div className='text-sm leading-5 text-gray-900'>
                               <span className='flex items-center capitalize'>
-                                {group?.spec?.description}
-                              </span>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                            <div className='text-sm leading-5 text-gray-900'>
-                              <span className='flex items-center capitalize'>
-                                {group?.status?.usersList
-                                  .map(u => u.name)
-                                  .join(', ')}
+                                {user?.spec?.email}
                               </span>
                             </div>
                           </td>

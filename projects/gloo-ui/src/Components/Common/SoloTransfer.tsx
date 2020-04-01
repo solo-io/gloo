@@ -34,6 +34,7 @@ const ListHolder = styled.div`
 
 const Item = styled.div`
   display: flex;
+  align-items: center;
   cursor: pointer;
   justify-content: space-between;
 
@@ -43,6 +44,7 @@ const Item = styled.div`
   }
 
   &:hover {
+    background-color: ${colors.februaryGrey};
     svg {
       opacity: 1;
       pointer-events: all;

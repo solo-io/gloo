@@ -25,6 +25,8 @@ import { apiDocApi } from '../api';
 import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
 import { formatHealthStatus } from '../portals/PortalsListing';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { APIUsersTab } from './APIUsers';
+import { APIGroupsTab } from './APIGroups';
 
 const StyledTab = (
   props: {
@@ -105,10 +107,12 @@ export const APIDetails = () => {
           healthMessage={'Portal Status'}
           onClose={() => history.push(`/dev-portal/`)}>
           <div>
-            {(apiDoc?.status?.state === State.PENDING ||
-              apiDoc?.status?.state === State.PROCESSING) && (
-              <div className='p-2 text-yellow-500 bg-yellow-100 rounded-lg '>
-                Updates are pending publication
+            {apiDoc?.status?.state !== State.SUCCEEDED && (
+              <div className='flex items-center p-2 mb-2 text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-lg '>
+                <div className='flex items-center justify-center w-4 h-4 mr-2 text-white text-yellow-500 bg-orange-100 border border-yellow-500 rounded-full'>
+                  !
+                </div>{' '}
+                {apiDoc.status?.reason}
               </div>
             )}
             <div className='relative flex items-center'>
@@ -154,14 +158,7 @@ export const APIDetails = () => {
                 </span>
                 <div className='col-span-2 '>
                   <span className='font-medium text-gray-900'>Description</span>
-                  <div>
-                    Updated - Lorem ipsum dolor sit amet, consetetur sadipscing
-                    elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-                    dolore magna aliquyam erat, sed diam voluptua. At vero eos
-                    et accusam et justo duo dolores et ea rebum. Stet clita kasd
-                    gubergren, no sea takimata sanctus est Lorem ipsum dolor sit
-                    amet.
-                  </div>
+                  <div>{apiDoc.status?.description}</div>
                 </div>
               </div>
             </div>
@@ -178,238 +175,10 @@ export const APIDetails = () => {
                   margin-top: -1px;
                 `}>
                 <TabPanel className='focus:outline-none'>
-                  <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
-                    <span className='absolute top-0 right-0 p-4 '>
-                      <span></span> add an API
-                    </span>
-                    <div className='w-1/3 m-4'>
-                      <SoloInput
-                        placeholder='Search by API name...'
-                        value={APISearchTerm}
-                        onChange={e => setAPISearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className='flex flex-col'>
-                      <div className='py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8'>
-                        <div className='inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg'>
-                          <table className='min-w-full'>
-                            <thead className='bg-gray-300 '>
-                              <tr>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  API Name
-                                </th>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Description
-                                </th>
-
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Modified
-                                </th>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Status
-                                </th>
-
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className='bg-white'>
-                              {/* {(filteredUsers
-                              ? filteredUsers
-                              : organizationMembersList
-                            )?.map(orgMember => ( */}
-                              <tr>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      Getting Started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      Getting Started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center '>
-                                      /getting-started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      modified
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
-                                  <span className='flex items-center'>
-                                    <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                      <EditIcon className='w-2 h-3 fill-current' />
-                                    </div>
-
-                                    <div
-                                      className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                      onClick={() => {}}>
-                                      x
-                                    </div>
-                                    {/* )} */}
-                                  </span>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          {/* empty state */}
-                          {/* <div className='w-full m-auto'>
-                          <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
-                            <div className='mr-6'>
-                              <NoRepositories />
-                            </div>
-                            <div className='flex flex-col h-full'>
-                              <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
-                                There are no matching members in this
-                                organization.
-                              </p>
-                              <p className='text-base font-normal text-gray-700 '>
-                                Not finding what you're looking for? If you have
-                                access, try switching organizations via the top
-                                left dropdown.
-                              </p>
-                              <p className='py-2 text-base font-normal text-gray-700 '>
-                                Please contact your organizations admin for more
-                                details.
-                              </p>
-                            </div>
-                          </div>
-                        </div> */}
-                          {/* empty state */}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <APIUsersTab apiDoc={apiDoc} />
                 </TabPanel>
                 <TabPanel className='focus:outline-none'>
-                  <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
-                    <span className='absolute top-0 right-0 p-4 '>
-                      <span></span> add an API
-                    </span>
-                    <div className='w-1/3 m-4'>
-                      <SoloInput
-                        placeholder='Search by API name...'
-                        value={APISearchTerm}
-                        onChange={e => setAPISearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className='flex flex-col'>
-                      <div className='py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8'>
-                        <div className='inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg'>
-                          <table className='min-w-full'>
-                            <thead className='bg-gray-300 '>
-                              <tr>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  API Name
-                                </th>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Description
-                                </th>
-
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Modified
-                                </th>
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Status
-                                </th>
-
-                                <th className='px-6 py-3 text-sm font-medium leading-4 tracking-wider text-left text-gray-800 capitalize border-b border-gray-200 bg-gray-50'>
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className='bg-white'>
-                              {/* {(filteredUsers
-                              ? filteredUsers
-                              : organizationMembersList
-                            )?.map(orgMember => ( */}
-                              <tr>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      Getting Started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      Getting Started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center '>
-                                      /getting-started
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-900'>
-                                    <span className='flex items-center capitalize'>
-                                      modified
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
-                                  <span className='flex items-center'>
-                                    <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                      <EditIcon className='w-2 h-3 fill-current' />
-                                    </div>
-
-                                    <div
-                                      className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                      onClick={() => {}}>
-                                      x
-                                    </div>
-                                    {/* )} */}
-                                  </span>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          {/* empty state */}
-                          {/* <div className='w-full m-auto'>
-                          <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
-                            <div className='mr-6'>
-                              <NoRepositories />
-                            </div>
-                            <div className='flex flex-col h-full'>
-                              <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
-                                There are no matching members in this
-                                organization.
-                              </p>
-                              <p className='text-base font-normal text-gray-700 '>
-                                Not finding what you're looking for? If you have
-                                access, try switching organizations via the top
-                                left dropdown.
-                              </p>
-                              <p className='py-2 text-base font-normal text-gray-700 '>
-                                Please contact your organizations admin for more
-                                details.
-                              </p>
-                            </div>
-                          </div>
-                        </div> */}
-                          {/* empty state */}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <APIGroupsTab apiDoc={apiDoc} />
                 </TabPanel>
               </TabPanels>
             </Tabs>

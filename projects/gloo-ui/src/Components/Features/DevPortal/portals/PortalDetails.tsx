@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, useHistory } from 'react-router';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
+import { ReactComponent as PortalIcon } from 'assets/portal-icon.svg';
 import { healthConstants, colors, soloConstants } from 'Styles';
 import { css } from '@emotion/core';
 import {
@@ -195,7 +195,7 @@ export const PortalDetails = () => {
           cardName={portalname || 'portal'}
           logoIcon={
             <span className='text-blue-500'>
-              <CodeIcon className='fill-current' />
+              <PortalIcon className='fill-current' />
             </span>
           }
           health={formatHealthStatus(portal?.status?.state)}

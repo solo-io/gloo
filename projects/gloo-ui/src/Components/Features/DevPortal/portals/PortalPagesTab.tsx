@@ -113,62 +113,66 @@ export const PortalPagesTab = () => {
                   </tr>
                 </thead>
                 <tbody className='bg-white'>
-                  {filteredList!.map(page => (
-                    <tr key={page.name}>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {page.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {page.navigationLinkName}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {page.path}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {page.displayOnHomepage ? 'yes' : ''}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
-                        <span className='flex items-center'>
-                          <div className='flex items-center justify-center w-4 h-4 mr-3 bg-gray-400 rounded-full cursor-pointer'>
-                            <EditPencilIcon
-                              className='w-2 h-3 fill-current'
-                              onClick={() =>
-                                routerHistory.push({
-                                  pathname: `${routerLocation.pathname}/page-editor/${page.name}`
-                                })
-                              }
-                            />
+                  {filteredList!
+                    .sort((a, b) =>
+                      a.name === b.name ? 0 : a.name > b.name ? 1 : -1
+                    )
+                    .map(page => (
+                      <tr key={page.name}>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {page.name}
+                            </span>
                           </div>
+                        </td>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {page.navigationLinkName}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {page.path}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {page.displayOnHomepage ? 'yes' : ''}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
+                          <span className='flex items-center'>
+                            <div className='flex items-center justify-center w-4 h-4 mr-3 bg-gray-400 rounded-full cursor-pointer'>
+                              <EditPencilIcon
+                                className='w-2 h-3 fill-current'
+                                onClick={() =>
+                                  routerHistory.push({
+                                    pathname: `${routerLocation.pathname}/page-editor/${page.name}`
+                                  })
+                                }
+                              />
+                            </div>
 
-                          <div
-                            className='flex items-center justify-center w-4 h-4 bg-gray-400 rounded-full cursor-pointer'
-                            onClick={() => {}}>
-                            <DeleteXIcon
-                              className='w-2 h-3 fill-current'
-                              onClick={() => attemptDeletion(page.name)}
-                            />
-                          </div>
-                          {/* )} */}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                            <div
+                              className='flex items-center justify-center w-4 h-4 bg-gray-400 rounded-full cursor-pointer'
+                              onClick={() => {}}>
+                              <DeleteXIcon
+                                className='w-2 h-3 fill-current'
+                                onClick={() => attemptDeletion(page.name)}
+                              />
+                            </div>
+                            {/* )} */}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

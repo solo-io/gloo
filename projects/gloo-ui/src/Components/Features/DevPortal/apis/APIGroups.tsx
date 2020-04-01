@@ -9,19 +9,20 @@ import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 import { CreateUserModal } from '../users/CreateUserModal';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 
-type PortalGroupsTabProps = {
-  portal: Portal.AsObject;
+type APIGroupProps = {
+  apiDoc: ApiDoc.AsObject;
 };
-export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
+export const APIGroupsTab = ({ apiDoc }: APIGroupProps) => {
   const { data: groupsList, error: groupsError } = useSWR(
-    `listGroups${portal.metadata?.name}${portal.metadata?.namespace}`,
+    `listGroups${apiDoc.metadata?.name}${apiDoc.metadata?.namespace}`,
     () =>
       groupApi.listGroups({
-        portalsList: [
-          { name: portal.metadata!.name, namespace: portal.metadata!.namespace }
-        ],
-        apiDocsList: []
+        portalsList: [],
+        apiDocsList: [
+          { name: apiDoc.metadata!.name, namespace: apiDoc.metadata!.namespace }
+        ]
       })
   );
 
