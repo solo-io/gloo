@@ -1,0 +1,16 @@
+changelog:
+  - type: FIX
+    description: Populate users and groups columns with real data, and implement popovers.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1575
+  - type: FIX
+    description: Add group selection step to the create user modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1577
+  - type: FIX
+    description: Use pod namespace for api calls.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1579
+  - type: FIX
+    description: Add validation to the portal name in create portal modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1581
+  - type: FIX
+    description: Allow creating a portal without specifying all images.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1584

@@ -73,7 +73,6 @@ export const SoloTransfer = (props: TransferProps) => {
   } = props;
 
   const addItem = (addedItem: ListItemType) => {
-    console.log('addItem', addedItem);
     onChange([...chosenOptions, addedItem]);
   };
 
@@ -87,7 +86,6 @@ export const SoloTransfer = (props: TransferProps) => {
     );
   };
 
-  console.log('chosenOptions', chosenOptions);
   return (
     <TransferBlock>
       <ListHalf>

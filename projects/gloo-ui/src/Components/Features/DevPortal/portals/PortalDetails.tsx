@@ -145,6 +145,7 @@ export const PortalDetails = () => {
   });
 
   const handleUpdatePortal = async (values: UpdatePortalValues) => {
+    console.log('values', values);
     const {
       backgroundColor,
       primaryColor,
@@ -158,7 +159,6 @@ export const PortalDetails = () => {
     //@ts-ignore
     await portalApi.updatePortal({
       portal: {
-        ...portal,
         //@ts-ignore
         metadata: {
           ...portal.metadata,
@@ -166,7 +166,6 @@ export const PortalDetails = () => {
           namespace: portal.metadata?.namespace!
         },
         spec: {
-          ...portal.spec,
           domainsList: domainsList,
           // @ts-ignore
           customStyling: {
@@ -175,6 +174,14 @@ export const PortalDetails = () => {
             defaultTextColor,
             secondaryColor
           },
+          //@ts-ignore
+          banner: {
+            ...portal.spec?.banner
+          },
+          //@ts-ignore
+          favicon: { ...portal.spec?.favicon },
+          //@ts-ignore
+          primaryLogo: { ...portal.spec?.primaryLogo },
           description,
           displayName
         }

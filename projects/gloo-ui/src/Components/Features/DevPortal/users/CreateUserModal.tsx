@@ -25,10 +25,11 @@ import {
 } from 'Styles/CommonEmotions/button';
 import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
-import { apiDocApi, portalApi, userApi } from '../api';
+import { apiDocApi, portalApi, userApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
+import { configAPI } from 'store/config/api';
 
 const StyledTab = (
   props: {
@@ -115,6 +116,16 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
     'listApiDocs',
     apiDocApi.listApiDocs
   );
+  const { data: groupsList, error: groupsError } = useSWR(
+    'listGroups',
+    groupApi.listGroups
+  );
+
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+
   const [tabIndex, setTabIndex] = React.useState(0);
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
@@ -136,7 +147,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
         metadata: {
           ...newUser.metadata!,
           name,
-          namespace: 'gloo-system'
+          namespace: podNamespace!
         },
         spec: {
           email,
@@ -152,7 +163,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
     props.onClose();
   };
 
-  if (!apiDocsList || !portalsList) {
+  if (!apiDocsList || !portalsList || !groupsList) {
     return <Loading center>Loading...</Loading>;
   }
   return (
@@ -186,6 +197,8 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                 `}>
                 <TabList className='flex flex-col mt-6'>
                   <StyledTab>General</StyledTab>
+                  <StyledTab>Groups</StyledTab>
+
                   <StyledTab>APIs</StyledTab>
                   <StyledTab>Portals</StyledTab>
                 </TabList>
@@ -203,6 +216,60 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                         onClick={() => setTabIndex(tabIndex + 1)}>
                         Next Step
                       </SoloButtonStyledComponent>
+                    </div>
+                  </TabPanel>
+                  <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
+                    <SectionContainer>
+                      <SectionHeader>Create a User: Groups</SectionHeader>
+                      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
+                        Select a Group to which you'd like to add this user
+                      </div>
+                      <SoloTransfer
+                        allOptionsListName='Available Groups'
+                        allOptions={groupsList
+                          .sort((a, b) =>
+                            a.metadata?.name === b.metadata?.name
+                              ? 0
+                              : a.metadata!.name > b.metadata!.name
+                              ? 1
+                              : -1
+                          )
+                          .map(group => {
+                            return {
+                              name: group.metadata?.name!,
+                              namespace: group.metadata?.namespace!
+                            };
+                          })}
+                        chosenOptionsListName='Selected Groups'
+                        chosenOptions={formik.values.chosenGroups.map(api => {
+                          return { name: api.name, namespace: api.namespace };
+                        })}
+                        onChange={newChosenOptions => {
+                          console.log('newChosenOptions', newChosenOptions);
+                          formik.setFieldValue(
+                            'chosenGroups',
+                            newChosenOptions
+                          );
+                        }}
+                      />
+                    </SectionContainer>
+                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
+                      <button
+                        className='text-blue-500 cursor-pointer'
+                        onClick={props.onClose}>
+                        cancel
+                      </button>
+                      <div>
+                        <SoloCancelButton
+                          onClick={() => handleTabsChange(0)}
+                          className='mr-2'>
+                          Back
+                        </SoloCancelButton>
+                        <SoloButtonStyledComponent
+                          onClick={() => setTabIndex(tabIndex + 1)}>
+                          Next Step
+                        </SoloButtonStyledComponent>
+                      </div>
                     </div>
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
@@ -257,6 +324,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                       </div>
                     </div>
                   </TabPanel>
+
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
                       <SectionHeader>Create a User: Portal</SectionHeader>

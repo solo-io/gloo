@@ -1263,64 +1263,77 @@ function updatePortal(
 ): Promise<Portal.AsObject> {
   const { portal, usersList, apiDocsList, groupsList } = portalWriteRequest;
   let request = new PortalWriteRequest();
-
-  if (portal !== undefined) {
-    let portalToCreate = portalMessageFromObject(portalWriteRequest.portal!);
-    request.setPortal(portalToCreate);
-  }
-
-  if (apiDocsList !== undefined) {
-    let apiDocsRefList = apiDocsList.map(apiDocRefObj => {
-      let apiDocRef = new ObjectRef();
-      apiDocRef.setName(apiDocRefObj.name);
-      apiDocRef.setNamespace(apiDocRefObj.namespace);
-      return apiDocRef;
-    });
-    request.setApiDocsList(apiDocsRefList);
-  }
-
-  if (usersList !== undefined) {
-    let usersRefList = usersList.map(userRefObj => {
-      let userRef = new ObjectRef();
-      userRef.setName(userRefObj.name);
-      userRef.setNamespace(userRefObj.namespace);
-      return userRef;
-    });
-    request.setUsersList(usersRefList);
-  }
-
-  if (groupsList !== undefined) {
-    let groupsRefList = groupsList.map(groupRefObj => {
-      let groupRef = new ObjectRef();
-      groupRef.setName(groupRefObj.name);
-      groupRef.setNamespace(groupRefObj.namespace);
-      return groupRef;
-    });
-    request.setGroupsList(groupsRefList);
-  }
-
   return new Promise((resolve, reject) => {
-    grpc.invoke(PortalApi.UpdatePortal, {
-      request,
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {},
-      onMessage: (message: Portal) => {
-        if (message) {
-          resolve(message.toObject());
+    if (portal !== undefined && portal.metadata) {
+      let portalRef = new ObjectRef();
+      portalRef.setName(portal.metadata.name);
+      portalRef.setNamespace(portal.metadata.namespace);
+
+      grpc.unary(PortalApi.GetPortalWithAssets, {
+        request: portalRef,
+        host,
+        onEnd: endMessage => {
+          let portalToUpdate = portalMessageFromObject(
+            portalWriteRequest.portal!,
+            endMessage.message as Portal
+          );
+
+          request.setPortal(portalToUpdate);
+
+          if (apiDocsList !== undefined) {
+            let apiDocsRefList = apiDocsList.map(apiDocRefObj => {
+              let apiDocRef = new ObjectRef();
+              apiDocRef.setName(apiDocRefObj.name);
+              apiDocRef.setNamespace(apiDocRefObj.namespace);
+              return apiDocRef;
+            });
+            request.setApiDocsList(apiDocsRefList);
+          }
+
+          if (usersList !== undefined) {
+            let usersRefList = usersList.map(userRefObj => {
+              let userRef = new ObjectRef();
+              userRef.setName(userRefObj.name);
+              userRef.setNamespace(userRefObj.namespace);
+              return userRef;
+            });
+            request.setUsersList(usersRefList);
+          }
+
+          if (groupsList !== undefined) {
+            let groupsRefList = groupsList.map(groupRefObj => {
+              let groupRef = new ObjectRef();
+              groupRef.setName(groupRefObj.name);
+              groupRef.setNamespace(groupRefObj.namespace);
+              return groupRef;
+            });
+            request.setGroupsList(groupsRefList);
+          }
+
+          grpc.invoke(PortalApi.UpdatePortal, {
+            request,
+            host,
+            metadata: new grpc.Metadata(),
+            onHeaders: (headers: grpc.Metadata) => {},
+            onMessage: (message: Portal) => {
+              if (message) {
+                resolve(message.toObject());
+              }
+            },
+            onEnd: (
+              status: grpc.Code,
+              statusMessage: string,
+              trailers: grpc.Metadata
+            ) => {
+              if (status !== grpc.Code.OK) {
+                console.log('statusMessage', statusMessage);
+                reject(statusMessage);
+              }
+            }
+          });
         }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        if (status !== grpc.Code.OK) {
-          console.log('statusMessage', statusMessage);
-          reject(statusMessage);
-        }
-      }
-    });
+      });
+    }
   });
 }
 

@@ -134,12 +134,17 @@ export const APIDetails = () => {
                   <span className='font-medium text-gray-900'>
                     Published In
                   </span>
-                  <div className='flex items-center mb-2 text-sm text-blue-600'>
-                    <span>
-                      <ExternalLinkIcon className='w-4 h-4 ' />
-                    </span>
-                    {apiDoc.status?.basePath}
-                  </div>
+                  {/* {apiDoc..spec?.domainsList.map((domain, index) => (
+                    <div
+                      key={domain}
+                      className='flex items-center mb-2 text-sm text-blue-600'>
+                      <span>
+                        <ExternalLinkIcon className='w-4 h-4 ' />
+                      </span>
+                    
+                        <div>{domain}</div>
+                     </div>
+                  ))} */}
                 </div>
                 <span className='absolute top-0 right-0 flex items-center'>
                   <span className='mr-2'> Edit</span>

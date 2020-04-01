@@ -33,6 +33,7 @@ import {
   SectionSubHeader
 } from '../apis/CreateAPIModal';
 import * as yup from 'yup';
+import { configAPI } from 'store/config/api';
 
 const StyledTab = (
   props: {
@@ -55,6 +56,16 @@ const StyledTab = (
   );
 };
 
+const validationSchema = yup.object().shape({
+  displayName: yup
+    .string()
+    .matches(
+      /^(?![0-9]+$)(?!.*-$)(?!-)[a-zA-Z0-9-]{1,63}$/g,
+      `must consist of lower case alphanumeric characters, '-' or '.'`
+    )
+    .required('The name is required')
+});
+
 const GeneralSection = () => {
   return (
     <SectionContainer>
@@ -62,13 +73,12 @@ const GeneralSection = () => {
       <div className='p-3 text-gray-700 bg-gray-100 rounded-lg'>
         Create a new Portal to expose business APIs
       </div>
-      <div className='flex flex-col w-full mt-2'>
+      <div className='grid w-full grid-cols-2 mt-2'>
         <div className='mr-4 '>
           <SoloFormInput
             name='displayName'
             title='Name'
             placeholder='Portal name goes here'
-            hideError
           />
         </div>
         <div>
@@ -79,7 +89,7 @@ const GeneralSection = () => {
             hideError
           />
         </div>
-        <div className='mt-2 '>
+        <div className='col-span-2 mt-2'>
           <SoloFormTextarea
             name='description'
             title='Description'
@@ -256,7 +266,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
     'listGroups',
     groupApi.listGroups
   );
-
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
   const [tabIndex, setTabIndex] = React.useState(0);
 
   const handleTabsChange = (index: number) => {
@@ -273,14 +286,24 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
       primaryLogo
     } = values;
     let newPortal = new Portal().toObject();
-    let bannerBuffer = await banner.arrayBuffer();
-    let bannerUint8Arr = new Uint8Array(bannerBuffer);
 
-    let faviconBuffer = await favicon.arrayBuffer();
-    let faviconUint8Arr = new Uint8Array(faviconBuffer);
+    let bannerUint8Arr = new Uint8Array();
+    if (banner !== undefined) {
+      let bannerBuffer = await banner.arrayBuffer();
+      bannerUint8Arr = new Uint8Array(bannerBuffer);
+    }
 
-    let primaryLogoBuffer = await primaryLogo.arrayBuffer();
-    let primaryLogoUint8Arr = new Uint8Array(primaryLogoBuffer);
+    let faviconUint8Arr = new Uint8Array();
+    if (favicon !== undefined) {
+      let faviconBuffer = await favicon.arrayBuffer();
+      faviconUint8Arr = new Uint8Array(faviconBuffer);
+    }
+
+    let primaryLogoUint8Arr = new Uint8Array();
+    if (primaryLogo !== undefined) {
+      let primaryLogoBuffer = await primaryLogo.arrayBuffer();
+      primaryLogoUint8Arr = new Uint8Array(primaryLogoBuffer);
+    }
 
     //@ts-ignore
     await portalApi.createPortal({
@@ -290,6 +313,7 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         metadata: {
           // ...newPortal.metadata!,
           name: displayName,
+          namespace: podNamespace!,
           annotationsMap: [],
           labelsMap: [],
           resourceVersion: '',
@@ -364,6 +388,7 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
             chosenUsers: [] as ObjectRef.AsObject[],
             chosenGroups: [] as ObjectRef.AsObject[]
           }}
+          validationSchema={validationSchema}
           onSubmit={handleCreatePortal}>
           {formik => (
             <>

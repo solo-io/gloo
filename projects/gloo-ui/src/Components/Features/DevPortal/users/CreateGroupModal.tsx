@@ -26,6 +26,7 @@ import { userApi, apiDocApi, portalApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { configAPI } from 'store/config/api';
 
 const StyledTab = (
   props: {
@@ -98,6 +99,11 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
     userApi.listUsers
   );
 
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
+
   const { data: apiDocsList, error: apiDocsError } = useSWR(
     'listApiDocs',
     apiDocApi.listApiDocs
@@ -127,7 +133,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
         metadata: {
           ...newGroup.metadata!,
           name,
-          namespace: 'gloo-system'
+          namespace: podNamespace!
         },
         spec: {
           description,

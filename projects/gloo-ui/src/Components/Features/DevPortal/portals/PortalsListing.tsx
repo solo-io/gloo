@@ -87,7 +87,6 @@ export const PortalsListing = () => {
 const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
   const { portal } = props;
   const history = useHistory();
-  console.log('portal', portal);
   return (
     <div
       className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'

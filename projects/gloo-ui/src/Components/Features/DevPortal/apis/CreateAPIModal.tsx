@@ -31,6 +31,7 @@ import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import { Upload, Button } from 'antd';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { configAPI } from 'store/config/api';
 
 export const SectionContainer = styled.div`
   ${tw`w-full h-full p-6 pb-0`}
@@ -207,6 +208,10 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
     'listPortals',
     portalApi.listPortals
   );
+  const { data: podNamespace, error: podNamespaceError } = useSWR(
+    'getPodNamespace',
+    configAPI.getPodNamespace
+  );
   const { data: userList, error: userError } = useSWR(
     'listUsers',
     userApi.listUsers
@@ -250,7 +255,7 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
         metadata: {
           ...newApiDoc.metadata!,
           name: name || displayName,
-          namespace: 'gloo-system'
+          namespace: podNamespace!
         },
         spec: {
           dataSource: {
@@ -277,7 +282,7 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
     props.onClose();
   };
 
-  if (!portalsList || !userList || !groupList) {
+  if (!portalsList || !userList || !groupList || !podNamespace) {
     return <Loading center>Loading...</Loading>;
   }
 

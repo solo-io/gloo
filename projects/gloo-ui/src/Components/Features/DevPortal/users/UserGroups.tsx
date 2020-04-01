@@ -3,6 +3,9 @@ import { useParams, useHistory } from 'react-router';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
+import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
+import { ReactComponent as PortalIcon } from 'assets/portal-icon.svg';
+
 import { healthConstants, colors, soloConstants } from 'Styles';
 import { css } from '@emotion/core';
 import {
@@ -26,6 +29,9 @@ import { CreateGroupModal } from './CreateGroupModal';
 import useSWR from 'swr';
 import { userApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { Popover } from 'antd';
+import { AccessLevel } from 'proto/dev-portal/api/dev-portal/v1/access_level_pb';
+import { Selector } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 
 const StyledTab = (
   props: {
@@ -47,6 +53,7 @@ const StyledTab = (
     </Tab>
   );
 };
+
 export const UserGroups = () => {
   const { data: userList, error: userError } = useSWR(
     'listUsers',
@@ -70,6 +77,7 @@ export const UserGroups = () => {
   if (!userList || !groupList) {
     return <Loading center>Loading...</Loading>;
   }
+
   return (
     <div className='relative'>
       <div className='absolute top-0 right-0 flex items-center-mt-8'>
@@ -176,16 +184,84 @@ export const UserGroups = () => {
                                   </div>
                                 </td>
                                 <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
+                                  <div className='text-sm font-medium leading-5 text-blue-600'>
                                     <span className='flex items-center '>
-                                      View (4)
+                                      {user.status?.accessLevel?.apiDocsList
+                                        .length === 0 ? (
+                                        <div>
+                                          {`View(${user.status?.accessLevel?.apiDocsList.length})`}
+                                        </div>
+                                      ) : (
+                                        <Popover
+                                          css={css`
+                                            .ant-popover-inner-content {
+                                              padding: 4px 6px;
+                                            }
+                                          `}
+                                          placement='bottom'
+                                          content={
+                                            <div className='grid grid-flow-col-dense gap-2'>
+                                              {user.status?.accessLevel?.apiDocsList.map(
+                                                apiDocRef => {
+                                                  return (
+                                                    <div
+                                                      className='flex items-center'
+                                                      key={`${apiDocRef.name}-${apiDocRef.namespace}`}>
+                                                      <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                        <CodeIcon className='w-4 h-4 fill-current' />
+                                                      </div>
+                                                      {apiDocRef.name}z
+                                                    </div>
+                                                  );
+                                                }
+                                              )}
+                                            </div>
+                                          }
+                                          trigger='hover'>
+                                          {`View(${user.status?.accessLevel?.apiDocsList.length})`}
+                                        </Popover>
+                                      )}
                                     </span>
                                   </div>
                                 </td>
                                 <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
+                                  <div className='text-sm font-medium leading-5 text-blue-600'>
                                     <span className='flex items-center '>
-                                      View (2)
+                                      {user.status?.accessLevel?.portalsList
+                                        .length === 0 ? (
+                                        <div>
+                                          {`View(${user.status?.accessLevel?.portalsList.length})`}
+                                        </div>
+                                      ) : (
+                                        <Popover
+                                          css={css`
+                                            .ant-popover-inner-content {
+                                              padding: 4px 6px;
+                                            }
+                                          `}
+                                          placement='bottom'
+                                          content={
+                                            <div className='grid grid-flow-col-dense gap-2'>
+                                              {user.status?.accessLevel?.portalsList.map(
+                                                portalRef => {
+                                                  return (
+                                                    <div
+                                                      className='flex items-center'
+                                                      key={`${portalRef.name}-${portalRef.namespace}`}>
+                                                      <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                        <PortalIcon className='w-4 h-4 fill-current' />
+                                                      </div>
+                                                      {portalRef.name}
+                                                    </div>
+                                                  );
+                                                }
+                                              )}
+                                            </div>
+                                          }
+                                          trigger='hover'>
+                                          {`View(${user.status?.accessLevel?.portalsList.length})`}
+                                        </Popover>
+                                      )}
                                     </span>
                                   </div>
                                 </td>
@@ -296,25 +372,124 @@ export const UserGroups = () => {
                                 </div>
                               </td>
                               <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                <div className='text-sm leading-5 text-gray-700'>
+                                <div className='text-sm font-medium leading-5 text-blue-600'>
                                   <span className='flex items-center '>
-                                    {group.status?.usersList.map(
-                                      user => user.name
+                                    {group.status?.usersList.length === 0 ? (
+                                      <div>
+                                        {`View(${group.status?.usersList.length})`}
+                                      </div>
+                                    ) : (
+                                      <Popover
+                                        css={css`
+                                          .ant-popover-inner-content {
+                                            padding: 4px 6px;
+                                          }
+                                        `}
+                                        placement='bottom'
+                                        content={
+                                          <div className='grid grid-flow-col-dense gap-2'>
+                                            {group.status?.usersList.map(
+                                              userRef => {
+                                                return (
+                                                  <div
+                                                    className='flex items-center'
+                                                    key={`${userRef.name}-${userRef.namespace}`}>
+                                                    <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                      <UserIcon className='w-4 h-4 fill-current' />
+                                                    </div>
+                                                    {userRef.name}
+                                                  </div>
+                                                );
+                                              }
+                                            )}
+                                          </div>
+                                        }
+                                        trigger='hover'>
+                                        {`View(${group.status?.usersList.length})`}
+                                      </Popover>
                                     )}
                                   </span>
                                 </div>
                               </td>
                               <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                <div className='text-sm leading-5 text-gray-700'>
+                                <div className='text-sm font-medium leading-5 text-blue-600'>
                                   <span className='flex items-center '>
-                                    api access
+                                    {group.status?.accessLevel?.apiDocsList
+                                      .length === 0 ? (
+                                      <div>
+                                        {`View(${group.status?.accessLevel?.apiDocsList.length})`}
+                                      </div>
+                                    ) : (
+                                      <Popover
+                                        css={css`
+                                          .ant-popover-inner-content {
+                                            padding: 4px 6px;
+                                          }
+                                        `}
+                                        placement='bottom'
+                                        content={
+                                          <div className='grid grid-flow-col-dense gap-2'>
+                                            {group.status?.accessLevel?.apiDocsList.map(
+                                              apiDocRef => {
+                                                return (
+                                                  <div
+                                                    className='flex items-center'
+                                                    key={`${apiDocRef.name}-${apiDocRef.namespace}`}>
+                                                    <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                      <CodeIcon className='w-4 h-4 fill-current' />
+                                                    </div>
+                                                    {apiDocRef.name}
+                                                  </div>
+                                                );
+                                              }
+                                            )}
+                                          </div>
+                                        }
+                                        trigger='hover'>
+                                        {`View(${group.status?.accessLevel?.apiDocsList.length})`}
+                                      </Popover>
+                                    )}
                                   </span>
                                 </div>
                               </td>
                               <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                <div className='text-sm leading-5 text-gray-700'>
+                                <div className='text-sm font-medium leading-5 text-blue-600'>
                                   <span className='flex items-center '>
-                                    portals access
+                                    {group.status?.accessLevel?.portalsList
+                                      .length === 0 ? (
+                                      <div>
+                                        {`View(${group.status?.accessLevel?.portalsList.length})`}
+                                      </div>
+                                    ) : (
+                                      <Popover
+                                        css={css`
+                                          .ant-popover-inner-content {
+                                            padding: 4px 6px;
+                                          }
+                                        `}
+                                        placement='bottom'
+                                        content={
+                                          <div className='grid grid-flow-col-dense gap-2'>
+                                            {group.status?.accessLevel?.portalsList.map(
+                                              portalRef => {
+                                                return (
+                                                  <div
+                                                    className='flex items-center'
+                                                    key={`${portalRef.name}-${portalRef.namespace}`}>
+                                                    <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                      <PortalIcon className='w-4 h-4 fill-current' />
+                                                    </div>
+                                                    {portalRef.name}
+                                                  </div>
+                                                );
+                                              }
+                                            )}
+                                          </div>
+                                        }
+                                        trigger='hover'>
+                                        {`View(${group.status?.accessLevel?.portalsList.length})`}
+                                      </Popover>
+                                    )}
                                   </span>
                                 </div>
                               </td>
