@@ -20,22 +20,25 @@ func NewRegistrar(
 	userService admin.UserApiServer,
 	groupService admin.GroupApiServer,
 	apiKeyService admin.ApiKeyApiServer,
+	apiKeyScopeService admin.ApiKeyScopeApiServer,
 ) Registrar {
 	return &devPortalRegistrar{
-		portalService: portalService,
-		apiDocService: apiDocService,
-		userService:   userService,
-		groupService:  groupService,
-		apiKeyService: apiKeyService,
+		portalService:      portalService,
+		apiDocService:      apiDocService,
+		userService:        userService,
+		groupService:       groupService,
+		apiKeyService:      apiKeyService,
+		apiKeyScopeService: apiKeyScopeService,
 	}
 }
 
 type devPortalRegistrar struct {
-	portalService admin.PortalApiServer
-	apiDocService admin.ApiDocApiServer
-	userService   admin.UserApiServer
-	groupService  admin.GroupApiServer
-	apiKeyService admin.ApiKeyApiServer
+	portalService      admin.PortalApiServer
+	apiDocService      admin.ApiDocApiServer
+	userService        admin.UserApiServer
+	groupService       admin.GroupApiServer
+	apiKeyService      admin.ApiKeyApiServer
+	apiKeyScopeService admin.ApiKeyScopeApiServer
 }
 
 func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
@@ -44,6 +47,7 @@ func (r *devPortalRegistrar) RegisterTo(server *grpc.Server) {
 	admin.RegisterUserApiServer(server, r.userService)
 	admin.RegisterGroupApiServer(server, r.groupService)
 	admin.RegisterApiKeyApiServer(server, r.apiKeyService)
+	admin.RegisterApiKeyScopeApiServer(server, r.apiKeyScopeService)
 }
 
 func (r *devPortalRegistrar) GetDebugLoggingDecider() logging.RequestResponseDebugDecider {

@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/dev-portal/pkg/admin"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/apidoc"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/apikey"
+	"github.com/solo-io/dev-portal/pkg/admin/grpc/apikeyscope"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/group"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/portal"
 	"github.com/solo-io/dev-portal/pkg/admin/grpc/user"
@@ -45,6 +46,7 @@ func InitDevPortal(ctx context.Context) (Registrar, error) {
 	userGrpcService := user.NewUserGrpcService(userClient, groupClient, portalClient, apiDocClient, secretClient, resourceLabeler)
 	groupGrpcService := group.NewGroupGrpcService(apiDocClient, portalClient, userClient, groupClient, resourceLabeler)
 	apikeyGrpcService := apikey.NewApiKeyGrpcService(secretClient, portalClient, userClient)
-	registrar := NewRegistrar(grpcService, apidocGrpcService, userGrpcService, groupGrpcService, apikeyGrpcService)
+	apikeyscopeGrpcService := apikeyscope.NewKeyScopeGrpcService(apiDocClient, portalClient, resourceLabeler)
+	registrar := NewRegistrar(grpcService, apidocGrpcService, userGrpcService, groupGrpcService, apikeyGrpcService, apikeyscopeGrpcService)
 	return registrar, nil
 }
