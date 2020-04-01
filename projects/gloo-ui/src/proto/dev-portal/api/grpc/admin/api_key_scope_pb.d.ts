@@ -43,7 +43,7 @@ export namespace ApiKeyScope {
   }
 }
 
-export class ApiKeyScopeResponse extends jspb.Message {
+export class ApiKeyScopeWithApiDocs extends jspb.Message {
   hasApiKeyScope(): boolean;
   clearApiKeyScope(): void;
   getApiKeyScope(): ApiKeyScope | undefined;
@@ -55,16 +55,16 @@ export class ApiKeyScopeResponse extends jspb.Message {
   addApiDocs(value?: dev_portal_api_grpc_admin_apidoc_pb.ApiDoc, index?: number): dev_portal_api_grpc_admin_apidoc_pb.ApiDoc;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ApiKeyScopeResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ApiKeyScopeResponse): ApiKeyScopeResponse.AsObject;
+  toObject(includeInstance?: boolean): ApiKeyScopeWithApiDocs.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyScopeWithApiDocs): ApiKeyScopeWithApiDocs.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ApiKeyScopeResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ApiKeyScopeResponse;
-  static deserializeBinaryFromReader(message: ApiKeyScopeResponse, reader: jspb.BinaryReader): ApiKeyScopeResponse;
+  static serializeBinaryToWriter(message: ApiKeyScopeWithApiDocs, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyScopeWithApiDocs;
+  static deserializeBinaryFromReader(message: ApiKeyScopeWithApiDocs, reader: jspb.BinaryReader): ApiKeyScopeWithApiDocs;
 }
 
-export namespace ApiKeyScopeResponse {
+export namespace ApiKeyScopeWithApiDocs {
   export type AsObject = {
     apiKeyScope?: ApiKeyScope.AsObject,
     apiDocsList: Array<dev_portal_api_grpc_admin_apidoc_pb.ApiDoc.AsObject>,
@@ -72,15 +72,15 @@ export namespace ApiKeyScopeResponse {
 }
 
 export class ApiKeyScopeRef extends jspb.Message {
-  clearApiKeyScopeList(): void;
-  getApiKeyScopeList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
-  setApiKeyScopeList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
-  addApiKeyScope(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
+  hasApiKeyScope(): boolean;
+  clearApiKeyScope(): void;
+  getApiKeyScope(): dev_portal_api_dev_portal_v1_common_pb.ObjectRef | undefined;
+  setApiKeyScope(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef): void;
 
-  clearPortalList(): void;
-  getPortalList(): Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>;
-  setPortalList(value: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef>): void;
-  addPortal(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef, index?: number): dev_portal_api_dev_portal_v1_common_pb.ObjectRef;
+  hasPortal(): boolean;
+  clearPortal(): void;
+  getPortal(): dev_portal_api_dev_portal_v1_common_pb.ObjectRef | undefined;
+  setPortal(value?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKeyScopeRef.AsObject;
@@ -94,16 +94,16 @@ export class ApiKeyScopeRef extends jspb.Message {
 
 export namespace ApiKeyScopeRef {
   export type AsObject = {
-    apiKeyScopeList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
-    portalList: Array<dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject>,
+    apiKeyScope?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject,
+    portal?: dev_portal_api_dev_portal_v1_common_pb.ObjectRef.AsObject,
   }
 }
 
 export class ApiKeyScopeList extends jspb.Message {
   clearApiKeyScopesList(): void;
-  getApiKeyScopesList(): Array<ApiKeyScopeResponse>;
-  setApiKeyScopesList(value: Array<ApiKeyScopeResponse>): void;
-  addApiKeyScopes(value?: ApiKeyScopeResponse, index?: number): ApiKeyScopeResponse;
+  getApiKeyScopesList(): Array<ApiKeyScopeWithApiDocs>;
+  setApiKeyScopesList(value: Array<ApiKeyScopeWithApiDocs>): void;
+  addApiKeyScopes(value?: ApiKeyScopeWithApiDocs, index?: number): ApiKeyScopeWithApiDocs;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKeyScopeList.AsObject;
@@ -117,7 +117,7 @@ export class ApiKeyScopeList extends jspb.Message {
 
 export namespace ApiKeyScopeList {
   export type AsObject = {
-    apiKeyScopesList: Array<ApiKeyScopeResponse.AsObject>,
+    apiKeyScopesList: Array<ApiKeyScopeWithApiDocs.AsObject>,
   }
 }
 

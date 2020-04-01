@@ -20,7 +20,7 @@ type ApiKeyScopeApiCreateApiKeyScope = {
   readonly requestStream: false;
   readonly responseStream: false;
   readonly requestType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest;
-  readonly responseType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse;
+  readonly responseType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope;
 };
 
 type ApiKeyScopeApiUpdateApiKeyScope = {
@@ -29,7 +29,7 @@ type ApiKeyScopeApiUpdateApiKeyScope = {
   readonly requestStream: false;
   readonly responseStream: false;
   readonly requestType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest;
-  readonly responseType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse;
+  readonly responseType: typeof dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope;
 };
 
 type ApiKeyScopeApiDeleteApiKeyScope = {
@@ -93,20 +93,20 @@ export class ApiKeyScopeApiClient {
   createApiKeyScope(
     requestMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope|null) => void
   ): UnaryResponse;
   createApiKeyScope(
     requestMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
-    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope|null) => void
   ): UnaryResponse;
   updateApiKeyScope(
     requestMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope|null) => void
   ): UnaryResponse;
   updateApiKeyScope(
     requestMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
-    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope|null) => void
   ): UnaryResponse;
   deleteApiKeyScope(
     requestMessage: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeRef,

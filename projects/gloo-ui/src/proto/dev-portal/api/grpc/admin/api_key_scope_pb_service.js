@@ -26,7 +26,7 @@ ApiKeyScopeApi.CreateApiKeyScope = {
   requestStream: false,
   responseStream: false,
   requestType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
-  responseType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse
+  responseType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope
 };
 
 ApiKeyScopeApi.UpdateApiKeyScope = {
@@ -35,7 +35,7 @@ ApiKeyScopeApi.UpdateApiKeyScope = {
   requestStream: false,
   responseStream: false,
   requestType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeWriteRequest,
-  responseType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScopeResponse
+  responseType: dev_portal_api_grpc_admin_api_key_scope_pb.ApiKeyScope
 };
 
 ApiKeyScopeApi.DeleteApiKeyScope = {

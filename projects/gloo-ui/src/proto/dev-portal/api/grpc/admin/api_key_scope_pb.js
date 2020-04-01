@@ -21,7 +21,7 @@ goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScope', null, global);
 goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeFilter', null, global);
 goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeList', null, global);
 goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeRef', null, global);
-goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeResponse', null, global);
+goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs', null, global);
 goog.exportSymbol('proto.admin.devportal.solo.io.ApiKeyScopeWriteRequest', null, global);
 
 /**
@@ -281,19 +281,19 @@ proto.admin.devportal.solo.io.ApiKeyScope.prototype.hasPortal = function() {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.admin.devportal.solo.io.ApiKeyScopeResponse.repeatedFields_, null);
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.repeatedFields_, null);
 };
-goog.inherits(proto.admin.devportal.solo.io.ApiKeyScopeResponse, jspb.Message);
+goog.inherits(proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.admin.devportal.solo.io.ApiKeyScopeResponse.displayName = 'proto.admin.devportal.solo.io.ApiKeyScopeResponse';
+  proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.displayName = 'proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs';
 }
 /**
  * List of repeated fields within this message type.
  * @private {!Array<number>}
  * @const
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.repeatedFields_ = [2];
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.repeatedFields_ = [2];
 
 
 
@@ -308,8 +308,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.admin.devportal.solo.io.ApiKeyScopeResponse.toObject(opt_includeInstance, this);
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.toObject = function(opt_includeInstance) {
+  return proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.toObject(opt_includeInstance, this);
 };
 
 
@@ -318,11 +318,11 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.toObject = function(
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.admin.devportal.solo.io.ApiKeyScopeResponse} msg The msg instance to transform.
+ * @param {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.toObject = function(includeInstance, msg) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.toObject = function(includeInstance, msg) {
   var f, obj = {
     apiKeyScope: (f = msg.getApiKeyScope()) && proto.admin.devportal.solo.io.ApiKeyScope.toObject(includeInstance, f),
     apiDocsList: jspb.Message.toObjectList(msg.getApiDocsList(),
@@ -340,23 +340,23 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.toObject = function(includeIns
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.admin.devportal.solo.io.ApiKeyScopeResponse}
+ * @return {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.deserializeBinary = function(bytes) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.admin.devportal.solo.io.ApiKeyScopeResponse;
-  return proto.admin.devportal.solo.io.ApiKeyScopeResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs;
+  return proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.admin.devportal.solo.io.ApiKeyScopeResponse} msg The message object to deserialize into.
+ * @param {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.admin.devportal.solo.io.ApiKeyScopeResponse}
+ * @return {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -386,9 +386,9 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.deserializeBinaryFromReader = 
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.serializeBinary = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.admin.devportal.solo.io.ApiKeyScopeResponse.serializeBinaryToWriter(this, writer);
+  proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -396,11 +396,11 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.serializeBinary = fu
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.admin.devportal.solo.io.ApiKeyScopeResponse} message
+ * @param {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.serializeBinaryToWriter = function(message, writer) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getApiKeyScope();
   if (f != null) {
@@ -425,19 +425,19 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.serializeBinaryToWriter = func
  * optional ApiKeyScope api_key_scope = 1;
  * @return {?proto.admin.devportal.solo.io.ApiKeyScope}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.getApiKeyScope = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.getApiKeyScope = function() {
   return /** @type{?proto.admin.devportal.solo.io.ApiKeyScope} */ (
     jspb.Message.getWrapperField(this, proto.admin.devportal.solo.io.ApiKeyScope, 1));
 };
 
 
 /** @param {?proto.admin.devportal.solo.io.ApiKeyScope|undefined} value */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.setApiKeyScope = function(value) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.setApiKeyScope = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.clearApiKeyScope = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.clearApiKeyScope = function() {
   this.setApiKeyScope(undefined);
 };
 
@@ -446,7 +446,7 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.clearApiKeyScope = f
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.hasApiKeyScope = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.hasApiKeyScope = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -455,14 +455,14 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.hasApiKeyScope = fun
  * repeated ApiDoc api_docs = 2;
  * @return {!Array<!proto.admin.devportal.solo.io.ApiDoc>}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.getApiDocsList = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.getApiDocsList = function() {
   return /** @type{!Array<!proto.admin.devportal.solo.io.ApiDoc>} */ (
     jspb.Message.getRepeatedWrapperField(this, dev$portal_api_grpc_admin_apidoc_pb.ApiDoc, 2));
 };
 
 
 /** @param {!Array<!proto.admin.devportal.solo.io.ApiDoc>} value */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.setApiDocsList = function(value) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.setApiDocsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
@@ -472,12 +472,12 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.setApiDocsList = fun
  * @param {number=} opt_index
  * @return {!proto.admin.devportal.solo.io.ApiDoc}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.addApiDocs = function(opt_value, opt_index) {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.addApiDocs = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.admin.devportal.solo.io.ApiDoc, opt_index);
 };
 
 
-proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.clearApiDocsList = function() {
+proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.prototype.clearApiDocsList = function() {
   this.setApiDocsList([]);
 };
 
@@ -494,19 +494,12 @@ proto.admin.devportal.solo.io.ApiKeyScopeResponse.prototype.clearApiDocsList = f
  * @constructor
  */
 proto.admin.devportal.solo.io.ApiKeyScopeRef = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.admin.devportal.solo.io.ApiKeyScopeRef.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.admin.devportal.solo.io.ApiKeyScopeRef, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.admin.devportal.solo.io.ApiKeyScopeRef.displayName = 'proto.admin.devportal.solo.io.ApiKeyScopeRef';
 }
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.repeatedFields_ = [1,2];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -536,10 +529,8 @@ proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.toObject = function(opt_i
  */
 proto.admin.devportal.solo.io.ApiKeyScopeRef.toObject = function(includeInstance, msg) {
   var f, obj = {
-    apiKeyScopeList: jspb.Message.toObjectList(msg.getApiKeyScopeList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance),
-    portalList: jspb.Message.toObjectList(msg.getPortalList(),
-    dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject, includeInstance)
+    apiKeyScope: (f = msg.getApiKeyScope()) && dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject(includeInstance, f),
+    portal: (f = msg.getPortal()) && dev$portal_api_dev$portal_v1_common_pb.ObjectRef.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -579,12 +570,12 @@ proto.admin.devportal.solo.io.ApiKeyScopeRef.deserializeBinaryFromReader = funct
     case 1:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
-      msg.addApiKeyScope(value);
+      msg.setApiKeyScope(value);
       break;
     case 2:
       var value = new dev$portal_api_dev$portal_v1_common_pb.ObjectRef;
       reader.readMessage(value,dev$portal_api_dev$portal_v1_common_pb.ObjectRef.deserializeBinaryFromReader);
-      msg.addPortal(value);
+      msg.setPortal(value);
       break;
     default:
       reader.skipField();
@@ -615,17 +606,17 @@ proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.serializeBinary = functio
  */
 proto.admin.devportal.solo.io.ApiKeyScopeRef.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getApiKeyScopeList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
+  f = message.getApiKeyScope();
+  if (f != null) {
+    writer.writeMessage(
       1,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
     );
   }
-  f = message.getPortalList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
+  f = message.getPortal();
+  if (f != null) {
+    writer.writeMessage(
       2,
       f,
       dev$portal_api_dev$portal_v1_common_pb.ObjectRef.serializeBinaryToWriter
@@ -635,64 +626,62 @@ proto.admin.devportal.solo.io.ApiKeyScopeRef.serializeBinaryToWriter = function(
 
 
 /**
- * repeated devportal.solo.io.ObjectRef api_key_scope = 1;
- * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
+ * optional devportal.solo.io.ObjectRef api_key_scope = 1;
+ * @return {?proto.devportal.solo.io.ObjectRef}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.getApiKeyScopeList = function() {
-  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 1));
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.getApiKeyScope = function() {
+  return /** @type{?proto.devportal.solo.io.ObjectRef} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 1));
 };
 
 
-/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.setApiKeyScopeList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 1, value);
+/** @param {?proto.devportal.solo.io.ObjectRef|undefined} value */
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.setApiKeyScope = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.clearApiKeyScope = function() {
+  this.setApiKeyScope(undefined);
 };
 
 
 /**
- * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
- * @param {number=} opt_index
- * @return {!proto.devportal.solo.io.ObjectRef}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.addApiKeyScope = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
-};
-
-
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.clearApiKeyScopeList = function() {
-  this.setApiKeyScopeList([]);
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.hasApiKeyScope = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * repeated devportal.solo.io.ObjectRef portal = 2;
- * @return {!Array<!proto.devportal.solo.io.ObjectRef>}
+ * optional devportal.solo.io.ObjectRef portal = 2;
+ * @return {?proto.devportal.solo.io.ObjectRef}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.getPortalList = function() {
-  return /** @type{!Array<!proto.devportal.solo.io.ObjectRef>} */ (
-    jspb.Message.getRepeatedWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.getPortal = function() {
+  return /** @type{?proto.devportal.solo.io.ObjectRef} */ (
+    jspb.Message.getWrapperField(this, dev$portal_api_dev$portal_v1_common_pb.ObjectRef, 2));
 };
 
 
-/** @param {!Array<!proto.devportal.solo.io.ObjectRef>} value */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.setPortalList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 2, value);
+/** @param {?proto.devportal.solo.io.ObjectRef|undefined} value */
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.setPortal = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.clearPortal = function() {
+  this.setPortal(undefined);
 };
 
 
 /**
- * @param {!proto.devportal.solo.io.ObjectRef=} opt_value
- * @param {number=} opt_index
- * @return {!proto.devportal.solo.io.ObjectRef}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.addPortal = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.devportal.solo.io.ObjectRef, opt_index);
-};
-
-
-proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.clearPortalList = function() {
-  this.setPortalList([]);
+proto.admin.devportal.solo.io.ApiKeyScopeRef.prototype.hasPortal = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -751,7 +740,7 @@ proto.admin.devportal.solo.io.ApiKeyScopeList.prototype.toObject = function(opt_
 proto.admin.devportal.solo.io.ApiKeyScopeList.toObject = function(includeInstance, msg) {
   var f, obj = {
     apiKeyScopesList: jspb.Message.toObjectList(msg.getApiKeyScopesList(),
-    proto.admin.devportal.solo.io.ApiKeyScopeResponse.toObject, includeInstance)
+    proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -789,8 +778,8 @@ proto.admin.devportal.solo.io.ApiKeyScopeList.deserializeBinaryFromReader = func
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.admin.devportal.solo.io.ApiKeyScopeResponse;
-      reader.readMessage(value,proto.admin.devportal.solo.io.ApiKeyScopeResponse.deserializeBinaryFromReader);
+      var value = new proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs;
+      reader.readMessage(value,proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.deserializeBinaryFromReader);
       msg.addApiKeyScopes(value);
       break;
     default:
@@ -827,35 +816,35 @@ proto.admin.devportal.solo.io.ApiKeyScopeList.serializeBinaryToWriter = function
     writer.writeRepeatedMessage(
       1,
       f,
-      proto.admin.devportal.solo.io.ApiKeyScopeResponse.serializeBinaryToWriter
+      proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * repeated ApiKeyScopeResponse api_key_scopes = 1;
- * @return {!Array<!proto.admin.devportal.solo.io.ApiKeyScopeResponse>}
+ * repeated ApiKeyScopeWithApiDocs api_key_scopes = 1;
+ * @return {!Array<!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs>}
  */
 proto.admin.devportal.solo.io.ApiKeyScopeList.prototype.getApiKeyScopesList = function() {
-  return /** @type{!Array<!proto.admin.devportal.solo.io.ApiKeyScopeResponse>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.admin.devportal.solo.io.ApiKeyScopeResponse, 1));
+  return /** @type{!Array<!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs, 1));
 };
 
 
-/** @param {!Array<!proto.admin.devportal.solo.io.ApiKeyScopeResponse>} value */
+/** @param {!Array<!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs>} value */
 proto.admin.devportal.solo.io.ApiKeyScopeList.prototype.setApiKeyScopesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.admin.devportal.solo.io.ApiKeyScopeResponse=} opt_value
+ * @param {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs=} opt_value
  * @param {number=} opt_index
- * @return {!proto.admin.devportal.solo.io.ApiKeyScopeResponse}
+ * @return {!proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs}
  */
 proto.admin.devportal.solo.io.ApiKeyScopeList.prototype.addApiKeyScopes = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.admin.devportal.solo.io.ApiKeyScopeResponse, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.admin.devportal.solo.io.ApiKeyScopeWithApiDocs, opt_index);
 };
 
 
