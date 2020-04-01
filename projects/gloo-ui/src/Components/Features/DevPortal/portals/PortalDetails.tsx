@@ -138,11 +138,6 @@ export const PortalDetails = () => {
   if (!portal) {
     return <Loading center>Loading...</Loading>;
   }
-  const domainsList = portal.spec?.domainsList.map(domain => {
-    return {
-      value: domain
-    };
-  });
 
   const handleUpdatePortal = async (values: UpdatePortalValues) => {
     console.log('values', values);
@@ -188,6 +183,7 @@ export const PortalDetails = () => {
       },
       portalOnly: true
     });
+    setEditMode(false);
   };
 
   return (

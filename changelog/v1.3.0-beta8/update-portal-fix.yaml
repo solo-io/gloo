@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix portal update feature.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1583

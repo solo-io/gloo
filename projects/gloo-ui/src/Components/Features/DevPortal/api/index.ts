@@ -1273,10 +1273,61 @@ function updatePortal(
         request: portalRef,
         host,
         onEnd: endMessage => {
-          let portalToUpdate = portalMessageFromObject(
-            portalWriteRequest.portal!,
-            endMessage.message as Portal
-          );
+          let portalToUpdate = endMessage.message as Portal;
+          let portalSpec = portalToUpdate.getSpec();
+
+          if (
+            portal.spec?.domainsList !== [] &&
+            portal.spec?.domainsList !== undefined
+          ) {
+            portalSpec?.setDomainsList(portal.spec?.domainsList);
+          }
+          let portalStyling = portalSpec?.getCustomStyling();
+          if (!!portal.spec?.customStyling?.backgroundColor) {
+            portalStyling?.setBackgroundColor(
+              portal.spec.customStyling.backgroundColor
+            );
+          }
+          if (!!portal.spec?.customStyling?.defaultTextColor) {
+            portalStyling?.setDefaultTextColor(
+              portal.spec.customStyling.defaultTextColor
+            );
+          }
+          if (!!portal.spec?.customStyling?.primaryColor) {
+            portalStyling?.setPrimaryColor(
+              portal.spec.customStyling.primaryColor
+            );
+          }
+          if (!!portal.spec?.customStyling?.secondaryColor) {
+            portalStyling?.setSecondaryColor(
+              portal.spec.customStyling.secondaryColor
+            );
+          }
+          if (portal.spec?.banner?.inlineBytes !== undefined) {
+            let bannerMessage = portalSpec?.getBanner();
+            bannerMessage?.setInlineBytes(portal.spec.banner.inlineBytes);
+            portalSpec?.setBanner(bannerMessage);
+          }
+          if (portal.spec?.favicon?.inlineBytes !== undefined) {
+            let faviconMessage = portalSpec?.getFavicon();
+            faviconMessage?.setInlineBytes(portal.spec?.favicon?.inlineBytes);
+            portalSpec?.setFavicon(faviconMessage);
+          }
+          if (portal.spec?.primaryLogo?.inlineBytes !== undefined) {
+            let primaryLogoMessage = portalSpec?.getPrimaryLogo();
+            primaryLogoMessage?.setInlineBytes(
+              portal.spec.primaryLogo.inlineBytes
+            );
+            portalSpec?.setPrimaryLogo(primaryLogoMessage);
+          }
+          if (!!portal.spec?.description) {
+            portalSpec?.setDescription(portal.spec.description);
+          }
+          if (!!portal.spec?.displayName) {
+            portalSpec?.setDisplayName(portal.spec.displayName);
+          }
+          portalSpec?.setCustomStyling(portalStyling);
+          portalToUpdate.setSpec(portalSpec);
 
           request.setPortal(portalToUpdate);
 
