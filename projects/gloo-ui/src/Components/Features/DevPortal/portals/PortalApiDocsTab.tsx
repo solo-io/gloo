@@ -9,15 +9,7 @@ import { CreateAPIModal } from '../apis/CreateAPIModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
-
-const secondsToString = (seconds: number | undefined): string => {
-  if (!seconds) {
-    return '';
-  }
-  const d = new Date(1970, 0, 1);
-  d.setSeconds(seconds);
-  return d.toLocaleString();
-};
+import { secondsToString } from '../util';
 
 type PortalApiDocsTabProps = {
   portal: Portal.AsObject;

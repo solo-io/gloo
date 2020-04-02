@@ -11,7 +11,7 @@ import { useHistory } from 'react-router';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { css } from '@emotion/core';
 import useSWR from 'swr';
-import { portalApi } from '../api';
+import { portalApi, userApi, apiDocApi } from '../api';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { PortalStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
@@ -20,6 +20,7 @@ import { CreatePortalModal } from './CreatePortalModal';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { StateMap, State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { secondsToString } from '../util';
 
 export function formatHealthStatus(
   status: StateMap[keyof StateMap] | undefined
@@ -82,6 +83,30 @@ export const PortalsListing = () => {
 const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
   const { portal } = props;
   const history = useHistory();
+
+  const { data: usersList, error: usersListError } = useSWR(
+    `listUsers${portal.metadata?.name}${portal.metadata?.namespace}`,
+    () =>
+      userApi.listUsers({
+        portalsList: [
+          { namespace: portal.metadata!.namespace, name: portal.metadata!.name }
+        ],
+        groupsList: [],
+        apiDocsList: []
+      }),
+    { refreshInterval: 0 }
+  );
+  const { data: apiDocsList, error: apiDocsListError } = useSWR(
+    `listApiDocs${portal.metadata?.name}${portal.metadata?.namespace}`,
+    () =>
+      apiDocApi.listApiDocs({
+        portalsList: [
+          { namespace: portal.metadata!.namespace, name: portal.metadata!.name }
+        ]
+      }),
+    { refreshInterval: 0 }
+  );
+
   return (
     <div
       className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'
@@ -111,36 +136,40 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
             {portal.spec?.displayName}
           </div>
 
-          <p className='flex items-center py-1 text-base text-blue-600'>
-            <ExternalLinkIcon className='w-4 h-4 mr-1' />
-            https://production.subdomain.gloo.io
-          </p>
+          {portal.spec?.domainsList.map(domain => (
+            <p
+              className='flex items-center py-1 text-base text-blue-600'
+              key={domain}>
+              <ExternalLinkIcon className='w-4 h-4 mr-1' /> {domain}
+            </p>
+          ))}
           <p className='text-base text-gray-700 break-all'>
             {portal.spec?.description}
           </p>
         </div>
-        <div className='text-sm text-gray-600 '>
-          Modified:{' '}
-          {format(portal.metadata?.creationTimestamp?.seconds!, 'en_US')}
-        </div>
-        <div className='flex items-center justify-between'>
-          <div className='pb-2'>
-            <CompanyLogo className='w-1/2 h-1/2' />
-          </div>
+        <div className='flex items-center justify-end'>
           <div className='flex items-center '>
             <div className='flex items-center px-4'>
               <span className='text-blue-600'>
                 <UserIcon className='w-6 h-6 fill-current' />
               </span>
-              <span className='px-1 font-semibold'>10</span>
-              <span>Users</span>
+              <span className='px-1 font-semibold'>
+                {!!usersList ? usersList.length : '...'}
+              </span>
+              <span>
+                {`User${!!usersList && usersList.length === 1 ? '' : 's'}`}
+              </span>
             </div>
             <div className='flex items-center px-4'>
               <span className='text-blue-600'>
                 <CodeIcon className='w-6 h-6 fill-current' />
               </span>
-              <span className='px-1 font-semibold'>5</span>
-              <span>APIs</span>
+              <span className='px-1 font-semibold'>
+                {!!apiDocsList ? apiDocsList.length : '...'}
+              </span>
+              <span>{`API${
+                !!apiDocsList && apiDocsList.length === 1 ? '' : 's'
+              }`}</span>
             </div>
           </div>
         </div>
