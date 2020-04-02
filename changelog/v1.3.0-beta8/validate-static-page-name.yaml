@@ -1,4 +1,4 @@
 changelog:
-  - type: FIX
+  - type: NON_USER_FACING
     issueLink: https://github.com/solo-io/solo-projects/issues/1605
     description: Name field validation for static pages.

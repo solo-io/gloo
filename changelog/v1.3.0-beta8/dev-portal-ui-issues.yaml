@@ -1,31 +1,31 @@
 changelog:
-  - type: FIX
+  - type: NON_USER_FACING
     description: Set up modals to add users, groups, APIs to portals.
     issueLink: https://github.com/solo-io/solo-projects/issues/1593
-  - type: FIX
+  - type: NON_USER_FACING
     description: Fix creating a group when linking a portal.
     issueLink: https://github.com/solo-io/solo-projects/issues/1596
-  - type: FIX
+  - type: NON_USER_FACING
     description: Selectors in forms should show display name not metadata name.
     issueLink: https://github.com/solo-io/solo-projects/issues/1597
-  - type: FIX
+  - type: NON_USER_FACING
     description: Surface the status failure reasons.
     issueLink: https://github.com/solo-io/solo-projects/issues/1600
-  - type: FIX
+  - type: NON_USER_FACING
     description: Have a fallback photo when assets do not load / are not present.
     issueLink: https://github.com/solo-io/solo-projects/issues/1601
-  - type: FIX
+  - type: NON_USER_FACING
     description: Remove name validation in porta wizard in favor of backend sanitazion.
     issueLink: https://github.com/solo-io/solo-projects/issues/1602
-  - type: FIX
+  - type: NON_USER_FACING
     description: Refresh portal list view.
     issueLink: https://github.com/solo-io/solo-projects/issues/1607
-  - type: FIX
+  - type: NON_USER_FACING
     description: API wizard copy changes.
     issueLink: https://github.com/solo-io/solo-projects/issues/1608
-  - type: FIX
+  - type: NON_USER_FACING
     description: Allow creating APIs when assets not uploaded.
     issueLink: https://github.com/solo-io/solo-projects/issues/1610
-  - type: FIX
+  - type: NON_USER_FACING
     description: Style empty states on portal and api details pages.
     issueLink: https://github.com/solo-io/solo-projects/issues/1611

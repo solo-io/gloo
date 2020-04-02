@@ -1,4 +1,4 @@
 changelog:
-  - type: FIX
+  - type: NON_USER_FACING
     description: Show all domains, user, and apidocs in portal list.
     issueLink: https://github.com/solo-io/solo-projects/issues/1595

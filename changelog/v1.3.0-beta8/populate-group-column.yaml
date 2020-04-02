@@ -1,4 +1,4 @@
 changelog:
-  - type: FIX
+  - type: NON_USER_FACING
     description: Update groups column in user table to show group names.
     issueLink: https://github.com/solo-io/solo-projects/issues/1598
