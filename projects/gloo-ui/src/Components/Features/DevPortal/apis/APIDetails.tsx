@@ -76,7 +76,7 @@ export const APIDetails = () => {
       namespace: apiDoc?.metadata?.namespace!
     });
     setAttemptingDelete(false);
-    history.push('/dev-portal/portals');
+    history.push('/dev-portal/apis');
   };
 
   const handleTabsChange = (index: number) => {

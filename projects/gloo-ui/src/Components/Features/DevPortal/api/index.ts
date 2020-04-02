@@ -819,10 +819,13 @@ function updateApiDocContent(
       onHeaders: (headers: grpc.Metadata) => {},
       onMessage: (message: ApiDoc) => {
         if (!!message) {
-          message
-            .getSpec()!
-            .getDataSource()!
-            .setInlineString(content);
+          let dataSource = message.getSpec()?.getDataSource();
+          if (!dataSource) {
+            dataSource = new DataSource();
+          }
+
+          dataSource.setInlineString(content);
+          message.getSpec()?.setDataSource(dataSource);
 
           let writeRequest = new ApiDocWriteRequest();
           writeRequest.setApiDocOnly(true);
