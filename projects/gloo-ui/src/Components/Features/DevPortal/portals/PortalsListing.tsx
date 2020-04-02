@@ -117,7 +117,7 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
       <div className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
         {portal.spec?.banner?.inlineBytes ? (
           <img
-            className='object-cover h-48'
+            className='object-contain h-48'
             src={`data:image/gif;base64,${portal.spec?.banner?.inlineBytes}`}></img>
         ) : (
           <PlaceholderPortal className='rounded-lg w-72 ' />

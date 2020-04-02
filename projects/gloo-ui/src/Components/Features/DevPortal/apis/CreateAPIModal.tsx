@@ -28,6 +28,7 @@ import useSWR from 'swr';
 import tw from 'tailwind.macro';
 import { apiDocApi, groupApi, portalApi, userApi } from '../api';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
+import * as Yup from 'yup';
 
 export const SectionContainer = styled.div`
   ${tw`w-full h-full p-6 pb-0`}
@@ -131,8 +132,10 @@ const SpecSection = () => {
       </div>
       <div>
         <Upload
+          action={'https://www.mocky.io/v2/5cc8019d300000980a055e76'}
           name='uploadedSwagger'
           onChange={info => {
+            console.log('info', info);
             if (info.file.status === 'done') {
               formik.setFieldValue('uploadedSwagger', info.file.originFileObj);
             }
@@ -149,6 +152,17 @@ const SpecSection = () => {
     </SectionContainer>
   );
 };
+
+const validationSchema = Yup.object().shape(
+  {
+    swaggerUrl: Yup.string().when('uploadedSwagger', {
+      is: undefined,
+      then: Yup.string().required('This field is required.'),
+      otherwise: Yup.string()
+    })
+  },
+  [['swaggerUrl', 'uploadedSwagger']]
+);
 
 type CreateApiDocValues = {
   name: string;
@@ -224,9 +238,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
         },
         spec: {
           dataSource: {
-            ...newApiDoc.spec?.dataSource!
-            // fetchUrl: swaggerUrl
-            // inlineBytes: swaggerUint8Array
+            ...newApiDoc.spec?.dataSource!,
+            fetchUrl: swaggerUrl,
+            inlineBytes: swaggerUint8Array
           },
           image: {
             ...newApiDoc.spec?.image!,
@@ -270,6 +284,7 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
             chosenUsers: [] as ListItemType[],
             chosenGroups: [] as ListItemType[]
           }}
+          validationSchema={validationSchema}
           onSubmit={handleCreateApiDoc}>
           {formik => (
             <>

@@ -94,6 +94,7 @@ export const apiDocApi = {
   getApiDoc,
   createApiDoc,
   deleteApiDoc,
+  updateApiDoc,
   updateApiDocContent
 };
 
@@ -120,6 +121,117 @@ export const apiKeyScopeApi = {
   updateKeyScope,
   deleteKeyScope
 };
+
+function updateApiDoc(
+  apiDocWriteRequest: ApiDocWriteRequest.AsObject
+): Promise<ApiDoc.AsObject> {
+  const {
+    apidoc,
+    usersList,
+    portalsList,
+    groupsList,
+    apiDocOnly
+  } = apiDocWriteRequest;
+  let request = new ApiDocWriteRequest();
+  if (apiDocOnly !== undefined) {
+    request.setApiDocOnly(apiDocOnly);
+  }
+  return new Promise((resolve, reject) => {
+    let req = new ApiDocGetRequest();
+    if (apidoc !== undefined && apidoc.metadata) {
+      let apiDocRef = new ObjectRef();
+      apiDocRef.setName(apidoc.metadata.name);
+      apiDocRef.setNamespace(apidoc.metadata.namespace);
+      req.setApidoc(apiDocRef);
+
+      grpc.unary(ApiDocApi.GetApiDoc, {
+        request: req,
+        host,
+        onEnd: endMessage => {
+          let apiDocToUpdate = endMessage.message as ApiDoc;
+          let apiDocSpec = apiDocToUpdate.getSpec();
+          let apiDocStatus = apiDocToUpdate.getStatus();
+
+          if (!!apidoc.status?.description) {
+            apiDocStatus?.setDescription(apidoc.status?.description);
+          }
+
+          if (!!apidoc.status?.displayName) {
+            apiDocStatus?.setDisplayName(apidoc.status?.displayName);
+          }
+          let dataSourceMessage = apiDocSpec?.getDataSource();
+          if (apidoc.spec?.dataSource?.inlineBytes !== undefined) {
+            dataSourceMessage?.setInlineBytes(
+              apidoc.spec.dataSource.inlineBytes
+            );
+          }
+          apiDocSpec?.setDataSource(dataSourceMessage);
+
+          let imageMessage = apiDocSpec?.getImage();
+          if (apidoc.spec?.image?.inlineBytes !== undefined) {
+            console.log('apidoc', apidoc);
+            imageMessage?.setInlineBytes(apidoc.spec.image.inlineBytes);
+          }
+          apiDocSpec?.setImage(imageMessage);
+          apiDocToUpdate.setStatus(apiDocStatus);
+          apiDocToUpdate.setSpec(apiDocSpec);
+          request.setApidoc(apiDocToUpdate);
+
+          if (portalsList !== undefined) {
+            let portalsRefList = portalsList.map(portalRefObj => {
+              let apiDocRef = new ObjectRef();
+              apiDocRef.setName(portalRefObj.name);
+              apiDocRef.setNamespace(portalRefObj.namespace);
+              return apiDocRef;
+            });
+            request.setPortalsList(portalsRefList);
+          }
+
+          if (usersList !== undefined) {
+            let usersRefList = usersList.map(userRefObj => {
+              let userRef = new ObjectRef();
+              userRef.setName(userRefObj.name);
+              userRef.setNamespace(userRefObj.namespace);
+              return userRef;
+            });
+            request.setUsersList(usersRefList);
+          }
+
+          if (groupsList !== undefined) {
+            let groupsRefList = groupsList.map(groupRefObj => {
+              let groupRef = new ObjectRef();
+              groupRef.setName(groupRefObj.name);
+              groupRef.setNamespace(groupRefObj.namespace);
+              return groupRef;
+            });
+            request.setGroupsList(groupsRefList);
+          }
+          grpc.invoke(ApiDocApi.UpdateApiDoc, {
+            request,
+            host,
+            metadata: new grpc.Metadata(),
+            onHeaders: (headers: grpc.Metadata) => {},
+            onMessage: (message: ApiDoc) => {
+              if (message) {
+                resolve(message.toObject());
+              }
+            },
+            onEnd: (
+              status: grpc.Code,
+              statusMessage: string,
+              trailers: grpc.Metadata
+            ) => {
+              if (status !== grpc.Code.OK) {
+                console.log('statusMessage', statusMessage);
+                reject(statusMessage);
+              }
+            }
+          });
+        }
+      });
+    }
+  });
+}
 
 function deleteGroup(groupRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
   const { name, namespace } = groupRef;
@@ -1796,7 +1908,6 @@ function listKeyScopes(): Promise<ApiKeyScopeWithApiDocs.AsObject[]> {
       onHeaders: (headers: grpc.Metadata) => {},
       onMessage: (message: ApiKeyScopeList) => {
         if (message) {
-          console.log(message.toObject());
           resolve(message.toObject().apiKeyScopesList);
         }
       },

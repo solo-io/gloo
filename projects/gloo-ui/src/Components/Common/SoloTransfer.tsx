@@ -30,6 +30,8 @@ const ListHolder = styled.div`
   border: 1px solid ${colors.aprilGrey};
   height: 100%;
   background: white;
+  max-height: 200px;
+  overflow-y: scroll;
 `;
 
 const Item = styled.div`

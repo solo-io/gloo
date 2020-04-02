@@ -16,17 +16,35 @@ import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
-import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import {
+  State,
+  DataSource
+} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import React from 'react';
+import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
+
 import { useHistory, useParams } from 'react-router';
-import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import {
+  SoloNegativeButton,
+  SoloButtonStyledComponent,
+  SoloCancelButton
+} from 'Styles/CommonEmotions/button';
 import useSWR from 'swr';
-import { apiDocApi } from '../api';
+import { apiDocApi, portalApi } from '../api';
 import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
 import { formatHealthStatus } from '../portals/PortalsListing';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { APIUsersTab } from './APIUsers';
 import { APIGroupsTab } from './APIGroups';
+import {
+  SoloFormInput,
+  SoloFormTextarea
+} from 'Components/Common/Form/SoloFormField';
+import { Formik } from 'formik';
+import { format } from 'timeago.js';
+import { secondsToString } from '../util';
+import { colors } from 'Styles';
+import ImageUploader from 'react-images-upload';
 import { SoloButton } from 'Components/Common/SoloButton';
 
 const StyledTab = (
@@ -50,6 +68,11 @@ const StyledTab = (
   );
 };
 
+type UpdateApiValues = {
+  displayName: string;
+  description: string;
+  image: File;
+};
 export const APIDetails = () => {
   const { apiname, apinamespace } = useParams();
   const { data: apiDoc, error: apiDocError } = useSWR(
@@ -57,6 +80,11 @@ export const APIDetails = () => {
     (key, name, namespace) =>
       apiDocApi.getApiDoc({ apidoc: { name, namespace }, withassets: true })
   );
+  const { data: portalsList, error: portalListError } = useSWR(
+    'listPortals',
+    portalApi.listPortals
+  );
+
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
@@ -83,6 +111,14 @@ export const APIDetails = () => {
     setTabIndex(index);
   };
 
+  const filteredPortalList = portalsList?.filter(portal =>
+    portal.status?.apiDocsList.some(
+      apiDocRef =>
+        apiDocRef.name === apiDoc?.metadata?.name &&
+        apiDocRef.namespace === apiDoc?.metadata.namespace
+    )
+  );
+
   const goToEdit = () => {
     history.push(`/dev-portal/apis/${apinamespace}/${apiname}/edit`);
   };
@@ -106,7 +142,9 @@ export const APIDetails = () => {
           headerSecondaryInformation={[
             {
               title: 'Modified',
-              value: 'Feb 26, 2020'
+              value: format(
+                secondsToString(apiDoc?.status?.modifiedDate?.seconds)
+              )
             }
           ]}
           healthMessage={'Portal Status'}
@@ -135,6 +173,7 @@ export const APIDetails = () => {
                   <span className='font-medium text-gray-900'>
                     Display Name
                   </span>
+
                   <div>
                     {apiDoc?.status?.displayName || apiDoc?.metadata?.name}
                   </div>
@@ -143,27 +182,33 @@ export const APIDetails = () => {
                   <span className='font-medium text-gray-900'>
                     Published In
                   </span>
-                  {/* {apiDoc..spec?.domainsList.map((domain, index) => (
-                    <div
-                      key={domain}
-                      className='flex items-center mb-2 text-sm text-blue-600'>
-                      <span>
-                        <ExternalLinkIcon className='w-4 h-4 ' />
-                      </span>
-                    
-                        <div>{domain}</div>
-                     </div>
-                  ))} */}
+                  <div className='grid w-1/2 grid-flow-col grid-flow-col-dense grid-cols-2'>
+                    {(filteredPortalList || [])
+                      .sort((a, b) =>
+                        a.metadata?.name === b.metadata?.name
+                          ? 0
+                          : a.metadata!.name > b.metadata!.name
+                          ? 1
+                          : -1
+                      )
+                      .map((portal, index) => (
+                        <div
+                          key={portal.metadata?.uid}
+                          className='flex items-center mb-2 text-sm text-blue-600'>
+                          <div>
+                            {portal.spec?.displayName || portal.metadata?.name}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
-                <span className='absolute top-0 right-0 flex items-center'>
-                  <span className='mr-2'> Edit</span>
-                  <span className='flex items-center justify-center w-6 h-6 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                    <EditIcon className='w-3 h-3' />
-                  </span>
-                </span>
+
                 <div className='col-span-2 '>
                   <span className='font-medium text-gray-900'>Description</span>
-                  <div>{apiDoc.status?.description}</div>
+
+                  <div className='break-words '>
+                    {apiDoc?.status?.description}
+                  </div>
                 </div>
               </div>
             </div>
@@ -187,8 +232,9 @@ export const APIDetails = () => {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            <div className='flex justify-between items-bottom'>
+            <div className='flex justify-end justify-between items-bottom'>
               <SoloButton text='Open API Editor' onClick={goToEdit} />
+
               <SoloNegativeButton onClick={attemptDeleteApiDoc}>
                 Delete API
               </SoloNegativeButton>

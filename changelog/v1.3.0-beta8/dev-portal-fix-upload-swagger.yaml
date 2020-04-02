@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Fix error when uploading a swagger file.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1616
+    resolvesIssue: false

@@ -87,6 +87,14 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
     portalApi.listPortals
   );
 
+  const filteredPortalList = portalsList?.filter(portal =>
+    portal.status?.apiDocsList.some(
+      apiDocRef =>
+        apiDocRef.name === apiDoc.metadata?.name &&
+        apiDocRef.namespace === apiDoc.metadata.namespace
+    )
+  );
+
   return (
     <div
       onClick={() =>
@@ -102,12 +110,12 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
         />
       </span>
       <div className='items-center flex-none w-40 h-40 overflow-hidden text-center bg-cover rounded-l lg:rounded-t-none lg:rounded-l'>
-        {apiDoc.spec?.image ? (
+        {apiDoc.spec?.image?.inlineBytes ? (
           <img
             className='object-contain h-40'
             src={`data:image/gif;base64,${apiDoc.spec?.image?.inlineBytes}`}></img>
         ) : (
-          <PlaceholderPortal className='w-56 rounded-lg ' />
+          <PlaceholderPortal className='h-40 rounded-lg w-60 ' />
         )}
       </div>
       <div className='flex flex-col justify-around w-full h-40 ml-4'>
@@ -118,7 +126,7 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
         <div className='flex items-center justify-between '>
           <div className='font-medium text-gray-900 capitalize'>
             published in:{' '}
-            {(portalsList || [])
+            {(filteredPortalList || [])
               ?.map(p => p.spec!.displayName || p.metadata!.name)
               .sort((a, b) => (a === b ? 0 : a > b ? 1 : -1))
               .join(', ')}
