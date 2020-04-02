@@ -1,14 +1,13 @@
-import React from 'react';
-import { SoloInput } from 'Components/Common/SoloInput';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
+import { ReactComponent as NoUser } from 'assets/no-user-icon.svg';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import React from 'react';
 import useSWR from 'swr';
 import { groupApi } from '../api';
-import { format } from 'timeago.js';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
-import { CreateUserModal } from '../users/CreateUserModal';
+import { AddGroupModal } from './AddGroupModal';
 
 type PortalGroupsTabProps = {
   portal: Portal.AsObject;
@@ -34,7 +33,7 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
         onClick={() => setShowCreateUserModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Create a Group</span>
+        <span className='text-gray-700'> Add a Group</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
@@ -118,11 +117,25 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                     })}
               </tbody>
             </table>
+            {groupsList?.length === 0 && (
+              <div className='w-full m-auto'>
+                <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
+                  <div className='mr-6'>
+                    <NoUser />
+                  </div>
+                  <div className='flex flex-col h-full'>
+                    <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
+                      There are no Groups to display!{' '}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
       <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
-        <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
+        <AddGroupModal onClose={() => setShowCreateUserModal(false)} />
       </SoloModal>
     </div>
   );

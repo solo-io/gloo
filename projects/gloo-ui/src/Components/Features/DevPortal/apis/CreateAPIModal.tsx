@@ -1,37 +1,33 @@
-import React from 'react';
-import {
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  TabPanelProps
-} from '@reach/tabs';
 import { css } from '@emotion/core';
-import { Formik, useFormikContext } from 'formik';
-import {
-  SoloFormInput,
-  SoloFormTextarea
-} from 'Components/Common/Form/SoloFormField';
-import ImageUploader from 'react-images-upload';
-import { colors } from 'Styles';
-import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
 import styled from '@emotion/styled';
-import tw from 'tailwind.macro';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { ReactComponent as NoSelectedList } from 'assets/no-selected-list.svg';
+import {
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanelProps,
+  TabPanels,
+  Tabs
+} from '@reach/tabs';
+import { Button, Upload } from 'antd';
+import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
+import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
+import { Formik, useFormikContext } from 'formik';
+import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import React from 'react';
+import ImageUploader from 'react-images-upload';
+import { configAPI } from 'store/config/api';
+import { colors } from 'Styles';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton
 } from 'Styles/CommonEmotions/button';
-import { SoloTransfer } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
-import { portalApi, userApi, groupApi, apiDocApi } from '../api';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { Upload, Button } from 'antd';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
-import { configAPI } from 'store/config/api';
+import tw from 'tailwind.macro';
+import { apiDocApi, groupApi, portalApi, userApi } from '../api';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 export const SectionContainer = styled.div`
   ${tw`w-full h-full p-6 pb-0`}
@@ -63,43 +59,6 @@ const StyledTab = (
       }`}>
       {children}
     </Tab>
-  );
-};
-
-const GeneralSection = () => {
-  return (
-    <SectionContainer>
-      <SectionHeader>Create an API</SectionHeader>
-      <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
-        Create a new API to expose as business capabilities
-      </div>
-      <div className='grid grid-cols-2 '>
-        <div className='mr-4'>
-          <SoloFormInput
-            name='name'
-            title='Name'
-            placeholder='API title goes here'
-            hideError
-          />
-        </div>
-        <div>
-          <SoloFormInput
-            name='displayName'
-            title='Display Name'
-            placeholder='Display name goes here'
-            hideError
-          />
-        </div>
-        <div className='col-span-2 mt-2'>
-          <SoloFormTextarea
-            name='description'
-            title='Description'
-            placeholder='API description goes here'
-            hideError
-          />
-        </div>
-      </div>
-    </SectionContainer>
   );
 };
 
@@ -159,16 +118,16 @@ const SpecSection = () => {
     <SectionContainer>
       <SectionHeader>Create an API: Specs</SectionHeader>
       <div className='p-2 bg-gray-100 '>
-        Create an API by specification document (Open API Spec, Proto, etc)
+        Create an API by providing an Open API document
       </div>
       <div className='mt-2 mb-1 font-medium text-gray-800'>
-        Paste Swagger url
+        Paste OpenAPI document URL
       </div>
       <div>
         <SoloFormInput name='swaggerUrl' hideError />
       </div>
       <div className='mt-2 mb-1 font-medium text-gray-800'>
-        Upload Swagger File
+        Upload OpenAPI document
       </div>
       <div>
         <Upload
@@ -183,7 +142,7 @@ const SpecSection = () => {
               width: 100%;
               border-radius: 9px;
             `}>
-            Upload a spec
+            Upload a document{' '}
           </Button>
         </Upload>
       </div>
@@ -198,9 +157,9 @@ type CreateApiDocValues = {
   swaggerUrl: string;
   uploadedSwagger: File;
   image: File;
-  chosenPortals: ObjectRef.AsObject[];
-  chosenUsers: ObjectRef.AsObject[];
-  chosenGroups: ObjectRef.AsObject[];
+  chosenPortals: ListItemType[];
+  chosenUsers: ListItemType[];
+  chosenGroups: ListItemType[];
 };
 
 export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
@@ -242,11 +201,17 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
 
     let newApiDoc = new ApiDoc().toObject();
 
-    let imageBuffer = await image.arrayBuffer();
-    let imageUint8Arr = new Uint8Array(imageBuffer);
+    let imageUint8Arr = new Uint8Array();
+    if (image !== undefined) {
+      let imageBuffer = await image.arrayBuffer();
+      imageUint8Arr = new Uint8Array(imageBuffer);
+    }
 
-    let swaggerBuffer = await uploadedSwagger.arrayBuffer();
-    let swaggerUint8Array = new Uint8Array(swaggerBuffer);
+    let swaggerUint8Array = new Uint8Array();
+    if (uploadedSwagger !== undefined) {
+      let swaggerBuffer = await uploadedSwagger.arrayBuffer();
+      swaggerUint8Array = new Uint8Array(swaggerBuffer);
+    }
 
     //@ts-ignore
     await apiDocApi.createApiDoc({
@@ -287,7 +252,7 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
   }
 
   return (
-    <>
+    <ErrorBoundary fallback={<div>There was an error.</div>}>
       <div
         css={css`
           width: 750px;
@@ -301,9 +266,9 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
             uploadedSwagger: (undefined as unknown) as File,
             image: (undefined as unknown) as File,
             name: '',
-            chosenPortals: [] as ObjectRef.AsObject[],
-            chosenUsers: [] as ObjectRef.AsObject[],
-            chosenGroups: [] as ObjectRef.AsObject[]
+            chosenPortals: [] as ListItemType[],
+            chosenUsers: [] as ListItemType[],
+            chosenGroups: [] as ListItemType[]
           }}
           onSubmit={handleCreateApiDoc}>
           {formik => (
@@ -381,18 +346,12 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           .map(portal => {
                             return {
                               name: portal.metadata?.name!,
-                              namespace: portal.metadata?.namespace!
+                              namespace: portal.metadata?.namespace!,
+                              displayValue: portal.spec?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected Portal'
-                        chosenOptions={formik.values.chosenPortals.map(
-                          portal => {
-                            return {
-                              name: portal.name,
-                              namespace: portal.namespace
-                            };
-                          }
-                        )}
+                        chosenOptions={formik.values.chosenPortals}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
@@ -442,13 +401,12 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           .map(user => {
                             return {
                               name: user.metadata?.name!,
-                              namespace: user.metadata?.namespace!
+                              namespace: user.metadata?.namespace!,
+                              displayValue: user.spec?.username
                             };
                           })}
                         chosenOptionsListName='Selected Users'
-                        chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { name: user.name, namespace: user.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
@@ -495,13 +453,12 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                           .map(group => {
                             return {
                               name: group.metadata?.name!,
-                              namespace: group.metadata?.namespace!
+                              namespace: group.metadata?.namespace!,
+                              displayValue: group.spec?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected Groups'
-                        chosenOptions={formik.values.chosenGroups.map(user => {
-                          return { name: user.name, namespace: user.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenGroups}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
@@ -530,33 +487,12 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                       </div>
                     </div>
                   </TabPanel>
-                  {/* <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                    <SpecSection />
-                    <div className='flex items-end justify-between h-full px-6 mb-4 '>
-                      <button
-                        className='text-blue-500 cursor-pointer'
-                        onClick={props.onClose}>
-                        cancel
-                      </button>
-                      <div>
-                        <SoloCancelButton
-                          onClick={() => handleTabsChange(4)}
-                          className='mr-2'>
-                          Back
-                        </SoloCancelButton>
-                        <SoloButtonStyledComponent
-                          onClick={formik.handleSubmit}>
-                          Create API
-                        </SoloButtonStyledComponent>
-                      </div>
-                    </div>
-                  </TabPanel> */}
                 </TabPanels>
               </Tabs>
             </>
           )}
         </Formik>
       </div>
-    </>
+    </ErrorBoundary>
   );
 };

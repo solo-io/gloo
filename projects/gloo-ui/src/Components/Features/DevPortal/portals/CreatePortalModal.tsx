@@ -14,7 +14,7 @@ import {
   SoloFormTextarea,
   SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
-import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import { Formik, useFormikContext } from 'formik';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
@@ -55,16 +55,6 @@ const StyledTab = (
     </Tab>
   );
 };
-
-const validationSchema = yup.object().shape({
-  displayName: yup
-    .string()
-    .matches(
-      /^(?![0-9]+$)(?!.*-$)(?!-)[a-zA-Z0-9-]{1,63}$/g,
-      `must consist of lower case alphanumeric characters, '-' or '.'`
-    )
-    .required('The name is required')
-});
 
 const GeneralSection = () => {
   return (
@@ -248,9 +238,9 @@ type CreatePortalValues = {
   banner: File;
   favicon: File;
   primaryLogo: File;
-  chosenAPIs: ObjectRef.AsObject[];
-  chosenUsers: ObjectRef.AsObject[];
-  chosenGroups: ObjectRef.AsObject[];
+  chosenAPIs: ListItemType[];
+  chosenUsers: ListItemType[];
+  chosenGroups: ListItemType[];
 };
 export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
   const { data: apiDocsList, error: apiDocsError } = useSWR(
@@ -312,7 +302,6 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
         //@ts-ignore
         metadata: {
           // ...newPortal.metadata!,
-          name: displayName,
           namespace: podNamespace!,
           annotationsMap: [],
           labelsMap: [],
@@ -384,11 +373,10 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
             banner: (undefined as unknown) as File,
             favicon: (undefined as unknown) as File,
             primaryLogo: (undefined as unknown) as File,
-            chosenAPIs: [] as ObjectRef.AsObject[],
-            chosenUsers: [] as ObjectRef.AsObject[],
-            chosenGroups: [] as ObjectRef.AsObject[]
+            chosenAPIs: [] as ListItemType[],
+            chosenUsers: [] as ListItemType[],
+            chosenGroups: [] as ListItemType[]
           }}
-          validationSchema={validationSchema}
           onSubmit={handleCreatePortal}>
           {formik => (
             <>
@@ -494,13 +482,12 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           .map(apiDoc => {
                             return {
                               name: apiDoc.metadata?.name!,
-                              namespace: apiDoc.metadata?.name!
+                              namespace: apiDoc.metadata?.namespace!,
+                              displayValue: apiDoc.status?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected APIs'
-                        chosenOptions={formik.values.chosenAPIs.map(api => {
-                          return { name: api.name, namespace: api.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenAPIs}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenAPIs', newChosenOptions);
@@ -547,13 +534,12 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           .map(user => {
                             return {
                               name: user.metadata?.name!,
-                              namespace: user.metadata?.namespace!
+                              namespace: user.metadata?.namespace!,
+                              displayValue: user.spec?.username
                             };
                           })}
                         chosenOptionsListName='Selected Users'
-                        chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { name: user.name, namespace: user.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
@@ -600,16 +586,12 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                           .map(group => {
                             return {
                               name: group.metadata?.name!,
-                              namespace: group.metadata?.namespace!
+                              namespace: group.metadata?.namespace!,
+                              displayValue: group?.spec?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected Groups'
-                        chosenOptions={formik.values.chosenGroups.map(group => {
-                          return {
-                            name: group.name,
-                            namespace: group.namespace
-                          };
-                        })}
+                        chosenOptions={formik.values.chosenGroups}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(

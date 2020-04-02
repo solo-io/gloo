@@ -20,7 +20,7 @@ import {
   SoloButtonStyledComponent,
   SoloCancelButton
 } from 'Styles/CommonEmotions/button';
-import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
 import { userApi, apiDocApi, portalApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
@@ -82,10 +82,10 @@ const GeneralSection = () => {
 type CreateGroupValues = {
   name: string;
   description: string;
-  chosenAPIs: ObjectRef.AsObject[];
-  chosenPortals: ObjectRef.AsObject[];
+  chosenAPIs: ListItemType[];
+  chosenPortals: ListItemType[];
 
-  chosenUsers: ObjectRef.AsObject[];
+  chosenUsers: ListItemType[];
 };
 
 export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
@@ -132,7 +132,6 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
         ...newGroup!,
         metadata: {
           ...newGroup.metadata!,
-          name,
           namespace: podNamespace!
         },
         spec: {
@@ -161,10 +160,10 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
           initialValues={{
             name: '',
             description: '',
-            chosenAPIs: [] as ObjectRef.AsObject[],
-            chosenPortals: [] as ObjectRef.AsObject[],
+            chosenAPIs: [] as ListItemType[],
+            chosenPortals: [] as ListItemType[],
 
-            chosenUsers: [] as ObjectRef.AsObject[]
+            chosenUsers: [] as ListItemType[]
           }}
           onSubmit={handleCreateGroup}>
           {formik => (
@@ -220,13 +219,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           .map(user => {
                             return {
                               name: user.metadata?.name!,
-                              namespace: user.metadata?.namespace!
+                              namespace: user.metadata?.namespace!,
+                              displayValue: user.spec?.username
                             };
                           })}
                         chosenOptionsListName='Selected User'
-                        chosenOptions={formik.values.chosenUsers.map(user => {
-                          return { name: user.name, namespace: user.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
@@ -272,13 +270,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           .map(apiDoc => {
                             return {
                               name: apiDoc.metadata?.name!,
-                              namespace: apiDoc.metadata?.namespace!
+                              namespace: apiDoc.metadata?.namespace!,
+                              displayValue: apiDoc.status?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected APIs'
-                        chosenOptions={formik.values.chosenAPIs.map(api => {
-                          return { name: api.name, namespace: api.namespace };
-                        })}
+                        chosenOptions={formik.values.chosenAPIs}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenAPIs', newChosenOptions);
@@ -324,18 +321,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                           .map(portal => {
                             return {
                               name: portal.metadata?.name!,
-                              namespace: portal.metadata?.namespace!
+                              namespace: portal.metadata?.namespace!,
+                              displayValue: portal.spec?.displayName
                             };
                           })}
                         chosenOptionsListName='Selected Portal'
-                        chosenOptions={formik.values.chosenPortals.map(
-                          portal => {
-                            return {
-                              name: portal.name,
-                              namespace: portal.namespace
-                            };
-                          }
-                        )}
+                        chosenOptions={formik.values.chosenPortals}
                         onChange={newChosenOptions => {
                           console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(

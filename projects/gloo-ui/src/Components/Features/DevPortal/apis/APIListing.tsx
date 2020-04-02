@@ -9,7 +9,7 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { CreateAPIModal } from './CreateAPIModal';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { apiDocApi, portalApi } from '../api';
+import { apiDocApi, portalApi, userApi } from '../api';
 import useSWR from 'swr';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 import { ApiDocStatus } from 'proto/dev-portal/api/dev-portal/v1/apidoc_pb';
@@ -22,13 +22,12 @@ export const APIListing = () => {
     'listApiDocs',
     apiDocApi.listApiDocs
   );
-  let isEmpty = false;
+
   const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
 
   if (!apiDocsList) {
     return <div>Loading...</div>;
   }
-  console.log('apiDocsList', apiDocsList);
   return (
     <>
       <div className='container relative mx-auto '>
@@ -38,7 +37,7 @@ export const APIListing = () => {
           <GreenPlus className='mr-1 fill-current' />
           <span className='text-gray-700'> Create an API</span>
         </span>
-        {isEmpty ? (
+        {apiDocsList.length === 0 ? (
           <EmptyPortalsPanel itemName='API'>
             <PlaceholderPortalTile /> <PlaceholderPortalTile />
           </EmptyPortalsPanel>
@@ -67,6 +66,20 @@ export const APIListing = () => {
 
 const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
   const { apiDoc } = props;
+  const { data: usersList, error: usersError } = useSWR(
+    `listUsers${apiDoc.metadata?.name}${apiDoc.metadata?.namespace}`,
+    () =>
+      userApi.listUsers({
+        apiDocsList: [
+          {
+            name: apiDoc.metadata!.name,
+            namespace: apiDoc.metadata!.namespace
+          }
+        ],
+        portalsList: [],
+        groupsList: []
+      })
+  );
   const history = useHistory();
 
   const { data: portalsList, error: portalListError } = useSWR(
@@ -118,6 +131,15 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
               )}
             </div>
             <div className='flex items-center'>
+              <div className='flex items-center px-4'>
+                <span className='text-blue-600'>
+                  <UserIcon className='w-6 h-6 fill-current' />
+                </span>
+                <span className='px-1 font-semibold'>
+                  {usersList?.length || 0}
+                </span>
+                <span>Users</span>
+              </div>
               <div className='flex items-center px-4'>
                 <span className='text-blue-600'>
                   <CodeIcon className='w-6 h-6 fill-current' />

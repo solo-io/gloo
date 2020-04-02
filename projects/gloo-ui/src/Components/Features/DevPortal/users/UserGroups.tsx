@@ -1,37 +1,28 @@
-import React from 'react';
-import { useParams, useHistory } from 'react-router';
-import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
-import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { ReactComponent as PortalIcon } from 'assets/portal-icon.svg';
-
-import { healthConstants, colors, soloConstants } from 'Styles';
 import { css } from '@emotion/core';
 import {
-  Tabs,
-  TabList,
   Tab,
-  TabPanels,
+  TabList,
   TabPanel,
-  TabsProps,
-  TabPanelProps
+  TabPanelProps,
+  TabPanels,
+  Tabs
 } from '@reach/tabs';
-import { SoloInput } from 'Components/Common/SoloInput';
+import { Popover } from 'antd';
+import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
 import { ReactComponent as NoUser } from 'assets/no-user-icon.svg';
-
-import { TabCss, ActiveTabCss } from '../portals/PortalDetails';
+import { ReactComponent as PortalIcon } from 'assets/portal-icon.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { CreateUserModal } from './CreateUserModal';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { CreateGroupModal } from './CreateGroupModal';
-import useSWR from 'swr';
-import { userApi, groupApi } from '../api';
+import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { Popover } from 'antd';
-import { AccessLevel } from 'proto/dev-portal/api/dev-portal/v1/access_level_pb';
-import { Selector } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { SoloModal } from 'Components/Common/SoloModal';
+import React from 'react';
+import useSWR from 'swr';
+import { groupApi, userApi } from '../api';
+import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
+import { CreateGroupModal } from './CreateGroupModal';
+import { CreateUserModal } from './CreateUserModal';
 
 const StyledTab = (
   props: {
@@ -74,6 +65,7 @@ export const UserGroups = () => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
+
   if (!userList || !groupList) {
     return <Loading center>Loading...</Loading>;
   }

@@ -7,34 +7,32 @@ import { format } from 'timeago.js';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateAPIModal } from '../apis/CreateAPIModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
+
 import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 import { secondsToString } from '../util';
+import { AddApiModal } from './AddApiModal';
 
 type PortalApiDocsTabProps = {
   portal: Portal.AsObject;
 };
 export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
   const { data: apiDocsList, error: apiDocsError } = useSWR(
-    'listApiDocs',
-    apiDocApi.listApiDocs
+    `listApiDocs${portal.metadata?.name}${portal.metadata?.namespace}`,
+    () =>
+      apiDocApi.listApiDocs({
+        portalsList: [
+          {
+            name: portal.metadata!.name,
+            namespace: portal.metadata!.namespace
+          }
+        ]
+      })
   );
 
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
   const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
-
-  const getApiDoc = (
-    namespace: string,
-    name: string
-  ): ApiDoc.AsObject | undefined => {
-    if (!apiDocsList) {
-      return undefined;
-    }
-
-    return apiDocsList.find(
-      doc => doc.metadata?.namespace == namespace && doc.metadata.name == name
-    );
-  };
 
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
@@ -42,7 +40,7 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
         onClick={() => setShowCreateApiModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Create an API</span>
+        <span className='text-gray-700'> Add an API</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
@@ -74,14 +72,12 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {portal.status?.apiDocsList.map(ref => {
-                  const doc = getApiDoc(ref.namespace, ref.name);
-                  if (!doc) {
-                    return;
-                  }
+                {apiDocsList?.map(doc => {
+                  // const doc = getApiDoc(ref.namespace, ref.name);
+
                   return (
                     <tr
-                      key={`${doc.metadata?.namespace}.${doc.metadata?.name}`}>
+                      key={`${doc?.metadata?.namespace}.${doc?.metadata?.name}`}>
                       <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
                         <div className='text-sm leading-5 text-gray-900'>
                           <span className='flex items-center capitalize'>
@@ -124,11 +120,25 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
                 })}
               </tbody>
             </table>
+            {apiDocsList?.length === 0 && (
+              <div className='w-full m-auto'>
+                <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
+                  <div className='mr-6 text-blue-600'>
+                    <CodeIcon className='w-20 h-20 fill-current ' />
+                  </div>
+                  <div className='flex flex-col h-full'>
+                    <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
+                      There are no APIs to display!{' '}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
       <SoloModal visible={showCreateApiModal} width={750} noPadding={true}>
-        <CreateAPIModal onClose={() => setShowCreateApiModal(false)} />
+        <AddApiModal onClose={() => setShowCreateApiModal(false)} />
       </SoloModal>
     </div>
   );

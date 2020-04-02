@@ -52,9 +52,10 @@ const Item = styled.div`
   }
 `;
 
-type ListItemType = {
+export type ListItemType = {
   name: string;
   namespace: string;
+  displayValue?: string;
 };
 
 interface TransferProps {
@@ -104,7 +105,7 @@ export const SoloTransfer = (props: TransferProps) => {
             )
             .map(item => (
               <Item key={`${item.name}-${item.namespace}`}>
-                {`${item.name}-${item.namespace}`}
+                {item.displayValue || `${item.name}-${item.namespace}`}
                 <span className='text-green-400 cursor-pointer hover:text-green-300'>
                   <GreenPlus
                     className='w-4 h-4 fill-current'
@@ -127,7 +128,7 @@ export const SoloTransfer = (props: TransferProps) => {
           )}
           {chosenOptions.map(item => (
             <Item key={`${item.name}-${item.namespace}`}>
-              {`${item.name}-${item.namespace}`}
+              {item.displayValue || `${item.name}-${item.namespace}`}
               <RedX onClick={() => removeItem(item)} />
             </Item>
           ))}

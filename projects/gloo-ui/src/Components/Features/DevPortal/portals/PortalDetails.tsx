@@ -228,6 +228,14 @@ export const PortalDetails = () => {
             }}>
             {formik => (
               <div>
+                {portal?.status?.state !== State.SUCCEEDED && (
+                  <div className='flex items-center p-2 mb-2 text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-lg '>
+                    <div className='flex items-center justify-center w-4 h-4 mr-2 text-white text-yellow-500 bg-orange-100 border border-yellow-500 rounded-full'>
+                      !
+                    </div>{' '}
+                    {portal.status?.reason}
+                  </div>
+                )}
                 <div className='relative flex items-center'>
                   <div className='w-64 max-h-72'>
                     {portal.spec?.banner?.inlineBytes ? (
@@ -477,15 +485,23 @@ export const PortalDetails = () => {
                         <div className='grid w-full grid-cols-2 gap-2 ml-4'>
                           <div className='flex flex-col items-center justify-start '>
                             <SectionSubHeader>Primary Logo</SectionSubHeader>
-                            <img
-                              className='object-cover h-12'
-                              src={`data:image/gif;base64,${portal.spec?.primaryLogo?.inlineBytes}`}></img>
+                            {portal.spec?.primaryLogo?.inlineBytes ? (
+                              <img
+                                className='object-cover max-h-72'
+                                src={`data:image/gif;base64,${portal.spec?.primaryLogo?.inlineBytes}`}></img>
+                            ) : (
+                              <PlaceholderPortal className='w-56 rounded-lg ' />
+                            )}
                           </div>
                           <div className='flex flex-col items-center justify-start '>
                             <SectionSubHeader>Favicon</SectionSubHeader>
-                            <img
-                              className='object-cover h-12'
-                              src={`data:image/gif;base64,${portal.spec?.favicon?.inlineBytes}`}></img>
+                            {portal.spec?.favicon?.inlineBytes ? (
+                              <img
+                                className='object-cover max-h-72'
+                                src={`data:image/gif;base64,${portal.spec?.favicon?.inlineBytes}`}></img>
+                            ) : (
+                              <PlaceholderPortal className='w-56 rounded-lg ' />
+                            )}
                           </div>
 
                           <div className='flex flex-col items-start justify-start w-full'>

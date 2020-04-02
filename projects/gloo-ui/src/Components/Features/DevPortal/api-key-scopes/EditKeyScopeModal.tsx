@@ -22,7 +22,7 @@ import {
   SoloFormDropdown,
   SoloFormTextarea
 } from 'Components/Common/Form/SoloFormField';
-import { SoloTransfer } from 'Components/Common/SoloTransfer';
+import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton
@@ -61,7 +61,7 @@ interface InitialKeyScopeValuesType {
   name: string;
   assignedPortal: string;
   description: string;
-  chosenAPIs: ObjectRef.AsObject[];
+  chosenAPIs: ListItemType[];
 }
 
 interface EditKeyScopeModalProps {
@@ -104,6 +104,14 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
   const getPortalId = (namespace: string, name: string) =>
     `${namespace}.${name}`;
 
+  const getApiDocFromRef = (apiDocRef: ObjectRef.AsObject) => {
+    let apiDocObj = apiDocsList?.find(
+      apiDoc =>
+        apiDoc.metadata?.name === apiDocRef.name &&
+        apiDoc.metadata.namespace === apiDocRef.namespace
+    );
+    return apiDocObj;
+  };
   const initialValues: InitialKeyScopeValuesType = {
     name:
       props.existingKeyScope?.spec?.displayName ||
@@ -185,7 +193,7 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
             </TabList>
 
             <TabPanels className='bg-white rounded-r-lg'>
-              <div className='pt-5 pb-6 pl-8 pr-6 h-full'>
+              <div className='h-full pt-5 pb-6 pl-8 pr-6'>
                 <TabPanel className='focus:outline-none'>
                   <div className='relative flex flex-col'>
                     <div className='flex items-center text-lg font-medium text-gray-900'>
@@ -282,21 +290,19 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                         <SoloTransfer
                           allOptionsListName='Available APIs'
                           allOptions={
-                            !!portalSelected
-                              ? portalSelected!.status!.apiDocsList.map(
-                                  apiDoc => {
-                                    return {
-                                      name: apiDoc.name,
-                                      namespace: apiDoc.namespace
-                                    };
-                                  }
-                                )
-                              : []
+                            portalSelected?.status?.apiDocsList.map(
+                              apiDocRef => {
+                                let apiDocObj = getApiDocFromRef(apiDocRef)!;
+                                return {
+                                  name: apiDocObj?.metadata?.name!,
+                                  namespace: apiDocObj?.metadata?.namespace!,
+                                  displayValue: apiDocObj?.status?.displayName
+                                };
+                              }
+                            ) || []
                           }
                           chosenOptionsListName='Selected APIs'
-                          chosenOptions={values.chosenAPIs.map(api => {
-                            return { name: api.name, namespace: api.namespace };
-                          })}
+                          chosenOptions={values.chosenAPIs}
                           onChange={newChosenOptions => {
                             console.log('newChosenOptions', newChosenOptions);
                             setFieldValue('chosenAPIs', newChosenOptions);

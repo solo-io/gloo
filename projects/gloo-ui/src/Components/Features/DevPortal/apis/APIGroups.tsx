@@ -1,15 +1,13 @@
-import React from 'react';
-import { SoloInput } from 'Components/Common/SoloInput';
 import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
+import { ReactComponent as NoUser } from 'assets/no-user-icon.svg';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import React from 'react';
 import useSWR from 'swr';
 import { groupApi } from '../api';
-import { format } from 'timeago.js';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 import { CreateUserModal } from '../users/CreateUserModal';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 
 type APIGroupProps = {
   apiDoc: ApiDoc.AsObject;
@@ -119,6 +117,20 @@ export const APIGroupsTab = ({ apiDoc }: APIGroupProps) => {
                     })}
               </tbody>
             </table>
+            {groupsList?.length === 0 && (
+              <div className='w-full m-auto'>
+                <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
+                  <div className='mr-6'>
+                    <NoUser />
+                  </div>
+                  <div className='flex flex-col h-full'>
+                    <p className='h-auto my-6 text-lg font-medium text-gray-800 '>
+                      There are no Groups to display!{' '}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

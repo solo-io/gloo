@@ -36,8 +36,7 @@ export function formatHealthStatus(
 export const PortalsListing = () => {
   const { data: portalsList, error: portalListError } = useSWR(
     'listPortals',
-    portalApi.listPortals,
-    { refreshInterval: 0 }
+    portalApi.listPortals
   );
   const [showCreatePortalModal, setShowCreatePortalModal] = React.useState(
     false
@@ -118,7 +117,7 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
       <div className='flex-none h-48 overflow-hidden text-center bg-cover rounded-l lg:h-auto lg:w-56 lg:rounded-t-none lg:rounded-l'>
         {portal.spec?.banner?.inlineBytes ? (
           <img
-            className='object-cover max-h-72'
+            className='object-cover h-48'
             src={`data:image/gif;base64,${portal.spec?.banner?.inlineBytes}`}></img>
         ) : (
           <PlaceholderPortal className='rounded-lg w-72 ' />

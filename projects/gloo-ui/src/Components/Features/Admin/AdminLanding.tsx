@@ -147,7 +147,7 @@ export const AdminLanding: React.FC<RouteProps> = props => {
         <div>
           <div className='mt-2 text-2xl text-gray-900'> Settings</div>
         </div>
-        <div className='grid grid-cols-3 px-4 py-4 sm:p-6'>
+        <div className='grid grid-cols-3 '>
           <StatusTile
             titleIcon={
               <span className='text-blue-500'>
