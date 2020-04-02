@@ -159,6 +159,7 @@ export const InverseButtonCSS = css`
   ${SoloButtonCSS};
   background: white;
   color: ${colors.seaBlue};
+  border: 1px solid ${colors.seaBlue};
 
   &:hover,
   &:focus {

@@ -19,6 +19,7 @@ import { Redirect, Route, RouteProps, Switch } from 'react-router-dom';
 import { configAPI } from 'store/config/api';
 import useSWR from 'swr';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
+import { SwaggerEditor } from 'Components/Features/DevPortal/apis/SwaggerEditor';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -105,6 +106,11 @@ export const Content = () => {
           path='/dev-portal/portals/:portalnamespace/:portalname/page-editor/:pagename'
           exact>
           <PortalPageEditor />
+        </DevPortalRoute>
+        <DevPortalRoute
+          path='/dev-portal/apis/:apinamespace/:apiname/edit'
+          exact>
+          <SwaggerEditor />
         </DevPortalRoute>
         <DevPortalRoute path='/dev-portal/apis/:apinamespace/:apiname'>
           <APIDetails />

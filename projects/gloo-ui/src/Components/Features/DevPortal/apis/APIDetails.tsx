@@ -27,6 +27,7 @@ import { formatHealthStatus } from '../portals/PortalsListing';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { APIUsersTab } from './APIUsers';
 import { APIGroupsTab } from './APIGroups';
+import { SoloButton } from 'Components/Common/SoloButton';
 
 const StyledTab = (
   props: {
@@ -80,6 +81,10 @@ export const APIDetails = () => {
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
+  };
+
+  const goToEdit = () => {
+    history.push(`/dev-portal/apis/${apinamespace}/${apiname}/edit`);
   };
 
   if (!apiDoc) {
@@ -182,7 +187,8 @@ export const APIDetails = () => {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            <div className='flex justify-end items-bottom'>
+            <div className='flex justify-between items-bottom'>
+              <SoloButton text='Open API Editor' onClick={goToEdit} />
               <SoloNegativeButton onClick={attemptDeleteApiDoc}>
                 Delete API
               </SoloNegativeButton>

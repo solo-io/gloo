@@ -93,7 +93,8 @@ export const apiDocApi = {
   listApiDocs,
   getApiDoc,
   createApiDoc,
-  deleteApiDoc
+  deleteApiDoc,
+  updateApiDocContent
 };
 
 export const userApi = {
@@ -784,6 +785,69 @@ function getApiDoc(
       onMessage: (message: ApiDoc) => {
         if (message) {
           resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function updateApiDocContent(
+  ref: ObjectRef.AsObject,
+  content: string
+): Promise<ApiDoc.AsObject> {
+  let getRequest = new ApiDocGetRequest();
+  let apiDocRef = new ObjectRef();
+  apiDocRef.setNamespace(ref.namespace);
+  apiDocRef.setName(ref.name);
+  getRequest.setApidoc(apiDocRef);
+  getRequest.setWithassets(true);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(ApiDocApi.GetApiDoc, {
+      request: getRequest,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: ApiDoc) => {
+        if (!!message) {
+          message
+            .getSpec()!
+            .getDataSource()!
+            .setInlineString(content);
+
+          let writeRequest = new ApiDocWriteRequest();
+          writeRequest.setApiDocOnly(true);
+          writeRequest.setApidoc(message);
+
+          grpc.invoke(ApiDocApi.UpdateApiDoc, {
+            request: writeRequest,
+            host,
+            metadata: new grpc.Metadata(),
+            onHeaders: (headers: grpc.Metadata) => {},
+            onMessage: (message: ApiDoc) => {
+              if (message) {
+                resolve(message.toObject());
+              }
+            },
+            onEnd: (
+              status: grpc.Code,
+              statusMessage: string,
+              trailers: grpc.Metadata
+            ) => {
+              if (status !== grpc.Code.OK) {
+                reject(statusMessage);
+              }
+            }
+          });
         }
       },
       onEnd: (

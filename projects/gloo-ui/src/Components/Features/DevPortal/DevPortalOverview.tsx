@@ -13,7 +13,6 @@ import { ReactComponent as PortalIcon } from 'assets/portal-icon.svg';
 import { Container, Header, HealthScoreContainer } from '../Admin/AdminLanding';
 import { healthConstants } from 'Styles';
 import { TallyInformationDisplay } from 'Components/Common/DisplayOnly/TallyInformationDisplay';
-import { SwaggerExplorer } from './SwaggerExplorer';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
 import useSWR from 'swr';
 import { portalApi, apiDocApi, userApi, groupApi } from './api';
