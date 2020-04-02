@@ -21,7 +21,21 @@ interface InitialPageCreationValuesType {
 }
 
 const validationSchema = yup.object().shape({
-  name: yup.string().required('The name is required'),
+  name: yup
+    .string()
+    .test(
+      'Regex test',
+      'Must consist of lower case alphanumeric characters or "-", and must start and end with an alphanumeric character',
+      val => {
+        if (!val) {
+          return false;
+        }
+        if (val.length < 2) return true;
+
+        const regexTest = /^[a-z0-9]+[-.a-z0-9]*[a-z0-9]{1}$/;
+        return !!val.match(regexTest) && val.match(regexTest)[0] === val;
+      }
+    ),
   url: yup
     .string()
     .required('The URL is required')
@@ -97,7 +111,8 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
             </div>
 
             <div className='p-3 mt-3 text-gray-700 bg-gray-100 rounded-lg'>
-              Lorem Ipsum
+              Create a static page for your Portal, then edit it from the Pages
+              table.
             </div>
 
             {!!errorMessage.length && (
@@ -111,9 +126,9 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
                 <SoloFormInput
                   testId={`create-portal-page-name`}
                   name='name'
-                  placeholder='Gettiing Started'
+                  placeholder='getting-started'
                   title='Page Name'
-                  hideError={true}
+                  hideError={false}
                 />
               </div>
               <div className='mb-4'>
@@ -122,7 +137,7 @@ export const CreatePageModal = (props: CreatePageModalProps) => {
                   name='url'
                   placeholder='/getting-started'
                   title='Page URL'
-                  hideError={true}
+                  hideError={false}
                 />
               </div>
             </div>
