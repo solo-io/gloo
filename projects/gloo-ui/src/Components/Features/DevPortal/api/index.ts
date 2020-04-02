@@ -108,6 +108,7 @@ export const userApi = {
 export const groupApi = {
   listGroups,
   createGroup,
+  updateGroup,
   deleteGroup
 };
 
@@ -480,6 +481,101 @@ function createGroup(
       onMessage: (message: Group) => {
         if (message) {
           resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        console.log('statusMessage', statusMessage);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function updateGroup(
+  groupRef: ObjectRef.AsObject,
+  displayName: string,
+  description: string,
+  apiDocsList: ObjectRef.AsObject[],
+  usersList: ObjectRef.AsObject[],
+  portalsList: ObjectRef.AsObject[]
+): Promise<User.AsObject> {
+  let getRequest = new ObjectRef();
+  getRequest.setName(groupRef.name);
+  getRequest.setNamespace(groupRef.namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(GroupApi.GetGroup, {
+      request: getRequest,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Group) => {
+        if (message) {
+          message.getSpec()!.setDisplayName(displayName);
+          message.getSpec()!.setDescription(description);
+
+          let request = new GroupWriteRequest();
+          request.setGroup(message);
+
+          if (portalsList !== undefined) {
+            let portalRefList = portalsList.map(portalRefObj => {
+              let portalRef = new ObjectRef();
+              portalRef.setName(portalRefObj.name);
+              portalRef.setNamespace(portalRefObj.namespace);
+              return portalRef;
+            });
+            request.setPortalsList(portalRefList);
+          }
+
+          if (apiDocsList !== undefined) {
+            let apiDocRefList = apiDocsList.map(apiDocObj => {
+              let apiDocRef = new ObjectRef();
+              apiDocRef.setName(apiDocObj.name);
+              apiDocRef.setNamespace(apiDocObj.namespace);
+              return apiDocRef;
+            });
+            request.setApiDocsList(apiDocRefList);
+          }
+
+          if (usersList !== undefined) {
+            let userRefList = usersList.map(userRefObj => {
+              let userRef = new ObjectRef();
+              userRef.setName(userRefObj.name);
+              userRef.setNamespace(userRefObj.namespace);
+              return userRef;
+            });
+            request.setUsersList(userRefList);
+          }
+
+          return new Promise((resolve, reject) => {
+            grpc.invoke(GroupApi.UpdateGroup, {
+              request,
+              host,
+              metadata: new grpc.Metadata(),
+              onHeaders: (headers: grpc.Metadata) => {},
+              onMessage: (message: Group) => {
+                if (message) {
+                  resolve(message.toObject());
+                }
+              },
+              onEnd: (
+                status: grpc.Code,
+                statusMessage: string,
+                trailers: grpc.Metadata
+              ) => {
+                console.log('statusMessage', statusMessage);
+                if (status !== grpc.Code.OK) {
+                  reject(statusMessage);
+                }
+              }
+            });
+          });
         }
       },
       onEnd: (

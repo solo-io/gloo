@@ -49,13 +49,18 @@ const StyledTab = (
   );
 };
 
-const GeneralSection = () => {
+type GeneralSectionProps = {
+  isEdit: boolean;
+};
+
+const GeneralSection = ({ isEdit }: GeneralSectionProps) => {
   return (
     <SectionContainer>
-      <SectionHeader> Create a Group</SectionHeader>
+      <SectionHeader> {isEdit ? 'Edit' : 'Create a'} Group</SectionHeader>
       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
-        Create a new group of users that can be treated atomically to assign
-        permissions for APIs and Portals
+        {isEdit ? 'Edit a' : 'Create a new'} group of users that can be treated
+        as one entity to atomically assign permissions for APIs and Portals to
+        many users
       </div>
       <div className='flex flex-col items-center w-full'>
         <div className='w-full mb-4 mr-4'>
@@ -70,7 +75,7 @@ const GeneralSection = () => {
           <SoloFormTextarea
             name='description'
             title='Description'
-            placeholder='Description goes here'
+            placeholder='Description of the group'
             hideError
           />
         </div>
@@ -84,11 +89,13 @@ type CreateGroupValues = {
   description: string;
   chosenAPIs: ListItemType[];
   chosenPortals: ListItemType[];
-
   chosenUsers: ListItemType[];
 };
 
-export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
+export const CreateGroupModal: React.FC<{
+  onClose: () => void;
+  existingGroup?: Group.AsObject;
+}> = props => {
   const { data: portalsList, error: portalsListError } = useSWR(
     'listPortals',
     portalApi.listPortals
@@ -114,7 +121,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
     setTabIndex(index);
   };
 
-  const handleCreateGroup = async (values: CreateGroupValues) => {
+  const handleWriteGroup = async (values: CreateGroupValues) => {
     const {
       chosenAPIs,
       chosenPortals,
@@ -122,33 +129,109 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
       name,
       description
     } = values;
-    let newGroup = new Group().toObject();
-    //@ts-ignore
-    await groupApi.createGroup({
-      apiDocsList: chosenAPIs,
-      portalsList: chosenPortals,
-      usersList: chosenUsers,
-      group: {
-        ...newGroup!,
-        metadata: {
-          ...newGroup.metadata!,
-          namespace: podNamespace!
-        },
-        spec: {
-          description,
-          displayName: name
-        },
-        status: {
-          ...newGroup.status!
+    if (!props.existingGroup) {
+      let newGroup = new Group().toObject();
+      //@ts-ignore
+      await groupApi.createGroup({
+        apiDocsList: chosenAPIs,
+        portalsList: chosenPortals,
+        usersList: chosenUsers,
+        group: {
+          ...newGroup!,
+          metadata: {
+            ...newGroup.metadata!,
+            namespace: podNamespace!
+          },
+          spec: {
+            description,
+            displayName: name
+          },
+          status: {
+            ...newGroup.status!
+          }
         }
-      }
-    });
+      });
+    } else {
+      groupApi.updateGroup(
+        {
+          namespace: props.existingGroup.metadata!.namespace,
+          name: props.existingGroup.metadata!.name
+        },
+        name,
+        description,
+        chosenAPIs,
+        chosenUsers,
+        chosenPortals
+      );
+    }
     props.onClose();
   };
 
   if (!userList || !apiDocsList || !portalsList) {
     return <Loading center>Loading...</Loading>;
   }
+
+  const getInitialApis = (): ListItemType[] => {
+    if (!props.existingGroup || !props.existingGroup.status?.accessLevel) {
+      return [];
+    }
+
+    return props.existingGroup.status.accessLevel.apiDocsList.map(
+      ({ namespace, name }) => {
+        let matchingDoc = apiDocsList.find(
+          doc =>
+            doc.metadata?.namespace === namespace && doc.metadata.name === name
+        );
+        return {
+          namespace,
+          name,
+          displayValue: matchingDoc?.status?.displayName
+        };
+      }
+    );
+  };
+
+  const getInitialPortals = (): ListItemType[] => {
+    if (!props.existingGroup || !props.existingGroup.status?.accessLevel) {
+      return [];
+    }
+
+    return props.existingGroup.status.accessLevel.portalsList.map(
+      ({ namespace, name }) => {
+        let matchingPortal = portalsList.find(
+          portal =>
+            portal.metadata?.namespace === namespace &&
+            portal.metadata.name === name
+        );
+
+        return {
+          namespace,
+          name,
+          displayValue: matchingPortal?.spec?.displayName
+        };
+      }
+    );
+  };
+
+  const getInitialUsers = (): ListItemType[] => {
+    if (!props.existingGroup || !props.existingGroup.status?.accessLevel) {
+      return [];
+    }
+
+    return props.existingGroup.status.usersList.map(({ namespace, name }) => {
+      let matchingUser = userList.find(
+        user =>
+          user.metadata?.namespace === namespace && user.metadata.name === name
+      );
+
+      return {
+        namespace,
+        name,
+        displayValue: matchingUser?.spec?.username
+      };
+    });
+  };
+
   return (
     <>
       <div
@@ -158,14 +241,13 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
         className='bg-white rounded-lg shadow '>
         <Formik<CreateGroupValues>
           initialValues={{
-            name: '',
-            description: '',
-            chosenAPIs: [] as ListItemType[],
-            chosenPortals: [] as ListItemType[],
-
-            chosenUsers: [] as ListItemType[]
+            name: props.existingGroup?.spec?.displayName || '',
+            description: props.existingGroup?.spec?.description || '',
+            chosenAPIs: getInitialApis(),
+            chosenPortals: getInitialPortals(),
+            chosenUsers: getInitialUsers()
           }}
-          onSubmit={handleCreateGroup}>
+          onSubmit={handleWriteGroup}>
           {formik => (
             <>
               <Tabs
@@ -187,7 +269,7 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
 
                 <TabPanels className='bg-white rounded-r-lg'>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
-                    <GeneralSection />
+                    <GeneralSection isEdit={!!props.existingGroup} />
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
@@ -202,7 +284,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a Group: Users</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingGroup
+                          ? 'Update Group'
+                          : 'Create a Group'}
+                        : Users
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the users that are included in this group
                       </div>
@@ -252,7 +339,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a Group: APIs</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingGroup
+                          ? 'Update Group'
+                          : 'Create a Group'}
+                        : APIs
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the APIs you'd like to make available to this
                         group
@@ -303,7 +395,12 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a Group: Portal</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingGroup
+                          ? 'Update Group'
+                          : 'Create a Group'}
+                        : Portal
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the portals you'd like to make available to this
                         group
@@ -350,7 +447,9 @@ export const CreateGroupModal: React.FC<{ onClose: () => void }> = props => {
                         </SoloCancelButton>
                         <SoloButtonStyledComponent
                           onClick={formik.handleSubmit}>
-                          Create Group
+                          {!!props.existingGroup
+                            ? 'Update Group'
+                            : 'Create Group'}
                         </SoloButtonStyledComponent>
                       </div>
                     </div>

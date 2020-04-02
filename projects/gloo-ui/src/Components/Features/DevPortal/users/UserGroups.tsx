@@ -54,6 +54,11 @@ type UserModalState = {
   existingUser: User.AsObject | undefined;
 };
 
+type GroupModalState = {
+  isGroupModalOpen: boolean;
+  existingGroup: Group.AsObject | undefined;
+};
+
 export const UserGroups = () => {
   const { data: userList, error: userError } = useSWR(
     'listUsers',
@@ -72,7 +77,10 @@ export const UserGroups = () => {
     showCreateUserModal,
     setShowCreateUserModal
   ] = React.useState<UserModalState | null>(null);
-  const [showCreateGroupModal, setShowCreateGroupModal] = React.useState(false);
+  const [
+    showCreateGroupModal,
+    setShowCreateGroupModal
+  ] = React.useState<GroupModalState | null>(null);
   const [showConfirmUserDelete, setShowConfirmUserDelete] = React.useState(
     false
   );
@@ -162,7 +170,12 @@ export const UserGroups = () => {
           <span className='mr-2 text-gray-700'> Create a User</span>
         </span>
         <span
-          onClick={() => setShowCreateGroupModal(true)}
+          onClick={() =>
+            setShowCreateGroupModal({
+              existingGroup: undefined,
+              isGroupModalOpen: true
+            })
+          }
           className='flex items-center text-green-400 cursor-pointer hover:text-green-300'>
           <GreenPlus className='mr-1 fill-current' />
           <span className='text-gray-700'> Create a Group</span>
@@ -383,16 +396,15 @@ export const UserGroups = () => {
                                 </td>
                                 <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
                                   <span className='flex items-center'>
-                                    <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                      <EditIcon
-                                        className='w-2 h-3 fill-current'
-                                        onClick={() =>
-                                          setShowCreateUserModal({
-                                            isUserModalOpen: true,
-                                            existingUser: user
-                                          })
-                                        }
-                                      />
+                                    <div
+                                      onClick={() =>
+                                        setShowCreateUserModal({
+                                          isUserModalOpen: true,
+                                          existingUser: user
+                                        })
+                                      }
+                                      className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
+                                      <EditIcon className='w-2 h-3 fill-current' />
                                     </div>
 
                                     <div
@@ -622,7 +634,14 @@ export const UserGroups = () => {
                               </td>
                               <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
                                 <span className='flex items-center'>
-                                  <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
+                                  <div
+                                    onClick={() =>
+                                      setShowCreateGroupModal({
+                                        existingGroup: group,
+                                        isGroupModalOpen: true
+                                      })
+                                    }
+                                    className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
                                     <EditIcon className='w-2 h-3 fill-current' />
                                   </div>
 
@@ -672,8 +691,19 @@ export const UserGroups = () => {
           }
         />
       </SoloModal>
-      <SoloModal visible={showCreateGroupModal} width={750} noPadding={true}>
-        <CreateGroupModal onClose={() => setShowCreateGroupModal(false)} />
+      <SoloModal
+        visible={!!showCreateGroupModal?.isGroupModalOpen}
+        width={750}
+        noPadding={true}>
+        <CreateGroupModal
+          onClose={() =>
+            setShowCreateGroupModal({
+              existingGroup: undefined,
+              isGroupModalOpen: false
+            })
+          }
+          existingGroup={showCreateGroupModal?.existingGroup}
+        />
       </SoloModal>
       <ConfirmationModal
         visible={showConfirmUserDelete}
