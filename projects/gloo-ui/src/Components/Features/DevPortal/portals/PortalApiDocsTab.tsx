@@ -13,6 +13,8 @@ import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 import { secondsToString } from '../util';
 import { AddApiModal } from './AddApiModal';
+import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 
 type PortalApiDocsTabProps = {
   portal: Portal.AsObject;
@@ -30,17 +32,46 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
         ]
       })
   );
+  const getApiDocFromRef = (apiDocRef: ObjectRef.AsObject) => {
+    let apiDocObj = apiDocsList?.find(
+      apiDoc =>
+        apiDoc.metadata?.name === apiDocRef.name &&
+        apiDoc.metadata.namespace === apiDocRef.namespace
+    );
+    return apiDocObj;
+  };
 
   const [APISearchTerm, setAPISearchTerm] = React.useState('');
   const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
 
+  const [showConfirmApiDocDelete, setShowConfirmApiDocDelete] = React.useState(
+    false
+  );
+  const [apiDocToDelete, setApiDocToDelete] = React.useState<ApiDoc.AsObject>();
+
+  const attemptDeleteApiDoc = (apiDoc: ApiDoc.AsObject) => {
+    setShowConfirmApiDocDelete(true);
+    setApiDocToDelete(apiDoc);
+  };
+
+  const deleteApiDoc = async () => {
+    await apiDocApi.deleteApiDoc({
+      name: apiDocToDelete?.metadata?.name!,
+      namespace: apiDocToDelete?.metadata?.namespace!
+    });
+    closeConfirmModal();
+  };
+
+  const closeConfirmModal = () => {
+    setShowConfirmApiDocDelete(false);
+  };
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
         onClick={() => setShowCreateApiModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Add an API</span>
+        <span className='text-gray-700'> Add/Remove an API</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
@@ -72,52 +103,53 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {apiDocsList?.map(doc => {
-                  // const doc = getApiDoc(ref.namespace, ref.name);
+                {portal.status?.apiDocsList
+                  ?.sort((a, b) =>
+                    a.name === b.name ? 0 : a.name > b.name ? 1 : -1
+                  )
+                  .map(apiDocRef => {
+                    const doc = getApiDocFromRef(apiDocRef);
 
-                  return (
-                    <tr
-                      key={`${doc?.metadata?.namespace}.${doc?.metadata?.name}`}>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {doc?.status?.displayName}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center capitalize'>
-                            {doc?.status?.description}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                        <div className='text-sm leading-5 text-gray-900'>
-                          <span className='flex items-center '>
-                            {format(
-                              secondsToString(
-                                doc?.status?.modifiedDate?.seconds
-                              )
-                            )}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
-                        <span className='flex items-center'>
-                          <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                            <EditIcon className='w-2 h-3 fill-current' />
+                    return (
+                      <tr
+                        key={`${doc?.metadata?.namespace}.${doc?.metadata?.name}`}>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {doc?.status?.displayName}
+                            </span>
                           </div>
-                          <div
-                            className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                            onClick={() => {}}>
-                            x
+                        </td>
+                        <td className='px-6 py-4 border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {doc?.status?.description}
+                            </span>
                           </div>
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center '>
+                              {format(
+                                secondsToString(
+                                  doc?.status?.modifiedDate?.seconds
+                                )
+                              )}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
+                          <span className='flex items-center'>
+                            <div
+                              className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
+                              onClick={() => attemptDeleteApiDoc(doc!)}>
+                              x
+                            </div>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
             {apiDocsList?.length === 0 && (
@@ -140,6 +172,14 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
       <SoloModal visible={showCreateApiModal} width={750} noPadding={true}>
         <AddApiModal onClose={() => setShowCreateApiModal(false)} />
       </SoloModal>
+      <ConfirmationModal
+        visible={showConfirmApiDocDelete}
+        confirmationTopic='delete this API'
+        confirmText='Delete'
+        goForIt={deleteApiDoc}
+        cancel={closeConfirmModal}
+        isNegative={true}
+      />
     </div>
   );
 };

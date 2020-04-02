@@ -8,6 +8,8 @@ import React from 'react';
 import useSWR from 'swr';
 import { groupApi } from '../api';
 import { AddGroupModal } from './AddGroupModal';
+import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 
 type PortalGroupsTabProps = {
   portal: Portal.AsObject;
@@ -25,15 +27,36 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
   );
 
   const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
-  const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = React.useState(false);
 
+  const [showConfirmGroupDelete, setShowConfirmGroupDelete] = React.useState(
+    false
+  );
+  const [groupToDelete, setGroupToDelete] = React.useState<Group.AsObject>();
+
+  const attemptDeleteGroup = (group: Group.AsObject) => {
+    setShowConfirmGroupDelete(true);
+    setGroupToDelete(group);
+  };
+
+  const deleteGroup = async () => {
+    await groupApi.deleteGroup({
+      name: groupToDelete?.metadata?.name!,
+      namespace: groupToDelete?.metadata?.namespace!
+    });
+    closeConfirmModal();
+  };
+
+  const closeConfirmModal = () => {
+    setShowConfirmGroupDelete(false);
+  };
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
-        onClick={() => setShowCreateUserModal(true)}
+        onClick={() => setShowCreateGroupModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Add a Group</span>
+        <span className='text-gray-700'> Add/Remove a Group</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
@@ -84,7 +107,7 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                               </span>
                             </div>
                           </td>
-                          <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <td className='px-6 py-4 border-b border-gray-200'>
                             <div className='text-sm leading-5 text-gray-900'>
                               <span className='flex items-center capitalize'>
                                 {group?.spec?.description}
@@ -102,12 +125,9 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                           </td>
                           <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
                             <span className='flex items-center'>
-                              <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                <EditIcon className='w-2 h-3 fill-current' />
-                              </div>
                               <div
                                 className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                onClick={() => {}}>
+                                onClick={() => attemptDeleteGroup(group)}>
                                 x
                               </div>
                             </span>
@@ -134,9 +154,17 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
           </div>
         </div>
       </div>
-      <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
-        <AddGroupModal onClose={() => setShowCreateUserModal(false)} />
+      <SoloModal visible={showCreateGroupModal} width={750} noPadding={true}>
+        <AddGroupModal onClose={() => setShowCreateGroupModal(false)} />
       </SoloModal>
+      <ConfirmationModal
+        visible={showConfirmGroupDelete}
+        confirmationTopic='delete this group'
+        confirmText='Delete'
+        goForIt={deleteGroup}
+        cancel={closeConfirmModal}
+        isNegative={true}
+      />
     </div>
   );
 };

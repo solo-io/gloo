@@ -23,6 +23,9 @@ import { groupApi, userApi } from '../api';
 import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
 import { CreateGroupModal } from './CreateGroupModal';
 import { CreateUserModal } from './CreateUserModal';
+import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
+import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 
 const StyledTab = (
   props: {
@@ -61,9 +64,44 @@ export const UserGroups = () => {
   const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
   const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = React.useState(false);
-
+  const [showConfirmUserDelete, setShowConfirmUserDelete] = React.useState(
+    false
+  );
+  const [showConfirmGroupDelete, setShowConfirmGroupDelete] = React.useState(
+    false
+  );
+  const [userToDelete, setUserToDelete] = React.useState<User.AsObject>();
+  const [groupToDelete, setGroupToDelete] = React.useState<Group.AsObject>();
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
+  };
+  const attemptDeleteUser = (user: User.AsObject) => {
+    setShowConfirmUserDelete(true);
+    setUserToDelete(user);
+  };
+  const attemptDeleteGroup = (group: Group.AsObject) => {
+    setShowConfirmGroupDelete(true);
+    setGroupToDelete(group);
+  };
+
+  const deleteUser = async () => {
+    await userApi.deleteUser({
+      name: userToDelete?.metadata?.name!,
+      namespace: userToDelete?.metadata?.namespace!
+    });
+    closeConfirmModals();
+  };
+  const deleteGroup = async () => {
+    await groupApi.deleteGroup({
+      name: groupToDelete?.metadata?.name!,
+      namespace: groupToDelete?.metadata?.namespace!
+    });
+    closeConfirmModals();
+  };
+
+  const closeConfirmModals = () => {
+    setShowConfirmUserDelete(false);
+    setShowConfirmGroupDelete(false);
   };
 
   if (!userList || !groupList) {
@@ -265,7 +303,7 @@ export const UserGroups = () => {
 
                                     <div
                                       className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                      onClick={() => {}}>
+                                      onClick={() => attemptDeleteUser(user)}>
                                       x
                                     </div>
                                   </span>
@@ -493,7 +531,7 @@ export const UserGroups = () => {
 
                                   <div
                                     className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                    onClick={() => {}}>
+                                    onClick={() => attemptDeleteGroup(group)}>
                                     x
                                   </div>
                                 </span>
@@ -529,6 +567,22 @@ export const UserGroups = () => {
       <SoloModal visible={showCreateGroupModal} width={750} noPadding={true}>
         <CreateGroupModal onClose={() => setShowCreateGroupModal(false)} />
       </SoloModal>
+      <ConfirmationModal
+        visible={showConfirmUserDelete}
+        confirmationTopic='delete this user'
+        confirmText='Delete'
+        goForIt={deleteUser}
+        cancel={closeConfirmModals}
+        isNegative={true}
+      />
+      <ConfirmationModal
+        visible={showConfirmGroupDelete}
+        confirmationTopic='delete this group'
+        confirmText='Delete'
+        goForIt={deleteGroup}
+        cancel={closeConfirmModals}
+        isNegative={true}
+      />
     </div>
   );
 };

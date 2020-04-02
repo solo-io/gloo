@@ -8,6 +8,8 @@ import React from 'react';
 import useSWR from 'swr';
 import { userApi } from '../api';
 import { CreateUserModal } from '../users/CreateUserModal';
+import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 
 type ApiDocUsersProps = {
   apiDoc: ApiDoc.AsObject;
@@ -28,14 +30,34 @@ export const APIUsersTab = ({ apiDoc }: ApiDocUsersProps) => {
 
   const [userSearchTerm, setUserSearchTerm] = React.useState('');
   const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
+  const [showConfirmUserDelete, setShowConfirmUserDelete] = React.useState(
+    false
+  );
+  const [userToDelete, setUserToDelete] = React.useState<User.AsObject>();
 
+  const attemptDeleteUser = (user: User.AsObject) => {
+    setShowConfirmUserDelete(true);
+    setUserToDelete(user);
+  };
+
+  const deleteUser = async () => {
+    await userApi.deleteUser({
+      name: userToDelete?.metadata?.name!,
+      namespace: userToDelete?.metadata?.namespace!
+    });
+    closeConfirmModal();
+  };
+
+  const closeConfirmModal = () => {
+    setShowConfirmUserDelete(false);
+  };
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
         onClick={() => setShowCreateUserModal(true)}
         className='absolute top-0 right-0 flex items-center mt-2 mr-2 text-green-400 cursor-pointer hover:text-green-300'>
         <GreenPlus className='mr-1 fill-current' />
-        <span className='text-gray-700'> Create a User</span>
+        <span className='text-gray-700'> Add/Remove a User</span>
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
@@ -91,12 +113,9 @@ export const APIUsersTab = ({ apiDoc }: ApiDocUsersProps) => {
                           </td>
                           <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
                             <span className='flex items-center'>
-                              <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                <EditIcon className='w-2 h-3 fill-current' />
-                              </div>
                               <div
                                 className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                onClick={() => {}}>
+                                onClick={() => attemptDeleteUser(user)}>
                                 x
                               </div>
                             </span>
@@ -126,6 +145,14 @@ export const APIUsersTab = ({ apiDoc }: ApiDocUsersProps) => {
       <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
         <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
       </SoloModal>
+      <ConfirmationModal
+        visible={showConfirmUserDelete}
+        confirmationTopic='delete this user'
+        confirmText='Delete'
+        goForIt={deleteUser}
+        cancel={closeConfirmModal}
+        isNegative={true}
+      />
     </div>
   );
 };

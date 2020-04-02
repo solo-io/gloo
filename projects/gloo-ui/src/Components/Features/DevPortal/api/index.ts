@@ -98,12 +98,14 @@ export const apiDocApi = {
 
 export const userApi = {
   listUsers,
-  createUser
+  createUser,
+  deleteUser
 };
 
 export const groupApi = {
   listGroups,
-  createGroup
+  createGroup,
+  deleteGroup
 };
 
 export const apiKeyApi = {
@@ -117,6 +119,66 @@ export const apiKeyScopeApi = {
   updateKeyScope,
   deleteKeyScope
 };
+
+function deleteGroup(groupRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
+  const { name, namespace } = groupRef;
+  let request = new ObjectRef();
+  request.setName(name);
+  request.setNamespace(namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(GroupApi.DeleteGroup, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Empty) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function deleteUser(userRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
+  const { name, namespace } = userRef;
+  let request = new ObjectRef();
+  request.setName(name);
+  request.setNamespace(namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(UserApi.DeleteUser, {
+      request,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: Empty) => {
+        if (message) {
+          resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
 
 function deleteApiDoc(apiDocRef: ObjectRef.AsObject): Promise<Empty.AsObject> {
   const { name, namespace } = apiDocRef;

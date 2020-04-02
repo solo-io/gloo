@@ -160,13 +160,12 @@ export const PortalPagesTab = () => {
                               />
                             </div>
 
-                            <div
-                              className='flex items-center justify-center w-4 h-4 bg-gray-400 rounded-full cursor-pointer'
-                              onClick={() => {}}>
-                              <DeleteXIcon
-                                className='w-2 h-3 fill-current'
-                                onClick={() => attemptDeletion(page.name)}
-                              />
+                            <div className='flex items-center justify-center w-4 h-4 bg-gray-400 rounded-full cursor-pointer'>
+                              <div
+                                className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
+                                onClick={() => attemptDeletion(page.name)}>
+                                x
+                              </div>
                             </div>
                             {/* )} */}
                           </span>

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Implement delete and edit actions on tables.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1623
