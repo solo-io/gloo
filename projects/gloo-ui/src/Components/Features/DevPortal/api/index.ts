@@ -101,6 +101,7 @@ export const apiDocApi = {
 export const userApi = {
   listUsers,
   createUser,
+  updateUser,
   deleteUser
 };
 
@@ -670,6 +671,96 @@ function createUser(
       onMessage: (message: User) => {
         if (message) {
           resolve(message.toObject());
+        }
+      },
+      onEnd: (
+        status: grpc.Code,
+        statusMessage: string,
+        trailers: grpc.Metadata
+      ) => {
+        console.log('statusMessage', statusMessage);
+        if (status !== grpc.Code.OK) {
+          reject(statusMessage);
+        }
+      }
+    });
+  });
+}
+
+function updateUser(
+  userRef: ObjectRef.AsObject,
+  apiDocsList: ObjectRef.AsObject[],
+  groupsList: ObjectRef.AsObject[],
+  portalsList: ObjectRef.AsObject[]
+): Promise<User.AsObject> {
+  let getRequest = new ObjectRef();
+  getRequest.setName(userRef.name);
+  getRequest.setNamespace(userRef.namespace);
+
+  return new Promise((resolve, reject) => {
+    grpc.invoke(UserApi.GetUser, {
+      request: getRequest,
+      host,
+      metadata: new grpc.Metadata(),
+      onHeaders: (headers: grpc.Metadata) => {},
+      onMessage: (message: User) => {
+        if (message) {
+          let request = new UserWriteRequest();
+          request.setUser(message);
+
+          if (portalsList !== undefined) {
+            let portalRefList = portalsList.map(portalRefObj => {
+              let portalRef = new ObjectRef();
+              portalRef.setName(portalRefObj.name);
+              portalRef.setNamespace(portalRefObj.namespace);
+              return portalRef;
+            });
+            request.setPortalsList(portalRefList);
+          }
+
+          if (apiDocsList !== undefined) {
+            let apiDocRefList = apiDocsList.map(apiDocObj => {
+              let apiDocRef = new ObjectRef();
+              apiDocRef.setName(apiDocObj.name);
+              apiDocRef.setNamespace(apiDocObj.namespace);
+              return apiDocRef;
+            });
+            request.setApiDocsList(apiDocRefList);
+          }
+
+          if (groupsList !== undefined) {
+            let groupsRefList = groupsList.map(groupRefObj => {
+              let groupRef = new ObjectRef();
+              groupRef.setName(groupRefObj.name);
+              groupRef.setNamespace(groupRefObj.namespace);
+              return groupRef;
+            });
+            request.setGroupsList(groupsRefList);
+          }
+
+          return new Promise((resolve, reject) => {
+            grpc.invoke(UserApi.UpdateUser, {
+              request,
+              host,
+              metadata: new grpc.Metadata(),
+              onHeaders: (headers: grpc.Metadata) => {},
+              onMessage: (message: User) => {
+                if (message) {
+                  resolve(message.toObject());
+                }
+              },
+              onEnd: (
+                status: grpc.Code,
+                statusMessage: string,
+                trailers: grpc.Metadata
+              ) => {
+                console.log('statusMessage', statusMessage);
+                if (status !== grpc.Code.OK) {
+                  reject(statusMessage);
+                }
+              }
+            });
+          });
         }
       },
       onEnd: (

@@ -49,6 +49,11 @@ const StyledTab = (
   );
 };
 
+type UserModalState = {
+  isUserModalOpen: boolean;
+  existingUser: User.AsObject | undefined;
+};
+
 export const UserGroups = () => {
   const { data: userList, error: userError } = useSWR(
     'listUsers',
@@ -63,7 +68,10 @@ export const UserGroups = () => {
   const [tabIndex, setTabIndex] = React.useState(0);
   const [userSearchTerm, setUserSearchTerm] = React.useState('');
   const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
-  const [showCreateUserModal, setShowCreateUserModal] = React.useState(false);
+  const [
+    showCreateUserModal,
+    setShowCreateUserModal
+  ] = React.useState<UserModalState | null>(null);
   const [showCreateGroupModal, setShowCreateGroupModal] = React.useState(false);
   const [showConfirmUserDelete, setShowConfirmUserDelete] = React.useState(
     false
@@ -143,7 +151,12 @@ export const UserGroups = () => {
     <div className='relative'>
       <div className='absolute top-0 right-0 flex items-center-mt-8'>
         <span
-          onClick={() => setShowCreateUserModal(true)}
+          onClick={() =>
+            setShowCreateUserModal({
+              existingUser: undefined,
+              isUserModalOpen: true
+            })
+          }
           className='flex items-center text-green-400 cursor-pointer hover:text-green-300'>
           <GreenPlus className='mr-1 fill-current' />
           <span className='mr-2 text-gray-700'> Create a User</span>
@@ -371,7 +384,15 @@ export const UserGroups = () => {
                                 <td className='max-w-xs px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200'>
                                   <span className='flex items-center'>
                                     <div className='flex items-center justify-center w-4 h-4 mr-3 text-gray-700 bg-gray-400 rounded-full cursor-pointer'>
-                                      <EditIcon className='w-2 h-3 fill-current' />
+                                      <EditIcon
+                                        className='w-2 h-3 fill-current'
+                                        onClick={() =>
+                                          setShowCreateUserModal({
+                                            isUserModalOpen: true,
+                                            existingUser: user
+                                          })
+                                        }
+                                      />
                                     </div>
 
                                     <div
@@ -637,8 +658,19 @@ export const UserGroups = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
-      <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
-        <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
+      <SoloModal
+        visible={!!showCreateUserModal?.isUserModalOpen}
+        width={750}
+        noPadding={true}>
+        <CreateUserModal
+          existingUser={showCreateUserModal?.existingUser}
+          onClose={() =>
+            setShowCreateUserModal({
+              isUserModalOpen: false,
+              existingUser: undefined
+            })
+          }
+        />
       </SoloModal>
       <SoloModal visible={showCreateGroupModal} width={750} noPadding={true}>
         <CreateGroupModal onClose={() => setShowCreateGroupModal(false)} />

@@ -30,6 +30,7 @@ import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import { configAPI } from 'store/config/api';
+import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 
 const StyledTab = (
   props: {
@@ -52,22 +53,25 @@ const StyledTab = (
   );
 };
 
-const GeneralSection = () => {
+type GeneralSectionProps = {
+  isEdit: boolean;
+};
+
+const GeneralSection = ({ isEdit }: GeneralSectionProps) => {
   const [showPassword, setShowPassword] = React.useState(true);
   return (
     <SectionContainer>
-      <SectionHeader> Create User</SectionHeader>
+      <SectionHeader> {isEdit ? 'Edit User' : 'Create a User'}</SectionHeader>
       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
-        Create a new API to expose as business capabilities
+        {isEdit ? 'Edit an' : 'Create a new'} API User
       </div>
       <div className='grid grid-flow-col grid-cols-5 grid-rows-3 gap-2'>
-        {/* <div className='grid grid-flow-col grid-cols-2 grid-rows-3 gap-2'> */}
-
         <div className='col-span-3 mr-4'>
           <SoloFormInput
             name='name'
             title='Name'
-            placeholder='Username goes here'
+            placeholder='Username'
+            disabled={isEdit}
             hideError
           />
         </div>
@@ -76,6 +80,7 @@ const GeneralSection = () => {
             name='email'
             title='Email'
             placeholder='email@domain.com'
+            disabled={isEdit}
             hideError
           />
         </div>
@@ -89,13 +94,36 @@ const GeneralSection = () => {
             type={showPassword ? 'password' : 'text'}
             name='password'
             title='Password'
-            placeholder='type password here'
+            placeholder='password'
+            disabled={isEdit}
             hideError
           />
         </div>
       </div>
     </SectionContainer>
   );
+};
+
+const getGroups = (
+  groupList: Group.AsObject[],
+  { namespace, name }: ObjectRef.AsObject
+): ListItemType[] => {
+  return groupList.reduce((acc: ListItemType[], g) => {
+    let userExists = !!g.status?.usersList.find(
+      ref => ref.namespace === namespace && ref.name === name
+    );
+    if (userExists) {
+      return [
+        {
+          namespace: g.metadata!.namespace,
+          name: g.metadata!.name,
+          displayValue: g.spec?.displayName || g.metadata?.name
+        },
+        ...acc
+      ];
+    }
+    return acc;
+  }, []);
 };
 
 type CreateUserValues = {
@@ -107,7 +135,10 @@ type CreateUserValues = {
   chosenGroups: ListItemType[];
 };
 
-export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
+export const CreateUserModal: React.FC<{
+  onClose: () => void;
+  existingUser?: User.AsObject;
+}> = props => {
   const { data: portalsList, error: portalsListError } = useSWR(
     'listPortals',
     portalApi.listPortals
@@ -130,7 +161,9 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  const handleCreateUser = async (values: CreateUserValues) => {
+
+  // TODO make this a handle write that knows what to do if an existing user is here
+  const handleWriteUser = async (values: CreateUserValues) => {
     const {
       chosenAPIs,
       name,
@@ -139,33 +172,97 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
       chosenGroups,
       password
     } = values;
-    let newUser = new User().toObject();
 
-    await userApi.createUser({
-      user: {
-        ...newUser!,
-        metadata: {
-          ...newUser.metadata!,
-          name,
-          namespace: podNamespace!
+    if (!props.existingUser) {
+      let newUser = new User().toObject();
+
+      await userApi.createUser({
+        user: {
+          ...newUser!,
+          metadata: {
+            ...newUser.metadata!,
+            name,
+            namespace: podNamespace!
+          },
+          spec: {
+            email,
+            username: name
+          }
         },
-        spec: {
-          email,
-          username: name
-        }
-      },
-      password,
-      portalsList: chosenPortals,
-      groupsList: chosenGroups,
-      apiDocsList: chosenAPIs,
-      userOnly: false
-    });
+        password,
+        portalsList: chosenPortals,
+        groupsList: chosenGroups,
+        apiDocsList: chosenAPIs,
+        userOnly: false
+      });
+    } else {
+      userApi.updateUser(
+        {
+          namespace: props.existingUser.metadata!.namespace,
+          name: props.existingUser.metadata!.name
+        },
+        chosenAPIs,
+        chosenGroups,
+        chosenPortals
+      );
+    }
     props.onClose();
   };
 
   if (!apiDocsList || !portalsList || !groupsList) {
     return <Loading center>Loading...</Loading>;
   }
+
+  const getInitialGroups = (): ListItemType[] =>
+    !!props.existingUser
+      ? getGroups(groupsList, {
+          namespace: props.existingUser.metadata!.namespace,
+          name: props.existingUser.metadata!.name
+        })
+      : [];
+
+  const getInitialApis = (): ListItemType[] => {
+    if (!props.existingUser || !props.existingUser.status?.accessLevel) {
+      return [];
+    }
+
+    return props.existingUser.status.accessLevel.apiDocsList.map(
+      ({ namespace, name }) => {
+        let matchingDoc = apiDocsList.find(
+          doc =>
+            doc.metadata?.namespace === namespace && doc.metadata.name === name
+        );
+        return {
+          namespace,
+          name,
+          displayValue: matchingDoc?.status?.displayName
+        };
+      }
+    );
+  };
+
+  const getInitialPortals = (): ListItemType[] => {
+    if (!props.existingUser || !props.existingUser.status?.accessLevel) {
+      return [];
+    }
+
+    return props.existingUser.status.accessLevel.portalsList.map(
+      ({ namespace, name }) => {
+        let matchingPortal = portalsList.find(
+          portal =>
+            portal.metadata?.namespace === namespace &&
+            portal.metadata.name === name
+        );
+
+        return {
+          namespace,
+          name,
+          displayValue: matchingPortal?.spec?.displayName
+        };
+      }
+    );
+  };
+
   return (
     <>
       <div
@@ -175,14 +272,14 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
         className='bg-white rounded-lg shadow '>
         <Formik<CreateUserValues>
           initialValues={{
-            name: '',
-            email: '',
-            password: '',
-            chosenGroups: [] as ListItemType[],
-            chosenAPIs: [] as ListItemType[],
-            chosenPortals: [] as ListItemType[]
+            name: props.existingUser?.spec?.username || '',
+            email: props.existingUser?.spec?.email || '',
+            password: !!props.existingUser ? '*********' : '',
+            chosenGroups: getInitialGroups(),
+            chosenAPIs: getInitialApis(),
+            chosenPortals: getInitialPortals()
           }}
-          onSubmit={handleCreateUser}>
+          onSubmit={handleWriteUser}>
           {formik => (
             <>
               <Tabs
@@ -204,7 +301,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
 
                 <TabPanels className='bg-white rounded-r-lg'>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
-                    <GeneralSection />
+                    <GeneralSection isEdit={!!props.existingUser} />
                     <div className='flex items-end justify-between h-full px-6 mb-4 '>
                       <button
                         className='text-blue-500 cursor-pointer'
@@ -219,7 +316,10 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a User: Groups</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingUser ? 'Edit' : 'Create a'} User:
+                        Groups
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select a Group to which you'd like to add this user
                       </div>
@@ -278,7 +378,9 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                   </TabPanel>
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a User: APIs</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingUser ? 'Edit' : 'Create a'} User: APIs
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the APIs you'd like to make available to this
                         user
@@ -330,7 +432,10 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
 
                   <TabPanel className='relative flex flex-col justify-between h-full focus:outline-none'>
                     <SectionContainer>
-                      <SectionHeader>Create a User: Portal</SectionHeader>
+                      <SectionHeader>
+                        {!!props.existingUser ? 'Edit' : 'Create a'} User:
+                        Portal
+                      </SectionHeader>
                       <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
                         Select the portals you'd like to make available to this
                         user
@@ -377,7 +482,7 @@ export const CreateUserModal: React.FC<{ onClose: () => void }> = props => {
                         </SoloCancelButton>
                         <SoloButtonStyledComponent
                           onClick={formik.handleSubmit}>
-                          Create User
+                          {!!props.existingUser ? 'Update User' : 'Create User'}
                         </SoloButtonStyledComponent>
                       </div>
                     </div>
