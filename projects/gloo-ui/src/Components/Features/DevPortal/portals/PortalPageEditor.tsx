@@ -69,8 +69,8 @@ const PortalPageEditorForm = ({ portal }: FormProps) => {
   const [attemptingToDelete, setAttemptingToDelete] = React.useState(false);
   const [inPreviewState, setInPreviewState] = React.useState(false);
   const [markdownString, setMarkdownString] = React.useState(
-    (!!portalPage.content?.inlineBytes &&
-      portalPage.content?.inlineBytes.toString()) ||
+    (!!portalPage.content?.inlineString &&
+      portalPage.content?.inlineString.toString()) ||
       ''
   );
 

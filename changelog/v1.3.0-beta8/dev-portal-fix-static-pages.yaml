@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Read static page content from inline string field.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1592

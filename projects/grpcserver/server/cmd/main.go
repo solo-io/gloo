@@ -19,8 +19,8 @@ import (
 )
 
 func main() {
-	ctx := getInitialContext()
 	stats.ConditionallyStartStatsServer()
+	ctx := getInitialContext()
 	grpcPort := envutils.MustGetGrpcPort(ctx)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
