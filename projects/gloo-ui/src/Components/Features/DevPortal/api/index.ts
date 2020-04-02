@@ -1684,8 +1684,6 @@ function createKeyScope(
   keyScope.setPortal(portalRef);
 
   let spec = new KeyScope();
-  spec.setNamespace(input.apiKeyScope.spec!.namespace);
-  spec.setNamespace(input.apiKeyScope.spec!.name);
   spec.setDisplayName(input.apiKeyScope.spec!.displayName);
   spec.setDescription(input.apiKeyScope.spec!.description || '');
   keyScope.setSpec(spec);
@@ -1745,7 +1743,6 @@ function updateKeyScope(
   keyScope.setPortal(portalRef);
 
   let spec = new KeyScope();
-  spec.setNamespace(input.apiKeyScope.spec!.namespace);
   spec.setName(input.apiKeyScope.spec!.name);
   spec.setDisplayName(input.apiKeyScope.spec!.displayName);
   spec.setDescription(input.apiKeyScope.spec!.description || '');
