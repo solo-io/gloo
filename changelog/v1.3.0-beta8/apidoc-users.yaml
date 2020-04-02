@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/1613
+    description: Update call to list users and list groups to account for apidocs, apidoc list tweaks.

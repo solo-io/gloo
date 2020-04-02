@@ -9,7 +9,7 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { CreateAPIModal } from './CreateAPIModal';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { apiDocApi } from '../api';
+import { apiDocApi, portalApi } from '../api';
 import useSWR from 'swr';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
 import { ApiDocStatus } from 'proto/dev-portal/api/dev-portal/v1/apidoc_pb';
@@ -68,6 +68,12 @@ export const APIListing = () => {
 const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
   const { apiDoc } = props;
   const history = useHistory();
+
+  const { data: portalsList, error: portalListError } = useSWR(
+    `listPortalsApiDoc${apiDoc.metadata?.namespace}.${apiDoc.metadata?.name}`,
+    portalApi.listPortals
+  );
+
   return (
     <div
       onClick={() =>
@@ -94,13 +100,13 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
       <div className='flex flex-col justify-around w-full h-40 ml-4'>
         <div className='text-lg text-gray-900 '>{apiDoc.metadata?.name}</div>
         <div className=''>{apiDoc.status?.description}</div>
-        <div className='text-sm text-gray-600 '>
-          Modified:
-          {format(apiDoc.status?.modifiedDate?.seconds!, 'en_US')}
-        </div>
         <div className='flex items-center justify-between '>
           <div className='font-medium text-gray-900 capitalize'>
-            published in
+            published in:{' '}
+            {(portalsList || [])
+              ?.map(p => p.spec!.displayName || p.metadata!.name)
+              .sort((a, b) => (a === b ? 0 : a > b ? 1 : -1))
+              .join(', ')}
           </div>
           <div className='flex items-center justify-between'>
             <div>
@@ -112,13 +118,6 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
               )}
             </div>
             <div className='flex items-center'>
-              <div className='flex items-center px-4'>
-                <span className='text-blue-600'>
-                  <UserIcon className='w-6 h-6 fill-current' />
-                </span>
-                <span className='px-1 font-semibold'>10</span>
-                <span>Users</span>
-              </div>
               <div className='flex items-center px-4'>
                 <span className='text-blue-600'>
                   <CodeIcon className='w-6 h-6 fill-current' />

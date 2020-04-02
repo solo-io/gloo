@@ -795,7 +795,7 @@ function listApiKeys(): Promise<ApiKey.AsObject[]> {
 function listGroups(
   groupFilter: GroupFilter.AsObject
 ): Promise<Group.AsObject[]> {
-  const { portalsList } = groupFilter;
+  const { portalsList, apiDocsList } = groupFilter;
   let request = new GroupFilter();
 
   if (portalsList !== undefined) {
@@ -807,6 +807,17 @@ function listGroups(
     });
     request.setPortalsList(portalsRefList);
   }
+
+  if (!!apiDocsList) {
+    let docsRefList = apiDocsList.map(docObj => {
+      let docRef = new ObjectRef();
+      docRef.setName(docObj.name);
+      docRef.setNamespace(docObj.namespace);
+      return docRef;
+    });
+    request.setApiDocsList(docsRefList);
+  }
+
   return new Promise((resolve, reject) => {
     grpc.invoke(GroupApi.ListGroups, {
       request,
@@ -832,7 +843,7 @@ function listGroups(
 }
 
 function listUsers(userFilter: UserFilter.AsObject): Promise<User.AsObject[]> {
-  const { portalsList } = userFilter;
+  const { portalsList, apiDocsList } = userFilter;
   let request = new UserFilter();
 
   if (portalsList !== undefined) {
@@ -844,6 +855,17 @@ function listUsers(userFilter: UserFilter.AsObject): Promise<User.AsObject[]> {
     });
     request.setPortalsList(portalsRefList);
   }
+
+  if (!!apiDocsList) {
+    let docsRefList = apiDocsList.map(docObj => {
+      let docRef = new ObjectRef();
+      docRef.setName(docObj.name);
+      docRef.setNamespace(docObj.namespace);
+      return docRef;
+    });
+    request.setApiDocsList(docsRefList);
+  }
+
   return new Promise((resolve, reject) => {
     grpc.invoke(UserApi.ListUsers, {
       request,
