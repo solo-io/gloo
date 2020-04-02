@@ -26,6 +26,7 @@ import { CreateUserModal } from './CreateUserModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 
 const StyledTab = (
   props: {
@@ -107,6 +108,36 @@ export const UserGroups = () => {
   if (!userList || !groupList) {
     return <Loading center>Loading...</Loading>;
   }
+
+  const getUser = (ref: ObjectRef.AsObject): User.AsObject | undefined => {
+    return userList.find(
+      u =>
+        u.metadata?.namespace === ref.namespace && u.metadata.name === ref.name
+    );
+  };
+
+  const getUserNames = (groupUid: string): string[] => {
+    let group = groupList.find(g => g.metadata?.uid === groupUid);
+    if (!group) {
+      return [];
+    }
+    return group.status!.usersList.map(u => {
+      const user = getUser({ namespace: u.namespace, name: u.name });
+      return user?.spec?.username || '';
+    });
+  };
+
+  const getGroups = ({ namespace, name }: ObjectRef.AsObject): string[] => {
+    return groupList.reduce((acc: string[], g) => {
+      let userExists = !!g.status?.usersList.find(
+        ref => ref.namespace === namespace && ref.name === name
+      );
+      if (userExists) {
+        return [g.spec?.displayName || g.metadata!.name, ...acc];
+      }
+      return acc;
+    }, []);
+  };
 
   return (
     <div className='relative'>
@@ -207,9 +238,51 @@ export const UserGroups = () => {
                                   </div>
                                 </td>
                                 <td className='max-w-xs px-6 py-4 border-b border-gray-200'>
-                                  <div className='text-sm leading-5 text-gray-700'>
+                                  <div className='text-sm font-medium leading-5 text-blue-600'>
                                     <span className='flex items-center '>
-                                      {user.spec?.email}
+                                      {getGroups({
+                                        namespace: user.metadata!.namespace,
+                                        name: user.metadata!.name
+                                      }).length === 0 ? (
+                                        <div>{`View(0)`}</div>
+                                      ) : (
+                                        <Popover
+                                          css={css`
+                                            .ant-popover-inner-content {
+                                              padding: 4px 6px;
+                                            }
+                                          `}
+                                          placement='bottom'
+                                          content={
+                                            <div className='grid grid-flow-col-dense gap-2'>
+                                              {getGroups({
+                                                namespace: user.metadata!
+                                                  .namespace,
+                                                name: user.metadata!.name
+                                              }).map((groupName, i) => {
+                                                return (
+                                                  <div
+                                                    className='flex items-center'
+                                                    key={`${groupName}${i}`}>
+                                                    <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                      <UserIcon className='w-4 h-4 fill-current' />
+                                                    </div>
+                                                    {groupName}
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          }
+                                          trigger='hover'>
+                                          {`View(${
+                                            getGroups({
+                                              namespace: user.metadata!
+                                                .namespace,
+                                              name: user.metadata!.name
+                                            }).length
+                                          })`}
+                                        </Popover>
+                                      )}
                                     </span>
                                   </div>
                                 </td>
@@ -418,24 +491,27 @@ export const UserGroups = () => {
                                         placement='bottom'
                                         content={
                                           <div className='grid grid-flow-col-dense gap-2'>
-                                            {group.status?.usersList.map(
-                                              userRef => {
-                                                return (
-                                                  <div
-                                                    className='flex items-center'
-                                                    key={`${userRef.name}-${userRef.namespace}`}>
-                                                    <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
-                                                      <UserIcon className='w-4 h-4 fill-current' />
-                                                    </div>
-                                                    {userRef.name}
+                                            {getUserNames(
+                                              group.metadata!.uid
+                                            ).map(userName => {
+                                              return (
+                                                <div
+                                                  className='flex items-center'
+                                                  key={userName}>
+                                                  <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
+                                                    <UserIcon className='w-4 h-4 fill-current' />
                                                   </div>
-                                                );
-                                              }
-                                            )}
+                                                  {userName}
+                                                </div>
+                                              );
+                                            })}
                                           </div>
                                         }
                                         trigger='hover'>
-                                        {`View(${group.status?.usersList.length})`}
+                                        {`View(${
+                                          getUserNames(group.metadata!.uid)
+                                            .length
+                                        })`}
                                       </Popover>
                                     )}
                                   </span>
