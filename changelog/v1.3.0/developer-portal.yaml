@@ -1,0 +1,7 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+    Add Developer Portal to Gloo Enterprise. The developer portal can be enabled by passing the `devPortal.enabled=true`
+    Helm value when installing Gloo Enterprise. See the [Developer Portal documentation](https://docs.solo.io/gloo/latest/guides/dev_portal/)
+    for more information.
+  issueLink: https://github.com/solo-io/gloo/issues/2722
