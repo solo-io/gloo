@@ -106,7 +106,7 @@ export const DevPortalOverview = () => {
               </span>
             }>
             {portalsList.length > 0 ? (
-              <div className='grid grid-cols-2 gap-4 '>
+              <div className='grid grid-cols-2 gap-4 whitespace-no-wrap '>
                 <TallyInformationDisplay
                   tallyCount={portalsList.length}
                   tallyDescription={`portals`}

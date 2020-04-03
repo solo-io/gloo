@@ -36,7 +36,6 @@ const TallyCount = styled.div`
 const TallyDescription = styled.div`
   font-size: 16px;
   line-height: 16px;
-  white-space: nowrap;
 `;
 
 const MoreInfoLink = styled.div`
