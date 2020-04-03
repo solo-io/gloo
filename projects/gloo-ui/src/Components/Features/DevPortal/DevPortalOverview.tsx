@@ -204,16 +204,28 @@ export const DevPortalOverview = () => {
         </div>
         <div className='grid grid-cols-3 px-4 py-5 sm:p-6'>
           <StatusTile
-            exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
+            exploreMoreLink={{
+              external: true,
+              prompt: 'View Documentation',
+              link: 'https://docs.solo.io/gloo/latest/guides/dev_portal/'
+            }}
             titleText='Creating a Portal'
             description={`Documentation for adding APIs and exposing business capabilities by creating a new portal`}></StatusTile>
           <StatusTile
-            exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
+            exploreMoreLink={{
+              external: true,
+              prompt: 'View Documentation',
+              link: 'https://docs.solo.io/gloo/latest/guides/dev_portal/'
+            }}
             titleText='Generating a Gloo API'
             description={`Documentation for exposing new APIs on the Gloo API gateway by selecting backend services and endpoints`}></StatusTile>
 
           <StatusTile
-            exploreMoreLink={{ prompt: 'View Documentation', link: '' }}
+            exploreMoreLink={{
+              external: true,
+              prompt: 'View Documentation',
+              link: 'https://docs.solo.io/gloo/latest/guides/dev_portal/'
+            }}
             titleText='Granting User Access'
             description={`Documentation for managing user access`}></StatusTile>
         </div>

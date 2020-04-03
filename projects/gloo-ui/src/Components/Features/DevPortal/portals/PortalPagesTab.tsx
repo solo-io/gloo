@@ -11,6 +11,8 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { portalApi } from '../api';
+import { StaticPage } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 export const PortalPagesTab = () => {
   const routerLocation = useLocation();
@@ -29,7 +31,20 @@ export const PortalPagesTab = () => {
   const [pageAttemptingToDelete, setPageAttemptingToDelete] = React.useState<
     string
   >();
-
+  const [filteredPages, setFilteredPages] = React.useState<
+    StaticPage.AsObject[] | undefined
+  >([]);
+  React.useEffect(() => {
+    if (pagesSearchTerm !== '' && !!portal?.spec?.staticPagesList) {
+      setFilteredPages(
+        portal?.spec?.staticPagesList.filter(user =>
+          user.name.toLowerCase().includes(pagesSearchTerm)
+        )
+      );
+    } else {
+      setFilteredPages(undefined);
+    }
+  }, [pagesSearchTerm]);
   const openCreatePage = () => {
     setCreatePageModalOpen(true);
   };
@@ -64,9 +79,9 @@ export const PortalPagesTab = () => {
       });*/
   };
 
-  const filteredList = portal?.spec?.staticPagesList.filter(page =>
-    page.name.includes(pagesSearchTerm)
-  );
+  if (!portal) {
+    return <Loading center>Loading...</Loading>;
+  }
 
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
@@ -87,7 +102,8 @@ export const PortalPagesTab = () => {
           />
         </div>
       )}
-      {!!filteredList?.length ? (
+      {(!!filteredPages ? filteredPages : portal?.spec?.staticPagesList || [])
+        .length ? (
         <div className='flex flex-col'>
           <div className='py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8'>
             <div className='inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg'>
@@ -113,7 +129,10 @@ export const PortalPagesTab = () => {
                   </tr>
                 </thead>
                 <tbody className='bg-white'>
-                  {filteredList!
+                  {(!!filteredPages
+                    ? filteredPages
+                    : portal?.spec?.staticPagesList || []
+                  )
                     .sort((a, b) =>
                       a.name === b.name ? 0 : a.name > b.name ? 1 : -1
                     )

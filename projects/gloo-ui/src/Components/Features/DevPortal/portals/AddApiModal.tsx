@@ -56,7 +56,6 @@ export const AddApiModal = (props: AddApiModalProps) => {
   const [errorMessage, setErrorMessage] = React.useState('');
 
   const addApi = async (values: AddApiValues) => {
-    console.log('values', values);
     const { chosenAPIs } = values;
 
     //@ts-ignore
@@ -93,7 +92,6 @@ export const AddApiModal = (props: AddApiModalProps) => {
   if (!apiDocsList) {
     return <Loading center>Loading...</Loading>;
   }
-  console.log('portal', portal);
   return (
     <Formik<AddApiValues>
       initialValues={{
@@ -140,7 +138,6 @@ export const AddApiModal = (props: AddApiModalProps) => {
               chosenOptionsListName='Selected APIs'
               chosenOptions={values.chosenAPIs}
               onChange={newChosenOptions => {
-                console.log('newChosenOptions', newChosenOptions);
                 setFieldValue('chosenAPIs', newChosenOptions);
               }}
             />

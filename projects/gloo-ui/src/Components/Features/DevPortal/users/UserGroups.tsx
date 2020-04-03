@@ -73,6 +73,11 @@ export const UserGroups = () => {
   const [tabIndex, setTabIndex] = React.useState(0);
   const [userSearchTerm, setUserSearchTerm] = React.useState('');
   const [groupSearchTerm, setGroupSearchTerm] = React.useState('');
+  const [filteredUsers, setFilteredUsers] = React.useState<User.AsObject[]>();
+  const [filteredGroups, setFilteredGroups] = React.useState<
+    Group.AsObject[]
+  >();
+
   const [
     showCreateUserModal,
     setShowCreateUserModal
@@ -89,6 +94,31 @@ export const UserGroups = () => {
   );
   const [userToDelete, setUserToDelete] = React.useState<User.AsObject>();
   const [groupToDelete, setGroupToDelete] = React.useState<Group.AsObject>();
+
+  React.useEffect(() => {
+    if (userSearchTerm !== '' && !!userList) {
+      setFilteredUsers(
+        userList.filter(user =>
+          user.spec?.username?.toLowerCase().includes(userSearchTerm)
+        )
+      );
+    } else {
+      setFilteredUsers(undefined);
+    }
+  }, [userSearchTerm]);
+
+  React.useEffect(() => {
+    if (groupSearchTerm !== '' && !!groupList) {
+      setFilteredGroups(
+        groupList.filter(group =>
+          group.spec?.displayName.toLowerCase().includes(groupSearchTerm)
+        )
+      );
+    } else {
+      setFilteredGroups(undefined);
+    }
+  }, [groupSearchTerm]);
+
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
@@ -198,7 +228,7 @@ export const UserGroups = () => {
             <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
               <div className='w-full mb-4'>
                 <SoloInput
-                  placeholder='Search by member by user name or email...'
+                  placeholder='Search by user name...'
                   value={userSearchTerm}
                   onChange={e => setUserSearchTerm(e.target.value)}
                 />
@@ -231,7 +261,7 @@ export const UserGroups = () => {
                         </tr>
                       </thead>
                       <tbody className='bg-white'>
-                        {userList
+                        {(!!filteredUsers ? filteredUsers : userList)
                           .sort((a, b) =>
                             a.metadata?.name === b.metadata?.name
                               ? 0
@@ -280,7 +310,7 @@ export const UserGroups = () => {
                                           `}
                                           placement='bottom'
                                           content={
-                                            <div className='grid grid-flow-col-dense gap-2'>
+                                            <div className='grid grid-flow-row-dense gap-2'>
                                               {getGroups({
                                                 namespace: user.metadata!
                                                   .namespace,
@@ -329,7 +359,7 @@ export const UserGroups = () => {
                                           `}
                                           placement='bottom'
                                           content={
-                                            <div className='grid grid-flow-col-dense gap-2'>
+                                            <div className='grid grid-flow-row-dense gap-2'>
                                               {user.status?.accessLevel?.apiDocsList.map(
                                                 apiDocRef => {
                                                   return (
@@ -339,7 +369,7 @@ export const UserGroups = () => {
                                                       <div className='flex items-center justify-center w-6 h-6 mr-1 text-white bg-blue-600 rounded-full'>
                                                         <CodeIcon className='w-4 h-4 fill-current' />
                                                       </div>
-                                                      {apiDocRef.name}z
+                                                      {apiDocRef.name}
                                                     </div>
                                                   );
                                                 }
@@ -370,7 +400,7 @@ export const UserGroups = () => {
                                           `}
                                           placement='bottom'
                                           content={
-                                            <div className='grid grid-flow-col-dense gap-2'>
+                                            <div className='grid grid-flow-row-dense gap-2'>
                                               {user.status?.accessLevel?.portalsList.map(
                                                 portalRef => {
                                                   return (
@@ -419,7 +449,8 @@ export const UserGroups = () => {
                           })}
                       </tbody>
                     </table>
-                    {userList.length === 0 && (
+                    {(!!filteredUsers ? filteredUsers : userList).length ===
+                      0 && (
                       <div className='w-full m-auto'>
                         <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                           <div className='mr-6'>
@@ -476,7 +507,7 @@ export const UserGroups = () => {
                         </tr>
                       </thead>
                       <tbody className='bg-white'>
-                        {groupList
+                        {(!!filteredGroups ? filteredGroups : groupList)
                           .sort((a, b) =>
                             a.metadata?.name === b.metadata?.name
                               ? 0
@@ -523,7 +554,7 @@ export const UserGroups = () => {
                                         `}
                                         placement='bottom'
                                         content={
-                                          <div className='grid grid-flow-col-dense gap-2'>
+                                          <div className='grid grid-flow-row-dense gap-2'>
                                             {getUserNames(
                                               group.metadata!.uid
                                             ).map(userName => {
@@ -656,7 +687,8 @@ export const UserGroups = () => {
                           ))}
                       </tbody>
                     </table>
-                    {groupList.length === 0 && (
+                    {(!!filteredGroups ? filteredGroups : groupList).length ===
+                      0 && (
                       <div className='w-full m-auto'>
                         <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                           <div className='mr-6'>

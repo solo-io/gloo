@@ -19,7 +19,7 @@ const StatusTileInformation = styled.div`
   border-radius: 8px;
   background: white;
   display: flex;
-
+  justify-content: space-between;
   padding: 15px 18px 18px 15px;
   height: 100%;
 
@@ -109,6 +109,7 @@ interface Props {
   description?: string;
   children?: React.ReactChild;
   exploreMoreLink?: {
+    external?: boolean;
     prompt: string;
     link: string;
     testId?: string;
@@ -147,13 +148,29 @@ export const StatusTile = (props: Props) => {
               {props.description}
             </Description>
             <Content>{props.children}</Content>
-            {!!props.exploreMoreLink && (
-              <Link
-                data-testid={props.exploreMoreLink.testId}
-                onClick={goToLink}>
-                {props.exploreMoreLink.prompt}
-              </Link>
-            )}
+            {!!props.exploreMoreLink ? (
+              !!props.exploreMoreLink.external ? (
+                <a
+                  css={css`
+                    position: absolute;
+                    bottom: 10px;
+                    cursor: pointer;
+                    color: ${colors.seaBlue};
+                    font-size: 14px;
+                  `}
+                  href={props.exploreMoreLink.link}
+                  target='_blank'
+                  rel='noreferrer noopener'>
+                  {props.exploreMoreLink.prompt}
+                </a>
+              ) : (
+                <Link
+                  data-testid={props.exploreMoreLink.testId}
+                  onClick={goToLink}>
+                  {props.exploreMoreLink.prompt}
+                </Link>
+              )
+            ) : null}
           </>
         ) : (
           <>

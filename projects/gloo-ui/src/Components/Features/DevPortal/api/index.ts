@@ -171,7 +171,6 @@ function updateApiDoc(
 
           let imageMessage = apiDocSpec?.getImage();
           if (apidoc.spec?.image?.inlineBytes !== undefined) {
-            console.log('apidoc', apidoc);
             imageMessage?.setInlineBytes(apidoc.spec.image.inlineBytes);
           }
           apiDocSpec?.setImage(imageMessage);
@@ -1726,8 +1725,15 @@ function createPortal(
 function updatePortal(
   portalWriteRequest: PortalWriteRequest.AsObject
 ): Promise<Portal.AsObject> {
-  const { portal, usersList, apiDocsList, groupsList } = portalWriteRequest;
+  const {
+    portal,
+    usersList,
+    apiDocsList,
+    groupsList,
+    portalOnly
+  } = portalWriteRequest;
   let request = new PortalWriteRequest();
+  request.setPortalOnly(portalOnly);
   return new Promise((resolve, reject) => {
     if (portal !== undefined && portal.metadata) {
       let portalRef = new ObjectRef();
@@ -1741,10 +1747,7 @@ function updatePortal(
           let portalToUpdate = endMessage.message as Portal;
           let portalSpec = portalToUpdate.getSpec();
 
-          if (
-            portal.spec?.domainsList !== [] &&
-            portal.spec?.domainsList !== undefined
-          ) {
+          if (!!portal.spec?.domainsList) {
             portalSpec?.setDomainsList(portal.spec?.domainsList);
           }
           let portalStyling = portalSpec?.getCustomStyling();
@@ -1901,7 +1904,6 @@ function createPortalPage(
 
         let request = new PortalWriteRequest();
         let portalSpec = portal.getSpec();
-        console.log(portalSpec?.toObject());
 
         let staticPageClass = new StaticPage();
         staticPageClass.setName(staticPage.name);
@@ -1922,8 +1924,6 @@ function createPortalPage(
 
         request.setPortal(portal);
         request.setPortalOnly(true);
-
-        console.log(request.getPortal()?.toObject());
 
         grpc.invoke(PortalApi.UpdatePortal, {
           request: request,

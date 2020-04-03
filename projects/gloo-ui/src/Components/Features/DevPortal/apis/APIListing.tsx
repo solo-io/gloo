@@ -94,7 +94,6 @@ const APIItem: React.FC<{ apiDoc: ApiDoc.AsObject }> = props => {
         apiDocRef.namespace === apiDoc.metadata.namespace
     )
   );
-
   return (
     <div
       onClick={() =>

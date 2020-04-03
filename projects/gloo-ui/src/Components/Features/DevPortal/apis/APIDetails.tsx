@@ -132,7 +132,7 @@ export const APIDetails = () => {
       <div>
         <Breadcrumb />
         <SectionCard
-          cardName={apiname || 'API'}
+          cardName={apiDoc.status?.displayName || apiname || 'API'}
           logoIcon={
             <span className='text-blue-500'>
               <CodeIcon className='fill-current' />
@@ -147,7 +147,7 @@ export const APIDetails = () => {
               )
             }
           ]}
-          healthMessage={'Portal Status'}
+          healthMessage={'API Status'}
           onClose={() => history.push(`/dev-portal/`)}>
           <div>
             {apiDoc?.status?.state !== State.SUCCEEDED && (
@@ -160,7 +160,7 @@ export const APIDetails = () => {
             )}
             <div className='relative flex items-center'>
               <div className=' max-h-72'>
-                {apiDoc.spec?.image ? (
+                {apiDoc.spec?.image?.inlineBytes ? (
                   <img
                     className='object-cover max-h-72'
                     src={`data:image/gif;base64,${apiDoc.spec?.image?.inlineBytes}`}></img>
@@ -195,9 +195,7 @@ export const APIDetails = () => {
                         <div
                           key={portal.metadata?.uid}
                           className='flex items-center mb-2 text-sm text-blue-600'>
-                          <div>
-                            {portal.spec?.displayName || portal.metadata?.name}
-                          </div>
+                          <div>{portal.spec?.displayName}</div>
                         </div>
                       ))}
                   </div>

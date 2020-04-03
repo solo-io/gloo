@@ -313,7 +313,6 @@ export const CreateGroupModal: React.FC<{
                         chosenOptionsListName='Selected User'
                         chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
                         }}
                       />
@@ -369,7 +368,6 @@ export const CreateGroupModal: React.FC<{
                         chosenOptionsListName='Selected APIs'
                         chosenOptions={formik.values.chosenAPIs}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenAPIs', newChosenOptions);
                         }}
                       />
@@ -425,7 +423,6 @@ export const CreateGroupModal: React.FC<{
                         chosenOptionsListName='Selected Portal'
                         chosenOptions={formik.values.chosenPortals}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenPortals',
                             newChosenOptions

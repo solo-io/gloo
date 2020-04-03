@@ -20,6 +20,20 @@ export const APIKeys = () => {
   const [attemptingDelete, setAttemptingDelete] = React.useState(false);
   const [apiKeyToDelete, setApiKeyToDelete] = React.useState<ApiKey.AsObject>();
 
+  const [filteredAPIKeys, setFilteredAPIKeys] = React.useState<
+    ApiKey.AsObject[]
+  >();
+  React.useEffect(() => {
+    if (apiKeySearchTerm !== '' && !!apiKeyList) {
+      setFilteredAPIKeys(
+        apiKeyList.filter(apiKey =>
+          apiKey.metadata?.name.toLowerCase().includes(apiKeySearchTerm)
+        )
+      );
+    } else {
+      setFilteredAPIKeys(undefined);
+    }
+  }, [apiKeySearchTerm]);
   const attemptDeleteApiKey = (apiKey: ApiKey.AsObject) => {
     setAttemptingDelete(true);
     setApiKeyToDelete(apiKey);
@@ -50,7 +64,7 @@ export const APIKeys = () => {
       <div className='relative flex flex-col p-2 rounded-lg'>
         <div className='w-full mb-4'>
           <SoloInput
-            placeholder='Search group by user name or email...'
+            placeholder='Search API keys by name...'
             value={apiKeySearchTerm}
             onChange={e => setApiKeySearchTerm(e.target.value)}
           />
@@ -84,7 +98,7 @@ export const APIKeys = () => {
                   </tr>
                 </thead>
                 <tbody className='bg-white'>
-                  {apiKeyList
+                  {(!!filteredAPIKeys ? filteredAPIKeys : apiKeyList)
                     .sort((a, b) =>
                       a.metadata?.name === b.metadata?.name
                         ? 0
@@ -146,7 +160,8 @@ export const APIKeys = () => {
                     ))}
                 </tbody>
               </table>
-              {apiKeyList.length === 0 && (
+              {(!!filteredAPIKeys ? filteredAPIKeys : apiKeyList).length ===
+                0 && (
                 <div className='w-full m-auto'>
                   <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                     <div className='mr-6'>

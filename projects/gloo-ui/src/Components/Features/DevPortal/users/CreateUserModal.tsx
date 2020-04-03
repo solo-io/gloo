@@ -349,7 +349,6 @@ export const CreateUserModal: React.FC<{
                           };
                         })}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenGroups',
                             newChosenOptions
@@ -405,7 +404,6 @@ export const CreateUserModal: React.FC<{
                         chosenOptionsListName='Selected APIs'
                         chosenOptions={formik.values.chosenAPIs}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenAPIs', newChosenOptions);
                         }}
                       />
@@ -460,7 +458,6 @@ export const CreateUserModal: React.FC<{
                         chosenOptionsListName='Selected Portal'
                         chosenOptions={formik.values.chosenPortals}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenPortals',
                             newChosenOptions

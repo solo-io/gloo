@@ -1,0 +1,19 @@
+changelog:
+  - type: FIX
+    description: Make domains field editable in portal details.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1603
+  - type: FIX
+    description: Make domains link open in a new tab.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1599
+  - type: FIX
+    description: Updating colors should not wipe away domains.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1639
+  - type: FIX
+    description: Update documentation links on the overview page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1641
+  - type: FIX
+    description: API details page, quick fixes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1622
+  - type: FIX
+    description: Fix popover css to be more readable.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1632

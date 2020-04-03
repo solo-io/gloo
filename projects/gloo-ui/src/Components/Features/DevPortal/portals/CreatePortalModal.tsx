@@ -32,7 +32,6 @@ import {
   SectionHeader,
   SectionSubHeader
 } from '../apis/CreateAPIModal';
-import * as yup from 'yup';
 import { configAPI } from 'store/config/api';
 
 const StyledTab = (
@@ -488,7 +487,6 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected APIs'
                         chosenOptions={formik.values.chosenAPIs}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenAPIs', newChosenOptions);
                         }}
                       />
@@ -540,7 +538,6 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected Users'
                         chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
                         }}
                       />
@@ -592,7 +589,6 @@ export const CreatePortalModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected Groups'
                         chosenOptions={formik.values.chosenGroups}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenGroups',
                             newChosenOptions

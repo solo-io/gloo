@@ -49,6 +49,20 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
   );
   const [apiDocToDelete, setApiDocToDelete] = React.useState<ApiDoc.AsObject>();
 
+  const [filteredAPIs, setFilteredAPIs] = React.useState<
+    ObjectRef.AsObject[]
+  >();
+  React.useEffect(() => {
+    if (APISearchTerm !== '' && !!portal.status?.apiDocsList) {
+      setFilteredAPIs(
+        portal.status?.apiDocsList.filter(user =>
+          user.name.toLowerCase().includes(APISearchTerm)
+        )
+      );
+    } else {
+      setFilteredAPIs(undefined);
+    }
+  }, [APISearchTerm]);
   const attemptDeleteApiDoc = (apiDoc: ApiDoc.AsObject) => {
     setShowConfirmApiDocDelete(true);
     setApiDocToDelete(apiDoc);
@@ -103,7 +117,7 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {portal.status?.apiDocsList
+                {(!!filteredAPIs ? filteredAPIs : portal.status?.apiDocsList)
                   ?.sort((a, b) =>
                     a.name === b.name ? 0 : a.name > b.name ? 1 : -1
                   )
@@ -152,7 +166,8 @@ export const PortalApiDocsTab = ({ portal }: PortalApiDocsTabProps) => {
                   })}
               </tbody>
             </table>
-            {apiDocsList?.length === 0 && (
+            {(!!filteredAPIs ? filteredAPIs : portal.status?.apiDocsList)
+              ?.length === 0 && (
               <div className='w-full m-auto'>
                 <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                   <div className='mr-6 text-blue-600'>

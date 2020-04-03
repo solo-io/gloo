@@ -10,6 +10,7 @@ import { userApi } from '../api';
 import { AddUserModal } from './AddUserModal';
 import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 type PortalUsersTabProps = {
   portal: Portal.AsObject;
@@ -35,6 +36,19 @@ export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
     false
   );
   const [userToDelete, setUserToDelete] = React.useState<User.AsObject>();
+  const [filteredUsers, setFilteredUsers] = React.useState<User.AsObject[]>();
+
+  React.useEffect(() => {
+    if (userSearchTerm !== '' && !!usersList) {
+      setFilteredUsers(
+        usersList.filter(user =>
+          user.spec?.username?.toLowerCase().includes(userSearchTerm)
+        )
+      );
+    } else {
+      setFilteredUsers(undefined);
+    }
+  }, [userSearchTerm]);
 
   const attemptDeleteUser = (user: User.AsObject) => {
     setShowConfirmUserDelete(true);
@@ -52,6 +66,9 @@ export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
   const closeConfirmModal = () => {
     setShowConfirmUserDelete(false);
   };
+  if (!usersList) {
+    return <Loading center>Loading...</Loading>;
+  }
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
@@ -62,7 +79,7 @@ export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
-          placeholder='Search by API name...'
+          placeholder='Search by user name...'
           value={userSearchTerm}
           onChange={e => setUserSearchTerm(e.target.value)}
         />
@@ -86,8 +103,15 @@ export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {!!usersList &&
-                  usersList!.map(user => {
+                {(!!filteredUsers ? filteredUsers : usersList)
+                  .sort((a, b) =>
+                    a.metadata?.name === b.metadata?.name
+                      ? 0
+                      : a.metadata!.name > b.metadata!.name
+                      ? 1
+                      : -1
+                  )
+                  .map(user => {
                     return (
                       <tr key={user.metadata?.uid}>
                         <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
@@ -121,7 +145,7 @@ export const PortalUsersTab = ({ portal }: PortalUsersTabProps) => {
                   })}
               </tbody>
             </table>
-            {usersList?.length === 0 && (
+            {(!!filteredUsers ? filteredUsers : usersList).length === 0 && (
               <div className='w-full m-auto'>
                 <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                   <div className='mr-6'>

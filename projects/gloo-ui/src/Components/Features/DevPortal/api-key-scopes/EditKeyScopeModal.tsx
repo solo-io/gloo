@@ -304,7 +304,6 @@ export function EditKeyScopeModal(props: EditKeyScopeModalProps) {
                           chosenOptionsListName='Selected APIs'
                           chosenOptions={values.chosenAPIs}
                           onChange={newChosenOptions => {
-                            console.log('newChosenOptions', newChosenOptions);
                             setFieldValue('chosenAPIs', newChosenOptions);
                           }}
                         />

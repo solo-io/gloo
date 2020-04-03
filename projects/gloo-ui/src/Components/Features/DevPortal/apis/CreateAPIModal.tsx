@@ -135,7 +135,6 @@ const SpecSection = () => {
           action={'https://www.mocky.io/v2/5cc8019d300000980a055e76'}
           name='uploadedSwagger'
           onChange={info => {
-            console.log('info', info);
             if (info.file.status === 'done') {
               formik.setFieldValue('uploadedSwagger', info.file.originFileObj);
             }
@@ -368,7 +367,6 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected Portal'
                         chosenOptions={formik.values.chosenPortals}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenPortals',
                             newChosenOptions
@@ -423,7 +421,6 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected Users'
                         chosenOptions={formik.values.chosenUsers}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue('chosenUsers', newChosenOptions);
                         }}
                       />
@@ -475,7 +472,6 @@ export const CreateAPIModal: React.FC<{ onClose: () => void }> = props => {
                         chosenOptionsListName='Selected Groups'
                         chosenOptions={formik.values.chosenGroups}
                         onChange={newChosenOptions => {
-                          console.log('newChosenOptions', newChosenOptions);
                           formik.setFieldValue(
                             'chosenGroups',
                             newChosenOptions

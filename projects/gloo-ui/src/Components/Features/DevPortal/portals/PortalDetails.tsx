@@ -40,7 +40,8 @@ import { PortalGroupsTab } from './PortalGroupsTab';
 import {
   SoloFormDropdown,
   SoloFormInput,
-  SoloFormTextarea
+  SoloFormTextarea,
+  SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
 import { ChromePicker } from 'react-color';
 import { ColorPicker } from './ColorPicker';
@@ -140,7 +141,6 @@ export const PortalDetails = () => {
   }
 
   const handleUpdatePortal = async (values: UpdatePortalValues) => {
-    console.log('values', values);
     const {
       backgroundColor,
       primaryColor,
@@ -199,15 +199,6 @@ export const PortalDetails = () => {
             </span>
           }
           health={formatHealthStatus(portal?.status?.state)}
-          headerSecondaryInformation={[
-            {
-              title: 'Modified',
-              value: format(
-                portal.metadata?.creationTimestamp?.seconds!,
-                'en_US'
-              )
-            }
-          ]}
           healthMessage={'Portal Status'}
           onClose={() => history.push(`/dev-portal/`)}>
           <Formik
@@ -215,7 +206,7 @@ export const PortalDetails = () => {
             initialValues={{
               displayName: '',
               description: '',
-              domainsList: [],
+              domainsList: portal.spec?.domainsList || [],
               primaryColor:
                 portal.spec?.customStyling?.primaryColor || '#2196C9',
               secondaryColor:
@@ -246,7 +237,7 @@ export const PortalDetails = () => {
                       <PlaceholderPortal className='w-56 rounded-lg ' />
                     )}
                   </div>
-                  <div className='grid w-full grid-cols-2 ml-2 h-36'>
+                  <div className='grid w-full grid-cols-2 ml-2 h-42'>
                     <div>
                       <span className='font-medium text-gray-900'>
                         Portal Display Name
@@ -265,6 +256,13 @@ export const PortalDetails = () => {
                       <span className='font-medium text-gray-900'>
                         Portal Domains
                       </span>
+                      {portal.spec?.domainsList === [] && editMode ? (
+                        <SoloFormStringsList
+                          hideError
+                          name={`domainsList`}
+                          placeholder={'enter a domain'}
+                        />
+                      ) : null}
                       {portal.spec?.domainsList.map((domain, index) => (
                         <div
                           key={domain}
@@ -273,13 +271,18 @@ export const PortalDetails = () => {
                             <ExternalLinkIcon className='w-4 h-4 ' />
                           </span>
                           {editMode ? (
-                            <SoloFormInput
+                            <SoloFormStringsList
                               hideError
-                              name={`domainsList.${index}`}
-                              placeholder={domain}
+                              name={`domainsList`}
+                              placeholder={domain || 'enter a domain'}
                             />
                           ) : (
-                            <div>{domain}</div>
+                            <a
+                              href={domain}
+                              target='_blank'
+                              rel='noreferrer noopener'>
+                              {domain}
+                            </a>
                           )}
                         </div>
                       ))}

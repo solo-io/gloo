@@ -10,6 +10,7 @@ import { groupApi } from '../api';
 import { AddGroupModal } from './AddGroupModal';
 import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 type PortalGroupsTabProps = {
   portal: Portal.AsObject;
@@ -33,6 +34,20 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
     false
   );
   const [groupToDelete, setGroupToDelete] = React.useState<Group.AsObject>();
+  const [filteredGroups, setFilteredGroups] = React.useState<
+    Group.AsObject[]
+  >();
+  React.useEffect(() => {
+    if (groupSearchTerm !== '' && !!groupsList) {
+      setFilteredGroups(
+        groupsList.filter(group =>
+          group.spec?.displayName.toLowerCase().includes(groupSearchTerm)
+        )
+      );
+    } else {
+      setFilteredGroups(undefined);
+    }
+  }, [groupSearchTerm]);
 
   const attemptDeleteGroup = (group: Group.AsObject) => {
     setShowConfirmGroupDelete(true);
@@ -50,6 +65,9 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
   const closeConfirmModal = () => {
     setShowConfirmGroupDelete(false);
   };
+  if (!groupsList) {
+    return <Loading center>Loading...</Loading>;
+  }
   return (
     <div className='relative flex flex-col p-4 border border-gray-300 rounded-lg'>
       <span
@@ -60,7 +78,7 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
       </span>
       <div className='w-1/3 m-4'>
         <SoloInput
-          placeholder='Search by API name...'
+          placeholder='Search by group name...'
           value={groupSearchTerm}
           onChange={e => setGroupSearchTerm(e.target.value)}
         />
@@ -87,57 +105,55 @@ export const PortalGroupsTab = ({ portal }: PortalGroupsTabProps) => {
                 </tr>
               </thead>
               <tbody className='bg-white'>
-                {!!groupsList &&
-                  groupsList!
-                    .sort((a, b) =>
-                      a.metadata?.name === b.metadata?.name
-                        ? 0
-                        : a.metadata!.name > b.metadata!.name
-                        ? 1
-                        : -1
-                    )
-                    .map(group => {
-                      return (
-                        <tr key={group.metadata?.uid}>
-                          <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                            <div className='text-sm leading-5 text-gray-900'>
-                              <span className='flex items-center capitalize'>
-                                {group?.spec?.displayName ||
-                                  group.metadata?.name}
-                              </span>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 border-b border-gray-200'>
-                            <div className='text-sm leading-5 text-gray-900'>
-                              <span className='flex items-center capitalize'>
-                                {group?.spec?.description}
-                              </span>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
-                            <div className='text-sm leading-5 text-gray-900'>
-                              <span className='flex items-center capitalize'>
-                                {group?.status?.usersList
-                                  .map(u => u.name)
-                                  .join(', ')}
-                              </span>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
-                            <span className='flex items-center'>
-                              <div
-                                className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
-                                onClick={() => attemptDeleteGroup(group)}>
-                                x
-                              </div>
+                {(!!filteredGroups ? filteredGroups : groupsList)
+                  .sort((a, b) =>
+                    a.metadata?.name === b.metadata?.name
+                      ? 0
+                      : a.metadata!.name > b.metadata!.name
+                      ? 1
+                      : -1
+                  )
+                  .map(group => {
+                    return (
+                      <tr key={group.metadata?.uid}>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {group?.spec?.displayName || group.metadata?.name}
                             </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {group?.spec?.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 whitespace-no-wrap border-b border-gray-200'>
+                          <div className='text-sm leading-5 text-gray-900'>
+                            <span className='flex items-center capitalize'>
+                              {group?.status?.usersList
+                                .map(u => u.name)
+                                .join(', ')}
+                            </span>
+                          </div>
+                        </td>
+                        <td className='px-6 py-4 text-sm font-medium leading-5 text-right whitespace-no-wrap border-b border-gray-200'>
+                          <span className='flex items-center'>
+                            <div
+                              className='flex items-center justify-center w-4 h-4 text-gray-700 bg-gray-400 rounded-full cursor-pointer'
+                              onClick={() => attemptDeleteGroup(group)}>
+                              x
+                            </div>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
-            {groupsList?.length === 0 && (
+            {(!!filteredGroups ? filteredGroups : groupsList).length === 0 && (
               <div className='w-full m-auto'>
                 <div className='flex flex-col items-center justify-center w-full h-full py-4 mr-32 bg-white rounded-lg shadow-lg md:flex-row'>
                   <div className='mr-6'>
