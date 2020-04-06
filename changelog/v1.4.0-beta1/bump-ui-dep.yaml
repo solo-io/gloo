@@ -1,0 +1,11 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: Upgrade a node package to include a security patch.
+  dependencyOwner: acorn
+  dependencyRepo: gloo-ui
+  dependencyTag: 7.1.1
+- type: DEPENDENCY_BUMP
+  description: Upgrade a node package to include a security patch.
+  dependencyOwner: minimist
+  dependencyRepo: gloo-ui
+  dependencyTag: 0.2.1

@@ -64,7 +64,6 @@
     "fs-extra": "8.1.0",
     "google-protobuf": "^3.11.0",
     "grpc-web": "^1.0.6",
-    "handlebars": "4.3.0",
     "html-webpack-plugin": "4.0.0-beta.5",
     "identity-obj-proxy": "3.0.0",
     "is-wsl": "^2.1.1",
@@ -154,6 +153,11 @@
     "pretty-quick": "^2.0.1",
     "puppeteer": "^2.0.0",
     "tailwind.macro": "^1.0.0-alpha.10"
+  },
+  "resolutions": {
+    "**/**/serialize-javascript": "^2.1.1",
+    "**/**/acorn": "^7.1.1",
+    "**/**/minimist": "^0.2.1"
   },
   "jest": {
     "roots": [
