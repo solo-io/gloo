@@ -1,20 +1,16 @@
-import React from 'react';
 import styled from '@emotion/styled';
-import { useParams, useHistory } from 'react-router';
-import { ApiKeyScopeCard } from './ApiKeyScopeCard';
 import { ReactComponent as PortalIcon } from 'assets/single-portal-icon.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { apiKeyScopeApi } from '../api';
-import useSWR from 'swr';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { EditKeyScopeModal } from './EditKeyScopeModal';
 import { KeyScopeStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
 import { ApiKeyScopeWithApiDocs } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import React from 'react';
+import useSWR from 'swr';
+import { apiKeyScopeApi } from '../api';
 import { NoDataPanel } from '../DevPortal';
-import { ReactComponent as PlaceholderPortalTile } from '../../../../assets/portal-tile.svg';
+import { ApiKeyScopeCard } from './ApiKeyScopeCard';
+import { EditKeyScopeModal } from './EditKeyScopeModal';
 
 const CardContainer = styled.div`
   margin-bottom: 12px;
@@ -109,9 +105,9 @@ export const APIKeyScopes = () => {
       {!Object.keys(portalToKeyScope).length && (
         <NoDataPanel
           missingContentText='There are no API Key Scopes to display'
-          helpText='Create a Key Scope to allow users to generate API Keys.'>
-          <PlaceholderPortalTile /> <PlaceholderPortalTile />
-        </NoDataPanel>
+          helpText='Create a Key Scope to allow users to generate API Keys.'
+          identifier='key-scopes-page'
+        />
       )}
       {!!Object.keys(portalToKeyScope).length &&
         Object.keys(portalToKeyScope)

@@ -144,6 +144,7 @@ function updateApiDoc(
       let apiDocRef = new ObjectRef();
       apiDocRef.setName(apidoc.metadata.name);
       apiDocRef.setNamespace(apidoc.metadata.namespace);
+      req.setWithassets(true);
       req.setApidoc(apiDocRef);
 
       grpc.unary(ApiDocApi.GetApiDoc, {

@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Use Add User Modal instead of create in API details.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1652
+  - type: FIX
+    description: Fix alignment in overview pages for Safari.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1653
+  - type: NON_USER_FACING
+    description: Fix inconsistent SVG width in empty state views for portals and apis.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1654

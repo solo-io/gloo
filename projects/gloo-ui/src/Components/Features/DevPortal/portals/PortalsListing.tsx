@@ -1,26 +1,20 @@
-import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import React from 'react';
-import { EmptyPortalsPanel } from '../DevPortal';
-import { ReactComponent as PlaceholderPortalTile } from 'assets/portal-tile.svg';
-import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
-import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
-import { ReactComponent as CompanyLogo } from 'assets/company-logo.svg';
-import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { useHistory } from 'react-router';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { css } from '@emotion/core';
-import useSWR from 'swr';
-import { portalApi, userApi, apiDocApi } from '../api';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { PortalStatus } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
-import { Status } from 'proto/solo-kit/api/v1/status_pb';
-import { format } from 'timeago.js';
-import { CreatePortalModal } from './CreatePortalModal';
-import { SoloModal } from 'Components/Common/SoloModal';
+import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
+import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { StateMap, State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { secondsToString } from '../util';
+import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { State, StateMap } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import React from 'react';
+import { useHistory } from 'react-router';
+import useSWR from 'swr';
+import { apiDocApi, portalApi, userApi } from '../api';
+import { NoDataPanel } from '../DevPortal';
+import { CreatePortalModal } from './CreatePortalModal';
 
 export function formatHealthStatus(
   status: StateMap[keyof StateMap] | undefined
@@ -43,7 +37,7 @@ export const PortalsListing = () => {
   );
 
   if (!portalsList) {
-    return <div>Loading...</div>;
+    return <Loading center>Loading...</Loading>;
   }
   return (
     <div className='container mx-auto'>
@@ -54,9 +48,11 @@ export const PortalsListing = () => {
         <span className='text-gray-700'> Create a Portal</span>
       </span>
       {portalsList.length === 0 ? (
-        <EmptyPortalsPanel itemName='Portal'>
-          <PlaceholderPortalTile /> <PlaceholderPortalTile />
-        </EmptyPortalsPanel>
+        <NoDataPanel
+          missingContentText='There are no Portals to display'
+          helpText='Create a Portal to publish your APIs to and share with developers.'
+          identifier='portals-page'
+        />
       ) : (
         <>
           {portalsList

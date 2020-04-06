@@ -11,6 +11,8 @@ import { CreateUserModal } from '../users/CreateUserModal';
 import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { AddGroupModal } from '../portals/AddGroupModal';
+import { AddGroupToAPIModal } from './AddGroupToAPIModal';
 
 type APIGroupProps = {
   apiDoc: ApiDoc.AsObject;
@@ -173,7 +175,7 @@ export const APIGroupsTab = ({ apiDoc }: APIGroupProps) => {
         </div>
       </div>
       <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
-        <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
+        <AddGroupToAPIModal onClose={() => setShowCreateUserModal(false)} />
       </SoloModal>
       <ConfirmationModal
         visible={showConfirmGroupDelete}

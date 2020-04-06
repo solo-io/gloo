@@ -11,6 +11,8 @@ import { CreateUserModal } from '../users/CreateUserModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { AddUserModal } from '../portals/AddUserModal';
+import { AddUserToAPIModal } from './AddUserToAPIModal';
 
 type ApiDocUsersProps = {
   apiDoc: ApiDoc.AsObject;
@@ -161,7 +163,7 @@ export const APIUsersTab = ({ apiDoc }: ApiDocUsersProps) => {
         </div>
       </div>
       <SoloModal visible={showCreateUserModal} width={750} noPadding={true}>
-        <CreateUserModal onClose={() => setShowCreateUserModal(false)} />
+        <AddUserToAPIModal onClose={() => setShowCreateUserModal(false)} />
       </SoloModal>
       <ConfirmationModal
         visible={showConfirmUserDelete}

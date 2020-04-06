@@ -1,21 +1,19 @@
-import React from 'react';
-import { EmptyPortalsPanel } from '../DevPortal';
-import { ReactComponent as PlaceholderPortalTile } from 'assets/portal-tile.svg';
-import { useHistory } from 'react-router';
-import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
-import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { CreateAPIModal } from './CreateAPIModal';
+import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { apiDocApi, portalApi, userApi } from '../api';
-import useSWR from 'swr';
 import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
-import { ApiDocStatus } from 'proto/dev-portal/api/dev-portal/v1/apidoc_pb';
-import { formatHealthStatus } from '../portals/PortalsListing';
-import { format } from 'timeago.js';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import React from 'react';
+import { useHistory } from 'react-router';
+import useSWR from 'swr';
+import { apiDocApi, portalApi, userApi } from '../api';
+import { NoDataPanel } from '../DevPortal';
+import { formatHealthStatus } from '../portals/PortalsListing';
+import { CreateAPIModal } from './CreateAPIModal';
 
 export const APIListing = () => {
   const { data: apiDocsList, error: apiDocsError } = useSWR(
@@ -26,41 +24,41 @@ export const APIListing = () => {
   const [showCreateApiModal, setShowCreateApiModal] = React.useState(false);
 
   if (!apiDocsList) {
-    return <div>Loading...</div>;
+    return <Loading center>Loading...</Loading>;
   }
   return (
-    <>
-      <div className='container relative mx-auto '>
-        <span
-          onClick={() => setShowCreateApiModal(true)}
-          className='absolute top-0 right-0 flex items-center -mt-8 text-green-400 cursor-pointer hover:text-green-300'>
-          <GreenPlus className='mr-1 fill-current' />
-          <span className='text-gray-700'> Create an API</span>
-        </span>
-        {apiDocsList.length === 0 ? (
-          <EmptyPortalsPanel itemName='API'>
-            <PlaceholderPortalTile /> <PlaceholderPortalTile />
-          </EmptyPortalsPanel>
-        ) : (
-          <>
-            {apiDocsList
-              .sort((a, b) =>
-                a.metadata?.name === b.metadata?.name
-                  ? 0
-                  : a.metadata!.name > b.metadata!.name
-                  ? 1
-                  : -1
-              )
-              .map(apiDoc => (
-                <APIItem key={apiDoc.metadata?.uid} apiDoc={apiDoc} />
-              ))}
-          </>
-        )}
-      </div>
+    <div className='container relative mx-auto '>
+      <span
+        onClick={() => setShowCreateApiModal(true)}
+        className='absolute top-0 right-0 flex items-center -mt-8 text-green-400 cursor-pointer hover:text-green-300'>
+        <GreenPlus className='mr-1 fill-current' />
+        <span className='text-gray-700'> Create an API</span>
+      </span>
+      {apiDocsList.length === 0 ? (
+        <NoDataPanel
+          missingContentText='There are no APIs to display'
+          helpText='Create a API to publish and share with developers.'
+          identifier='apis-page'
+        />
+      ) : (
+        <>
+          {apiDocsList
+            .sort((a, b) =>
+              a.metadata?.name === b.metadata?.name
+                ? 0
+                : a.metadata!.name > b.metadata!.name
+                ? 1
+                : -1
+            )
+            .map(apiDoc => (
+              <APIItem key={apiDoc.metadata?.uid} apiDoc={apiDoc} />
+            ))}
+        </>
+      )}
       <SoloModal visible={showCreateApiModal} width={750} noPadding={true}>
         <CreateAPIModal onClose={() => setShowCreateApiModal(false)} />
       </SoloModal>
-    </>
+    </div>
   );
 };
 

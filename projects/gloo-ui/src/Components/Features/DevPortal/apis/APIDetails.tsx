@@ -8,44 +8,25 @@ import {
   Tabs
 } from '@reach/tabs';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { ReactComponent as EditIcon } from 'assets/edit-pencil.svg';
-import { ReactComponent as ExternalLinkIcon } from 'assets/external-link-icon.svg';
 import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { SoloInput } from 'Components/Common/SoloInput';
+import { SoloButton } from 'Components/Common/SoloButton';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
-import {
-  State,
-  DataSource
-} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
 import React from 'react';
-import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
-
 import { useHistory, useParams } from 'react-router';
-import {
-  SoloNegativeButton,
-  SoloButtonStyledComponent,
-  SoloCancelButton
-} from 'Styles/CommonEmotions/button';
+import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import useSWR from 'swr';
+import { format } from 'timeago.js';
 import { apiDocApi, portalApi } from '../api';
 import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
 import { formatHealthStatus } from '../portals/PortalsListing';
-import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { APIUsersTab } from './APIUsers';
-import { APIGroupsTab } from './APIGroups';
-import {
-  SoloFormInput,
-  SoloFormTextarea
-} from 'Components/Common/Form/SoloFormField';
-import { Formik } from 'formik';
-import { format } from 'timeago.js';
 import { secondsToString } from '../util';
-import { colors } from 'Styles';
-import ImageUploader from 'react-images-upload';
-import { SoloButton } from 'Components/Common/SoloButton';
+import { APIGroupsTab } from './APIGroups';
+import { APIUsersTab } from './APIUsers';
 
 const StyledTab = (
   props: {

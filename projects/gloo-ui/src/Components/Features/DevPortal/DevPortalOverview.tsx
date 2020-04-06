@@ -85,7 +85,11 @@ export const DevPortalOverview = () => {
             </span>
           </HealthScoreContainer>
         </Header>
-        <div className='grid grid-cols-3 px-4 py-5 sm:p-6'>
+        <div
+          className='grid grid-cols-3 px-4 py-5 sm:p-6'
+          css={css`
+            height: 300px;
+          `}>
           <StatusTile
             exploreMoreLink={{
               prompt: 'View Portals',
@@ -202,7 +206,11 @@ export const DevPortalOverview = () => {
             Developer Portal Documentation
           </div>
         </div>
-        <div className='grid grid-cols-3 px-4 py-5 sm:p-6'>
+        <div
+          className='grid grid-cols-3 px-4 py-5 sm:p-6'
+          css={css`
+            height: 200px;
+          `}>
           <StatusTile
             exploreMoreLink={{
               external: true,

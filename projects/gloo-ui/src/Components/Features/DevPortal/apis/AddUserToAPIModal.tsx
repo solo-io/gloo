@@ -18,49 +18,37 @@ type AddUserValues = {
   chosenUsers: ObjectRef.AsObject[];
 };
 
-export const AddUserModal = (props: AddUserProps) => {
-  const { portalname, portalnamespace } = useParams();
-  const { data: portal, error: portalListError } = useSWR(
-    !!portalname && !!portalnamespace
-      ? ['getPortal', portalname, portalnamespace]
-      : null,
-    (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
+export const AddUserToAPIModal = (props: AddUserProps) => {
+  const { apiname, apinamespace } = useParams();
+  const { data: apiDoc, error: apiDocError } = useSWR(
+    !!apiname && !!apinamespace ? ['getApiDoc', apiname, apinamespace] : null,
+    (key, name, namespace) =>
+      apiDocApi.getApiDoc({ apidoc: { name, namespace }, withassets: true })
   );
 
   const { data: usersList, error: usersError } = useSWR(
-    `listUsers${portalname!}${portalnamespace!}`,
+    `listUsers${apiname!}${apinamespace!}`,
     () =>
       userApi.listUsers({
-        portalsList: [{ name: portalname!, namespace: portalnamespace! }],
-        apiDocsList: [],
+        portalsList: [],
+        apiDocsList: [{ name: apiname!, namespace: apinamespace! }],
         groupsList: []
       })
   );
   const { data: groupsList, error: groupsError } = useSWR(
-    `listGroups${portalname}${portalnamespace}`,
+    `listGroups${apiname}${apinamespace}`,
     () =>
       groupApi.listGroups({
-        portalsList: [
-          {
-            name: portalname!,
-            namespace: portalnamespace!
-          }
-        ],
-        apiDocsList: []
+        portalsList: [],
+        apiDocsList: [{ name: apiname!, namespace: apinamespace! }]
       })
   );
 
-  const { data: apiDocsList, error: apiDocsError } = useSWR(
-    `listApiDocs${portalname}${portalnamespace}`,
-    () =>
-      apiDocApi.listApiDocs({
-        portalsList: [
-          {
-            name: portalname!,
-            namespace: portalnamespace!
-          }
-        ]
-      })
+  const {
+    data: portalsList,
+    error: portalsError
+  } = useSWR(`listApiDocs${apiname}${apinamespace}`, () =>
+    portalApi.listPortals()
   );
 
   const { data: allUsersList, error: allUsersError } = useSWR(
@@ -68,17 +56,24 @@ export const AddUserModal = (props: AddUserProps) => {
     userApi.listUsers
   );
 
+  const filteredPortalList = portalsList?.filter(portal =>
+    portal.status?.apiDocsList.some(
+      apiDocRef =>
+        apiDocRef.name === apiDoc?.metadata?.name &&
+        apiDocRef.namespace === apiDoc?.metadata.namespace
+    )
+  );
   const [errorMessage, setErrorMessage] = React.useState('');
 
   const addApi = async (values: AddUserValues) => {
     //@ts-ignore
-    await portalApi.updatePortal({
+    await apiDocApi.updateApiDoc({
       usersList: values.chosenUsers,
-      apiDocsList:
-        apiDocsList?.map(apiDoc => {
+      portalsList:
+        filteredPortalList?.map(portal => {
           return {
-            name: apiDoc.metadata?.name!,
-            namespace: apiDoc.metadata?.namespace!
+            name: portal.metadata?.name!,
+            namespace: portal.metadata?.namespace!
           };
         }) || [],
       groupsList:
@@ -88,15 +83,15 @@ export const AddUserModal = (props: AddUserProps) => {
             namespace: group.metadata?.namespace!
           };
         }) || [],
-
-      portal: {
+      //@ts-ignore
+      apidoc: {
         //@ts-ignore
         metadata: {
-          name: portal?.metadata?.name!,
-          namespace: portal?.metadata?.namespace!
+          name: apiDoc?.metadata?.name!,
+          namespace: apiDoc?.metadata?.namespace!
         }
       },
-      portalOnly: false
+      apiDocOnly: false
     });
 
     props.onClose();
@@ -129,8 +124,7 @@ export const AddUserModal = (props: AddUserProps) => {
           <SectionContainer className='mb-8'>
             <SectionHeader>Add Users</SectionHeader>
             <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
-              Select the users to which you'd like to grant access to this
-              portal
+              Select the users to which you'd like to grant access to this API
             </div>
 
             <SoloTransfer
