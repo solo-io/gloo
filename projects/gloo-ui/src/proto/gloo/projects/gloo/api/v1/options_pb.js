@@ -36,6 +36,7 @@ var gloo_projects_gloo_api_v1_options_azure_azure_pb = require('../../../../../g
 var gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb = require('../../../../../gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb.js');
 var gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 var gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency_pb.js');
 var gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb.js');
@@ -309,7 +310,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     waf: (f = msg.getWaf()) && gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.toObject(includeInstance, f),
     wasm: (f = msg.getWasm()) && gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.toObject(includeInstance, f),
-    gzip: (f = msg.getGzip()) && gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f)
+    gzip: (f = msg.getGzip()) && gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
+    proxyLatency: (f = msg.getProxyLatency()) && gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -385,6 +387,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.deserializeBinaryFromReader);
       msg.setGzip(value);
+      break;
+    case 9:
+      var value = new gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency;
+      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.deserializeBinaryFromReader);
+      msg.setProxyLatency(value);
       break;
     default:
       reader.skipField();
@@ -477,6 +484,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       8,
       f,
       gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.serializeBinaryToWriter
+    );
+  }
+  f = message.getProxyLatency();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.serializeBinaryToWriter
     );
   }
 };
@@ -719,6 +734,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearGzip = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasGzip = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional envoy.config.filter.http.proxylatency.v2.ProxyLatency proxy_latency = 9;
+ * @return {?proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getProxyLatency = function() {
+  return /** @type{?proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency, 9));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setProxyLatency = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearProxyLatency = function() {
+  this.setProxyLatency(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasProxyLatency = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

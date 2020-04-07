@@ -130,6 +130,11 @@ export class UpstreamSslConfig extends jspb.Message {
   getParameters(): SslParameters | undefined;
   setParameters(value?: SslParameters): void;
 
+  clearAlpnProtocolsList(): void;
+  getAlpnProtocolsList(): Array<string>;
+  setAlpnProtocolsList(value: Array<string>): void;
+  addAlpnProtocols(value: string, index?: number): string;
+
   getSslSecretsCase(): UpstreamSslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSslConfig.AsObject;
@@ -149,6 +154,7 @@ export namespace UpstreamSslConfig {
     sni: string,
     verifySubjectAltNameList: Array<string>,
     parameters?: SslParameters.AsObject,
+    alpnProtocolsList: Array<string>,
   }
 
   export enum SslSecretsCase {

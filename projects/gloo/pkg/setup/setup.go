@@ -51,8 +51,8 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.StateChangedCallback(nackdetector.NewStatsGen(ctx).Stat)),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
-			func(context.Context, syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
-				return extauthExt.NewTranslatorSyncerExtension(), nil
+			func(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+				return extauthExt.NewTranslatorSyncerExtension(params), nil
 			},
 		},
 		PluginExtensionsFuncs: []func() plugins.Plugin{

@@ -4,6 +4,10 @@ import (
 	"context"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +24,8 @@ import (
 var _ = Describe("ExtauthTranslatorSyncer", func() {
 	var (
 		proxy           *gloov1.Proxy
-		translator      *TranslatorSyncerExtension
+		params          syncer.TranslatorSyncerExtensionParams
+		translator      *ExtAuthTranslatorSyncerExtension
 		secret          *gloov1.Secret
 		oauthAuthConfig *extauth.AuthConfig
 		apiSnapshot     *gloov1.ApiSnapshot
@@ -28,7 +33,14 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	)
 
 	JustBeforeEach(func() {
-		translator = NewTranslatorSyncerExtension()
+		resourceClientFactory := &factory.MemoryResourceClientFactory{
+			Cache: memory.NewInMemoryResourceCache(),
+		}
+		authConfigClient, err := resourceClientFactory.NewResourceClient(factory.NewResourceClientParams{ResourceType: &extauth.AuthConfig{}})
+		Expect(err).NotTo(HaveOccurred())
+		rep := reporter.NewReporter("test-reporter", authConfigClient)
+		params.Reporter = rep
+		translator = NewTranslatorSyncerExtension(params)
 		secret = &gloov1.Secret{
 			Metadata: skcore.Metadata{
 				Name:      "secret",
@@ -121,7 +133,6 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 			})
 		})
 	})
-
 })
 
 func oidcSecret() *extauth.OauthSecret {

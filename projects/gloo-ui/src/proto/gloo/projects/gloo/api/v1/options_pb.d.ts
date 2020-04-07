@@ -27,6 +27,7 @@ import * as gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../.
 import * as gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb from "../../../../../gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb";
 import * as gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb";
 import * as gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb from "../../../../../gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb";
+import * as gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb from "../../../../../gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency_pb";
 import * as gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb from "../../../../../gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb";
@@ -106,6 +107,11 @@ export class HttpListenerOptions extends jspb.Message {
   getGzip(): gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip | undefined;
   setGzip(value?: gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip): void;
 
+  hasProxyLatency(): boolean;
+  clearProxyLatency(): void;
+  getProxyLatency(): gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency | undefined;
+  setProxyLatency(value?: gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -126,6 +132,7 @@ export namespace HttpListenerOptions {
     dlp?: gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.AsObject,
     wasm?: gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.AsObject,
     gzip?: gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
+    proxyLatency?: gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
   }
 }
 

@@ -3,6 +3,8 @@ package ratelimit_test
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
@@ -30,6 +32,8 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 	JustBeforeEach(func() {
 		var err error
+		rep := reporter.NewReporter("test-reporter")
+		params.Reporter = rep
 		translator, err = rlsyncer.NewTranslatorSyncerExtension(context.TODO(), params)
 		Expect(err).ToNot(HaveOccurred())
 		apiSnapshot = &gloov1.ApiSnapshot{

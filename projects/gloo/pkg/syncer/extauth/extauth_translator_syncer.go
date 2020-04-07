@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/solo-io/go-utils/hashutils"
@@ -21,17 +24,17 @@ import (
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
-type TranslatorSyncerExtension struct{}
+type ExtAuthTranslatorSyncerExtension struct {
+	reporter reporter.Reporter
+}
 
-var _ syncer.TranslatorSyncerExtension = NewTranslatorSyncerExtension()
-
-func NewTranslatorSyncerExtension() *TranslatorSyncerExtension {
-	return &TranslatorSyncerExtension{}
+func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *ExtAuthTranslatorSyncerExtension {
+	return &ExtAuthTranslatorSyncerExtension{reporter: params.Reporter}
 }
 
 // TODO(marco): report errors on auth config resources once we have the strongly typed API. Currently it is not possible
 //  to do this consistently, since we need to parse the raw extension to get to the auth config, an operation that might itself fail.
-func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -46,12 +49,17 @@ type SnapshotSetter interface {
 	SetSnapshot(node string, snapshot envoycache.Snapshot) error
 }
 
-func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
+func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
 	helper := newHelper()
+	reports := make(reporter.ResourceReports)
+	reports.Accept(snap.AuthConfigs.AsInputResources()...)
 
 	for _, cfg := range snap.AuthConfigs {
+		// Validate auth config
+		extAuthPlugin.ValidateAuthConfig(cfg, reports)
 		configRef := cfg.GetMetadata().Ref()
 		if err := helper.processAuthExtension(ctx, snap, &configRef); err != nil {
+			reports.AddError(cfg, err)
 			return err
 		}
 	}
@@ -68,6 +76,10 @@ func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1
 	}
 	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	_ = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
+	if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Failed writing report for auth configs: %v", err)
+		return errors.Wrapf(err, "writing reports")
+	}
 	return nil
 }
 

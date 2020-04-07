@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    description: Write error status to Auth Config CRs if there is an error in the configuration.
+    issueLink: https://github.com/solo-io/gloo/issues/2623
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.4.0-beta1

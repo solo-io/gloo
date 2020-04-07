@@ -21,6 +21,14 @@ export class Endpoint extends jspb.Message {
   getPort(): number;
   setPort(value: number): void;
 
+  getHostname(): string;
+  setHostname(value: string): void;
+
+  hasHealthCheck(): boolean;
+  clearHealthCheck(): void;
+  getHealthCheck(): HealthCheckConfig | undefined;
+  setHealthCheck(value?: HealthCheckConfig): void;
+
   hasMetadata(): boolean;
   clearMetadata(): void;
   getMetadata(): solo_kit_api_v1_metadata_pb.Metadata | undefined;
@@ -41,6 +49,28 @@ export namespace Endpoint {
     upstreamsList: Array<solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
     address: string,
     port: number,
+    hostname: string,
+    healthCheck?: HealthCheckConfig.AsObject,
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
+  }
+}
+
+export class HealthCheckConfig extends jspb.Message {
+  getHostname(): string;
+  setHostname(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HealthCheckConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: HealthCheckConfig): HealthCheckConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HealthCheckConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HealthCheckConfig;
+  static deserializeBinaryFromReader(message: HealthCheckConfig, reader: jspb.BinaryReader): HealthCheckConfig;
+}
+
+export namespace HealthCheckConfig {
+  export type AsObject = {
+    hostname: string,
   }
 }
