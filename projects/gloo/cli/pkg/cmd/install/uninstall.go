@@ -56,8 +56,8 @@ func (u *uninstaller) Uninstall(cliArgs *options.Options) error {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(u.output, "Removing Gloo system components from namespace %s...\n", namespace)
 	var crdNames []string
+	_, _ = fmt.Fprintf(u.output, "Removing Gloo system components from namespace %s...\n", namespace)
 	if releaseExists {
 
 		// If the release object exists, then we want to delegate the uninstall to the Helm libraries.
@@ -66,11 +66,14 @@ func (u *uninstaller) Uninstall(cliArgs *options.Options) error {
 			return err
 		}
 
-		// Helm never deletes CRDs, so we collect the CRD names to delete them ourselves if need be.
-		// We need to run this first, as it depends on the release still being present.
-		crdNames, err = u.findCrdNamesForRelease(namespace)
-		if err != nil {
-			return err
+		if cliArgs.Uninstall.DeleteCrds || cliArgs.Uninstall.DeleteAll {
+			// Helm never deletes CRDs, so we collect the CRD names to delete them ourselves if need be.
+			// We need to run this first, as it depends on the release still being present.
+			// But we need to uninstall the release before we delete the CRDs.
+			crdNames, err = u.findCrdNamesForRelease(namespace)
+			if err != nil {
+				return err
+			}
 		}
 
 		if _, err = uninstallAction.Run(releaseName); err != nil {
@@ -81,8 +84,6 @@ func (u *uninstaller) Uninstall(cliArgs *options.Options) error {
 
 		// The release object does not exist, so it is not possible to exactly tell which resources are part of
 		// the originals installation. We take a best effort approach.
-
-		crdNames = GlooCrdNames
 
 		glooLabels := LabelsToFlagString(GlooComponentLabels)
 		for _, kind := range GlooNamespacedKinds {
@@ -103,11 +104,12 @@ func (u *uninstaller) Uninstall(cliArgs *options.Options) error {
 
 	u.uninstallKnativeIfNecessary()
 
+	// may need to delete hard-coded crd names even if releaseExists because helm chart for glooe doesn't show gloo dependency (https://github.com/helm/helm/issues/7847)
 	if cliArgs.Uninstall.DeleteCrds || cliArgs.Uninstall.DeleteAll {
-		err := u.deleteGlooCrds(crdNames)
-		if err != nil {
-			return err
+		if len(crdNames) == 0 {
+			crdNames = append(GlooCrdNames, GlooECrdNames...)
 		}
+		u.deleteGlooCrds(crdNames)
 	}
 
 	if cliArgs.Uninstall.DeleteNamespace || cliArgs.Uninstall.DeleteAll {
@@ -117,6 +119,7 @@ func (u *uninstaller) Uninstall(cliArgs *options.Options) error {
 	return nil
 }
 
+// Note: will not find CRDs of dependencies due to confusing but intended helm behavior (https://github.com/helm/helm/issues/7847)
 func (u *uninstaller) findCrdNamesForRelease(namespace string) (crdNames []string, err error) {
 	lister, err := u.helmClient.ReleaseList(namespace)
 	if err != nil {
@@ -146,9 +149,9 @@ func (u *uninstaller) findCrdNamesForRelease(namespace string) (crdNames []strin
 }
 
 // expects the Helm release to still be present
-func (u *uninstaller) deleteGlooCrds(crdNames []string) error {
+func (u *uninstaller) deleteGlooCrds(crdNames []string) {
 	if len(crdNames) == 0 {
-		return nil
+		return
 	}
 
 	_, _ = fmt.Fprintf(u.output, "Removing Gloo CRDs...\n")
@@ -159,8 +162,6 @@ func (u *uninstaller) deleteGlooCrds(crdNames []string) error {
 	if err := u.kubeCli.Kubectl(nil, args...); err != nil {
 		_, _ = fmt.Fprintf(u.output, "Unable to delete Gloo CRDs. Continuing...\n")
 	}
-
-	return nil
 }
 
 func (u *uninstaller) deleteNamespace(namespace string) {

@@ -9,10 +9,9 @@ var (
 	GlooNamespacedKinds    []string
 	GlooClusterScopedKinds []string
 	GlooCrdNames           []string
+	GlooECrdNames          []string
 
 	GlooComponentLabels map[string]string
-
-	KnativeCrdNames []string
 )
 
 func init() {
@@ -49,17 +48,11 @@ func init() {
 		"authconfigs.enterprise.gloo.solo.io",
 	}
 
-	KnativeCrdNames = []string{
-		"virtualservices.networking.istio.io",
-		"certificates.networking.internal.knative.dev",
-		"clusteringresses.networking.internal.knative.dev",
-		"configurations.serving.knative.dev",
-		"images.caching.internal.knative.dev",
-		"podautoscalers.autoscaling.internal.knative.dev",
-		"revisions.serving.knative.dev",
-		"routes.serving.knative.dev",
-		"services.serving.knative.dev",
-		"serverlessservices.networking.internal.knative.dev",
+	GlooECrdNames = []string{
+		"apidocs.devportal.solo.io",
+		"groups.devportal.solo.io",
+		"portals.devportal.solo.io",
+		"users.devportal.solo.io",
 	}
 
 }
