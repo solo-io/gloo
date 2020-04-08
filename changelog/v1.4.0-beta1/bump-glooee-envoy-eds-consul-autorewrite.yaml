@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Upgrade envoy to include EDS fixes for auto host rewrite on consul.
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: 1.4.3
