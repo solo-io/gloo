@@ -412,7 +412,7 @@ At this point, the Gloo gateway-proxy can communicate with Istio's SDS and consu
 
 ---
 
-## Test your configuration 
+## Test your configuration
 
 To test this out, we need a route in Gloo:
 ```bash
@@ -430,4 +430,303 @@ Or access it in the browser:
 HTTP_GW=$(glooctl proxy url)
 ## Open the ingress url in the browser:
 $([ "$(uname -s)" = "Linux" ] && echo xdg-open || echo open) $HTTP_GW/productpage
+```
+
+
+### Istio 1.5.x
+
+The [recommended way](https://istio.io/blog/2020/proxy-cert/) to adding workloads to the mesh without a proxy, is to used a sidecar to provision the mesh certificates to a shared volume.
+
+To do that, we will update our gateway-proxy deployment as follows:
+
+{{< highlight yaml "hl_lines=61-156 162-179" >}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gateway-proxy-id: gateway-proxy
+    gloo: gateway-proxy
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      gateway-proxy-id: gateway-proxy
+      gloo: gateway-proxy
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8081"
+        prometheus.io/scrape: "true"
+      labels:
+        gateway-proxy: live
+        gateway-proxy-id: gateway-proxy
+        gloo: gateway-proxy
+    spec:
+      containers:
+      - args:
+        - --disable-hot-restart
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: quay.io/solo-io/gloo-envoy-wrapper:v1.3.18
+        imagePullPolicy: IfNotPresent
+        name: gateway-proxy
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: envoy-config
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+      - name: istio-proxy
+        image: docker.io/istio/proxyv2:1.5.1
+        args:
+        - proxy
+        - sidecar
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
+        - --configPath
+        - /etc/istio/proxy
+        - --binaryPath
+        - /usr/local/bin/envoy
+        - --serviceCluster
+        - istio-proxy-prometheus
+        - --drainDuration
+        - 45s
+        - --parentShutdownDuration
+        - 1m0s
+        - --discoveryAddress
+        - istio-pilot.istio-system.svc:15012
+        - --proxyLogLevel=warning
+        - --proxyComponentLogLevel=misc:error
+        - --connectTimeout
+        - 10s
+        - --proxyAdminPort
+        - "15000"
+        - --controlPlaneAuthPolicy
+        - NONE
+        - --dnsRefreshRate
+        - 300s
+        - --statusPort
+        - "15020"
+        - --trust-domain=cluster.local
+        - --controlPlaneBootstrap=false
+        env:
+          - name: OUTPUT_CERTS
+            value: "/etc/istio-certs"
+          - name: JWT_POLICY
+            value: third-party-jwt
+          - name: PILOT_CERT_PROVIDER
+            value: istiod
+          - name: CA_ADDR
+            value: istiod.istio-system.svc:15012
+          - name: ISTIO_META_MESH_ID
+            value: cluster.local
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ISTIO_META_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: ISTIO_META_CONFIG_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz/ready
+            port: 15020
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /var/run/secrets/istio
+          name: istiod-ca-cert
+        - mountPath: /etc/istio/proxy
+          name: istio-envoy
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+        - mountPath: /var/run/secrets/tokens
+          name: istio-token
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: gateway-proxy-envoy-config
+        name: envoy-config
+      - name: istio-certs
+        emptyDir:
+          medium: Memory
+      - name: istiod-ca-cert
+        configMap:
+          defaultMode: 420
+          name: istio-ca-root-cert
+      - emptyDir:
+          medium: Memory
+        name: istio-envoy
+      - name: istio-token
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              audience: istio-ca
+              expirationSeconds: 43200
+              path: istio-token
+{{</highlight>}}
+
+These values were tested with a default istio 1.5.1 installation. If you have customized your installation your installation these may need adjustment. Please refer to the [instructions](https://istio.io/blog/2020/proxy-cert/) on the istio.io website.
+
+upstream:
+
+{{< highlight yaml "hl_lines=15-21" >}}
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: default-productpage-9080
+  namespace: gloo-system
+...
+spec:
+  discoveryMetadata: {}
+  kube:
+    selector:
+      app: productpage
+    serviceName: productpage
+    serviceNamespace: default
+    servicePort: 9080
+  sslConfig:
+    alpn_protocols:
+    - istio
+    sslFiles:
+      tlsCert: /etc/istio-certs/cert-chain.pem
+      tlsKey: /etc/istio-certs/key.pem
+      rootCa: /etc/istio-certs/root-cert.pem
+...
+{{< /highlight >}}
+
+Note that alpn_protocols is supported in upstreams starting gloo 1.3.18.
+
+#### Test
+As this is a bit involved, lets take a step by step approach to test this. This was tested with Istio 1.5.1.
+
+First, create a kubernetes cluster. `kind` or `minikube` should work:
+```
+kind create cluster
+```
+
+Verify istio version:
+```
+istioctl version
+client version: 1.5.1
+```
+
+Install istio and book info:
+```
+istioctl manifest apply --set profile=minimal
+kubectl label namespace default istio-injection=enabled
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/1.5.1/samples/bookinfo/platform/kube/bookinfo.yaml
+```
+
+Verify gloo ≥ v1.4.0-beta1:
+```
+glooctl version 
+```
+
+Install gloo:
+```
+glooctl install gateway 
+```
+or with helm:
+```
+kubectl create ns gloo-system; helm install --namespace gloo-system --version 1.4.0-beta1 gloo gloo/gloo
+```
+
+Patch gloo's envoy deployment. Note that in this example we are using kind, so our parameters are different than outlined above (note that you may need to update the version of the gateway-proxy container to match your version. in this example it is set to `gloo-envoy-wrapper:1.4.0-beta1`):
+```
+kubectl patch deployment -n gloo-system gateway-proxy --type merge -p '{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"app":"gloo","gateway-proxy-id":"gateway-proxy","gloo":"gateway-proxy"},"name":"gateway-proxy","namespace":"gloo-system"},"spec":{"selector":{"matchLabels":{"gateway-proxy-id":"gateway-proxy","gloo":"gateway-proxy"}},"template":{"metadata":{"labels":{"gateway-proxy":"live","gateway-proxy-id":"gateway-proxy","gloo":"gateway-proxy"}},"spec":{"containers":[{"args":["--disable-hot-restart"],"env":[{"name":"POD_NAMESPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}},{"name":"POD_NAME","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.name"}}}],"image":"quay.io/solo-io/gloo-envoy-wrapper:1.4.0-beta1","imagePullPolicy":"IfNotPresent","name":"gateway-proxy","ports":[{"containerPort":8080,"name":"http","protocol":"TCP"},{"containerPort":8443,"name":"https","protocol":"TCP"}],"resources":{},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"add":["NET_BIND_SERVICE"],"drop":["ALL"]},"readOnlyRootFilesystem":true},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","volumeMounts":[{"mountPath":"/etc/envoy","name":"envoy-config"},{"mountPath":"/etc/istio-certs/","name":"istio-certs"}]},{"name":"istio-proxy","image":"docker.io/istio/proxyv2:1.5.1","args":["proxy","sidecar","--domain","$(POD_NAMESPACE).svc.cluster.local","--configPath","/etc/istio/proxy","--binaryPath","/usr/local/bin/envoy","--serviceCluster","istio-proxy-prometheus","--drainDuration","45s","--parentShutdownDuration","1m0s","--discoveryAddress","istio-pilot.istio-system.svc:15012","--proxyLogLevel=warning","--proxyComponentLogLevel=misc:error","--connectTimeout","10s","--proxyAdminPort","15000","--controlPlaneAuthPolicy","NONE","--dnsRefreshRate","300s","--statusPort","15020","--trust-domain=cluster.local","--controlPlaneBootstrap=false"],"env":[{"name":"OUTPUT_CERTS","value":"/etc/istio-certs"},{"name":"JWT_POLICY","value":"first-party-jwt"},{"name":"PILOT_CERT_PROVIDER","value":"istiod"},{"name":"CA_ADDR","value":"istiod.istio-system.svc:15012"},{"name":"POD_NAME","valueFrom":{"fieldRef":{"fieldPath":"metadata.name"}}},{"name":"POD_NAMESPACE","valueFrom":{"fieldRef":{"fieldPath":"metadata.namespace"}}},{"name":"ISTIO_META_MESH_ID","value":"cluster.local"},{"name":"INSTANCE_IP","valueFrom":{"fieldRef":{"fieldPath":"status.podIP"}}},{"name":"SERVICE_ACCOUNT","valueFrom":{"fieldRef":{"fieldPath":"spec.serviceAccountName"}}},{"name":"HOST_IP","valueFrom":{"fieldRef":{"fieldPath":"status.hostIP"}}},{"name":"ISTIO_META_POD_NAME","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.name"}}},{"name":"ISTIO_META_CONFIG_NAMESPACE","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"}}}],"imagePullPolicy":"IfNotPresent","readinessProbe":{"failureThreshold":30,"httpGet":{"path":"/healthz/ready","port":15020,"scheme":"HTTP"},"initialDelaySeconds":1,"periodSeconds":2,"successThreshold":1,"timeoutSeconds":1},"volumeMounts":[{"mountPath":"/var/run/secrets/istio","name":"istiod-ca-cert"},{"mountPath":"/etc/istio/proxy","name":"istio-envoy"},{"mountPath":"/etc/istio-certs/","name":"istio-certs"}]}],"volumes":[{"configMap":{"defaultMode":420,"name":"gateway-proxy-envoy-config"},"name":"envoy-config"},{"name":"istio-certs","emptyDir":{"medium":"Memory"}},{"name":"istiod-ca-cert","configMap":{"defaultMode":420,"name":"istio-ca-root-cert"}},{"emptyDir":{"medium":"Memory"},"name":"istio-envoy"}]}}}}'
+```
+
+Create an mTLS enabled upstream:
+```
+kubectl apply -f - <<EOF
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  labels:
+    app: productpage
+    service: productpage
+  name: default-productpage-9080-sds
+  namespace: gloo-system
+spec:
+  discoveryMetadata: {}
+  kube:
+    selector:
+      app: productpage
+    serviceName: productpage
+    serviceNamespace: default
+    servicePort: 9080
+  sslConfig:
+    alpn_protocols:
+    - istio
+    sslFiles:
+      tlsCert: /etc/istio-certs/cert-chain.pem
+      tlsKey: /etc/istio-certs/key.pem
+      rootCa: /etc/istio-certs/root-cert.pem
+EOF
+```
+
+Add route
+```
+glooctl add route --dest-name default-productpage-9080-sds --dest-namespace gloo-system --path-prefix /
+```
+
+Test:
+```
+curl -v $(glooctl proxy url)/productpage
 ```
