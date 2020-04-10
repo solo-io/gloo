@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Only validate auth configs that are referenced in virtual services.
+    issueLink: https://github.com/solo-io/gloo/issues/2773

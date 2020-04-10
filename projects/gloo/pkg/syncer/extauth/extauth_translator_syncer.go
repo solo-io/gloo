@@ -4,24 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
-	"github.com/solo-io/go-utils/hashutils"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
-	"go.uber.org/zap"
-
+	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-
+	errors "github.com/rotisserie/eris"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/hashutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"go.uber.org/zap"
 )
 
 type ExtAuthTranslatorSyncerExtension struct {
@@ -54,13 +50,38 @@ func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap 
 	reports := make(reporter.ResourceReports)
 	reports.Accept(snap.AuthConfigs.AsInputResources()...)
 
-	for _, cfg := range snap.AuthConfigs {
-		// Validate auth config
-		extAuthPlugin.ValidateAuthConfig(cfg, reports)
-		configRef := cfg.GetMetadata().Ref()
-		if err := helper.processAuthExtension(ctx, snap, &configRef); err != nil {
-			reports.AddError(cfg, err)
-			return err
+	for _, proxy := range snap.Proxies {
+		for _, listener := range proxy.Listeners {
+			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
+			if !ok {
+				// not an http listener - skip it as currently ext auth is only supported for http
+				continue
+			}
+
+			virtualHosts := httpListener.HttpListener.VirtualHosts
+			for _, virtualHost := range virtualHosts {
+
+				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
+				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
+
+				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetOptions().GetExtauth(), reports); err != nil {
+					return err
+				}
+
+				for _, route := range virtualHost.Routes {
+
+					if err := helper.processAuthExtension(ctx, snap, route.GetOptions().GetExtauth(), reports); err != nil {
+						return err
+					}
+
+					for _, weightedDestination := range route.GetRouteAction().GetMulti().GetDestinations() {
+						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetOptions().GetExtauth(),
+							reports); err != nil {
+							return err
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -95,7 +116,9 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, configRef *core.ResourceRef) error {
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, config *extauth.ExtAuthExtension,
+	reports reporter.ResourceReports) error {
+	configRef := config.GetConfigRef()
 	if configRef == nil {
 		// Just return if there is nothing to translate
 		return nil
@@ -106,8 +129,18 @@ func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnaps
 		return nil
 	}
 
+	cfg, err := snap.AuthConfigs.Find(configRef.GetNamespace(), configRef.GetName())
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Unable to find referenced auth config %v in snapshot", configRef)
+		return err
+	}
+
+	// do validation
+	extAuthPlugin.ValidateAuthConfig(cfg, reports)
+
 	translatedConfig, err := extAuthPlugin.TranslateExtAuthConfig(ctx, snap, configRef)
 	if err != nil {
+		reports.AddError(cfg, err)
 		return err
 	} else if translatedConfig == nil {
 		// Do nothing if config is empty or consists only of custom auth configs
