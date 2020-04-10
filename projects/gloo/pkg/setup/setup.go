@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
@@ -62,6 +63,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 			func() plugins.Plugin { return jwt.NewPlugin() },
 			func() plugins.Plugin { return waf.NewPlugin() },
 			func() plugins.Plugin { return dlp.NewPlugin() },
+			func() plugins.Plugin { return proxylatency.NewPlugin() },
 		},
 	}
 }

@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Expose proxy latency as a metric. This can metric can help you get an idea on how 
+      much time is spent processing inside the proxy itself. Using features in
+      the data path usually has a cost of increased latency. This metric can help you 
+      understand that cost more accurately.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1660
