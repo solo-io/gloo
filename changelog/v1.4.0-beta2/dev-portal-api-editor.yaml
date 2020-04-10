@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Fix alignments in upstream listing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1662
+  - type: FIX
+    description: Swagger Editor should show errors, better styling.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1664

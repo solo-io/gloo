@@ -17,7 +17,7 @@ import { Status } from 'proto/solo-kit/api/v1/status_pb';
 const Container = styled.div`
   ${CardCSS};
   position: relative;
-  width: 235px;
+  width: 280px;
   padding: 0;
   margin-right: 20px;
   height: fit-content;

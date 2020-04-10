@@ -10,7 +10,7 @@ import { SoloCancelButton } from 'Styles/CommonEmotions/button';
 import { SoloButton } from '../SoloButton';
 
 type ContainerProps = { whiteBacked?: boolean };
-const Container = styled.div`
+export const Container = styled.div`
   position: relative;
   padding: ${soloConstants.smallBuffer}px 5px ${soloConstants.smallBuffer}px
     calc(2em + ${soloConstants.smallBuffer}px);
@@ -87,7 +87,7 @@ type LineNoProps = {
   edited?: boolean;
   editable?: boolean;
 };
-export const LineNo = styled.span`
+const LineNo = styled.span`
   position: absolute;
   left: ${(props: LineNoProps) =>
     props.editable ? '-2em' : `${soloConstants.smallBuffer}px`};
@@ -103,13 +103,13 @@ export const LineNo = styled.span`
       : ''};
 `;
 
-const ourTheme = {
+export const ourTheme = {
   ...theme,
   backgroundColor: 'transparent',
   overflow: 'initial'
 };
 
-const styles = {
+export const styles = {
   root: {
     ...ourTheme,
     fontFamily:

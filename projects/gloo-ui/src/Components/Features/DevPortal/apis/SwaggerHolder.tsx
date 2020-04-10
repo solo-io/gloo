@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styled from '@emotion/styled';
-import SwaggerUI from 'swagger-ui-react';
+import SwaggerUI, { SwaggerUIProps } from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
 import { colors, hslToHSLA } from 'Styles/colors';
 
@@ -380,13 +380,10 @@ const OperationTag = styled.div`
     `}
 `;
 
-interface SwaggerHolderProps {
-  swaggerJSON: object;
-}
-export const SwaggerHolder = ({ swaggerJSON }: SwaggerHolderProps) => {
+export const SwaggerHolder: React.FC<SwaggerUIProps> = ({ spec, ...props }) => {
   return (
     // <SwaggerHolderContainer>
-    <SwaggerUI spec={swaggerJSON} />
+    <SwaggerUI spec={spec} {...props} />
     // </SwaggerHolderContainer>
   );
 };

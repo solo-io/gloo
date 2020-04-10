@@ -1,17 +1,29 @@
-import * as React from 'react';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
-import yaml from 'yaml';
-import { SoloTextarea } from 'Components/Common/SoloTextarea';
-import { SwaggerHolder } from './SwaggerHolder';
 import styled from '@emotion/styled';
+
+import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { useParams, useHistory } from 'react-router';
-import useSWR from 'swr';
-import { apiDocApi } from '../api';
-import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
-import { InverseButtonCSS } from 'Styles/CommonEmotions/button';
-import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 import { Container } from 'Components/Features/Admin/AdminLanding';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
+import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import * as React from 'react';
+import { IAceEditorProps } from 'react-ace';
+import { useHistory, useParams } from 'react-router';
+import useSWR from 'swr';
+import yaml from 'yaml';
+import { apiDocApi } from '../api';
+import { SwaggerHolder } from './SwaggerHolder';
+
+const Editor: React.FC<IAceEditorProps> = props => {
+  if (typeof window !== 'undefined') {
+    const Ace = require('react-ace').default;
+    require('ace-builds/src-noconflict/mode-json');
+    require('ace-builds/src-noconflict/theme-github');
+
+    return <Ace {...props} />;
+  }
+
+  return null;
+};
 
 const Columns = styled.div`
   display: grid;
@@ -68,17 +80,16 @@ const StatefulSwaggerEditor = ({
   apiname
 }: EditorProps) => {
   const history = useHistory();
+
   const [swaggerString, setSwaggerString] = React.useState<string>(
     apiDoc?.spec?.dataSource?.inlineString || ''
   );
+
   const [swaggerContent, setSwaggerContent] = React.useState(
     stringToContent(apiDoc?.spec?.dataSource?.inlineString || '')
   );
-  const [saveError, setSaveError] = React.useState('');
 
-  const handlePreview = () => {
-    setSwaggerContent(stringToContent(swaggerString));
-  };
+  const [saveError, setSaveError] = React.useState('');
 
   const handleSave = () => {
     apiDocApi
@@ -97,13 +108,13 @@ const StatefulSwaggerEditor = ({
       });
   };
 
-  const handleSaveEdits = (str: string) => {
-    setSwaggerString(str);
-    setSwaggerContent(stringToContent(str));
+  const onContentChange = (code: string) => {
+    setSwaggerString(code);
+    setSwaggerContent(yaml.parse(code));
   };
 
   if (!apiDoc) {
-    return <div>Loading...</div>;
+    return <Loading>Loading...</Loading>;
   }
 
   return (
@@ -112,35 +123,25 @@ const StatefulSwaggerEditor = ({
         <div className='flex justify-between mb-4'>
           <div className='text-2xl'>API Editor</div>
           <div className='flex'>
-            <div className='mr-8'>
-              <SoloButton
-                uniqueCss={InverseButtonCSS}
-                text='Update Preview'
-                onClick={handlePreview}
-              />
-            </div>
+            <div className='mr-8'></div>
             <SoloButton text='Publish Changes' onClick={handleSave} />
           </div>
         </div>
         {!!saveError && <div className='mb-4'>{saveError}</div>}
       </div>
       <Columns>
-        {/* TODO SUPPORT YAML */}
-        {/* <ConfigDisplayer
-          content={swaggerString}
-          isJson={true}
-          asEditor={true}
-          saveEdits={handleSaveEdits}
-          whiteBacked
-        /> */}
-        <SoloTextarea
+        <Editor
           value={swaggerString}
-          onChange={e => setSwaggerString(e.target.value)}
-          rows={50}
+          mode='json'
+          fontSize={14}
+          theme='github'
+          onChange={onContentChange}
+          name='UNIQUE_ID_OF_DIV'
+          maxLines={50}
+          width='100%'
+          editorProps={{ $blockScrolling: true }}
         />
-        <div>
-          {!!swaggerContent && <SwaggerHolder swaggerJSON={swaggerContent} />}
-        </div>
+        <div>{!!swaggerContent && <SwaggerHolder spec={swaggerContent} />}</div>
       </Columns>
     </div>
   );

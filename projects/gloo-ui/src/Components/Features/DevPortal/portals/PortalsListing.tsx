@@ -104,7 +104,7 @@ const PortalItem: React.FC<{ portal: Portal.AsObject }> = props => {
 
   return (
     <div
-      className='w-full max-w-md mb-4 rounded-lg shadow lg:max-w-full lg:flex'
+      className='w-full max-w-md mb-4 rounded-lg shadow cursor-pointer lg:max-w-full lg:flex'
       onClick={() =>
         history.push(
           `/dev-portal/portals/${portal.metadata?.namespace}/${portal.metadata?.name}`
