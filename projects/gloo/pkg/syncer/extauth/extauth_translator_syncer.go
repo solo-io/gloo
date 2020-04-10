@@ -30,7 +30,7 @@ func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams)
 
 // TODO(marco): report errors on auth config resources once we have the strongly typed API. Currently it is not possible
 //  to do this consistently, since we need to parse the raw extension to get to the auth config, an operation that might itself fail.
-func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -38,7 +38,7 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end auth sync %v", snapHash)
 
-	return s.SyncAndSet(ctx, snap, xdsCache)
+	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, xdsCache)
 }
 
 type SnapshotSetter interface {

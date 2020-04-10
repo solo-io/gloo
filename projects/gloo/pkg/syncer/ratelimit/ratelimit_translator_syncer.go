@@ -25,6 +25,11 @@ type RateLimitTranslatorSyncerExtension struct {
 	settings *ratelimit.ServiceSettings
 }
 
+// The ratelimit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
+// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
+// similarly to how the regular Gloo gateway-proxies do.
+const RateLimitServerRole = "ratelimit"
+
 func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
 	var settings ratelimit.ServiceSettings
 
@@ -37,7 +42,7 @@ func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorS
 	}, nil
 }
 
-func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -76,7 +81,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 
 				vhostConstraint, err := rlIngressPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
 				if err != nil {
-					return err
+					return RateLimitServerRole, err
 				}
 				rl.Descriptors = append(rl.Descriptors, vhostConstraint)
 			}
@@ -95,11 +100,11 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 	h, err := hashstructure.Hash(resources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
-		return err
+		return RateLimitServerRole, err
 	}
 	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-	xdsCache.SetSnapshot("ratelimit", rlsnap)
+	xdsCache.SetSnapshot(RateLimitServerRole, rlsnap)
 
 	// find our plugin
-	return nil
+	return RateLimitServerRole, nil
 }

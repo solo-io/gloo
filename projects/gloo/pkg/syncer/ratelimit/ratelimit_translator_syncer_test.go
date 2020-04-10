@@ -43,7 +43,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 	})
 
 	translate := func() envoycache.Snapshot {
-		err := translator.Sync(context.Background(), apiSnapshot, snapCache)
+		_, err := translator.Sync(context.Background(), apiSnapshot, snapCache)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(snapCache.Snapshots).To(HaveKey("ratelimit"))
 		return snapCache.Snapshots["ratelimit"]

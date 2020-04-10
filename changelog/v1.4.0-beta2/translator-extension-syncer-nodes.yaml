@@ -1,0 +1,13 @@
+changelog:
+- type: FIX
+  description: >
+    With `disableProxyGarbageCollection` enabled (the default), Gloo used to clear the extauth
+    and ratelimit snapshots from the XDS cache, resulting in null configurations temporarily in
+    the extauth and ratelimit services. This caused blips of invalid 403/429 responses. To fix this,
+    Gloo now returns any Envoy Node ID keys set by its `TranslatorSyncerExtension` `Sync()`
+    functions, so Gloo doesn't garbage collect these snapshots anymore.
+  issueLink: https://github.com/solo-io/gloo/issues/2721
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.4.0-beta3
