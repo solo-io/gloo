@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: |
+        Added the `gloo.solo.io/h2_service: "true"` annotation to the `apiserver` Kubernetes service, so `discovery`
+        will set `useHttp2` to `true` on the corresponding upstream. This will allow Gloo to correctly proxy the
+        `apiserver`, which serves as a backend for the Gloo Admin UI. See the linked issue for more details.
+    issueLink: https://github.com/solo-io/gloo/issues/2788
