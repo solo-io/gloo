@@ -1,4 +1,4 @@
 changelog:
   - type: FIX
-    description: Allows editing and adding domain names when initially empty.
+    description: Allows editing and adding domain names for a Portal when the domain set is initially empty.
     issueLink: https://github.com/solo-io/solo-projects/issues/1674
