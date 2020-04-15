@@ -5,8 +5,9 @@ import styled from '@emotion/styled';
 import { Label } from './SoloInput';
 import { shallowEqual } from 'react-redux';
 import { SelectProps } from 'antd/lib/select';
+import { css } from '@emotion/core';
 
-export const SoloDropdownBlock = styled(Select)`
+export const SoloSelectCSS = css`
   width: inherit;
   /* margin-bottom: 15px; */
   line-height: 16px;
@@ -24,7 +25,7 @@ export const SoloDropdownBlock = styled(Select)`
     outline: none;
 
     .ant-select-selection__rendered {
-      line-height: inherit;
+      line-height: 25px !important;
       margin: 0;
 
       .ant-select-selection-selected-value {
@@ -36,6 +37,10 @@ export const SoloDropdownBlock = styled(Select)`
       background: ${colors.aprilGrey};
     }
   }
+`;
+
+export const SoloDropdownBlock = styled(Select)`
+  ${SoloSelectCSS}
 `;
 
 export interface OptionType {

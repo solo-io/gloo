@@ -41,12 +41,14 @@ import {
   SoloFormDropdown,
   SoloFormInput,
   SoloFormTextarea,
-  SoloFormStringsList
+  SoloFormStringsList,
+  SoloFormSelect
 } from 'Components/Common/Form/SoloFormField';
 import { ChromePicker } from 'react-color';
 import { ColorPicker } from './ColorPicker';
 import { Formik } from 'formik';
 import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { Select } from 'antd';
 
 export const TabCss = css`
   line-height: 40px;
@@ -106,7 +108,6 @@ export const PortalDetails = () => {
       : null,
     (key, name, namespace) => portalApi.getPortalWithAssets({ name, namespace })
   );
-
   const history = useHistory();
   const [tabIndex, setTabIndex] = React.useState(0);
   const [attemptingDelete, setAttemptingDelete] = React.useState(false);
@@ -185,7 +186,6 @@ export const PortalDetails = () => {
     });
     setEditMode(false);
   };
-
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Dev Portal section</div>}>
@@ -237,7 +237,7 @@ export const PortalDetails = () => {
                       <PlaceholderPortal className='w-56 rounded-lg ' />
                     )}
                   </div>
-                  <div className='grid w-full grid-cols-2 ml-2 h-42'>
+                  <div className='grid w-full grid-cols-2 col-gap-2 ml-2 h-42'>
                     <div>
                       <span className='font-medium text-gray-900'>
                         Portal Display Name
@@ -256,36 +256,43 @@ export const PortalDetails = () => {
                       <span className='font-medium text-gray-900'>
                         Portal Domains
                       </span>
-                      {portal.spec?.domainsList === [] && editMode ? (
-                        <SoloFormStringsList
-                          hideError
-                          name={`domainsList`}
-                          placeholder={'enter a domain'}
-                        />
-                      ) : null}
-                      {portal.spec?.domainsList.map((domain, index) => (
-                        <div
-                          key={domain}
-                          className='flex items-center mb-2 text-sm text-blue-600'>
-                          <span>
-                            <ExternalLinkIcon className='w-4 h-4 ' />
-                          </span>
-                          {editMode ? (
-                            <SoloFormStringsList
-                              hideError
-                              name={`domainsList`}
-                              placeholder={domain || 'enter a domain'}
-                            />
-                          ) : (
+                      {portal.spec?.domainsList.length === 0 ||
+                      portal.spec?.domainsList === undefined ||
+                      editMode ? (
+                        <SoloFormSelect
+                          name='domainsList'
+                          mode='tags'
+                          tokenSeparators={[',']}
+                          style={{ width: '100%' }}
+                          placeholder='Please select a domain'
+                          defaultValue={portal.spec?.domainsList || []}>
+                          {portal.spec?.domainsList.map((domain, index) => (
+                            <Select.Option key={domain}>
+                              <div
+                                key={domain}
+                                className='flex items-center mb-2 text-sm text-blue-600'>
+                                {domain}
+                              </div>
+                            </Select.Option>
+                          ))}
+                        </SoloFormSelect>
+                      ) : (
+                        portal.spec?.domainsList.map((domain, index) => (
+                          <div
+                            key={domain}
+                            className='flex items-center mb-2 text-sm text-blue-600'>
+                            <span>
+                              <ExternalLinkIcon className='w-4 h-4 ' />
+                            </span>
                             <a
-                              href={domain}
+                              href={`//${domain}`}
                               target='_blank'
-                              rel='noreferrer noopener'>
+                              rel='noopener noreferrer'>
                               {domain}
                             </a>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))
+                      )}
                     </div>
                     <span
                       onClick={toggleEditMode}

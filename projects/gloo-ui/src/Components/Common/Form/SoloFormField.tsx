@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { Select } from 'antd';
 import { CreateRouteValuesType } from 'Components/Features/VirtualService/Creation/CreateRouteModal';
 import { RouteParent } from 'Components/Features/VirtualService/RouteTableDetails';
-import { useField, useFormikContext } from 'formik';
+import { useField, useFormikContext, FieldProps, Field } from 'formik';
 import _ from 'lodash';
 import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 import { VirtualService } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
@@ -12,7 +12,7 @@ import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
 import React from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 import { AppState } from 'store';
-import { colors } from 'Styles';
+import { colors, soloConstants } from 'Styles';
 import {
   createUpstreamId,
   getIcon,
@@ -28,7 +28,8 @@ import { SoloCheckbox } from '../SoloCheckbox';
 import {
   DropdownProps,
   SoloDropdown,
-  SoloDropdownBlock
+  SoloDropdownBlock,
+  SoloSelectCSS
 } from '../SoloDropdown';
 import { DurationProps, SoloDurationEditor } from '../SoloDurationEditor';
 import { Label, SoloInput } from '../SoloInput';
@@ -45,6 +46,7 @@ import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 import { SoloTextarea } from '../SoloTextarea';
+import { SelectProps } from 'antd/lib/select';
 const { Option, OptGroup } = Select;
 
 type ErrorTextProps = { errorExists?: boolean };
@@ -923,6 +925,82 @@ export const SoloFormStringsList: React.FC<any> = ({
           {meta.error}
         </ErrorText>
       )}
+    </>
+  );
+};
+
+export type SoloFormSelectProps<T = any> = SelectProps<T> & {
+  children?: React.ReactNode;
+  name: string;
+  label?: string;
+};
+// declare class Select<ValueType extends SelectValue = SelectValue> extends React.Component<SelectProps<ValueType>> {
+export const SoloFormSelect = ({
+  name,
+  label,
+  children,
+  onChange,
+  onBlur,
+  ...restProps
+}: SoloFormSelectProps) => {
+  return (
+    <>
+      {label && <Label>{label}</Label>}
+      <Field name={name}>
+        {({
+          field: { value },
+          form: { setFieldValue, setFieldTouched }
+        }: FieldProps) => (
+          <Select<any>
+            css={css`
+              ${SoloSelectCSS}
+              .ant-select-dropdown {
+                .ant-select-dropdown-menu-item {
+                  display: flex;
+                  align-items: center;
+                }
+              }
+              .ant-select-selection {
+                width: 100%;
+                padding: 5px;
+                border: 1px solid ${colors.aprilGrey};
+                border-radius: ${soloConstants.smallRadius}px;
+                height: auto;
+                outline: none;
+                .ant-select-selection__rendered {
+                  line-height: 0;
+                  margin: 0;
+                  .ant-select-selection-selected-value {
+                    color: ${colors.septemberGrey};
+                  }
+                  .ant-select-selection__choice {
+                    .ant-select-selection__choice__remove {
+                      i {
+                        vertical-align: 0;
+                      }
+                    }
+                  }
+                }
+
+                &:disabled {
+                  background: ${colors.aprilGrey};
+                }
+              }
+            `}
+            onChange={(value, option) => {
+              setFieldValue(name, value);
+              onChange && onChange(value, option);
+            }}
+            onBlur={value => {
+              setFieldTouched(name);
+              onBlur && onBlur(value);
+            }}
+            value={value === '' || value === null ? undefined : value}
+            {...restProps}>
+            {children}
+          </Select>
+        )}
+      </Field>
     </>
   );
 };

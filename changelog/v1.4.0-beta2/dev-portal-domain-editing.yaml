@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allows editing and adding domain names when initially empty.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1674

@@ -12,7 +12,8 @@ import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import {
   SoloFormInput,
   SoloFormTextarea,
-  SoloFormStringsList
+  SoloFormStringsList,
+  SoloFormSelect
 } from 'Components/Common/Form/SoloFormField';
 import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import { Formik, useFormikContext } from 'formik';
@@ -33,6 +34,7 @@ import {
   SectionSubHeader
 } from '../apis/CreateAPIModal';
 import { configAPI } from 'store/config/api';
+import { Select } from 'antd';
 
 const StyledTab = (
   props: {
@@ -56,6 +58,7 @@ const StyledTab = (
 };
 
 const GeneralSection = () => {
+  const formik = useFormikContext<CreatePortalValues>();
   return (
     <SectionContainer>
       <SectionHeader>Create an Portal</SectionHeader>
@@ -71,12 +74,24 @@ const GeneralSection = () => {
           />
         </div>
         <div>
-          <SoloFormStringsList
+          <SoloFormSelect
             name='domainsList'
             label='Portal Domain(s)'
-            createNewPromptText='Domain'
-            hideError
-          />
+            mode='tags'
+            tokenSeparators={[',']}
+            style={{ width: '100%' }}
+            placeholder='Please select a domain'
+            defaultValue={[]}>
+            {formik.values.domainsList.map((domain, index) => (
+              <Select.Option key={domain}>
+                <div
+                  key={domain}
+                  className='flex items-center mb-2 text-sm text-blue-600'>
+                  {domain}
+                </div>
+              </Select.Option>
+            ))}
+          </SoloFormSelect>
         </div>
         <div className='col-span-2 mt-2'>
           <SoloFormTextarea
