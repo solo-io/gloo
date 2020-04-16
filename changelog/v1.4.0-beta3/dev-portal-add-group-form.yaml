@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: The "Add Group" form in the API details page of the developer portal UI showed incorrect header.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1689

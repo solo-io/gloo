@@ -119,7 +119,7 @@ export const AddGroupToAPIModal = (props: AddUserProps) => {
           )}
 
           <SectionContainer className='mb-8'>
-            <SectionHeader>Add Users</SectionHeader>
+            <SectionHeader>Add Groups</SectionHeader>
             <div className='p-3 mb-2 text-gray-700 bg-gray-100 rounded-lg'>
               Select the groups to which you'd like to grant access to this API
             </div>
@@ -134,11 +134,11 @@ export const AddGroupToAPIModal = (props: AddUserProps) => {
                     ? 1
                     : -1
                 )
-                .map(user => {
+                .map(group => {
                   return {
-                    name: user.metadata?.name!,
-                    namespace: user.metadata?.namespace!,
-                    displayValue: user.spec?.displayName
+                    name: group.metadata?.name!,
+                    namespace: group.metadata?.namespace!,
+                    displayValue: group.spec?.displayName
                   };
                 })}
               chosenOptionsListName='Selected Groups'
