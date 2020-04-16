@@ -104,6 +104,7 @@ clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf $(TEST_ASSET_DIR)
 	rm -rf install/helm/gloo-os-with-ui/templates/
+	rm -rf projects/gloo-ui/build
 	git clean -xdf install
 
 #----------------------------------------------------------------------------------
