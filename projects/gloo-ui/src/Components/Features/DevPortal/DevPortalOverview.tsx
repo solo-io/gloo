@@ -47,8 +47,7 @@ export const DevPortalOverview = () => {
 
   let publishedApiDocsCount = 0;
   portalsList.forEach(portal => {
-    publishedApiDocsCount +=
-      portal.spec?.publishApiDocs?.matchLabelsMap.length || 0;
+    publishedApiDocsCount += portal.status?.apiDocsList.length || 0;
   });
 
   let endpointCount = 0;

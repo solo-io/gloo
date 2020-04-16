@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Developer portal overview page showed incorrect data for the number of published api docs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1682
