@@ -22,7 +22,9 @@ Once the containers are up and running, we will examine the *Upstream* YAML file
 Finally, we will use curl to validate the routing rule on the *Virtual Service* is working.
 
 {{% notice note %}}
-The deployment steps in this tutorial are for demonstration and learning on a local machine and should not be used in a production setting. Please refer to using either Kubernetes or Consul & Vault to provide storage of configuration and credentials.
+The deployment steps in this tutorial are for demonstration and learning on a local machine.
+If you are interested in running a production deployment of Gloo using flat files, you will likely want to change the deployment architecture from how it is described in this guide.
+If you are an enterprise customer, please contact us for assistance!
 {{% /notice %}}
 
 ---
