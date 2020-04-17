@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
+	errors "github.com/rotisserie/eris"
+	"k8s.io/apimachinery/pkg/labels"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/discovery"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -47,12 +50,26 @@ func (p *plugin) Init(params plugins.InitParams) error {
 
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *envoyapi.Cluster) error {
 	// not ours
-	_, ok := in.UpstreamType.(*v1.Upstream_Kube)
+	kube, ok := in.UpstreamType.(*v1.Upstream_Kube)
 	if !ok {
 		return nil
 	}
 
 	// configure the cluster to use EDS:ADS and call it a day
 	xds.SetEdsOnCluster(out)
-	return nil
+
+	svcs, err := p.kubeCoreCache.NamespacedServiceLister(kube.Kube.ServiceNamespace).List(labels.NewSelector())
+	if err != nil {
+		return err
+	}
+	for _, s := range svcs {
+		if s.Name == kube.Kube.ServiceName {
+			return nil
+		}
+	}
+
+	upstreamRef := in.GetMetadata().Ref()
+	return errors.Errorf("Upstream %s references the service \"%s\" which does not exist in namespace \"%s\"",
+		upstreamRef.String(), kube.Kube.ServiceName, kube.Kube.ServiceNamespace)
+
 }
