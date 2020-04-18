@@ -2,7 +2,7 @@ import { ReactComponent as PortalPageIcon } from 'assets/portal-page-icon.svg';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import { Formik } from 'formik';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import React from 'react';
 import { useParams } from 'react-router';
 import { SoloButtonStyledComponent } from 'Styles/CommonEmotions/button';

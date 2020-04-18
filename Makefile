@@ -200,13 +200,6 @@ generated-ui:
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
 	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
-	# Dev portal protos
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/dev-portal/api/dev-portal/v1/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/dev-portal/api/grpc/common/*.proto
-	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/dev-portal/api/grpc/admin/*.proto
 	ci/fix-gen.sh
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)

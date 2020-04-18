@@ -2,9 +2,12 @@ import {
   DataSource,
   ObjectRef,
   Selector
-} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { ObjectMeta, Time } from 'proto/dev-portal/api/grpc/common/common_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
+import {
+  ObjectMeta,
+  Time
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/common/common_pb';
 import {
   PortalSpec,
   StaticPage,
@@ -12,7 +15,7 @@ import {
   PortalStatus,
   CustomStyling,
   KeyScopeStatus
-} from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/portal_pb';
 
 export function createDataSourceClassFromObject(
   dataSourceObj: DataSource.AsObject | undefined

@@ -27,10 +27,10 @@ import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
 import { apiDocApi, portalApi, userApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
+import { User } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/user_pb';
 import { configAPI } from 'store/config/api';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { Group } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb';
 
 const StyledTab = (
   props: {

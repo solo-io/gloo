@@ -1,0 +1,14 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Get the JavaScript/TypeScript code for the dev-portal resources from the new private `@solo-io/dev-portal-grpc`
+    npm module instead of importing the protobuf definitions for those resources and generating the code in this project.
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: dev-portal
+  dependencyTag: v0.1.11
+- type: DEPENDENCY_BUMP
+  description: Upgrade a node package to include a security patch.
+  dependencyOwner: https-proxy-agent
+  dependencyRepo: gloo-ui
+  dependencyTag: 2.2.3

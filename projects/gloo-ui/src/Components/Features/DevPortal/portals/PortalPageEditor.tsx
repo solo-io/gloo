@@ -21,7 +21,7 @@ import {
   SoloNegativeButton
 } from 'Styles/CommonEmotions/button';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import * as Showdown from 'showdown';

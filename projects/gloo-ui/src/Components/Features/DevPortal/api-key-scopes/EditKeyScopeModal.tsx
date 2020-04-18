@@ -12,9 +12,9 @@ import { ReactComponent as StacksIcon } from 'assets/app-icon.svg';
 import {
   KeyScopeStatus,
   KeyScope
-} from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/portal_pb';
 import { Formik } from 'formik';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import useSWR from 'swr';
 import { portalApi, apiDocApi, apiKeyScopeApi } from '../api';
 import {
@@ -27,8 +27,8 @@ import {
   SoloButtonStyledComponent,
   SoloCancelButton
 } from 'Styles/CommonEmotions/button';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { ApiKeyScope } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
+import { ApiKeyScope } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_scope_pb';
 import * as yup from 'yup';
 
 const StyledTab = (

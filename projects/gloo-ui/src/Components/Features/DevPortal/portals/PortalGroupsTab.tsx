@@ -3,12 +3,12 @@ import { ReactComponent as NoUser } from 'assets/no-user-icon.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
 import React from 'react';
 import useSWR from 'swr';
 import { groupApi } from '../api';
 import { AddGroupModal } from './AddGroupModal';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { Group } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 

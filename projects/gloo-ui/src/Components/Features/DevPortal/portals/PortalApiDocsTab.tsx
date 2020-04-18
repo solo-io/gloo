@@ -9,11 +9,11 @@ import { CreateAPIModal } from '../apis/CreateAPIModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
+import { ApiDoc } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/apidoc_pb';
 import { secondsToString } from '../util';
 import { AddApiModal } from './AddApiModal';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 
 type PortalApiDocsTabProps = {

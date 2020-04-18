@@ -47,7 +47,7 @@ import {
 import { ChromePicker } from 'react-color';
 import { ColorPicker } from './ColorPicker';
 import { Formik } from 'formik';
-import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { State } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import { Select } from 'antd';
 
 export const TabCss = css`

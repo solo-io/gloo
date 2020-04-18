@@ -11,7 +11,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { CreatePageModal } from './CreatePageModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { portalApi } from '../api';
-import { StaticPage } from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
+import { StaticPage } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/portal_pb';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 
 export const PortalPagesTab = () => {

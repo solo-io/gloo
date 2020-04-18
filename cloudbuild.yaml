@@ -76,6 +76,7 @@ steps:
 - name: node:12.13.1
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  secretEnv: ["NPM_TOKEN"]
   dir: "/workspace/solo-projects/projects/gloo-ui"
   entrypoint: yarn
   args: ["install"]
@@ -93,6 +94,7 @@ steps:
   id: "check-code-gen"
 
 - name: "gcr.io/cloud-builders/yarn"
+  secretEnv: ["NPM_TOKEN"]
   args: ["build"]
   dir: "/workspace/solo-projects/projects/gloo-ui"
   waitFor: ["yarn-install", "check-code-gen"]
@@ -307,7 +309,7 @@ secrets:
   secretEnv:
     GITHUB_TOKEN: CiQAwdWthrSJ1uI5Ao/LnmX8OzXmA5TNCtDpeV6JdNouaGh5vpwSUQD5SXFIkCBvnu/wYDSGwgWNJaQV75wP/kDephn5GGuGCe0EGFXXE54zyH8iHRL45Uq0s39SoHEyYoZXF2Qla8IbKGAKswPRViYSChPthQILdA==
     QUAY_IO_PASSWORD: CiQAwdWthknPPz3v+xcbHWaCRhuSisUqPrkn6sQJxbo7SaI9iucSaQD5SXFILt6uY5C4xcuuzDcZXml2FXnRBg9Uk6BDJebycORdyslJz9iVEWeTrFZoOyHh5aDTLQhuNEmW4znFnleICVdasJtwFE9VIJCU5OGCgkTFdfGGvMx8up37ST9MwDYUPCB1vqLL1w==
-
+    NPM_TOKEN: CiQAwdWthsrcxx34V1hGZL7uH3KcYsp9n2yiXMZ/IrDKqxD8vxgSTQD5SXFI/acbV54LBG26hMvU6qtvmoSIPLdi9F2LxdJQs+kGupmD7GykLRW6eWqJs8UJQMNmMo1u+tK8YsTvja7IhqeL2+dmZSByLIcB
 # Overall build timeout of 60m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (prepare-workspace, tests, etc) if we want to limit the time in sections, but want a forgiving
 # timeout for the final step, and the default (10m) is not enough.

@@ -24,9 +24,9 @@ import { ActiveTabCss, TabCss } from '../portals/PortalDetails';
 import { CreateGroupModal } from './CreateGroupModal';
 import { CreateUserModal } from './CreateUserModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
-import { User } from 'proto/dev-portal/api/grpc/admin/user_pb';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { User } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/user_pb';
+import { Group } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 
 const StyledTab = (
   props: {

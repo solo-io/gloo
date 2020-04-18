@@ -1,22 +1,17 @@
-import * as React from 'react';
 import styled from '@emotion/styled';
-import { colors } from 'Styles';
 import { ReactComponent as StacksIcon } from 'assets/app-icon.svg';
 import { ReactComponent as CodeGearIcon } from 'assets/code-sprocket-icon.svg';
-import { ReactComponent as EyeIcon } from 'assets/view-icon.svg';
-import useSWR from 'swr';
-import { apiKeyScopeApi } from '../api';
-import { SoloToggleSwitch } from 'Components/Common/SoloToggleSwitch';
-import {
-  SoloNegativeButton,
-  SoloButtonStyledComponent
-} from 'Styles/CommonEmotions/button';
-//import { SoloModal } from './SoloModal';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
 import { SoloModal } from 'Components/Common/SoloModal';
+import { ApiKeyScopeWithApiDocs } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_scope_pb';
+import * as React from 'react';
+import { colors } from 'Styles';
+import {
+  SoloButtonStyledComponent,
+  SoloNegativeButton
+} from 'Styles/CommonEmotions/button';
+import { apiKeyScopeApi } from '../api';
 import { EditKeyScopeModal } from './EditKeyScopeModal';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
-import { ApiKeyScopeWithApiDocs } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
 
 const Card = styled.div`
   background: white;

@@ -15,7 +15,7 @@ import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
-import { State } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+import { State } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import React from 'react';
 import { useHistory, useParams } from 'react-router';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';

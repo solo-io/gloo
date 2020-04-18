@@ -24,8 +24,8 @@ import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import useSWR from 'swr';
 import { userApi, apiDocApi, portalApi, groupApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { Group } from 'proto/dev-portal/api/grpc/admin/group_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
+import { Group } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb';
 import { configAPI } from 'store/config/api';
 
 const StyledTab = (

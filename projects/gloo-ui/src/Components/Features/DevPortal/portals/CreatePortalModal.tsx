@@ -17,8 +17,8 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloTransfer, ListItemType } from 'Components/Common/SoloTransfer';
 import { Formik, useFormikContext } from 'formik';
-import { ObjectRef } from 'proto/dev-portal/api/dev-portal/v1/common_pb';
-import { Portal } from 'proto/dev-portal/api/grpc/admin/portal_pb';
+import { ObjectRef } from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
+import { Portal } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
 import React from 'react';
 import ImageUploader from 'react-images-upload';
 import { colors } from 'Styles';

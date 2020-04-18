@@ -4,7 +4,7 @@ import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Container } from 'Components/Features/Admin/AdminLanding';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { ApiDoc } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/apidoc_pb';
 import * as React from 'react';
 import { IAceEditorProps } from 'react-ace';
 import { useHistory, useParams } from 'react-router';

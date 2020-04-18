@@ -5,7 +5,7 @@ import { ReactComponent as UserIcon } from 'assets/user-icon.svg';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { ApiDoc } from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+import { ApiDoc } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/apidoc_pb';
 import { Status } from 'proto/solo-kit/api/v1/status_pb';
 import React from 'react';
 import { useHistory } from 'react-router';

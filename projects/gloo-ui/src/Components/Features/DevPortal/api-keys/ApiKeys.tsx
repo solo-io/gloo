@@ -8,7 +8,7 @@ import useSWR from 'swr';
 import { apiKeyApi } from '../api';
 import { Loading } from 'Components/Common/DisplayOnly/Loading';
 import { ConfirmationModal } from 'Components/Common/ConfirmationModal';
-import { ApiKey } from 'proto/dev-portal/api/grpc/admin/api_key_pb';
+import { ApiKey } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_pb';
 
 export const APIKeys = () => {
   const { data: apiKeyList, error: apiKeysError } = useSWR(

@@ -1,11 +1,11 @@
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 import { grpc } from '@improbable-eng/grpc-web';
-import { PortalApi } from 'proto/dev-portal/api/grpc/admin/portal_pb_service';
-import { ApiDocApi } from 'proto/dev-portal/api/grpc/admin/apidoc_pb_service';
-import { UserApi } from 'proto/dev-portal/api/grpc/admin/user_pb_service';
-import { GroupApi } from 'proto/dev-portal/api/grpc/admin/group_pb_service';
-import { ApiKeyApi } from 'proto/dev-portal/api/grpc/admin/api_key_pb_service';
-import { ApiKeyScopeApi } from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb_service';
+import { PortalApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb_service';
+import { ApiDocApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/apidoc_pb_service';
+import { UserApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/user_pb_service';
+import { GroupApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb_service';
+import { ApiKeyApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_pb_service';
+import { ApiKeyScopeApi } from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_scope_pb_service';
 
 import { host } from 'store';
 
@@ -15,32 +15,35 @@ import {
   ApiDocFilter,
   ApiDocGetRequest,
   ApiDocWriteRequest
-} from 'proto/dev-portal/api/grpc/admin/apidoc_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/apidoc_pb';
 import {
   Portal,
   PortalList,
   PortalWriteRequest
-} from 'proto/dev-portal/api/grpc/admin/portal_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/portal_pb';
 
 import {
   User,
   UserList,
   UserFilter,
   UserWriteRequest
-} from 'proto/dev-portal/api/grpc/admin/user_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/user_pb';
 import {
   Group,
   GroupList,
   GroupFilter,
   GroupWriteRequest
-} from 'proto/dev-portal/api/grpc/admin/group_pb';
-import { ApiKey, ApiKeyList } from 'proto/dev-portal/api/grpc/admin/api_key_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/group_pb';
+import {
+  ApiKey,
+  ApiKeyList
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_pb';
 
 import {
   ObjectRef,
   Selector,
   DataSource
-} from 'proto/dev-portal/api/dev-portal/v1/common_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/common_pb';
 import {
   PortalSpec,
   PortalStatus,
@@ -48,8 +51,11 @@ import {
   KeyScopeStatus,
   CustomStyling,
   StaticPage
-} from 'proto/dev-portal/api/dev-portal/v1/portal_pb';
-import { ObjectMeta, Time } from 'proto/dev-portal/api/grpc/common/common_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/portal_pb';
+import {
+  ObjectMeta,
+  Time
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/common/common_pb';
 import {
   createDataSourceClassFromObject,
   createPortalClassFromObject
@@ -57,26 +63,26 @@ import {
 import {
   ApiDocStatus,
   ApiDocSpec
-} from 'proto/dev-portal/api/dev-portal/v1/apidoc_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/apidoc_pb';
 import {
   UserStatus,
   UserSpec
-} from 'proto/dev-portal/api/dev-portal/v1/user_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/user_pb';
 import {
   AccessLevel,
   AccessLevelStatus
-} from 'proto/dev-portal/api/dev-portal/v1/access_level_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/access_level_pb';
 import {
   GroupStatus,
   GroupSpec
-} from 'proto/dev-portal/api/dev-portal/v1/group_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/dev-portal/v1/group_pb';
 import {
   ApiKeyScopeWithApiDocs,
   ApiKeyScopeList,
   ApiKeyScopeRef,
   ApiKeyScopeWriteRequest,
   ApiKeyScope
-} from 'proto/dev-portal/api/grpc/admin/api_key_scope_pb';
+} from '@solo-io/dev-portal-grpc/dev-portal/api/grpc/admin/api_key_scope_pb';
 
 export const portalApi = {
   listPortals,
