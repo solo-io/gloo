@@ -450,6 +450,7 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
               }
             }
           `}
+          dropdownMatchSelectWidth={false}
           data-testid={props.testId}
           placeholder='Destination...'
           defaultValue={defaultValue?.upstream?.metadata?.name}

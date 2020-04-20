@@ -2,7 +2,8 @@ import styled from '@emotion/styled';
 import {
   SoloFormInput,
   SoloFormStringsList,
-  SoloFormTypeahead
+  SoloFormTypeahead,
+  SoloFormSelect
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
@@ -16,6 +17,7 @@ import * as yup from 'yup';
 import { virtualServiceAPI } from 'store/virtualServices/api';
 import { AppState } from 'store';
 import { guardByLicense } from 'store/config/actions';
+import { Select } from 'antd';
 
 const Footer = styled.div`
   display: flex;
@@ -33,7 +35,7 @@ let initialValues = {
   virtualServiceName: '',
   displayName: '',
   namespace: '',
-  domainsList: ['']
+  domainsList: [] as string[]
 };
 
 const validationSchema = yup.object().shape({
@@ -137,11 +139,24 @@ export const CreateVirtualServiceForm = (props: Props) => {
               />
             </div>
             <div>
-              <SoloFormStringsList
-                name='domainsList'
+              <SoloFormSelect
                 label='Domains'
-                createNewPromptText='Specify a domain'
-              />
+                name='domainsList'
+                mode='tags'
+                tokenSeparators={[',']}
+                style={{ width: '100%' }}
+                placeholder='Please select a domain'
+                defaultValue={values.domainsList || []}>
+                {values.domainsList.map((domain, index) => (
+                  <Select.Option key={domain}>
+                    <div
+                      key={domain}
+                      className='flex items-center mb-2 text-sm text-blue-600'>
+                      {domain}
+                    </div>
+                  </Select.Option>
+                ))}
+              </SoloFormSelect>
             </div>
             <div>
               <SoloFormTypeahead

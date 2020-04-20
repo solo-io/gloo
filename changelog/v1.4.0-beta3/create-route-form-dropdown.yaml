@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: The destination dropdown in the Create Route Form now has correct width.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1694
