@@ -2187,7 +2187,8 @@
   "schemaVersion": 16,
   "style": "dark",
   "tags": [
-    "kubernetes"
+    "kubernetes",
+    "gloo"
   ],
   "templating": {
     "list": [

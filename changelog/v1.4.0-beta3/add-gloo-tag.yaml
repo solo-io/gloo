@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add "gloo" tags to Envoy and Kubernetes static dashboards that come with Enterprise Gloo.
+    issueLink: https://github.com/solo-io/gloo/issues/2812
