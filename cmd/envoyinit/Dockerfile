@@ -1,4 +1,5 @@
-FROM quay.io/solo-io/envoy-gloo-ee:1.4.3
+ARG ENVOY_IMAGE
+FROM $ENVOY_IMAGE
 
 COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
 COPY docker-entrypoint.sh /

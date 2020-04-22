@@ -49,6 +49,11 @@ export class ListenerOptions extends jspb.Message {
   getExtensions(): gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
   setExtensions(value?: gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
 
+  hasPerConnectionBufferLimitBytes(): boolean;
+  clearPerConnectionBufferLimitBytes(): void;
+  getPerConnectionBufferLimitBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setPerConnectionBufferLimitBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerOptions): ListenerOptions.AsObject;
@@ -63,6 +68,7 @@ export namespace ListenerOptions {
   export type AsObject = {
     accessLoggingService?: gloo_projects_gloo_api_v1_options_als_als_pb.AccessLoggingService.AsObject,
     extensions?: gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
+    perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 }
 

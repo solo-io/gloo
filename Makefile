@@ -18,6 +18,9 @@ ifeq ($(TAGGED_VERSION),)
 endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
+
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo-ee:1.4.3
+
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
 
@@ -419,7 +422,9 @@ $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 gloo-docker: $(OUTPUT_DIR)/.gloo-docker
 
 $(OUTPUT_DIR)/.gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t quay.io/solo-io/gloo-ee:$(VERSION) $(call get_test_tag_option,gloo-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build $(call get_test_tag_option,gloo-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		-t quay.io/solo-io/gloo-ee:$(VERSION)
 	touch $@
 
 gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
@@ -449,7 +454,9 @@ $(OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
 gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
 
 $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit $(OUTPUT_DIR)/docker-entrypoint.sh
-	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		-t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION)
 	touch $@
 
 
@@ -672,3 +679,12 @@ build-kind-chart:
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
+
+
+#----------------------------------------------------------------------------------
+# Printing makefile variables utility
+#----------------------------------------------------------------------------------
+
+# use `make print-MAKEFILE_VAR` to print the value of MAKEFILE_VAR
+
+print-%  : ; @echo $($*)

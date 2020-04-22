@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.10
-	github.com/solo-io/gloo v1.4.0-beta4
+	github.com/solo-io/gloo v1.4.0-beta5
 	github.com/solo-io/go-utils v0.14.2
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.7
@@ -50,7 +50,7 @@ require (
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d
 	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2
 	gopkg.in/square/go-jose.v2 v2.3.1
-	helm.sh/helm/v3 v3.0.0
+	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.2
 	k8s.io/apimachinery v0.17.2

@@ -110,12 +110,12 @@ steps:
   id: "fetch-helm"
 
 # Setup and run e2es
-- name: gcr.io/cloud-builders/gsutil
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.2.1'
   entrypoint: "bash"
   args:
     - "-ce"
     - |
-      ENVOY_VERSION=v$$(head -n1 ./cmd/envoyinit/Dockerfile|cut -d: -f2)
+      ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
       gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
       chmod +x /workspace/envoy
   dir: *dir

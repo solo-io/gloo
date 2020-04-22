@@ -3852,7 +3852,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     invalidConfigPolicy: (f = msg.getInvalidConfigPolicy()) && proto.gloo.solo.io.GlooOptions.InvalidConfigPolicy.toObject(includeInstance, f),
     disableKubernetesDestinations: jspb.Message.getFieldWithDefault(msg, 7, false),
     disableGrpcWeb: (f = msg.getDisableGrpcWeb()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3930,6 +3931,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDisableProxyGarbageCollection(value);
+      break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setRegexMaxProgramSize(value);
       break;
     default:
       reader.skipField();
@@ -4027,6 +4033,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getRegexMaxProgramSize();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
 };
@@ -4598,6 +4612,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearDisableProxyGarbageCollection = fu
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasDisableProxyGarbageCollection = function() {
   return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value regex_max_program_size = 10;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getRegexMaxProgramSize = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 10));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setRegexMaxProgramSize = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearRegexMaxProgramSize = function() {
+  this.setRegexMaxProgramSize(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasRegexMaxProgramSize = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

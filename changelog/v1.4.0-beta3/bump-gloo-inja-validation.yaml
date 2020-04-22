@@ -1,0 +1,19 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Gloo's validation webhook now validates inja compilation syntax before accepting/rejecting virtual services that
+      use transformations. Note that strict validation is still disabled by default, and must be enabled in the Gloo
+      settings. Users can now rely more on `kubectl apply --server-dry-run` against live clusters to properly validate
+      whether config is valid before attempting to apply them to their cluster.
+    issueLink: https://github.com/solo-io/gloo/issues/2114
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.4.0-beta5
+  - type: DEPENDENCY_BUMP
+    description: Bumped the version of helm to pick up the fix which results in deterministic yaml ordering when we do a dry-run install of gloo.
+    dependencyOwner: helm
+    dependencyRepo: helm
+    dependencyTag: v3.1.2
+    issueLink: https://github.com/solo-io/gloo/issues/2754
