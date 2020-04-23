@@ -12,30 +12,30 @@ import (
 	api "github.com/solo-io/ext-auth-plugins/api"
 )
 
-// MockAuthService is a mock of AuthService interface.
+// MockAuthService is a mock of AuthService interface
 type MockAuthService struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuthServiceMockRecorder
 }
 
-// MockAuthServiceMockRecorder is the mock recorder for MockAuthService.
+// MockAuthServiceMockRecorder is the mock recorder for MockAuthService
 type MockAuthServiceMockRecorder struct {
 	mock *MockAuthService
 }
 
-// NewMockAuthService creates a new mock instance.
+// NewMockAuthService creates a new mock instance
 func NewMockAuthService(ctrl *gomock.Controller) *MockAuthService {
 	mock := &MockAuthService{ctrl: ctrl}
 	mock.recorder = &MockAuthServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 	return m.recorder
 }
 
-// Authorize mocks base method.
+// Authorize mocks base method
 func (m *MockAuthService) Authorize(arg0 context.Context, arg1 *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", arg0, arg1)
@@ -44,13 +44,13 @@ func (m *MockAuthService) Authorize(arg0 context.Context, arg1 *api.Authorizatio
 	return ret0, ret1
 }
 
-// Authorize indicates an expected call of Authorize.
+// Authorize indicates an expected call of Authorize
 func (mr *MockAuthServiceMockRecorder) Authorize(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockAuthService)(nil).Authorize), arg0, arg1)
 }
 
-// Start mocks base method.
+// Start mocks base method
 func (m *MockAuthService) Start(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start", arg0)
@@ -58,7 +58,7 @@ func (m *MockAuthService) Start(arg0 context.Context) error {
 	return ret0
 }
 
-// Start indicates an expected call of Start.
+// Start indicates an expected call of Start
 func (mr *MockAuthServiceMockRecorder) Start(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockAuthService)(nil).Start), arg0)

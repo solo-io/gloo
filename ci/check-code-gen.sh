@@ -8,8 +8,6 @@ if [ ! -f .gitignore ]; then
   echo "_output" > .gitignore
 fi
 
-go mod tidy
-
 if [[ $(git status --porcelain | wc -l) -ne 0 ]]; then
   echo "Need to run go mod tidy before committing"
   git diff

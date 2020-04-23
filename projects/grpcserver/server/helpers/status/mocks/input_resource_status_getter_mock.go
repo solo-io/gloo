@@ -12,30 +12,30 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
-// MockInputResourceStatusGetter is a mock of InputResourceStatusGetter interface.
+// MockInputResourceStatusGetter is a mock of InputResourceStatusGetter interface
 type MockInputResourceStatusGetter struct {
 	ctrl     *gomock.Controller
 	recorder *MockInputResourceStatusGetterMockRecorder
 }
 
-// MockInputResourceStatusGetterMockRecorder is the mock recorder for MockInputResourceStatusGetter.
+// MockInputResourceStatusGetterMockRecorder is the mock recorder for MockInputResourceStatusGetter
 type MockInputResourceStatusGetterMockRecorder struct {
 	mock *MockInputResourceStatusGetter
 }
 
-// NewMockInputResourceStatusGetter creates a new mock instance.
+// NewMockInputResourceStatusGetter creates a new mock instance
 func NewMockInputResourceStatusGetter(ctrl *gomock.Controller) *MockInputResourceStatusGetter {
 	mock := &MockInputResourceStatusGetter{ctrl: ctrl}
 	mock.recorder = &MockInputResourceStatusGetterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockInputResourceStatusGetter) EXPECT() *MockInputResourceStatusGetterMockRecorder {
 	return m.recorder
 }
 
-// GetApiStatusFromResource mocks base method.
+// GetApiStatusFromResource mocks base method
 func (m *MockInputResourceStatusGetter) GetApiStatusFromResource(arg0 resources.InputResource) *v1.Status {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetApiStatusFromResource", arg0)
@@ -43,7 +43,7 @@ func (m *MockInputResourceStatusGetter) GetApiStatusFromResource(arg0 resources.
 	return ret0
 }
 
-// GetApiStatusFromResource indicates an expected call of GetApiStatusFromResource.
+// GetApiStatusFromResource indicates an expected call of GetApiStatusFromResource
 func (mr *MockInputResourceStatusGetterMockRecorder) GetApiStatusFromResource(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetApiStatusFromResource", reflect.TypeOf((*MockInputResourceStatusGetter)(nil).GetApiStatusFromResource), arg0)

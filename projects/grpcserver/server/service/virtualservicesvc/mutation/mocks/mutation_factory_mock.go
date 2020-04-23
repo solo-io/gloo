@@ -12,30 +12,30 @@ import (
 	mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
 
-// MockMutationFactory is a mock of MutationFactory interface.
+// MockMutationFactory is a mock of MutationFactory interface
 type MockMutationFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockMutationFactoryMockRecorder
 }
 
-// MockMutationFactoryMockRecorder is the mock recorder for MockMutationFactory.
+// MockMutationFactoryMockRecorder is the mock recorder for MockMutationFactory
 type MockMutationFactoryMockRecorder struct {
 	mock *MockMutationFactory
 }
 
-// NewMockMutationFactory creates a new mock instance.
+// NewMockMutationFactory creates a new mock instance
 func NewMockMutationFactory(ctrl *gomock.Controller) *MockMutationFactory {
 	mock := &MockMutationFactory{ctrl: ctrl}
 	mock.recorder = &MockMutationFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockMutationFactory) EXPECT() *MockMutationFactoryMockRecorder {
 	return m.recorder
 }
 
-// ConfigureVirtualServiceV2 mocks base method.
+// ConfigureVirtualServiceV2 mocks base method
 func (m *MockMutationFactory) ConfigureVirtualServiceV2(arg0 *v1.VirtualServiceInputV2) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConfigureVirtualServiceV2", arg0)
@@ -43,13 +43,13 @@ func (m *MockMutationFactory) ConfigureVirtualServiceV2(arg0 *v1.VirtualServiceI
 	return ret0
 }
 
-// ConfigureVirtualServiceV2 indicates an expected call of ConfigureVirtualServiceV2.
+// ConfigureVirtualServiceV2 indicates an expected call of ConfigureVirtualServiceV2
 func (mr *MockMutationFactoryMockRecorder) ConfigureVirtualServiceV2(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureVirtualServiceV2", reflect.TypeOf((*MockMutationFactory)(nil).ConfigureVirtualServiceV2), arg0)
 }
 
-// CreateRoute mocks base method.
+// CreateRoute mocks base method
 func (m *MockMutationFactory) CreateRoute(arg0 *v1.RouteInput) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRoute", arg0)
@@ -57,13 +57,13 @@ func (m *MockMutationFactory) CreateRoute(arg0 *v1.RouteInput) mutation.Mutation
 	return ret0
 }
 
-// CreateRoute indicates an expected call of CreateRoute.
+// CreateRoute indicates an expected call of CreateRoute
 func (mr *MockMutationFactoryMockRecorder) CreateRoute(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoute", reflect.TypeOf((*MockMutationFactory)(nil).CreateRoute), arg0)
 }
 
-// DeleteRoute mocks base method.
+// DeleteRoute mocks base method
 func (m *MockMutationFactory) DeleteRoute(arg0 uint32) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRoute", arg0)
@@ -71,13 +71,13 @@ func (m *MockMutationFactory) DeleteRoute(arg0 uint32) mutation.Mutation {
 	return ret0
 }
 
-// DeleteRoute indicates an expected call of DeleteRoute.
+// DeleteRoute indicates an expected call of DeleteRoute
 func (mr *MockMutationFactoryMockRecorder) DeleteRoute(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoute", reflect.TypeOf((*MockMutationFactory)(nil).DeleteRoute), arg0)
 }
 
-// ShiftRoutes mocks base method.
+// ShiftRoutes mocks base method
 func (m *MockMutationFactory) ShiftRoutes(arg0, arg1 uint32) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShiftRoutes", arg0, arg1)
@@ -85,13 +85,13 @@ func (m *MockMutationFactory) ShiftRoutes(arg0, arg1 uint32) mutation.Mutation {
 	return ret0
 }
 
-// ShiftRoutes indicates an expected call of ShiftRoutes.
+// ShiftRoutes indicates an expected call of ShiftRoutes
 func (mr *MockMutationFactoryMockRecorder) ShiftRoutes(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShiftRoutes", reflect.TypeOf((*MockMutationFactory)(nil).ShiftRoutes), arg0, arg1)
 }
 
-// SwapRoutes mocks base method.
+// SwapRoutes mocks base method
 func (m *MockMutationFactory) SwapRoutes(arg0, arg1 uint32) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SwapRoutes", arg0, arg1)
@@ -99,13 +99,13 @@ func (m *MockMutationFactory) SwapRoutes(arg0, arg1 uint32) mutation.Mutation {
 	return ret0
 }
 
-// SwapRoutes indicates an expected call of SwapRoutes.
+// SwapRoutes indicates an expected call of SwapRoutes
 func (mr *MockMutationFactoryMockRecorder) SwapRoutes(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SwapRoutes", reflect.TypeOf((*MockMutationFactory)(nil).SwapRoutes), arg0, arg1)
 }
 
-// UpdateRoute mocks base method.
+// UpdateRoute mocks base method
 func (m *MockMutationFactory) UpdateRoute(arg0 *v1.RouteInput) mutation.Mutation {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRoute", arg0)
@@ -113,7 +113,7 @@ func (m *MockMutationFactory) UpdateRoute(arg0 *v1.RouteInput) mutation.Mutation
 	return ret0
 }
 
-// UpdateRoute indicates an expected call of UpdateRoute.
+// UpdateRoute indicates an expected call of UpdateRoute
 func (mr *MockMutationFactoryMockRecorder) UpdateRoute(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRoute", reflect.TypeOf((*MockMutationFactory)(nil).UpdateRoute), arg0)

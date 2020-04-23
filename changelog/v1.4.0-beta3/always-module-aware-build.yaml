@@ -1,0 +1,15 @@
+changelog:
+- type: FIX
+  description: >
+    We have been building all of the Gloo Enterprise binaries in _module-aware mode_ (run `go help modules` for more info on build modes),
+    except for the `extauth` server and the extauth plugin verification script, which were built in `GOPATH` mode.
+    This exception has caused issues with our [extauth plugin development toolkit](https://github.com/solo-io/ext-auth-plugin-examples).
+    The root cause of these issues was related to package import paths, which the `go` tool considers part of
+    the identity of a package; when building in `GOPATH` mode, the actual import paths of some packages were different
+    than the ones expected by our toolkit, which could lead to the infamous `plugin was built with a different version
+    of package xyz` error (check out [this repository](https://github.com/solo-io/go-plugin-compatibility) for a detailed explanation of the problem).
+    We now build both the `extauth` server and the `verify-plugins-linux-amd64` script in _module-aware mode_, which
+    causes all packages to be loaded from the modules cache located at `/go/pkg/mod`, thus providing for predictable
+    package paths that our toolkit (and yours) can rely on.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1668
+  resolvesIssue: false

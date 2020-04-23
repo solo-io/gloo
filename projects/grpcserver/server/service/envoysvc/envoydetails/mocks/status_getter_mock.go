@@ -13,30 +13,30 @@ import (
 	v10 "k8s.io/api/core/v1"
 )
 
-// MockEnvoyStatusGetter is a mock of EnvoyStatusGetter interface.
+// MockEnvoyStatusGetter is a mock of EnvoyStatusGetter interface
 type MockEnvoyStatusGetter struct {
 	ctrl     *gomock.Controller
 	recorder *MockEnvoyStatusGetterMockRecorder
 }
 
-// MockEnvoyStatusGetterMockRecorder is the mock recorder for MockEnvoyStatusGetter.
+// MockEnvoyStatusGetterMockRecorder is the mock recorder for MockEnvoyStatusGetter
 type MockEnvoyStatusGetterMockRecorder struct {
 	mock *MockEnvoyStatusGetter
 }
 
-// NewMockEnvoyStatusGetter creates a new mock instance.
+// NewMockEnvoyStatusGetter creates a new mock instance
 func NewMockEnvoyStatusGetter(ctrl *gomock.Controller) *MockEnvoyStatusGetter {
 	mock := &MockEnvoyStatusGetter{ctrl: ctrl}
 	mock.recorder = &MockEnvoyStatusGetterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockEnvoyStatusGetter) EXPECT() *MockEnvoyStatusGetterMockRecorder {
 	return m.recorder
 }
 
-// GetEnvoyStatus mocks base method.
+// GetEnvoyStatus mocks base method
 func (m *MockEnvoyStatusGetter) GetEnvoyStatus(arg0 context.Context, arg1 v10.Pod) *v1.Status {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEnvoyStatus", arg0, arg1)
@@ -44,7 +44,7 @@ func (m *MockEnvoyStatusGetter) GetEnvoyStatus(arg0 context.Context, arg1 v10.Po
 	return ret0
 }
 
-// GetEnvoyStatus indicates an expected call of GetEnvoyStatus.
+// GetEnvoyStatus indicates an expected call of GetEnvoyStatus
 func (mr *MockEnvoyStatusGetterMockRecorder) GetEnvoyStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEnvoyStatus", reflect.TypeOf((*MockEnvoyStatusGetter)(nil).GetEnvoyStatus), arg0, arg1)

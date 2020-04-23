@@ -220,6 +220,7 @@ steps:
     - "GCLOUD_PROJECT_ID=$PROJECT_ID"
     - "HELM_HOME=/root/.helm"
     - "TAGGED_VERSION=$TAG_NAME"
+  secretEnv: ["GITHUB_TOKEN"]
   dir: *dir
   waitFor: ["build-glooctl", "build-images", "docker-login", "test"]
   id: "build-test-assets"

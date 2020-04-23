@@ -13,30 +13,30 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 )
 
-// MockLoader is a mock of Loader interface.
+// MockLoader is a mock of Loader interface
 type MockLoader struct {
 	ctrl     *gomock.Controller
 	recorder *MockLoaderMockRecorder
 }
 
-// MockLoaderMockRecorder is the mock recorder for MockLoader.
+// MockLoaderMockRecorder is the mock recorder for MockLoader
 type MockLoaderMockRecorder struct {
 	mock *MockLoader
 }
 
-// NewMockLoader creates a new mock instance.
+// NewMockLoader creates a new mock instance
 func NewMockLoader(ctrl *gomock.Controller) *MockLoader {
 	mock := &MockLoader{ctrl: ctrl}
 	mock.recorder = &MockLoaderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockLoader) EXPECT() *MockLoaderMockRecorder {
 	return m.recorder
 }
 
-// LoadAuthPlugin mocks base method.
+// LoadAuthPlugin mocks base method
 func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *v1.AuthPlugin) (api.AuthService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadAuthPlugin", arg0, arg1)
@@ -45,7 +45,7 @@ func (m *MockLoader) LoadAuthPlugin(arg0 context.Context, arg1 *v1.AuthPlugin) (
 	return ret0, ret1
 }
 
-// LoadAuthPlugin indicates an expected call of LoadAuthPlugin.
+// LoadAuthPlugin indicates an expected call of LoadAuthPlugin
 func (mr *MockLoaderMockRecorder) LoadAuthPlugin(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthPlugin", reflect.TypeOf((*MockLoader)(nil).LoadAuthPlugin), arg0, arg1)

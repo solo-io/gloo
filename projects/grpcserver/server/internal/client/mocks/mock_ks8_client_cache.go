@@ -12,30 +12,30 @@ import (
 	v10 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
-// MockClientCache is a mock of ClientCache interface.
+// MockClientCache is a mock of ClientCache interface
 type MockClientCache struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientCacheMockRecorder
 }
 
-// MockClientCacheMockRecorder is the mock recorder for MockClientCache.
+// MockClientCacheMockRecorder is the mock recorder for MockClientCache
 type MockClientCacheMockRecorder struct {
 	mock *MockClientCache
 }
 
-// NewMockClientCache creates a new mock instance.
+// NewMockClientCache creates a new mock instance
 func NewMockClientCache(ctrl *gomock.Controller) *MockClientCache {
 	mock := &MockClientCache{ctrl: ctrl}
 	mock.recorder = &MockClientCacheMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockClientCache) EXPECT() *MockClientCacheMockRecorder {
 	return m.recorder
 }
 
-// GetArtifactClient mocks base method.
+// GetArtifactClient mocks base method
 func (m *MockClientCache) GetArtifactClient() v10.ArtifactClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetArtifactClient")
@@ -43,13 +43,13 @@ func (m *MockClientCache) GetArtifactClient() v10.ArtifactClient {
 	return ret0
 }
 
-// GetArtifactClient indicates an expected call of GetArtifactClient.
+// GetArtifactClient indicates an expected call of GetArtifactClient
 func (mr *MockClientCacheMockRecorder) GetArtifactClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetArtifactClient", reflect.TypeOf((*MockClientCache)(nil).GetArtifactClient))
 }
 
-// GetGatewayClient mocks base method.
+// GetGatewayClient mocks base method
 func (m *MockClientCache) GetGatewayClient() v1.GatewayClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGatewayClient")
@@ -57,13 +57,13 @@ func (m *MockClientCache) GetGatewayClient() v1.GatewayClient {
 	return ret0
 }
 
-// GetGatewayClient indicates an expected call of GetGatewayClient.
+// GetGatewayClient indicates an expected call of GetGatewayClient
 func (mr *MockClientCacheMockRecorder) GetGatewayClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGatewayClient", reflect.TypeOf((*MockClientCache)(nil).GetGatewayClient))
 }
 
-// GetProxyClient mocks base method.
+// GetProxyClient mocks base method
 func (m *MockClientCache) GetProxyClient() v10.ProxyClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProxyClient")
@@ -71,13 +71,13 @@ func (m *MockClientCache) GetProxyClient() v10.ProxyClient {
 	return ret0
 }
 
-// GetProxyClient indicates an expected call of GetProxyClient.
+// GetProxyClient indicates an expected call of GetProxyClient
 func (mr *MockClientCacheMockRecorder) GetProxyClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProxyClient", reflect.TypeOf((*MockClientCache)(nil).GetProxyClient))
 }
 
-// GetRouteTableClient mocks base method.
+// GetRouteTableClient mocks base method
 func (m *MockClientCache) GetRouteTableClient() v1.RouteTableClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRouteTableClient")
@@ -85,13 +85,13 @@ func (m *MockClientCache) GetRouteTableClient() v1.RouteTableClient {
 	return ret0
 }
 
-// GetRouteTableClient indicates an expected call of GetRouteTableClient.
+// GetRouteTableClient indicates an expected call of GetRouteTableClient
 func (mr *MockClientCacheMockRecorder) GetRouteTableClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRouteTableClient", reflect.TypeOf((*MockClientCache)(nil).GetRouteTableClient))
 }
 
-// GetSecretClient mocks base method.
+// GetSecretClient mocks base method
 func (m *MockClientCache) GetSecretClient() v10.SecretClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecretClient")
@@ -99,13 +99,13 @@ func (m *MockClientCache) GetSecretClient() v10.SecretClient {
 	return ret0
 }
 
-// GetSecretClient indicates an expected call of GetSecretClient.
+// GetSecretClient indicates an expected call of GetSecretClient
 func (mr *MockClientCacheMockRecorder) GetSecretClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecretClient", reflect.TypeOf((*MockClientCache)(nil).GetSecretClient))
 }
 
-// GetSettingsClient mocks base method.
+// GetSettingsClient mocks base method
 func (m *MockClientCache) GetSettingsClient() v10.SettingsClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSettingsClient")
@@ -113,13 +113,13 @@ func (m *MockClientCache) GetSettingsClient() v10.SettingsClient {
 	return ret0
 }
 
-// GetSettingsClient indicates an expected call of GetSettingsClient.
+// GetSettingsClient indicates an expected call of GetSettingsClient
 func (mr *MockClientCacheMockRecorder) GetSettingsClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettingsClient", reflect.TypeOf((*MockClientCache)(nil).GetSettingsClient))
 }
 
-// GetUpstreamClient mocks base method.
+// GetUpstreamClient mocks base method
 func (m *MockClientCache) GetUpstreamClient() v10.UpstreamClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUpstreamClient")
@@ -127,13 +127,13 @@ func (m *MockClientCache) GetUpstreamClient() v10.UpstreamClient {
 	return ret0
 }
 
-// GetUpstreamClient indicates an expected call of GetUpstreamClient.
+// GetUpstreamClient indicates an expected call of GetUpstreamClient
 func (mr *MockClientCacheMockRecorder) GetUpstreamClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpstreamClient", reflect.TypeOf((*MockClientCache)(nil).GetUpstreamClient))
 }
 
-// GetUpstreamGroupClient mocks base method.
+// GetUpstreamGroupClient mocks base method
 func (m *MockClientCache) GetUpstreamGroupClient() v10.UpstreamGroupClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUpstreamGroupClient")
@@ -141,13 +141,13 @@ func (m *MockClientCache) GetUpstreamGroupClient() v10.UpstreamGroupClient {
 	return ret0
 }
 
-// GetUpstreamGroupClient indicates an expected call of GetUpstreamGroupClient.
+// GetUpstreamGroupClient indicates an expected call of GetUpstreamGroupClient
 func (mr *MockClientCacheMockRecorder) GetUpstreamGroupClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpstreamGroupClient", reflect.TypeOf((*MockClientCache)(nil).GetUpstreamGroupClient))
 }
 
-// GetVirtualServiceClient mocks base method.
+// GetVirtualServiceClient mocks base method
 func (m *MockClientCache) GetVirtualServiceClient() v1.VirtualServiceClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetVirtualServiceClient")
@@ -155,19 +155,19 @@ func (m *MockClientCache) GetVirtualServiceClient() v1.VirtualServiceClient {
 	return ret0
 }
 
-// GetVirtualServiceClient indicates an expected call of GetVirtualServiceClient.
+// GetVirtualServiceClient indicates an expected call of GetVirtualServiceClient
 func (mr *MockClientCacheMockRecorder) GetVirtualServiceClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVirtualServiceClient", reflect.TypeOf((*MockClientCache)(nil).GetVirtualServiceClient))
 }
 
-// SetCacheState mocks base method.
+// SetCacheState mocks base method
 func (m *MockClientCache) SetCacheState(arg0 v1.VirtualServiceClient, arg1 v1.GatewayClient, arg2 v10.UpstreamClient, arg3 v10.SettingsClient, arg4 v10.SecretClient, arg5 v10.ArtifactClient, arg6 v10.ProxyClient, arg7 v10.UpstreamGroupClient, arg8 v1.RouteTableClient) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetCacheState", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }
 
-// SetCacheState indicates an expected call of SetCacheState.
+// SetCacheState indicates an expected call of SetCacheState
 func (mr *MockClientCacheMockRecorder) SetCacheState(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCacheState", reflect.TypeOf((*MockClientCache)(nil).SetCacheState), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)

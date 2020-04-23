@@ -77,13 +77,12 @@ mod-download:
 
 .PHONY: update-deps
 update-deps: mod-download
-	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
-	GO111MODULE=off go get -u github.com/gogo/protobuf/gogoproto
-	GO111MODULE=off go get -u github.com/gogo/protobuf/protoc-gen-gogo
-	GO111MODULE=off go get -u github.com/solo-io/protoc-gen-ext
-	GO111MODULE=off go get -u github.com/google/wire/cmd/wire
-	GO111MODULE=off go get -u github.com/golang/mock/gomock
-	GO111MODULE=off go install github.com/golang/mock/mockgen
+	go get -v golang.org/x/tools/cmd/goimports
+	go get -v github.com/gogo/protobuf/gogoproto@v1.3.1
+	go get -v github.com/gogo/protobuf/protoc-gen-gogo@v1.3.1
+	go get -v github.com/solo-io/protoc-gen-ext@v0.0.7
+	go get -v github.com/google/wire/cmd/wire@v0.4.0
+	go get -v github.com/golang/mock/mockgen@v1.4.3
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
@@ -113,8 +112,7 @@ clean:
 #----------------------------------------------------------------------------------
 # Generated Code
 #----------------------------------------------------------------------------------
-VENDOR_FOLDER:=vendor_any
-PROTOC_IMPORT_PATH:=$(VENDOR_FOLDER)
+PROTOC_IMPORT_PATH:=vendor_any
 
 .PHONY: generate-all
 generate-all: generated-code generated-ui
@@ -126,7 +124,7 @@ generated-code:
 	GO111MODULE=on CGO_ENABLED=0 go generate ./...
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
-	mkdir -p $(OUTPUT_DIR)
+	go mod tidy
 
 # Flags for all UI code generation
 COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
@@ -328,26 +326,23 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
 $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
-	GO111MODULE=on go mod vendor
 	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg GITHUB_TOKEN \
 		.
-	rm -rf vendor
 	touch $@
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	GO111MODULE=on go mod vendor
 	docker create -ti --name extauth-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-amd64 $(OUTPUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	GO111MODULE=on go mod vendor
 	docker create -ti --name verify-plugins-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
@@ -359,20 +354,18 @@ extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-am
 # Build ext-auth-plugins docker image
 .PHONY: auth-plugins
 auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
-	GO111MODULE=on go mod vendor
 	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
+		--build-arg GITHUB_TOKEN \
 		.
-	rm -rf vendor
 
 # Build extauth server docker image
 .PHONY: extauth-docker
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
 $(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	GO111MODULE=on go mod vendor
 	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 	touch $@
 

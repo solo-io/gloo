@@ -10,30 +10,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockTemplateGenerator is a mock of TemplateGenerator interface.
+// MockTemplateGenerator is a mock of TemplateGenerator interface
 type MockTemplateGenerator struct {
 	ctrl     *gomock.Controller
 	recorder *MockTemplateGeneratorMockRecorder
 }
 
-// MockTemplateGeneratorMockRecorder is the mock recorder for MockTemplateGenerator.
+// MockTemplateGeneratorMockRecorder is the mock recorder for MockTemplateGenerator
 type MockTemplateGeneratorMockRecorder struct {
 	mock *MockTemplateGenerator
 }
 
-// NewMockTemplateGenerator creates a new mock instance.
+// NewMockTemplateGenerator creates a new mock instance
 func NewMockTemplateGenerator(ctrl *gomock.Controller) *MockTemplateGenerator {
 	mock := &MockTemplateGenerator{ctrl: ctrl}
 	mock.recorder = &MockTemplateGeneratorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockTemplateGenerator) EXPECT() *MockTemplateGeneratorMockRecorder {
 	return m.recorder
 }
 
-// GenerateDashboard mocks base method.
+// GenerateDashboard mocks base method
 func (m *MockTemplateGenerator) GenerateDashboard() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateDashboard")
@@ -42,13 +42,13 @@ func (m *MockTemplateGenerator) GenerateDashboard() ([]byte, error) {
 	return ret0, ret1
 }
 
-// GenerateDashboard indicates an expected call of GenerateDashboard.
+// GenerateDashboard indicates an expected call of GenerateDashboard
 func (mr *MockTemplateGeneratorMockRecorder) GenerateDashboard() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDashboard", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateDashboard))
 }
 
-// GenerateSnapshot mocks base method.
+// GenerateSnapshot mocks base method
 func (m *MockTemplateGenerator) GenerateSnapshot() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateSnapshot")
@@ -57,13 +57,13 @@ func (m *MockTemplateGenerator) GenerateSnapshot() ([]byte, error) {
 	return ret0, ret1
 }
 
-// GenerateSnapshot indicates an expected call of GenerateSnapshot.
+// GenerateSnapshot indicates an expected call of GenerateSnapshot
 func (mr *MockTemplateGeneratorMockRecorder) GenerateSnapshot() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSnapshot", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateSnapshot))
 }
 
-// GenerateUid mocks base method.
+// GenerateUid mocks base method
 func (m *MockTemplateGenerator) GenerateUid() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateUid")
@@ -71,7 +71,7 @@ func (m *MockTemplateGenerator) GenerateUid() string {
 	return ret0
 }
 
-// GenerateUid indicates an expected call of GenerateUid.
+// GenerateUid indicates an expected call of GenerateUid
 func (mr *MockTemplateGeneratorMockRecorder) GenerateUid() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateUid", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateUid))
