@@ -47,7 +47,7 @@ require (
 	go.uber.org/zap v1.13.0
 	golang.org/x/mod v0.2.0
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
-	golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 // indirect
+	golang.org/x/tools v0.0.0-20200423205358-59e73619c742 // indirect
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d
 	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2
 	gopkg.in/square/go-jose.v2 v2.3.1
