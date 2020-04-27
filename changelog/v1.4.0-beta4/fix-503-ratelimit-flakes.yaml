@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Fix 503 ratelimit flakes that were caused by invalid parsing of durations, thus the timeouts were (sometimes) too
+      short at 1 second rather than the written/intended 5 seconds.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1702

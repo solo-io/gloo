@@ -8,32 +8,27 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-projects/test/v1helpers"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	rlservice "github.com/solo-io/rate-limiter/pkg/service"
-
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	rlservice "github.com/solo-io/rate-limiter/pkg/service"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
-	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	"github.com/solo-io/solo-projects/test/services"
 	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
+	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
 var _ = Describe("Rate Limit", func() {
@@ -195,7 +190,9 @@ var _ = Describe("Rate Limit", func() {
 					}, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
-					testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
+					_, err = testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
 					ref := extauthserver.Metadata.Ref()
 					extauthSettings := &extauthpb.Settings{
 						ExtauthzServerRef: &ref,
@@ -378,7 +375,9 @@ var _ = Describe("Rate Limit", func() {
 			},
 		}
 
-		testClients.UpstreamClient.Write(rlserver, clients.WriteOpts{})
+		_, err := testClients.UpstreamClient.Write(rlserver, clients.WriteOpts{})
+		Expect(err).ToNot(HaveOccurred())
+
 		ref := rlserver.Metadata.Ref()
 		rlSettings := &ratelimit.Settings{
 			RatelimitServerRef: &ref,
@@ -477,7 +476,7 @@ func EventuallyOk(hostname string, port uint32) {
 			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
 		}
 		return nil
-	}, "5s", ".1s").Should(BeNil())
+	}, 5*time.Second, 1*time.Second).Should(BeNil())
 }
 
 func ConsistentlyNotRateLimited(hostname string, port uint32) {
@@ -490,7 +489,7 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
 		}
 		return nil
-	}, "5s", ".1s").Should(BeNil())
+	}, 5*time.Second, 1*time.Second).Should(BeNil())
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
