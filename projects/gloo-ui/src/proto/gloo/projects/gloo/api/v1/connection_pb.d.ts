@@ -22,6 +22,11 @@ export class ConnectionConfig extends jspb.Message {
   getTcpKeepalive(): ConnectionConfig.TcpKeepAlive | undefined;
   setTcpKeepalive(value?: ConnectionConfig.TcpKeepAlive): void;
 
+  hasPerConnectionBufferLimitBytes(): boolean;
+  clearPerConnectionBufferLimitBytes(): void;
+  getPerConnectionBufferLimitBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setPerConnectionBufferLimitBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConnectionConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ConnectionConfig): ConnectionConfig.AsObject;
@@ -37,6 +42,7 @@ export namespace ConnectionConfig {
     maxRequestsPerConnection: number,
     connectTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     tcpKeepalive?: ConnectionConfig.TcpKeepAlive.AsObject,
+    perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 
   export class TcpKeepAlive extends jspb.Message {

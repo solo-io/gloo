@@ -67,7 +67,8 @@ proto.gloo.solo.io.ConnectionConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     maxRequestsPerConnection: jspb.Message.getFieldWithDefault(msg, 1, 0),
     connectTimeout: (f = msg.getConnectTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    tcpKeepalive: (f = msg.getTcpKeepalive()) && proto.gloo.solo.io.ConnectionConfig.TcpKeepAlive.toObject(includeInstance, f)
+    tcpKeepalive: (f = msg.getTcpKeepalive()) && proto.gloo.solo.io.ConnectionConfig.TcpKeepAlive.toObject(includeInstance, f),
+    perConnectionBufferLimitBytes: (f = msg.getPerConnectionBufferLimitBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -117,6 +118,11 @@ proto.gloo.solo.io.ConnectionConfig.deserializeBinaryFromReader = function(msg, 
       var value = new proto.gloo.solo.io.ConnectionConfig.TcpKeepAlive;
       reader.readMessage(value,proto.gloo.solo.io.ConnectionConfig.TcpKeepAlive.deserializeBinaryFromReader);
       msg.setTcpKeepalive(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setPerConnectionBufferLimitBytes(value);
       break;
     default:
       reader.skipField();
@@ -168,6 +174,14 @@ proto.gloo.solo.io.ConnectionConfig.serializeBinaryToWriter = function(message, 
       3,
       f,
       proto.gloo.solo.io.ConnectionConfig.TcpKeepAlive.serializeBinaryToWriter
+    );
+  }
+  f = message.getPerConnectionBufferLimitBytes();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
 };
@@ -475,6 +489,36 @@ proto.gloo.solo.io.ConnectionConfig.prototype.clearTcpKeepalive = function() {
  */
 proto.gloo.solo.io.ConnectionConfig.prototype.hasTcpKeepalive = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value per_connection_buffer_limit_bytes = 4;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.gloo.solo.io.ConnectionConfig.prototype.getPerConnectionBufferLimitBytes = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 4));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.gloo.solo.io.ConnectionConfig.prototype.setPerConnectionBufferLimitBytes = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.gloo.solo.io.ConnectionConfig.prototype.clearPerConnectionBufferLimitBytes = function() {
+  this.setPerConnectionBufferLimitBytes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.ConnectionConfig.prototype.hasPerConnectionBufferLimitBytes = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
