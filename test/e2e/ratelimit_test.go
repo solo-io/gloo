@@ -148,9 +148,6 @@ var _ = Describe("Rate Limit", func() {
 				rls := rlService
 				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
 
-				// waiting for envoy to start, so that consistently works
-				EventuallyOk("host1", envoyPort)
-
 				ConsistentlyNotRateLimited("host1", envoyPort)
 				EventuallyRateLimited("host2", envoyPort)
 			})
@@ -310,7 +307,6 @@ var _ = Describe("Rate Limit", func() {
 
 					// weighted rule has generous limit that will not be hit, however its larger weight trumps
 					// the previous rule (that returned 429 before). we do not expect this to rate limit anymore
-					EventuallyOk("host1", envoyPort)
 					ConsistentlyNotRateLimited("host1", envoyPort)
 				})
 
@@ -329,7 +325,6 @@ var _ = Describe("Rate Limit", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
-					EventuallyOk("host1", envoyPort)
 					ConsistentlyNotRateLimited("host1", envoyPort)
 
 					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
@@ -467,6 +462,10 @@ var _ = Describe("Rate Limit", func() {
 })
 
 func EventuallyOk(hostname string, port uint32) {
+	// wait for two seconds so gloo race can be waited out
+	// it's possible gloo upstreams hit after the proxy does
+	// (gloo resyncs once per second)
+	time.Sleep(2 * time.Second)
 	EventuallyWithOffset(1, func() error {
 		res, err := get(hostname, port)
 		if err != nil {
@@ -476,10 +475,13 @@ func EventuallyOk(hostname string, port uint32) {
 			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
 		}
 		return nil
-	}, 5*time.Second, 1*time.Second).Should(BeNil())
+	}, "5s", ".1s").Should(BeNil())
 }
 
 func ConsistentlyNotRateLimited(hostname string, port uint32) {
+	// waiting for envoy to start, so that consistently works
+	EventuallyOk(hostname, port)
+
 	ConsistentlyWithOffset(2, func() error {
 		res, err := get(hostname, port)
 		if err != nil {
@@ -489,7 +491,7 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
 		}
 		return nil
-	}, 5*time.Second, 1*time.Second).Should(BeNil())
+	}, "5s", ".1s").Should(BeNil())
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
