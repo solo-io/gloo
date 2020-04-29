@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Attempt to fix `docker kill` flakes in CI by increasing the timeout (as CPU-restrictions have proven to
+      drastically slow test completion) and stop using the `a` flag with `docker ps` invocations to check container
+      termination.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1701
+    resolvesIssue: false

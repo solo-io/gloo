@@ -454,7 +454,7 @@ var _ = Describe("Rate Limit", func() {
 
 		AfterEach(func() {
 			cancel()
-			services.MustStopContainer(services.DynamoDbContainerName)
+			services.MustKillContainer(services.DynamoDbContainerName)
 		})
 
 		runAllTests()
@@ -462,10 +462,10 @@ var _ = Describe("Rate Limit", func() {
 })
 
 func EventuallyOk(hostname string, port uint32) {
-	// wait for two seconds so gloo race can be waited out
+	// wait for three seconds so gloo race can be waited out
 	// it's possible gloo upstreams hit after the proxy does
 	// (gloo resyncs once per second)
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 	EventuallyWithOffset(1, func() error {
 		res, err := get(hostname, port)
 		if err != nil {

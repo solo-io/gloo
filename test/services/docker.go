@@ -34,7 +34,7 @@ func RunContainer(containerName string, args []string) error {
 // Returns an empty string if the container does not exist
 func ContainerExistsWithName(containerName string) string {
 	updatedContainerName := getUpdatedContainerName(containerName)
-	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+updatedContainerName+"$")
+	cmd := exec.Command("docker", "ps", "-q", "-f", "name=^/"+updatedContainerName+"$")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cmd.Run() [%s %s] failed with %s\n", cmd.Path, cmd.Args, err)
@@ -42,13 +42,16 @@ func ContainerExistsWithName(containerName string) string {
 	return string(out)
 }
 
-func MustStopContainer(containerName string) {
-	err := StopContainer(containerName)
+func MustKillContainer(containerName string) {
+	err := KillContainer(containerName)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(ContainerExistsWithName(containerName), "10s", "1s").Should(BeEmpty())
+	// CI host may be extremely CPU-bound as it's often building test assets in tandem with other tests,
+	// as well as other CI builds running in parallel. When that happens, the tests can run much slower,
+	// thus they need a longer timeout. see https://github.com/solo-io/solo-projects/issues/1701#issuecomment-620873754
+	Eventually(ContainerExistsWithName(containerName), "30s", "2s").Should(BeEmpty())
 }
 
-func StopContainer(containerName string) error {
+func KillContainer(containerName string) error {
 	updatedContainerName := getUpdatedContainerName(containerName)
 	cmd := exec.Command("docker", "kill", updatedContainerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
