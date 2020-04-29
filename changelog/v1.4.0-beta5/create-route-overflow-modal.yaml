@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: When zoomed in, the create route button was not accessbile in the create route modal in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1968

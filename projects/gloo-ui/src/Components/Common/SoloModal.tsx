@@ -13,14 +13,13 @@ const ModalWindow = styled.div`
   justify-content: center;
   align-content: center;
   background: rgba(0, 0, 0, 0.1);
-  /* overflow: auto; */
   line-height: 19px;
   z-index: 100;
 `;
 
 const BlockHolder = styled.div`
-  max-height: 80vh;
-  height: 60vh;
+  max-height: 90vh;
+  overflow: scroll;
 `;
 
 type ModalBlockProps = {
