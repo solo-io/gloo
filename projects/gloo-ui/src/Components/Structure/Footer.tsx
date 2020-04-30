@@ -40,7 +40,7 @@ export const Footer = () => {
   return (
     <FooterContainer>
       <Copyright>
-        © 2019 solo.io, Inc. All Rights Reserved. |{' '}
+        © 2020 solo.io, Inc. All Rights Reserved. |{' '}
         <PrivacyPolicyContainer
           href='https://www.solo.io/privacy-policy'
           target='_blank'>
