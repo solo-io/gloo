@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Allow adjusting proxy latency measurement to happen before a connection to the upstream is 
+      established. This allows measuring the latency of the filter chain alone.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1660

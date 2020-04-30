@@ -64,6 +64,7 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.toObject =
 proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.toObject = function(includeInstance, msg) {
   var f, obj = {
     request: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    measureRequestInternally: jspb.Message.getFieldWithDefault(msg, 5, false),
     response: jspb.Message.getFieldWithDefault(msg, 2, 0),
     chargeClusterStat: (f = msg.getChargeClusterStat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     chargeListenerStat: (f = msg.getChargeListenerStat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
@@ -106,6 +107,10 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.deserializeBinaryFro
     case 1:
       var value = /** @type {!proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.Measurement} */ (reader.readEnum());
       msg.setRequest(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setMeasureRequestInternally(value);
       break;
     case 2:
       var value = /** @type {!proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.Measurement} */ (reader.readEnum());
@@ -157,6 +162,13 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.serializeBinaryToWri
       f
     );
   }
+  f = message.getMeasureRequestInternally();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
+    );
+  }
   f = message.getResponse();
   if (f !== 0.0) {
     writer.writeEnum(
@@ -205,6 +217,23 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.getRequest
 /** @param {!proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.Measurement} value */
 proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.setRequest = function(value) {
   jspb.Message.setProto3EnumField(this, 1, value);
+};
+
+
+/**
+ * optional bool measure_request_internally = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.getMeasureRequestInternally = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.setMeasureRequestInternally = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

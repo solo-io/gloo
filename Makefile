@@ -19,7 +19,7 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo-ee:1.4.3
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo-ee:1.4.4
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'

@@ -454,7 +454,7 @@ var _ = Describe("Rate Limit", func() {
 
 		AfterEach(func() {
 			cancel()
-			services.MustKillContainer(services.DynamoDbContainerName)
+			services.MustKillAndRemoveContainer(services.DynamoDbContainerName)
 		})
 
 		runAllTests()

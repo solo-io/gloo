@@ -290,7 +290,7 @@ func (ei *EnvoyInstance) Clean() error {
 	}
 
 	if ei.useDocker {
-		if err := KillContainer(containerName); err != nil {
+		if err := KillAndRemoveContainer(containerName); err != nil {
 			return err
 		}
 	}

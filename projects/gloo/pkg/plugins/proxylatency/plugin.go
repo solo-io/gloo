@@ -10,9 +10,8 @@ const (
 )
 
 var (
-	// stage doesn't matter as this is an access log filter and not an
-	// http filter.
-	FilterStage = plugins.BeforeStage(plugins.RouteStage)
+	// This filter must be last as it is used to measure latency of all the other filters.
+	FilterStage = plugins.AfterStage(plugins.RouteStage)
 )
 
 type Plugin struct {

@@ -34,7 +34,7 @@ func RunContainer(containerName string, args []string) error {
 // Returns an empty string if the container does not exist
 func ContainerExistsWithName(containerName string) string {
 	updatedContainerName := getUpdatedContainerName(containerName)
-	cmd := exec.Command("docker", "ps", "-q", "-f", "name=^/"+updatedContainerName+"$")
+	cmd := exec.Command("docker", "ps", "-aq", "-f", "name=^/"+updatedContainerName+"$")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("cmd.Run() [%s %s] failed with %s\n", cmd.Path, cmd.Args, err)
@@ -42,8 +42,8 @@ func ContainerExistsWithName(containerName string) string {
 	return string(out)
 }
 
-func MustKillContainer(containerName string) {
-	err := KillContainer(containerName)
+func MustKillAndRemoveContainer(containerName string) {
+	err := KillAndRemoveContainer(containerName)
 	Expect(err).ToNot(HaveOccurred())
 	// CI host may be extremely CPU-bound as it's often building test assets in tandem with other tests,
 	// as well as other CI builds running in parallel. When that happens, the tests can run much slower,
@@ -51,14 +51,14 @@ func MustKillContainer(containerName string) {
 	Eventually(ContainerExistsWithName(containerName), "30s", "2s").Should(BeEmpty())
 }
 
-func KillContainer(containerName string) error {
+func KillAndRemoveContainer(containerName string) error {
 	updatedContainerName := getUpdatedContainerName(containerName)
-	cmd := exec.Command("docker", "kill", updatedContainerName)
+	cmd := exec.Command("docker", "rm", "-f", updatedContainerName)
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
 	err := cmd.Run()
 	if err != nil {
-		return errors.Wrap(err, "Error stopping container "+containerName)
+		return errors.Wrap(err, "Error stopping and removing container "+containerName)
 	}
 	return nil
 }

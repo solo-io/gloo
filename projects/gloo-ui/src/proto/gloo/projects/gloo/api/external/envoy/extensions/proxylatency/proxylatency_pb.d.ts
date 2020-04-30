@@ -10,6 +10,9 @@ export class ProxyLatency extends jspb.Message {
   getRequest(): ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap];
   setRequest(value: ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap]): void;
 
+  getMeasureRequestInternally(): boolean;
+  setMeasureRequestInternally(value: boolean): void;
+
   getResponse(): ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap];
   setResponse(value: ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap]): void;
 
@@ -36,6 +39,7 @@ export class ProxyLatency extends jspb.Message {
 export namespace ProxyLatency {
   export type AsObject = {
     request: ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap],
+    measureRequestInternally: boolean,
     response: ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap],
     chargeClusterStat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     chargeListenerStat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
