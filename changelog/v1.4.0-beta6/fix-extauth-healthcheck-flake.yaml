@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/1715
+    description: Fix extauth healthcheck flake by waiting for the extauth server to start before doing the first healthcheck.

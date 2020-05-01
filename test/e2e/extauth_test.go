@@ -653,11 +653,15 @@ var _ = Describe("External auth", func() {
 			Expect(err).To(BeNil())
 			defer conn.Close()
 			healthCheckClient := grpc_health_v1.NewHealthClient(conn)
-			resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-				Service: settings.ServiceName,
-			})
-			Expect(err).To(BeNil())
-			Expect(resp.Status).To(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+			Eventually(func() bool { // Wait for the extauth server to start up
+				resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+					Service: settings.ServiceName,
+				})
+				if err != nil {
+					return false
+				}
+				return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
+			}, "5s", ".1s").Should(BeTrue())
 
 			// Start sending health checking requests continuously
 			waitForHealthcheck := make(chan struct{})
