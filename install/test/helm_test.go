@@ -986,10 +986,10 @@ spec:
 				}).ExpectAll(func(job *unstructured.Unstructured) {
 					jobObject, err := kuberesource.ConvertUnstructured(job)
 					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Job %+v should be able to convert from unstructured", job))
-					structuredDeployment, ok := jobObject.(*jobsv1.Job)
+					structuredJob, ok := jobObject.(*jobsv1.Job)
 					Expect(ok).To(BeTrue(), fmt.Sprintf("Job %+v should be able to cast to a structured job", job))
 
-					if structuredDeployment.GetName() == "gloo-mtls-certgen" {
+					if structuredJob.GetName() == "gloo-mtls-certgen" {
 						foundGlooMtlsCertgenJob = true
 					}
 				})
@@ -1052,6 +1052,28 @@ spec:
 					if structuredConfigMap.GetName() == "gateway-proxy-envoy-config" {
 						expectedGlooMtlsListener := "    - name: gloo_xds_mtls_listener"
 						Expect(structuredConfigMap.Data["envoy.yaml"]).To(ContainSubstring(expectedGlooMtlsListener))
+					}
+				})
+			})
+
+			It("should allow extauth service to handle TLS itself", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.extAuth.tlsEnabled=true,global.extensions.extAuth.certPath=/path/to/custom/cert.crt,global.extensions.extAuth.keyPath=/path/to/custom/key.key"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					if structuredDeployment.GetName() == "extauth" {
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "TLS_ENABLED", Value: "true"}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "CERT_PATH", Value: "/path/to/custom/cert.crt"}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "KEY_PATH", Value: "/path/to/custom/key.key"}))
 					}
 				})
 			})

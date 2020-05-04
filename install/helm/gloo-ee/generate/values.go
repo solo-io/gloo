@@ -106,6 +106,9 @@ type ExtAuth struct {
 	Deployment           *ExtAuthDeployment        `json:"deployment,omitempty"`
 	Service              *ExtAuthService           `json:"service,omitempty"`
 	SigningKey           *ExtAuthSigningKey        `json:"signingKey,omitempty"`
+	TlsEnabled           bool                      `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
+	CertPath             string                    `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
+	KeyPath              string                    `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
 	Plugins              map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
 	EnvoySidecar         bool                      `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
 	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`

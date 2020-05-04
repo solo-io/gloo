@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      The extauth service now supports tls connections to the extauth service itself rather than through an envoy
+      sidecar that handles tls termination. To enable extauth tls mode, set `TLS_ENABLED` to true in the extauth
+      service. This can be configured by setting the helm value `global.extensions.extAuth.tlsEnabled` to `true`. When
+      enabled, the extauth service looks for tls cert files at `/etc/envoy/ssl/tls.crt` and tls key files at
+      `/etc/envoy/ssl/tls.key`, which are configurable by the `CERT_PATH` and `KEY_PATH` environment variables,
+      respectively.
+    issueLink: https://github.com/solo-io/gloo/issues/2929

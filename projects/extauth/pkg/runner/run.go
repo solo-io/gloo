@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os"
@@ -42,10 +43,10 @@ func init() {
 }
 
 func Run() {
-	clientSettings := NewSettings()
+	settings := NewSettings()
 	ctx := context.Background()
 
-	err := RunWithSettings(ctx, clientSettings)
+	err := RunWithSettings(ctx, settings)
 
 	if err != nil {
 		if ctx.Err() == nil {
@@ -55,17 +56,17 @@ func Run() {
 	}
 }
 
-func RunWithSettings(ctx context.Context, clientSettings Settings) error {
+func RunWithSettings(ctx context.Context, settings Settings) error {
 	ctx = contextutils.WithLogger(ctx, "extauth")
 
-	err := StartExtAuth(ctx, clientSettings, extauth.NewServer())
+	err := StartExtAuth(ctx, settings, extauth.NewServer())
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 	return err
 }
 
-func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth.Server) error {
+func StartExtAuth(ctx context.Context, settings Settings, service *extauth.Server) error {
 	logger := contextutils.LoggerFrom(ctx)
 	callerCtx, cancel := context.WithCancel(ctx) // do not use callerCtx anywhere outside of the interceptors
 
@@ -75,31 +76,45 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 		healthchecker.GrpcUnaryServerHealthCheckerInterceptor(callerCtx, madeHealthCheckFail)))
 
 	pb.RegisterAuthorizationServer(srv, service)
-	hc := healthchecker.NewGrpc(clientSettings.ServiceName, health.NewServer())
+	hc := healthchecker.NewGrpc(settings.ServiceName, health.NewServer())
 	healthpb.RegisterHealthServer(srv, hc.GetServer())
 	reflection.Register(srv)
 
 	logger.Infow("Starting ext-auth server")
 
-	err := StartExtAuthWithGrpcServer(ctx, clientSettings, service)
+	err := StartExtAuthWithGrpcServer(ctx, settings, service)
 	if err != nil {
 		logger.Error("Failed to start ext-auth server: %v", err)
 		return err
 	}
 
-	var addr, runMode, network string
-	if clientSettings.ServerUDSAddr != "" {
-		addr = clientSettings.ServerUDSAddr
+	var addr, runMode, network, tlsMode string
+	if settings.ServerUDSAddr != "" {
+		addr = settings.ServerUDSAddr
 		runMode = "unixDomainSocket"
 		network = "unix"
 	} else {
-		addr = fmt.Sprintf(":%d", clientSettings.ServerPort)
+		addr = fmt.Sprintf(":%d", settings.ServerPort)
 		runMode = "gRPC"
 		network = "tcp"
 	}
 
-	logger.Infof("extauth server running in [%s] mode, listening at [%s]", runMode, addr)
-	lis, err := net.Listen(network, addr)
+	var lis net.Listener
+	if settings.TlsEnabled {
+		tlsMode = "secure"
+		keyPair, err := tls.LoadX509KeyPair(settings.CertPath, settings.KeyPath)
+		if err != nil {
+			return err
+		}
+		cfg := &tls.Config{Certificates: []tls.Certificate{keyPair}}
+		lis, err = tls.Listen(network, addr, cfg)
+	} else {
+		tlsMode = "insecure"
+		lis, err = net.Listen(network, addr)
+	}
+
+	logger.Infof("extauth server running in [%s] [%s] mode, listening at [%s]", tlsMode, runMode, addr)
+
 	if err != nil {
 		logger.Errorw("Failed to announce on network", zap.Any("mode", runMode), zap.Any("address", addr), zap.Error(err))
 		return err
@@ -128,7 +143,7 @@ func StartExtAuth(ctx context.Context, clientSettings Settings, service *extauth
 	return srv.Serve(lis)
 }
 
-func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, service extauthconfig.ConfigMutator) error {
+func StartExtAuthWithGrpcServer(ctx context.Context, settings Settings, service extauthconfig.ConfigMutator) error {
 	var nodeInfo core.Node
 	var err error
 	nodeInfo.Id, err = os.Hostname()
@@ -148,17 +163,17 @@ func StartExtAuthWithGrpcServer(ctx context.Context, clientSettings Settings, se
 		},
 	}
 
-	go clientLoop(ctx, clientSettings, nodeInfo, service)
+	go clientLoop(ctx, settings, nodeInfo, service)
 	return nil
 }
 
-func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node, service extauthconfig.ConfigMutator) {
+func clientLoop(ctx context.Context, settings Settings, nodeInfo core.Node, service extauthconfig.ConfigMutator) {
 
 	generator := config.NewGenerator(
 		ctx,
-		[]byte(clientSettings.SigningKey),
-		clientSettings.UserIdHeader,
-		plugins.NewPluginLoader(clientSettings.PluginDirectory),
+		[]byte(settings.SigningKey),
+		settings.UserIdHeader,
+		plugins.NewPluginLoader(settings.PluginDirectory),
 	)
 
 	_ = contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
@@ -182,7 +197,7 @@ func clientLoop(ctx context.Context, clientSettings Settings, nodeInfo core.Node
 
 		// We are using non secure gRPC to Gloo with the assumption that it will be
 		// secured by envoy. if this assumption is not correct this needs to change.
-		conn, err := grpc.DialContext(ctx, clientSettings.GlooAddress, grpc.WithInsecure())
+		conn, err := grpc.DialContext(ctx, settings.GlooAddress, grpc.WithInsecure())
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Errorw("failed to create gRPC client connection to Gloo", zap.Any("error", err))
 			return err

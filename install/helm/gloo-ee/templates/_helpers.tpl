@@ -124,6 +124,18 @@ Expand the name of the chart.
     - name: START_STATS_SERVER
       value: "true"
     {{- end}}
+    {{- if $extAuth.tlsEnabled }}
+    - name: TLS_ENABLED
+      value: "true"
+    {{- end}}
+    {{- if $extAuth.certPath }}
+    - name: CERT_PATH
+      value: {{ $extAuth.certPath }}
+    {{- end}}
+    {{- if $extAuth.keyPath }}
+    - name: KEY_PATH
+      value: {{ $extAuth.keyPath }}
+    {{- end}}
   {{- if ne $extAuthMode "sidecar" }}
   readinessProbe:
     exec:
