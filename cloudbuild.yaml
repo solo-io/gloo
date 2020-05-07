@@ -59,20 +59,8 @@ steps:
   waitFor: ["-"]
   id: "untar-mod-cache"
 
-# Run some basic checks on the repo
-# 1) check formatting of go files
-# 2) ensure that make generated-code produces a clean diff
-
 # e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-  dir: &dir "/workspace/solo-projects"
-  args: ["check-format"]
-  waitFor: ["prepare-workspace"]
-  id: "check-format"
-
 - name: node:12.13.1
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
@@ -83,21 +71,11 @@ steps:
   waitFor: ["prepare-workspace"]
   id: "yarn-install"
 
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
-  entrypoint: "bash"
-  args: ["ci/check-code-gen.sh"]
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "TAGGED_VERSION=$TAG_NAME"
-  dir: *dir
-  waitFor: ["prepare-workspace", "yarn-install"]
-  id: "check-code-gen"
-
 - name: "gcr.io/cloud-builders/yarn"
   secretEnv: ["NPM_TOKEN"]
   args: ["build"]
   dir: "/workspace/solo-projects/projects/gloo-ui"
-  waitFor: ["yarn-install", "check-code-gen"]
+  waitFor: ["yarn-install"]
   id: "yarn-build"
 
 # Helm related setup
@@ -106,7 +84,7 @@ steps:
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "TAGGED_VERSION=$TAG_NAME"
-  dir: *dir
+  dir: &dir "/workspace/solo-projects"
   id: "fetch-helm"
 
 # Setup and run e2es
@@ -172,7 +150,6 @@ steps:
       "get-envoy",
       "setup-aws-creds",
       "fetch-helm",
-      "check-code-gen",
       "get-test-credentials",
     ]
   id: "test"
