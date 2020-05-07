@@ -140,7 +140,9 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 
 		newParentKey := parentKey + finalKey
 		if _, present := this.descriptors[finalKey]; present {
-			return fmt.Errorf("duplicate descriptor composite key '%s'", newParentKey)
+			err := fmt.Errorf("duplicate descriptor composite key '%s'", newParentKey)
+			logger.Debugw(err.Error(), zap.Error(err), zap.String("newParentKey", newParentKey))
+			return err
 		}
 
 		var rateLimit *config.RateLimit = nil
@@ -149,7 +151,9 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 			value, present :=
 				pb_rls.RateLimitResponse_RateLimit_Unit_value[solorl.RateLimit_Unit_name[int32(descriptorConfig.RateLimit.Unit)]]
 			if !present || value == int32(pb_rls.RateLimitResponse_RateLimit_UNKNOWN) {
-				return fmt.Errorf("invalid rate limit unit '%s'", descriptorConfig.RateLimit.Unit)
+				err := fmt.Errorf("invalid rate limit unit '%s'", descriptorConfig.RateLimit.Unit)
+				logger.Debugw(err.Error(), zap.Error(err), zap.String("unit", descriptorConfig.RateLimit.Unit.String()))
+				return err
 			}
 
 			rateLimit = NewRateLimit(
@@ -206,8 +210,7 @@ func (this *rateLimitConfigGenerator) GenerateConfig(configs []*glooee.RateLimit
 }
 
 func (this *rateLimitConfigGenerator) makeConfig(rc *glooee.RateLimitConfig) (*rateLimitDomain, error) {
-
 	newDomain := &rateLimitDomain{rateLimitDescriptor{map[string]*rateLimitDescriptor{}, nil, 0, false}}
-	newDomain.loadDescriptors(this.logger, rc.Domain, rc.Descriptors)
-	return newDomain, nil
+	err := newDomain.loadDescriptors(this.logger, rc.Domain, rc.Descriptors)
+	return newDomain, err
 }

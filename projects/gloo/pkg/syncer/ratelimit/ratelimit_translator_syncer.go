@@ -5,8 +5,13 @@ import (
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
+	rlPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/go-utils/hashutils"
+	configproto "github.com/solo-io/solo-projects/projects/rate-limit/pkg/config"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 
 	"github.com/mitchellh/hashstructure"
@@ -14,12 +19,28 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	rlCustomPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	rlIngressPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
+
+var (
+	rlConnectedStateDescription = "0 indicates gloo detected an error with the rate limit config and did not update its XDS snapshot, check the gloo logs for errors"
+	rlConnectedState            = stats.Int64("glooe.ratelimit/connected_state", rlConnectedStateDescription, "1")
+
+	rlConnectedStateView = &view.View{
+		Name:        "glooe.ratelimit/connected_state",
+		Measure:     rlConnectedState,
+		Description: rlConnectedStateDescription,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	_ = view.Register(rlConnectedStateView)
+}
 
 type RateLimitTranslatorSyncerExtension struct {
 	settings *ratelimit.ServiceSettings
@@ -50,12 +71,11 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end sync %v", snapHash)
 
-	var customrl *v1.RateLimitConfig
+	customrl := &v1.RateLimitConfig{
+		Domain: rlPlugin.CustomDomain,
+	}
 	if s.settings.GetDescriptors() != nil {
-		customrl = &v1.RateLimitConfig{
-			Domain:      rlCustomPlugin.CustomDomain,
-			Descriptors: s.settings.Descriptors,
-		}
+		customrl.Descriptors = s.settings.GetDescriptors()
 	}
 
 	rl := &v1.RateLimitConfig{
@@ -81,7 +101,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 
 				vhostConstraint, err := rlIngressPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
 				if err != nil {
-					return RateLimitServerRole, err
+					return syncerError(ctx, err)
 				}
 				rl.Descriptors = append(rl.Descriptors, vhostConstraint)
 			}
@@ -89,22 +109,32 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 	}
 
 	// TODO(yuval-k): we should make sure that we add the proxy name and listener name to the descriptors
-	var resources []envoycache.Resource
-
-	resource := v1.NewRateLimitConfigXdsResourceWrapper(rl)
-	resources = append(resources, resource)
-	if customrl != nil {
-		resource := v1.NewRateLimitConfigXdsResourceWrapper(customrl)
-		resources = append(resources, resource)
+	resources := []envoycache.Resource{
+		v1.NewRateLimitConfigXdsResourceWrapper(customrl),
+		v1.NewRateLimitConfigXdsResourceWrapper(rl),
 	}
+
+	// Verify settings can be translated to valid RL config
+	generator := configproto.NewConfigGenerator(contextutils.LoggerFrom(ctx))
+	if _, err := generator.GenerateConfig([]*v1.RateLimitConfig{customrl, rl}); err != nil {
+		return syncerError(ctx, err)
+	}
+
 	h, err := hashstructure.Hash(resources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
-		return RateLimitServerRole, err
+		return syncerError(ctx, err)
 	}
 	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	xdsCache.SetSnapshot(RateLimitServerRole, rlsnap)
 
+	stats.Record(ctx, rlConnectedState.M(int64(1)))
+
 	// find our plugin
 	return RateLimitServerRole, nil
+}
+
+func syncerError(ctx context.Context, err error) (string, error) {
+	stats.Record(ctx, rlConnectedState.M(int64(0)))
+	return RateLimitServerRole, err
 }

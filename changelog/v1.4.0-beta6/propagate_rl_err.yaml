@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/2832
+    description: >-
+      Enterprise Gloo now publishes a stat `glooe_rate_limit_connected_state`, which is 1 if there is valid rate limit config, and 0 if there is an error.
+    resolvesIssue: false

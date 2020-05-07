@@ -58,7 +58,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		It("should work with one listener", func() {
 			snap := translate()
 			res := snap.GetResources(enterprise.RateLimitConfigType)
-			Expect(res.Items).To(HaveLen(1))
+			Expect(res.Items).To(HaveLen(2))
 		})
 
 		It("should work with two listeners", func() {
@@ -75,7 +75,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 			snap := translate()
 			res := snap.GetResources(enterprise.RateLimitConfigType)
-			Expect(res.Items).To(HaveLen(1))
+			Expect(res.Items).To(HaveLen(2))
 		})
 
 	})
