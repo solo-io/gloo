@@ -75,7 +75,8 @@ proto.waf.options.gloo.solo.io.Settings.toObject = function(includeInstance, msg
     customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 2, ""),
     coreRuleSet: (f = msg.getCoreRuleSet()) && proto.waf.options.gloo.solo.io.CoreRuleSet.toObject(includeInstance, f),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
-    gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.toObject, includeInstance)
+    gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.toObject, includeInstance),
+    auditLogging: (f = msg.getAuditLogging()) && gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -129,6 +130,11 @@ proto.waf.options.gloo.solo.io.Settings.deserializeBinaryFromReader = function(m
       var value = new gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.deserializeBinaryFromReader);
       msg.addRuleSets(value);
+      break;
+    case 5:
+      var value = new gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging;
+      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.deserializeBinaryFromReader);
+      msg.setAuditLogging(value);
       break;
     default:
       reader.skipField();
@@ -187,6 +193,14 @@ proto.waf.options.gloo.solo.io.Settings.serializeBinaryToWriter = function(messa
       4,
       f,
       gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.serializeBinaryToWriter
+    );
+  }
+  f = message.getAuditLogging();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.serializeBinaryToWriter
     );
   }
 };
@@ -282,6 +296,36 @@ proto.waf.options.gloo.solo.io.Settings.prototype.addRuleSets = function(opt_val
 
 proto.waf.options.gloo.solo.io.Settings.prototype.clearRuleSetsList = function() {
   this.setRuleSetsList([]);
+};
+
+
+/**
+ * optional envoy.config.filter.http.modsecurity.v2.AuditLogging audit_logging = 5;
+ * @return {?proto.envoy.config.filter.http.modsecurity.v2.AuditLogging}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.getAuditLogging = function() {
+  return /** @type{?proto.envoy.config.filter.http.modsecurity.v2.AuditLogging} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging, 5));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.modsecurity.v2.AuditLogging|undefined} value */
+proto.waf.options.gloo.solo.io.Settings.prototype.setAuditLogging = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.waf.options.gloo.solo.io.Settings.prototype.clearAuditLogging = function() {
+  this.setAuditLogging(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.hasAuditLogging = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

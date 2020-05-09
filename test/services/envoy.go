@@ -250,7 +250,7 @@ func (ei *EnvoyInstance) runWithPort(port uint32) error {
 		return nil
 	}
 
-	args := []string{"--config-yaml", ei.envoycfg, "--disable-hot-restart", "--log-level", "debug", "--concurrency", "1"}
+	args := []string{"--config-yaml", ei.envoycfg, "--disable-hot-restart", "--log-level", "debug", "--concurrency", "1", "--file-flush-interval-msec", "10"}
 
 	// run directly
 	cmd := exec.Command(ei.envoypath, args...)

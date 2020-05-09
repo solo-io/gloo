@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
@@ -16,6 +18,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -421,6 +424,234 @@ var _ = Describe("waf", func() {
 					}
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+		})
+
+		Context("audit logs", func() {
+			var (
+				proxy         *gloov1.Proxy
+				tmpFileFSName string
+				tmpFileDMName string
+			)
+			BeforeEach(func() {
+				tmpFile, err := ioutil.TempFile("", "envoy-access-fs-log-*.txt")
+				Expect(err).NotTo(HaveOccurred())
+				tmpFileFSName, err = filepath.Abs(tmpFile.Name())
+				tmpFile.Close()
+				Expect(err).NotTo(HaveOccurred())
+				tmpFile, err = ioutil.TempFile("", "envoy-access-dm-log-*.txt")
+				Expect(err).NotTo(HaveOccurred())
+				tmpFileDMName, err = filepath.Abs(tmpFile.Name())
+				tmpFile.Close()
+				Expect(err).NotTo(HaveOccurred())
+			})
+			AfterEach(func() {
+				if tmpFileFSName != "" {
+					os.Remove(tmpFileFSName)
+				}
+				if tmpFileDMName != "" {
+					os.Remove(tmpFileDMName)
+				}
+			})
+
+			getAccessFSLog := func() string {
+				b, err := ioutil.ReadFile(tmpFileFSName)
+				Expect(err).NotTo(HaveOccurred())
+				return string(b)
+			}
+			getAccessDMLog := func() string {
+				b, err := ioutil.ReadFile(tmpFileDMName)
+				Expect(err).NotTo(HaveOccurred())
+				return string(b)
+			}
+
+			startProxy := func(wafListenerSettings, wafVhostSettings, wafRouteSettings *waf.Settings) {
+
+				By("tmp file " + tmpFileFSName + " " + tmpFileDMName)
+
+				proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafListenerSettings, wafVhostSettings, wafRouteSettings)
+				proxy.Listeners[0].Options = &gloov1.ListenerOptions{
+					AccessLoggingService: &als.AccessLoggingService{
+						AccessLog: []*als.AccessLog{
+							{
+								OutputDestination: &als.AccessLog_FileSink{
+									FileSink: &als.FileSink{
+										Path: tmpFileFSName,
+										OutputFormat: &als.FileSink_StringFormat{
+											StringFormat: "%FILTER_STATE(io.solo.modsecurity.audit_log)%\n",
+										},
+									},
+								},
+							}, {
+								OutputDestination: &als.AccessLog_FileSink{
+									FileSink: &als.FileSink{
+										Path: tmpFileDMName,
+										OutputFormat: &als.FileSink_StringFormat{
+											StringFormat: "%DYNAMIC_METADATA(io.solo.filters.http.modsecurity:audit_log)%\n",
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(func() (core.Status, error) {
+					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+					return proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+			}
+			makeBadRequest := func() {
+				Eventually(func() (int, error) {
+					client := http.DefaultClient
+					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(&http.Request{
+						Method: http.MethodGet,
+						URL:    reqUrl,
+						Header: map[string][]string{
+							"user-agent": {"nikto"},
+						},
+					})
+					if resp == nil {
+						return 0, nil
+					}
+					return resp.StatusCode, nil
+				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
+			}
+			makeGoodRequest := func() {
+				Eventually(func() (int, error) {
+					client := http.DefaultClient
+					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(&http.Request{
+						Method: http.MethodGet,
+						URL:    reqUrl,
+					})
+					if resp == nil {
+						return 0, nil
+					}
+					return resp.StatusCode, nil
+				}, "10s", "0.5s").Should(Equal(http.StatusOK))
+			}
+
+			It("auditlog listener filter state", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_ALWAYS,
+						Location: envoywaf.AuditLogging_FILTER_STATE,
+					},
+				}, nil, nil)
+				makeBadRequest()
+				// check the logs
+				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				// nothing written to dm log
+				Expect(getAccessDMLog()).To(Equal("-\n"))
+			})
+
+			It("auditlog listener dynamic meta", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_ALWAYS,
+						Location: envoywaf.AuditLogging_DYNAMIC_METADATA,
+					},
+				}, nil, nil)
+				makeBadRequest()
+				// check the logs
+				Eventually(getAccessDMLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				// nothing written to dm log
+				Expect(getAccessFSLog()).To(Equal("-\n"))
+			})
+			It("auditlog listener fs - logs relevant", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
+						Location: envoywaf.AuditLogging_FILTER_STATE,
+					},
+				}, nil, nil)
+				makeBadRequest()
+				// check the logs
+				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				// nothing written to dm log
+				Expect(getAccessDMLog()).To(Equal("-\n"))
+			})
+			It("auditlog listener fs - not log not relevant", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
+						Location: envoywaf.AuditLogging_FILTER_STATE,
+					},
+				}, nil, nil)
+				makeGoodRequest()
+				// check the logs
+				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
+				// nothing written to dm log
+				Expect(getAccessDMLog()).To(Equal("-\n"))
+			})
+			It("auditlog listener dm - not log not relevant", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
+						Location: envoywaf.AuditLogging_DYNAMIC_METADATA,
+					},
+				}, nil, nil)
+				makeGoodRequest()
+				// nothing written to dm log
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Expect(getAccessFSLog()).To(Equal("-\n"))
+			})
+			It("auditlog listener dm - not log relevant if disabled", func() {
+				startProxy(&waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+				}, nil, nil)
+				makeBadRequest()
+				// nothing written to any logs
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Expect(getAccessFSLog()).To(Equal("-\n"))
+			})
+
+			It("auditlog vhost filter state", func() {
+				startProxy(nil, &waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_ALWAYS,
+						Location: envoywaf.AuditLogging_FILTER_STATE,
+					},
+				}, nil)
+				makeBadRequest()
+				// check the logs
+				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				// nothing written to dm log
+				Expect(getAccessDMLog()).To(Equal("-\n"))
+			})
+
+			It("auditlog route filter state", func() {
+				startProxy(nil, nil, &waf.Settings{
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					AuditLogging: &envoywaf.AuditLogging{
+						Action:   envoywaf.AuditLogging_ALWAYS,
+						Location: envoywaf.AuditLogging_FILTER_STATE,
+					},
+				})
+				makeBadRequest()
+				// check the logs
+				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				// nothing written to dm log
+				Expect(getAccessDMLog()).To(Equal("-\n"))
 			})
 
 		})

@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      We now support emitting ModSecurity WAF Audit Log in Envoy's access log.
+    issueLink: https://github.com/solo-io/gloo/issues/1525

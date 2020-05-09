@@ -24,6 +24,11 @@ export class Settings extends jspb.Message {
   setRuleSetsList(value: Array<gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet>): void;
   addRuleSets(value?: gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet, index?: number): gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet;
 
+  hasAuditLogging(): boolean;
+  clearAuditLogging(): void;
+  getAuditLogging(): gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging | undefined;
+  setAuditLogging(value?: gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -40,6 +45,7 @@ export namespace Settings {
     customInterventionMessage: string,
     coreRuleSet?: CoreRuleSet.AsObject,
     ruleSetsList: Array<gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.AsObject>,
+    auditLogging?: gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.AsObject,
   }
 }
 

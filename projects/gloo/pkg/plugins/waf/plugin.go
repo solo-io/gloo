@@ -63,6 +63,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 	perVhostCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
+		AuditLogging:              wafConfig.GetAuditLogging(),
 		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
 	}
 
@@ -88,6 +89,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	perRouteCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
+		AuditLogging:              wafConfig.GetAuditLogging(),
 		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
 	}
 
@@ -122,6 +124,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		modSecurityConfig.Disabled = true
 	} else {
 		modSecurityConfig.RuleSets = settings.GetRuleSets()
+		modSecurityConfig.AuditLogging = settings.GetAuditLogging()
 		modSecurityConfig.Disabled = settings.GetDisabled()
 		modSecurityConfig.CustomInterventionMessage = settings.GetCustomInterventionMessage()
 
