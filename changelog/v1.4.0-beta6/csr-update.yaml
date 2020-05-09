@@ -1,0 +1,5 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: SpiderLabs
+  dependencyRepo: owasp-modsecurity-crs
+  dependencyTag: v3.2.0

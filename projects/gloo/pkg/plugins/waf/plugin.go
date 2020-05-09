@@ -146,7 +146,7 @@ func getCoreRuleSet(crs *waf.CoreRuleSet) []*RuleSet {
 		return nil
 	}
 	coreRuleSet := &RuleSet{
-		Files: getCoreRuleSetFiles(),
+		Directory: crsPathPrefix,
 	}
 	coreRuleSetSettings := &RuleSet{}
 	switch additionalSettings := crs.GetCustomSettingsType().(type) {

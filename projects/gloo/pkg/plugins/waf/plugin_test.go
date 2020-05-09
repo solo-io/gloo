@@ -46,7 +46,7 @@ var _ = Describe("waf plugin", func() {
 				Expect(rs[0].RuleStr).To(Equal(rulesString))
 				Expect(rs[1].Files).To(BeNil())
 				Expect(rs[1].RuleStr).To(Equal(crsRulesString))
-				Expect(rs[2].Files).To(Equal(getCoreRuleSetFiles()))
+				Expect(rs[2].Directory).To(Equal(crsPathPrefix))
 				Expect(rs[2].RuleStr).To(Equal(""))
 			}
 
