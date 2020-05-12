@@ -1124,6 +1124,8 @@ github.com/solo-io/ext-auth-plugins v0.1.2 h1:6Ia7KG+titlg6R/uF1HlYFwZU0IHh3rg3K
 github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4tsgN8AMseGq6W/TlnU=
 github.com/solo-io/ext-auth-service v0.6.10 h1:MsiQAW1vj9gmPmbclBkcsJj83T16+tZc8y+CJgR6jPo=
 github.com/solo-io/ext-auth-service v0.6.10/go.mod h1:oA9GsVmTPbF5pNnDZ2BPinVPszKxJqknsTu+AF2uaNk=
+github.com/solo-io/ext-auth-service v0.6.11 h1:mW2tFsf3/ioMvkB4TBgQk/Ytp6w2EWSXvVyWd8KbKwk=
+github.com/solo-io/ext-auth-service v0.6.11/go.mod h1:oA9GsVmTPbF5pNnDZ2BPinVPszKxJqknsTu+AF2uaNk=
 github.com/solo-io/gloo v1.3.1/go.mod h1:08u6J9vpfFGRDsZybTQ65UX7UuJr+EBsZz++J1wtKkQ=
 github.com/solo-io/gloo v1.4.0-beta10 h1:xVmFhtv4CRXKEafLFO8BcOmkw/pBpMauSen1F5nq/TY=
 github.com/solo-io/gloo v1.4.0-beta10/go.mod h1:MogcFPq2o2hGvuREASicH+z+5pS3zDngbBvuOLJFCMo=
