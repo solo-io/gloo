@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: This fixes the queries used in the default Grafana charts. Previously, they were picking up stats from both kubernetes pods and Envoy, so that several charts displayed double the correct value.
+    issueLink: https://github.com/solo-io/gloo/issues/2919 
