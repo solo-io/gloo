@@ -78,15 +78,6 @@ steps:
   waitFor: ["yarn-install"]
   id: "yarn-build"
 
-# Helm related setup
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
-  args: ["fetch-helm"]
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "TAGGED_VERSION=$TAG_NAME"
-  dir: &dir "/workspace/solo-projects"
-  id: "fetch-helm"
-
 # Setup and run e2es
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.2.1'
   entrypoint: "bash"
@@ -96,7 +87,7 @@ steps:
       ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
       gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
       chmod +x /workspace/envoy
-  dir: *dir
+  dir: &dir "/workspace/solo-projects"
   waitFor: ['prepare-workspace']
   id: 'get-envoy'
 
@@ -148,8 +139,8 @@ steps:
     [
       "prepare-workspace",
       "get-envoy",
+      "yarn-build",
       "setup-aws-creds",
-      "fetch-helm",
       "get-test-credentials",
     ]
   id: "test"
@@ -185,7 +176,7 @@ steps:
     - "GCLOUD_PROJECT_ID=$PROJECT_ID"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
-  waitFor: ["prepare-workspace", "yarn-build", "fetch-helm"]
+  waitFor: ["prepare-workspace", "yarn-build"]
   id: "build-images"
 
   # Run regression tests
@@ -247,6 +238,7 @@ steps:
     [
       "manifest",
       "upload-github-release-assets",
+      "fetch-package-and-save-helm",
       "upload-changelog",
       "publish-dependencies",
     ]
@@ -272,15 +264,6 @@ steps:
     ]
   secretEnv: ["QUAY_IO_PASSWORD"]
   id: "docker-login-again"
-
-  # Sync helm chart data back to google storage bucket
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
-  args: ["save-helm"]
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "TAGGED_VERSION=$TAG_NAME"
-  dir: *dir
-  id: "save-helm-chart"
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key

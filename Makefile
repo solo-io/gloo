@@ -462,14 +462,18 @@ HELM_DIR := install/helm
 MANIFEST_DIR := install/manifest
 MANIFEST_FOR_RO_UI_GLOO := gloo-with-read-only-ui-release.yaml
 MANIFEST_FOR_GLOO_EE := glooe-release.yaml
+GLOOE_HELM_BUCKET := gs://gloo-ee-helm
+GLOO_OS_UI_HELM_BUCKET := gs://gloo-os-ui-helm
 
 .PHONY: manifest
-manifest: helm-template init-helm produce-manifests update-helm-chart
+manifest: helm-template init-helm produce-manifests
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
+	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
+	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
 	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 
 .PHONY: init-helm
@@ -492,30 +496,28 @@ produce-manifests: init-helm
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 	helm template gloo install/helm/gloo-os-with-ui --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
 
-update-helm-chart:
+.PHONY: fetch-package-and-save-helm
+fetch-package-and-save-helm: init-helm
 ifeq ($(RELEASE),"true")
-	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts
-	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(HELM_DIR)/gloo-ee
-	helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE)
-# same for gloo with the read-only ui
-	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)/charts
-	helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(HELM_DIR)/gloo-os-with-ui
-	helm repo index $(HELM_SYNC_DIR_RO_UI_GLOO)
+	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
+					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
+					helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(HELM_DIR)/gloo-ee >> /dev/null && \
+					helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE) --merge $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
+					gsutil -m rsync $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(GLOOE_HELM_BUCKET)/charts && \
+					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml $(GLOOE_HELM_BUCKET)/index.yaml); do \
+		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
+		sleep 2; \
+	done
+	until $$(GENERATION=$$(gsutil ls -a $(GLOO_OS_UI_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
+					gsutil cp -v $(GLOO_OS_UI_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml && \
+					helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(HELM_DIR)/gloo-os-with-ui >> /dev/null && \
+					helm repo index $(HELM_SYNC_DIR_RO_UI_GLOO) --merge $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml && \
+					gsutil -m rsync $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(GLOO_OS_UI_HELM_BUCKET)/charts && \
+					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml $(GLOO_OS_UI_HELM_BUCKET)/index.yaml); do \
+		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
+		sleep 2; \
+	done
 endif
-
-.PHONY: save-helm
-save-helm:
-ifeq ($(RELEASE),"true")
-	gsutil -m rsync -r './_output/helm' gs://gloo-ee-helm/
-	gsutil -m rsync -r './_output/helm_gloo_os_ui' gs://gloo-os-ui-helm/
-endif
-
-.PHONY: fetch-helm
-fetch-helm:
-	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
-	gsutil -m rsync -r gs://gloo-ee-helm/ './_output/helm'
-	gsutil -m rsync -r gs://gloo-os-ui-helm/ './_output/helm_gloo_os_ui'
 
 #----------------------------------------------------------------------------------
 # Release
