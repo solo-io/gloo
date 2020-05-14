@@ -286,25 +286,25 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 }
 
 func writeVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
-	virtualHostPlugins *gloov1.VirtualHostOptions, routePlugins *gloov1.RouteOptions,
+	virtualHostOptions *gloov1.VirtualHostOptions, routeOptions *gloov1.RouteOptions,
 	sslConfig *gloov1.SslConfig) {
 
 	upstreamRef := &core.ResourceRef{
 		Namespace: testHelper.InstallNamespace,
 		Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort),
 	}
-	writeCustomVirtualService(ctx, vsClient, virtualHostPlugins, routePlugins, sslConfig, upstreamRef)
+	writeCustomVirtualService(ctx, vsClient, virtualHostOptions, routeOptions, sslConfig, upstreamRef)
 }
 
 func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
-	virtualHostPlugins *gloov1.VirtualHostOptions, routePlugins *gloov1.RouteOptions,
+	virtualHostOptions *gloov1.VirtualHostOptions, routeOptions *gloov1.RouteOptions,
 	sslConfig *gloov1.SslConfig, upstreamRef *core.ResourceRef) {
 
-	if routePlugins.GetPrefixRewrite() == nil {
-		if routePlugins == nil {
-			routePlugins = &gloov1.RouteOptions{}
+	if routeOptions.GetPrefixRewrite() == nil {
+		if routeOptions == nil {
+			routeOptions = &gloov1.RouteOptions{}
 		}
-		routePlugins.PrefixRewrite = &types.StringValue{
+		routeOptions.PrefixRewrite = &types.StringValue{
 			Value: "/",
 		}
 	}
@@ -320,10 +320,10 @@ func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceCl
 			},
 			SslConfig: sslConfig,
 			VirtualHost: &v1.VirtualHost{
-				Options: virtualHostPlugins,
+				Options: virtualHostOptions,
 				Domains: []string{"*"},
 				Routes: []*v1.Route{{
-					Options: routePlugins,
+					Options: routeOptions,
 					Matchers: []*matchers.Matcher{{
 						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: testMatcherPrefix,

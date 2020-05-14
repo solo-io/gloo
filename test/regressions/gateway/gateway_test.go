@@ -2,9 +2,14 @@ package gateway_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -160,7 +165,85 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			}, helper.SimpleHttpResponse, 1, time.Minute*2)
 		})
 	})
+
+	It("rejects invalid inja template in transformation", func() {
+		injaTransform := `{% if default(data.error.message, "") != "" %}400{% else %}{{ header(":status") }}{% endif %}`
+		t := &transformation.RouteTransformations{
+			ClearRouteCache: true,
+			ResponseTransformation: &transformation.Transformation{
+				TransformationType: &transformation.Transformation_TransformationTemplate{
+					TransformationTemplate: &transformation.TransformationTemplate{
+						Headers: map[string]*transformation.InjaTemplate{
+							":status": {Text: injaTransform},
+						},
+					},
+				},
+			},
+		}
+
+		dest := &gloov1.Destination{
+			DestinationType: &gloov1.Destination_Upstream{
+				Upstream: &core.ResourceRef{
+					Namespace: testHelper.InstallNamespace,
+					Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.TestrunnerName, helper.TestRunnerPort),
+				},
+			},
+		}
+
+		vs := getVirtualService(dest, nil)
+		vs.VirtualHost.Options = &gloov1.VirtualHostOptions{Transformations: t}
+
+		_, err := virtualServiceClient.Write(vs, clients.WriteOpts{Ctx: ctx})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = virtualServiceClient.Delete(vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).ToNot(HaveOccurred())
+
+		// trim trailing "}", which should invalidate our inja template
+		t.ResponseTransformation.GetTransformationTemplate().Headers[":status"].Text = strings.TrimSuffix(injaTransform, "}")
+
+		_, err = virtualServiceClient.Write(vs, clients.WriteOpts{Ctx: ctx})
+		Expect(err).To(MatchError(ContainSubstring("Failed to parse response template: Failed to parse " +
+			"header template ':status': [inja.exception.parser_error] expected statement close, got '%'")))
+	})
+
 })
+
+func getVirtualService(dest *gloov1.Destination, sslConfig *gloov1.SslConfig) *v1.VirtualService {
+	return getVirtualServiceWithRoute(getRouteWithDest(dest, "/"), sslConfig)
+}
+
+func getVirtualServiceWithRoute(route *v1.Route, sslConfig *gloov1.SslConfig) *v1.VirtualService {
+	return &v1.VirtualService{
+		Metadata: core.Metadata{
+			Name:      "vs",
+			Namespace: testHelper.InstallNamespace,
+		},
+		SslConfig: sslConfig,
+		VirtualHost: &v1.VirtualHost{
+			Domains: []string{"*"},
+
+			Routes: []*v1.Route{route},
+		},
+	}
+}
+
+func getRouteWithDest(dest *gloov1.Destination, path string) *v1.Route {
+	return &v1.Route{
+		Matchers: []*matchers.Matcher{{
+			PathSpecifier: &matchers.Matcher_Prefix{
+				Prefix: path,
+			},
+		}},
+		Action: &v1.Route_RouteAction{
+			RouteAction: &gloov1.RouteAction{
+				Destination: &gloov1.RouteAction_Single{
+					Single: dest,
+				},
+			},
+		},
+	}
+}
 
 func ToFile(content string) string {
 	f, err := ioutil.TempFile("", "")

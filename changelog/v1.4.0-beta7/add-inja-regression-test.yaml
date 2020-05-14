@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add regression test for inja validation feature
+    issueLink: https://github.com/solo-io/gloo/issues/3013
+    resolvesIssue: false
