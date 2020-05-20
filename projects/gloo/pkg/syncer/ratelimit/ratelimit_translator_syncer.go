@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	rlConnectedStateDescription = "0 indicates gloo detected an error with the rate limit config and did not update its XDS snapshot, check the gloo logs for errors"
+	rlConnectedStateDescription = "zero indicates gloo detected an error with the rate limit config and did not update its XDS snapshot, check the gloo logs for errors"
 	rlConnectedState            = stats.Int64("glooe.ratelimit/connected_state", rlConnectedStateDescription, "1")
 
 	rlConnectedStateView = &view.View{

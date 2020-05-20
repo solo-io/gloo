@@ -484,7 +484,7 @@ var _ = Describe("External auth", func() {
 				payload["foo"] = "bar"
 			}
 			`}}
-						modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
 						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 							Metadata: core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,

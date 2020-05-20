@@ -84,6 +84,8 @@ gloo:
       failurePolicy: "Ignore"
       secretName: gateway-validation-certs
       alwaysAcceptResources: true
+      webhook:
+        enabled: true
     certGenJob:
       enabled: true
       image:
