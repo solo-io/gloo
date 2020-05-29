@@ -488,6 +488,7 @@ $(OUTPUT_DIR)/.helm-initialized:
 	mkdir -p install/helm/gloo-os-with-ui/templates
 	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
 	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
+	cp install/helm/gloo-ee/templates/40-settings.yaml install/helm/gloo-os-with-ui/templates/40-settings.yaml
 	helm dependency update install/helm/gloo-os-with-ui
 	touch $@
 
@@ -621,7 +622,7 @@ push-kind-images: docker
 # The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
 
 .PHONY: build-test-assets
-build-test-assets: docker push-test-images build-test-chart
+build-test-assets: docker push-test-images build-test-chart build-os-with-ui-test-chart
 
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-kind-chart
@@ -663,6 +664,16 @@ build-test-chart:
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
+	helm repo index $(TEST_ASSET_DIR)
+
+.PHONY: build-os-with-ui-test-chart
+build-os-with-ui-test-chart: init-helm
+	mkdir -p $(TEST_ASSET_DIR)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-os-with-ui
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-os-with-ui
 	helm repo index $(TEST_ASSET_DIR)
 
 .PHONY: build-kind-chart

@@ -7,6 +7,8 @@
 # Enable creation of the GlooE settings template, disable the Gloo one (see below)
 settings:
   create: true
+rateLimit:
+  enabled: false
 
 ########################################################################
 ###                                                                  ###

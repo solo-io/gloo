@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: This fixes the open source installation of Gloo with the read-only UI. Previously, the gateway pod was in an error state with the logs stating that "no validation configuration was provided". 
+    issueLink: https://github.com/solo-io/gloo/issues/2127 

@@ -1222,19 +1222,21 @@ spec:
 					gatewayProxyDeployment = deploy
 				})
 
-				It("creates a deployment without envoy config annotations", func() {
+				It("creates a deployment without envoy config annotations that contains the Settings resource", func() {
 					testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
 					Expect(err).NotTo(HaveOccurred())
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					testManifest.ExpectCustomResource("Settings", namespace, "default")
 				})
 
-				It("creates a deployment with envoy config annotations", func() {
+				It("creates a deployment with envoy config annotations that contains the Settings resource", func() {
 					testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
 						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.readConfig=true"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 					includeStatConfig()
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					testManifest.ExpectCustomResource("Settings", namespace, "default")
 				})
 
 				Context("apiserver deployment", func() {

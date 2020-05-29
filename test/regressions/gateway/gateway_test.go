@@ -79,8 +79,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 	})
 
 	AfterEach(func() {
-		cancel()
 		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		cancel()
 	})
 
 	It("can route request to upstream", func() {
