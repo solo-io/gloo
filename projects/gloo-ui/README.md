@@ -15,10 +15,6 @@ The UI can talk to the backend through...
 If the API server and proxy are already deployed to Kubernetes, then you can use Kubernetes port-forwarding
 to be able to talk to them.
 
-```
-...
-```
-
 ### Accessing private npm packages
 You might run into this error:
 > error An unexpected error occurred: "Failed to replace env in config: ${NPM_TOKEN}".

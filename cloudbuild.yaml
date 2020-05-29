@@ -156,13 +156,8 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
-  entrypoint: "bash"
-  args:
-    [
-      "-c",
-      "GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o _output/glooctl-linux-amd64 projects/gloo/cli/main.go",
-    ]
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+  args: ["glooctl-linux-amd64"]
   dir: *dir
   waitFor: ["test", "prepare-workspace"]
   id: "build-glooctl"

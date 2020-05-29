@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Add improvements to the Makefile - add glooctl make targets, replace image registry with
+      $(IMAGE_REPO), and require the env variable LOCAL_BUILD=true if building the grpcserver-ui-docker
+      make target locally.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1760.

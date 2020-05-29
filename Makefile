@@ -11,6 +11,12 @@ z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 RELEASE := "true"
 
+# If you just put your username, then that refers to your account at hub.docker.com
+# To use quay images, set the IMAGE_REPO to "quay.io/solo-io"
+# To use dockerhub images, set the IMAGE_REPO to "soloio"
+# To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
+IMAGE_REPO := quay.io/solo-io
+
 # TODO: use $(shell git describe --tags)
 ifeq ($(TAGGED_VERSION),)
 	TAGGED_VERSION := vdev
@@ -19,7 +25,7 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo-ee:1.4.5
+ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.4.5
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
@@ -235,7 +241,7 @@ $(OUTPUT_DIR)/Dockerfile.grpcserver: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
 grpcserver-docker: grpcserver $(OUTPUT_DIR)/Dockerfile.grpcserver $(OUTPUT_DIR)/.grpcserver-docker
 
 $(OUTPUT_DIR)/.grpcserver-docker: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.grpcserver
-	docker build -t quay.io/solo-io/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserver
+	docker build -t $(IMAGE_REPO)/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserver
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -245,7 +251,7 @@ CONFIG_YAML=envoy_config_grpcserver.yaml
 
 .PHONY: grpcserver-envoy-docker
 grpcserver-envoy-docker: $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
-	docker build -t quay.io/solo-io/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+	docker build -t $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
 
 $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy: $(GRPCSERVER_DIR)/envoy/Dockerfile
 	cp $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) $(OUTPUT_DIR)/$(CONFIG_YAML)
@@ -283,9 +289,10 @@ ifneq ($(LOCAL_BUILD),)
 	yarn --cwd $(GRPCSERVER_UI_DIR) build
 endif
 
+# If building locally, set LOCAL_BUILD=true
 .PHONY: grpcserver-ui-docker
 grpcserver-ui-docker: grpcserver-ui-build-local
-	docker build -t quay.io/solo-io/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GRPCSERVER_UI_DIR) -f $(GRPCSERVER_UI_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GRPCSERVER_UI_DIR) -f $(GRPCSERVER_UI_DIR)/Dockerfile
 
 
 #----------------------------------------------------------------------------------
@@ -308,7 +315,7 @@ $(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
 rate-limit-docker: $(OUTPUT_DIR)/.rate-limit-docker
 
 $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
-	docker build -t quay.io/solo-io/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
+	docker build -t $(IMAGE_REPO)/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -326,7 +333,7 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
 $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
-	docker build -t quay.io/solo-io/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
+	docker build -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
@@ -337,13 +344,13 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	docker create -ti --name extauth-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
+	docker create -ti --name extauth-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-amd64 $(OUTPUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
-	docker create -ti --name verify-plugins-temp-container quay.io/solo-io/extauth-ee-build-container:$(VERSION) bash
+	docker create -ti --name verify-plugins-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
 
@@ -354,7 +361,7 @@ extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-am
 # Build ext-auth-plugins docker image
 .PHONY: auth-plugins
 auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
+	docker build --no-cache -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
@@ -366,7 +373,7 @@ auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
 $(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+	docker build -t $(IMAGE_REPO)/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 	touch $@
 
 
@@ -390,7 +397,7 @@ $(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 observability-docker: $(OUTPUT_DIR)/.observability-docker
 
 $(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
-	docker build -t quay.io/solo-io/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+	docker build -t $(IMAGE_REPO)/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -417,12 +424,42 @@ gloo-docker: $(OUTPUT_DIR)/.gloo-docker
 $(OUTPUT_DIR)/.gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build $(call get_test_tag_option,gloo-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		-t quay.io/solo-io/gloo-ee:$(VERSION)
+		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
 gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t quay.io/solo-io/gloo-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+	docker build -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
 	touch $@
+
+#----------------------------------------------------------------------------------
+# glooctl
+#----------------------------------------------------------------------------------
+
+CLI_DIR=projects/gloo/cli
+
+$(OUTPUT_DIR)/glooctl: $(SOURCES)
+	GO111MODULE=on go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+
+$(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+
+$(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+
+$(OUTPUT_DIR)/glooctl-windows-amd64.exe: $(SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+
+.PHONY: glooctl
+glooctl: $(OUTPUT_DIR)/glooctl
+.PHONY: glooctl-linux-amd64
+glooctl-linux-amd64: $(OUTPUT_DIR)/glooctl-linux-amd64
+.PHONY: glooctl-darwin-amd64
+glooctl-darwin-amd64: $(OUTPUT_DIR)/glooctl-darwin-amd64
+.PHONY: glooctl-windows-amd64
+glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
+
+.PHONY: build-cli
+build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
 
 #----------------------------------------------------------------------------------
 # Envoy init
@@ -449,7 +486,7 @@ gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
 $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit $(OUTPUT_DIR)/docker-entrypoint.sh
 	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		-t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION)
+		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)
 	touch $@
 
 
@@ -585,27 +622,27 @@ docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limi
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")
-	docker push quay.io/solo-io/rate-limit-ee:$(VERSION) && \
-	docker push quay.io/solo-io/grpcserver-ee:$(VERSION) && \
-	docker push quay.io/solo-io/grpcserver-envoy:$(VERSION) && \
-	docker push quay.io/solo-io/grpcserver-ui:$(VERSION) && \
-	docker push quay.io/solo-io/gloo-ee:$(VERSION) && \
-	docker push quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push quay.io/solo-io/observability-ee:$(VERSION) && \
-	docker push quay.io/solo-io/extauth-ee:$(VERSION)
-	docker push quay.io/solo-io/ext-auth-plugins:$(VERSION)
+	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-ui:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)
+	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
 endif
 
 push-kind-images: docker
-	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/grpcserver-ui:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image quay.io/solo-io/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/grpcserver-ui:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
 
 #----------------------------------------------------------------------------------
 # Build assets for regression tests
@@ -638,7 +675,7 @@ grpcserver-docker-test: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/.grpc
 grpcserver-envoy-docker-test: grpcserver-envoy-docker $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
 	docker push $(call get_test_tag,grpcserver-envoy)
 
-grpcserver-ui-docker-test: grpcserver-ui-docker
+grpcserver-ui-docker-test: grpcserver-ui-build-local grpcserver-ui-docker
 	docker push $(call get_test_tag,grpcserver-ui)
 
 rate-limit-docker-test: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
