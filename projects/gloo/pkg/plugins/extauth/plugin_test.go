@@ -3,6 +3,8 @@ package extauth_test
 import (
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
+
 	"github.com/envoyproxy/go-control-plane/pkg/conversion"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 
@@ -24,216 +26,213 @@ import (
 
 var _ = Describe("Plugin", func() {
 
-	// TODO(kdorosh) remove outer context right before merge -- leave around for PR review for easy diff
-	Context("new configuration format", func() {
-		var (
-			params        plugins.Params
-			vhostParams   plugins.VirtualHostParams
-			routeParams   plugins.RouteParams
-			plugin        *Plugin
-			virtualHost   *v1.VirtualHost
-			upstream      *v1.Upstream
-			secret        *v1.Secret
-			route         *v1.Route
-			authConfig    *extauthv1.AuthConfig
-			authExtension *extauthv1.ExtAuthExtension
-			clientSecret  *extauthv1.OauthSecret
-		)
+	var (
+		params        plugins.Params
+		vhostParams   plugins.VirtualHostParams
+		routeParams   plugins.RouteParams
+		plugin        *Plugin
+		virtualHost   *v1.VirtualHost
+		upstream      *v1.Upstream
+		secret        *v1.Secret
+		route         *v1.Route
+		authConfig    *extauthv1.AuthConfig
+		authExtension *extauthv1.ExtAuthExtension
+		clientSecret  *extauthv1.OauthSecret
+	)
 
-		BeforeEach(func() {
-			plugin = NewPlugin()
-			err := plugin.Init(plugins.InitParams{})
-			Expect(err).ToNot(HaveOccurred())
+	BeforeEach(func() {
+		plugin = NewPlugin()
+		err := plugin.Init(plugins.InitParams{})
+		Expect(err).ToNot(HaveOccurred())
 
-			upstream = &v1.Upstream{
-				Metadata: core.Metadata{
-					Name:      "extauth",
-					Namespace: "default",
+		upstream = &v1.Upstream{
+			Metadata: core.Metadata{
+				Name:      "extauth",
+				Namespace: "default",
+			},
+			UpstreamType: &v1.Upstream_Static{
+				Static: &static.UpstreamSpec{
+					Hosts: []*static.Host{{
+						Addr: "test",
+						Port: 1234,
+					}},
 				},
-				UpstreamType: &v1.Upstream_Static{
-					Static: &static.UpstreamSpec{
-						Hosts: []*static.Host{{
-							Addr: "test",
-							Port: 1234,
-						}},
-					},
+			},
+		}
+		route = &v1.Route{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Prefix{
+					Prefix: "/",
 				},
-			}
-			route = &v1.Route{
-				Matchers: []*matchers.Matcher{{
-					PathSpecifier: &matchers.Matcher_Prefix{
-						Prefix: "/",
-					},
-				}},
-				Action: &v1.Route_RouteAction{
-					RouteAction: &v1.RouteAction{
-						Destination: &v1.RouteAction_Single{
-							Single: &v1.Destination{
-								DestinationType: &v1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream.Metadata.Ref()),
-								},
+			}},
+			Action: &v1.Route_RouteAction{
+				RouteAction: &v1.RouteAction{
+					Destination: &v1.RouteAction_Single{
+						Single: &v1.Destination{
+							DestinationType: &v1.Destination_Upstream{
+								Upstream: utils.ResourceRefPtr(upstream.Metadata.Ref()),
 							},
 						},
 					},
 				},
-			}
+			},
+		}
 
-			clientSecret = &extauthv1.OauthSecret{
-				ClientSecret: "1234",
-			}
+		clientSecret = &extauthv1.OauthSecret{
+			ClientSecret: "1234",
+		}
 
-			secret = &v1.Secret{
-				Metadata: core.Metadata{
-					Name:      "secret",
-					Namespace: "default",
-				},
-				Kind: &v1.Secret_Oauth{
-					Oauth: clientSecret,
-				},
-			}
-			secretRef := secret.Metadata.Ref()
+		secret = &v1.Secret{
+			Metadata: core.Metadata{
+				Name:      "secret",
+				Namespace: "default",
+			},
+			Kind: &v1.Secret_Oauth{
+				Oauth: clientSecret,
+			},
+		}
+		secretRef := secret.Metadata.Ref()
 
-			authConfig = &extauthv1.AuthConfig{
-				Metadata: core.Metadata{
-					Name:      "oauth",
-					Namespace: "gloo-system",
-				},
-				Configs: []*extauthv1.AuthConfig_Config{{
-					AuthConfig: &extauthv1.AuthConfig_Config_Oauth{
-						Oauth: &extauthv1.OAuth{
-							ClientSecretRef: &secretRef,
-							ClientId:        "ClientId",
-							IssuerUrl:       "IssuerUrl",
-							AppUrl:          "AppUrl",
-							CallbackPath:    "CallbackPath",
-						},
+		authConfig = &extauthv1.AuthConfig{
+			Metadata: core.Metadata{
+				Name:      "oauth",
+				Namespace: "gloo-system",
+			},
+			Configs: []*extauthv1.AuthConfig_Config{{
+				AuthConfig: &extauthv1.AuthConfig_Config_Oauth{
+					Oauth: &extauthv1.OAuth{
+						ClientSecretRef: &secretRef,
+						ClientId:        "ClientId",
+						IssuerUrl:       "IssuerUrl",
+						AppUrl:          "AppUrl",
+						CallbackPath:    "CallbackPath",
 					},
-				}},
-			}
-			authConfigRef := authConfig.Metadata.Ref()
-			authExtension = &extauthv1.ExtAuthExtension{
-				Spec: &extauthv1.ExtAuthExtension_ConfigRef{
-					ConfigRef: &authConfigRef,
 				},
+			}},
+		}
+		authConfigRef := authConfig.Metadata.Ref()
+		authExtension = &extauthv1.ExtAuthExtension{
+			Spec: &extauthv1.ExtAuthExtension_ConfigRef{
+				ConfigRef: &authConfigRef,
+			},
+		}
+	})
+
+	JustBeforeEach(func() {
+
+		virtualHost = &v1.VirtualHost{
+			Name:    "virt1",
+			Domains: []string{"*"},
+			Options: &v1.VirtualHostOptions{
+				Extauth: authExtension,
+			},
+			Routes: []*v1.Route{route},
+		}
+
+		proxy := &v1.Proxy{
+			Metadata: core.Metadata{
+				Name:      "secret",
+				Namespace: "default",
+			},
+			Listeners: []*v1.Listener{{
+				Name: "default",
+				ListenerType: &v1.Listener_HttpListener{
+					HttpListener: &v1.HttpListener{
+						VirtualHosts: []*v1.VirtualHost{virtualHost},
+					},
+				},
+			}},
+		}
+
+		params.Snapshot = &v1.ApiSnapshot{
+			Proxies:     v1.ProxyList{proxy},
+			Upstreams:   v1.UpstreamList{upstream},
+			Secrets:     v1.SecretList{secret},
+			AuthConfigs: extauthv1.AuthConfigList{authConfig},
+		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
+		routeParams = plugins.RouteParams{
+			VirtualHostParams: vhostParams,
+			VirtualHost:       virtualHost,
+		}
+	})
+
+	Context("no extauth settings", func() {
+		It("should provide sanitize filter", func() {
+			filters, err := plugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+		})
+	})
+
+	Context("with extauth server", func() {
+		var (
+			extAuthRef      *core.ResourceRef
+			extAuthSettings *extauthv1.Settings
+		)
+		BeforeEach(func() {
+			second := time.Second
+			extAuthRef = &core.ResourceRef{
+				Name:      "extauth",
+				Namespace: "default",
+			}
+			extAuthSettings = &extauthv1.Settings{
+				ExtauthzServerRef: extAuthRef,
+				FailureModeAllow:  true,
+				RequestBody: &extauthv1.BufferSettings{
+					AllowPartialMessage: true,
+					MaxRequestBytes:     54,
+				},
+				RequestTimeout: &second,
 			}
 		})
-
 		JustBeforeEach(func() {
-
-			virtualHost = &v1.VirtualHost{
-				Name:    "virt1",
-				Domains: []string{"*"},
-				Options: &v1.VirtualHostOptions{
-					Extauth: authExtension,
-				},
-				Routes: []*v1.Route{route},
-			}
-
-			proxy := &v1.Proxy{
-				Metadata: core.Metadata{
-					Name:      "secret",
-					Namespace: "default",
-				},
-				Listeners: []*v1.Listener{{
-					Name: "default",
-					ListenerType: &v1.Listener_HttpListener{
-						HttpListener: &v1.HttpListener{
-							VirtualHosts: []*v1.VirtualHost{virtualHost},
-						},
-					},
-				}},
-			}
-
-			params.Snapshot = &v1.ApiSnapshot{
-				Proxies:     v1.ProxyList{proxy},
-				Upstreams:   v1.UpstreamList{upstream},
-				Secrets:     v1.SecretList{secret},
-				AuthConfigs: extauthv1.AuthConfigList{authConfig},
-			}
-			vhostParams = plugins.VirtualHostParams{
-				Params:   params,
-				Proxy:    proxy,
-				Listener: proxy.Listeners[0],
-			}
-			routeParams = plugins.RouteParams{
-				VirtualHostParams: vhostParams,
-				VirtualHost:       virtualHost,
-			}
+			err := plugin.Init(plugins.InitParams{
+				Settings: &v1.Settings{Extauth: extAuthSettings},
+			})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
-		Context("no extauth settings", func() {
-			It("should provide sanitize filter", func() {
-				filters, err := plugin.HttpFilters(params, nil)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(filters).To(HaveLen(1))
-				Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
-			})
+		It("should not error processing vhost", func() {
+			var out envoyroute.VirtualHost
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(IsDisabled(&out)).To(BeFalse())
 		})
 
-		Context("with extauth server", func() {
-			var (
-				extAuthRef      *core.ResourceRef
-				extAuthSettings *extauthv1.Settings
-			)
-			BeforeEach(func() {
-				second := time.Second
-				extAuthRef = &core.ResourceRef{
-					Name:      "extauth",
-					Namespace: "default",
-				}
-				extAuthSettings = &extauthv1.Settings{
-					ExtauthzServerRef: extAuthRef,
-					FailureModeAllow:  true,
-					RequestBody: &extauthv1.BufferSettings{
-						AllowPartialMessage: true,
-						MaxRequestBytes:     54,
-					},
-					RequestTimeout: &second,
-				}
-			})
-			JustBeforeEach(func() {
-				err := plugin.Init(plugins.InitParams{
-					Settings: &v1.Settings{Extauth: extAuthSettings},
-				})
-				Expect(err).ToNot(HaveOccurred())
-			})
+		It("should mark vhost with no auth as disabled", func() {
+			// remove auth extension
+			virtualHost.Options.Extauth = nil
+			var out envoyroute.VirtualHost
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+			ExpectDisabled(&out)
+		})
 
-			It("should not error processing vhost", func() {
-				var out envoyroute.VirtualHost
-				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(IsDisabled(&out)).To(BeFalse())
-			})
+		It("should mark route with extension as disabled", func() {
+			disabled := &extauthv1.ExtAuthExtension{
+				Spec: &extauthv1.ExtAuthExtension_Disable{Disable: true},
+			}
 
-			It("should mark vhost with no auth as disabled", func() {
-				// remove auth extension
-				virtualHost.Options.Extauth = nil
-				var out envoyroute.VirtualHost
-				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
-				Expect(err).NotTo(HaveOccurred())
-				ExpectDisabled(&out)
-			})
+			route.Options = &v1.RouteOptions{
+				Extauth: disabled,
+			}
+			var out envoyroute.Route
+			err := plugin.ProcessRoute(routeParams, route, &out)
+			Expect(err).NotTo(HaveOccurred())
+			ExpectDisabled(&out)
+		})
 
-			It("should mark route with extension as disabled", func() {
-				disabled := &extauthv1.ExtAuthExtension{
-					Spec: &extauthv1.ExtAuthExtension_Disable{Disable: true},
-				}
-
-				route.Options = &v1.RouteOptions{
-					Extauth: disabled,
-				}
-				var out envoyroute.Route
-				err := plugin.ProcessRoute(routeParams, route, &out)
-				Expect(err).NotTo(HaveOccurred())
-				ExpectDisabled(&out)
-			})
-
-			It("should do nothing to a route that's not explicitly disabled", func() {
-				var out envoyroute.Route
-				err := plugin.ProcessRoute(routeParams, route, &out)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(IsDisabled(&out)).To(BeFalse())
-			})
+		It("should do nothing to a route that's not explicitly disabled", func() {
+			var out envoyroute.Route
+			err := plugin.ProcessRoute(routeParams, route, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(IsDisabled(&out)).To(BeFalse())
 		})
 	})
 
@@ -252,11 +251,11 @@ func IsDisabled(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[FilterName]; !ok {
+	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	return cfg.GetDisabled()
@@ -267,11 +266,11 @@ func IsEnabled(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[FilterName]; !ok {
+	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	if cfg.GetCheckSettings() == nil {
@@ -286,6 +285,6 @@ func IsNotSet(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return true
 	}
-	_, ok := e.GetPerFilterConfig()[FilterName]
+	_, ok := e.GetPerFilterConfig()[extauth.FilterName]
 	return !ok
 }

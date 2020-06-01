@@ -55,50 +55,47 @@ var validationFuncForConfigValue = map[ConfigState]func(e envoyPerFilterConfig) 
 // should the need ever arise in the future.
 var _ = Describe("Processing Extauth Plugins", func() {
 
-	// TODO(kdorosh) remove outer context right before merge -- leave around for PR review for easy diff
-	Context("strongly typed configuration format", func() {
-		DescribeTable("virtual host extauth filter configuration",
-			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(input, Undefined, Undefined, StronglyTyped)
+	DescribeTable("virtual host extauth filter configuration",
+		func(input, expected ConfigState) {
+			pluginContext := getPluginContext(input, Undefined, Undefined, StronglyTyped)
 
-				var out envoyv2.VirtualHost
-				err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
-			},
-			Entry("undefined -> disable", Undefined, Disabled), // This is a special case for virtual hosts
-			Entry("disabled -> disable", Disabled, Disabled),
-			Entry("enabled -> enable", Enabled, Enabled),
-		)
+			var out envoyv2.VirtualHost
+			err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+		},
+		Entry("undefined -> disable", Undefined, Disabled), // This is a special case for virtual hosts
+		Entry("disabled -> disable", Disabled, Disabled),
+		Entry("enabled -> enable", Enabled, Enabled),
+	)
 
-		DescribeTable("route extauth filter configuration",
-			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(Undefined, input, Undefined, StronglyTyped)
+	DescribeTable("route extauth filter configuration",
+		func(input, expected ConfigState) {
+			pluginContext := getPluginContext(Undefined, input, Undefined, StronglyTyped)
 
-				var out envoyv2.Route
-				err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
-			},
-			Entry("undefined -> don't set", Undefined, Undefined),
-			Entry("disabled -> disable", Disabled, Disabled),
-			Entry("enabled -> enable", Enabled, Enabled),
-		)
+			var out envoyv2.Route
+			err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+		},
+		Entry("undefined -> don't set", Undefined, Undefined),
+		Entry("disabled -> disable", Disabled, Disabled),
+		Entry("enabled -> enable", Enabled, Enabled),
+	)
 
-		DescribeTable("weighted destination extauth filter configuration",
-			func(input, expected ConfigState) {
-				pluginContext := getPluginContext(Undefined, Undefined, input, StronglyTyped)
+	DescribeTable("weighted destination extauth filter configuration",
+		func(input, expected ConfigState) {
+			pluginContext := getPluginContext(Undefined, Undefined, input, StronglyTyped)
 
-				var out envoyv2.WeightedCluster_ClusterWeight
-				err := pluginContext.PluginInstance.ProcessWeightedDestination(pluginContext.RouteParams, pluginContext.WeightedDestination, &out)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
-			},
-			Entry("undefined -> don't set", Undefined, Undefined),
-			Entry("disabled -> disable", Disabled, Disabled),
-			Entry("enabled -> enable", Enabled, Enabled),
-		)
-	})
+			var out envoyv2.WeightedCluster_ClusterWeight
+			err := pluginContext.PluginInstance.ProcessWeightedDestination(pluginContext.RouteParams, pluginContext.WeightedDestination, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
+		},
+		Entry("undefined -> don't set", Undefined, Undefined),
+		Entry("disabled -> disable", Disabled, Disabled),
+		Entry("enabled -> enable", Enabled, Enabled),
+	)
 
 })
 

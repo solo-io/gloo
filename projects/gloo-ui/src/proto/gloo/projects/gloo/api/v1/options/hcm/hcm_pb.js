@@ -90,6 +90,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
     tracing: (f = msg.getTracing()) && gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
     forwardClientCertDetails: jspb.Message.getFieldWithDefault(msg, 18, 0),
     setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f),
@@ -199,6 +200,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 16:
       var value = /** @type {string} */ (reader.readString());
       msg.setDefaultHostForHttp10(value);
+      break;
+    case 22:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setProperCaseHeaderKeyFormat(value);
       break;
     case 17:
       var value = new gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings;
@@ -362,6 +367,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
   if (f.length > 0) {
     writer.writeString(
       16,
+      f
+    );
+  }
+  f = message.getProperCaseHeaderKeyFormat();
+  if (f) {
+    writer.writeBool(
+      22,
       f
     );
   }
@@ -1040,6 +1052,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getDefaul
 /** @param {string} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setDefaultHostForHttp10 = function(value) {
   jspb.Message.setProto3StringField(this, 16, value);
+};
+
+
+/**
+ * optional bool proper_case_header_key_format = 22;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getProperCaseHeaderKeyFormat = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 22, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setProperCaseHeaderKeyFormat = function(value) {
+  jspb.Message.setProto3BooleanField(this, 22, value);
 };
 
 

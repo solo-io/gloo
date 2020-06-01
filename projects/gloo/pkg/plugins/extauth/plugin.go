@@ -21,7 +21,6 @@ import (
 const (
 	ExtensionName      = "extauth"
 	SanitizeFilterName = "io.solo.filters.http.sanitize"
-	FilterName         = "envoy.ext_authz"
 	DefaultAuthHeader  = "x-user-id"
 
 	// when extauth is deployed into a sidecar in the envoy pod, an upstream should
@@ -130,7 +129,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return err
 	}
 
-	return pluginutils.SetVhostPerFilterConfig(out, FilterName, config)
+	return pluginutils.SetVhostPerFilterConfig(out, extauth.FilterName, config)
 }
 
 // This function generates the ext_authz PerFilterConfig for this route:
@@ -166,7 +165,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return err
 	}
 
-	return pluginutils.SetRoutePerFilterConfig(out, FilterName, config)
+	return pluginutils.SetRoutePerFilterConfig(out, extauth.FilterName, config)
 }
 
 // This function generates the ext_authz PerFilterConfig for this weightedDestination:
@@ -202,7 +201,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return err
 	}
 
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, FilterName, config)
+	return pluginutils.SetWeightedClusterPerFilterConfig(out, extauth.FilterName, config)
 }
 
 func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth.ExtAuthzPerRoute, error) {
@@ -221,15 +220,15 @@ func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth
 }
 
 func markVirtualHostNoAuth(out *envoyroute.VirtualHost) error {
-	return pluginutils.SetVhostPerFilterConfig(out, FilterName, getNoAuthConfig())
+	return pluginutils.SetVhostPerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
 }
 
 func markWeightedClusterNoAuth(out *envoyroute.WeightedCluster_ClusterWeight) error {
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, FilterName, getNoAuthConfig())
+	return pluginutils.SetWeightedClusterPerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
 }
 
 func markRouteNoAuth(out *envoyroute.Route) error {
-	return pluginutils.SetRoutePerFilterConfig(out, FilterName, getNoAuthConfig())
+	return pluginutils.SetRoutePerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
 }
 
 func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
@@ -251,7 +250,7 @@ func (p *Plugin) isExtAuthzFilterConfigured(upstreams v1.UpstreamList) bool {
 
 	// Check for a filter called "envoy.ext_authz"
 	for _, filter := range filters {
-		if filter.HttpFilter.GetName() == FilterName {
+		if filter.HttpFilter.GetName() == extauth.FilterName {
 			return true
 		}
 	}

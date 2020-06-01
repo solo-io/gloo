@@ -93,6 +93,7 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   xffNumTrustedHops: (undefined as unknown) as number,
   drainTimeout: undefined,
   defaultHostForHttp10: (undefined as unknown) as string,
+  properCaseHeaderKeyFormat: (undefined as unknown) as boolean,
   useRemoteAddress: { value: (undefined as unknown) as boolean },
   delayedCloseTimeout: undefined,
   acceptHttp10: (undefined as unknown) as boolean,

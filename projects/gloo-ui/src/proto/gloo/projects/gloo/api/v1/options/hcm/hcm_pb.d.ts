@@ -72,6 +72,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getDefaultHostForHttp10(): string;
   setDefaultHostForHttp10(value: string): void;
 
+  getProperCaseHeaderKeyFormat(): boolean;
+  setProperCaseHeaderKeyFormat(value: boolean): void;
+
   hasTracing(): boolean;
   clearTracing(): void;
   getTracing(): gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings | undefined;
@@ -120,6 +123,7 @@ export namespace HttpConnectionManagerSettings {
     serverName: string,
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
+    properCaseHeaderKeyFormat: boolean,
     tracing?: gloo_projects_gloo_api_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,
     forwardClientCertDetails: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
     setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,

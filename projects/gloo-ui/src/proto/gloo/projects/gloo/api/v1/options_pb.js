@@ -354,6 +354,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     waf: (f = msg.getWaf()) && gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.toObject(includeInstance, f),
     wasm: (f = msg.getWasm()) && gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.toObject(includeInstance, f),
+    extauth: (f = msg.getExtauth()) && gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.toObject(includeInstance, f),
+    ratelimitServer: (f = msg.getRatelimitServer()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     gzip: (f = msg.getGzip()) && gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f)
   };
@@ -426,6 +428,16 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource;
       reader.readMessage(value,gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.deserializeBinaryFromReader);
       msg.setWasm(value);
+      break;
+    case 10:
+      var value = new gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.deserializeBinaryFromReader);
+      msg.setExtauth(value);
+      break;
+    case 11:
+      var value = new gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
+      msg.setRatelimitServer(value);
       break;
     case 8:
       var value = new gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip;
@@ -520,6 +532,22 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       7,
       f,
       gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtauth();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.serializeBinaryToWriter
+    );
+  }
+  f = message.getRatelimitServer();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getGzip();
@@ -748,6 +776,66 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearWasm = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasWasm = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional enterprise.gloo.solo.io.Settings extauth = 10;
+ * @return {?proto.enterprise.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getExtauth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings, 10));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setExtauth = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearExtauth = function() {
+  this.setExtauth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasExtauth = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional ratelimit.options.gloo.solo.io.Settings ratelimit_server = 11;
+ * @return {?proto.ratelimit.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getRatelimitServer = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings, 11));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setRatelimitServer = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearRatelimitServer = function() {
+  this.setRatelimitServer(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasRatelimitServer = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

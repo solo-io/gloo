@@ -108,6 +108,16 @@ export class HttpListenerOptions extends jspb.Message {
   getWasm(): gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource | undefined;
   setWasm(value?: gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource): void;
 
+  hasExtauth(): boolean;
+  clearExtauth(): void;
+  getExtauth(): gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings | undefined;
+  setExtauth(value?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings): void;
+
+  hasRatelimitServer(): boolean;
+  clearRatelimitServer(): void;
+  getRatelimitServer(): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings | undefined;
+  setRatelimitServer(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings): void;
+
   hasGzip(): boolean;
   clearGzip(): void;
   getGzip(): gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip | undefined;
@@ -137,6 +147,8 @@ export namespace HttpListenerOptions {
     waf?: gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     dlp?: gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.FilterConfig.AsObject,
     wasm?: gloo_projects_gloo_api_v1_options_wasm_wasm_pb.PluginSource.AsObject,
+    extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.AsObject,
+    ratelimitServer?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
     gzip?: gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
     proxyLatency?: gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
   }
