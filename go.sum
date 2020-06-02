@@ -343,8 +343,8 @@ github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymF
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1 h1:+8frETDtT11P1dMCWySse/d0jMPOKYYF7OZjl7cZLvQ=
 github.com/envoyproxy/go-control-plane v0.9.1/go.mod h1:G1fbsNGAFpC1aaERrShZQVdUV2ZuZuv6FCl2v9JNSxQ=
-github.com/envoyproxy/go-control-plane v0.9.6-0.20200401235947-be7fefdaf0df h1:EVUwAk1TnFLNp9Eu9AThAdaKGgz6x4im5Wv2dF8kBow=
-github.com/envoyproxy/go-control-plane v0.9.6-0.20200401235947-be7fefdaf0df/go.mod h1:OXl5to++W0ctG+EHWTFUjiypVxC/Y4VLc/KFU+al13s=
+github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9 h1:AM3AYZI9udpliFfjJTM4E2G9pR+HS5ilXrJGJTvWTJM=
+github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9/go.mod h1:OXl5to++W0ctG+EHWTFUjiypVxC/Y4VLc/KFU+al13s=
 github.com/envoyproxy/protoc-gen-validate v0.1.0 h1:EQciDnbrYxy13PgWoY8AqoxGiPrpgBZ1R8UNe3ddc+A=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/euank/go-kmsg-parser v2.0.0+incompatible/go.mod h1:MhmAMZ8V4CYH4ybgdRwPr2TU5ThnS43puaKEMpja1uw=
@@ -1125,8 +1125,8 @@ github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4ts
 github.com/solo-io/ext-auth-service v0.6.11 h1:mW2tFsf3/ioMvkB4TBgQk/Ytp6w2EWSXvVyWd8KbKwk=
 github.com/solo-io/ext-auth-service v0.6.11/go.mod h1:oA9GsVmTPbF5pNnDZ2BPinVPszKxJqknsTu+AF2uaNk=
 github.com/solo-io/gloo v1.3.1/go.mod h1:08u6J9vpfFGRDsZybTQ65UX7UuJr+EBsZz++J1wtKkQ=
-github.com/solo-io/gloo v1.4.0-beta12 h1:UQ6u8FDnCDXQjY6a7LJT35To+H1rnLl0b9rM3PfYqVM=
-github.com/solo-io/gloo v1.4.0-beta12/go.mod h1:bI4LgcOEExCZ5sszJjWaCbouETNdi4Yx+5VVRdJEqE0=
+github.com/solo-io/gloo v1.4.0-beta13 h1:iaqjWAaeiqxDlHF5v3zNYHHS0SWQCvjFxNcRg3AoLrQ=
+github.com/solo-io/gloo v1.4.0-beta13/go.mod h1:neVQ+YN/8F6x5FF1MsNO35J+UG/04oIuOSTcOIxjpXo=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.0/go.mod h1:R8lbLuLtMaTOhD+6wGpdxj60r1Vwt63fHe1UxlObHig=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
