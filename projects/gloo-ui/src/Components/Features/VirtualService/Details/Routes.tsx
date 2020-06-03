@@ -32,6 +32,7 @@ import { CreateRouteModal } from '../Creation/CreateRouteModal';
 import { RouteParent } from '../RouteTableDetails';
 import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
 import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 const RouteMatch = styled.div`
   max-width: 200px;
@@ -221,7 +222,7 @@ export const Routes: React.FC<Props> = props => {
 
   const getRouteData = () => {
     const existingRoutes = props.routes.map(route => {
-      const upstreamName = getRouteSingleUpstream(route) || '';
+      const upstreamName = getRouteSingleUpstream(route) ?? '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
         key: `${matcher}-${upstreamName}`,
@@ -748,12 +749,19 @@ export const Routes: React.FC<Props> = props => {
           </>
         </ModalTrigger>
       </RouteSectionTitle>
-
-      <SoloDragSortableTable
-        columns={getRouteColumns(beginRouteEditing, handleDeleteRoute)}
-        dataSource={getRouteData()}
-        moveRow={reorderRoutes}
-      />
+      <ErrorBoundary
+        fallback={
+          <div>
+            There was an error displaying routes, this could be due to invalid
+            configuration.
+          </div>
+        }>
+        <SoloDragSortableTable
+          columns={getRouteColumns(beginRouteEditing, handleDeleteRoute)}
+          dataSource={getRouteData()}
+          moveRow={reorderRoutes}
+        />
+      </ErrorBoundary>
 
       <SoloModal
         visible={showCreateRouteModal}
