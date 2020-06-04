@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+
 	configapi "github.com/solo-io/ext-auth-service/pkg/config"
 
 	pbtypes "github.com/gogo/protobuf/types"
@@ -147,6 +149,18 @@ var _ = Describe("Config Generator", func() {
 					},
 				},
 				{
+					AuthConfigRefName: "default.oauth-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth{
+								Oauth: &extauthv1.ExtAuthConfig_OAuthConfig{
+									IssuerUrl: "test",
+								},
+							},
+						},
+					},
+				},
+				{
 					AuthConfigRefName: "default.ldap-authconfig",
 					Configs: []*extauthv1.ExtAuthConfig_Config{
 						{
@@ -177,7 +191,7 @@ var _ = Describe("Config Generator", func() {
 			pluginCfg, err := generator.GenerateConfig(resources)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pluginCfg).NotTo(BeNil())
-			Expect(pluginCfg.GetConfigCount()).To(Equal(4))
+			Expect(pluginCfg.GetConfigCount()).To(Equal(5))
 
 			service := getAuthService(pluginCfg, resources[0].AuthConfigRefName)
 			_, ok := service.(*chainmocks.MockAuthService)
@@ -202,7 +216,13 @@ var _ = Describe("Config Generator", func() {
 				}),
 			)
 
-			ldapService := getAuthService(pluginCfg, resources[3].AuthConfigRefName)
+			// Test that the Issuer Url always appends a trailing slash
+			service = getAuthService(pluginCfg, resources[3].AuthConfigRefName)
+			oidcConfig, ok := service.(*oidc.IssuerImpl)
+			Expect(ok).To(BeTrue())
+			Expect(oidcConfig.IssuerUrl).To(Equal("test/"))
+
+			ldapService := getAuthService(pluginCfg, resources[4].AuthConfigRefName)
 			Expect(ldapService).NotTo(BeNil())
 		})
 	})

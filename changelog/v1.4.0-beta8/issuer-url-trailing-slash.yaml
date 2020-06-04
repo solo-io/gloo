@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: The issuerUrl needs a trailing slash to find .well-known. Have Gloo append a trailing slash if it is missing.
+    issueLink: https://github.com/solo-io/gloo/issues/3071

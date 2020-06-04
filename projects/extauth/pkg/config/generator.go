@@ -233,6 +233,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		if cb == "" {
 			cb = DefaultCallback
 		}
+		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
 			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner)
 		if err != nil {
@@ -263,6 +264,13 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		return ldapSvc, "", nil
 	}
 	return nil, "", errors.New("unknown auth configuration")
+}
+
+func addTrailingSlash(url string) string {
+	if len(url) != 0 && url[len(url)-1:] == "/" {
+		return url
+	}
+	return url + "/"
 }
 
 func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthService, error) {
