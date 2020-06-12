@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Redact secret ext auth config data, like OAuth client secrets, from the ext auth server logs
+    issueLink: https://github.com/solo-io/gloo/issues/3105

@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/syncutil"
 	"github.com/solo-io/go-utils/healthchecker"
 	"github.com/solo-io/go-utils/loggingutils"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
@@ -176,6 +177,8 @@ func clientLoop(ctx context.Context, settings Settings, nodeInfo core.Node, serv
 		plugins.NewPluginLoader(settings.PluginDirectory),
 	)
 
+	protoRedactor := syncutil.NewProtoRedactor(syncutil.LogRedactorTag, syncutil.LogRedactorTagValue)
+
 	_ = contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
 
 		client := xdsproto.NewExtAuthConfigClient(
@@ -183,7 +186,15 @@ func clientLoop(ctx context.Context, settings Settings, nodeInfo core.Node, serv
 			func(version string, resources []*xdsproto.ExtAuthConfig) error {
 
 				logger := contextutils.LoggerFrom(ctx)
-				logger.Infow("got new config", zap.Any("config", resources))
+				logger.Infof("got %d new configs", len(resources))
+				for _, resource := range resources {
+					redactedJson, err := protoRedactor.BuildRedactedJsonString(resource)
+					if err == nil {
+						logger.Info(redactedJson)
+					} else {
+						logger.Warnf("Error while converting config into redacted JSON for logging: %+v", err)
+					}
+				}
 
 				serverState, err := generator.GenerateConfig(resources)
 				if err != nil {
