@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Secure the api-server service by converting it into a ClusterIP service, rather than NodePort, so that it is not available outside of the cluster.
+    issueLink: https://github.com/solo-io/gloo/issues/3120
