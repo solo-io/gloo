@@ -22,6 +22,7 @@ import * as gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../.
 import * as gloo_projects_gloo_api_v1_options_consul_consul_pb from "../../../../../gloo/projects/gloo/api/v1/options/consul/consul_pb";
 import * as gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb from "../../../../../gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb";
 import * as gloo_projects_gloo_api_v1_options_pb from "../../../../../gloo/projects/gloo/api/v1/options_pb";
+import * as gloo_projects_gloo_api_v1_failover_pb from "../../../../../gloo/projects/gloo/api/v1/failover_pb";
 
 export class Upstream extends jspb.Message {
   hasStatus(): boolean;
@@ -107,6 +108,11 @@ export class Upstream extends jspb.Message {
   getAwsEc2(): gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec | undefined;
   setAwsEc2(value?: gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec): void;
 
+  hasFailover(): boolean;
+  clearFailover(): void;
+  getFailover(): gloo_projects_gloo_api_v1_failover_pb.Failover | undefined;
+  setFailover(value?: gloo_projects_gloo_api_v1_failover_pb.Failover): void;
+
   getUpstreamTypeCase(): Upstream.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Upstream.AsObject;
@@ -137,6 +143,7 @@ export namespace Upstream {
     azure?: gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec.AsObject,
     consul?: gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.AsObject,
     awsEc2?: gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
+    failover?: gloo_projects_gloo_api_v1_failover_pb.Failover.AsObject,
   }
 
   export enum UpstreamTypeCase {

@@ -731,6 +731,11 @@ export namespace GatewayOptions {
     getAlwaysAccept(): google_protobuf_wrappers_pb.BoolValue | undefined;
     setAlwaysAccept(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+    hasAllowWarnings(): boolean;
+    clearAllowWarnings(): void;
+    getAllowWarnings(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setAllowWarnings(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ValidationOptions.AsObject;
     static toObject(includeInstance: boolean, msg: ValidationOptions): ValidationOptions.AsObject;
@@ -748,6 +753,7 @@ export namespace GatewayOptions {
       validationWebhookTlsKey: string,
       ignoreGlooValidationFailure: boolean,
       alwaysAccept?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      allowWarnings?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 }

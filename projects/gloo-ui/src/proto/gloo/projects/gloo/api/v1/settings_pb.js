@@ -4861,7 +4861,8 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject = function(includeI
     validationWebhookTlsCert: jspb.Message.getFieldWithDefault(msg, 3, ""),
     validationWebhookTlsKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
     ignoreGlooValidationFailure: jspb.Message.getFieldWithDefault(msg, 5, false),
-    alwaysAccept: (f = msg.getAlwaysAccept()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    alwaysAccept: (f = msg.getAlwaysAccept()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4918,6 +4919,11 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader 
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAlwaysAccept(value);
+      break;
+    case 7:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAllowWarnings(value);
       break;
     default:
       reader.skipField();
@@ -4980,6 +4986,14 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter = fu
   if (f != null) {
     writer.writeMessage(
       6,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getAllowWarnings();
+  if (f != null) {
+    writer.writeMessage(
+      7,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -5076,6 +5090,36 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearAlwaysAccept 
  */
 proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasAlwaysAccept = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue allow_warnings = 7;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getAllowWarnings = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 7));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setAllowWarnings = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearAllowWarnings = function() {
+  this.setAllowWarnings(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasAllowWarnings = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

@@ -31,6 +31,7 @@ var gloo_projects_gloo_api_v1_options_azure_azure_pb = require('../../../../../g
 var gloo_projects_gloo_api_v1_options_consul_consul_pb = require('../../../../../gloo/projects/gloo/api/v1/options/consul/consul_pb.js');
 var gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb = require('../../../../../gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb.js');
 var gloo_projects_gloo_api_v1_options_pb = require('../../../../../gloo/projects/gloo/api/v1/options_pb.js');
+var gloo_projects_gloo_api_v1_failover_pb = require('../../../../../gloo/projects/gloo/api/v1/failover_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DiscoveryMetadata', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Upstream', null, global);
 
@@ -135,7 +136,8 @@ proto.gloo.solo.io.Upstream.toObject = function(includeInstance, msg) {
     aws: (f = msg.getAws()) && gloo_projects_gloo_api_v1_options_aws_aws_pb.UpstreamSpec.toObject(includeInstance, f),
     azure: (f = msg.getAzure()) && gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f),
-    awsEc2: (f = msg.getAwsEc2()) && gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f)
+    awsEc2: (f = msg.getAwsEc2()) && gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f),
+    failover: (f = msg.getFailover()) && gloo_projects_gloo_api_v1_failover_pb.Failover.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -255,6 +257,11 @@ proto.gloo.solo.io.Upstream.deserializeBinaryFromReader = function(msg, reader) 
       var value = new gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec;
       reader.readMessage(value,gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setAwsEc2(value);
+      break;
+    case 18:
+      var value = new gloo_projects_gloo_api_v1_failover_pb.Failover;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_failover_pb.Failover.deserializeBinaryFromReader);
+      msg.setFailover(value);
       break;
     default:
       reader.skipField();
@@ -418,6 +425,14 @@ proto.gloo.solo.io.Upstream.serializeBinaryToWriter = function(message, writer) 
       17,
       f,
       gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailover();
+  if (f != null) {
+    writer.writeMessage(
+      18,
+      f,
+      gloo_projects_gloo_api_v1_failover_pb.Failover.serializeBinaryToWriter
     );
   }
 };
@@ -918,6 +933,36 @@ proto.gloo.solo.io.Upstream.prototype.clearAwsEc2 = function() {
  */
 proto.gloo.solo.io.Upstream.prototype.hasAwsEc2 = function() {
   return jspb.Message.getField(this, 17) != null;
+};
+
+
+/**
+ * optional Failover failover = 18;
+ * @return {?proto.gloo.solo.io.Failover}
+ */
+proto.gloo.solo.io.Upstream.prototype.getFailover = function() {
+  return /** @type{?proto.gloo.solo.io.Failover} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_failover_pb.Failover, 18));
+};
+
+
+/** @param {?proto.gloo.solo.io.Failover|undefined} value */
+proto.gloo.solo.io.Upstream.prototype.setFailover = function(value) {
+  jspb.Message.setWrapperField(this, 18, value);
+};
+
+
+proto.gloo.solo.io.Upstream.prototype.clearFailover = function() {
+  this.setFailover(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Upstream.prototype.hasFailover = function() {
+  return jspb.Message.getField(this, 18) != null;
 };
 
 

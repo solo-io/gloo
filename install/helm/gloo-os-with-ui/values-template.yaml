@@ -45,6 +45,9 @@ gloo:
         # clusterIP: None
         httpPort: 80
         httpsPort: 443
+        runAsUser: 10101
+        runUnprivileged: true
+        disableNetBind: true
         extraAnnotations:
           prometheus.io/scrape: "true"
           prometheus.io/path: /metrics
@@ -73,6 +76,7 @@ gloo:
       failurePolicy: "Ignore"
       secretName: gateway-validation-certs
       alwaysAcceptResources: true
+      allowWarnings: true
       webhook:
         enabled: true
     certGenJob:
@@ -83,6 +87,7 @@ gloo:
       restartPolicy: OnFailure
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
+      runAsUser: 10101
   accessLogger:
     enabled: false
     port: 8083

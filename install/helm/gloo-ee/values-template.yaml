@@ -84,6 +84,7 @@ gloo:
       failurePolicy: "Ignore"
       secretName: gateway-validation-certs
       alwaysAcceptResources: true
+      allowWarnings: true
       webhook:
         enabled: true
     certGenJob:
@@ -94,6 +95,7 @@ gloo:
       restartPolicy: OnFailure
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
+      runAsUser: 10101
   ingressProxy:
     deployment:
       image:
