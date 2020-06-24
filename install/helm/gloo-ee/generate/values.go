@@ -49,11 +49,14 @@ type DynamoDb struct {
 }
 
 type RateLimitDeployment struct {
-	RedisUrl    string         `json:"redisUrl"`
-	GlooAddress string         `json:"glooAddress"`
-	DynamoDb    DynamoDb       `json:"dynamodb"`
-	Image       *glooGen.Image `json:"image,omitempty"`
-	Stats       *glooGen.Stats `json:"stats"`
+	RedisUrl       string         `json:"redisUrl"`
+	GlooAddress    string         `json:"glooAddress"`
+	DynamoDb       DynamoDb       `json:"dynamodb"`
+	Image          *glooGen.Image `json:"image,omitempty"`
+	Stats          *glooGen.Stats `json:"stats"`
+	RunAsUser      float64        `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FloatingUserId bool           `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+
 	*glooGen.DeploymentSpec
 }
 
@@ -68,8 +71,12 @@ type Redis struct {
 }
 
 type RedisDeployment struct {
-	Image      *glooGen.Image `json:"image,omitempty"`
-	StaticPort uint           `json:"staticPort"`
+	Image          *glooGen.Image `json:"image,omitempty"`
+	StaticPort     uint           `json:"staticPort"`
+	RunAsUser      float64        `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
+	RunAsGroup     float64        `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`
+	FsGroup        float64        `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as. Default is 999"`
+	FloatingUserId bool           `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	*glooGen.DeploymentSpec
 }
 
@@ -86,8 +93,11 @@ type Observability struct {
 }
 
 type ObservabilityDeployment struct {
-	Image *glooGen.Image `json:"image,omitempty"`
-	Stats *glooGen.Stats `json:"stats"`
+	Image          *glooGen.Image `json:"image,omitempty"`
+	Stats          *glooGen.Stats `json:"stats"`
+	RunAsUser      float64        `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FloatingUserId bool           `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+
 	*glooGen.DeploymentSpec
 }
 
@@ -117,11 +127,14 @@ type ExtAuth struct {
 }
 
 type ExtAuthDeployment struct {
-	Name        string         `json:"name"`
-	GlooAddress string         `json:"glooAddress,omitempty"`
-	Port        uint           `json:"port"`
-	Image       *glooGen.Image `json:"image,omitempty"`
-	Stats       *glooGen.Stats `json:"stats"`
+	Name           string         `json:"name"`
+	GlooAddress    string         `json:"glooAddress,omitempty"`
+	Port           uint           `json:"port"`
+	Image          *glooGen.Image `json:"image,omitempty"`
+	Stats          *glooGen.Stats `json:"stats"`
+	RunAsUser      float64        `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FsGroup        float64        `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	FloatingUserId bool           `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	*glooGen.DeploymentSpec
 }
 
@@ -150,10 +163,12 @@ type ApiServer struct {
 }
 
 type ApiServerDeployment struct {
-	Server *ApiServerServerDeployment `json:"server,omitempty"`
-	Ui     *ApiServerUiDeployment     `json:"ui,omitempty"`
-	Envoy  *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
-	Stats  *glooGen.Stats             `json:"stats"`
+	Server         *ApiServerServerDeployment `json:"server,omitempty"`
+	Ui             *ApiServerUiDeployment     `json:"ui,omitempty"`
+	Envoy          *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
+	Stats          *glooGen.Stats             `json:"stats"`
+	RunAsUser      float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the 3 api-server containers to run as. Default is 10101"`
+	FloatingUserId bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	*glooGen.DeploymentSpec
 }
 

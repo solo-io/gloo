@@ -28,6 +28,7 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
+      serviceAccountName: {{ .Values.rateLimit.service.name }}
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
@@ -99,6 +100,14 @@ spec:
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
+        {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
+        {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
+        {{- if not .Values.rateLimit.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.rateLimit.deployment.runAsUser) -}}
+        {{- end }}
       {{- if .Values.global.glooMtls.enabled }}
       volumes:
         - name: gloo-mtls-certs

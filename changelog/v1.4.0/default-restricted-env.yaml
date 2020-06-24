@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Enable gloo and glooe to run in a fully restricted kubernetes environment. Gloo pods and jobs now all start
+      as a non-root user. Most pods can be run as a custom user by specifying a deployment.runAsUser value. Service
+      accounts have been created for extauth and ratelimit. Grafana, Redis and Nginx are all now initialized as
+      non-root users also.
+    issueLink: https://github.com/solo-io/gloo/issues/3084

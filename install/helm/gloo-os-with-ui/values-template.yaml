@@ -38,6 +38,10 @@ gloo:
       podTemplate:
         httpPort: 8080
         httpsPort: 8443
+        runAsUser: 10101
+        fsGroup: 10101
+        runUnprivileged: true
+        disableNetBind: true
         image:
           repository: gloo-envoy-wrapper
       service:
@@ -108,6 +112,7 @@ apiServer:
   enableBeta: true
   deployment:
     name: "grpcserver-ui"
+    runAsUser: 10101
     server:
       image:
         name: apiserver

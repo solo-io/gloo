@@ -35,6 +35,11 @@ spec:
       {{- end}}
     spec:
       serviceAccountName: {{ .Values.apiServer.service.name }}
+      securityContext:
+        runAsNonRoot: true
+        {{- if not .Values.apiServer.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.apiServer.deployment.runAsUser) -}}
+        {{- end }}
       containers:
         - name: apiserver-ui
           image: {{template "gloo.image" $uiImage}}

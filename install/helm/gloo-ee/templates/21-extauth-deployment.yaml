@@ -30,6 +30,7 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}} # $extAuth.deployment.stats
     spec:
+      serviceAccountName: {{ $extAuth.service.name }}
       {{- if or $extAuth.plugins .Values.global.glooMtls.enabled}}
       volumes:
       {{- if .Values.global.glooMtls.enabled }}
@@ -85,6 +86,12 @@ spec:
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        {{- if not $extAuth.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 $extAuth.deployment.runAsUser) }}
+        fsGroup: {{ printf "%.0f" (float64 $extAuth.deployment.fsGroup) }}
+        {{- end }}
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

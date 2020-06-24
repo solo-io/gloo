@@ -70,5 +70,10 @@ spec:
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        {{- if not .Values.observability.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.observability.deployment.runAsUser) -}}
+        {{- end }}
 {{- end }}
-{{- end }} # enabled
+{{- end }}  {{- /* Observability enabled */ -}}

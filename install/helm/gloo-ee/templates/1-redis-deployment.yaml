@@ -33,6 +33,14 @@ spec:
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsGroup) }}
+        fsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.fsGroup) }}
+        {{- if not .Values.redis.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsUser) -}}
+        {{- end }}
+
       volumes:
         - name: data
           emptyDir: {}

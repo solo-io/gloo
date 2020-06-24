@@ -49,6 +49,10 @@ gloo:
       podTemplate:
         httpPort: 8080
         httpsPort: 8443
+        runAsUser: 10101
+        fsGroup: 10101
+        runUnprivileged: true
+        disableNetBind: true
         image:
           repository: gloo-ee-envoy-wrapper
       service:
@@ -112,6 +116,7 @@ apiServer:
   enableBeta: true
   deployment:
     name: "grpcserver-ui"
+    runAsUser: 10101
     server:
       image:
         name: apiserver
@@ -150,6 +155,7 @@ rateLimit:
       tableName: rate-limits
       consistentReads: true
       batchSize: 100
+    runAsUser: 10101
   service:
     port: 18081
     name: rate-limit
@@ -162,6 +168,9 @@ redis:
       repository: redis
       registry: docker.io
     staticPort: 6379
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
   service:
     port: 6379
     name: redis
@@ -178,6 +187,7 @@ observability:
     name: observability
     image:
       repository: observability-ee
+    runAsUser: 10101
   customGrafana:
     enabled: false
 
@@ -217,6 +227,8 @@ global:
           repository: extauth-ee
         port: 8083
         replicas: 1
+        runAsUser: 10101
+        fsGroup: 10101
       service:
         port: 8083
         name: extauth
@@ -278,6 +290,12 @@ grafana:
   # setting these name overrides ensures that the pods get deleted when `glooctl uninstall` is run
   nameOverride: glooe-grafana
   fullnameOverride: glooe-grafana
+  initChownData:
+    enabled: false
+  securityContext:
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
   datasources:
     datasources.yaml:
       # config file version

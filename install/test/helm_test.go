@@ -91,6 +91,15 @@ var _ = Describe("Helm Test", func() {
 					Name:      "observability",
 					Labels:    labels,
 				}
+
+				nonRootUser := int64(10101)
+				nonRoot := true
+
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+				}
+
 				observabilityDeployment = rb.GetDeploymentAppsv1()
 
 				observabilityDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
@@ -156,6 +165,8 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 
+				observabilityDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+
 				grafanaBuilder := ResourceBuilder{
 					Namespace: "", // grafana installs to empty namespace during tests
 					Name:      "release-name-grafana",
@@ -199,6 +210,18 @@ var _ = Describe("Helm Test", func() {
 						valuesArgs: []string{"observability.customGrafana.enabled=true"},
 					})
 					Expect(err).NotTo(HaveOccurred())
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
+				It("should support running as arbitrary user", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"observability.deployment.runAsUser=10102"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					customUser := int64(10102)
+					observabilityDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &customUser
 
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
 				})
@@ -315,6 +338,16 @@ var _ = Describe("Helm Test", func() {
 					Name:      "extauth",
 					Labels:    labels,
 				}
+
+				nonRootUser := int64(10101)
+				nonRoot := true
+
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+					FSGroup:      &nonRootUser,
+				}
+
 				expectedDeployment = rb.GetDeploymentAppsv1()
 
 				expectedDeployment.Spec.Replicas = aws.Int32(1)
@@ -379,6 +412,10 @@ var _ = Describe("Helm Test", func() {
 				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
 				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+
+				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "extauth"
+
 				expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
 					PodAffinity: &v1.PodAffinity{
 						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
@@ -419,6 +456,21 @@ var _ = Describe("Helm Test", func() {
 				})
 
 				expectedDeployment.Spec.Replicas = aws.Int32(3)
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("allows setting custom runAsUser", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.extAuth.deployment.runAsUser=10102"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+
+				uid := int64(10102)
+				expectedDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
@@ -569,13 +621,20 @@ global:
 				}}
 				truez := true
 				falsez := false
+				defaultUser := int64(10101)
 				deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
 					Capabilities: &v1.Capabilities{
-						Add:  []v1.Capability{"NET_BIND_SERVICE"},
 						Drop: []v1.Capability{"ALL"},
 					},
 					ReadOnlyRootFilesystem:   &truez,
 					AllowPrivilegeEscalation: &falsez,
+					RunAsNonRoot:             &truez,
+					RunAsUser:                &defaultUser,
+				}
+
+				deploy.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
+					RunAsUser: &defaultUser,
+					FSGroup:   &defaultUser,
 				}
 
 				deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
@@ -805,6 +864,14 @@ spec:
 					},
 				}
 
+				nonRootUser := int64(10101)
+				nonRoot := true
+
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+				}
+
 				rb := ResourceBuilder{
 					Namespace: namespace,
 					Name:      "api-server",
@@ -820,6 +887,7 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
 				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
 			})
 
 			It("is there by default", func() {
@@ -882,6 +950,18 @@ spec:
 						v1.ResourceMemory: resource.MustParse("10Mi"),
 					},
 				}
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("allows setting custom runAsUser", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"apiServer.deployment.runAsUser=10102"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				uid := int64(10102)
+				expectedDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
@@ -1233,13 +1313,20 @@ spec:
 					}}
 					truez := true
 					falsez := false
+					defaultUser := int64(10101)
 					deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
 						Capabilities: &v1.Capabilities{
-							Add:  []v1.Capability{"NET_BIND_SERVICE"},
 							Drop: []v1.Capability{"ALL"},
 						},
 						ReadOnlyRootFilesystem:   &truez,
 						AllowPrivilegeEscalation: &falsez,
+						RunAsNonRoot:             &truez,
+						RunAsUser:                &defaultUser,
+					}
+
+					deploy.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
+						RunAsUser: &defaultUser,
+						FSGroup:   &defaultUser,
 					}
 
 					deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
@@ -1320,6 +1407,14 @@ spec:
 							},
 						}
 
+						nonRootUser := int64(10101)
+						nonRoot := true
+
+						nonRootSC := &v1.PodSecurityContext{
+							RunAsUser:    &nonRootUser,
+							RunAsNonRoot: &nonRoot,
+						}
+
 						rb := ResourceBuilder{
 							Namespace: namespace,
 							Name:      "api-server",
@@ -1335,6 +1430,7 @@ spec:
 						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
 						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+						deploy.Spec.Template.Spec.SecurityContext = nonRootSC
 					})
 
 					It("is there by default", func() {
