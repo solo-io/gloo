@@ -132,7 +132,7 @@ var _ = Describe("dlp tests", func() {
 				Namespace: testHelper.InstallNamespace,
 				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
 			}
-			writeCustomVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef)
+			writeCustomVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, testMatcherPrefix)
 			checkConnection(`"YYYlo":"YYYld"`)
 		})
 	})

@@ -32,6 +32,7 @@ var gloo_projects_gloo_api_v1_options_consul_consul_pb = require('../../../../..
 var gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb = require('../../../../../gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb.js');
 var gloo_projects_gloo_api_v1_options_pb = require('../../../../../gloo/projects/gloo/api/v1/options_pb.js');
 var gloo_projects_gloo_api_v1_failover_pb = require('../../../../../gloo/projects/gloo/api/v1/failover_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DiscoveryMetadata', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Upstream', null, global);
 
@@ -129,7 +130,7 @@ proto.gloo.solo.io.Upstream.toObject = function(includeInstance, msg) {
     healthChecksList: jspb.Message.toObjectList(msg.getHealthChecksList(),
     gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.toObject, includeInstance),
     outlierDetection: (f = msg.getOutlierDetection()) && gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.toObject(includeInstance, f),
-    useHttp2: jspb.Message.getFieldWithDefault(msg, 10, false),
+    useHttp2: (f = msg.getUseHttp2()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     kube: (f = msg.getKube()) && gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.toObject(includeInstance, f),
     pb_static: (f = msg.getStatic()) && gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec.toObject(includeInstance, f),
     pipe: (f = msg.getPipe()) && gloo_projects_gloo_api_v1_options_pipe_pipe_pb.UpstreamSpec.toObject(includeInstance, f),
@@ -220,7 +221,8 @@ proto.gloo.solo.io.Upstream.deserializeBinaryFromReader = function(msg, reader) 
       msg.setOutlierDetection(value);
       break;
     case 10:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setUseHttp2(value);
       break;
     case 11:
@@ -365,10 +367,11 @@ proto.gloo.solo.io.Upstream.serializeBinaryToWriter = function(message, writer) 
     );
   }
   f = message.getUseHttp2();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       10,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getKube();
@@ -710,19 +713,32 @@ proto.gloo.solo.io.Upstream.prototype.hasOutlierDetection = function() {
 
 
 /**
- * optional bool use_http2 = 10;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue use_http2 = 10;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.gloo.solo.io.Upstream.prototype.getUseHttp2 = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 10, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 10));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.gloo.solo.io.Upstream.prototype.setUseHttp2 = function(value) {
-  jspb.Message.setProto3BooleanField(this, 10, value);
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.Upstream.prototype.clearUseHttp2 = function() {
+  this.setUseHttp2(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Upstream.prototype.hasUseHttp2 = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

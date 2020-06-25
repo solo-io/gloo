@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/usage"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/metrics/pkg/metricsservice"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
@@ -15,6 +16,7 @@ import (
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
@@ -64,6 +66,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 			func() plugins.Plugin { return waf.NewPlugin() },
 			func() plugins.Plugin { return dlp.NewPlugin() },
 			func() plugins.Plugin { return proxylatency.NewPlugin() },
+			func() plugins.Plugin { return failover.NewFailoverPlugin(utils.NewSslConfigTranslator()) },
 		},
 	}
 }

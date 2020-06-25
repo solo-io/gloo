@@ -1,4 +1,5 @@
 import { grpc } from '@improbable-eng/grpc-web';
+import { BoolValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { OutlierDetection } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb';
 import { HealthCheck } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb';
 import {
@@ -328,7 +329,9 @@ function setUpstreamValues(
   }
 
   if (useHttp2 !== undefined) {
-    upstreamToUpdate.setUseHttp2(useHttp2);
+    let useHttp2BoolVal = new BoolValue();
+    useHttp2BoolVal.setValue(useHttp2.value);
+    upstreamToUpdate.setUseHttp2(useHttp2BoolVal);
   }
 
   if (kube !== undefined) {

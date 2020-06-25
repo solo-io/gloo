@@ -1,0 +1,5 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/3141
+  description: >-
+    Implement prioritized failover in Gloo. This Implements the API created in https://github.com/solo-io/gloo/pull/3138.

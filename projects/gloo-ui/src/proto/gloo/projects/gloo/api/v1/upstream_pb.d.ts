@@ -23,6 +23,7 @@ import * as gloo_projects_gloo_api_v1_options_consul_consul_pb from "../../../..
 import * as gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb from "../../../../../gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb";
 import * as gloo_projects_gloo_api_v1_options_pb from "../../../../../gloo/projects/gloo/api/v1/options_pb";
 import * as gloo_projects_gloo_api_v1_failover_pb from "../../../../../gloo/projects/gloo/api/v1/failover_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class Upstream extends jspb.Message {
   hasStatus(): boolean;
@@ -70,8 +71,10 @@ export class Upstream extends jspb.Message {
   getOutlierDetection(): gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection | undefined;
   setOutlierDetection(value?: gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection): void;
 
-  getUseHttp2(): boolean;
-  setUseHttp2(value: boolean): void;
+  hasUseHttp2(): boolean;
+  clearUseHttp2(): void;
+  getUseHttp2(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setUseHttp2(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasKube(): boolean;
   clearKube(): void;
@@ -135,7 +138,7 @@ export namespace Upstream {
     connectionConfig?: gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.AsObject,
     healthChecksList: Array<gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb.HealthCheck.AsObject>,
     outlierDetection?: gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.AsObject,
-    useHttp2: boolean,
+    useHttp2?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     kube?: gloo_projects_gloo_api_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
     pb_static?: gloo_projects_gloo_api_v1_options_static_static_pb.UpstreamSpec.AsObject,
     pipe?: gloo_projects_gloo_api_v1_options_pipe_pipe_pb.UpstreamSpec.AsObject,

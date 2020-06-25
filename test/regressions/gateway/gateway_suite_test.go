@@ -293,12 +293,12 @@ func writeVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
 		Namespace: testHelper.InstallNamespace,
 		Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort),
 	}
-	writeCustomVirtualService(ctx, vsClient, virtualHostOptions, routeOptions, sslConfig, upstreamRef)
+	writeCustomVirtualService(ctx, vsClient, virtualHostOptions, routeOptions, sslConfig, upstreamRef, testMatcherPrefix)
 }
 
 func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceClient,
 	virtualHostOptions *gloov1.VirtualHostOptions, routeOptions *gloov1.RouteOptions,
-	sslConfig *gloov1.SslConfig, upstreamRef *core.ResourceRef) {
+	sslConfig *gloov1.SslConfig, upstreamRef *core.ResourceRef, matcherPrefix string) {
 
 	if routeOptions.GetPrefixRewrite() == nil {
 		if routeOptions == nil {
@@ -326,7 +326,7 @@ func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceCl
 					Options: routeOptions,
 					Matchers: []*matchers.Matcher{{
 						PathSpecifier: &matchers.Matcher_Prefix{
-							Prefix: testMatcherPrefix,
+							Prefix: matcherPrefix,
 						},
 					}},
 					Action: &v1.Route_RouteAction{

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -163,7 +164,7 @@ var _ = Describe("Rate Limit", func() {
 							Name:      "extauth-server",
 							Namespace: "default",
 						},
-						UseHttp2: true,
+						UseHttp2: &types.BoolValue{Value: true},
 						UpstreamType: &gloov1.Upstream_Static{
 							Static: &gloov1static.UpstreamSpec{
 								Hosts: []*gloov1static.Host{{
@@ -359,7 +360,7 @@ var _ = Describe("Rate Limit", func() {
 				Name:      "rl-server",
 				Namespace: "default",
 			},
-			UseHttp2: true,
+			UseHttp2: &types.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{

@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
@@ -79,7 +80,7 @@ var _ = Describe("External auth", func() {
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
-			UseHttp2: true,
+			UseHttp2: &types.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
@@ -844,7 +845,7 @@ func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloo
 	return getProxyExtAuth(envoyPort, upstream, GetBasicAuthExtension())
 }
 
-//TODO(kdorosh) make sure no flakes here and that order doesn't matter
+// TODO(kdorosh) make sure no flakes here and that order doesn't matter
 func GetBasicAuthExtension() *extauth.ExtAuthExtension {
 	return &extauth.ExtAuthExtension{
 		Spec: &extauth.ExtAuthExtension_ConfigRef{

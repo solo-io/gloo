@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -133,7 +134,7 @@ var _ = Describe("JWT + RBAC", func() {
 				Name:      "jwks-server",
 				Namespace: "default",
 			},
-			UseHttp2: true,
+			UseHttp2: &types.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
