@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Enabled gzip for gloo-ui to reduce file transfer size.
+    issueLink: https://github.com/solo-io/gloo/issues/3165
+    resolvesIssue: true
