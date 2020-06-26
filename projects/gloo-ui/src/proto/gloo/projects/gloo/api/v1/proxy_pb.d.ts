@@ -4,6 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
@@ -157,15 +158,15 @@ export class TcpHost extends jspb.Message {
   getName(): string;
   setName(value: string): void;
 
-  hasDestination(): boolean;
-  clearDestination(): void;
-  getDestination(): RouteAction | undefined;
-  setDestination(value?: RouteAction): void;
-
   hasSslConfig(): boolean;
   clearSslConfig(): void;
   getSslConfig(): gloo_projects_gloo_api_v1_ssl_pb.SslConfig | undefined;
   setSslConfig(value?: gloo_projects_gloo_api_v1_ssl_pb.SslConfig): void;
+
+  hasDestination(): boolean;
+  clearDestination(): void;
+  getDestination(): TcpHost.TcpAction | undefined;
+  setDestination(value?: TcpHost.TcpAction): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TcpHost.AsObject;
@@ -180,8 +181,57 @@ export class TcpHost extends jspb.Message {
 export namespace TcpHost {
   export type AsObject = {
     name: string,
-    destination?: RouteAction.AsObject,
     sslConfig?: gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject,
+    destination?: TcpHost.TcpAction.AsObject,
+  }
+
+  export class TcpAction extends jspb.Message {
+    hasSingle(): boolean;
+    clearSingle(): void;
+    getSingle(): Destination | undefined;
+    setSingle(value?: Destination): void;
+
+    hasMulti(): boolean;
+    clearMulti(): void;
+    getMulti(): MultiDestination | undefined;
+    setMulti(value?: MultiDestination): void;
+
+    hasUpstreamGroup(): boolean;
+    clearUpstreamGroup(): void;
+    getUpstreamGroup(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setUpstreamGroup(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    hasForwardSniClusterName(): boolean;
+    clearForwardSniClusterName(): void;
+    getForwardSniClusterName(): google_protobuf_empty_pb.Empty | undefined;
+    setForwardSniClusterName(value?: google_protobuf_empty_pb.Empty): void;
+
+    getDestinationCase(): TcpAction.DestinationCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TcpAction.AsObject;
+    static toObject(includeInstance: boolean, msg: TcpAction): TcpAction.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TcpAction, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TcpAction;
+    static deserializeBinaryFromReader(message: TcpAction, reader: jspb.BinaryReader): TcpAction;
+  }
+
+  export namespace TcpAction {
+    export type AsObject = {
+      single?: Destination.AsObject,
+      multi?: MultiDestination.AsObject,
+      upstreamGroup?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+      forwardSniClusterName?: google_protobuf_empty_pb.Empty.AsObject,
+    }
+
+    export enum DestinationCase {
+      DESTINATION_NOT_SET = 0,
+      SINGLE = 1,
+      MULTI = 2,
+      UPSTREAM_GROUP = 3,
+      FORWARD_SNI_CLUSTER_NAME = 4,
+    }
   }
 }
 
