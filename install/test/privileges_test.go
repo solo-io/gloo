@@ -23,7 +23,7 @@ var _ = Describe("Deployment Privileges Test", func() {
 				expectNonRoot(testManifest)
 			})
 
-			It("is running all deployments with non root user permissions with knative, accessLogger, and ingress enabled", func() {
+			It("is running all deployments with non root user permissions with knative, accessLogger, ingress, and mTLS enabled", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"gateway.enabled=false",
@@ -31,6 +31,7 @@ var _ = Describe("Deployment Privileges Test", func() {
 						"settings.integrations.knative.version=v0.10.0",
 						"accessLogger.enabled=true",
 						"ingress.enabled=true",
+						"global.glooMtls.enabled=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -50,7 +51,7 @@ var _ = Describe("Deployment Privileges Test", func() {
 				expectNonRoot(testManifest)
 			})
 
-			It("is running all deployments with non root user permissions with knative, accessLogger, and ingress enabled", func() {
+			It("is running all deployments with non root user permissions with knative, accessLogger, ingress, and mTLS enabled", func() {
 				testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"gateway.enabled=false",
@@ -58,6 +59,7 @@ var _ = Describe("Deployment Privileges Test", func() {
 						"settings.integrations.knative.version=v0.10.0",
 						"accessLogger.enabled=true",
 						"ingress.enabled=true",
+						"global.glooMtls.enabled=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())

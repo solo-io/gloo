@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Adds mTLS to the unit tests ensuring no root privileges were used when mTLS is enabled.
+    issueLink: https://github.com/solo-io/gloo/issues/3084
