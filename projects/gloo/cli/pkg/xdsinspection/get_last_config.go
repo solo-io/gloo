@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"go.uber.org/zap"
@@ -134,7 +136,7 @@ func getXdsDump(ctx context.Context, xdsPort, proxyName, proxyNamespace string) 
 	for _, l := range xdsDump.Listeners {
 		for _, fc := range l.FilterChains {
 			for _, filter := range fc.Filters {
-				if filter.Name == "envoy.http_connection_manager" {
+				if filter.Name == wellknown.HTTPConnectionManager {
 					var hcm envoyhttp.HttpConnectionManager
 					switch config := filter.ConfigType.(type) {
 					case *envoylistener.Filter_Config:

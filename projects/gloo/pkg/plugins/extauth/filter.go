@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
@@ -52,7 +54,7 @@ func BuildHttpFilters(settings *extauthv1.Settings, upstreams v1.UpstreamList) (
 		return nil, err
 	}
 
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, extAuthCfg, FilterStage)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(wellknown.HTTPExternalAuthorization, extAuthCfg, FilterStage)
 	if err != nil {
 		return nil, err
 	}

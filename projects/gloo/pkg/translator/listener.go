@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/gogo/protobuf/proto"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -249,7 +251,7 @@ func newSslFilterChain(downstreamConfig *envoyauth.DownstreamTlsContext, sniDoma
 		Filters: listenerFiltersCopy,
 
 		TransportSocket: &envoycore.TransportSocket{
-			Name:       pluginutils.TlsTransportSocket,
+			Name:       wellknown.TransportSocketTls,
 			ConfigType: &envoycore.TransportSocket_TypedConfig{TypedConfig: pluginutils.MustMessageToAny(downstreamConfig)},
 		},
 

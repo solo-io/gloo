@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -56,7 +58,7 @@ func main() {
 	for _, l := range listeners {
 		for _, fc := range l.FilterChains {
 			for _, filter := range fc.Filters {
-				if filter.Name == "envoy.http_connection_manager" {
+				if filter.Name == wellknown.HTTPConnectionManager {
 					var hcm envoyhttp.HttpConnectionManager
 					switch config := filter.ConfigType.(type) {
 					case *envoylistener.Filter_Config:

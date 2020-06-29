@@ -5,6 +5,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoytcp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/tcp_proxy/v2"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/rotisserie/eris"
@@ -16,7 +17,6 @@ import (
 	usconversion "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"go.uber.org/zap"
 )
 
@@ -153,7 +153,7 @@ func (p *Plugin) tcpProxyFilters(
 		return nil, NoDestinationTypeError(host)
 	}
 
-	tcpFilter, err := translatorutil.NewFilterWithConfig(util.TCPProxy, cfg)
+	tcpFilter, err := translatorutil.NewFilterWithConfig(wellknown.TCPProxy, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func (p *Plugin) newSslFilterChain(
 		},
 		Filters: listenerFiltersCopy,
 		TransportSocket: &envoycore.TransportSocket{
-			Name:       pluginutils.TlsTransportSocket,
+			Name:       wellknown.TransportSocketTls,
 			ConfigType: &envoycore.TransportSocket_TypedConfig{TypedConfig: pluginutils.MustMessageToAny(downstreamConfig)},
 		},
 		UseProxyProto: gogoutils.BoolGogoToProto(useProxyProto),

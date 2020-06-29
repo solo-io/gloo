@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"unicode/utf8"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -86,7 +88,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		Sni: lambdaHostname,
 	}
 	out.TransportSocket = &envoycore.TransportSocket{
-		Name:       pluginutils.TlsTransportSocket,
+		Name:       wellknown.TransportSocketTls,
 		ConfigType: &envoycore.TransportSocket_TypedConfig{TypedConfig: pluginutils.MustMessageToAny(tlsContext)},
 	}
 
