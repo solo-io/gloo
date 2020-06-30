@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: A single invalid AuthConfig can no longer halt processing of other valid AuthConfigs.
+    issueLink: https://github.com/solo-io/gloo/issues/3097
