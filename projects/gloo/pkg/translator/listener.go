@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	"github.com/gogo/protobuf/proto"
@@ -18,7 +20,6 @@ import (
 	validationapi "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	"github.com/solo-io/go-utils/contextutils"
 )
@@ -252,7 +253,7 @@ func newSslFilterChain(downstreamConfig *envoyauth.DownstreamTlsContext, sniDoma
 
 		TransportSocket: &envoycore.TransportSocket{
 			Name:       wellknown.TransportSocketTls,
-			ConfigType: &envoycore.TransportSocket_TypedConfig{TypedConfig: pluginutils.MustMessageToAny(downstreamConfig)},
+			ConfigType: &envoycore.TransportSocket_TypedConfig{TypedConfig: utils.MustMessageToAny(downstreamConfig)},
 		},
 
 		UseProxyProto: gogoutils.BoolGogoToProto(useProxyProto),

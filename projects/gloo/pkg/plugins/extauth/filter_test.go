@@ -124,7 +124,7 @@ var _ = Describe("Extauth Http filter builder function", func() {
 			ExpectWithOffset(1, extAuthFilter.HttpFilter.Name).To(Equal(wellknown.HTTPExternalAuthorization))
 
 			filterConfig := &envoyauth.ExtAuthz{}
-			err := translator.ParseConfig(extAuthFilter.HttpFilter, filterConfig)
+			err := translator.ParseTypedConfig(extAuthFilter.HttpFilter, filterConfig)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			return filterConfig
