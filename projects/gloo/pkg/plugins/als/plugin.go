@@ -6,10 +6,9 @@ import (
 	envoyalcfg "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v2"
 	envoyal "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
-	envoyalv2 "github.com/envoyproxy/go-control-plane/envoy/config/filter/accesslog/v2"
-	envoytcp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/tcp_proxy/v2"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/protoutils"
@@ -67,7 +66,7 @@ func (p *Plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *en
 						return err
 					}
 
-					f.Filters[i], err = translatorutil.NewFilterWithConfig(wellknown.HTTPConnectionManager, &hcmCfg)
+					f.Filters[i], err = translatorutil.NewFilterWithTypedConfig(wellknown.HTTPConnectionManager, &hcmCfg)
 					// this should never error
 					if err != nil {
 						return err
@@ -84,19 +83,19 @@ func (p *Plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *en
 				if filter.Name == wellknown.TCPProxy {
 					// get config
 					var tcpCfg envoytcp.TcpProxy
-					err := translatorutil.ParseConfig(filter, &tcpCfg)
+					err := translatorutil.ParseTypedConfig(filter, &tcpCfg)
 					// this should never error
 					if err != nil {
 						return err
 					}
 
 					accessLogs := tcpCfg.GetAccessLog()
-					tcpCfg.AccessLog, err = handleAccessLogv2Plugins(alSettings.AccessLoggingService, accessLogs, params)
+					tcpCfg.AccessLog, err = handleAccessLogPlugins(alSettings.AccessLoggingService, accessLogs, params)
 					if err != nil {
 						return err
 					}
 
-					f.Filters[i], err = translatorutil.NewFilterWithConfig(wellknown.TCPProxy, &tcpCfg)
+					f.Filters[i], err = translatorutil.NewFilterWithTypedConfig(wellknown.TCPProxy, &tcpCfg)
 					// this should never error
 					if err != nil {
 						return err
@@ -128,36 +127,6 @@ func handleAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoyal
 				return nil, err
 			}
 			newAlsCfg, err := translatorutil.NewAccessLogWithConfig(wellknown.HTTPGRPCAccessLog, &cfg)
-			if err != nil {
-				return nil, err
-			}
-			results = append(results, &newAlsCfg)
-		}
-	}
-	logCfg = append(logCfg, results...)
-	return logCfg, nil
-}
-
-func handleAccessLogv2Plugins(service *als.AccessLoggingService, logCfg []*envoyalv2.AccessLog, params plugins.Params) ([]*envoyalv2.AccessLog, error) {
-	results := make([]*envoyalv2.AccessLog, 0, len(service.GetAccessLog()))
-	for _, al := range service.GetAccessLog() {
-		switch cfgType := al.GetOutputDestination().(type) {
-		case *als.AccessLog_FileSink:
-			var cfg envoyalfile.FileAccessLog
-			if err := copyFileSettings(&cfg, cfgType); err != nil {
-				return nil, err
-			}
-			newAlsCfg, err := translatorutil.NewAccessLogv2WithConfig(wellknown.FileAccessLog, &cfg)
-			if err != nil {
-				return nil, err
-			}
-			results = append(results, &newAlsCfg)
-		case *als.AccessLog_GrpcService:
-			var cfg envoyalcfg.HttpGrpcAccessLogConfig
-			if err := copyGrpcSettings(&cfg, cfgType, params); err != nil {
-				return nil, err
-			}
-			newAlsCfg, err := translatorutil.NewAccessLogv2WithConfig(wellknown.HTTPGRPCAccessLog, &cfg)
 			if err != nil {
 				return nil, err
 			}

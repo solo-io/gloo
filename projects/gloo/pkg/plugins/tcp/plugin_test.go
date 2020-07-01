@@ -12,7 +12,7 @@ import (
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/tcp"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 
-	envoytcp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/tcp_proxy/v2"
+	envoytcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 	"github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -122,7 +122,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cfg.IdleTimeout).To(Equal(gogoutils.DurationStdToProto(tcps.IdleTimeout)))
@@ -151,7 +151,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			cluster := cfg.GetCluster()
 			Expect(cluster).To(Equal(translatorutil.UpstreamToClusterName(core.ResourceRef{Namespace: ns, Name: "one"})))
@@ -173,7 +173,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
@@ -207,7 +207,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains).To(HaveLen(1))
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseConfig(filterChains[0].Filters[0], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[0], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			clusters := cfg.GetWeightedClusters()
 			Expect(clusters.Clusters).To(HaveLen(2))
@@ -235,7 +235,7 @@ var _ = Describe("Plugin", func() {
 			Expect(filterChains[0].Filters[0].GetTypedConfig()).To(BeNil())
 
 			var cfg envoytcp.TcpProxy
-			err = translatorutil.ParseConfig(filterChains[0].Filters[1], &cfg)
+			err = translatorutil.ParseTypedConfig(filterChains[0].Filters[1], &cfg)
 			Expect(err).NotTo(HaveOccurred())
 			cluster, ok := cfg.GetClusterSpecifier().(*envoytcp.TcpProxy_Cluster)
 			Expect(ok).To(BeTrue(), "must be a single cluster type")
