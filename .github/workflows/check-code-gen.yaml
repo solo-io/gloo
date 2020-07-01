@@ -37,3 +37,5 @@ jobs:
     - name: Generate Code
       run: |
         ./ci/check-code-gen.sh
+      env:
+        GOPRIVATE: github.com/solo-io
