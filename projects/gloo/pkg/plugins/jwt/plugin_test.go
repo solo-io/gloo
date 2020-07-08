@@ -4,7 +4,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+	"github.com/golang/protobuf/ptypes"
+
 	"github.com/gogo/protobuf/types"
 	duration "github.com/golang/protobuf/ptypes/duration"
 
@@ -167,9 +168,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 			Expect(outFilters).To(HaveLen(1))
 			filter := outFilters[0]
-			cfgSt := filter.HttpFilter.GetConfig()
+			cfgSt := filter.HttpFilter.GetTypedConfig()
 			cfg = &envoyauth.JwtAuthentication{}
-			err = conversion.StructToMessage(cfgSt, cfg)
+			err = ptypes.UnmarshalAny(cfgSt, cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -182,21 +183,23 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		})
 
 		It("should process virtual host", func() {
-			pfc := outVhost.PerFilterConfig[JwtFilterName]
-			Expect(pfc).NotTo(BeNil())
+			goTpfc := outVhost.TypedPerFilterConfig[JwtFilterName]
+			Expect(goTpfc).NotTo(BeNil())
 
 			var routeCfg SoloJwtAuthnPerRoute
-			err := conversion.StructToMessage(pfc, &routeCfg)
+			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err := types.UnmarshalAny(gogoTpfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(virtualHost.Name))
 		})
 
 		It("should process route", func() {
-			pfc := outRoute.PerFilterConfig[JwtFilterName]
-			Expect(pfc).NotTo(BeNil())
+			goTpfc := outRoute.TypedPerFilterConfig[JwtFilterName]
+			Expect(goTpfc).NotTo(BeNil())
 
 			var routeCfg SoloJwtAuthnPerRoute
-			err := conversion.StructToMessage(pfc, &routeCfg)
+			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err := types.UnmarshalAny(gogoTpfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(DisableName))
 		})
@@ -319,11 +322,12 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 			It("should translate claims to headers", func() {
 
-				pfc := outVhost.PerFilterConfig[JwtFilterName]
-				Expect(pfc).NotTo(BeNil())
+				goTpfc := outVhost.TypedPerFilterConfig[JwtFilterName]
+				Expect(goTpfc).NotTo(BeNil())
 
 				var routeCfg SoloJwtAuthnPerRoute
-				err := conversion.StructToMessage(pfc, &routeCfg)
+				gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+				err := types.UnmarshalAny(gogoTpfc, &routeCfg)
 				Expect(err).NotTo(HaveOccurred())
 
 				provider1Name := ProviderName(virtualHost.Name, "provider1")

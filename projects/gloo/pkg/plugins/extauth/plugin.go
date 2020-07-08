@@ -3,6 +3,8 @@ package extauth
 import (
 	"fmt"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
@@ -97,7 +99,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-// This function generates the ext_authz PerFilterConfig for this virtual host.
+// This function generates the ext_authz TypedPerFilterConfig for this virtual host.
 // If the virtual host does not explicitly define an extauth configuration, we disable the ext_authz filter.
 // Since the ext_authz filter is always enabled on the listener, we need this to disable authentication by default on
 // a virtual host and its child resources (routes, weighted destinations). Extauth should be opt-in.
@@ -129,10 +131,10 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return err
 	}
 
-	return pluginutils.SetVhostPerFilterConfig(out, extauth.FilterName, config)
+	return pluginutils.SetVhostPerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
 }
 
-// This function generates the ext_authz PerFilterConfig for this route:
+// This function generates the ext_authz TypedPerFilterConfig for this route:
 // - if the route defines auth configuration, set the filter correspondingly;
 // - if auth is explicitly disabled, disable the filter (will apply by default also to WeightedDestinations);
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host).
@@ -165,10 +167,10 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return err
 	}
 
-	return pluginutils.SetRoutePerFilterConfig(out, extauth.FilterName, config)
+	return pluginutils.SetRoutePerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
 }
 
-// This function generates the ext_authz PerFilterConfig for this weightedDestination:
+// This function generates the ext_authz TypedPerFilterConfig for this weightedDestination:
 // - if the weightedDestination defines auth configuration, set the filter correspondingly;
 // - if auth is explicitly disabled, disable the filter;
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host and/or route).
@@ -201,7 +203,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return err
 	}
 
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, extauth.FilterName, config)
+	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
 }
 
 func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth.ExtAuthzPerRoute, error) {
@@ -220,15 +222,15 @@ func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth
 }
 
 func markVirtualHostNoAuth(out *envoyroute.VirtualHost) error {
-	return pluginutils.SetVhostPerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
+	return pluginutils.SetVhostPerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
 }
 
 func markWeightedClusterNoAuth(out *envoyroute.WeightedCluster_ClusterWeight) error {
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
+	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
 }
 
 func markRouteNoAuth(out *envoyroute.Route) error {
-	return pluginutils.SetRoutePerFilterConfig(out, extauth.FilterName, getNoAuthConfig())
+	return pluginutils.SetRoutePerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
 }
 
 func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
@@ -250,7 +252,7 @@ func (p *Plugin) isExtAuthzFilterConfigured(upstreams v1.UpstreamList) bool {
 
 	// Check for a filter called "envoy.ext_authz"
 	for _, filter := range filters {
-		if filter.HttpFilter.GetName() == extauth.FilterName {
+		if filter.HttpFilter.GetName() == wellknown.HTTPExternalAuthorization {
 			return true
 		}
 	}

@@ -6,9 +6,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes/duration"
 
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
-
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/golang/protobuf/ptypes"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
@@ -17,10 +16,10 @@ import (
 
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
-	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v2"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v3"
+	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
@@ -62,7 +61,7 @@ var _ = Describe("Plugin", func() {
 
 		Expect(filters).To(HaveLen(1))
 		for _, f := range filters {
-			cfg := getConfig(f.HttpFilter)
+			cfg := getTypedConfig(f.HttpFilter)
 			Expect(cfg.FailureModeDeny).To(BeFalse())
 		}
 
@@ -82,7 +81,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
-		cfg := getConfig(filters[0].HttpFilter)
+		cfg := getTypedConfig(filters[0].HttpFilter)
 		Expect(cfg).To(BeEquivalentTo(expectedConfig))
 
 	})
@@ -93,7 +92,7 @@ var _ = Describe("Plugin", func() {
 		timeout := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
 		Expect(filters).To(HaveLen(1))
 		for _, f := range filters {
-			cfg := getConfig(f.HttpFilter)
+			cfg := getTypedConfig(f.HttpFilter)
 			Expect(*cfg.Timeout).To(Equal(timeout))
 		}
 	})
@@ -110,7 +109,7 @@ var _ = Describe("Plugin", func() {
 
 			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
-				cfg := getConfig(f.HttpFilter)
+				cfg := getTypedConfig(f.HttpFilter)
 				Expect(cfg.FailureModeDeny).To(BeTrue())
 			}
 		})
@@ -201,7 +200,7 @@ var _ = Describe("Plugin", func() {
 
 			Expect(filters).To(HaveLen(1))
 			for _, f := range filters {
-				cfg := getConfig(f.HttpFilter)
+				cfg := getTypedConfig(f.HttpFilter)
 				Expect(*cfg.Timeout).To(Equal(duration.Duration{Seconds: 1}))
 			}
 		})
@@ -209,10 +208,10 @@ var _ = Describe("Plugin", func() {
 
 })
 
-func getConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {
-	cfg := f.GetConfig()
+func getTypedConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {
+	cfg := f.GetTypedConfig()
 	rcfg := new(envoyratelimit.RateLimit)
-	err := conversion.StructToMessage(cfg, rcfg)
+	err := ptypes.UnmarshalAny(cfg, rcfg)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return rcfg
 }

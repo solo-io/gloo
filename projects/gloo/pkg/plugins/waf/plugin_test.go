@@ -2,7 +2,7 @@ package waf
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
@@ -80,10 +80,11 @@ var _ = Describe("waf plugin", func() {
 					wafFilter := outFilters[0]
 					Expect(wafFilter.HttpFilter.Name).To(Equal(FilterName))
 					Expect(wafFilter.Stage).To(Equal(plugins.DuringStage(plugins.WafStage)))
-					st := wafFilter.HttpFilter.GetConfig()
-					Expect(st).NotTo(BeNil())
+					goTypedConfig := wafFilter.HttpFilter.GetTypedConfig()
+					Expect(goTypedConfig).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					err := conversion.StructToMessage(st, &filterWaf)
+					gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
+					err := types.UnmarshalAny(gogoTypedConfig, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(filterWaf.Disabled).To(BeTrue())
 				})
@@ -113,10 +114,11 @@ var _ = Describe("waf plugin", func() {
 					wafFilter := outFilters[0]
 					Expect(wafFilter.HttpFilter.Name).To(Equal(FilterName))
 					Expect(wafFilter.Stage).To(Equal(plugins.DuringStage(plugins.WafStage)))
-					st := wafFilter.HttpFilter.GetConfig()
-					Expect(st).NotTo(BeNil())
+					goTypedConfig := wafFilter.HttpFilter.GetTypedConfig()
+					Expect(goTypedConfig).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					err := conversion.StructToMessage(st, &filterWaf)
+					gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
+					err := types.UnmarshalAny(gogoTypedConfig, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					checkRuleSets(filterWaf.RuleSets)
 				})
@@ -139,19 +141,21 @@ var _ = Describe("waf plugin", func() {
 					})
 
 					It("sets disabled on route", func() {
-						pfc := outRoute.PerFilterConfig[FilterName]
-						Expect(pfc).NotTo(BeNil())
+						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						err := conversion.StructToMessage(pfc, &perRouteWaf)
+						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+						err := types.UnmarshalAny(gogoTpfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeTrue())
 					})
 
 					It("sets disabled on vhost", func() {
-						pfc := outVhost.PerFilterConfig[FilterName]
-						Expect(pfc).NotTo(BeNil())
+						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						err := conversion.StructToMessage(pfc, &perVhostWaf)
+						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+						err := types.UnmarshalAny(gogoTpfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeTrue())
 					})
@@ -187,20 +191,22 @@ var _ = Describe("waf plugin", func() {
 					})
 
 					It("sets disabled on route", func() {
-						pfc := outRoute.PerFilterConfig[FilterName]
-						Expect(pfc).NotTo(BeNil())
+						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						err := conversion.StructToMessage(pfc, &perRouteWaf)
+						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+						err := types.UnmarshalAny(gogoTpfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeFalse())
 						checkRuleSets(perRouteWaf.RuleSets)
 					})
 
 					It("sets disabled on vhost", func() {
-						pfc := outVhost.PerFilterConfig[FilterName]
-						Expect(pfc).NotTo(BeNil())
+						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						err := conversion.StructToMessage(pfc, &perVhostWaf)
+						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+						err := types.UnmarshalAny(gogoTpfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeFalse())
 						checkRuleSets(perVhostWaf.RuleSets)

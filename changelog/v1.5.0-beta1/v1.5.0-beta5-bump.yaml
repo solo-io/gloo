@@ -2,4 +2,4 @@ changelog:
 - type: DEPENDENCY_BUMP
   dependencyOwner: solo-io
   dependencyRepo: gloo
-  dependencyTag: v1.5.0-beta1
+  dependencyTag: v1.5.0-beta5

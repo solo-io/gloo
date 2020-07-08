@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -198,7 +197,7 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 			if err != nil {
 				return nil, nil, err
 			}
-			anyCfg, err := pluginutils.MessageToAny(cfg)
+			anyCfg, err := utils.MessageToAny(cfg)
 			if err != nil {
 				return nil, nil, err
 

@@ -3,9 +3,8 @@ package dlp
 import (
 	"context"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils/gogoutils"
-
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	. "github.com/onsi/ginkgo"
@@ -135,7 +134,7 @@ var _ = Describe("dlp plugin", func() {
 		Expect(customTransform.Shadow).To(Equal(customTestAction.Shadow))
 		Expect(customTransform.MaskChar).To(Equal(customTestAction.CustomAction.MaskChar))
 		Expect(customTransform.Name).To(Equal(customTestAction.CustomAction.Name))
-		Expect(customTransform.Percent).To(Equal(customTestAction.CustomAction.Percent))
+		Expect(customTransform.Percent.Equal(customTestAction.CustomAction.Percent)).To(BeTrue())
 		Expect(customTransform.Regex).To(Equal(customTestAction.CustomAction.Regex))
 	}
 
@@ -147,19 +146,21 @@ var _ = Describe("dlp plugin", func() {
 		)
 
 		var translateRoute = func() *transformation_ee.RouteTransformations {
-			pfc := outRoute.PerFilterConfig[FilterName]
-			Expect(pfc).NotTo(BeNil())
+			goTpfc := outRoute.TypedPerFilterConfig[FilterName]
+			Expect(goTpfc).NotTo(BeNil())
 			var perRouteDlp transformation_ee.RouteTransformations
-			err := conversion.StructToMessage(pfc, &perRouteDlp)
+			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err := types.UnmarshalAny(gogoTpfc, &perRouteDlp)
 			Expect(err).NotTo(HaveOccurred())
 			return &perRouteDlp
 		}
 
 		var translateVhost = func() *transformation_ee.RouteTransformations {
-			pfc := outVhost.PerFilterConfig[FilterName]
-			Expect(pfc).NotTo(BeNil())
+			goTpfc := outVhost.TypedPerFilterConfig[FilterName]
+			Expect(goTpfc).NotTo(BeNil())
 			var perVhostDlp transformation_ee.RouteTransformations
-			err := conversion.StructToMessage(pfc, &perVhostDlp)
+			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err := types.UnmarshalAny(gogoTpfc, &perVhostDlp)
 			Expect(err).NotTo(HaveOccurred())
 			return &perVhostDlp
 		}
@@ -193,7 +194,7 @@ var _ = Describe("dlp plugin", func() {
 				wafFilter := outFilters[0]
 				Expect(wafFilter.HttpFilter.Name).To(Equal(FilterName))
 				Expect(wafFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
-				st := wafFilter.HttpFilter.GetConfig()
+				st := wafFilter.HttpFilter.GetTypedConfig()
 				Expect(st).To(BeNil())
 			})
 		})
@@ -209,13 +210,14 @@ var _ = Describe("dlp plugin", func() {
 				dlpFilter := outFilters[0]
 				Expect(dlpFilter.HttpFilter.Name).To(Equal(FilterName))
 				Expect(dlpFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
-				st := dlpFilter.HttpFilter.GetConfig()
-				if st == nil {
+				goTypedConfig := dlpFilter.HttpFilter.GetTypedConfig()
+				if goTypedConfig == nil {
 					return nil
 				}
-				Expect(st).NotTo(BeNil())
+				Expect(goTypedConfig).NotTo(BeNil())
 				var filterDlp transformation_ee.FilterTransformations
-				err := conversion.StructToMessage(st, &filterDlp)
+				gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
+				err := types.UnmarshalAny(gogoTypedConfig, &filterDlp)
 				Expect(err).NotTo(HaveOccurred())
 				if len(filterDlp.GetTransformations()) == 0 {
 					return nil
@@ -324,13 +326,13 @@ var _ = Describe("dlp plugin", func() {
 				})
 
 				It("sets disabled on route", func() {
-					pfc := outRoute.PerFilterConfig[FilterName]
+					pfc := outRoute.TypedPerFilterConfig[FilterName]
 					Expect(pfc).To(BeNil())
 
 				})
 
 				It("sets disabled on vhost", func() {
-					pfc := outVhost.PerFilterConfig[FilterName]
+					pfc := outVhost.TypedPerFilterConfig[FilterName]
 					Expect(pfc).To(BeNil())
 				})
 			})

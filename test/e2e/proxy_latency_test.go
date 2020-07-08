@@ -4,7 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,7 +22,6 @@ import (
 
 	"github.com/fgrosse/zaptest"
 	"github.com/solo-io/gloo/pkg/utils"
-	"github.com/solo-io/gloo/pkg/utils/protoutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -26,11 +31,10 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
-	// when we move to v3, use these instead of the v2 ones
-	// envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	// when we move to v3, use this instead of the v2 one
 	// envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes"
 )
@@ -159,11 +163,12 @@ func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
 		return nil, err
 	}
 
-	jsonpbMarshaler := &jsonpb.Unmarshaler{}
+	jsonpbMarshaler := &jsonpb.Unmarshaler{AnyResolver: anyResolver{}} // needs AnyResolver to unmarshal gogo protos, only golang protos are registered
 	var cfgDump envoy_admin_v3.ConfigDump
-	jsonpbMarshaler.Unmarshal(resp.Body, &cfgDump)
-	resp.Body.Close()
-	if err != nil {
+	if err = jsonpbMarshaler.Unmarshal(resp.Body, &cfgDump); err != nil {
+		return nil, err
+	}
+	if err = resp.Body.Close(); err != nil {
 		return nil, err
 	}
 
@@ -190,7 +195,7 @@ func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
 
 			anyHcm := listener.GetFilterChains()[0].GetFilters()[0]
 			var hcm envoy_hcm.HttpConnectionManager
-			err = protoutils.UnmarshalStruct(anyHcm.GetConfig(), &hcm)
+			err = ptypes.UnmarshalAny(anyHcm.GetTypedConfig(), &hcm)
 			if err != nil {
 				return nil, err
 			}
@@ -251,4 +256,27 @@ func getProxyLatencyProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.P
 	}
 
 	return p
+}
+
+type anyResolver struct{}
+
+func (a anyResolver) Resolve(typeUrl string) (proto.Message, error) {
+	messageType := typeUrl
+	if slash := strings.LastIndex(typeUrl, "/"); slash >= 0 {
+		messageType = messageType[slash+1:]
+	}
+	switch messageType {
+	case "envoy.config.filter.http.modsecurity.v2.ModSecurity":
+		return &waf.ModSecurity{}, nil
+	case "envoy.config.filter.http.sanitize.v2.Sanitize":
+		return &extauth.Sanitize{}, nil
+	case "envoy.config.filter.http.proxylatency.v2.ProxyLatency":
+		return &proxylatency.ProxyLatency{}, nil
+	default:
+		mt := proto.MessageType(messageType)
+		if mt == nil {
+			return nil, eris.Errorf("unknown message type %q", messageType)
+		}
+		return reflect.New(mt.Elem()).Interface().(proto.Message), nil
+	}
 }

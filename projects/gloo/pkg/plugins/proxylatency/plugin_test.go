@@ -1,15 +1,11 @@
 package proxylatency_test
 
 import (
-	"bytes"
-
+	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	gogojsonpb "github.com/gogo/protobuf/jsonpb"
-	"github.com/golang/protobuf/jsonpb"
-
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -38,23 +34,20 @@ var _ = Describe("Plugin", func() {
 		filters, err := p.HttpFilters(plugins.Params{}, listener)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(filters).To(HaveLen(1))
-		presentConfig := getConfig(filters[0].HttpFilter)
-		Expect(*presentConfig).To(BeEquivalentTo(pl))
+		presentConfig := getTypedConfig(filters[0].HttpFilter)
+		Expect((*presentConfig).Equal(pl)).To(BeTrue())
 
 	})
 
 })
 
-func getConfig(f *envoyhttp.HttpFilter) *proxylatency.ProxyLatency {
-	cfg := f.GetConfig()
+func getTypedConfig(f *envoyhttp.HttpFilter) *proxylatency.ProxyLatency {
+	goTypedConfig := f.GetTypedConfig()
+	gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
+
 	rcfg := new(proxylatency.ProxyLatency)
-
-	buf := &bytes.Buffer{}
-	err := (&jsonpb.Marshaler{OrigName: true}).Marshal(buf, cfg)
+	err := types.UnmarshalAny(gogoTypedConfig, rcfg)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-	err = gogojsonpb.Unmarshal(buf, rcfg)
-
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return rcfg
 }

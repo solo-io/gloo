@@ -1163,7 +1163,9 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     rbac: (f = msg.getRbac()) && gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
-    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f)
+    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    includeRequestAttemptCount: (f = msg.getIncludeRequestAttemptCount()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    includeAttemptCountInResponse: (f = msg.getIncludeAttemptCountInResponse()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1269,6 +1271,16 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       var value = new gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
+      break;
+    case 15:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setIncludeRequestAttemptCount(value);
+      break;
+    case 16:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setIncludeAttemptCountInResponse(value);
       break;
     default:
       reader.skipField();
@@ -1409,6 +1421,22 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
       14,
       f,
       gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
+    );
+  }
+  f = message.getIncludeRequestAttemptCount();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getIncludeAttemptCountInResponse();
+  if (f != null) {
+    writer.writeMessage(
+      16,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -1831,6 +1859,66 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.clearBufferPerRoute = function()
  */
 proto.gloo.solo.io.VirtualHostOptions.prototype.hasBufferPerRoute = function() {
   return jspb.Message.getField(this, 14) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue include_request_attempt_count = 15;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getIncludeRequestAttemptCount = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 15));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setIncludeRequestAttemptCount = function(value) {
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearIncludeRequestAttemptCount = function() {
+  this.setIncludeRequestAttemptCount(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasIncludeRequestAttemptCount = function() {
+  return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue include_attempt_count_in_response = 16;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getIncludeAttemptCountInResponse = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 16));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setIncludeAttemptCountInResponse = function(value) {
+  jspb.Message.setWrapperField(this, 16, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearIncludeAttemptCountInResponse = function() {
+  this.setIncludeAttemptCountInResponse(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasIncludeAttemptCountInResponse = function() {
+  return jspb.Message.getField(this, 16) != null;
 };
 
 

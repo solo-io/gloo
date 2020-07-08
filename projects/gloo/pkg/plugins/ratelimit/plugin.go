@@ -3,6 +3,8 @@ package ratelimit
 import (
 	"time"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -136,7 +138,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	filterStage := rlplugin.DetermineFilterStage(p.rateLimitBeforeAuth)
 
 	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, filterStage)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(wellknown.HTTPRateLimit, conf, filterStage)
 
 	if err != nil {
 		return nil, err

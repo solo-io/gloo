@@ -40,7 +40,7 @@ func (c ConfigState) String() string {
 }
 
 // Maps an expected PerFilterConfig value to a function that can be used to assert it.
-var validationFuncForConfigValue = map[ConfigState]func(e envoyPerFilterConfig) bool{
+var validationFuncForConfigValue = map[ConfigState]func(e envoyTypedPerFilterConfig) bool{
 	Undefined: IsNotSet,
 	Enabled:   IsEnabled,
 	Disabled:  IsDisabled,

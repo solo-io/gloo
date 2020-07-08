@@ -3,10 +3,10 @@ package extauth_test
 import (
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
-	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -238,39 +238,39 @@ var _ = Describe("Plugin", func() {
 
 })
 
-type envoyPerFilterConfig interface {
-	GetPerFilterConfig() map[string]*structpb.Struct
+type envoyTypedPerFilterConfig interface {
+	GetTypedPerFilterConfig() map[string]*any.Any
 }
 
-func ExpectDisabled(e envoyPerFilterConfig) {
+func ExpectDisabled(e envoyTypedPerFilterConfig) {
 	Expect(IsDisabled(e)).To(BeTrue())
 }
 
 // Returns true if the ext_authz filter is explicitly disabled
-func IsDisabled(e envoyPerFilterConfig) bool {
-	if e.GetPerFilterConfig() == nil {
+func IsDisabled(e envoyTypedPerFilterConfig) bool {
+	if e.GetTypedPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
+	if _, ok := e.GetTypedPerFilterConfig()[wellknown.HTTPExternalAuthorization]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
+	err := ptypes.UnmarshalAny(e.GetTypedPerFilterConfig()[wellknown.HTTPExternalAuthorization], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	return cfg.GetDisabled()
 }
 
 // Returns true if the ext_authz filter is enabled and if the ContextExtensions have the expected number of entries.
-func IsEnabled(e envoyPerFilterConfig) bool {
-	if e.GetPerFilterConfig() == nil {
+func IsEnabled(e envoyTypedPerFilterConfig) bool {
+	if e.GetTypedPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
+	if _, ok := e.GetTypedPerFilterConfig()[wellknown.HTTPExternalAuthorization]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
+	err := ptypes.UnmarshalAny(e.GetTypedPerFilterConfig()[wellknown.HTTPExternalAuthorization], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	if cfg.GetCheckSettings() == nil {
@@ -281,10 +281,10 @@ func IsEnabled(e envoyPerFilterConfig) bool {
 }
 
 // Returns true if no PerFilterConfig is set for the ext_authz filter
-func IsNotSet(e envoyPerFilterConfig) bool {
-	if e.GetPerFilterConfig() == nil {
+func IsNotSet(e envoyTypedPerFilterConfig) bool {
+	if e.GetTypedPerFilterConfig() == nil {
 		return true
 	}
-	_, ok := e.GetPerFilterConfig()[extauth.FilterName]
+	_, ok := e.GetTypedPerFilterConfig()[wellknown.HTTPExternalAuthorization]
 	return !ok
 }

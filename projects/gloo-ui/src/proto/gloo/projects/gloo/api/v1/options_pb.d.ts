@@ -254,6 +254,16 @@ export class VirtualHostOptions extends jspb.Message {
   getBufferPerRoute(): gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasIncludeRequestAttemptCount(): boolean;
+  clearIncludeRequestAttemptCount(): void;
+  getIncludeRequestAttemptCount(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setIncludeRequestAttemptCount(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasIncludeAttemptCountInResponse(): boolean;
+  clearIncludeAttemptCountInResponse(): void;
+  getIncludeAttemptCountInResponse(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setIncludeAttemptCountInResponse(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostOptions.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostOptions): VirtualHostOptions.AsObject;
@@ -280,6 +290,8 @@ export namespace VirtualHostOptions {
     extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
     bufferPerRoute?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    includeRequestAttemptCount?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    includeAttemptCountInResponse?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 

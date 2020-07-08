@@ -5,7 +5,7 @@ import (
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rbac/v2"
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
-	"github.com/envoyproxy/go-control-plane/pkg/conversion"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -231,11 +231,11 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("should process virtual host", func() {
-			pfc := outVhost.PerFilterConfig[FilterName]
+			pfc := outVhost.TypedPerFilterConfig[FilterName]
 			Expect(pfc).NotTo(BeNil())
 
 			var perRouteRbac envoyauthz.RBACPerRoute
-			err := conversion.StructToMessage(pfc, &perRouteRbac)
+			err := ptypes.UnmarshalAny(pfc, &perRouteRbac)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(perRouteRbac.Rbac).ToNot(BeNil())
 
@@ -249,11 +249,11 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("should process disabled route", func() {
-			pfc := outRoute.PerFilterConfig[FilterName]
+			pfc := outRoute.TypedPerFilterConfig[FilterName]
 			Expect(pfc).NotTo(BeNil())
 
 			var perRouteRbac envoyauthz.RBACPerRoute
-			err := conversion.StructToMessage(pfc, &perRouteRbac)
+			err := ptypes.UnmarshalAny(pfc, &perRouteRbac)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(perRouteRbac.Rbac).To(BeNil())
 		})
@@ -271,11 +271,11 @@ var _ = Describe("Plugin", func() {
 			})
 
 			It("should process disabled vhost", func() {
-				pfc := outVhost.PerFilterConfig[FilterName]
+				pfc := outVhost.TypedPerFilterConfig[FilterName]
 				Expect(pfc).NotTo(BeNil())
 
 				var perVhostRbac envoyauthz.RBACPerRoute
-				err := conversion.StructToMessage(pfc, &perVhostRbac)
+				err := ptypes.UnmarshalAny(pfc, &perVhostRbac)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(perVhostRbac.Rbac).To(BeNil())
 			})
@@ -287,11 +287,11 @@ var _ = Describe("Plugin", func() {
 			})
 
 			It("should process virtual host", func() {
-				pfc := outVhost.PerFilterConfig[FilterName]
+				pfc := outVhost.TypedPerFilterConfig[FilterName]
 				Expect(pfc).NotTo(BeNil())
 
 				var perRouteRbac envoyauthz.RBACPerRoute
-				err := conversion.StructToMessage(pfc, &perRouteRbac)
+				err := ptypes.UnmarshalAny(pfc, &perRouteRbac)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(perRouteRbac.Rbac).ToNot(BeNil())
 
