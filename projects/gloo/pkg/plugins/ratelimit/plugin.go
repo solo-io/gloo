@@ -3,6 +3,8 @@ package ratelimit
 import (
 	"time"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -103,10 +105,6 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	return p.ProcessVirtualHostSimple(params, in, out)
-}
-
-func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	rateLimit := in.GetOptions().GetRatelimitBasic()
 
 	if rateLimit == nil {
@@ -114,7 +112,7 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 		return nil
 	}
 
-	if p.rateLimitBeforeAuth {
+	if p.rateLimitBeforeAuth || params.Listener.GetHttpListener().GetOptions().GetRatelimitServer().GetRateLimitBeforeAuth() {
 		// IngressRateLimits are based on auth state, which is invalid if we have been told to do rate limiting before auth happens
 		return RateLimitAuthOrderingConflict
 	}
@@ -129,14 +127,31 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	if p.upstreamRef == nil {
+	var upstreamRef *core.ResourceRef
+	var timeout *time.Duration
+	var denyOnFail bool
+	var rateLimitBeforeAuth bool
+
+	if rlServer := listener.GetOptions().GetRatelimitServer(); rlServer != nil {
+		upstreamRef = rlServer.RatelimitServerRef
+		timeout = rlServer.RequestTimeout
+		denyOnFail = rlServer.DenyOnFail
+		rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
+	} else {
+		upstreamRef = p.upstreamRef
+		timeout = p.timeout
+		denyOnFail = p.denyOnFail
+		rateLimitBeforeAuth = p.rateLimitBeforeAuth
+	}
+
+	if upstreamRef == nil {
 		return nil, nil
 	}
 
-	filterStage := rlplugin.DetermineFilterStage(p.rateLimitBeforeAuth)
+	filterStage := rlplugin.DetermineFilterStage(rateLimitBeforeAuth)
 
-	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
-	stagedFilter, err := plugins.NewStagedFilterWithConfig(rlplugin.FilterName, conf, filterStage)
+	conf := generateEnvoyConfigForFilter(*upstreamRef, timeout, denyOnFail)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(wellknown.HTTPRateLimit, conf, filterStage)
 
 	if err != nil {
 		return nil, err

@@ -3,7 +3,10 @@ package extauth_test
 import (
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/gloo/pkg/utils/protoutils"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
+	extauthplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 
 	"github.com/envoyproxy/go-control-plane/pkg/conversion"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -198,6 +201,40 @@ var _ = Describe("Plugin", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("should provide sanitize filter with listener overriding global", func() {
+			filters, err := plugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goPfc := filters[0].HttpFilter.GetConfig()
+			Expect(goPfc).NotTo(BeNil())
+			var sanitizeCfg extauth.Sanitize
+			err = protoutils.UnmarshalStruct(goPfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{DefaultAuthHeader}))
+
+			// now provide a listener override for auth header
+			extAuthSettings.UserIdHeader = "override"
+			listener := &v1.HttpListener{
+				VirtualHosts: []*v1.VirtualHost{virtualHost},
+				Options:      &v1.HttpListenerOptions{Extauth: extAuthSettings},
+			}
+
+			filters, err = plugin.HttpFilters(params, listener)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goPfc = filters[0].HttpFilter.GetConfig()
+			Expect(goPfc).NotTo(BeNil())
+			err = protoutils.UnmarshalStruct(goPfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{"override"}))
+		})
+
 		It("should not error processing vhost", func() {
 			var out envoyroute.VirtualHost
 			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
@@ -251,11 +288,11 @@ func IsDisabled(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
+	if _, ok := e.GetPerFilterConfig()[extauthplugin.FilterName]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauthplugin.FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	return cfg.GetDisabled()
@@ -266,11 +303,11 @@ func IsEnabled(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return false
 	}
-	if _, ok := e.GetPerFilterConfig()[extauth.FilterName]; !ok {
+	if _, ok := e.GetPerFilterConfig()[extauthplugin.FilterName]; !ok {
 		return false
 	}
 	var cfg envoyauth.ExtAuthzPerRoute
-	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauth.FilterName], &cfg)
+	err := conversion.StructToMessage(e.GetPerFilterConfig()[extauthplugin.FilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	if cfg.GetCheckSettings() == nil {
@@ -285,6 +322,6 @@ func IsNotSet(e envoyPerFilterConfig) bool {
 	if e.GetPerFilterConfig() == nil {
 		return true
 	}
-	_, ok := e.GetPerFilterConfig()[extauth.FilterName]
+	_, ok := e.GetPerFilterConfig()[extauthplugin.FilterName]
 	return !ok
 }
