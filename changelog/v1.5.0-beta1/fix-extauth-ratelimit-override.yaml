@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    description: >-
+      Fix issue where gateway-level extauth could not be overriden by lower-level virtualhost, route, and weighted
+      destination extauth config. Also fix issue where extauth config at listener level wouldn't override the global
+      setting for userIdHeader. Also fix issue where ratelimit config for `rateLimitBeforeAuth` at listener level
+      wouldn't override the global default, similarly true for the "basic" ratelimit API.
+    issueLink: https://github.com/solo-io/gloo/issues/3270

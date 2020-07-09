@@ -84,10 +84,15 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 
+	userIdHeader := listener.GetOptions().GetExtauth().GetUserIdHeader()
+	if userIdHeader == "" {
+		userIdHeader = p.userIdHeader
+	}
+
 	// Add sanitize filter if a user ID header is defined in the settings
-	if p.userIdHeader != "" {
+	if userIdHeader != "" {
 		sanitizeConf := &Sanitize{
-			HeadersToRemove: []string{p.userIdHeader},
+			HeadersToRemove: []string{userIdHeader},
 		}
 		stagedFilter, err := plugins.NewStagedFilterWithConfig(SanitizeFilterName, sanitizeConf, sanitizeFilterStage)
 		if err != nil {
@@ -106,7 +111,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 
 	// Ext_authz filter is not configured, do nothing
-	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
 		return nil
 	}
 
@@ -141,7 +146,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 
 	// Ext_authz filter is not configured, do nothing
-	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
 		return nil
 	}
 
@@ -177,7 +182,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.WeightedDestination, out *envoyroute.WeightedCluster_ClusterWeight) error {
 
 	// Ext_authz filter is not configured, do nothing
-	if !p.isExtAuthzFilterConfigured(params.Snapshot.Upstreams) {
+	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
 		return nil
 	}
 
@@ -241,16 +246,16 @@ func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
 	}
 }
 
-func (p *Plugin) isExtAuthzFilterConfigured(upstreams v1.UpstreamList) bool {
+func (p *Plugin) isExtAuthzFilterConfigured(listener *v1.HttpListener, upstreams v1.UpstreamList) bool {
 
 	// Call the same function called by HttpFilters to verify whether the filter was created
-	filters, err := extauth.BuildHttpFilters(p.extAuthSettings, upstreams)
+	filters, err := extauth.BuildHttpFilters(p.extAuthSettings, listener, upstreams)
 	if err != nil {
 		// If it returned an error, the filter was not configured
 		return false
 	}
 
-	// Check for a filter called "envoy.ext_authz"
+	// Check for a filter called "envoy.filters.http.ext_authz"
 	for _, filter := range filters {
 		if filter.HttpFilter.GetName() == wellknown.HTTPExternalAuthorization {
 			return true

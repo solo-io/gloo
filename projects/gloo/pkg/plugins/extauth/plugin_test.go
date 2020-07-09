@@ -3,6 +3,9 @@ package extauth_test
 import (
 	"time"
 
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
@@ -196,6 +199,42 @@ var _ = Describe("Plugin", func() {
 				Settings: &v1.Settings{Extauth: extAuthSettings},
 			})
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should provide sanitize filter with listener overriding global", func() {
+			filters, err := plugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goTpfc := filters[0].HttpFilter.GetTypedConfig()
+			Expect(goTpfc).NotTo(BeNil())
+			var sanitizeCfg extauth.Sanitize
+			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err = types.UnmarshalAny(gogoTpfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{DefaultAuthHeader}))
+
+			// now provide a listener override for auth header
+			extAuthSettings.UserIdHeader = "override"
+			listener := &v1.HttpListener{
+				VirtualHosts: []*v1.VirtualHost{virtualHost},
+				Options:      &v1.HttpListenerOptions{Extauth: extAuthSettings},
+			}
+
+			filters, err = plugin.HttpFilters(params, listener)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goTpfc = filters[0].HttpFilter.GetTypedConfig()
+			Expect(goTpfc).NotTo(BeNil())
+			gogoTpfc = &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
+			err = types.UnmarshalAny(gogoTpfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{"override"}))
 		})
 
 		It("should not error processing vhost", func() {
