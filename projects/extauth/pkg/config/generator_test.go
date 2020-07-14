@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	mock_token_validation "github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/mocks"
+	user_info_mocks "github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info/mocks"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 
 	configapi "github.com/solo-io/ext-auth-service/pkg/config"
@@ -33,12 +35,21 @@ var _ = Describe("Config Generator", func() {
 		ctrl             *gomock.Controller
 		generator        config.Generator
 		pluginLoaderMock *mocks.MockLoader
+		userInfoClient   *user_info_mocks.MockClient
+		tokenValidator   *mock_token_validation.MockValidator
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		pluginLoaderMock = mocks.NewMockLoader(ctrl)
-		generator = config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock)
+		userInfoClient = user_info_mocks.NewMockClient(ctrl)
+		tokenValidator = mock_token_validation.NewMockValidator(ctrl)
+		generator = config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock, func(_ time.Duration, _ config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
+			return &config.OAuthIntrospectionClients{
+				TokenValidator: tokenValidator,
+				UserInfoClient: userInfoClient,
+			}
+		})
 	})
 
 	AfterEach(func() {
@@ -80,29 +91,24 @@ var _ = Describe("Config Generator", func() {
 	})
 
 	Context("all ext auth configs are valid", func() {
-
-		var okPlugin = &extauthv1.AuthPlugin{Name: "ThisOneWorks"}
-
-		getAuthService := func(cfg configapi.Config, authConfigName string) api.AuthService {
-			authService := cfg.AuthService(authConfigName)
-			Expect(authService).NotTo(BeNil())
-			authServiceChain, ok := authService.(chain.AuthServiceChain)
-			Expect(ok).To(BeTrue())
-			Expect(authServiceChain).NotTo(BeNil())
-			services := authServiceChain.ListAuthServices()
-			Expect(services).To(HaveLen(1))
-			return services[0]
-		}
-
-		BeforeEach(func() {
+		It("correctly loads configs", func() {
+			var okPlugin = &extauthv1.AuthPlugin{Name: "ThisOneWorks"}
+			getAuthService := func(cfg configapi.Config, authConfigName string) api.AuthService {
+				authService := cfg.AuthService(authConfigName)
+				Expect(authService).NotTo(BeNil())
+				authServiceChain, ok := authService.(chain.AuthServiceChain)
+				Expect(ok).To(BeTrue())
+				Expect(authServiceChain).NotTo(BeNil())
+				services := authServiceChain.ListAuthServices()
+				Expect(services).To(HaveLen(1))
+				return services[0]
+			}
 			authServiceMock := chainmocks.NewMockAuthService(ctrl)
 			authServiceMock.EXPECT().Start(gomock.Any()).Return(nil).AnyTimes()
 			authServiceMock.EXPECT().Authorize(gomock.Any(), gomock.Any()).Times(0)
 
 			pluginLoaderMock.EXPECT().LoadAuthPlugin(gomock.Any(), okPlugin).Return(authServiceMock, nil).Times(1)
-		})
 
-		It("correctly loads configs", func() {
 			resources := []*extauthv1.ExtAuthConfig{
 				{
 					AuthConfigRefName: "default.plugin-authconfig",
@@ -186,12 +192,32 @@ var _ = Describe("Config Generator", func() {
 						},
 					},
 				},
+				{
+					AuthConfigRefName: "default.oauth2-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+								Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+									OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation{
+										AccessTokenValidation: &extauthv1.AccessTokenValidation{
+											ValidationType: &extauthv1.AccessTokenValidation_IntrospectionUrl{
+												IntrospectionUrl: "introspection-url",
+											},
+											UserinfoUrl:  "user-info-url",
+											CacheTimeout: nil,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			}
 
 			pluginCfg, err := generator.GenerateConfig(resources)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pluginCfg).NotTo(BeNil())
-			Expect(pluginCfg.GetConfigCount()).To(Equal(5))
+			Expect(pluginCfg.GetConfigCount()).To(Equal(len(resources)))
 
 			service := getAuthService(pluginCfg, resources[0].AuthConfigRefName)
 			_, ok := service.(*chainmocks.MockAuthService)
@@ -224,6 +250,78 @@ var _ = Describe("Config Generator", func() {
 
 			ldapService := getAuthService(pluginCfg, resources[4].AuthConfigRefName)
 			Expect(ldapService).NotTo(BeNil())
+		})
+
+		It("uses the correct cache TTL in the presence or absence of user configuration", func() {
+			ranClientsBuilder := false
+			generator := config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock, func(ttl time.Duration, _ config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
+				ranClientsBuilder = true
+				Expect(ttl).To(Equal(config.DefaultOAuthCacheTtl))
+
+				return &config.OAuthIntrospectionClients{
+					TokenValidator: tokenValidator,
+					UserInfoClient: userInfoClient,
+				}
+			})
+
+			_, err := generator.GenerateConfig([]*extauthv1.ExtAuthConfig{{
+				AuthConfigRefName: "default.oauth2-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation{
+									AccessTokenValidation: &extauthv1.AccessTokenValidation{
+										ValidationType: &extauthv1.AccessTokenValidation_IntrospectionUrl{
+											IntrospectionUrl: "introspection-url",
+										},
+										UserinfoUrl:  "user-info-url",
+										CacheTimeout: nil, // not user-configured
+									},
+								},
+							},
+						},
+					},
+				},
+			}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranClientsBuilder).To(BeTrue(), "Should have run the clients builder the first time")
+
+			ranClientsBuilder = false
+			generator = config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock, func(ttl time.Duration, _ config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
+				ranClientsBuilder = true
+				Expect(ttl).To(Equal(time.Second))
+
+				return &config.OAuthIntrospectionClients{
+					TokenValidator: tokenValidator,
+					UserInfoClient: userInfoClient,
+				}
+			})
+
+			oneSecond := time.Second
+
+			_, err = generator.GenerateConfig([]*extauthv1.ExtAuthConfig{{
+				AuthConfigRefName: "default.oauth2-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation{
+									AccessTokenValidation: &extauthv1.AccessTokenValidation{
+										ValidationType: &extauthv1.AccessTokenValidation_IntrospectionUrl{
+											IntrospectionUrl: "introspection-url",
+										},
+										UserinfoUrl:  "user-info-url",
+										CacheTimeout: &oneSecond,
+									},
+								},
+							},
+						},
+					},
+				},
+			}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranClientsBuilder).To(BeTrue(), "Should have run the clients builder the second time")
 		})
 	})
 

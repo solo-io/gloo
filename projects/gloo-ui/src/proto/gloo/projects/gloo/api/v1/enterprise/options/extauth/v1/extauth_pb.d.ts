@@ -59,6 +59,11 @@ export namespace AuthConfig {
     getOauth(): OAuth | undefined;
     setOauth(value?: OAuth): void;
 
+    hasOauth2(): boolean;
+    clearOauth2(): void;
+    getOauth2(): OAuth2 | undefined;
+    setOauth2(value?: OAuth2): void;
+
     hasApiKeyAuth(): boolean;
     clearApiKeyAuth(): void;
     getApiKeyAuth(): ApiKeyAuth | undefined;
@@ -94,6 +99,7 @@ export namespace AuthConfig {
     export type AsObject = {
       basicAuth?: BasicAuth.AsObject,
       oauth?: OAuth.AsObject,
+      oauth2?: OAuth2.AsObject,
       apiKeyAuth?: ApiKeyAuth.AsObject,
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: OpaAuth.AsObject,
@@ -104,6 +110,7 @@ export namespace AuthConfig {
       AUTH_CONFIG_NOT_SET = 0,
       BASIC_AUTH = 1,
       OAUTH = 2,
+      OAUTH2 = 8,
       API_KEY_AUTH = 4,
       PLUGIN_AUTH = 5,
       OPA_AUTH = 6,
@@ -488,6 +495,126 @@ export namespace OAuth {
   }
 }
 
+export class OAuth2 extends jspb.Message {
+  hasOidcAuthorizationCode(): boolean;
+  clearOidcAuthorizationCode(): void;
+  getOidcAuthorizationCode(): OidcAuthorizationCode | undefined;
+  setOidcAuthorizationCode(value?: OidcAuthorizationCode): void;
+
+  hasAccessTokenValidation(): boolean;
+  clearAccessTokenValidation(): void;
+  getAccessTokenValidation(): AccessTokenValidation | undefined;
+  setAccessTokenValidation(value?: AccessTokenValidation): void;
+
+  getOauthTypeCase(): OAuth2.OauthTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OAuth2.AsObject;
+  static toObject(includeInstance: boolean, msg: OAuth2): OAuth2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OAuth2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OAuth2;
+  static deserializeBinaryFromReader(message: OAuth2, reader: jspb.BinaryReader): OAuth2;
+}
+
+export namespace OAuth2 {
+  export type AsObject = {
+    oidcAuthorizationCode?: OidcAuthorizationCode.AsObject,
+    accessTokenValidation?: AccessTokenValidation.AsObject,
+  }
+
+  export enum OauthTypeCase {
+    OAUTH_TYPE_NOT_SET = 0,
+    OIDC_AUTHORIZATION_CODE = 1,
+    ACCESS_TOKEN_VALIDATION = 2,
+  }
+}
+
+export class OidcAuthorizationCode extends jspb.Message {
+  getClientId(): string;
+  setClientId(value: string): void;
+
+  hasClientSecretRef(): boolean;
+  clearClientSecretRef(): void;
+  getClientSecretRef(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setClientSecretRef(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  getIssuerUrl(): string;
+  setIssuerUrl(value: string): void;
+
+  getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
+  clearAuthEndpointQueryParamsMap(): void;
+  getAppUrl(): string;
+  setAppUrl(value: string): void;
+
+  getCallbackPath(): string;
+  setCallbackPath(value: string): void;
+
+  clearScopesList(): void;
+  getScopesList(): Array<string>;
+  setScopesList(value: Array<string>): void;
+  addScopes(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
+  static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OidcAuthorizationCode, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OidcAuthorizationCode;
+  static deserializeBinaryFromReader(message: OidcAuthorizationCode, reader: jspb.BinaryReader): OidcAuthorizationCode;
+}
+
+export namespace OidcAuthorizationCode {
+  export type AsObject = {
+    clientId: string,
+    clientSecretRef?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    issuerUrl: string,
+    authEndpointQueryParamsMap: Array<[string, string]>,
+    appUrl: string,
+    callbackPath: string,
+    scopesList: Array<string>,
+  }
+}
+
+export class AccessTokenValidation extends jspb.Message {
+  hasIntrospectionUrl(): boolean;
+  clearIntrospectionUrl(): void;
+  getIntrospectionUrl(): string;
+  setIntrospectionUrl(value: string): void;
+
+  getUserinfoUrl(): string;
+  setUserinfoUrl(value: string): void;
+
+  hasCacheTimeout(): boolean;
+  clearCacheTimeout(): void;
+  getCacheTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setCacheTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+  getValidationTypeCase(): AccessTokenValidation.ValidationTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AccessTokenValidation.AsObject;
+  static toObject(includeInstance: boolean, msg: AccessTokenValidation): AccessTokenValidation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AccessTokenValidation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AccessTokenValidation;
+  static deserializeBinaryFromReader(message: AccessTokenValidation, reader: jspb.BinaryReader): AccessTokenValidation;
+}
+
+export namespace AccessTokenValidation {
+  export type AsObject = {
+    introspectionUrl: string,
+    userinfoUrl: string,
+    cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+
+  export enum ValidationTypeCase {
+    VALIDATION_TYPE_NOT_SET = 0,
+    INTROSPECTION_URL = 1,
+  }
+}
+
 export class OauthSecret extends jspb.Message {
   getClientSecret(): string;
   setClientSecret(value: string): void;
@@ -727,6 +854,86 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class OidcAuthorizationCodeConfig extends jspb.Message {
+    getClientId(): string;
+    setClientId(value: string): void;
+
+    getClientSecret(): string;
+    setClientSecret(value: string): void;
+
+    getIssuerUrl(): string;
+    setIssuerUrl(value: string): void;
+
+    getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
+    clearAuthEndpointQueryParamsMap(): void;
+    getAppUrl(): string;
+    setAppUrl(value: string): void;
+
+    getCallbackPath(): string;
+    setCallbackPath(value: string): void;
+
+    clearScopesList(): void;
+    getScopesList(): Array<string>;
+    setScopesList(value: Array<string>): void;
+    addScopes(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: OidcAuthorizationCodeConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): OidcAuthorizationCodeConfig;
+    static deserializeBinaryFromReader(message: OidcAuthorizationCodeConfig, reader: jspb.BinaryReader): OidcAuthorizationCodeConfig;
+  }
+
+  export namespace OidcAuthorizationCodeConfig {
+    export type AsObject = {
+      clientId: string,
+      clientSecret: string,
+      issuerUrl: string,
+      authEndpointQueryParamsMap: Array<[string, string]>,
+      appUrl: string,
+      callbackPath: string,
+      scopesList: Array<string>,
+    }
+  }
+
+  export class OAuth2Config extends jspb.Message {
+    hasOidcAuthorizationCode(): boolean;
+    clearOidcAuthorizationCode(): void;
+    getOidcAuthorizationCode(): ExtAuthConfig.OidcAuthorizationCodeConfig | undefined;
+    setOidcAuthorizationCode(value?: ExtAuthConfig.OidcAuthorizationCodeConfig): void;
+
+    hasAccessTokenValidation(): boolean;
+    clearAccessTokenValidation(): void;
+    getAccessTokenValidation(): AccessTokenValidation | undefined;
+    setAccessTokenValidation(value?: AccessTokenValidation): void;
+
+    getOauthTypeCase(): OAuth2Config.OauthTypeCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): OAuth2Config.AsObject;
+    static toObject(includeInstance: boolean, msg: OAuth2Config): OAuth2Config.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: OAuth2Config, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): OAuth2Config;
+    static deserializeBinaryFromReader(message: OAuth2Config, reader: jspb.BinaryReader): OAuth2Config;
+  }
+
+  export namespace OAuth2Config {
+    export type AsObject = {
+      oidcAuthorizationCode?: ExtAuthConfig.OidcAuthorizationCodeConfig.AsObject,
+      accessTokenValidation?: AccessTokenValidation.AsObject,
+    }
+
+    export enum OauthTypeCase {
+      OAUTH_TYPE_NOT_SET = 0,
+      OIDC_AUTHORIZATION_CODE = 1,
+      ACCESS_TOKEN_VALIDATION = 2,
+    }
+  }
+
   export class ApiKeyAuthConfig extends jspb.Message {
     getValidApiKeyAndUserMap(): jspb.Map<string, string>;
     clearValidApiKeyAndUserMap(): void;
@@ -775,6 +982,11 @@ export namespace ExtAuthConfig {
     getOauth(): ExtAuthConfig.OAuthConfig | undefined;
     setOauth(value?: ExtAuthConfig.OAuthConfig): void;
 
+    hasOauth2(): boolean;
+    clearOauth2(): void;
+    getOauth2(): ExtAuthConfig.OAuth2Config | undefined;
+    setOauth2(value?: ExtAuthConfig.OAuth2Config): void;
+
     hasBasicAuth(): boolean;
     clearBasicAuth(): void;
     getBasicAuth(): BasicAuth | undefined;
@@ -814,6 +1026,7 @@ export namespace ExtAuthConfig {
   export namespace Config {
     export type AsObject = {
       oauth?: ExtAuthConfig.OAuthConfig.AsObject,
+      oauth2?: ExtAuthConfig.OAuth2Config.AsObject,
       basicAuth?: BasicAuth.AsObject,
       apiKeyAuth?: ExtAuthConfig.ApiKeyAuthConfig.AsObject,
       pluginAuth?: AuthPlugin.AsObject,
@@ -824,6 +1037,7 @@ export namespace ExtAuthConfig {
     export enum AuthConfigCase {
       AUTH_CONFIG_NOT_SET = 0,
       OAUTH = 3,
+      OAUTH2 = 9,
       BASIC_AUTH = 4,
       API_KEY_AUTH = 5,
       PLUGIN_AUTH = 6,

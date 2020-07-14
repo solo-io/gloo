@@ -3,7 +3,10 @@ package config
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"github.com/solo-io/go-utils/hashutils"
 
 	"github.com/hashicorp/go-multierror"
@@ -24,7 +27,8 @@ import (
 )
 
 const (
-	DefaultCallback = "/oauth-gloo-callback"
+	DefaultCallback      = "/oauth-gloo-callback"
+	DefaultOAuthCacheTtl = time.Minute * 10
 )
 
 var (
@@ -42,7 +46,30 @@ type Generator interface {
 	GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*serverState, error)
 }
 
-func NewGenerator(ctx context.Context, key []byte, userIdHeader string, pluginLoader plugins.Loader) *configGenerator {
+type OAuthIntrospectionEndpoints struct {
+	IntrospectionUrl string
+	UserInfoUrl      string
+}
+
+type OAuthIntrospectionClients struct {
+	TokenValidator token_validation.Validator
+
+	// may be nil
+	UserInfoClient user_info.Client
+}
+
+// values for `cacheTtl` eventually get piped through to github.com/patrickmn/go-cache
+// that library exports reasonable defaults that may be of interest here
+// the one exception to piping through the cacheTtl is that `DefaultExpiration` (0) is special-cased in extauth to mean disable caching
+type OAuthIntrospectionClientsBuilder func(cacheTtl time.Duration, oauthEndpoints OAuthIntrospectionEndpoints) *OAuthIntrospectionClients
+
+func NewGenerator(
+	ctx context.Context,
+	key []byte,
+	userIdHeader string,
+	pluginLoader plugins.Loader,
+	oauthIntrospectionClientsBuilder OAuthIntrospectionClientsBuilder,
+) *configGenerator {
 	return &configGenerator{
 		originalCtx:  ctx,
 		key:          key,
@@ -50,7 +77,8 @@ func NewGenerator(ctx context.Context, key []byte, userIdHeader string, pluginLo
 		pluginLoader: pluginLoader,
 
 		// Initial state will be an empty config
-		currentState: newServerState(ctx, userIdHeader, nil),
+		currentState:                     newServerState(ctx, userIdHeader, nil),
+		oauthIntrospectionClientsBuilder: oauthIntrospectionClientsBuilder,
 	}
 }
 
@@ -60,8 +88,9 @@ type configGenerator struct {
 	userIdHeader string
 	pluginLoader plugins.Loader
 
-	cancel       context.CancelFunc
-	currentState *serverState
+	cancel                           context.CancelFunc
+	currentState                     *serverState
+	oauthIntrospectionClientsBuilder OAuthIntrospectionClientsBuilder
 }
 
 func (c *configGenerator) GenerateConfig(resources []*extauthv1.ExtAuthConfig) (*serverState, error) {
@@ -227,6 +256,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 
 		return &aprCfg, "", nil
 
+	// support deprecated config
 	case *extauthv1.ExtAuthConfig_Config_Oauth:
 		stateSigner := oidc.NewStateSigner(c.key)
 		cb := cfg.Oauth.CallbackPath
@@ -240,6 +270,45 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			return nil, "", err
 		}
 		return iss, "", nil
+
+	case *extauthv1.ExtAuthConfig_Config_Oauth2:
+
+		switch oauthCfg := cfg.Oauth2.OauthType.(type) {
+		case *extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode:
+			stateSigner := oidc.NewStateSigner(c.key)
+			cb := oauthCfg.OidcAuthorizationCode.CallbackPath
+			if cb == "" {
+				cb = DefaultCallback
+			}
+			oauthCfg.OidcAuthorizationCode.IssuerUrl = addTrailingSlash(oauthCfg.OidcAuthorizationCode.IssuerUrl)
+			iss, err := oidc.NewIssuer(ctx, oauthCfg.OidcAuthorizationCode.ClientId, oauthCfg.OidcAuthorizationCode.ClientSecret, oauthCfg.OidcAuthorizationCode.IssuerUrl, oauthCfg.OidcAuthorizationCode.AppUrl, cb,
+				oauthCfg.OidcAuthorizationCode.AuthEndpointQueryParams, oauthCfg.OidcAuthorizationCode.Scopes, stateSigner)
+			if err != nil {
+				return nil, "", err
+			}
+			return iss, "", nil
+		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation:
+			userInfoUrl := oauthCfg.AccessTokenValidation.GetUserinfoUrl()
+
+			switch oauthCfg.AccessTokenValidation.GetValidationType().(type) {
+			case *extauthv1.AccessTokenValidation_IntrospectionUrl:
+				introspectionUrl := oauthCfg.AccessTokenValidation.GetIntrospectionUrl()
+				cacheTtl := oauthCfg.AccessTokenValidation.CacheTimeout
+				if cacheTtl == nil {
+					ttl := DefaultOAuthCacheTtl
+					cacheTtl = &ttl
+				}
+
+				introspectionClients := c.oauthIntrospectionClientsBuilder(*cacheTtl, OAuthIntrospectionEndpoints{
+					IntrospectionUrl: introspectionUrl,
+					UserInfoUrl:      userInfoUrl,
+				})
+
+				return token_validation.NewTokenIntrospectionAuth(introspectionClients.TokenValidator, introspectionClients.UserInfoClient), "", nil
+			default:
+				return nil, "", errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidation.ValidationType)
+			}
+		}
 
 	case *extauthv1.ExtAuthConfig_Config_ApiKeyAuth:
 		apiKeyCfg := apikeys.Config{

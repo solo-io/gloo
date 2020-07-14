@@ -59,6 +59,7 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
 			BasicAuth: config.BasicAuth,
 		}
+	// handle deprecated case
 	case *extauth.AuthConfig_Config_Oauth:
 		cfg, err := translateOauth(snap, config.Oauth)
 		if err != nil {
@@ -66,6 +67,26 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.
 		}
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth{
 			Oauth: cfg,
+		}
+	case *extauth.AuthConfig_Config_Oauth2:
+
+		switch oauthCfg := config.Oauth2.OauthType.(type) {
+		case *extauth.OAuth2_OidcAuthorizationCode:
+			cfg, err := translateOidcAuthorizationCode(snap, oauthCfg.OidcAuthorizationCode)
+			if err != nil {
+				return nil, err
+			}
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth2{
+				Oauth2: &extauth.ExtAuthConfig_OAuth2Config{
+					OauthType: &extauth.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{OidcAuthorizationCode: cfg},
+				},
+			}
+		case *extauth.OAuth2_AccessTokenValidation:
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth2{
+				Oauth2: &extauth.ExtAuthConfig_OAuth2Config{
+					OauthType: &extauth.ExtAuthConfig_OAuth2Config_AccessTokenValidation{AccessTokenValidation: oauthCfg.AccessTokenValidation},
+				},
+			}
 		}
 	case *extauth.AuthConfig_Config_ApiKeyAuth:
 		cfg, err := translateApiKey(snap, config.ApiKeyAuth)
@@ -166,6 +187,7 @@ func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth
 	}, nil
 }
 
+// translate deprecated config
 func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAuthConfig_OAuthConfig, error) {
 
 	secret, err := snap.Secrets.Find(config.ClientSecretRef.Namespace, config.ClientSecretRef.Name)
@@ -174,6 +196,24 @@ func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAu
 	}
 
 	return &extauth.ExtAuthConfig_OAuthConfig{
+		AppUrl:                  config.AppUrl,
+		ClientId:                config.ClientId,
+		ClientSecret:            secret.GetOauth().GetClientSecret(),
+		IssuerUrl:               config.IssuerUrl,
+		AuthEndpointQueryParams: config.AuthEndpointQueryParams,
+		CallbackPath:            config.CallbackPath,
+		Scopes:                  config.Scopes,
+	}, nil
+}
+
+func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
+
+	secret, err := snap.Secrets.Find(config.ClientSecretRef.Namespace, config.ClientSecretRef.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{
 		AppUrl:                  config.AppUrl,
 		ClientId:                config.ClientId,
 		ClientSecret:            secret.GetOauth().GetClientSecret(),

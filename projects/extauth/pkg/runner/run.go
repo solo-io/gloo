@@ -5,11 +5,14 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/opaque"
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"github.com/solo-io/gloo/pkg/utils/syncutil"
 	"github.com/solo-io/go-utils/healthchecker"
 	"github.com/solo-io/go-utils/loggingutils"
@@ -175,6 +178,23 @@ func clientLoop(ctx context.Context, settings Settings, nodeInfo core.Node, serv
 		[]byte(settings.SigningKey),
 		settings.UserIdHeader,
 		plugins.NewPluginLoader(settings.PluginDirectory),
+		func(cacheTtl time.Duration, oauthEndpoints config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
+			httpClient := &http.Client{
+				Timeout: time.Second * 10,
+			}
+
+			introspectionClient := opaque.NewIntrospectionClient(httpClient, oauthEndpoints.IntrospectionUrl)
+			userInfoClient := user_info.Client(nil)
+			if oauthEndpoints.UserInfoUrl != "" {
+				userInfoClient = user_info.NewClient(httpClient, oauthEndpoints.UserInfoUrl, cacheTtl)
+			}
+
+			opaqueTokenValidator := opaque.NewOpaqueTokenValidator(cacheTtl, introspectionClient)
+			return &config.OAuthIntrospectionClients{
+				TokenValidator: opaqueTokenValidator,
+				UserInfoClient: userInfoClient,
+			}
+		},
 	)
 
 	protoRedactor := syncutil.NewProtoRedactor(syncutil.LogRedactorTag, syncutil.LogRedactorTagValue)

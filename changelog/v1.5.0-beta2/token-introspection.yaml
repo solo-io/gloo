@@ -1,0 +1,22 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/3055
+    description: >-
+      Add support for OAuth2 access token validation via token introspection (i.e., opaque access tokens) to the
+      extauth service. Also add support for configuring the userinfo OIDC endpoint to the new access token validation
+      API, which allows users to leverage the userinfo response in extauth plugins.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/3248
+    description: >-
+      Fix some race conditions in extauth config generator test
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3208
+    description: >-
+      Correctly append custom headers added from extauth plugins when a `UserID` is also
+      being set in the extauth plugin (or from any other extauth plugin in a chain of `AuthConfigs`).
+      Previously, headers added from extauth plugins were ignored (i.e. not available to the
+      upstream service) when a `UserID` was set.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.5.0-beta7

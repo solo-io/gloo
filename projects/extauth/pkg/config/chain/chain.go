@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errors "github.com/rotisserie/eris"
+	"go.uber.org/atomic"
 
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyauthv2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
@@ -38,7 +39,7 @@ type authServiceWithName struct {
 // Used to wrap a collection of auth services and expose them as a single AuthService Implementation
 type authServiceChain struct {
 	authServices []authServiceWithName
-	started      bool
+	started      atomic.Bool
 	names        []string
 }
 
@@ -53,7 +54,7 @@ func (s *authServiceChain) contains(name string) bool {
 }
 
 func (s *authServiceChain) AddAuthService(name string, authService api.AuthService) error {
-	if s.started {
+	if s.started.Load() {
 		panic("cannot add authService to started authServiceChain!")
 	}
 	if s.contains(name) {
@@ -81,7 +82,7 @@ func (s *authServiceChain) Start(ctx context.Context) error {
 			return err
 		}
 	}
-	s.started = true
+	s.started.Store(true)
 	return nil
 }
 
@@ -128,7 +129,7 @@ func (s *authServiceChain) Authorize(ctx context.Context, request *api.Authoriza
 		lastResponse = response
 	}
 
-	s.started = true
+	s.started.Store(true)
 
 	return lastResponse, nil
 }

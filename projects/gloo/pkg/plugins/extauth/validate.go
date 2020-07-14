@@ -21,6 +21,18 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 			if cfg.Oauth.GetAppUrl() == "" {
 				reports.AddError(ac, errors.Errorf("Invalid configurations for oauth auth config %v", ac.Metadata.Ref()))
 			}
+		case *extauth.AuthConfig_Config_Oauth2:
+			switch oauthCfg := cfg.Oauth2.OauthType.(type) {
+			case *extauth.OAuth2_OidcAuthorizationCode:
+				if oauthCfg.OidcAuthorizationCode.GetAppUrl() == "" {
+					reports.AddError(ac, errors.Errorf("Invalid configurations for oidc auth config %v", ac.Metadata.Ref()))
+				}
+			case *extauth.OAuth2_AccessTokenValidation:
+				// currently we only support introspection for access token validation
+				if oauthCfg.AccessTokenValidation.GetIntrospectionUrl() == "" {
+					reports.AddError(ac, errors.Errorf("Invalid configurations for oauth2 introspection auth config %v", ac.Metadata.Ref()))
+				}
+			}
 		case *extauth.AuthConfig_Config_ApiKeyAuth:
 			if len(cfg.ApiKeyAuth.GetLabelSelector())+len(cfg.ApiKeyAuth.GetApiKeySecretRefs()) == 0 {
 				reports.AddError(ac, errors.Errorf("Invalid configurations for apikey auth config %v", ac.Metadata.Ref()))
