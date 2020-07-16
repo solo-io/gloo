@@ -4,12 +4,13 @@ import (
 	"context"
 	"sort"
 
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rbac/v2"
-	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2"
+	envoyroutev2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v3"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
 	"github.com/gogo/protobuf/proto"
 
-	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
+	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -42,7 +43,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroutev2.VirtualHost) error {
 	rbacConf := in.Options.GetRbac()
 	if rbacConf == nil {
 		// no config found, nothing to do here
@@ -64,7 +65,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroutev2.Route) error {
 	rbacConfig := in.GetOptions().GetRbac()
 	if rbacConfig == nil {
 		// no config found, nothing to do here
