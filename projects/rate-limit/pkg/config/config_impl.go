@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/solo-io/rate-limiter/pkg/config"
 
 	pb_struct "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
 
 	pb_rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	glooee "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
-	solorl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
 	"go.uber.org/zap"
 )
@@ -38,7 +39,7 @@ type keyedRateLimits map[string]*activeRateLimit
 // just the information needed to compare against the request and count
 type activeRateLimit struct {
 	requestsPerUnit uint32
-	unit            solorl.RateLimit_Unit
+	unit            solo_apis_rl.RateLimit_Unit
 	// unit            pb.RateLimitResponse_RateLimit_Unit
 }
 
@@ -125,7 +126,7 @@ func (this rateLimitConfig) GetLimit(
 	return rateLimit
 }
 
-func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*solorl.Descriptor) error {
+func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*solo_apis_rl.Descriptor) error {
 
 	for _, descriptorConfig := range descriptors {
 		if descriptorConfig.Key == "" {
@@ -149,7 +150,7 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 		var rateLimitDebugString = ""
 		if descriptorConfig.RateLimit != nil {
 			value, present :=
-				pb_rls.RateLimitResponse_RateLimit_Unit_value[solorl.RateLimit_Unit_name[int32(descriptorConfig.RateLimit.Unit)]]
+				pb_rls.RateLimitResponse_RateLimit_Unit_value[solo_apis_rl.RateLimit_Unit_name[int32(descriptorConfig.RateLimit.Unit)]]
 			if !present || value == int32(pb_rls.RateLimitResponse_RateLimit_UNKNOWN) {
 				err := fmt.Errorf("invalid rate limit unit '%s'", descriptorConfig.RateLimit.Unit)
 				logger.Debugw(err.Error(), zap.Error(err), zap.String("unit", descriptorConfig.RateLimit.Unit.String()))

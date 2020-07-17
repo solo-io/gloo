@@ -19,6 +19,9 @@ package tools
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate"
 	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/golang/mock/mockgen"
+	_ "github.com/google/wire/cmd/wire"
 	_ "github.com/solo-io/protoc-gen-ext"
+	_ "golang.org/x/tools/cmd/goimports"
 	_ "k8s.io/code-generator"
 )

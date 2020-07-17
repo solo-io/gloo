@@ -5,7 +5,7 @@
 ```bash
 # Setup your repo
 make init
-make update-deps
+make install-go-tools
 make allprojects
 
 # for a new UI: update the version in solo-projects/install/helm/gloo-ee/generate.go

@@ -1,10 +1,8 @@
 import { grpc } from '@improbable-eng/grpc-web';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
-import {
-  IngressRateLimit,
-  RateLimit
-} from 'proto/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
+import { IngressRateLimit } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
+import { RateLimit} from "proto/solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb";
 import {
   CallCredentials,
   SDSConfig,

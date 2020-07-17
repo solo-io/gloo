@@ -116,6 +116,16 @@ export class Upstream extends jspb.Message {
   getFailover(): gloo_projects_gloo_api_v1_failover_pb.Failover | undefined;
   setFailover(value?: gloo_projects_gloo_api_v1_failover_pb.Failover): void;
 
+  hasInitialStreamWindowSize(): boolean;
+  clearInitialStreamWindowSize(): void;
+  getInitialStreamWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setInitialStreamWindowSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+  hasInitialConnectionWindowSize(): boolean;
+  clearInitialConnectionWindowSize(): void;
+  getInitialConnectionWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setInitialConnectionWindowSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   getUpstreamTypeCase(): Upstream.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Upstream.AsObject;
@@ -147,6 +157,8 @@ export namespace Upstream {
     consul?: gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.AsObject,
     awsEc2?: gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
     failover?: gloo_projects_gloo_api_v1_failover_pb.Failover.AsObject,
+    initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 
   export enum UpstreamTypeCase {

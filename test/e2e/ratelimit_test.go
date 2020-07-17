@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -215,9 +217,9 @@ var _ = Describe("Rate Limit", func() {
 
 				It("should ratelimit authorized users", func() {
 					ingressRateLimit := &ratelimit.IngressRateLimit{
-						AuthorizedLimits: &ratelimit.RateLimit{
+						AuthorizedLimits: &solo_apis_rl.RateLimit{
 							RequestsPerUnit: 1,
-							Unit:            ratelimit.RateLimit_SECOND,
+							Unit:            solo_apis_rl.RateLimit_SECOND,
 						},
 					}
 					rlb := RlProxyBuilder{
@@ -243,20 +245,20 @@ var _ = Describe("Rate Limit", func() {
 			Context("reserved keyword rules (i.e., weighted and applyAlways rules)", func() {
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
-						Descriptors: []*ratelimit.Descriptor{
+						Descriptors: []*solo_apis_rl.Descriptor{
 							{
 								Key:   "generic_key",
 								Value: "unprioritized",
-								RateLimit: &ratelimit.RateLimit{
-									Unit:            ratelimit.RateLimit_MINUTE,
+								RateLimit: &solo_apis_rl.RateLimit{
+									Unit:            solo_apis_rl.RateLimit_MINUTE,
 									RequestsPerUnit: 2,
 								},
 							},
 							{
 								Key:   "generic_key",
 								Value: "prioritized",
-								RateLimit: &ratelimit.RateLimit{
-									Unit:            ratelimit.RateLimit_SECOND,
+								RateLimit: &solo_apis_rl.RateLimit{
+									Unit:            solo_apis_rl.RateLimit_SECOND,
 									RequestsPerUnit: 1000,
 								},
 								Weight: 1,
@@ -264,8 +266,8 @@ var _ = Describe("Rate Limit", func() {
 							{
 								Key:   "generic_key",
 								Value: "always",
-								RateLimit: &ratelimit.RateLimit{
-									Unit:            ratelimit.RateLimit_MINUTE,
+								RateLimit: &solo_apis_rl.RateLimit{
+									Unit:            solo_apis_rl.RateLimit_MINUTE,
 									RequestsPerUnit: 2,
 								},
 								AlwaysApply: true,
@@ -276,10 +278,10 @@ var _ = Describe("Rate Limit", func() {
 
 				It("should honor weighted rate limit rules", func() {
 					hosts := map[string]bool{"host1": true}
-					rateLimits := []*ratelimit.RateLimitActions{{
-						Actions: []*ratelimit.Action{{
-							ActionSpecifier: &ratelimit.Action_GenericKey_{
-								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "unprioritized"},
+					rateLimits := []*solo_apis_rl.RateLimitActions{{
+						Actions: []*solo_apis_rl.Action{{
+							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "unprioritized"},
 							}},
 						}}}
 
@@ -294,10 +296,10 @@ var _ = Describe("Rate Limit", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// add a new rate limit action that points to a weighted rule with generous limit
-					weightedAction := &ratelimit.RateLimitActions{
-						Actions: []*ratelimit.Action{{
-							ActionSpecifier: &ratelimit.Action_GenericKey_{
-								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "prioritized"},
+					weightedAction := &solo_apis_rl.RateLimitActions{
+						Actions: []*solo_apis_rl.Action{{
+							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "prioritized"},
 							}},
 						}}
 					rateLimits = append(rateLimits, weightedAction)
@@ -314,10 +316,10 @@ var _ = Describe("Rate Limit", func() {
 				It("should honor alwaysApply rate limit rules", func() {
 					hosts := map[string]bool{"host1": true}
 					// add a prioritized rule to match against (has largest weight)
-					rateLimits := []*ratelimit.RateLimitActions{{
-						Actions: []*ratelimit.Action{{
-							ActionSpecifier: &ratelimit.Action_GenericKey_{
-								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "prioritized"},
+					rateLimits := []*solo_apis_rl.RateLimitActions{{
+						Actions: []*solo_apis_rl.Action{{
+							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "prioritized"},
 							}},
 						}}}
 
@@ -332,10 +334,10 @@ var _ = Describe("Rate Limit", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// add a new rate limit action that points to a "concurrent" rule, i.e. always evaluated
-					weightedAction := &ratelimit.RateLimitActions{
-						Actions: []*ratelimit.Action{{
-							ActionSpecifier: &ratelimit.Action_GenericKey_{
-								GenericKey: &ratelimit.Action_GenericKey{DescriptorValue: "always"},
+					weightedAction := &solo_apis_rl.RateLimitActions{
+						Actions: []*solo_apis_rl.Action{{
+							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "always"},
 							}},
 						}}
 					rateLimits = append(rateLimits, weightedAction)
@@ -533,9 +535,9 @@ func get(hostname string, port uint32) (*http.Response, error) {
 
 func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
 	ingressRateLimit := &ratelimit.IngressRateLimit{
-		AnonymousLimits: &ratelimit.RateLimit{
+		AnonymousLimits: &solo_apis_rl.RateLimit{
 			RequestsPerUnit: 1,
-			Unit:            ratelimit.RateLimit_SECOND,
+			Unit:            solo_apis_rl.RateLimit_SECOND,
 		},
 	}
 	rlb := RlProxyBuilder{
@@ -628,7 +630,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	return p
 }
 
-func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*ratelimit.RateLimitActions) *gloov1.Proxy {
+func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*solo_apis_rl.RateLimitActions) *gloov1.Proxy {
 	rlVhostExt := &ratelimit.RateLimitVhostExtension{
 		RateLimits: rateLimits,
 	}
@@ -674,7 +676,9 @@ func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
 
 		if enableRateLimits {
 			vhost.Options = &gloov1.VirtualHostOptions{
-				Ratelimit: b.customRateLimit,
+				RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+					Ratelimit: b.customRateLimit,
+				},
 			}
 		}
 		vhosts = append(vhosts, vhost)

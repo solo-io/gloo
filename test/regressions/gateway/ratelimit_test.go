@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -145,9 +147,9 @@ var _ = Describe("RateLimit tests", func() {
 	Context("simple rate limiting", func() {
 		var (
 			ingressRateLimit = &ratelimit.IngressRateLimit{
-				AnonymousLimits: &ratelimit.RateLimit{
+				AnonymousLimits: &solo_apis_rl.RateLimit{
 					RequestsPerUnit: 1,
-					Unit:            ratelimit.RateLimit_HOUR,
+					Unit:            solo_apis_rl.RateLimit_HOUR,
 				},
 			}
 			virtualHostPlugins = &gloov1.VirtualHostOptions{
@@ -168,12 +170,12 @@ var _ = Describe("RateLimit tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			rlSettings := ratelimitpb.ServiceSettings{
-				Descriptors: []*ratelimitpb.Descriptor{{
+				Descriptors: []*solo_apis_rl.Descriptor{{
 					Key:   "generic_key",
 					Value: uniqueDescriptorValue,
-					RateLimit: &ratelimitpb.RateLimit{
+					RateLimit: &solo_apis_rl.RateLimit{
 						RequestsPerUnit: 0,
-						Unit:            ratelimitpb.RateLimit_SECOND,
+						Unit:            solo_apis_rl.RateLimit_SECOND,
 					},
 				}},
 			}
@@ -225,10 +227,10 @@ var _ = Describe("RateLimit tests", func() {
 				}
 
 				ratelimitExtension := &ratelimitpb.RateLimitVhostExtension{
-					RateLimits: []*ratelimitpb.RateLimitActions{{
-						Actions: []*ratelimitpb.Action{{
-							ActionSpecifier: &ratelimitpb.Action_GenericKey_{
-								GenericKey: &ratelimitpb.Action_GenericKey{
+					RateLimits: []*solo_apis_rl.RateLimitActions{{
+						Actions: []*solo_apis_rl.Action{{
+							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+								GenericKey: &solo_apis_rl.Action_GenericKey{
 									DescriptorValue: uniqueDescriptorValue,
 								},
 							},
@@ -237,8 +239,10 @@ var _ = Describe("RateLimit tests", func() {
 				}
 
 				virtualHostPlugins := &gloov1.VirtualHostOptions{
-					Ratelimit: ratelimitExtension,
-					Extauth:   extAuthConfigProto,
+					RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+						Ratelimit: ratelimitExtension,
+					},
+					Extauth: extAuthConfigProto,
 				}
 
 				settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
@@ -287,10 +291,10 @@ var _ = Describe("RateLimit tests", func() {
 		It("can rate limit to upstream vhost", func() {
 
 			ratelimitExtension := &ratelimitpb.RateLimitVhostExtension{
-				RateLimits: []*ratelimitpb.RateLimitActions{{
-					Actions: []*ratelimitpb.Action{{
-						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
-							GenericKey: &ratelimitpb.Action_GenericKey{
+				RateLimits: []*solo_apis_rl.RateLimitActions{{
+					Actions: []*solo_apis_rl.Action{{
+						ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+							GenericKey: &solo_apis_rl.Action_GenericKey{
 								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
@@ -299,7 +303,9 @@ var _ = Describe("RateLimit tests", func() {
 			}
 
 			virtualHostPlugins := &gloov1.VirtualHostOptions{
-				Ratelimit: ratelimitExtension,
+				RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+					Ratelimit: ratelimitExtension,
+				},
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
@@ -309,10 +315,10 @@ var _ = Describe("RateLimit tests", func() {
 		It("can rate limit to upstream route", func() {
 
 			ratelimitExtension := &ratelimitpb.RateLimitRouteExtension{
-				RateLimits: []*ratelimitpb.RateLimitActions{{
-					Actions: []*ratelimitpb.Action{{
-						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
-							GenericKey: &ratelimitpb.Action_GenericKey{
+				RateLimits: []*solo_apis_rl.RateLimitActions{{
+					Actions: []*solo_apis_rl.Action{{
+						ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+							GenericKey: &solo_apis_rl.Action_GenericKey{
 								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
@@ -321,7 +327,9 @@ var _ = Describe("RateLimit tests", func() {
 			}
 
 			routePlugins := &gloov1.RouteOptions{
-				Ratelimit: ratelimitExtension,
+				RateLimitConfigType: &gloov1.RouteOptions_Ratelimit{
+					Ratelimit: ratelimitExtension,
+				},
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, nil, routePlugins, nil)
@@ -331,10 +339,10 @@ var _ = Describe("RateLimit tests", func() {
 		It("can rate limit to upstream route when config is inherited by parent virtual host", func() {
 
 			vhostRateLimitExtension := &ratelimitpb.RateLimitVhostExtension{
-				RateLimits: []*ratelimitpb.RateLimitActions{{
-					Actions: []*ratelimitpb.Action{{
-						ActionSpecifier: &ratelimitpb.Action_GenericKey_{
-							GenericKey: &ratelimitpb.Action_GenericKey{
+				RateLimits: []*solo_apis_rl.RateLimitActions{{
+					Actions: []*solo_apis_rl.Action{{
+						ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+							GenericKey: &solo_apis_rl.Action_GenericKey{
 								DescriptorValue: uniqueDescriptorValue,
 							},
 						},
@@ -343,7 +351,9 @@ var _ = Describe("RateLimit tests", func() {
 			}
 
 			virtualHostPlugins := &gloov1.VirtualHostOptions{
-				Ratelimit: vhostRateLimitExtension,
+				RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+					Ratelimit: vhostRateLimitExtension,
+				},
 			}
 
 			routeRateLimitExtension := &ratelimitpb.RateLimitRouteExtension{
@@ -351,7 +361,9 @@ var _ = Describe("RateLimit tests", func() {
 			}
 
 			routePlugins := &gloov1.RouteOptions{
-				Ratelimit: routeRateLimitExtension,
+				RateLimitConfigType: &gloov1.RouteOptions_Ratelimit{
+					Ratelimit: routeRateLimitExtension,
+				},
 			}
 
 			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, routePlugins, nil)

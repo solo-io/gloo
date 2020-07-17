@@ -138,7 +138,9 @@ proto.gloo.solo.io.Upstream.toObject = function(includeInstance, msg) {
     azure: (f = msg.getAzure()) && gloo_projects_gloo_api_v1_options_azure_azure_pb.UpstreamSpec.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && gloo_projects_gloo_api_v1_options_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f),
     awsEc2: (f = msg.getAwsEc2()) && gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f),
-    failover: (f = msg.getFailover()) && gloo_projects_gloo_api_v1_failover_pb.Failover.toObject(includeInstance, f)
+    failover: (f = msg.getFailover()) && gloo_projects_gloo_api_v1_failover_pb.Failover.toObject(includeInstance, f),
+    initialStreamWindowSize: (f = msg.getInitialStreamWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -264,6 +266,16 @@ proto.gloo.solo.io.Upstream.deserializeBinaryFromReader = function(msg, reader) 
       var value = new gloo_projects_gloo_api_v1_failover_pb.Failover;
       reader.readMessage(value,gloo_projects_gloo_api_v1_failover_pb.Failover.deserializeBinaryFromReader);
       msg.setFailover(value);
+      break;
+    case 19:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setInitialStreamWindowSize(value);
+      break;
+    case 20:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setInitialConnectionWindowSize(value);
       break;
     default:
       reader.skipField();
@@ -436,6 +448,22 @@ proto.gloo.solo.io.Upstream.serializeBinaryToWriter = function(message, writer) 
       18,
       f,
       gloo_projects_gloo_api_v1_failover_pb.Failover.serializeBinaryToWriter
+    );
+  }
+  f = message.getInitialStreamWindowSize();
+  if (f != null) {
+    writer.writeMessage(
+      19,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getInitialConnectionWindowSize();
+  if (f != null) {
+    writer.writeMessage(
+      20,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
 };
@@ -979,6 +1007,66 @@ proto.gloo.solo.io.Upstream.prototype.clearFailover = function() {
  */
 proto.gloo.solo.io.Upstream.prototype.hasFailover = function() {
   return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value initial_stream_window_size = 19;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.gloo.solo.io.Upstream.prototype.getInitialStreamWindowSize = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 19));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.gloo.solo.io.Upstream.prototype.setInitialStreamWindowSize = function(value) {
+  jspb.Message.setWrapperField(this, 19, value);
+};
+
+
+proto.gloo.solo.io.Upstream.prototype.clearInitialStreamWindowSize = function() {
+  this.setInitialStreamWindowSize(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Upstream.prototype.hasInitialStreamWindowSize = function() {
+  return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value initial_connection_window_size = 20;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.gloo.solo.io.Upstream.prototype.getInitialConnectionWindowSize = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 20));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.gloo.solo.io.Upstream.prototype.setInitialConnectionWindowSize = function(value) {
+  jspb.Message.setWrapperField(this, 20, value);
+};
+
+
+proto.gloo.solo.io.Upstream.prototype.clearInitialConnectionWindowSize = function() {
+  this.setInitialConnectionWindowSize(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Upstream.prototype.hasInitialConnectionWindowSize = function() {
+  return jspb.Message.getField(this, 20) != null;
 };
 
 

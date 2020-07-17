@@ -224,6 +224,11 @@ export class VirtualHostOptions extends jspb.Message {
   getRatelimit(): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension | undefined;
   setRatelimit(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension): void;
 
+  hasRateLimitConfigs(): boolean;
+  clearRateLimitConfigs(): void;
+  getRateLimitConfigs(): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
+  setRateLimitConfigs(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
+
   hasWaf(): boolean;
   clearWaf(): void;
   getWaf(): gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings | undefined;
@@ -264,6 +269,7 @@ export class VirtualHostOptions extends jspb.Message {
   getIncludeAttemptCountInResponse(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setIncludeAttemptCountInResponse(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  getRateLimitConfigTypeCase(): VirtualHostOptions.RateLimitConfigTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostOptions.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostOptions): VirtualHostOptions.AsObject;
@@ -284,6 +290,7 @@ export namespace VirtualHostOptions {
     transformations?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
     ratelimitBasic?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimit?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
+    rateLimitConfigs?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.VhostExtension.AsObject,
     rbac?: gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.AsObject,
@@ -292,6 +299,12 @@ export namespace VirtualHostOptions {
     bufferPerRoute?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
     includeRequestAttemptCount?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     includeAttemptCountInResponse?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+  }
+
+  export enum RateLimitConfigTypeCase {
+    RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
+    RATELIMIT = 70,
+    RATE_LIMIT_CONFIGS = 71,
   }
 }
 
@@ -376,6 +389,11 @@ export class RouteOptions extends jspb.Message {
   getRatelimit(): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension | undefined;
   setRatelimit(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension): void;
 
+  hasRateLimitConfigs(): boolean;
+  clearRateLimitConfigs(): void;
+  getRateLimitConfigs(): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
+  setRateLimitConfigs(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
+
   hasWaf(): boolean;
   clearWaf(): void;
   getWaf(): gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings | undefined;
@@ -407,6 +425,7 @@ export class RouteOptions extends jspb.Message {
   setBufferPerRoute(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
+  getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteOptions.AsObject;
   static toObject(includeInstance: boolean, msg: RouteOptions): RouteOptions.AsObject;
@@ -435,6 +454,7 @@ export namespace RouteOptions {
     upgradesList: Array<gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
     ratelimitBasic?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimit?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
+    rateLimitConfigs?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.RouteExtension.AsObject,
     rbac?: gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.AsObject,
@@ -447,6 +467,12 @@ export namespace RouteOptions {
     HOST_REWRITE_TYPE_NOT_SET = 0,
     HOST_REWRITE = 10,
     AUTO_HOST_REWRITE = 19,
+  }
+
+  export enum RateLimitConfigTypeCase {
+    RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
+    RATELIMIT = 140,
+    RATE_LIMIT_CONFIGS = 141,
   }
 }
 

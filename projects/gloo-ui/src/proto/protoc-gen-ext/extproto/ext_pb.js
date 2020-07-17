@@ -15,7 +15,10 @@ var global = Function('return this')();
 var google_protobuf_descriptor_pb = require('google-protobuf/google/protobuf/descriptor_pb.js');
 goog.exportSymbol('proto.extproto.equalAll', null, global);
 goog.exportSymbol('proto.extproto.hashAll', null, global);
+goog.exportSymbol('proto.extproto.mergeAll', null, global);
 goog.exportSymbol('proto.extproto.skipHashing', null, global);
+goog.exportSymbol('proto.extproto.skipMerging', null, global);
+goog.exportSymbol('proto.extproto.skipMergingOneof', null, global);
 
 /**
  * A tuple of {field number, class constructor} for the extension
@@ -69,6 +72,31 @@ google_protobuf_descriptor_pb.FileOptions.extensions[10072] = proto.extproto.equ
 
 /**
  * A tuple of {field number, class constructor} for the extension
+ * field named `mergeAll`.
+ * @type {!jspb.ExtensionFieldInfo<boolean>}
+ */
+proto.extproto.mergeAll = new jspb.ExtensionFieldInfo(
+    10073,
+    {mergeAll: 0},
+    null,
+     /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
+         null),
+    0);
+
+google_protobuf_descriptor_pb.FileOptions.extensionsBinary[10073] = new jspb.ExtensionFieldBinaryInfo(
+    proto.extproto.mergeAll,
+    jspb.BinaryReader.prototype.readBool,
+    jspb.BinaryWriter.prototype.writeBool,
+    undefined,
+    undefined,
+    false);
+// This registers the extension field with the extended class, so that
+// toObject() will function correctly.
+google_protobuf_descriptor_pb.FileOptions.extensions[10073] = proto.extproto.mergeAll;
+
+
+/**
+ * A tuple of {field number, class constructor} for the extension
  * field named `skipHashing`.
  * @type {!jspb.ExtensionFieldInfo<boolean>}
  */
@@ -90,5 +118,55 @@ google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[10071] = new jspb.Ex
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
 google_protobuf_descriptor_pb.FieldOptions.extensions[10071] = proto.extproto.skipHashing;
+
+
+/**
+ * A tuple of {field number, class constructor} for the extension
+ * field named `skipMerging`.
+ * @type {!jspb.ExtensionFieldInfo<boolean>}
+ */
+proto.extproto.skipMerging = new jspb.ExtensionFieldInfo(
+    10072,
+    {skipMerging: 0},
+    null,
+     /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
+         null),
+    0);
+
+google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[10072] = new jspb.ExtensionFieldBinaryInfo(
+    proto.extproto.skipMerging,
+    jspb.BinaryReader.prototype.readBool,
+    jspb.BinaryWriter.prototype.writeBool,
+    undefined,
+    undefined,
+    false);
+// This registers the extension field with the extended class, so that
+// toObject() will function correctly.
+google_protobuf_descriptor_pb.FieldOptions.extensions[10072] = proto.extproto.skipMerging;
+
+
+/**
+ * A tuple of {field number, class constructor} for the extension
+ * field named `skipMergingOneof`.
+ * @type {!jspb.ExtensionFieldInfo<boolean>}
+ */
+proto.extproto.skipMergingOneof = new jspb.ExtensionFieldInfo(
+    10072,
+    {skipMergingOneof: 0},
+    null,
+     /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
+         null),
+    0);
+
+google_protobuf_descriptor_pb.OneofOptions.extensionsBinary[10072] = new jspb.ExtensionFieldBinaryInfo(
+    proto.extproto.skipMergingOneof,
+    jspb.BinaryReader.prototype.readBool,
+    jspb.BinaryWriter.prototype.writeBool,
+    undefined,
+    undefined,
+    false);
+// This registers the extension field with the extended class, so that
+// toObject() will function correctly.
+google_protobuf_descriptor_pb.OneofOptions.extensions[10072] = proto.extproto.skipMergingOneof;
 
 goog.object.extend(exports, proto.extproto);

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
 	"github.com/golang/protobuf/ptypes/duration"
@@ -209,8 +211,8 @@ var _ = Describe("RateLimit Plugin", func() {
 				Name: "test-vh",
 				Options: &gloov1.VirtualHostOptions{
 					RatelimitBasic: &ratelimitpb.IngressRateLimit{
-						AuthorizedLimits: &ratelimitpb.RateLimit{
-							Unit:            ratelimitpb.RateLimit_HOUR,
+						AuthorizedLimits: &solo_apis_rl.RateLimit{
+							Unit:            solo_apis_rl.RateLimit_HOUR,
 							RequestsPerUnit: 10,
 						},
 					},

@@ -5,7 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as envoy_api_v2_discovery_pb from "../../../../../../envoy/api/v2/discovery_pb";
 import * as google_api_annotations_pb from "../../../../../../google/api/annotations_pb";
-import * as gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb";
+import * as solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb from "../../../../../../solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb";
 import * as gogoproto_gogo_pb from "../../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../../protoc-gen-ext/extproto/ext_pb";
 
@@ -14,9 +14,9 @@ export class RateLimitConfig extends jspb.Message {
   setDomain(value: string): void;
 
   clearDescriptorsList(): void;
-  getDescriptorsList(): Array<gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor>;
-  setDescriptorsList(value: Array<gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor>): void;
-  addDescriptors(value?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor, index?: number): gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor;
+  getDescriptorsList(): Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor>;
+  setDescriptorsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor>): void;
+  addDescriptors(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitConfig.AsObject;
@@ -31,6 +31,6 @@ export class RateLimitConfig extends jspb.Message {
 export namespace RateLimitConfig {
   export type AsObject = {
     domain: string,
-    descriptorsList: Array<gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor.AsObject>,
+    descriptorsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor.AsObject>,
   }
 }

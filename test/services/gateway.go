@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
+
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
@@ -42,15 +44,16 @@ import (
 )
 
 type TestClients struct {
-	GatewayClient        gatewayv1.GatewayClient
-	VirtualServiceClient gatewayv1.VirtualServiceClient
-	ProxyClient          gloov1.ProxyClient
-	UpstreamClient       gloov1.UpstreamClient
-	SecretClient         gloov1.SecretClient
-	ArtifactClient       gloov1.ArtifactClient
-	ServiceClient        skkube.ServiceClient
-	AuthConfigClient     extauthv1.AuthConfigClient
-	GlooPort             int
+	GatewayClient         gatewayv1.GatewayClient
+	VirtualServiceClient  gatewayv1.VirtualServiceClient
+	ProxyClient           gloov1.ProxyClient
+	UpstreamClient        gloov1.UpstreamClient
+	SecretClient          gloov1.SecretClient
+	ArtifactClient        gloov1.ArtifactClient
+	ServiceClient         skkube.ServiceClient
+	AuthConfigClient      extauthv1.AuthConfigClient
+	RateLimitConfigClient v1alpha1.RateLimitConfigClient
+	GlooPort              int
 }
 
 var glooPort int32 = 8100
@@ -96,15 +99,18 @@ func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 	Expect(err).NotTo(HaveOccurred())
 	authConfigClient, err := extauthv1.NewAuthConfigClient(rcFactory)
 	Expect(err).NotTo(HaveOccurred())
+	rlcClient, err := v1alpha1.NewRateLimitConfigClient(rcFactory)
+	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
-		GatewayClient:        gatewayClient,
-		VirtualServiceClient: virtualServiceClient,
-		UpstreamClient:       upstreamClient,
-		SecretClient:         secretClient,
-		ArtifactClient:       artifactClient,
-		ProxyClient:          proxyClient,
-		AuthConfigClient:     authConfigClient,
+		GatewayClient:         gatewayClient,
+		VirtualServiceClient:  virtualServiceClient,
+		UpstreamClient:        upstreamClient,
+		SecretClient:          secretClient,
+		ArtifactClient:        artifactClient,
+		ProxyClient:           proxyClient,
+		AuthConfigClient:      authConfigClient,
+		RateLimitConfigClient: rlcClient,
 	}
 }
 
@@ -205,14 +211,15 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace:  ns,
-		Upstreams:       f,
-		UpstreamGroups:  f,
-		Proxies:         f,
-		Secrets:         f,
-		Artifacts:       f,
-		AuthConfigs:     f,
-		WatchNamespaces: []string{"default", ns},
+		WriteNamespace:   ns,
+		Upstreams:        f,
+		UpstreamGroups:   f,
+		Proxies:          f,
+		Secrets:          f,
+		Artifacts:        f,
+		AuthConfigs:      f,
+		RateLimitConfigs: f,
+		WatchNamespaces:  []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,

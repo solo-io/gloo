@@ -9,4 +9,10 @@ import * as google_protobuf_descriptor_pb from "google-protobuf/google/protobuf/
 
   export const equalAll: jspb.ExtensionFieldInfo<boolean>;
 
+  export const mergeAll: jspb.ExtensionFieldInfo<boolean>;
+
   export const skipHashing: jspb.ExtensionFieldInfo<boolean>;
+
+  export const skipMerging: jspb.ExtensionFieldInfo<boolean>;
+
+  export const skipMergingOneof: jspb.ExtensionFieldInfo<boolean>;

@@ -3,100 +3,23 @@
 // file: gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto
 
 import * as jspb from "google-protobuf";
+import * as solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb from "../../../../../../../../solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../../../../solo-kit/api/v1/ref_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
-export class Descriptor extends jspb.Message {
-  getKey(): string;
-  setKey(value: string): void;
-
-  getValue(): string;
-  setValue(value: string): void;
-
-  hasRateLimit(): boolean;
-  clearRateLimit(): void;
-  getRateLimit(): RateLimit | undefined;
-  setRateLimit(value?: RateLimit): void;
-
-  clearDescriptorsList(): void;
-  getDescriptorsList(): Array<Descriptor>;
-  setDescriptorsList(value: Array<Descriptor>): void;
-  addDescriptors(value?: Descriptor, index?: number): Descriptor;
-
-  getWeight(): number;
-  setWeight(value: number): void;
-
-  getAlwaysApply(): boolean;
-  setAlwaysApply(value: boolean): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Descriptor.AsObject;
-  static toObject(includeInstance: boolean, msg: Descriptor): Descriptor.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Descriptor, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Descriptor;
-  static deserializeBinaryFromReader(message: Descriptor, reader: jspb.BinaryReader): Descriptor;
-}
-
-export namespace Descriptor {
-  export type AsObject = {
-    key: string,
-    value: string,
-    rateLimit?: RateLimit.AsObject,
-    descriptorsList: Array<Descriptor.AsObject>,
-    weight: number,
-    alwaysApply: boolean,
-  }
-}
-
-export class RateLimit extends jspb.Message {
-  getUnit(): RateLimit.UnitMap[keyof RateLimit.UnitMap];
-  setUnit(value: RateLimit.UnitMap[keyof RateLimit.UnitMap]): void;
-
-  getRequestsPerUnit(): number;
-  setRequestsPerUnit(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RateLimit.AsObject;
-  static toObject(includeInstance: boolean, msg: RateLimit): RateLimit.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RateLimit, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RateLimit;
-  static deserializeBinaryFromReader(message: RateLimit, reader: jspb.BinaryReader): RateLimit;
-}
-
-export namespace RateLimit {
-  export type AsObject = {
-    unit: RateLimit.UnitMap[keyof RateLimit.UnitMap],
-    requestsPerUnit: number,
-  }
-
-  export interface UnitMap {
-    UNKNOWN: 0;
-    SECOND: 1;
-    MINUTE: 2;
-    HOUR: 3;
-    DAY: 4;
-  }
-
-  export const Unit: UnitMap;
-}
-
 export class IngressRateLimit extends jspb.Message {
   hasAuthorizedLimits(): boolean;
   clearAuthorizedLimits(): void;
-  getAuthorizedLimits(): RateLimit | undefined;
-  setAuthorizedLimits(value?: RateLimit): void;
+  getAuthorizedLimits(): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit | undefined;
+  setAuthorizedLimits(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit): void;
 
   hasAnonymousLimits(): boolean;
   clearAnonymousLimits(): void;
-  getAnonymousLimits(): RateLimit | undefined;
-  setAnonymousLimits(value?: RateLimit): void;
+  getAnonymousLimits(): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit | undefined;
+  setAnonymousLimits(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): IngressRateLimit.AsObject;
@@ -110,8 +33,8 @@ export class IngressRateLimit extends jspb.Message {
 
 export namespace IngressRateLimit {
   export type AsObject = {
-    authorizedLimits?: RateLimit.AsObject,
-    anonymousLimits?: RateLimit.AsObject,
+    authorizedLimits?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit.AsObject,
+    anonymousLimits?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimit.AsObject,
   }
 }
 
@@ -153,9 +76,9 @@ export namespace Settings {
 
 export class ServiceSettings extends jspb.Message {
   clearDescriptorsList(): void;
-  getDescriptorsList(): Array<Descriptor>;
-  setDescriptorsList(value: Array<Descriptor>): void;
-  addDescriptors(value?: Descriptor, index?: number): Descriptor;
+  getDescriptorsList(): Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor>;
+  setDescriptorsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor>): void;
+  addDescriptors(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServiceSettings.AsObject;
@@ -169,37 +92,61 @@ export class ServiceSettings extends jspb.Message {
 
 export namespace ServiceSettings {
   export type AsObject = {
-    descriptorsList: Array<Descriptor.AsObject>,
+    descriptorsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor.AsObject>,
   }
 }
 
-export class RateLimitActions extends jspb.Message {
-  clearActionsList(): void;
-  getActionsList(): Array<Action>;
-  setActionsList(value: Array<Action>): void;
-  addActions(value?: Action, index?: number): Action;
+export class RateLimitConfigRefs extends jspb.Message {
+  clearRefsList(): void;
+  getRefsList(): Array<RateLimitConfigRef>;
+  setRefsList(value: Array<RateLimitConfigRef>): void;
+  addRefs(value?: RateLimitConfigRef, index?: number): RateLimitConfigRef;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RateLimitActions.AsObject;
-  static toObject(includeInstance: boolean, msg: RateLimitActions): RateLimitActions.AsObject;
+  toObject(includeInstance?: boolean): RateLimitConfigRefs.AsObject;
+  static toObject(includeInstance: boolean, msg: RateLimitConfigRefs): RateLimitConfigRefs.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: RateLimitActions, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RateLimitActions;
-  static deserializeBinaryFromReader(message: RateLimitActions, reader: jspb.BinaryReader): RateLimitActions;
+  static serializeBinaryToWriter(message: RateLimitConfigRefs, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RateLimitConfigRefs;
+  static deserializeBinaryFromReader(message: RateLimitConfigRefs, reader: jspb.BinaryReader): RateLimitConfigRefs;
 }
 
-export namespace RateLimitActions {
+export namespace RateLimitConfigRefs {
   export type AsObject = {
-    actionsList: Array<Action.AsObject>,
+    refsList: Array<RateLimitConfigRef.AsObject>,
+  }
+}
+
+export class RateLimitConfigRef extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getNamespace(): string;
+  setNamespace(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RateLimitConfigRef.AsObject;
+  static toObject(includeInstance: boolean, msg: RateLimitConfigRef): RateLimitConfigRef.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RateLimitConfigRef, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RateLimitConfigRef;
+  static deserializeBinaryFromReader(message: RateLimitConfigRef, reader: jspb.BinaryReader): RateLimitConfigRef;
+}
+
+export namespace RateLimitConfigRef {
+  export type AsObject = {
+    name: string,
+    namespace: string,
   }
 }
 
 export class RateLimitVhostExtension extends jspb.Message {
   clearRateLimitsList(): void;
-  getRateLimitsList(): Array<RateLimitActions>;
-  setRateLimitsList(value: Array<RateLimitActions>): void;
-  addRateLimits(value?: RateLimitActions, index?: number): RateLimitActions;
+  getRateLimitsList(): Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>;
+  setRateLimitsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>): void;
+  addRateLimits(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitVhostExtension.AsObject;
@@ -213,7 +160,7 @@ export class RateLimitVhostExtension extends jspb.Message {
 
 export namespace RateLimitVhostExtension {
   export type AsObject = {
-    rateLimitsList: Array<RateLimitActions.AsObject>,
+    rateLimitsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions.AsObject>,
   }
 }
 
@@ -222,9 +169,9 @@ export class RateLimitRouteExtension extends jspb.Message {
   setIncludeVhRateLimits(value: boolean): void;
 
   clearRateLimitsList(): void;
-  getRateLimitsList(): Array<RateLimitActions>;
-  setRateLimitsList(value: Array<RateLimitActions>): void;
-  addRateLimits(value?: RateLimitActions, index?: number): RateLimitActions;
+  getRateLimitsList(): Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>;
+  setRateLimitsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions>): void;
+  addRateLimits(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitRouteExtension.AsObject;
@@ -239,318 +186,6 @@ export class RateLimitRouteExtension extends jspb.Message {
 export namespace RateLimitRouteExtension {
   export type AsObject = {
     includeVhRateLimits: boolean,
-    rateLimitsList: Array<RateLimitActions.AsObject>,
-  }
-}
-
-export class Action extends jspb.Message {
-  hasSourceCluster(): boolean;
-  clearSourceCluster(): void;
-  getSourceCluster(): Action.SourceCluster | undefined;
-  setSourceCluster(value?: Action.SourceCluster): void;
-
-  hasDestinationCluster(): boolean;
-  clearDestinationCluster(): void;
-  getDestinationCluster(): Action.DestinationCluster | undefined;
-  setDestinationCluster(value?: Action.DestinationCluster): void;
-
-  hasRequestHeaders(): boolean;
-  clearRequestHeaders(): void;
-  getRequestHeaders(): Action.RequestHeaders | undefined;
-  setRequestHeaders(value?: Action.RequestHeaders): void;
-
-  hasRemoteAddress(): boolean;
-  clearRemoteAddress(): void;
-  getRemoteAddress(): Action.RemoteAddress | undefined;
-  setRemoteAddress(value?: Action.RemoteAddress): void;
-
-  hasGenericKey(): boolean;
-  clearGenericKey(): void;
-  getGenericKey(): Action.GenericKey | undefined;
-  setGenericKey(value?: Action.GenericKey): void;
-
-  hasHeaderValueMatch(): boolean;
-  clearHeaderValueMatch(): void;
-  getHeaderValueMatch(): Action.HeaderValueMatch | undefined;
-  setHeaderValueMatch(value?: Action.HeaderValueMatch): void;
-
-  getActionSpecifierCase(): Action.ActionSpecifierCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Action.AsObject;
-  static toObject(includeInstance: boolean, msg: Action): Action.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Action, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Action;
-  static deserializeBinaryFromReader(message: Action, reader: jspb.BinaryReader): Action;
-}
-
-export namespace Action {
-  export type AsObject = {
-    sourceCluster?: Action.SourceCluster.AsObject,
-    destinationCluster?: Action.DestinationCluster.AsObject,
-    requestHeaders?: Action.RequestHeaders.AsObject,
-    remoteAddress?: Action.RemoteAddress.AsObject,
-    genericKey?: Action.GenericKey.AsObject,
-    headerValueMatch?: Action.HeaderValueMatch.AsObject,
-  }
-
-  export class SourceCluster extends jspb.Message {
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): SourceCluster.AsObject;
-    static toObject(includeInstance: boolean, msg: SourceCluster): SourceCluster.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: SourceCluster, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): SourceCluster;
-    static deserializeBinaryFromReader(message: SourceCluster, reader: jspb.BinaryReader): SourceCluster;
-  }
-
-  export namespace SourceCluster {
-    export type AsObject = {
-    }
-  }
-
-  export class DestinationCluster extends jspb.Message {
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): DestinationCluster.AsObject;
-    static toObject(includeInstance: boolean, msg: DestinationCluster): DestinationCluster.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: DestinationCluster, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): DestinationCluster;
-    static deserializeBinaryFromReader(message: DestinationCluster, reader: jspb.BinaryReader): DestinationCluster;
-  }
-
-  export namespace DestinationCluster {
-    export type AsObject = {
-    }
-  }
-
-  export class RequestHeaders extends jspb.Message {
-    getHeaderName(): string;
-    setHeaderName(value: string): void;
-
-    getDescriptorKey(): string;
-    setDescriptorKey(value: string): void;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): RequestHeaders.AsObject;
-    static toObject(includeInstance: boolean, msg: RequestHeaders): RequestHeaders.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: RequestHeaders, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): RequestHeaders;
-    static deserializeBinaryFromReader(message: RequestHeaders, reader: jspb.BinaryReader): RequestHeaders;
-  }
-
-  export namespace RequestHeaders {
-    export type AsObject = {
-      headerName: string,
-      descriptorKey: string,
-    }
-  }
-
-  export class RemoteAddress extends jspb.Message {
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): RemoteAddress.AsObject;
-    static toObject(includeInstance: boolean, msg: RemoteAddress): RemoteAddress.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: RemoteAddress, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): RemoteAddress;
-    static deserializeBinaryFromReader(message: RemoteAddress, reader: jspb.BinaryReader): RemoteAddress;
-  }
-
-  export namespace RemoteAddress {
-    export type AsObject = {
-    }
-  }
-
-  export class GenericKey extends jspb.Message {
-    getDescriptorValue(): string;
-    setDescriptorValue(value: string): void;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GenericKey.AsObject;
-    static toObject(includeInstance: boolean, msg: GenericKey): GenericKey.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GenericKey, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GenericKey;
-    static deserializeBinaryFromReader(message: GenericKey, reader: jspb.BinaryReader): GenericKey;
-  }
-
-  export namespace GenericKey {
-    export type AsObject = {
-      descriptorValue: string,
-    }
-  }
-
-  export class HeaderValueMatch extends jspb.Message {
-    getDescriptorValue(): string;
-    setDescriptorValue(value: string): void;
-
-    hasExpectMatch(): boolean;
-    clearExpectMatch(): void;
-    getExpectMatch(): google_protobuf_wrappers_pb.BoolValue | undefined;
-    setExpectMatch(value?: google_protobuf_wrappers_pb.BoolValue): void;
-
-    clearHeadersList(): void;
-    getHeadersList(): Array<HeaderMatcher>;
-    setHeadersList(value: Array<HeaderMatcher>): void;
-    addHeaders(value?: HeaderMatcher, index?: number): HeaderMatcher;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): HeaderValueMatch.AsObject;
-    static toObject(includeInstance: boolean, msg: HeaderValueMatch): HeaderValueMatch.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: HeaderValueMatch, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): HeaderValueMatch;
-    static deserializeBinaryFromReader(message: HeaderValueMatch, reader: jspb.BinaryReader): HeaderValueMatch;
-  }
-
-  export namespace HeaderValueMatch {
-    export type AsObject = {
-      descriptorValue: string,
-      expectMatch?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-      headersList: Array<HeaderMatcher.AsObject>,
-    }
-  }
-
-  export enum ActionSpecifierCase {
-    ACTION_SPECIFIER_NOT_SET = 0,
-    SOURCE_CLUSTER = 1,
-    DESTINATION_CLUSTER = 2,
-    REQUEST_HEADERS = 3,
-    REMOTE_ADDRESS = 4,
-    GENERIC_KEY = 5,
-    HEADER_VALUE_MATCH = 6,
-  }
-}
-
-export class Int64Range extends jspb.Message {
-  getStart(): number;
-  setStart(value: number): void;
-
-  getEnd(): number;
-  setEnd(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Int64Range.AsObject;
-  static toObject(includeInstance: boolean, msg: Int64Range): Int64Range.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Int64Range, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Int64Range;
-  static deserializeBinaryFromReader(message: Int64Range, reader: jspb.BinaryReader): Int64Range;
-}
-
-export namespace Int64Range {
-  export type AsObject = {
-    start: number,
-    end: number,
-  }
-}
-
-export class HeaderMatcher extends jspb.Message {
-  getName(): string;
-  setName(value: string): void;
-
-  hasExactMatch(): boolean;
-  clearExactMatch(): void;
-  getExactMatch(): string;
-  setExactMatch(value: string): void;
-
-  hasRegexMatch(): boolean;
-  clearRegexMatch(): void;
-  getRegexMatch(): string;
-  setRegexMatch(value: string): void;
-
-  hasRangeMatch(): boolean;
-  clearRangeMatch(): void;
-  getRangeMatch(): Int64Range | undefined;
-  setRangeMatch(value?: Int64Range): void;
-
-  hasPresentMatch(): boolean;
-  clearPresentMatch(): void;
-  getPresentMatch(): boolean;
-  setPresentMatch(value: boolean): void;
-
-  hasPrefixMatch(): boolean;
-  clearPrefixMatch(): void;
-  getPrefixMatch(): string;
-  setPrefixMatch(value: string): void;
-
-  hasSuffixMatch(): boolean;
-  clearSuffixMatch(): void;
-  getSuffixMatch(): string;
-  setSuffixMatch(value: string): void;
-
-  getInvertMatch(): boolean;
-  setInvertMatch(value: boolean): void;
-
-  getHeaderMatchSpecifierCase(): HeaderMatcher.HeaderMatchSpecifierCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): HeaderMatcher.AsObject;
-  static toObject(includeInstance: boolean, msg: HeaderMatcher): HeaderMatcher.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: HeaderMatcher, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): HeaderMatcher;
-  static deserializeBinaryFromReader(message: HeaderMatcher, reader: jspb.BinaryReader): HeaderMatcher;
-}
-
-export namespace HeaderMatcher {
-  export type AsObject = {
-    name: string,
-    exactMatch: string,
-    regexMatch: string,
-    rangeMatch?: Int64Range.AsObject,
-    presentMatch: boolean,
-    prefixMatch: string,
-    suffixMatch: string,
-    invertMatch: boolean,
-  }
-
-  export enum HeaderMatchSpecifierCase {
-    HEADER_MATCH_SPECIFIER_NOT_SET = 0,
-    EXACT_MATCH = 4,
-    REGEX_MATCH = 5,
-    RANGE_MATCH = 6,
-    PRESENT_MATCH = 7,
-    PREFIX_MATCH = 9,
-    SUFFIX_MATCH = 10,
-  }
-}
-
-export class QueryParameterMatcher extends jspb.Message {
-  getName(): string;
-  setName(value: string): void;
-
-  getValue(): string;
-  setValue(value: string): void;
-
-  hasRegex(): boolean;
-  clearRegex(): void;
-  getRegex(): google_protobuf_wrappers_pb.BoolValue | undefined;
-  setRegex(value?: google_protobuf_wrappers_pb.BoolValue): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): QueryParameterMatcher.AsObject;
-  static toObject(includeInstance: boolean, msg: QueryParameterMatcher): QueryParameterMatcher.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: QueryParameterMatcher, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): QueryParameterMatcher;
-  static deserializeBinaryFromReader(message: QueryParameterMatcher, reader: jspb.BinaryReader): QueryParameterMatcher;
-}
-
-export namespace QueryParameterMatcher {
-  export type AsObject = {
-    name: string,
-    value: string,
-    regex?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    rateLimitsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.RateLimitActions.AsObject>,
   }
 }

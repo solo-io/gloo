@@ -14,7 +14,7 @@ var global = Function('return this')();
 
 var envoy_api_v2_discovery_pb = require('../../../../../../solo-kit/api/external/envoy/api/v2/discovery_pb.js');
 var google_api_annotations_pb = require('../../../../../../solo-kit/api/external/google/api/annotations_pb.js');
-var gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb.js');
+var solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb = require('../../../../../../solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../../protoc-gen-ext/extproto/ext_pb.js');
 goog.exportSymbol('proto.glooe.solo.io.RateLimitConfig', null, global);
@@ -74,7 +74,7 @@ proto.glooe.solo.io.RateLimitConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     domain: jspb.Message.getFieldWithDefault(msg, 1, ""),
     descriptorsList: jspb.Message.toObjectList(msg.getDescriptorsList(),
-    gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor.toObject, includeInstance)
+    solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -116,8 +116,8 @@ proto.glooe.solo.io.RateLimitConfig.deserializeBinaryFromReader = function(msg, 
       msg.setDomain(value);
       break;
     case 2:
-      var value = new gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor;
-      reader.readMessage(value,gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor.deserializeBinaryFromReader);
+      var value = new solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor;
+      reader.readMessage(value,solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.deserializeBinaryFromReader);
       msg.addDescriptors(value);
       break;
     default:
@@ -161,7 +161,7 @@ proto.glooe.solo.io.RateLimitConfig.serializeBinaryToWriter = function(message, 
     writer.writeRepeatedMessage(
       2,
       f,
-      gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor.serializeBinaryToWriter
+      solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.serializeBinaryToWriter
     );
   }
 };
@@ -183,28 +183,28 @@ proto.glooe.solo.io.RateLimitConfig.prototype.setDomain = function(value) {
 
 
 /**
- * repeated ratelimit.options.gloo.solo.io.Descriptor descriptors = 2;
- * @return {!Array<!proto.ratelimit.options.gloo.solo.io.Descriptor>}
+ * repeated ratelimit.api.solo.io.Descriptor descriptors = 2;
+ * @return {!Array<!proto.ratelimit.api.solo.io.Descriptor>}
  */
 proto.glooe.solo.io.RateLimitConfig.prototype.getDescriptorsList = function() {
-  return /** @type{!Array<!proto.ratelimit.options.gloo.solo.io.Descriptor>} */ (
-    jspb.Message.getRepeatedWrapperField(this, gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Descriptor, 2));
+  return /** @type{!Array<!proto.ratelimit.api.solo.io.Descriptor>} */ (
+    jspb.Message.getRepeatedWrapperField(this, solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor, 2));
 };
 
 
-/** @param {!Array<!proto.ratelimit.options.gloo.solo.io.Descriptor>} value */
+/** @param {!Array<!proto.ratelimit.api.solo.io.Descriptor>} value */
 proto.glooe.solo.io.RateLimitConfig.prototype.setDescriptorsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
 
 /**
- * @param {!proto.ratelimit.options.gloo.solo.io.Descriptor=} opt_value
+ * @param {!proto.ratelimit.api.solo.io.Descriptor=} opt_value
  * @param {number=} opt_index
- * @return {!proto.ratelimit.options.gloo.solo.io.Descriptor}
+ * @return {!proto.ratelimit.api.solo.io.Descriptor}
  */
 proto.glooe.solo.io.RateLimitConfig.prototype.addDescriptors = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.ratelimit.options.gloo.solo.io.Descriptor, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.ratelimit.api.solo.io.Descriptor, opt_index);
 };
 
 

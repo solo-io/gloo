@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -19,24 +21,24 @@ save them
 then translate get rate limit configs
 */
 
-func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl ratelimit.IngressRateLimit) (*ratelimit.Descriptor, error) {
+func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl ratelimit.IngressRateLimit) (*solo_apis_rl.Descriptor, error) {
 
-	vhostDescriptor := &ratelimit.Descriptor{
+	vhostDescriptor := &solo_apis_rl.Descriptor{
 		Key:         genericKey,
 		Value:       vhostname,
-		Descriptors: []*ratelimit.Descriptor{},
+		Descriptors: []*solo_apis_rl.Descriptor{},
 	}
 
 	if ingressRl.AnonymousLimits != nil {
 
-		if ingressRl.AnonymousLimits.Unit == ratelimit.RateLimit_UNKNOWN {
+		if ingressRl.AnonymousLimits.Unit == solo_apis_rl.RateLimit_UNKNOWN {
 			return nil, errors.New("unknown unit for anonymous config")
 		}
 
-		c := &ratelimit.Descriptor{
+		c := &solo_apis_rl.Descriptor{
 			Key:   headerMatch,
 			Value: anonymous,
-			Descriptors: []*ratelimit.Descriptor{
+			Descriptors: []*solo_apis_rl.Descriptor{
 				{
 					Key:       remoteAddress,
 					RateLimit: ingressRl.AnonymousLimits,
@@ -49,14 +51,14 @@ func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl rate
 
 	if ingressRl.AuthorizedLimits != nil {
 
-		if ingressRl.AuthorizedLimits.Unit == ratelimit.RateLimit_UNKNOWN {
+		if ingressRl.AuthorizedLimits.Unit == solo_apis_rl.RateLimit_UNKNOWN {
 			return nil, errors.New("unknown unit for authenticated config")
 		}
 
-		c := &ratelimit.Descriptor{
+		c := &solo_apis_rl.Descriptor{
 			Key:   headerMatch,
 			Value: authenticated,
-			Descriptors: []*ratelimit.Descriptor{
+			Descriptors: []*solo_apis_rl.Descriptor{
 				{
 					Key:       userid,
 					RateLimit: ingressRl.AuthorizedLimits,

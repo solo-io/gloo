@@ -9,6 +9,7 @@ import (
 const (
 	GlooPkg      = "github.com/solo-io/gloo"
 	DevPortalPkg = "github.com/solo-io/dev-portal"
+	SoloAPIsPkg  = "github.com/solo-io/solo-apis"
 )
 
 //go:generate go run generate.go
@@ -28,6 +29,10 @@ func main() {
 	}
 	// Import the dev portal proto files
 	imports.External[DevPortalPkg] = []string{
+		"api/**/*.proto",
+	}
+	// Import rate limit API
+	imports.External[SoloAPIsPkg] = []string{
 		"api/**/*.proto",
 	}
 

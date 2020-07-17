@@ -7,7 +7,7 @@ import { InputRow } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Label } from 'Components/Common/SoloInput';
 import { Formik } from 'formik';
-import { RateLimit } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb';
+import { RateLimit } from 'proto/solo-apis/api/rate-limiter/v1alpha1/ratelimit_pb';
 import { RateLimitPlugin } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';

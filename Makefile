@@ -56,7 +56,7 @@ endef
 endif
 endif
 
-# Same as above, but returns only the tag name withouth the '-t' prefix
+# Same as above, but returns only the tag name without the '-t' prefix
 ifneq ($(GCLOUD_PROJECT_ID),)
 ifneq ($(BUILD_ID),)
 define get_test_tag
@@ -75,20 +75,17 @@ init:
 	git config core.hooksPath .githooks
 
 .PHONY: update-all-deps
-update-all-deps: update-deps update-ui-deps
+update-all-deps: install-go-tools update-ui-deps
 
-.PHONY: mod-download
-mod-download:
-	go mod download
-
-.PHONY: update-deps
-update-deps: mod-download
-	go get -v golang.org/x/tools/cmd/goimports@v0.0.0-20200423205358-59e73619c742
-	go get -v github.com/gogo/protobuf/gogoproto@v1.3.1
-	go get -v github.com/gogo/protobuf/protoc-gen-gogo@v1.3.1
-	go get -v github.com/solo-io/protoc-gen-ext@v0.0.7
-	go get -v github.com/google/wire/cmd/wire@v0.4.0
-	go get -v github.com/golang/mock/mockgen@v1.4.3
+# https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
+.PHONY: install-go-tools
+install-go-tools:
+	go install golang.org/x/tools/cmd/goimports
+	go install github.com/gogo/protobuf/gogoproto
+	go install github.com/gogo/protobuf/protoc-gen-gogo
+	go install github.com/solo-io/protoc-gen-ext
+	go install github.com/google/wire/cmd/wire
+	go install github.com/golang/mock/mockgen
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
@@ -187,6 +184,8 @@ generated-ui:
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*/*/*.proto
+	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
+    	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \

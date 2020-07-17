@@ -18,6 +18,7 @@
 vendor*/
 debug*/
 _output/
+_local/
 _test/
 doc/site/
 projects/gloo/doc/site/
