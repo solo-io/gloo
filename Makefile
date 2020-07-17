@@ -226,34 +226,37 @@ allprojects: grpcserver gloo extauth rate-limit observability
 #----------------------------------------------------------------------------------
 
 GRPCSERVER_DIR=projects/grpcserver
+GRPCSERVER_OUT_DIR=$(OUTPUT_DIR)/grpcserver
 
-$(OUTPUT_DIR)/grpcserver-linux-amd64:
+$(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64:
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/grpcserver/server/cmd/main.go
 
 .PHONY: grpcserver
-grpcserver: $(OUTPUT_DIR)/grpcserver-linux-amd64
+grpcserver: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.grpcserver: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
+$(GRPCSERVER_OUT_DIR)/Dockerfile: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: grpcserver-docker
-grpcserver-docker: grpcserver $(OUTPUT_DIR)/Dockerfile.grpcserver $(OUTPUT_DIR)/.grpcserver-docker
+grpcserver-docker: grpcserver $(GRPCSERVER_OUT_DIR)/Dockerfile $(GRPCSERVER_OUT_DIR)/.grpcserver-docker
 
-$(OUTPUT_DIR)/.grpcserver-docker: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.grpcserver
-	docker build -t $(IMAGE_REPO)/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserver
+$(GRPCSERVER_OUT_DIR)/.grpcserver-docker: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(GRPCSERVER_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
 # grpcserver-envoy
 #----------------------------------------------------------------------------------
 CONFIG_YAML=envoy_config_grpcserver.yaml
+GRPC_ENVOY_OUT=$(OUTPUT_DIR)/grpcserverenvoy
 
 .PHONY: grpcserver-envoy-docker
-grpcserver-envoy-docker: $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
-	docker build -t $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+grpcserver-envoy-docker: $(GRPC_ENVOY_OUT)/Dockerfile
+	docker build -t $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(GRPC_ENVOY_OUT)
 
-$(OUTPUT_DIR)/Dockerfile.grpcserverenvoy: $(GRPCSERVER_DIR)/envoy/Dockerfile
-	cp $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) $(OUTPUT_DIR)/$(CONFIG_YAML)
+$(GRPC_ENVOY_OUT)/Dockerfile: $(GRPCSERVER_DIR)/envoy/Dockerfile
+	mkdir -p $(GRPC_ENVOY_OUT)
+	cp $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) $(GRPC_ENVOY_OUT)/$(CONFIG_YAML)
 	cp $< $@
 
 # helpers for local testing
@@ -274,24 +277,33 @@ run-envoy:
 run-ui:
 	yarn --cwd projects/gloo-ui install && \
 	yarn --cwd projects/gloo-ui start
+
 #----------------------------------------------------------------------------------
 # UI
 #----------------------------------------------------------------------------------
 
 GRPCSERVER_UI_DIR=projects/gloo-ui
+GLOO_UI_OUT_DIR=$(OUTPUT_DIR)/gloo-ui
+
 .PHONY: grpcserver-ui-build-local
 # TODO rename this so the local build flag is not needed, infer from artifacts
-# - should move the yarn build output to the _output dir
 grpcserver-ui-build-local:
 ifneq ($(LOCAL_BUILD),)
 	yarn --cwd $(GRPCSERVER_UI_DIR) install && \
 	yarn --cwd $(GRPCSERVER_UI_DIR) build
 endif
 
+.PHONY: setup-ui-out-dir
+setup-ui-out-dir: grpcserver-ui-build-local $(GRPCSERVER_UI_DIR)/Dockerfile
+	mkdir -p $(GLOO_UI_OUT_DIR)
+	cp $(GRPCSERVER_UI_DIR)/Dockerfile $(GLOO_UI_OUT_DIR)/Dockerfile
+	cp -r $(GRPCSERVER_UI_DIR)/conf $(GLOO_UI_OUT_DIR)/conf
+	cp -r $(GRPCSERVER_UI_DIR)/build $(GLOO_UI_OUT_DIR)/build
+
 # If building locally, set LOCAL_BUILD=true
 .PHONY: grpcserver-ui-docker
-grpcserver-ui-docker: grpcserver-ui-build-local
-	docker build -t $(IMAGE_REPO)/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GRPCSERVER_UI_DIR) -f $(GRPCSERVER_UI_DIR)/Dockerfile
+grpcserver-ui-docker: setup-ui-out-dir
+	docker build -t $(IMAGE_REPO)/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GLOO_UI_OUT_DIR)
 
 
 #----------------------------------------------------------------------------------
@@ -300,21 +312,22 @@ grpcserver-ui-docker: grpcserver-ui-build-local
 
 RATELIMIT_DIR=projects/rate-limit
 RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+RATELIMIT_OUT_DIR=$(OUTPUT_DIR)/rate-limit
 
-$(OUTPUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
+$(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
 
 .PHONY: rate-limit
-rate-limit: $(OUTPUT_DIR)/rate-limit-linux-amd64
+rate-limit: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
+$(RATELIMIT_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: rate-limit-docker
-rate-limit-docker: $(OUTPUT_DIR)/.rate-limit-docker
+rate-limit-docker: $(RATELIMIT_OUT_DIR)/.rate-limit-docker
 
-$(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
-	docker build -t $(IMAGE_REPO)/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
+$(RATELIMIT_OUT_DIR)/.rate-limit-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(RATELIMIT_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -324,15 +337,19 @@ $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 EXTAUTH_GO_BUILD_IMAGE=golang:1.14.0-alpine
+EXTAUTH_OUT_DIR=$(OUTPUT_DIR)/extauth
+RELATIVE_EXTAUTH_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth
+_ := $(shell mkdir -p $(EXTAUTH_OUT_DIR))
 
-$(OUTPUT_DIR)/Dockerfile.extauth.build: $(EXTAUTH_DIR)/Dockerfile
+$(EXTAUTH_OUT_DIR)/Dockerfile.build: $(EXTAUTH_DIR)/Dockerfile
 	cp $< $@
 
-$(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
+$(EXTAUTH_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
-$(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile.extauth.build
-	docker build -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) -f $(OUTPUT_DIR)/Dockerfile.extauth.build \
+$(EXTAUTH_OUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
+	docker build -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) \
+		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
@@ -342,39 +359,38 @@ $(OUTPUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(OUTPUT_DIR)/Dockerfile
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(OUTPUT_DIR)/extauth-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
+$(EXTAUTH_OUT_DIR)/extauth-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-docker-build
 	docker create -ti --name extauth-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
-	docker cp extauth-temp-container:/extauth-linux-amd64 $(OUTPUT_DIR)/extauth-linux-amd64
+	docker cp extauth-temp-container:/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(OUTPUT_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/.extauth-docker-build
+$(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-docker-build
 	docker create -ti --name verify-plugins-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
-	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
+	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
 
 # Build extauth binaries
 .PHONY: extauth
-extauth: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64
+extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 
 # Build ext-auth-plugins docker image
 .PHONY: auth-plugins
-auth-plugins: $(OUTPUT_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
+auth-plugins: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
+	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
-		--build-arg VERIFY_SCRIPT=$(RELATIVE_OUTPUT_DIR)/verify-plugins-linux-amd64 \
+		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		.
 
 # Build extauth server docker image
 .PHONY: extauth-docker
-extauth-docker: $(OUTPUT_DIR)/.extauth-docker
+extauth-docker: $(EXTAUTH_OUT_DIR)/.extauth-docker
 
-$(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	docker build -t $(IMAGE_REPO)/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+$(EXTAUTH_OUT_DIR)/.extauth-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(EXTAUTH_OUT_DIR)
 	touch $@
-
 
 #----------------------------------------------------------------------------------
 # Observability
@@ -382,21 +398,22 @@ $(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/v
 
 OBSERVABILITY_DIR=projects/observability
 OBSERVABILITY_SOURCES=$(shell find $(OBSERVABILITY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+OBS_OUT_DIR=$(OUTPUT_DIR)/observability
 
-$(OUTPUT_DIR)/observability-linux-amd64: $(OBSERVABILITY_SOURCES)
+$(OBS_OUT_DIR)/observability-linux-amd64: $(OBSERVABILITY_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
 
 .PHONY: observability
-observability: $(OUTPUT_DIR)/observability-linux-amd64
+observability: $(OBS_OUT_DIR)/observability-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
+$(OBS_OUT_DIR)/Dockerfile: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: observability-docker
-observability-docker: $(OUTPUT_DIR)/.observability-docker
+observability-docker: $(OBS_OUT_DIR)/.observability-docker
 
-$(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
-	docker build -t $(IMAGE_REPO)/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+$(OBS_OUT_DIR)/.observability-docker: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OBS_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -405,29 +422,30 @@ $(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(O
 
 GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+GLOO_OUT_DIR=$(OUTPUT_DIR)/gloo
 
-$(OUTPUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
+$(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 
 .PHONY: gloo
-gloo: $(OUTPUT_DIR)/gloo-linux-amd64
+gloo: $(GLOO_OUT_DIR)/gloo-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
+$(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 
 .PHONY: gloo-docker
-gloo-docker: $(OUTPUT_DIR)/.gloo-docker
+gloo-docker: $(GLOO_OUT_DIR)/.gloo-docker
 
-$(OUTPUT_DIR)/.gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build $(call get_test_tag_option,gloo-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo \
+$(GLOO_OUT_DIR)/.gloo-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
+	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
-gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+gloo-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(GLOO_OUT_DIR) --no-cache
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -466,24 +484,25 @@ build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
 
 ENVOYINIT_DIR=cmd/envoyinit
 ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+ENVOYINIT_OUT_DIR=$(OUTPUT_DIR)/envoyinit
 
-$(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
+$(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
 
 .PHONY: envoyinit
-envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
+envoyinit: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64
 
-$(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
+$(ENVOYINIT_OUT_DIR)/Dockerfile: $(ENVOYINIT_DIR)/Dockerfile
 	cp $< $@
 
-$(OUTPUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
+$(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh: $(ENVOYINIT_DIR)/docker-entrypoint.sh
 	cp $< $@
 
 .PHONY: gloo-ee-envoy-wrapper-docker
-gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
+gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker
 
-$(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit $(OUTPUT_DIR)/docker-entrypoint.sh
-	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit \
+$(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_OUT_DIR)/Dockerfile $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
+	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(ENVOYINIT_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)
 	touch $@
@@ -599,8 +618,8 @@ $(DEPS_DIR)/build_env: $(DEPS_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
-$(DEPS_DIR)/verify-plugins-linux-amd64: $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
-	cp $(OUTPUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+$(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+	cp $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
 
 #----------------------------------------------------------------------------------
 # Docker push
@@ -668,28 +687,28 @@ TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test gr
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
-grpcserver-docker-test: $(OUTPUT_DIR)/grpcserver-linux-amd64 $(OUTPUT_DIR)/.grpcserver-docker
+grpcserver-docker-test: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/.grpcserver-docker
 	docker push $(call get_test_tag,grpcserver-ee)
 
-grpcserver-envoy-docker-test: grpcserver-envoy-docker $(OUTPUT_DIR)/Dockerfile.grpcserverenvoy
+grpcserver-envoy-docker-test: grpcserver-envoy-docker $(GRPC_ENVOY_OUT)/Dockerfile
 	docker push $(call get_test_tag,grpcserver-envoy)
 
 grpcserver-ui-docker-test: grpcserver-ui-build-local grpcserver-ui-docker
 	docker push $(call get_test_tag,grpcserver-ui)
 
-rate-limit-docker-test: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
+rate-limit-docker-test: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,rate-limit-ee)
 
-extauth-docker-test: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+extauth-docker-test: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,extauth-ee)
 
-observability-docker-test: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
+observability-docker-test: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,observability-ee)
 
 gloo-docker-test: gloo-docker
 	docker push $(call get_test_tag,gloo-ee)
 
-gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit gloo-ee-envoy-wrapper-docker
+gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_OUT_DIR)/Dockerfile gloo-ee-envoy-wrapper-docker
 	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
 
 .PHONY: build-test-chart
