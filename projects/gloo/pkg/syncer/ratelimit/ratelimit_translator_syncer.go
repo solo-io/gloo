@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/collectors"
+	rate_limiter_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
+
 	"github.com/gogo/protobuf/proto"
-	rlPlugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/go-utils/hashutils"
-	configproto "github.com/solo-io/solo-projects/projects/rate-limit/pkg/config"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -22,8 +26,11 @@ import (
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	rlIngressPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
+
+// TODO(marco): generate these in solo-kit
+//go:generate mockgen -package mocks -destination mocks/cache.go github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache SnapshotCache
+//go:generate mockgen -package mocks -destination mocks/reporter.go github.com/solo-io/solo-kit/pkg/api/v2/reporter Reporter
 
 var (
 	rlConnectedStateDescription = "zero indicates gloo detected an error with the rate limit config and did not update its XDS snapshot, check the gloo logs for errors"
@@ -42,99 +49,178 @@ func init() {
 	_ = view.Register(rlConnectedStateView)
 }
 
-type RateLimitTranslatorSyncerExtension struct {
-	settings *ratelimit.ServiceSettings
+type translatorSyncerExtension struct {
+	collectorFactory collectors.ConfigCollectorFactory
+	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
+	reporter         reporter.Reporter
 }
 
-// The ratelimit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
+// The rate limit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
 // the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
 // similarly to how the regular Gloo gateway-proxies do.
 const RateLimitServerRole = "ratelimit"
 
-func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
 	var settings ratelimit.ServiceSettings
 
 	if params.RateLimitServiceSettings.GetDescriptors() != nil {
 		settings.Descriptors = params.RateLimitServiceSettings.Descriptors
 	}
 
-	return &RateLimitTranslatorSyncerExtension{
-		settings: &settings,
-	}, nil
+	return NewTranslatorSyncer(
+		collectors.NewCollectorFactory(
+			&settings,
+			rate_limiter_shims.NewRateLimitConfigTranslator(),
+			translation.NewBasicRateLimitTranslator(),
+		),
+		rate_limiter_shims.NewRateLimitDomainGenerator(),
+		params.Reporter,
+	), nil
 }
 
-func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
+func NewTranslatorSyncer(
+	collectorFactory collectors.ConfigCollectorFactory,
+	domainGenerator rate_limiter_shims.RateLimitDomainGenerator,
+	reporter reporter.Reporter,
+) syncer.TranslatorSyncerExtension {
+	return &translatorSyncerExtension{
+		collectorFactory: collectorFactory,
+		domainGenerator:  domainGenerator,
+		reporter:         reporter,
+	}
+}
+
+func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
-	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snapHash,
-		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
+	logger.Infof("begin rate limit sync %v (%v proxies, %v rate limit configs)", snapHash, len(snap.Proxies), len(snap.Ratelimitconfigs))
 	defer logger.Infof("end sync %v", snapHash)
 
-	customrl := &v1.RateLimitConfig{
-		Domain: rlPlugin.CustomDomain,
-	}
-	if s.settings.GetDescriptors() != nil {
-		customrl.Descriptors = s.settings.GetDescriptors()
-	}
+	reports := make(reporter.ResourceReports)
+	reports.Accept(snap.Proxies.AsInputResources()...)
+	reports.Accept(snap.Ratelimitconfigs.AsInputResources()...)
 
-	rl := &v1.RateLimitConfig{
-		Domain: rlIngressPlugin.IngressDomain,
+	// Make sure we always write reports
+	defer func() {
+		if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
+			contextutils.LoggerFrom(ctx).Warnf("Failed writing report for rate limit configs: %v", err)
+		}
+	}()
+
+	configCollectors, err := newCollectorSet(s.collectorFactory, snap, reports)
+	if err != nil {
+		return syncerError(ctx, err)
 	}
 
 	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
 			if !ok {
+				// Rate limiting is currently supported only on HTTP listeners
 				continue
 			}
 
-			virtualHosts := httpListener.HttpListener.VirtualHosts
-			for _, virtualHost := range virtualHosts {
-				rateLimit := virtualHost.GetOptions().GetRatelimitBasic()
-				if rateLimit == nil {
-					// no rate limit virtual host config found, nothing to do here
-					continue
-				}
-				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
-				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
+			for _, virtualHost := range httpListener.HttpListener.VirtualHosts {
 
-				vhostConstraint, err := rlIngressPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, *rateLimit)
-				if err != nil {
-					return syncerError(ctx, err)
+				// Sanitize the name of the virtual host
+				virtualHostClone := proto.Clone(virtualHost).(*gloov1.VirtualHost)
+				virtualHostClone.Name = glooutils.SanitizeForEnvoy(ctx, virtualHostClone.Name, "virtual host")
+
+				// Process rate limit configuration on this virtual host
+				configCollectors.processVirtualHost(virtualHostClone, proxy)
+
+				// Process rate limit configuration on routes
+				for _, route := range virtualHost.GetRoutes() {
+					configCollectors.processRoute(route, virtualHostClone, proxy)
 				}
-				rl.Descriptors = append(rl.Descriptors, vhostConstraint)
 			}
 		}
 	}
 
-	// TODO(yuval-k): we should make sure that we add the proxy name and listener name to the descriptors
-	resources := []envoycache.Resource{
-		v1.NewRateLimitConfigXdsResourceWrapper(customrl),
-		v1.NewRateLimitConfigXdsResourceWrapper(rl),
-	}
+	// Get all the collected rate limit config
+	configs := configCollectors.toXdsConfigurations()
 
-	// Verify settings can be translated to valid RL config
-	generator := configproto.NewConfigGenerator(contextutils.LoggerFrom(ctx))
-	if _, err := generator.GenerateConfig([]*v1.RateLimitConfig{customrl, rl}); err != nil {
+	var (
+		errs              = &multierror.Error{}
+		snapshotResources []envoycache.Resource
+	)
+	for _, cfg := range configs {
+		// Verify xDS configuration can be translated to valid RL server configuration
+		if _, err := s.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain, cfg.Descriptors); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+		snapshotResources = append(snapshotResources, v1.NewRateLimitConfigXdsResourceWrapper(cfg))
+	}
+	if err := errs.ErrorOrNil(); err != nil {
 		return syncerError(ctx, err)
 	}
 
-	h, err := hashstructure.Hash(resources, nil)
+	hashedResources, err := hashstructure.Hash(snapshotResources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
 		return syncerError(ctx, err)
 	}
-	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-	xdsCache.SetSnapshot(RateLimitServerRole, rlsnap)
+
+	rateLimitSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", hashedResources), snapshotResources)
+
+	err = xdsCache.SetSnapshot(RateLimitServerRole, rateLimitSnapshot)
+	if err != nil {
+		return syncerError(ctx, err)
+	}
 
 	stats.Record(ctx, rlConnectedState.M(int64(1)))
 
-	// find our plugin
 	return RateLimitServerRole, nil
 }
 
 func syncerError(ctx context.Context, err error) (string, error) {
 	stats.Record(ctx, rlConnectedState.M(int64(0)))
 	return RateLimitServerRole, err
+}
+
+// Helper object to reduce boilerplate.
+type configCollectorSet struct {
+	collectors []collectors.ConfigCollector
+}
+
+func newCollectorSet(
+	collectorFactory collectors.ConfigCollectorFactory,
+	snapshot *gloov1.ApiSnapshot,
+	reports reporter.ResourceReports,
+) (configCollectorSet, error) {
+	set := configCollectorSet{}
+
+	for _, collectorType := range []collectors.CollectorType{
+		collectors.Global,
+		collectors.Basic,
+		collectors.Crd,
+	} {
+		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, reports)
+		if err != nil {
+			return configCollectorSet{}, err
+		}
+		set.collectors = append(set.collectors, collector)
+	}
+	return set, nil
+}
+
+func (c configCollectorSet) processVirtualHost(virtualHost *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+	for _, collector := range c.collectors {
+		collector.ProcessVirtualHost(virtualHost, proxy)
+	}
+}
+
+func (c configCollectorSet) processRoute(route *gloov1.Route, virtualHost *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+	for _, collector := range c.collectors {
+		collector.ProcessRoute(route, virtualHost, proxy)
+	}
+}
+
+func (c configCollectorSet) toXdsConfigurations() []*v1.RateLimitConfig {
+	var result []*v1.RateLimitConfig
+	for _, collector := range c.collectors {
+		result = append(result, collector.ToXdsConfiguration())
+	}
+	return result
 }

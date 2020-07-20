@@ -36,10 +36,10 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.13
 	github.com/solo-io/gloo v1.5.0-beta8
-	github.com/solo-io/go-utils v0.16.4
+	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
-	github.com/solo-io/rate-limiter v0.0.3
+	github.com/solo-io/rate-limiter v0.1.0
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-apis v0.0.0-20200709192249-4f741634437b
 	github.com/solo-io/solo-kit v0.13.9
@@ -51,14 +51,14 @@ require (
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d
-	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2
+	google.golang.org/grpc v1.28.1
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.1.2
-	k8s.io/api v0.17.2
+	k8s.io/api v0.18.1
 	k8s.io/apiextensions-apiserver v0.18.1
 	k8s.io/apimachinery v0.18.1
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.17.2
+	k8s.io/code-generator v0.18.1
 	k8s.io/kubernetes v1.17.1
 	sigs.k8s.io/controller-runtime v0.5.6
 	sigs.k8s.io/yaml v1.2.0

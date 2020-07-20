@@ -10,7 +10,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	. "github.com/solo-io/go-utils/testutils"
-	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	"github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
@@ -66,7 +66,7 @@ var _ = Describe("MutationFactory", func() {
 
 		getRateLimit := func() *ratelimit.IngressRateLimit {
 			return &ratelimit.IngressRateLimit{
-				AuthorizedLimits: &solo_apis_rl.RateLimit{RequestsPerUnit: 1},
+				AuthorizedLimits: &v1alpha1.RateLimit{RequestsPerUnit: 1},
 			}
 		}
 

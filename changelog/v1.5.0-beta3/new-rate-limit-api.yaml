@@ -1,0 +1,24 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+    Gloo Enterprise now supports enforcing rate limit policies using `RateLimitConfig` resources. Users can apply a set
+    of policies to `VirtualHosts` and `Routes` by referencing a set of `RateLimitConfig` resources.
+    Each resource represents a rate limit policy that will be independently enforced.
+    Please see the [docs](https://docs.solo.io/gloo/latest/guides/security/rate_limiting/crds) for a detailed explanation of the new API.
+  issueLink: https://github.com/solo-io/gloo/issues/3335
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: dev-portal
+  dependencyTag: v0.1.12
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.16.5
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: rate-limiter
+  dependencyTag: v0.1.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-kit
+  dependencyTag: v0.13.9

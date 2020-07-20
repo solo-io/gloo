@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
@@ -24,7 +24,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	rlservice "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -34,17 +33,17 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
-var _ = Describe("Rate Limit", func() {
+var _ = Describe("Rate Limit Local E2E", func() {
 
 	var (
-		ctx          context.Context
-		cancel       context.CancelFunc
-		testClients  services.TestClients
-		redisSession *gexec.Session
-		rlService    rlservice.RateLimitServiceServer
-		glooSettings *gloov1.Settings
-		cache        memory.InMemoryResourceCache
-		rlAddr       string
+		ctx             context.Context
+		cancel          context.CancelFunc
+		testClients     services.TestClients
+		redisSession    *gexec.Session
+		isServerHealthy func() (bool, error)
+		glooSettings    *gloov1.Settings
+		cache           memory.InMemoryResourceCache
+		rlAddr          string
 	)
 	const (
 		redisaddr = "127.0.0.1"
@@ -57,22 +56,6 @@ var _ = Describe("Rate Limit", func() {
 	})
 
 	runAllTests := func() {
-		It("rlserver receives config", func() {
-			tu := v1helpers.NewTestHttpUpstream(ctx, "fake-addr")
-			var opts clients.WriteOpts
-			up := tu.Upstream
-			_, err := testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			envoyPort := uint32(8080)
-			proxy := getAuthEnabledProxy(envoyPort, up.Metadata.Ref(), map[string]bool{"host1": true})
-
-			proxycli := testClients.ProxyClient
-			_, err = proxycli.Write(proxy, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
-		})
 
 		Context("With envoy", func() {
 
@@ -108,7 +91,7 @@ var _ = Describe("Rate Limit", func() {
 
 			AfterEach(func() {
 				if envoyInstance != nil {
-					envoyInstance.Clean()
+					_ = envoyInstance.Clean()
 				}
 			})
 
@@ -120,8 +103,7 @@ var _ = Describe("Rate Limit", func() {
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
-				rls := rlService
-				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+				Eventually(isServerHealthy, "5s").Should(BeTrue())
 				EventuallyRateLimited("host1", envoyPort)
 			})
 
@@ -133,8 +115,7 @@ var _ = Describe("Rate Limit", func() {
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
-				rls := rlService
-				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+				Eventually(isServerHealthy, "5s").Should(BeTrue())
 
 				EventuallyRateLimited("host1", envoyPort)
 				EventuallyRateLimited("host2", envoyPort)
@@ -148,8 +129,7 @@ var _ = Describe("Rate Limit", func() {
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
-				rls := rlService
-				Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+				Eventually(isServerHealthy, "5s").Should(BeTrue())
 
 				ConsistentlyNotRateLimited("host1", envoyPort)
 				EventuallyRateLimited("host2", envoyPort)
@@ -217,9 +197,9 @@ var _ = Describe("Rate Limit", func() {
 
 				It("should ratelimit authorized users", func() {
 					ingressRateLimit := &ratelimit.IngressRateLimit{
-						AuthorizedLimits: &solo_apis_rl.RateLimit{
+						AuthorizedLimits: &rlv1alpha1.RateLimit{
 							RequestsPerUnit: 1,
-							Unit:            solo_apis_rl.RateLimit_SECOND,
+							Unit:            rlv1alpha1.RateLimit_SECOND,
 						},
 					}
 					rlb := RlProxyBuilder{
@@ -234,8 +214,7 @@ var _ = Describe("Rate Limit", func() {
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					rls := rlService
-					Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
 					// do the eventually first to give envoy a chance to start
 					EventuallyRateLimited("user:password@host1", envoyPort)
 					ConsistentlyNotRateLimited("host1/noauth", envoyPort)
@@ -245,20 +224,20 @@ var _ = Describe("Rate Limit", func() {
 			Context("reserved keyword rules (i.e., weighted and applyAlways rules)", func() {
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
-						Descriptors: []*solo_apis_rl.Descriptor{
+						Descriptors: []*rlv1alpha1.Descriptor{
 							{
 								Key:   "generic_key",
 								Value: "unprioritized",
-								RateLimit: &solo_apis_rl.RateLimit{
-									Unit:            solo_apis_rl.RateLimit_MINUTE,
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
 									RequestsPerUnit: 2,
 								},
 							},
 							{
 								Key:   "generic_key",
 								Value: "prioritized",
-								RateLimit: &solo_apis_rl.RateLimit{
-									Unit:            solo_apis_rl.RateLimit_SECOND,
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_SECOND,
 									RequestsPerUnit: 1000,
 								},
 								Weight: 1,
@@ -266,8 +245,8 @@ var _ = Describe("Rate Limit", func() {
 							{
 								Key:   "generic_key",
 								Value: "always",
-								RateLimit: &solo_apis_rl.RateLimit{
-									Unit:            solo_apis_rl.RateLimit_MINUTE,
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
 									RequestsPerUnit: 2,
 								},
 								AlwaysApply: true,
@@ -278,10 +257,10 @@ var _ = Describe("Rate Limit", func() {
 
 				It("should honor weighted rate limit rules", func() {
 					hosts := map[string]bool{"host1": true}
-					rateLimits := []*solo_apis_rl.RateLimitActions{{
-						Actions: []*solo_apis_rl.Action{{
-							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
-								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "unprioritized"},
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "unprioritized"},
 							}},
 						}}}
 
@@ -289,17 +268,17 @@ var _ = Describe("Rate Limit", func() {
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
 					EventuallyRateLimited("host1", envoyPort)
 
 					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
 					// add a new rate limit action that points to a weighted rule with generous limit
-					weightedAction := &solo_apis_rl.RateLimitActions{
-						Actions: []*solo_apis_rl.Action{{
-							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
-								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "prioritized"},
+					weightedAction := &rlv1alpha1.RateLimitActions{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "prioritized"},
 							}},
 						}}
 					rateLimits = append(rateLimits, weightedAction)
@@ -316,10 +295,10 @@ var _ = Describe("Rate Limit", func() {
 				It("should honor alwaysApply rate limit rules", func() {
 					hosts := map[string]bool{"host1": true}
 					// add a prioritized rule to match against (has largest weight)
-					rateLimits := []*solo_apis_rl.RateLimitActions{{
-						Actions: []*solo_apis_rl.Action{{
-							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
-								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "prioritized"},
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "prioritized"},
 							}},
 						}}}
 
@@ -327,17 +306,17 @@ var _ = Describe("Rate Limit", func() {
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					Eventually(rlService.GetCurrentConfig, "5s").Should(Not(BeNil()))
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
 					ConsistentlyNotRateLimited("host1", envoyPort)
 
 					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
 					// add a new rate limit action that points to a "concurrent" rule, i.e. always evaluated
-					weightedAction := &solo_apis_rl.RateLimitActions{
-						Actions: []*solo_apis_rl.Action{{
-							ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
-								GenericKey: &solo_apis_rl.Action_GenericKey{DescriptorValue: "always"},
+					weightedAction := &rlv1alpha1.RateLimitActions{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "always"},
 							}},
 						}}
 					rateLimits = append(rateLimits, weightedAction)
@@ -381,7 +360,7 @@ var _ = Describe("Rate Limit", func() {
 			RatelimitServerRef: &ref,
 		}
 
-		rlService = ratelimitservice.RunRatelimit(ctx, cancel, testClients.GlooPort)
+		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rladdr, testClients.GlooPort)
 
 		glooSettings.RatelimitServer = rlSettings
 
@@ -535,9 +514,9 @@ func get(hostname string, port uint32) (*http.Response, error) {
 
 func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
 	ingressRateLimit := &ratelimit.IngressRateLimit{
-		AnonymousLimits: &solo_apis_rl.RateLimit{
+		AnonymousLimits: &rlv1alpha1.RateLimit{
 			RequestsPerUnit: 1,
-			Unit:            solo_apis_rl.RateLimit_SECOND,
+			Unit:            rlv1alpha1.RateLimit_SECOND,
 		},
 	}
 	rlb := RlProxyBuilder{
@@ -630,7 +609,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	return p
 }
 
-func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*solo_apis_rl.RateLimitActions) *gloov1.Proxy {
+func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*rlv1alpha1.RateLimitActions) *gloov1.Proxy {
 	rlVhostExt := &ratelimit.RateLimitVhostExtension{
 		RateLimits: rateLimits,
 	}

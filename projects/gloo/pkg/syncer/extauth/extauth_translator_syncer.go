@@ -21,17 +21,15 @@ import (
 	"go.uber.org/zap"
 )
 
-type ExtAuthTranslatorSyncerExtension struct {
+type TranslatorSyncerExtension struct {
 	reporter reporter.Reporter
 }
 
-func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *ExtAuthTranslatorSyncerExtension {
-	return &ExtAuthTranslatorSyncerExtension{reporter: params.Reporter}
+func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *TranslatorSyncerExtension {
+	return &TranslatorSyncerExtension{reporter: params.Reporter}
 }
 
-// TODO(marco): report errors on auth config resources once we have the strongly typed API. Currently it is not possible
-//  to do this consistently, since we need to parse the raw extension to get to the auth config, an operation that might itself fail.
-func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
+func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -46,7 +44,7 @@ type SnapshotSetter interface {
 	SetSnapshot(node string, snapshot envoycache.Snapshot) error
 }
 
-func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
+func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
 	helper := newHelper()
 	reports := make(reporter.ResourceReports)
 	reports.Accept(snap.AuthConfigs.AsInputResources()...)

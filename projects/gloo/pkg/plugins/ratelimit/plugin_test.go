@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	rl_api "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 
@@ -60,7 +60,8 @@ var _ = Describe("RateLimit Plugin", func() {
 
 	JustBeforeEach(func() {
 		initParams.Settings = &gloov1.Settings{RatelimitServer: rlSettings}
-		rlPlugin.Init(initParams)
+		err := rlPlugin.Init(initParams)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should get rate limit server settings first from the listener, then from the global settings", func() {
@@ -73,7 +74,8 @@ var _ = Describe("RateLimit Plugin", func() {
 			},
 		}
 		initParams.Settings = &gloov1.Settings{}
-		rlPlugin.Init(initParams)
+		err := rlPlugin.Init(initParams)
+		Expect(err).NotTo(HaveOccurred())
 		listener := &gloov1.HttpListener{
 			Options: &gloov1.HttpListenerOptions{
 				RatelimitServer: rlSettings,
@@ -82,11 +84,13 @@ var _ = Describe("RateLimit Plugin", func() {
 
 		filters, err := rlPlugin.HttpFilters(params, listener)
 		Expect(err).NotTo(HaveOccurred(), "Should be able to build rate limit filters")
-		Expect(filters).To(HaveLen(1), "Should only have created one custom filter")
+		Expect(filters).To(HaveLen(2), "Should have created two rate limit filters")
 		// Should set the stage to -1 before the AuthNStage because we set RateLimitBeforeAuth = true
-		Expect(filters[0].Stage.Weight).To(Equal(-1))
-		Expect(filters[0].Stage.RelativeTo).To(Equal(plugins.AuthNStage))
-		Expect(filters[0].HttpFilter.Name).To(Equal(wellknown.HTTPRateLimit))
+		for _, filter := range filters {
+			Expect(filter.Stage.Weight).To(Equal(-1))
+			Expect(filter.Stage.RelativeTo).To(Equal(plugins.AuthNStage))
+			Expect(filter.HttpFilter.Name).To(Equal(wellknown.HTTPRateLimit))
+		}
 	})
 
 	It("should fave fail mode deny off by default", func() {
@@ -94,30 +98,46 @@ var _ = Describe("RateLimit Plugin", func() {
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(filters).To(HaveLen(1))
+		Expect(filters).To(HaveLen(2))
+
+		var typedConfigs []*envoyratelimit.RateLimit
 		for _, f := range filters {
-			cfg := getTypedConfig(f.HttpFilter)
-			Expect(cfg.FailureModeDeny).To(BeFalse())
+			typedConfigs = append(typedConfigs, getTypedConfig(f.HttpFilter))
 		}
 
 		hundredms := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
-		expectedConfig := &envoyratelimit.RateLimit{
-			Domain:          "ingress",
-			FailureModeDeny: false,
-			Stage:           0,
-			Timeout:         &hundredms,
-			RequestType:     "both",
-			RateLimitService: &rlconfig.RateLimitServiceConfig{
-				GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-					EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-						ClusterName: translator.UpstreamToClusterName(ref),
-					},
-				}},
+		expectedConfig := []*envoyratelimit.RateLimit{
+			{
+				Domain:          "ingress",
+				FailureModeDeny: false,
+				Stage:           0,
+				Timeout:         &hundredms,
+				RequestType:     "both",
+				RateLimitService: &rlconfig.RateLimitServiceConfig{
+					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+							ClusterName: translator.UpstreamToClusterName(ref),
+						},
+					}},
+				},
+			},
+			{
+				Domain:          "crd",
+				FailureModeDeny: false,
+				Stage:           2,
+				Timeout:         &hundredms,
+				RequestType:     "both",
+				RateLimitService: &rlconfig.RateLimitServiceConfig{
+					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+							ClusterName: translator.UpstreamToClusterName(ref),
+						},
+					}},
+				},
 			},
 		}
 
-		cfg := getTypedConfig(filters[0].HttpFilter)
-		Expect(cfg).To(BeEquivalentTo(expectedConfig))
+		Expect(typedConfigs).To(BeEquivalentTo(expectedConfig))
 
 	})
 
@@ -125,7 +145,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
 		timeout := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
-		Expect(filters).To(HaveLen(1))
+		Expect(filters).To(HaveLen(2))
 		for _, f := range filters {
 			cfg := getTypedConfig(f.HttpFilter)
 			Expect(*cfg.Timeout).To(Equal(timeout))
@@ -142,7 +162,7 @@ var _ = Describe("RateLimit Plugin", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(filters).To(HaveLen(1))
+			Expect(filters).To(HaveLen(2))
 			for _, f := range filters {
 				cfg := getTypedConfig(f.HttpFilter)
 				Expect(cfg.FailureModeDeny).To(BeTrue())
@@ -182,7 +202,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		It("should be ordered before ext auth", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred(), "Should be able to build rate limit filters")
-			Expect(filters).To(HaveLen(1), "Should create a rate limit filter")
+			Expect(filters).To(HaveLen(2), "Should create two rate limit filters")
 
 			rateLimitFilter := filters[0]
 
@@ -211,17 +231,19 @@ var _ = Describe("RateLimit Plugin", func() {
 				Name: "test-vh",
 				Options: &gloov1.VirtualHostOptions{
 					RatelimitBasic: &ratelimitpb.IngressRateLimit{
-						AuthorizedLimits: &solo_apis_rl.RateLimit{
-							Unit:            solo_apis_rl.RateLimit_HOUR,
+						AuthorizedLimits: &rl_api.RateLimit{
+							Unit:            rl_api.RateLimit_HOUR,
 							RequestsPerUnit: 10,
 						},
 					},
 				},
 			}, &envoyroute.VirtualHost{})
 
-			Expect(err).To(Equal(RateLimitAuthOrderingConflict), "Should not allow auth-based rate limits when rate limiting before auth")
+			Expect(err).To(MatchError(ContainSubstring(RateLimitAuthOrderingConflict.Error())),
+				"Should not allow auth-based rate limits when rate limiting before auth")
 		})
 	})
+
 	Context("timeout", func() {
 
 		BeforeEach(func() {
@@ -233,7 +255,7 @@ var _ = Describe("RateLimit Plugin", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(filters).To(HaveLen(1))
+			Expect(filters).To(HaveLen(2))
 			for _, f := range filters {
 				cfg := getTypedConfig(f.HttpFilter)
 				Expect(*cfg.Timeout).To(Equal(duration.Duration{Seconds: 1}))

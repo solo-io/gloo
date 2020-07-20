@@ -28,7 +28,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	var (
 		proxy            *gloov1.Proxy
 		params           syncer.TranslatorSyncerExtensionParams
-		translator       *ExtAuthTranslatorSyncerExtension
+		translator       *TranslatorSyncerExtension
 		secret           *gloov1.Secret
 		oauthAuthConfig  *extauth.AuthConfig
 		apiSnapshot      *gloov1.ApiSnapshot

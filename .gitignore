@@ -20,6 +20,7 @@ debug*/
 _output/
 _local/
 _test/
+_local/
 doc/site/
 projects/gloo/doc/site/
 install/helm/*.tgz

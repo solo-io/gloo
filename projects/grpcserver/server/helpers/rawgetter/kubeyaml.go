@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/go-utils/protoutils"
 	kubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	"github.com/ghodss/yaml"
 	"github.com/solo-io/go-utils/contextutils"
@@ -35,6 +36,7 @@ func NewKubeYamlRawGetter() RawGetter {
 
 func (kubeYamlGetter) GetRaw(ctx context.Context, in resources.InputResource, resourceCrd crd.Crd) *v1.Raw {
 	var contentRenderError string
+
 	res, err := resourceCrd.KubeResource(in)
 	if err != nil {
 		contentRenderError = FailedToGetKubeYaml(resourceCrd.KindName, in.GetMetadata().Namespace, in.GetMetadata().Name)

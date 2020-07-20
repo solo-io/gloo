@@ -1,4 +1,4 @@
-package runner
+package xds
 
 import (
 	"github.com/kelseyhightower/envconfig"
