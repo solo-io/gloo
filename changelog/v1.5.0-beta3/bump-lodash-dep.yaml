@@ -1,0 +1,5 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: lodash
+    dependencyRepo: lodash
+    dependencyTag: 4.7.19
