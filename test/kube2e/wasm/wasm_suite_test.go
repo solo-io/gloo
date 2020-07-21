@@ -1,7 +1,8 @@
-package gateway_test
+package wasm_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,16 +20,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestGateway(t *testing.T) {
-	if os.Getenv("KUBE2E_TESTS") != "gateway" {
+func TestWasm(t *testing.T) {
+	if os.Getenv("KUBE2E_TESTS") != "wasm" {
 		log.Warnf("This test is disabled. " +
-			"To enable, set KUBE2E_TESTS to 'gateway' in your env.")
+			"To enable, set KUBE2E_TESTS to 'wasm' in your env.")
 		return
 	}
 	helpers.RegisterGlooDebugLogPrintHandlerAndClearLogs()
 	skhelpers.RegisterCommonFailHandlers()
 	skhelpers.SetupLog()
-	RunSpecs(t, "Gateway Suite")
+	RunSpecs(t, "Wasm Suite")
 }
 
 var testHelper *helper.SoloTestHelper
@@ -44,7 +45,7 @@ func StartTestHelper() {
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo"
-		defaults.InstallNamespace = "gateway-test-" + fmt.Sprintf("%d-%d", randomNumber, GinkgoParallelNode())
+		defaults.InstallNamespace = "wasm-test-" + fmt.Sprintf("%d-%d", randomNumber, GinkgoParallelNode())
 		defaults.Verbose = true
 		return defaults
 	})
@@ -52,7 +53,7 @@ func StartTestHelper() {
 
 	// Register additional fail handlers
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, "knative-serving", testHelper.InstallNamespace))
-	valueOverrideFile, cleanupFunc := kube2e.GetHelmValuesOverrideFile()
+	valueOverrideFile, cleanupFunc := getHelmaWasmValuesOverrideFile()
 	defer cleanupFunc()
 
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile))
@@ -68,6 +69,38 @@ func StartTestHelper() {
 	// Ensure gloo reaches valid state and doesn't continually resync
 	// we can consider doing the same for leaking go-routines after resyncs
 	kube2e.EventuallyReachesConsistentState(testHelper.InstallNamespace)
+}
+
+func getHelmaWasmValuesOverrideFile() (filename string, cleanup func()) {
+	values, err := ioutil.TempFile("", "values-*.yaml")
+	Expect(err).NotTo(HaveOccurred())
+
+	// disabling usage statistics is not important to the functionality of the tests,
+	// but we don't want to report usage in CI since we only care about how our users are actually using Gloo.
+	// install to a single namespace so we can run multiple invocations of the regression tests against the
+	// same cluster in CI.
+	_, err = values.Write([]byte(`
+global:
+  wasm:
+    enabled: true
+  image:
+    pullPolicy: IfNotPresent
+  glooRbac:
+    namespaced: true
+    nameSuffix: e2e-test-rbac-suffix
+settings:
+  singleNamespace: true
+  create: true
+gloo:
+  deployment:
+    disableUsageStatistics: true
+`))
+	Expect(err).NotTo(HaveOccurred())
+
+	err = values.Close()
+	Expect(err).NotTo(HaveOccurred())
+
+	return values.Name(), func() { _ = os.Remove(values.Name()) }
 }
 
 func TearDownTestHelper() {
