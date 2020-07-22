@@ -14,7 +14,7 @@ require (
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.3.5
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
@@ -31,11 +31,11 @@ require (
 	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/dev-portal v0.1.12
-	github.com/solo-io/envoy-operator v0.1.3
+	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.13
-	github.com/solo-io/gloo v1.5.0-beta10
+	github.com/solo-io/gloo v1.5.0-beta11
 	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
@@ -71,9 +71,6 @@ replace (
 
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 
-	// TODO: figure out why `v1.4.2` causes Gloo to go into CrashLoopBackOff
-	// Temporary solution as this version works properly.
-	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.1.0
 	github.com/hashicorp/vault => github.com/hashicorp/vault v1.3.0

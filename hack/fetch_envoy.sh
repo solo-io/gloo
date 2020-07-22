@@ -19,7 +19,7 @@ SHA=$(git --no-pager log -1 --format=format:"%H" $COMMIT)
 
 # get the Dockerfile at that version
 
-ENVOY_GLOO_EE_VERSION=$(git show ${SHA}:cmd/envoyinit/Dockerfile | head -n1 | cut -d: -f2)
+ENVOY_GLOO_EE_VERSION=$(git show ${SHA}:cmd/envoyinit/Dockerfile.envoyinit | head -n1 | cut -d: -f2)
 
 ENVOY_GLOO_EE_SHA=$(git ls-remote git@github.com:solo-io/envoy-gloo-ee v$ENVOY_GLOO_EE_VERSION | cut -f 1)
 
