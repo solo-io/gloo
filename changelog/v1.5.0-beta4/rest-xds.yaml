@@ -1,0 +1,9 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.5.0-beta10
+- type: NON_USER_FACING
+  description: >
+    Add REST xDS server to gloo-ee. This will serve the EDS endpoints for failover upstreams to solve an envoy bug
+    wherein the cluster is updated, but no new Endpoints are sent, causing the cluster to load without any endpoints.

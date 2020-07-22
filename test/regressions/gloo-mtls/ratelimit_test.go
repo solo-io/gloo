@@ -5,6 +5,7 @@ import (
 	"time"
 
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -91,7 +92,7 @@ var _ = Describe("RateLimit tests", func() {
 	})
 
 	AfterEach(func() {
-		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 
 		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
@@ -118,7 +119,7 @@ var _ = Describe("RateLimit tests", func() {
 		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,
@@ -134,7 +135,7 @@ var _ = Describe("RateLimit tests", func() {
 		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,
@@ -158,7 +159,7 @@ var _ = Describe("RateLimit tests", func() {
 		)
 
 		It("can rate limit to upstream", func() {
-			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkRateLimited()
 		})
 	})
@@ -265,7 +266,7 @@ var _ = Describe("RateLimit tests", func() {
 				}
 				_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
 				Expect(err).NotTo(HaveOccurred(), "Should write settings")
-				writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+				regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 
 				// should hit auth before getting rate limited by default
 				checkAuthDenied()
@@ -308,7 +309,7 @@ var _ = Describe("RateLimit tests", func() {
 				},
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkRateLimited()
 		})
 
@@ -332,7 +333,7 @@ var _ = Describe("RateLimit tests", func() {
 				},
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, nil, routePlugins, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, routePlugins, nil)
 			checkRateLimited()
 		})
 
@@ -366,7 +367,7 @@ var _ = Describe("RateLimit tests", func() {
 				},
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, routePlugins, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, routePlugins, nil)
 			checkRateLimited()
 		})
 

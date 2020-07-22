@@ -22,7 +22,7 @@ import (
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/google/wire/cmd/wire"
 	_ "github.com/solo-io/protoc-gen-ext"
+	_ "github.com/solo-io/solo-apis"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "k8s.io/code-generator"
-	_ "github.com/solo-io/solo-apis"
 )

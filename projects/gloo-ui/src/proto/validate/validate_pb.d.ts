@@ -8,6 +8,11 @@ import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/du
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 
 export class FieldRules extends jspb.Message {
+  hasMessage(): boolean;
+  clearMessage(): void;
+  getMessage(): MessageRules | undefined;
+  setMessage(value?: MessageRules): void;
+
   hasFloat(): boolean;
   clearFloat(): void;
   getFloat(): FloatRules | undefined;
@@ -88,11 +93,6 @@ export class FieldRules extends jspb.Message {
   getEnum(): EnumRules | undefined;
   setEnum(value?: EnumRules): void;
 
-  hasMessage(): boolean;
-  clearMessage(): void;
-  getMessage(): MessageRules | undefined;
-  setMessage(value?: MessageRules): void;
-
   hasRepeated(): boolean;
   clearRepeated(): void;
   getRepeated(): RepeatedRules | undefined;
@@ -131,6 +131,7 @@ export class FieldRules extends jspb.Message {
 
 export namespace FieldRules {
   export type AsObject = {
+    message?: MessageRules.AsObject,
     pb_float?: FloatRules.AsObject,
     pb_double?: DoubleRules.AsObject,
     int32?: Int32Rules.AsObject,
@@ -147,7 +148,6 @@ export namespace FieldRules {
     string?: StringRules.AsObject,
     bytes?: BytesRules.AsObject,
     pb_enum?: EnumRules.AsObject,
-    message?: MessageRules.AsObject,
     repeated?: RepeatedRules.AsObject,
     map?: MapRules.AsObject,
     any?: AnyRules.AsObject,
@@ -173,7 +173,6 @@ export namespace FieldRules {
     STRING = 14,
     BYTES = 15,
     ENUM = 16,
-    MESSAGE = 17,
     REPEATED = 18,
     MAP = 19,
     ANY = 20,
@@ -956,6 +955,11 @@ export class StringRules extends jspb.Message {
   getContains(): string | undefined;
   setContains(value: string): void;
 
+  hasNotContains(): boolean;
+  clearNotContains(): void;
+  getNotContains(): string | undefined;
+  setNotContains(value: string): void;
+
   clearInList(): void;
   getInList(): Array<string>;
   setInList(value: Array<string>): void;
@@ -1006,6 +1010,21 @@ export class StringRules extends jspb.Message {
   getAddress(): boolean | undefined;
   setAddress(value: boolean): void;
 
+  hasUuid(): boolean;
+  clearUuid(): void;
+  getUuid(): boolean | undefined;
+  setUuid(value: boolean): void;
+
+  hasWellKnownRegex(): boolean;
+  clearWellKnownRegex(): void;
+  getWellKnownRegex(): KnownRegexMap[keyof KnownRegexMap] | undefined;
+  setWellKnownRegex(value: KnownRegexMap[keyof KnownRegexMap]): void;
+
+  hasStrict(): boolean;
+  clearStrict(): void;
+  getStrict(): boolean | undefined;
+  setStrict(value: boolean): void;
+
   getWellKnownCase(): StringRules.WellKnownCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StringRules.AsObject;
@@ -1030,6 +1049,7 @@ export namespace StringRules {
     prefix?: string,
     suffix?: string,
     contains?: string,
+    notContains?: string,
     inList: Array<string>,
     notInList: Array<string>,
     email?: boolean,
@@ -1040,6 +1060,9 @@ export namespace StringRules {
     uri?: boolean,
     uriRef?: boolean,
     address?: boolean,
+    uuid?: boolean,
+    wellKnownRegex?: KnownRegexMap[keyof KnownRegexMap],
+    strict?: boolean,
   }
 
   export enum WellKnownCase {
@@ -1052,6 +1075,8 @@ export namespace StringRules {
     URI = 17,
     URI_REF = 18,
     ADDRESS = 21,
+    UUID = 22,
+    WELL_KNOWN_REGEX = 24,
   }
 }
 
@@ -1496,3 +1521,11 @@ export namespace TimestampRules {
   export const required: jspb.ExtensionFieldInfo<boolean>;
 
   export const rules: jspb.ExtensionFieldInfo<FieldRules>;
+
+export interface KnownRegexMap {
+  UNKNOWN: 0;
+  HTTP_HEADER_NAME: 1;
+  HTTP_HEADER_VALUE: 2;
+}
+
+export const KnownRegex: KnownRegexMap;

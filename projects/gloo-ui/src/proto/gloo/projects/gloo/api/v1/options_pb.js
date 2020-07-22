@@ -35,16 +35,17 @@ var gloo_projects_gloo_api_v1_options_wasm_wasm_pb = require('../../../../../glo
 var gloo_projects_gloo_api_v1_options_azure_azure_pb = require('../../../../../gloo/projects/gloo/api/v1/options/azure/azure_pb.js');
 var gloo_projects_gloo_api_v1_options_healthcheck_healthcheck_pb = require('../../../../../gloo/projects/gloo/api/v1/options/healthcheck/healthcheck_pb.js');
 var gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
-var gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
-var gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency_pb.js');
-var gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
-var gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../envoy/extensions/transformation/transformation_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../envoy/extensions/proxylatency/proxylatency_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
+var gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../envoy/config/filter/http/gzip/v2/gzip_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb.js');
+var gloo_projects_gloo_api_v1_options_transformation_transformation_pb = require('../../../../../gloo/projects/gloo/api/v1/options/transformation/transformation_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DestinationSpec', null, global);
@@ -1181,7 +1182,7 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     stats: (f = msg.getStats()) && gloo_projects_gloo_api_v1_options_stats_stats_pb.Stats.toObject(includeInstance, f),
     headerManipulation: (f = msg.getHeaderManipulation()) && gloo_projects_gloo_api_v1_options_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
     cors: (f = msg.getCors()) && gloo_projects_gloo_api_v1_options_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
-    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
+    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.toObject(includeInstance, f),
     ratelimitBasic: (f = msg.getRatelimitBasic()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
     ratelimit: (f = msg.getRatelimit()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.toObject(includeInstance, f),
     rateLimitConfigs: (f = msg.getRateLimitConfigs()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
@@ -1192,7 +1193,8 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     dlp: (f = msg.getDlp()) && gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
     bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
     includeRequestAttemptCount: (f = msg.getIncludeRequestAttemptCount()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    includeAttemptCountInResponse: (f = msg.getIncludeAttemptCountInResponse()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    includeAttemptCountInResponse: (f = msg.getIncludeAttemptCountInResponse()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    stagedTransformations: (f = msg.getStagedTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1255,8 +1257,8 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       msg.setCors(value);
       break;
     case 4:
-      var value = new gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations;
-      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.deserializeBinaryFromReader);
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.deserializeBinaryFromReader);
       msg.setTransformations(value);
       break;
     case 6:
@@ -1313,6 +1315,11 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setIncludeAttemptCountInResponse(value);
+      break;
+    case 17:
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.deserializeBinaryFromReader);
+      msg.setStagedTransformations(value);
       break;
     default:
       reader.skipField();
@@ -1388,7 +1395,7 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
     writer.writeMessage(
       4,
       f,
-      gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.serializeBinaryToWriter
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.serializeBinaryToWriter
     );
   }
   f = message.getRatelimitBasic();
@@ -1477,6 +1484,14 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
       16,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getStagedTransformations();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.serializeBinaryToWriter
     );
   }
 };
@@ -1633,16 +1648,16 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasCors = function() {
 
 
 /**
- * optional envoy.api.v2.filter.http.RouteTransformations transformations = 4;
- * @return {?proto.envoy.api.v2.filter.http.RouteTransformations}
+ * optional transformation.options.gloo.solo.io.Transformations transformations = 4;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformations}
  */
 proto.gloo.solo.io.VirtualHostOptions.prototype.getTransformations = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.RouteTransformations} */ (
-    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations, 4));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformations} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations, 4));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.RouteTransformations|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformations|undefined} value */
 proto.gloo.solo.io.VirtualHostOptions.prototype.setTransformations = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
@@ -1992,6 +2007,36 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasIncludeAttemptCountInResponse
 };
 
 
+/**
+ * optional transformation.options.gloo.solo.io.TransformationStages staged_transformations = 17;
+ * @return {?proto.transformation.options.gloo.solo.io.TransformationStages}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getStagedTransformations = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.TransformationStages} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages, 17));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.TransformationStages|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setStagedTransformations = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearStagedTransformations = function() {
+  this.setStagedTransformations(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasStagedTransformations = function() {
+  return jspb.Message.getField(this, 17) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -2088,7 +2133,7 @@ proto.gloo.solo.io.RouteOptions.prototype.toObject = function(opt_includeInstanc
  */
 proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
+    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.toObject(includeInstance, f),
     faults: (f = msg.getFaults()) && gloo_projects_gloo_api_v1_options_faultinjection_fault_pb.RouteFaults.toObject(includeInstance, f),
     prefixRewrite: (f = msg.getPrefixRewrite()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
@@ -2111,7 +2156,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     rbac: (f = msg.getRbac()) && gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
-    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f)
+    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    stagedTransformations: (f = msg.getStagedTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2149,8 +2195,8 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations;
-      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.deserializeBinaryFromReader);
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.deserializeBinaryFromReader);
       msg.setTransformations(value);
       break;
     case 2:
@@ -2262,6 +2308,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
       break;
+    case 23:
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.deserializeBinaryFromReader);
+      msg.setStagedTransformations(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2296,7 +2347,7 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
     writer.writeMessage(
       1,
       f,
-      gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.serializeBinaryToWriter
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.serializeBinaryToWriter
     );
   }
   f = message.getFaults();
@@ -2474,20 +2525,28 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
     );
   }
+  f = message.getStagedTransformations();
+  if (f != null) {
+    writer.writeMessage(
+      23,
+      f,
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.serializeBinaryToWriter
+    );
+  }
 };
 
 
 /**
- * optional envoy.api.v2.filter.http.RouteTransformations transformations = 1;
- * @return {?proto.envoy.api.v2.filter.http.RouteTransformations}
+ * optional transformation.options.gloo.solo.io.Transformations transformations = 1;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformations}
  */
 proto.gloo.solo.io.RouteOptions.prototype.getTransformations = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.RouteTransformations} */ (
-    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations, 1));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformations} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations, 1));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.RouteTransformations|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformations|undefined} value */
 proto.gloo.solo.io.RouteOptions.prototype.setTransformations = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -3167,6 +3226,36 @@ proto.gloo.solo.io.RouteOptions.prototype.hasBufferPerRoute = function() {
 };
 
 
+/**
+ * optional transformation.options.gloo.solo.io.TransformationStages staged_transformations = 23;
+ * @return {?proto.transformation.options.gloo.solo.io.TransformationStages}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getStagedTransformations = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.TransformationStages} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages, 23));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.TransformationStages|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setStagedTransformations = function(value) {
+  jspb.Message.setWrapperField(this, 23, value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearStagedTransformations = function() {
+  this.setStagedTransformations(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasStagedTransformations = function() {
+  return jspb.Message.getField(this, 23) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -3534,10 +3623,11 @@ proto.gloo.solo.io.WeightedDestinationOptions.prototype.toObject = function(opt_
 proto.gloo.solo.io.WeightedDestinationOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     headerManipulation: (f = msg.getHeaderManipulation()) && gloo_projects_gloo_api_v1_options_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
-    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.toObject(includeInstance, f),
+    transformations: (f = msg.getTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
-    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f)
+    bufferPerRoute: (f = msg.getBufferPerRoute()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    stagedTransformations: (f = msg.getStagedTransformations()) && gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3580,8 +3670,8 @@ proto.gloo.solo.io.WeightedDestinationOptions.deserializeBinaryFromReader = func
       msg.setHeaderManipulation(value);
       break;
     case 2:
-      var value = new gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations;
-      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.deserializeBinaryFromReader);
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.deserializeBinaryFromReader);
       msg.setTransformations(value);
       break;
     case 3:
@@ -3598,6 +3688,11 @@ proto.gloo.solo.io.WeightedDestinationOptions.deserializeBinaryFromReader = func
       var value = new gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
+      break;
+    case 6:
+      var value = new gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.deserializeBinaryFromReader);
+      msg.setStagedTransformations(value);
       break;
     default:
       reader.skipField();
@@ -3641,7 +3736,7 @@ proto.gloo.solo.io.WeightedDestinationOptions.serializeBinaryToWriter = function
     writer.writeMessage(
       2,
       f,
-      gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.serializeBinaryToWriter
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.serializeBinaryToWriter
     );
   }
   f = message.getExtensions();
@@ -3666,6 +3761,14 @@ proto.gloo.solo.io.WeightedDestinationOptions.serializeBinaryToWriter = function
       5,
       f,
       gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
+    );
+  }
+  f = message.getStagedTransformations();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.serializeBinaryToWriter
     );
   }
 };
@@ -3702,16 +3805,16 @@ proto.gloo.solo.io.WeightedDestinationOptions.prototype.hasHeaderManipulation = 
 
 
 /**
- * optional envoy.api.v2.filter.http.RouteTransformations transformations = 2;
- * @return {?proto.envoy.api.v2.filter.http.RouteTransformations}
+ * optional transformation.options.gloo.solo.io.Transformations transformations = 2;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformations}
  */
 proto.gloo.solo.io.WeightedDestinationOptions.prototype.getTransformations = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.RouteTransformations} */ (
-    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations, 2));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformations} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations, 2));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.RouteTransformations|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformations|undefined} value */
 proto.gloo.solo.io.WeightedDestinationOptions.prototype.setTransformations = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
@@ -3818,6 +3921,36 @@ proto.gloo.solo.io.WeightedDestinationOptions.prototype.clearBufferPerRoute = fu
  */
 proto.gloo.solo.io.WeightedDestinationOptions.prototype.hasBufferPerRoute = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional transformation.options.gloo.solo.io.TransformationStages staged_transformations = 6;
+ * @return {?proto.transformation.options.gloo.solo.io.TransformationStages}
+ */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.getStagedTransformations = function() {
+  return /** @type{?proto.transformation.options.gloo.solo.io.TransformationStages} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages, 6));
+};
+
+
+/** @param {?proto.transformation.options.gloo.solo.io.TransformationStages|undefined} value */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.setStagedTransformations = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.clearStagedTransformations = function() {
+  this.setStagedTransformations(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.hasStagedTransformations = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

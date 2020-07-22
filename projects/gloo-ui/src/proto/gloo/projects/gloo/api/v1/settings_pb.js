@@ -3853,7 +3853,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     disableKubernetesDestinations: jspb.Message.getFieldWithDefault(msg, 7, false),
     disableGrpcWeb: (f = msg.getDisableGrpcWeb()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+    regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, "")
   };
 
   if (includeInstance) {
@@ -3936,6 +3937,10 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setRegexMaxProgramSize(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRestXdsBindAddr(value);
       break;
     default:
       reader.skipField();
@@ -4041,6 +4046,13 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       10,
       f,
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getRestXdsBindAddr();
+  if (f.length > 0) {
+    writer.writeString(
+      11,
+      f
     );
   }
 };
@@ -4642,6 +4654,21 @@ proto.gloo.solo.io.GlooOptions.prototype.clearRegexMaxProgramSize = function() {
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasRegexMaxProgramSize = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional string rest_xds_bind_addr = 11;
+ * @return {string}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getRestXdsBindAddr = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.GlooOptions.prototype.setRestXdsBindAddr = function(value) {
+  jspb.Message.setProto3StringField(this, 11, value);
 };
 
 

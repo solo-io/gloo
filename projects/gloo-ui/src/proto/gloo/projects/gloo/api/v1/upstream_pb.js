@@ -19,9 +19,9 @@ var gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../gloo/projects/glo
 var gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
 var gloo_projects_gloo_api_v1_load_balancer_pb = require('../../../../../gloo/projects/gloo/api/v1/load_balancer_pb.js');
 var gloo_projects_gloo_api_v1_connection_pb = require('../../../../../gloo/projects/gloo/api/v1/connection_pb.js');
-var gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb.js');
+var gloo_projects_gloo_api_external_envoy_api_v2_core_health_check_pb = require('../../../../../envoy/api/v2/core/health_check_pb.js');
 var solo$kit_api_v1_status_pb = require('../../../../../solo-kit/api/v1/status_pb.js');
-var gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb = require('../../../../../gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb.js');
+var gloo_projects_gloo_api_external_envoy_api_v2_cluster_outlier_detection_pb = require('../../../../../envoy/api/v2/cluster/outlier_detection_pb.js');
 var solo$kit_api_v1_solo$kit_pb = require('../../../../../solo-kit/api/v1/solo-kit_pb.js');
 var gloo_projects_gloo_api_v1_options_static_static_pb = require('../../../../../gloo/projects/gloo/api/v1/options/static/static_pb.js');
 var gloo_projects_gloo_api_v1_options_pipe_pipe_pb = require('../../../../../gloo/projects/gloo/api/v1/options/pipe/pipe_pb.js');
@@ -1117,7 +1117,7 @@ proto.gloo.solo.io.DiscoveryMetadata.prototype.toObject = function(opt_includeIn
  */
 proto.gloo.solo.io.DiscoveryMetadata.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -1154,6 +1154,12 @@ proto.gloo.solo.io.DiscoveryMetadata.deserializeBinaryFromReader = function(msg,
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = msg.getLabelsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -1183,6 +1189,28 @@ proto.gloo.solo.io.DiscoveryMetadata.prototype.serializeBinary = function() {
  */
 proto.gloo.solo.io.DiscoveryMetadata.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getLabelsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * map<string, string> labels = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.gloo.solo.io.DiscoveryMetadata.prototype.getLabelsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.gloo.solo.io.DiscoveryMetadata.prototype.clearLabelsMap = function() {
+  this.getLabelsMap().clear();
 };
 
 

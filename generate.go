@@ -10,6 +10,7 @@ const (
 	GlooPkg      = "github.com/solo-io/gloo"
 	DevPortalPkg = "github.com/solo-io/dev-portal"
 	SoloAPIsPkg  = "github.com/solo-io/solo-apis"
+	Skv2Pkg      = "github.com/solo-io/skv2"
 )
 
 //go:generate go run generate.go
@@ -33,6 +34,10 @@ func main() {
 	}
 	// Import rate limit API
 	imports.External[SoloAPIsPkg] = []string{
+		"api/**/*.proto",
+	}
+	// Import skv2 APIs
+	imports.External[Skv2Pkg] = []string{
 		"api/**/*.proto",
 	}
 

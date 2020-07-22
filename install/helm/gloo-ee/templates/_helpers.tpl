@@ -36,8 +36,9 @@ Expand the name of the chart.
       port_value: 9955
   filter_chains:
     - filters:
-      - name: envoy.tcp_proxy
-        config:
+      - name: envoy.filters.network.tcp_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
           stat_prefix: gloo_mtls
           {{- if $.Values.k8s }}
           cluster: gloo.{{ $.Release.Namespace }}.svc.{{ $.Values.k8s.clusterName}}:{{ $.Values.gloo.deployment.xdsPort }}

@@ -2,7 +2,9 @@ package failover_test
 
 import (
 	"context"
+	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -288,6 +290,20 @@ var _ = Describe("Failover", func() {
 		expectedCluster := buildExpectedCluster()
 		expectedCluster.ClusterDiscoveryType = &v2.Cluster_Type{
 			Type: v2.Cluster_EDS,
+		}
+		expectedCluster.EdsClusterConfig = &v2.Cluster_EdsClusterConfig{
+			EdsConfig: &envoy_api_v2_core.ConfigSource{
+				ConfigSourceSpecifier: &envoy_api_v2_core.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_api_v2_core.ApiConfigSource{
+						ApiType:                   envoy_api_v2_core.ApiConfigSource_REST,
+						ClusterNames:              []string{failover.RestXdsCluster},
+						RefreshDelay:              ptypes.DurationProto(time.Second * 5),
+						RequestTimeout:            ptypes.DurationProto(time.Second * 5),
+						RateLimitSettings:         nil,
+						SetNodeOnFirstMessageOnly: false,
+					},
+				},
+			},
 		}
 
 		plugin := failover.NewFailoverPlugin(sslTranslator)

@@ -8,13 +8,13 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9
-	github.com/envoyproxy/protoc-gen-validate v0.1.0
+	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1
-	github.com/golang/protobuf v1.3.5
+	github.com/golang/protobuf v1.4.2
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
@@ -31,18 +31,18 @@ require (
 	github.com/rotisserie/eris v0.1.1
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/dev-portal v0.1.12
-	github.com/solo-io/envoy-operator v0.1.1
+	github.com/solo-io/envoy-operator v0.1.3
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.13
-	github.com/solo-io/gloo v1.5.0-beta8
+	github.com/solo-io/gloo v1.5.0-beta10
 	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
 	github.com/solo-io/rate-limiter v0.1.0
 	github.com/solo-io/reporting-client v0.1.2
-	github.com/solo-io/solo-apis v0.0.0-20200709192249-4f741634437b
-	github.com/solo-io/solo-kit v0.13.9
+	github.com/solo-io/solo-apis v0.0.0-20200717214114-6a1daa5a5d05
+	github.com/solo-io/solo-kit v0.13.10
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/atomic v1.5.0
@@ -55,8 +55,8 @@ require (
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.18.1
-	k8s.io/apiextensions-apiserver v0.18.1
-	k8s.io/apimachinery v0.18.1
+	k8s.io/apiextensions-apiserver v0.18.2
+	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.18.1
 	k8s.io/kubernetes v1.17.1
@@ -70,6 +70,10 @@ replace (
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
+
+	// TODO: figure out why `v1.4.2` causes Gloo to go into CrashLoopBackOff
+	// Temporary solution as this version works properly.
+	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.1.0
 	github.com/hashicorp/vault => github.com/hashicorp/vault v1.3.0

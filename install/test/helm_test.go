@@ -687,6 +687,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
   gloo:
     xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
   ratelimitServer:

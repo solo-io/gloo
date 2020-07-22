@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 
 export class PluginSource extends jspb.Message {
   clearFiltersList(): void;
@@ -32,8 +33,10 @@ export class WasmFilter extends jspb.Message {
   getImage(): string;
   setImage(value: string): void;
 
-  getConfig(): string;
-  setConfig(value: string): void;
+  hasConfig(): boolean;
+  clearConfig(): void;
+  getConfig(): google_protobuf_any_pb.Any | undefined;
+  setConfig(value?: google_protobuf_any_pb.Any): void;
 
   hasFilterStage(): boolean;
   clearFilterStage(): void;
@@ -62,7 +65,7 @@ export class WasmFilter extends jspb.Message {
 export namespace WasmFilter {
   export type AsObject = {
     image: string,
-    config: string,
+    config?: google_protobuf_any_pb.Any.AsObject,
     filterStage?: FilterStage.AsObject,
     name: string,
     rootId: string,

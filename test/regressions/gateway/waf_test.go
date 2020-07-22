@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
@@ -69,7 +70,7 @@ var _ = Describe("waf tests", func() {
 
 	AfterEach(func() {
 		cancel()
-		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 	})
 
 	waitForGateway := func() {
@@ -83,10 +84,10 @@ var _ = Describe("waf tests", func() {
 	checkConnection := func(status string) {
 		waitForGateway()
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,
@@ -108,7 +109,7 @@ var _ = Describe("waf tests", func() {
 				Waf: wafVhost,
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection(response200)
 		})
 
@@ -126,7 +127,7 @@ var _ = Describe("waf tests", func() {
 				Waf: wafVhost,
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 			checkConnection(response403)
 		})
 

@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	"github.com/solo-io/go-utils/testutils/helper"
 
@@ -74,7 +75,7 @@ var _ = Describe("dlp tests", func() {
 
 	AfterEach(func() {
 		cancel()
-		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		err := httpEcho.Terminate()
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -90,10 +91,10 @@ var _ = Describe("dlp tests", func() {
 	checkConnection := func(body string) {
 		waitForGateway()
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Headers:           map[string]string{"hello": "world"},
 			Host:              defaults.GatewayProxyName,
@@ -132,7 +133,7 @@ var _ = Describe("dlp tests", func() {
 				Namespace: testHelper.InstallNamespace,
 				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
 			}
-			writeCustomVirtualService(ctx, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, testMatcherPrefix)
+			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, regressions.TestMatcherPrefix)
 			checkConnection(`"YYYlo":"YYYld"`)
 		})
 	})

@@ -8,6 +8,7 @@ import (
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -224,7 +225,7 @@ var _ = Describe("External auth", func() {
 			}, "15s", "0.5s").Should(BeNil())
 
 			return func() {
-				deleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+				regressions.DeleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 			}
 		}
 
@@ -309,7 +310,7 @@ var _ = Describe("External auth", func() {
 								Options: pluginsForRoute1,
 								Matchers: []*matchers.Matcher{{
 									PathSpecifier: &matchers.Matcher_Prefix{
-										Prefix: testMatcherPrefix + "/1",
+										Prefix: regressions.TestMatcherPrefix + "/1",
 									},
 								}},
 								Action: &gatewayv1.Route_RouteAction{
@@ -334,7 +335,7 @@ var _ = Describe("External auth", func() {
 								Options: pluginsForRoute2,
 								Matchers: []*matchers.Matcher{{
 									PathSpecifier: &matchers.Matcher_Prefix{
-										Prefix: testMatcherPrefix + "/2",
+										Prefix: regressions.TestMatcherPrefix + "/2",
 									},
 								}},
 								Action: &gatewayv1.Route_RouteAction{
@@ -381,8 +382,8 @@ var _ = Describe("External auth", func() {
 			When("no auth is configured", func() {
 
 				It("can reach both services without providing credentials", func() {
-					curlAndAssertResponse(testMatcherPrefix+"/1", nil, appName1)
-					curlAndAssertResponse(testMatcherPrefix+"/2", nil, appName2)
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", nil, appName1)
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", nil, appName2)
 				})
 			})
 
@@ -399,13 +400,13 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on both routes", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
-						curlAndAssertResponse(testMatcherPrefix+"/2", nil, response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", nil, response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", nil, response401)
 					})
 
 					By("allowing authenticated requests on both routes", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("user:password"), appName2)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", buildAuthHeader("user:password"), appName2)
 					})
 				})
 			})
@@ -425,15 +426,15 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on the first route", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", nil, response401)
 					})
 
 					By("allowing unauthenticated requests on the second route", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/2", nil, appName2)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", nil, appName2)
 					})
 
 					By("allowing authenticated requests on the first route", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
 					})
 				})
 			})
@@ -457,18 +458,18 @@ var _ = Describe("External auth", func() {
 				It("behaves as expected", func() {
 
 					By("denying unauthenticated requests on both routes", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", nil, response401)
-						curlAndAssertResponse(testMatcherPrefix+"/2", nil, response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", nil, response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", nil, response401)
 					})
 
 					By("allowing user:password on the first route, but denying it on the second", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", buildAuthHeader("user:password"), response401)
 					})
 
 					By("allowing admin:password on both routes", func() {
-						curlAndAssertResponse(testMatcherPrefix+"/1", buildAuthHeader("admin:password"), appName1)
-						curlAndAssertResponse(testMatcherPrefix+"/2", buildAuthHeader("admin:password"), appName2)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("admin:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix+"/2", buildAuthHeader("admin:password"), appName2)
 					})
 				})
 			})
@@ -496,7 +497,7 @@ var _ = Describe("External auth", func() {
 							{
 								Matchers: []*matchers.Matcher{{
 									PathSpecifier: &matchers.Matcher_Prefix{
-										Prefix: testMatcherPrefix,
+										Prefix: regressions.TestMatcherPrefix,
 									},
 								}},
 								Options: routePlugins,
@@ -584,21 +585,21 @@ var _ = Describe("External auth", func() {
 
 					By("consistently denying unauthenticated requests on both routes", func() {
 						for i := 0; i < 5; i++ {
-							curlAndAssertResponse(testMatcherPrefix, nil, response401)
+							curlAndAssertResponse(regressions.TestMatcherPrefix, nil, response401)
 						}
 					})
 
 					By("consistently allowing admin:password on both destinations", func() {
 						for i := 0; i < 5; i++ {
 							// Just look for the substring that is common to the responses from both services
-							curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), "test-app-")
+							curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("admin:password"), "test-app-")
 						}
 					})
 
 					By("allowing user:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 1 and a 401
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("user:password"), response401)
 					})
 				})
 			})
@@ -623,20 +624,20 @@ var _ = Describe("External auth", func() {
 
 					By("consistently denying unauthenticated requests on both routes", func() {
 						for i := 0; i < 5; i++ {
-							curlAndAssertResponse(testMatcherPrefix, nil, response401)
+							curlAndAssertResponse(regressions.TestMatcherPrefix, nil, response401)
 						}
 					})
 
 					By("allowing user:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 1 and a 401
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), appName1)
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("user:password"), response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("user:password"), appName1)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("user:password"), response401)
 					})
 
 					By("allowing admin:password on one route, but not on the other", func() {
 						// Eventually we should get both a response from service 2 and a 401
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), appName2)
-						curlAndAssertResponse(testMatcherPrefix, buildAuthHeader("admin:password"), response401)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("admin:password"), appName2)
+						curlAndAssertResponse(regressions.TestMatcherPrefix, buildAuthHeader("admin:password"), response401)
 					})
 				})
 			})

@@ -174,6 +174,8 @@ export namespace Upstream {
 }
 
 export class DiscoveryMetadata extends jspb.Message {
+  getLabelsMap(): jspb.Map<string, string>;
+  clearLabelsMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DiscoveryMetadata.AsObject;
   static toObject(includeInstance: boolean, msg: DiscoveryMetadata): DiscoveryMetadata.AsObject;
@@ -186,5 +188,6 @@ export class DiscoveryMetadata extends jspb.Message {
 
 export namespace DiscoveryMetadata {
   export type AsObject = {
+    labelsMap: Array<[string, string]>,
   }
 }

@@ -14,7 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../../../protoc-gen-ext/extproto/ext_pb.js');
-var gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../envoy/extensions/transformation/transformation_pb.js');
 var gloo_projects_gloo_api_v1_options_transformation_parameters_pb = require('../../../../../../../gloo/projects/gloo/api/v1/options/transformation/parameters_pb.js');
 goog.exportSymbol('proto.rest.options.gloo.solo.io.DestinationSpec', null, global);
 goog.exportSymbol('proto.rest.options.gloo.solo.io.ServiceSpec', null, global);

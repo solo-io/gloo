@@ -10,6 +10,8 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -79,13 +81,13 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 	})
 
 	AfterEach(func() {
-		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		cancel()
 	})
 
 	It("can route request to upstream", func() {
 
-		writeVirtualService(ctx, virtualServiceClient, nil, nil, nil)
+		regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, nil, nil)
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -93,10 +95,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,
@@ -137,7 +139,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				},
 			}
 
-			writeVirtualService(ctx, virtualServiceClient, nil, nil, sslConfig)
+			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, nil, sslConfig)
 
 			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 			// wait for default gateway to be created
@@ -145,7 +147,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 			}, "15s", "0.5s").Should(Not(BeNil()))
 
-			gatewayPort := int(443)
+			gatewayPort := 443
 			caFile := ToFile(helpers.Certificate())
 			//noinspection GoUnhandledErrorResult
 			defer os.Remove(caFile)
@@ -155,7 +157,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 				Protocol:          "https",
-				Path:              testMatcherPrefix,
+				Path:              regressions.TestMatcherPrefix,
 				Method:            "GET",
 				Host:              defaults.GatewayProxyName,
 				Service:           defaults.GatewayProxyName,
@@ -168,7 +170,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	It("rejects invalid inja template in transformation", func() {
 		injaTransform := `{% if default(data.error.message, "") != "" %}400{% else %}{{ header(":status") }}{% endif %}`
-		t := &transformation.RouteTransformations{
+		t := &transformation2.Transformations{
 			ClearRouteCache: true,
 			ResponseTransformation: &transformation.Transformation{
 				TransformationType: &transformation.Transformation_TransformationTemplate{

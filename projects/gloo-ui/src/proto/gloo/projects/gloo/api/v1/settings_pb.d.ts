@@ -607,6 +607,9 @@ export class GlooOptions extends jspb.Message {
   getRegexMaxProgramSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setRegexMaxProgramSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  getRestXdsBindAddr(): string;
+  setRestXdsBindAddr(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -629,6 +632,7 @@ export namespace GlooOptions {
     disableGrpcWeb?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     disableProxyGarbageCollection?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     regexMaxProgramSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    restXdsBindAddr: string,
   }
 
   export class AWSOptions extends jspb.Message {

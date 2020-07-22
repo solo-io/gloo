@@ -1,11 +1,11 @@
 import { grpc } from '@improbable-eng/grpc-web';
 import { BoolValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { OutlierDetection } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/cluster/outlier_detection_pb';
-import { HealthCheck } from 'proto/gloo/projects/gloo/api/external/envoy/api/v2/core/health_check_pb';
+import { OutlierDetection } from 'proto/envoy/api/v2/cluster/outlier_detection_pb';
+import { HealthCheck } from 'proto/envoy/api/v2/core/health_check_pb';
 import {
   InjaTemplate,
   TransformationTemplate
-} from 'proto/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb';
+} from 'proto/envoy/extensions/transformation/transformation_pb';
 import { CircuitBreakerConfig } from 'proto/gloo/projects/gloo/api/v1/circuit_breaker_pb';
 import { ConnectionConfig } from 'proto/gloo/projects/gloo/api/v1/connection_pb';
 import { LoadBalancerConfig } from 'proto/gloo/projects/gloo/api/v1/load_balancer_pb';

@@ -125,18 +125,17 @@ SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code:
 	GO111MODULE=on CGO_ENABLED=0 go generate ./...
-	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	go mod tidy
 
 # Flags for all UI code generation
 COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io \
 		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
 		-I$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
 
 # Flags for UI code generation when we do not need to generate GRPC Web service code
@@ -181,9 +180,9 @@ generated-ui:
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*/*/*.proto
+	protoc $(UI_TYPES_PROTOC_FLAGS) \
+		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/udpa/*/*.proto
 	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
@@ -207,8 +206,6 @@ generated-ui:
 	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh
-	gofmt -w $(SUBDIRS)
-	goimports -w $(SUBDIRS)
 
 #################
 #     Build     #

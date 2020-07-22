@@ -5,6 +5,7 @@ import (
 	"time"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	"github.com/solo-io/go-utils/testutils/helper"
 
@@ -62,13 +63,13 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 	})
 
 	AfterEach(func() {
-		deleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		cancel()
 	})
 
 	It("can route request to upstream", func() {
 
-		writeVirtualService(ctx, virtualServiceClient, nil, nil, nil)
+		regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, nil, nil)
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
@@ -76,10 +77,10 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              testMatcherPrefix,
+			Path:              regressions.TestMatcherPrefix,
 			Method:            "GET",
 			Host:              defaults.GatewayProxyName,
 			Service:           defaults.GatewayProxyName,

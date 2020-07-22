@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 goog.exportSymbol('proto.wasm.options.gloo.solo.io.FilterStage', null, global);
 goog.exportSymbol('proto.wasm.options.gloo.solo.io.FilterStage.Predicate', null, global);
 goog.exportSymbol('proto.wasm.options.gloo.solo.io.FilterStage.Stage', null, global);
@@ -236,7 +237,7 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.toObject = function(opt_inc
 proto.wasm.options.gloo.solo.io.WasmFilter.toObject = function(includeInstance, msg) {
   var f, obj = {
     image: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    config: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    config: (f = msg.getConfig()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
     filterStage: (f = msg.getFilterStage()) && proto.wasm.options.gloo.solo.io.FilterStage.toObject(includeInstance, f),
     name: jspb.Message.getFieldWithDefault(msg, 5, ""),
     rootId: jspb.Message.getFieldWithDefault(msg, 6, ""),
@@ -282,7 +283,8 @@ proto.wasm.options.gloo.solo.io.WasmFilter.deserializeBinaryFromReader = functio
       msg.setImage(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_any_pb.Any;
+      reader.readMessage(value,google_protobuf_any_pb.Any.deserializeBinaryFromReader);
       msg.setConfig(value);
       break;
     case 4:
@@ -339,10 +341,11 @@ proto.wasm.options.gloo.solo.io.WasmFilter.serializeBinaryToWriter = function(me
     );
   }
   f = message.getConfig();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_any_pb.Any.serializeBinaryToWriter
     );
   }
   f = message.getFilterStage();
@@ -401,17 +404,32 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setImage = function(value) 
 
 
 /**
- * optional string config = 3;
- * @return {string}
+ * optional google.protobuf.Any config = 3;
+ * @return {?proto.google.protobuf.Any}
  */
 proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getConfig = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+  return /** @type{?proto.google.protobuf.Any} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_any_pb.Any, 3));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.Any|undefined} value */
 proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setConfig = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.clearConfig = function() {
+  this.setConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.hasConfig = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

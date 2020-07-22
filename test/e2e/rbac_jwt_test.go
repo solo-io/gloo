@@ -11,6 +11,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -604,7 +605,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 				},
 			}, {
 				Options: &gloov1.RouteOptions{
-					Transformations: &transformation.RouteTransformations{
+					Transformations: &transformation2.Transformations{
 						RequestTransformation: &transformation.Transformation{
 							TransformationType: &transformation.Transformation_TransformationTemplate{
 								TransformationTemplate: &transformation.TransformationTemplate{

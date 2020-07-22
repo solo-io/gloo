@@ -76,7 +76,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 
-		gatewayPort := int(80)
+		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
 			Path:              testMatcherPrefix,

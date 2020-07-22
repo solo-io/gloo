@@ -2,11 +2,13 @@ package failover
 
 import (
 	"fmt"
+	"time"
 
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoy_api_v2_endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/gogoutils"
@@ -20,6 +22,9 @@ import (
 
 const (
 	TransportSocketMatchKey = "envoy.transport_socket_match"
+
+	// TODO: Move this constant into OS Gloo repo
+	RestXdsCluster = "rest_xds_cluster"
 )
 
 var (
@@ -67,6 +72,21 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 			Name:      in.Metadata.Name,
 			Namespace: in.Metadata.Namespace,
 		}] = endpoints
+		// set the cluster config to rest for this specific EDS
+		out.EdsClusterConfig = &v2.Cluster_EdsClusterConfig{
+			EdsConfig: &envoy_api_v2_core.ConfigSource{
+				ConfigSourceSpecifier: &envoy_api_v2_core.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_api_v2_core.ApiConfigSource{
+						ApiType:                   envoy_api_v2_core.ApiConfigSource_REST,
+						ClusterNames:              []string{RestXdsCluster},
+						RefreshDelay:              ptypes.DurationProto(time.Second * 5),
+						RequestTimeout:            ptypes.DurationProto(time.Second * 5),
+						RateLimitSettings:         nil,
+						SetNodeOnFirstMessageOnly: false,
+					},
+				},
+			},
+		}
 	} else {
 		// Otherwise add the endpoints directly to the LoadAssignment of the Cluster
 		out.LoadAssignment.Endpoints = append(out.LoadAssignment.Endpoints, endpoints...)
