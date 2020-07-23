@@ -36,6 +36,7 @@ import * as gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb 
 import * as gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb";
+import * as gloo_projects_gloo_api_v1_options_transformation_transformation_pb from "../../../../../gloo/projects/gloo/api/v1/options/transformation/transformation_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -211,8 +212,8 @@ export class VirtualHostOptions extends jspb.Message {
 
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations | undefined;
+  setTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations): void;
 
   hasRatelimitBasic(): boolean;
   clearRatelimitBasic(): void;
@@ -254,6 +255,11 @@ export class VirtualHostOptions extends jspb.Message {
   getBufferPerRoute(): gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasStagedTransformations(): boolean;
+  clearStagedTransformations(): void;
+  getStagedTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
+  setStagedTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostOptions.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostOptions): VirtualHostOptions.AsObject;
@@ -271,7 +277,7 @@ export namespace VirtualHostOptions {
     stats?: gloo_projects_gloo_api_v1_options_stats_stats_pb.Stats.AsObject,
     headerManipulation?: gloo_projects_gloo_api_v1_options_headers_headers_pb.HeaderManipulation.AsObject,
     cors?: gloo_projects_gloo_api_v1_options_cors_cors_pb.CorsPolicy.AsObject,
-    transformations?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.AsObject,
     ratelimitBasic?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
     ratelimit?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
     waf?: gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
@@ -280,14 +286,15 @@ export namespace VirtualHostOptions {
     extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
     bufferPerRoute?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    stagedTransformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
   }
 }
 
 export class RouteOptions extends jspb.Message {
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations | undefined;
+  setTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations): void;
 
   hasFaults(): boolean;
   clearFaults(): void;
@@ -394,6 +401,11 @@ export class RouteOptions extends jspb.Message {
   getBufferPerRoute(): gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasStagedTransformations(): boolean;
+  clearStagedTransformations(): void;
+  getStagedTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
+  setStagedTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages): void;
+
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteOptions.AsObject;
@@ -407,7 +419,7 @@ export class RouteOptions extends jspb.Message {
 
 export namespace RouteOptions {
   export type AsObject = {
-    transformations?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.AsObject,
     faults?: gloo_projects_gloo_api_v1_options_faultinjection_fault_pb.RouteFaults.AsObject,
     prefixRewrite?: google_protobuf_wrappers_pb.StringValue.AsObject,
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
@@ -429,6 +441,7 @@ export namespace RouteOptions {
     extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
     bufferPerRoute?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    stagedTransformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
   }
 
   export enum HostRewriteTypeCase {
@@ -495,8 +508,8 @@ export class WeightedDestinationOptions extends jspb.Message {
 
   hasTransformations(): boolean;
   clearTransformations(): void;
-  getTransformations(): gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations | undefined;
-  setTransformations(value?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations): void;
+  getTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations | undefined;
+  setTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations): void;
 
   hasExtensions(): boolean;
   clearExtensions(): void;
@@ -513,6 +526,11 @@ export class WeightedDestinationOptions extends jspb.Message {
   getBufferPerRoute(): gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasStagedTransformations(): boolean;
+  clearStagedTransformations(): void;
+  getStagedTransformations(): gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
+  setStagedTransformations(value?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WeightedDestinationOptions.AsObject;
   static toObject(includeInstance: boolean, msg: WeightedDestinationOptions): WeightedDestinationOptions.AsObject;
@@ -526,9 +544,10 @@ export class WeightedDestinationOptions extends jspb.Message {
 export namespace WeightedDestinationOptions {
   export type AsObject = {
     headerManipulation?: gloo_projects_gloo_api_v1_options_headers_headers_pb.HeaderManipulation.AsObject,
-    transformations?: gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb.RouteTransformations.AsObject,
+    transformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.Transformations.AsObject,
     extensions?: gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     extauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     bufferPerRoute?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    stagedTransformations?: gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
   }
 }

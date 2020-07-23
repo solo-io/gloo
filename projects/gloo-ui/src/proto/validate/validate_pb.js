@@ -27,6 +27,7 @@ goog.exportSymbol('proto.validate.Fixed64Rules', null, global);
 goog.exportSymbol('proto.validate.FloatRules', null, global);
 goog.exportSymbol('proto.validate.Int32Rules', null, global);
 goog.exportSymbol('proto.validate.Int64Rules', null, global);
+goog.exportSymbol('proto.validate.KnownRegex', null, global);
 goog.exportSymbol('proto.validate.MapRules', null, global);
 goog.exportSymbol('proto.validate.MessageRules', null, global);
 goog.exportSymbol('proto.validate.RepeatedRules', null, global);
@@ -67,7 +68,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.validate.FieldRules.oneofGroups_ = [[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]];
+proto.validate.FieldRules.oneofGroups_ = [[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22]];
 
 /**
  * @enum {number}
@@ -90,7 +91,6 @@ proto.validate.FieldRules.TypeCase = {
   STRING: 14,
   BYTES: 15,
   ENUM: 16,
-  MESSAGE: 17,
   REPEATED: 18,
   MAP: 19,
   ANY: 20,
@@ -134,6 +134,7 @@ proto.validate.FieldRules.prototype.toObject = function(opt_includeInstance) {
  */
 proto.validate.FieldRules.toObject = function(includeInstance, msg) {
   var f, obj = {
+    message: (f = msg.getMessage()) && proto.validate.MessageRules.toObject(includeInstance, f),
     pb_float: (f = msg.getFloat()) && proto.validate.FloatRules.toObject(includeInstance, f),
     pb_double: (f = msg.getDouble()) && proto.validate.DoubleRules.toObject(includeInstance, f),
     int32: (f = msg.getInt32()) && proto.validate.Int32Rules.toObject(includeInstance, f),
@@ -150,7 +151,6 @@ proto.validate.FieldRules.toObject = function(includeInstance, msg) {
     string: (f = msg.getString()) && proto.validate.StringRules.toObject(includeInstance, f),
     bytes: (f = msg.getBytes()) && proto.validate.BytesRules.toObject(includeInstance, f),
     pb_enum: (f = msg.getEnum()) && proto.validate.EnumRules.toObject(includeInstance, f),
-    message: (f = msg.getMessage()) && proto.validate.MessageRules.toObject(includeInstance, f),
     repeated: (f = msg.getRepeated()) && proto.validate.RepeatedRules.toObject(includeInstance, f),
     map: (f = msg.getMap()) && proto.validate.MapRules.toObject(includeInstance, f),
     any: (f = msg.getAny()) && proto.validate.AnyRules.toObject(includeInstance, f),
@@ -192,6 +192,11 @@ proto.validate.FieldRules.deserializeBinaryFromReader = function(msg, reader) {
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 17:
+      var value = new proto.validate.MessageRules;
+      reader.readMessage(value,proto.validate.MessageRules.deserializeBinaryFromReader);
+      msg.setMessage(value);
+      break;
     case 1:
       var value = new proto.validate.FloatRules;
       reader.readMessage(value,proto.validate.FloatRules.deserializeBinaryFromReader);
@@ -272,11 +277,6 @@ proto.validate.FieldRules.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.validate.EnumRules.deserializeBinaryFromReader);
       msg.setEnum(value);
       break;
-    case 17:
-      var value = new proto.validate.MessageRules;
-      reader.readMessage(value,proto.validate.MessageRules.deserializeBinaryFromReader);
-      msg.setMessage(value);
-      break;
     case 18:
       var value = new proto.validate.RepeatedRules;
       reader.readMessage(value,proto.validate.RepeatedRules.deserializeBinaryFromReader);
@@ -331,6 +331,14 @@ proto.validate.FieldRules.prototype.serializeBinary = function() {
  */
 proto.validate.FieldRules.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getMessage();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      proto.validate.MessageRules.serializeBinaryToWriter
+    );
+  }
   f = message.getFloat();
   if (f != null) {
     writer.writeMessage(
@@ -459,14 +467,6 @@ proto.validate.FieldRules.serializeBinaryToWriter = function(message, writer) {
       proto.validate.EnumRules.serializeBinaryToWriter
     );
   }
-  f = message.getMessage();
-  if (f != null) {
-    writer.writeMessage(
-      17,
-      f,
-      proto.validate.MessageRules.serializeBinaryToWriter
-    );
-  }
   f = message.getRepeated();
   if (f != null) {
     writer.writeMessage(
@@ -507,6 +507,36 @@ proto.validate.FieldRules.serializeBinaryToWriter = function(message, writer) {
       proto.validate.TimestampRules.serializeBinaryToWriter
     );
   }
+};
+
+
+/**
+ * optional MessageRules message = 17;
+ * @return {?proto.validate.MessageRules}
+ */
+proto.validate.FieldRules.prototype.getMessage = function() {
+  return /** @type{?proto.validate.MessageRules} */ (
+    jspb.Message.getWrapperField(this, proto.validate.MessageRules, 17));
+};
+
+
+/** @param {?proto.validate.MessageRules|undefined} value */
+proto.validate.FieldRules.prototype.setMessage = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.validate.FieldRules.prototype.clearMessage = function() {
+  this.setMessage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.FieldRules.prototype.hasMessage = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 
@@ -987,36 +1017,6 @@ proto.validate.FieldRules.prototype.clearEnum = function() {
  */
 proto.validate.FieldRules.prototype.hasEnum = function() {
   return jspb.Message.getField(this, 16) != null;
-};
-
-
-/**
- * optional MessageRules message = 17;
- * @return {?proto.validate.MessageRules}
- */
-proto.validate.FieldRules.prototype.getMessage = function() {
-  return /** @type{?proto.validate.MessageRules} */ (
-    jspb.Message.getWrapperField(this, proto.validate.MessageRules, 17));
-};
-
-
-/** @param {?proto.validate.MessageRules|undefined} value */
-proto.validate.FieldRules.prototype.setMessage = function(value) {
-  jspb.Message.setOneofWrapperField(this, 17, proto.validate.FieldRules.oneofGroups_[0], value);
-};
-
-
-proto.validate.FieldRules.prototype.clearMessage = function() {
-  this.setMessage(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.validate.FieldRules.prototype.hasMessage = function() {
-  return jspb.Message.getField(this, 17) != null;
 };
 
 
@@ -6269,7 +6269,7 @@ proto.validate.StringRules.repeatedFields_ = [10,11];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.validate.StringRules.oneofGroups_ = [[12,13,14,15,16,17,18,21]];
+proto.validate.StringRules.oneofGroups_ = [[12,13,14,15,16,17,18,21,22,24]];
 
 /**
  * @enum {number}
@@ -6283,7 +6283,9 @@ proto.validate.StringRules.WellKnownCase = {
   IPV6: 16,
   URI: 17,
   URI_REF: 18,
-  ADDRESS: 21
+  ADDRESS: 21,
+  UUID: 22,
+  WELL_KNOWN_REGEX: 24
 };
 
 /**
@@ -6333,6 +6335,7 @@ proto.validate.StringRules.toObject = function(includeInstance, msg) {
     prefix: jspb.Message.getField(msg, 7),
     suffix: jspb.Message.getField(msg, 8),
     contains: jspb.Message.getField(msg, 9),
+    notContains: jspb.Message.getField(msg, 23),
     inList: jspb.Message.getRepeatedField(msg, 10),
     notInList: jspb.Message.getRepeatedField(msg, 11),
     email: jspb.Message.getField(msg, 12),
@@ -6342,7 +6345,10 @@ proto.validate.StringRules.toObject = function(includeInstance, msg) {
     ipv6: jspb.Message.getField(msg, 16),
     uri: jspb.Message.getField(msg, 17),
     uriRef: jspb.Message.getField(msg, 18),
-    address: jspb.Message.getField(msg, 21)
+    address: jspb.Message.getField(msg, 21),
+    uuid: jspb.Message.getField(msg, 22),
+    wellKnownRegex: jspb.Message.getField(msg, 24),
+    strict: jspb.Message.getFieldWithDefault(msg, 25, true)
   };
 
   if (includeInstance) {
@@ -6423,6 +6429,10 @@ proto.validate.StringRules.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {string} */ (reader.readString());
       msg.setContains(value);
       break;
+    case 23:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setNotContains(value);
+      break;
     case 10:
       var value = /** @type {string} */ (reader.readString());
       msg.addIn(value);
@@ -6462,6 +6472,18 @@ proto.validate.StringRules.deserializeBinaryFromReader = function(msg, reader) {
     case 21:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setAddress(value);
+      break;
+    case 22:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUuid(value);
+      break;
+    case 24:
+      var value = /** @type {!proto.validate.KnownRegex} */ (reader.readEnum());
+      msg.setWellKnownRegex(value);
+      break;
+    case 25:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setStrict(value);
       break;
     default:
       reader.skipField();
@@ -6569,6 +6591,13 @@ proto.validate.StringRules.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 23));
+  if (f != null) {
+    writer.writeString(
+      23,
+      f
+    );
+  }
   f = message.getInList();
   if (f.length > 0) {
     writer.writeRepeatedString(
@@ -6636,6 +6665,27 @@ proto.validate.StringRules.serializeBinaryToWriter = function(message, writer) {
   if (f != null) {
     writer.writeBool(
       21,
+      f
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 22));
+  if (f != null) {
+    writer.writeBool(
+      22,
+      f
+    );
+  }
+  f = /** @type {!proto.validate.KnownRegex} */ (jspb.Message.getField(message, 24));
+  if (f != null) {
+    writer.writeEnum(
+      24,
+      f
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 25));
+  if (f != null) {
+    writer.writeBool(
+      25,
       f
     );
   }
@@ -6962,6 +7012,35 @@ proto.validate.StringRules.prototype.hasContains = function() {
 
 
 /**
+ * optional string not_contains = 23;
+ * @return {string}
+ */
+proto.validate.StringRules.prototype.getNotContains = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 23, ""));
+};
+
+
+/** @param {string} value */
+proto.validate.StringRules.prototype.setNotContains = function(value) {
+  jspb.Message.setField(this, 23, value);
+};
+
+
+proto.validate.StringRules.prototype.clearNotContains = function() {
+  jspb.Message.setField(this, 23, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasNotContains = function() {
+  return jspb.Message.getField(this, 23) != null;
+};
+
+
+/**
  * repeated string in = 10;
  * @return {!Array<string>}
  */
@@ -7264,6 +7343,97 @@ proto.validate.StringRules.prototype.clearAddress = function() {
  */
 proto.validate.StringRules.prototype.hasAddress = function() {
   return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * optional bool uuid = 22;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.validate.StringRules.prototype.getUuid = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 22, false));
+};
+
+
+/** @param {boolean} value */
+proto.validate.StringRules.prototype.setUuid = function(value) {
+  jspb.Message.setOneofField(this, 22, proto.validate.StringRules.oneofGroups_[0], value);
+};
+
+
+proto.validate.StringRules.prototype.clearUuid = function() {
+  jspb.Message.setOneofField(this, 22, proto.validate.StringRules.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasUuid = function() {
+  return jspb.Message.getField(this, 22) != null;
+};
+
+
+/**
+ * optional KnownRegex well_known_regex = 24;
+ * @return {!proto.validate.KnownRegex}
+ */
+proto.validate.StringRules.prototype.getWellKnownRegex = function() {
+  return /** @type {!proto.validate.KnownRegex} */ (jspb.Message.getFieldWithDefault(this, 24, 0));
+};
+
+
+/** @param {!proto.validate.KnownRegex} value */
+proto.validate.StringRules.prototype.setWellKnownRegex = function(value) {
+  jspb.Message.setOneofField(this, 24, proto.validate.StringRules.oneofGroups_[0], value);
+};
+
+
+proto.validate.StringRules.prototype.clearWellKnownRegex = function() {
+  jspb.Message.setOneofField(this, 24, proto.validate.StringRules.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasWellKnownRegex = function() {
+  return jspb.Message.getField(this, 24) != null;
+};
+
+
+/**
+ * optional bool strict = 25;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.validate.StringRules.prototype.getStrict = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 25, true));
+};
+
+
+/** @param {boolean} value */
+proto.validate.StringRules.prototype.setStrict = function(value) {
+  jspb.Message.setField(this, 25, value);
+};
+
+
+proto.validate.StringRules.prototype.clearStrict = function() {
+  jspb.Message.setField(this, 25, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasStrict = function() {
+  return jspb.Message.getField(this, 25) != null;
 };
 
 
@@ -10432,6 +10602,15 @@ proto.validate.TimestampRules.prototype.hasWithin = function() {
 };
 
 
+/**
+ * @enum {number}
+ */
+proto.validate.KnownRegex = {
+  UNKNOWN: 0,
+  HTTP_HEADER_NAME: 1,
+  HTTP_HEADER_VALUE: 2
+};
+
 
 /**
  * A tuple of {field number, class constructor} for the extension
@@ -10439,14 +10618,14 @@ proto.validate.TimestampRules.prototype.hasWithin = function() {
  * @type {!jspb.ExtensionFieldInfo<boolean>}
  */
 proto.validate.disabled = new jspb.ExtensionFieldInfo(
-    919191,
+    1071,
     {disabled: 0},
     null,
      /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
          null),
     0);
 
-google_protobuf_descriptor_pb.MessageOptions.extensionsBinary[919191] = new jspb.ExtensionFieldBinaryInfo(
+google_protobuf_descriptor_pb.MessageOptions.extensionsBinary[1071] = new jspb.ExtensionFieldBinaryInfo(
     proto.validate.disabled,
     jspb.BinaryReader.prototype.readBool,
     jspb.BinaryWriter.prototype.writeBool,
@@ -10455,7 +10634,7 @@ google_protobuf_descriptor_pb.MessageOptions.extensionsBinary[919191] = new jspb
     false);
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
-google_protobuf_descriptor_pb.MessageOptions.extensions[919191] = proto.validate.disabled;
+google_protobuf_descriptor_pb.MessageOptions.extensions[1071] = proto.validate.disabled;
 
 
 /**
@@ -10464,14 +10643,14 @@ google_protobuf_descriptor_pb.MessageOptions.extensions[919191] = proto.validate
  * @type {!jspb.ExtensionFieldInfo<boolean>}
  */
 proto.validate.required = new jspb.ExtensionFieldInfo(
-    919191,
+    1071,
     {required: 0},
     null,
      /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
          null),
     0);
 
-google_protobuf_descriptor_pb.OneofOptions.extensionsBinary[919191] = new jspb.ExtensionFieldBinaryInfo(
+google_protobuf_descriptor_pb.OneofOptions.extensionsBinary[1071] = new jspb.ExtensionFieldBinaryInfo(
     proto.validate.required,
     jspb.BinaryReader.prototype.readBool,
     jspb.BinaryWriter.prototype.writeBool,
@@ -10480,7 +10659,7 @@ google_protobuf_descriptor_pb.OneofOptions.extensionsBinary[919191] = new jspb.E
     false);
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
-google_protobuf_descriptor_pb.OneofOptions.extensions[919191] = proto.validate.required;
+google_protobuf_descriptor_pb.OneofOptions.extensions[1071] = proto.validate.required;
 
 
 /**
@@ -10489,14 +10668,14 @@ google_protobuf_descriptor_pb.OneofOptions.extensions[919191] = proto.validate.r
  * @type {!jspb.ExtensionFieldInfo<!proto.validate.FieldRules>}
  */
 proto.validate.rules = new jspb.ExtensionFieldInfo(
-    919191,
+    1071,
     {rules: 0},
     proto.validate.FieldRules,
      /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
          proto.validate.FieldRules.toObject),
     0);
 
-google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[919191] = new jspb.ExtensionFieldBinaryInfo(
+google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[1071] = new jspb.ExtensionFieldBinaryInfo(
     proto.validate.rules,
     jspb.BinaryReader.prototype.readMessage,
     jspb.BinaryWriter.prototype.writeMessage,
@@ -10505,6 +10684,6 @@ google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[919191] = new jspb.E
     false);
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
-google_protobuf_descriptor_pb.FieldOptions.extensions[919191] = proto.validate.rules;
+google_protobuf_descriptor_pb.FieldOptions.extensions[1071] = proto.validate.rules;
 
 goog.object.extend(exports, proto.validate);

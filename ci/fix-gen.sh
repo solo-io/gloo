@@ -23,11 +23,16 @@ do
   sed "s|envoy/api/v2/route/route_pb.js|gloo/projects/gloo/api/external/envoy/api/v2/route/route_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|../../../../../extproto/ext_pb.js|../../../../../protoc-gen-ext/extproto/ext_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|../../../extproto/ext_pb.js|../../../protoc-gen-ext/extproto/ext_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|../../extproto/ext_pb.js|../../protoc-gen-ext/extproto/ext_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|../../../../../gloo/projects/gloo/api/external/envoy/|../../../../../envoy/|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|../../../../gloo/projects/gloo/api/external/envoy/|../../../../envoy/|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"
 done
 
 for file in $(find projects/gloo-ui/src/proto -type f | grep "_pb.d.ts")
 do
   sed "s|../../../../extproto/ext_pb|../../../../protoc-gen-ext/extproto/ext_pb|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|from 'proto/gloo/projects/gloo/api/external/envoy/|from 'proto/envoy/|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+
   printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"
 done

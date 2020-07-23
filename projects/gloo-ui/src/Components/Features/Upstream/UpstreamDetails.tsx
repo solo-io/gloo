@@ -14,7 +14,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { Form, Formik } from 'formik';
-import { TransformationTemplate } from 'proto/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb';
+import { TransformationTemplate } from 'proto/envoy/extensions/transformation/transformation_pb';
 import React, { useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { upstreamAPI } from 'store/upstreams/api';

@@ -28,6 +28,8 @@ import (
 	"github.com/fgrosse/zaptest"
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
+	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -604,7 +606,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 				},
 			}, {
 				Options: &gloov1.RouteOptions{
-					Transformations: &transformation.RouteTransformations{
+					Transformations: &glootransformation.Transformations{
 						RequestTransformation: &transformation.Transformation{
 							TransformationType: &transformation.Transformation_TransformationTemplate{
 								TransformationTemplate: &transformation.TransformationTemplate{

@@ -42,7 +42,7 @@ import {
   FilterConfig,
   DlpRule
 } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb';
-import { RuleSet } from 'proto/gloo/projects/gloo/api/external/envoy/extensions/waf/waf_pb';
+import { RuleSet } from 'proto/envoy/extensions/waf/waf_pb';
 import { TcpHost } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
 const { warning } = Modal;
 

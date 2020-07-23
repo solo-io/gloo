@@ -1,0 +1,13 @@
+
+changelog:
+  - type: FIX
+    description: Update envoy to support emitting proxy latency timings to access log via dynamic metadata.
+    issueLink: https://github.com/solo-io/gloo/issues/3392
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.15.0-patch1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.4.6
