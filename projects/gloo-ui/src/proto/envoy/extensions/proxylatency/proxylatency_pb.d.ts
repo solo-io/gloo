@@ -26,6 +26,11 @@ export class ProxyLatency extends jspb.Message {
   getChargeListenerStat(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setChargeListenerStat(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasEmitDynamicMetadata(): boolean;
+  clearEmitDynamicMetadata(): void;
+  getEmitDynamicMetadata(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setEmitDynamicMetadata(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ProxyLatency.AsObject;
   static toObject(includeInstance: boolean, msg: ProxyLatency): ProxyLatency.AsObject;
@@ -43,6 +48,7 @@ export namespace ProxyLatency {
     response: ProxyLatency.MeasurementMap[keyof ProxyLatency.MeasurementMap],
     chargeClusterStat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     chargeListenerStat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    emitDynamicMetadata?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export interface MeasurementMap {

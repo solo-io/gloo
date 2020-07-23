@@ -67,7 +67,8 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.toObject = function(
     measureRequestInternally: jspb.Message.getFieldWithDefault(msg, 5, false),
     response: jspb.Message.getFieldWithDefault(msg, 2, 0),
     chargeClusterStat: (f = msg.getChargeClusterStat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    chargeListenerStat: (f = msg.getChargeListenerStat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    chargeListenerStat: (f = msg.getChargeListenerStat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    emitDynamicMetadata: (f = msg.getEmitDynamicMetadata()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -125,6 +126,11 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.deserializeBinaryFro
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setChargeListenerStat(value);
+      break;
+    case 6:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEmitDynamicMetadata(value);
       break;
     default:
       reader.skipField();
@@ -188,6 +194,14 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.serializeBinaryToWri
   if (f != null) {
     writer.writeMessage(
       4,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getEmitDynamicMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      6,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -309,6 +323,36 @@ proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.clearCharg
  */
 proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.hasChargeListenerStat = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue emit_dynamic_metadata = 6;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.getEmitDynamicMetadata = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 6));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.setEmitDynamicMetadata = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.clearEmitDynamicMetadata = function() {
+  this.setEmitDynamicMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.proxylatency.v2.ProxyLatency.prototype.hasEmitDynamicMetadata = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 
