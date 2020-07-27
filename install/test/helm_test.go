@@ -1012,6 +1012,35 @@ spec:
 				})
 			})
 
+			It("can be set as NodePort service", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"apiServer.service.serviceType=NodePort",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+					if u.GetKind() != "Service" {
+						return false
+					}
+					runtimeObj, err := kuberesource.ConvertUnstructured(u)
+					Expect(err).NotTo(HaveOccurred())
+
+					service, isService := runtimeObj.(*v1.Service)
+					if isService && service.GetName() == "apiserver-ui" {
+						Expect(service.Spec.Type).To(Equal(v1.ServiceTypeNodePort), "The apiserver-ui service should be of type NodePort so it is not exposed outside the cluster")
+						return true
+					} else if !isService {
+						Fail("Unexpected casting error")
+						return false
+					} else {
+						return false
+					}
+				})
+
+				Expect(apiServerService.NumResources()).To(Equal(1), "Should have found the apiserver-ui service")
+			})
+
 			It("sits behind a service that is not exposed outside of the cluster", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())

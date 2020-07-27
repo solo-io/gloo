@@ -191,7 +191,8 @@ type ApiServerUiDeployment struct {
 }
 
 type ApiServerService struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	ServiceType string `json:"serviceType"`
 }
 
 type ApiServerConfigMap struct {

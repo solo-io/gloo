@@ -1,0 +1,7 @@
+changelog:
+  - type: HELM
+    description: >
+      In v1.4.0-beta8 the api-server service was changed from a NodePort service to a ClusterIP service, so that it is
+      not available outside of the cluster. Now the service type is configurable in case users still want to make
+      the service accessible outside the cluster.
+    issueLink: https://github.com/solo-io/gloo/issues/3318
