@@ -130,7 +130,7 @@ apiServer:
         repository: grpcserver-envoy
   service:
     name: "apiserver-ui"
-
+    serviceType: ClusterIP
 
 ########################################################################
 ###                                                                  ###

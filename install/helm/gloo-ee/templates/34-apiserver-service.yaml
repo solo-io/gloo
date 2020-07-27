@@ -16,5 +16,5 @@ spec:
       protocol: TCP
   selector:
     gloo: {{ .Values.apiServer.service.name }}
-  type: ClusterIP
+  type: {{.Values.apiServer.service.serviceType}}
 {{- end }} # .Values.apiServer.enable
