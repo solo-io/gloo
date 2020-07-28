@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Correct the upstream name on auto-generated Observability dashboards for manually-added Kubernetes upstreams.
+    issueLink: https://github.com/solo-io/gloo/issues/3061
