@@ -24,3 +24,5 @@ WORKDIR /modsecurity/data
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/docker-entrypoint.sh"]
 CMD []
+
+USER 10101
