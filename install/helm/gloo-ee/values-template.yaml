@@ -53,6 +53,10 @@ gloo:
         fsGroup: 10101
         runUnprivileged: true
         disableNetBind: true
+        gracefulShutdown:
+          enabled: false
+          sleepTimeSeconds: 25
+          customReadinessProbe: {}
         image:
           repository: gloo-ee-envoy-wrapper
       service:
