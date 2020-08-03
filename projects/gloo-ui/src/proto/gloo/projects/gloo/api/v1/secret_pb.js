@@ -523,7 +523,8 @@ proto.gloo.solo.io.AwsSecret.prototype.toObject = function(opt_includeInstance) 
 proto.gloo.solo.io.AwsSecret.toObject = function(includeInstance, msg) {
   var f, obj = {
     accessKey: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    secretKey: jspb.Message.getFieldWithDefault(msg, 2, "")
+    secretKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    sessionToken: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -568,6 +569,10 @@ proto.gloo.solo.io.AwsSecret.deserializeBinaryFromReader = function(msg, reader)
       var value = /** @type {string} */ (reader.readString());
       msg.setSecretKey(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSessionToken(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -611,6 +616,13 @@ proto.gloo.solo.io.AwsSecret.serializeBinaryToWriter = function(message, writer)
       f
     );
   }
+  f = message.getSessionToken();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -641,6 +653,21 @@ proto.gloo.solo.io.AwsSecret.prototype.getSecretKey = function() {
 /** @param {string} value */
 proto.gloo.solo.io.AwsSecret.prototype.setSecretKey = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string session_token = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.AwsSecret.prototype.getSessionToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.AwsSecret.prototype.setSessionToken = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

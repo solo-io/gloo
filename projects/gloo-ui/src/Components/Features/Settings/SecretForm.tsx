@@ -57,7 +57,8 @@ export const SecretForm: React.FC<Props> = props => {
     },
     awsSecret: {
       accessKey: '',
-      secretKey: ''
+      secretKey: '',
+      sessionToken: ''
     },
     azureSecret: {
       apiKeysMap: []

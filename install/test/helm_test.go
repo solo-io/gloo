@@ -676,6 +676,8 @@ metadata:
   name: default
   namespace: ` + namespace + `
 spec:
+  discovery:
+    fdsMode: WHITELIST
   extauth: 
     extauthzServerRef:
       name: extauth

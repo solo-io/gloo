@@ -86,6 +86,9 @@ export class AwsSecret extends jspb.Message {
   getSecretKey(): string;
   setSecretKey(value: string): void;
 
+  getSessionToken(): string;
+  setSessionToken(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AwsSecret.AsObject;
   static toObject(includeInstance: boolean, msg: AwsSecret): AwsSecret.AsObject;
@@ -100,6 +103,7 @@ export namespace AwsSecret {
   export type AsObject = {
     accessKey: string,
     secretKey: string,
+    sessionToken: string,
   }
 }
 

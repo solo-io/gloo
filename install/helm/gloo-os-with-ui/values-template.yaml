@@ -27,6 +27,7 @@ gloo:
   gloo:
     deployment:
       runAsUser: 10101
+      serviceAccount: {}
       image:
         repository: gloo
       replicas: 1
@@ -42,9 +43,14 @@ gloo:
         fsGroup: 10101
         runUnprivileged: true
         disableNetBind: true
+        gracefulShutdown:
+          enabled: false
+          sleepTimeSeconds: 25
+          customReadinessProbe: {}
         image:
           repository: gloo-envoy-wrapper
       service:
+        customPorts: []
         type: LoadBalancer
         # clusterIP: None
         httpPort: 80
@@ -62,6 +68,8 @@ gloo:
             protocol: TCP
   discovery:
     enabled: true
+    fdsMode: WHITELIST
+    serviceAccount: {}
     deployment:
       runAsUser: 10101
       image:
@@ -92,6 +100,8 @@ gloo:
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
       runAsUser: 10101
+    proxyServiceAccount: {}
+    serviceAccount: {}
   accessLogger:
     enabled: false
     port: 8083

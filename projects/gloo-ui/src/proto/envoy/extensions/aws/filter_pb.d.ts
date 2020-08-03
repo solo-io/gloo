@@ -53,6 +53,9 @@ export class AWSLambdaProtocolExtension extends jspb.Message {
   getSecretKey(): string;
   setSecretKey(value: string): void;
 
+  getSessionToken(): string;
+  setSessionToken(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaProtocolExtension.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaProtocolExtension): AWSLambdaProtocolExtension.AsObject;
@@ -69,6 +72,7 @@ export namespace AWSLambdaProtocolExtension {
     region: string,
     accessKey: string,
     secretKey: string,
+    sessionToken: string,
   }
 }
 

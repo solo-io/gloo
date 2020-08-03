@@ -309,7 +309,8 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.toObject
     host: jspb.Message.getFieldWithDefault(msg, 1, ""),
     region: jspb.Message.getFieldWithDefault(msg, 2, ""),
     accessKey: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    secretKey: jspb.Message.getFieldWithDefault(msg, 4, "")
+    secretKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    sessionToken: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -361,6 +362,10 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.deserial
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setSecretKey(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSessionToken(value);
       break;
     default:
       reader.skipField();
@@ -416,6 +421,13 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.serializ
   if (f.length > 0) {
     writer.writeString(
       4,
+      f
+    );
+  }
+  f = message.getSessionToken();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
       f
     );
   }
@@ -479,6 +491,21 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototyp
 /** @param {string} value */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.setSecretKey = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string session_token = 5;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.getSessionToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.setSessionToken = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
 };
 
 

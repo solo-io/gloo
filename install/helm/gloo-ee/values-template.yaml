@@ -38,6 +38,7 @@ gloo:
       xdsPort: 9977
       validationPort: 9988
       runAsUser: 10101
+      serviceAccount: {}
       image:
         repository: gloo-ee
       replicas: 1
@@ -53,9 +54,14 @@ gloo:
         fsGroup: 10101
         runUnprivileged: true
         disableNetBind: true
+        gracefulShutdown:
+          enabled: false
+          sleepTimeSeconds: 25
+          customReadinessProbe: {}
         image:
           repository: gloo-ee-envoy-wrapper
       service:
+        customPorts: []
         type: LoadBalancer
         # clusterIP: None
         httpPort: 80
@@ -70,6 +76,8 @@ gloo:
             protocol: TCP
   discovery:
     enabled: true
+    fdsMode: WHITELIST
+    serviceAccount: {}
     deployment:
       runAsUser: 10101
       image:
@@ -100,6 +108,8 @@ gloo:
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
       runAsUser: 10101
+    proxyServiceAccount: {}
+    serviceAccount: {}
   ingressProxy:
     deployment:
       image:
