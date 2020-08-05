@@ -21,6 +21,9 @@ export class UpstreamSpec extends jspb.Message {
   setLambdaFunctionsList(value: Array<LambdaFunctionSpec>): void;
   addLambdaFunctions(value?: LambdaFunctionSpec, index?: number): LambdaFunctionSpec;
 
+  getRoleArn(): string;
+  setRoleArn(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -36,6 +39,7 @@ export namespace UpstreamSpec {
     region: string,
     secretRef?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     lambdaFunctionsList: Array<LambdaFunctionSpec.AsObject>,
+    roleArn: string,
   }
 }
 

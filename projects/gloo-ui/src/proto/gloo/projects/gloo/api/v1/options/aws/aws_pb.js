@@ -76,7 +76,8 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance,
     region: jspb.Message.getFieldWithDefault(msg, 1, ""),
     secretRef: (f = msg.getSecretRef()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     lambdaFunctionsList: jspb.Message.toObjectList(msg.getLambdaFunctionsList(),
-    proto.aws.options.gloo.solo.io.LambdaFunctionSpec.toObject, includeInstance)
+    proto.aws.options.gloo.solo.io.LambdaFunctionSpec.toObject, includeInstance),
+    roleArn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -126,6 +127,10 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = functi
       var value = new proto.aws.options.gloo.solo.io.LambdaFunctionSpec;
       reader.readMessage(value,proto.aws.options.gloo.solo.io.LambdaFunctionSpec.deserializeBinaryFromReader);
       msg.addLambdaFunctions(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRoleArn(value);
       break;
     default:
       reader.skipField();
@@ -177,6 +182,13 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(m
       3,
       f,
       proto.aws.options.gloo.solo.io.LambdaFunctionSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getRoleArn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -255,6 +267,21 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.addLambdaFunctions = funct
 
 proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.clearLambdaFunctionsList = function() {
   this.setLambdaFunctionsList([]);
+};
+
+
+/**
+ * optional string role_arn = 4;
+ * @return {string}
+ */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getRoleArn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setRoleArn = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

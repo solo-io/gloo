@@ -22,6 +22,7 @@ var gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = requir
 var gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb.js');
 var gloo_projects_gloo_api_v1_circuit_breaker_pb = require('../../../../../gloo/projects/gloo/api/v1/circuit_breaker_pb.js');
+var gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb = require('../../../../../envoy/extensions/aws/filter_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.GatewayOptions', null, global);
@@ -4070,12 +4071,38 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
  * @constructor
  */
 proto.gloo.solo.io.GlooOptions.AWSOptions = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.GlooOptions.AWSOptions, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.GlooOptions.AWSOptions.displayName = 'proto.gloo.solo.io.GlooOptions.AWSOptions';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.CredentialsFetcherCase = {
+  CREDENTIALS_FETCHER_NOT_SET: 0,
+  ENABLE_CREDENTIALS_DISCOVEY: 1,
+  SERVICE_ACCOUNT_CREDENTIALS: 2
+};
+
+/**
+ * @return {proto.gloo.solo.io.GlooOptions.AWSOptions.CredentialsFetcherCase}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.getCredentialsFetcherCase = function() {
+  return /** @type {proto.gloo.solo.io.GlooOptions.AWSOptions.CredentialsFetcherCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -4105,7 +4132,8 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.toObject = function(opt_incl
  */
 proto.gloo.solo.io.GlooOptions.AWSOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    enableCredentialsDiscovey: jspb.Message.getFieldWithDefault(msg, 1, false)
+    enableCredentialsDiscovey: jspb.Message.getFieldWithDefault(msg, 1, false),
+    serviceAccountCredentials: (f = msg.getServiceAccountCredentials()) && gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4146,6 +4174,11 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinaryFromReader = function
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEnableCredentialsDiscovey(value);
       break;
+    case 2:
+      var value = new gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials;
+      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.deserializeBinaryFromReader);
+      msg.setServiceAccountCredentials(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4175,11 +4208,19 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.serializeBinary = function()
  */
 proto.gloo.solo.io.GlooOptions.AWSOptions.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getEnableCredentialsDiscovey();
-  if (f) {
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
     writer.writeBool(
       1,
       f
+    );
+  }
+  f = message.getServiceAccountCredentials();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.serializeBinaryToWriter
     );
   }
 };
@@ -4198,7 +4239,51 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.getEnableCredentialsDiscovey
 
 /** @param {boolean} value */
 proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.setEnableCredentialsDiscovey = function(value) {
-  jspb.Message.setProto3BooleanField(this, 1, value);
+  jspb.Message.setOneofField(this, 1, proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.clearEnableCredentialsDiscovey = function() {
+  jspb.Message.setOneofField(this, 1, proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.hasEnableCredentialsDiscovey = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials service_account_credentials = 2;
+ * @return {?proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.getServiceAccountCredentials = function() {
+  return /** @type{?proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials, 2));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials|undefined} value */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.setServiceAccountCredentials = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.gloo.solo.io.GlooOptions.AWSOptions.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.clearServiceAccountCredentials = function() {
+  this.setServiceAccountCredentials(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.hasServiceAccountCredentials = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

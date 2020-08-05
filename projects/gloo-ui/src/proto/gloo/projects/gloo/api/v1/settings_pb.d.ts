@@ -13,6 +13,7 @@ import * as gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb 
 import * as gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/rbac/rbac_pb";
 import * as gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../gloo/projects/gloo/api/v1/circuit_breaker_pb";
+import * as gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb from "../../../../../gloo/projects/gloo/api/external/envoy/extensions/aws/filter_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -636,9 +637,17 @@ export namespace GlooOptions {
   }
 
   export class AWSOptions extends jspb.Message {
+    hasEnableCredentialsDiscovey(): boolean;
+    clearEnableCredentialsDiscovey(): void;
     getEnableCredentialsDiscovey(): boolean;
     setEnableCredentialsDiscovey(value: boolean): void;
 
+    hasServiceAccountCredentials(): boolean;
+    clearServiceAccountCredentials(): void;
+    getServiceAccountCredentials(): gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials | undefined;
+    setServiceAccountCredentials(value?: gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials): void;
+
+    getCredentialsFetcherCase(): AWSOptions.CredentialsFetcherCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): AWSOptions.AsObject;
     static toObject(includeInstance: boolean, msg: AWSOptions): AWSOptions.AsObject;
@@ -652,6 +661,13 @@ export namespace GlooOptions {
   export namespace AWSOptions {
     export type AsObject = {
       enableCredentialsDiscovey: boolean,
+      serviceAccountCredentials?: gloo_projects_gloo_api_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.AsObject,
+    }
+
+    export enum CredentialsFetcherCase {
+      CREDENTIALS_FETCHER_NOT_SET = 0,
+      ENABLE_CREDENTIALS_DISCOVEY = 1,
+      SERVICE_ACCOUNT_CREDENTIALS = 2,
     }
   }
 

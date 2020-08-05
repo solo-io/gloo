@@ -33,7 +33,7 @@ ifeq ($(VERSION), $(WASM_VERSION))
 	WASM_VERSION = wasm-$(VERSION)
 endif
 
-ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-patch1
+ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-patch2
 # Envoy-gloo-ee image built on top of envoy-wasm fork
 ENVOY_WASM_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-wasm-rc1
 
@@ -87,15 +87,18 @@ init:
 .PHONY: update-all-deps
 update-all-deps: install-go-tools update-ui-deps
 
+DEPSGOBIN=$(shell pwd)/_output/.bin
+
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 .PHONY: install-go-tools
 install-go-tools:
-	go install golang.org/x/tools/cmd/goimports
-	go install github.com/gogo/protobuf/gogoproto
-	go install github.com/gogo/protobuf/protoc-gen-gogo
-	go install github.com/solo-io/protoc-gen-ext
-	go install github.com/google/wire/cmd/wire
-	go install github.com/golang/mock/mockgen
+	mkdir -p $(DEPSGOBIN)
+	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
+	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
+	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/protoc-gen-gogo
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
+	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/gogoproto
+	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
@@ -134,9 +137,9 @@ generate-all: generated-code generated-ui
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code:
-	GO111MODULE=on CGO_ENABLED=0 go generate ./...
-	goimports -w $(SUBDIRS)
-	go mod tidy
+	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=0 go generate ./...
+	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
+	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
 # Flags for all UI code generation
 COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
@@ -567,7 +570,7 @@ helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
 	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
+	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 
 .PHONY: init-helm
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized

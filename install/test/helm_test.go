@@ -705,6 +705,103 @@ spec:
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
+			It("enable default credentials", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"settings.aws.enableCredentialsDiscovery=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+  gateway:
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+  gloo:
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    awsOptions:
+      enableCredentialsDiscovey: true
+  ratelimitServer:
+    ratelimit_server_ref:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
+			It("enable sts discovery", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"settings.aws.enableServiceAccountCredentials=true",
+						"settings.aws.stsCredentialsRegion=us-east-2",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth: 
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+  gateway:
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+  gloo:
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    awsOptions:
+      serviceAccountCredentials:
+        cluster: aws_sts_cluster
+        uri: sts.us-east-2.amazonaws.com
+  ratelimitServer:
+    ratelimit_server_ref: 
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
 			It("creates a deployment without extauth sidecar", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())

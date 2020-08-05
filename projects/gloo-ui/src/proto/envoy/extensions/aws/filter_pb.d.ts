@@ -3,7 +3,10 @@
 // file: envoy/extensions/aws/filter.proto
 
 import * as jspb from "google-protobuf";
+import * as gogoproto_gogo_pb from "../../../gogoproto/gogo_pb";
+import * as extproto_ext_pb from "../../../extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as validate_validate_pb from "../../../validate/validate_pb";
 
 export class AWSLambdaPerRoute extends jspb.Message {
@@ -56,6 +59,9 @@ export class AWSLambdaProtocolExtension extends jspb.Message {
   getSessionToken(): string;
   setSessionToken(value: string): void;
 
+  getRoleArn(): string;
+  setRoleArn(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaProtocolExtension.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaProtocolExtension): AWSLambdaProtocolExtension.AsObject;
@@ -73,6 +79,7 @@ export namespace AWSLambdaProtocolExtension {
     accessKey: string,
     secretKey: string,
     sessionToken: string,
+    roleArn: string,
   }
 }
 
@@ -82,6 +89,12 @@ export class AWSLambdaConfig extends jspb.Message {
   getUseDefaultCredentials(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setUseDefaultCredentials(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasServiceAccountCredentials(): boolean;
+  clearServiceAccountCredentials(): void;
+  getServiceAccountCredentials(): AWSLambdaConfig.ServiceAccountCredentials | undefined;
+  setServiceAccountCredentials(value?: AWSLambdaConfig.ServiceAccountCredentials): void;
+
+  getCredentialsFetcherCase(): AWSLambdaConfig.CredentialsFetcherCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaConfig.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaConfig): AWSLambdaConfig.AsObject;
@@ -95,5 +108,42 @@ export class AWSLambdaConfig extends jspb.Message {
 export namespace AWSLambdaConfig {
   export type AsObject = {
     useDefaultCredentials?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    serviceAccountCredentials?: AWSLambdaConfig.ServiceAccountCredentials.AsObject,
+  }
+
+  export class ServiceAccountCredentials extends jspb.Message {
+    getCluster(): string;
+    setCluster(value: string): void;
+
+    getUri(): string;
+    setUri(value: string): void;
+
+    hasTimeout(): boolean;
+    clearTimeout(): void;
+    getTimeout(): google_protobuf_duration_pb.Duration | undefined;
+    setTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ServiceAccountCredentials.AsObject;
+    static toObject(includeInstance: boolean, msg: ServiceAccountCredentials): ServiceAccountCredentials.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ServiceAccountCredentials, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ServiceAccountCredentials;
+    static deserializeBinaryFromReader(message: ServiceAccountCredentials, reader: jspb.BinaryReader): ServiceAccountCredentials;
+  }
+
+  export namespace ServiceAccountCredentials {
+    export type AsObject = {
+      cluster: string,
+      uri: string,
+      timeout?: google_protobuf_duration_pb.Duration.AsObject,
+    }
+  }
+
+  export enum CredentialsFetcherCase {
+    CREDENTIALS_FETCHER_NOT_SET = 0,
+    USE_DEFAULT_CREDENTIALS = 1,
+    SERVICE_ACCOUNT_CREDENTIALS = 2,
   }
 }

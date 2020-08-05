@@ -187,12 +187,15 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
     };
     if (values.type === UPSTREAM_SPEC_TYPES.AWS) {
       const { awsRegion: region, awsSecretRef: secretRef } = values;
+      const roleArn: string = ""; // TODO: incorporate into UI at a later date, defaulting to "" is fine for now
       const aws: Upstream.AsObject = {
         ...initialUpstreamSpec,
+
         aws: {
           region,
           secretRef,
-          lambdaFunctionsList: []
+          lambdaFunctionsList: [],
+          roleArn,
         }
       };
 
