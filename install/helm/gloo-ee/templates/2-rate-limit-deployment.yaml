@@ -1,26 +1,30 @@
 {{- if .Values.rateLimit.enabled }}
-{{- $image := .Values.rateLimit.deployment.image }}
 {{- $statsConfig := coalesce .Values.rateLimit.deployment.stats .Values.global.glooStats -}}
-{{- if .Values.global  }}
-{{- $image = merge .Values.rateLimit.deployment.image .Values.global.image }}
-{{- end }}
+{{- $image := merge .Values.rateLimit.deployment.image .Values.global.image }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $rateLimitName := $.Values.rateLimit.deployment.name }}
+{{- $redisName := $.Values.redis.service.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
+{{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: gloo
-    gloo: rate-limit
-  name: rate-limit
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $rateLimitName }}
+  name: {{ $rateLimitName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      gloo: rate-limit
+      gloo: {{ $rateLimitName }}
   template:
     metadata:
       labels:
-        gloo: rate-limit
+        gloo: {{ $rateLimitName }}
       {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics
@@ -28,7 +32,7 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
-      serviceAccountName: {{ .Values.rateLimit.service.name }}
+      serviceAccountName: {{ $.Values.rateLimit.service.name }}
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
@@ -39,43 +43,43 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: GLOO_ADDRESS
-              {{- if .Values.global.glooMtls.enabled }}
+              {{- if $.Values.global.glooMtls.enabled }}
               value: "127.0.0.1:9955"
               {{- else }}
-              value: {{ .Values.rateLimit.deployment.glooAddress }}
+              value: {{ $.Values.rateLimit.deployment.glooAddress }}
               {{- end }}
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
-            {{- if .Values.rateLimit.deployment.dynamodb.secretName }}
+            {{- if $.Values.rateLimit.deployment.dynamodb.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.rateLimit.deployment.dynamodb.secretName }}
+                  name: {{ $.Values.rateLimit.deployment.dynamodb.secretName }}
                   key: aws_access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.rateLimit.deployment.dynamodb.secretName }}
+                  name: {{ $.Values.rateLimit.deployment.dynamodb.secretName }}
                   key: aws_secret_access_key
             - name: AWS_REGION
-              value: {{ .Values.rateLimit.deployment.dynamodb.region }}
+              value: {{ $.Values.rateLimit.deployment.dynamodb.region }}
             - name: DYNAMODB_RATE_LIMIT_TABLE_NAME
-              value: {{ .Values.rateLimit.deployment.dynamodb.tableName }}
+              value: {{ $.Values.rateLimit.deployment.dynamodb.tableName }}
             - name: DYNAMODB_CONSISTENT_READS
-              value: {{ .Values.rateLimit.deployment.dynamodb.consistentReads | quote }}
+              value: {{ $.Values.rateLimit.deployment.dynamodb.consistentReads | quote }}
             - name: DYNAMODB_BATCH_SIZE
-              value: {{ .Values.rateLimit.deployment.dynamodb.batchSize | quote }}
+              value: {{ $.Values.rateLimit.deployment.dynamodb.batchSize | quote }}
             {{- else }} # .Values.rateLimit.deployment.dynamodb.secretName
             - name: REDIS_URL
-              value: {{ .Values.rateLimit.deployment.redisUrl }}
+              value: {{ printf "%s:%v" $redisName $.Values.redis.service.port }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }} # .Values.rateLimit.deployment.dynamodb.secretName
-        {{- if .Values.global.glooMtls.enabled }}
-        {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
-        {{- $envoyImage := merge .Values.global.glooMtls.envoy.image .Values.global.image}}
+        {{- if $.Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge $.Values.global.glooMtls.sds.image $.Values.global.image }}
+        {{- $envoyImage := merge $.Values.global.glooMtls.envoy.image $.Values.global.image}}
         - name: envoy-sidecar
           env:
             - name: ENVOY_SIDECAR
@@ -105,10 +109,10 @@ spec:
         {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
         {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
         {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
-        {{- if not .Values.rateLimit.deployment.floatingUserId }}
-        runAsUser: {{ printf "%.0f" (float64 .Values.rateLimit.deployment.runAsUser) -}}
+        {{- if not $.Values.rateLimit.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 $.Values.rateLimit.deployment.runAsUser) -}}
         {{- end }}
-      {{- if .Values.global.glooMtls.enabled }}
+      {{- if $.Values.global.glooMtls.enabled }}
       volumes:
         - name: gloo-mtls-certs
           secret:
@@ -118,4 +122,6 @@ spec:
           configMap:
             name: rate-limit-sidecar-config
       {{- end }} # .Values.global.glooMtls.enabled
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
 {{- end }}

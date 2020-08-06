@@ -1,12 +1,17 @@
 {{- if .Values.rateLimit.enabled }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $rateLimitName := $.Values.rateLimit.service.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.rateLimit.service.name }}
-  name: {{ .Values.rateLimit.service.name }}
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $rateLimitName }}
+  name: {{ $rateLimitName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   healthChecks:
   - timeout: 5s
@@ -14,11 +19,13 @@ spec:
     unhealthyThreshold: 5
     healthyThreshold: 5
     grpcHealthCheck:
-      serviceName: ratelimit
+      serviceName: {{ $rateLimitName }}
   kube:
-    serviceName: {{ .Values.rateLimit.service.name }}
-    serviceNamespace: {{ .Release.Namespace }}
-    servicePort:  {{ .Values.rateLimit.service.port }}
+    serviceName: {{ $rateLimitName }}
+    serviceNamespace: {{ $.Release.Namespace }}
+    servicePort:  {{ $.Values.rateLimit.service.port }}
     serviceSpec:
       grpc: {}
-{{- end }}
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # .Values.rateLimit.enabled

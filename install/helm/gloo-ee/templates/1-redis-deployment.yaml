@@ -1,32 +1,34 @@
 {{- if .Values.rateLimit.enabled }}
-{{- $image := .Values.redis.deployment.image }}
-{{- if .Values.global  }}
-{{- $image = merge .Values.redis.deployment.image .Values.global.image }}
-{{- end }}
+{{- $image := merge .Values.redis.deployment.image .Values.global.image }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $redisName := $.Values.redis.deployment.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: gloo
-    gloo: redis
-  name: redis
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $redisName }}
+  name: {{ $redisName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      gloo: redis
+      gloo: {{ $redisName }}
   template:
     metadata:
       labels:
-        gloo: redis
+        gloo: {{ $redisName }}
     spec:
       containers:
         - image: {{template  "gloo.image" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
           ports:
-            - containerPort: {{ .Values.redis.deployment.staticPort }}
+            - containerPort: {{ $.Values.redis.deployment.staticPort }}
           env:
             - name: MASTER
               value: "true"
@@ -35,13 +37,14 @@ spec:
               name: data
       securityContext:
         runAsNonRoot: true
-        runAsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsGroup) }}
-        fsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.fsGroup) }}
-        {{- if not .Values.redis.deployment.floatingUserId }}
-        runAsUser: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsUser) -}}
+        runAsGroup: {{ printf "%.0f" (float64 $.Values.redis.deployment.runAsGroup) }}
+        fsGroup: {{ printf "%.0f" (float64 $.Values.redis.deployment.fsGroup) }}
+        {{- if not $.Values.redis.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 $.Values.redis.deployment.runAsUser) -}}
         {{- end }}
-
       volumes:
         - name: data
           emptyDir: {}
-{{- end }}
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # .Values.rateLimit.enabled

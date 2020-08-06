@@ -1,17 +1,24 @@
 {{- if .Values.rateLimit.enabled }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $rateLimitName := $.Values.rateLimit.service.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.rateLimit.service.name }}
-  name: {{ .Values.rateLimit.service.name }}
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $rateLimitName }}
+  name: {{ $rateLimitName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   ports:
   - name: grpc
-    port: {{ .Values.rateLimit.service.port }}
+    port: {{ $.Values.rateLimit.service.port }}
     protocol: TCP
   selector:
-    gloo: {{ .Values.rateLimit.service.name }}
-{{- end }}
+    gloo: {{ $rateLimitName }}
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # .Values.rateLimit.enabled

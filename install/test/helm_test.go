@@ -445,6 +445,155 @@ var _ = Describe("Helm Test", func() {
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("allows dataplane per proxy", func() {
+
+				helmOverrideFileContents := `
+global:
+  extensions:
+    dataplanePerProxy: true
+  glooStats:
+    enabled: true
+gloo:
+  global:
+    glooStats:
+      enabled: true
+  discovery:
+    fdsMode: BLACKLIST
+  gateway:
+    validation:
+      alwaysAcceptResources: false
+      allowWarnings: false
+      webhook:
+        enabled: true
+  gatewayProxies:
+    gatewayProxy:
+      stats:
+        enabled: true
+      loopBackAddress: 127.0.0.1
+      readConfig: true
+      gatewaySettings:
+        customHttpGateway:
+          virtualServices:
+          - name: standard-vs
+            namespace: gloo-system
+          options:
+            httpConnectionManagerSettings:
+              xffNumTrustedHops: 1
+            proxyLatency:
+              chargeClusterStat: true
+              chargeListenerStat: true
+              response: FIRST_INCOMING_FIRST_OUTGOING
+        customHttpsGateway:
+          virtualServices:
+          - name: standard-vs
+            namespace: gloo-system
+          options:
+            httpConnectionManagerSettings:
+              xffNumTrustedHops: 1
+            proxyLatency:
+              chargeClusterStat: true
+              chargeListenerStat: true
+              response: FIRST_INCOMING_FIRST_OUTGOING
+      podTemplate:
+        disableNetBind: false
+        floatingUserId: false
+        httpPort: 8080
+        httpsPort: 8443
+    customProxy:
+      loopBackAddress: 127.0.0.1
+      stats:
+        enabled: true
+      gatewaySettings:
+        customHttpGateway: 
+          virtualServices:
+          - name: custom-vs
+            namespace: gloo-system
+          options:
+            httpConnectionManagerSettings:
+              xffNumTrustedHops: 1
+            proxyLatency:
+              chargeClusterStat: true
+              chargeListenerStat: true
+              response: FIRST_INCOMING_FIRST_OUTGOING
+        customHttpsGateway:
+          virtualServices:
+          - name: custom-vs
+            namespace: gloo-system
+          options:
+            httpConnectionManagerSettings:
+              xffNumTrustedHops: 1
+            proxyLatency:
+              chargeClusterStat: true
+              chargeListenerStat: true
+              response: FIRST_INCOMING_FIRST_OUTGOING
+      readConfig: true
+      configMap:
+        data: 
+      kind:
+        deployment:
+          antiAffinity: false
+          replicas: 1
+      podTemplate:
+        disableNetBind: false
+        floatingUserId: false
+        httpPort: 8180
+        httpsPort: 8543
+        image:
+          repository: gloo-ee-envoy-wrapper
+          tag: 1.4.0
+        probes: false
+        runUnprivileged: false
+      service:
+        httpPort: 80
+        httpsPort: 1443
+        type: LoadBalancer
+        annotations:
+          prometheus.io/path: "/metrics"
+          prometheus.io/port: "8081"
+          prometheus.io/scrape: "true"
+`
+
+				helmOverrideFile := "helm-override-*.yaml"
+				tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+				Expect(err).ToNot(HaveOccurred())
+				_, err = tmpFile.Write([]byte(helmOverrideFileContents))
+				Expect(err).NotTo(HaveOccurred())
+				defer tmpFile.Close()
+				defer os.Remove(tmpFile.Name())
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesFile: tmpFile.Name(),
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				assertExpectedResourcesForProxy := func(proxyName string) {
+					gatewayProxyRateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("rate-limit-%s", proxyName)
+					})
+
+					// Deployment, Service, Upstream
+					Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting RateLimit Deployment, Service, and Upstream", proxyName))
+
+					gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
+					})
+
+					// Deployment, Service
+					Expect(gatewayProxyRedisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis Deployment and Service", proxyName))
+
+					gatewayProxyExtAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("extauth-%s", proxyName)
+					})
+
+					// Deployment, Service, Upstream
+					Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream", proxyName))
+
+				}
+
+				assertExpectedResourcesForProxy("gateway-proxy")
+				assertExpectedResourcesForProxy("custom-proxy")
+
+			})
+
 			It("allows setting the number of replicas for the deployment", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"global.extensions.extAuth.deployment.replicas=3"},
@@ -492,12 +641,15 @@ global:
             registry: bar
             pullPolicy: IfNotPresent
             tag: 1.2.3`
-				helmOverrideFile := "helm-override.yaml"
-				err := ioutil.WriteFile(helmOverrideFile, []byte(helmOverrideFileContents), 0644)
+				helmOverrideFile := "helm-override-*.yaml"
+				tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+				Expect(err).ToNot(HaveOccurred())
+				_, err = tmpFile.Write([]byte(helmOverrideFileContents))
 				Expect(err).NotTo(HaveOccurred())
-				defer os.Remove(helmOverrideFile)
+				defer tmpFile.Close()
+				defer os.Remove(tmpFile.Name())
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesFile: helmOverrideFile,
+					valuesFile: tmpFile.Name(),
 				})
 				Expect(err).NotTo(HaveOccurred())
 

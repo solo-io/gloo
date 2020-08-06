@@ -1,20 +1,27 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- if $extAuth.standaloneDeployment }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $extAuthName := $extAuth.service.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $extAuthName = printf "%s-%s" $extAuthName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app: gloo
-    gloo: {{ $extAuth.service.name }}
-  name: {{ $extAuth.service.name }}
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $extAuthName }}
+  name: {{ $extAuthName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   ports:
   - name: grpc
     port: {{ $extAuth.service.port }}
     protocol: TCP
   selector:
-    gloo: {{ $extAuth.service.name }}
-{{- end }}
+    gloo: {{ $extAuthName }}
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
 {{- end }} # enabled
+{{- end }} # .Values.global.extensions.extAuth.standaloneDeployment

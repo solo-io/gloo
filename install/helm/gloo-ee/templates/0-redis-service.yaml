@@ -1,17 +1,24 @@
 {{- if .Values.rateLimit.enabled }}
+{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- $redisName := $.Values.redis.service.name }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
+{{- end }} # .Values.global.extensions.dataplanePerProxy
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app: gloo
-    gloo: {{ .Values.redis.service.name }}
-  name: {{ .Values.redis.service.name }}
-  namespace: {{ .Release.Namespace }}
+    gloo: {{ $redisName }}
+  name: {{ $redisName }}
+  namespace: {{ $.Release.Namespace }}
 spec:
   ports:
     - name: redis
-      port: {{ .Values.redis.service.port }}
+      port: {{ $.Values.redis.service.port }}
       protocol: TCP
   selector:
-    gloo: {{ .Values.redis.service.name }}
-{{- end }}
+    gloo: {{ $redisName }}
+---
+{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # .Values.rateLimit.enabled

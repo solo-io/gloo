@@ -49,7 +49,7 @@ type DynamoDb struct {
 }
 
 type RateLimitDeployment struct {
-	RedisUrl       string         `json:"redisUrl"`
+	Name           string         `json:"name"`
 	GlooAddress    string         `json:"glooAddress"`
 	DynamoDb       DynamoDb       `json:"dynamodb"`
 	Image          *glooGen.Image `json:"image,omitempty"`
@@ -72,6 +72,7 @@ type Redis struct {
 
 type RedisDeployment struct {
 	Image          *glooGen.Image `json:"image,omitempty"`
+	Name           string         `json:"name"`
 	StaticPort     uint           `json:"staticPort"`
 	RunAsUser      float64        `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
 	RunAsGroup     float64        `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`

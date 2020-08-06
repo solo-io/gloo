@@ -160,7 +160,6 @@ rateLimit:
     image:
       repository: rate-limit-ee
     glooAddress: gloo:9977
-    redisUrl: redis:6379
     dynamodb:
       region: us-east-2
       tableName: rate-limits

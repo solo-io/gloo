@@ -49,7 +49,7 @@ Expand the name of the chart.
 
 {{/* Init container definition for extauth plugin setup */}}
 {{- define "gloo.extauthinitcontainers" -}}
-{{- $extAuth := .Values.global.extensions.extAuth -}}
+{{- $extAuth := $.Values.global.extensions.extAuth -}}
 {{- range $name, $plugin := $extAuth.plugins -}}
 {{- $pluginImage := merge $plugin.image $.Values.global.image -}}
 - image: {{template "gloo.image" $pluginImage}}
@@ -70,13 +70,13 @@ Expand the name of the chart.
      taking either the value "sidecar" or "standalone". It will default to "sidecar"
      if the value is not provided. */}}
 {{- define "gloo.extauthcontainer" -}}
-{{- $extAuth := .Values.global.extensions.extAuth -}}
+{{- $extAuth := $.Values.global.extensions.extAuth -}}
 {{- $image := $extAuth.deployment.image -}}
-{{- $statsConfig := coalesce $extAuth.deployment.stats .Values.global.glooStats -}}
-{{- if .Values.global -}}
-{{- $image = merge $extAuth.deployment.image .Values.global.image -}}
+{{- $statsConfig := coalesce $extAuth.deployment.stats $.Values.global.glooStats -}}
+{{- if $.Values.global -}}
+{{- $image = merge $extAuth.deployment.image $.Values.global.image -}}
 {{- end -}}
-{{- $extAuthServerPort := .Values.global.glooMtls.enabled | ternary 8084 $extAuth.deployment.port -}}
+{{- $extAuthServerPort := $.Values.global.glooMtls.enabled | ternary 8084 $extAuth.deployment.port -}}
 {{- $extAuthMode := default "sidecar" .ExtAuthMode -}}
 - image: {{template "gloo.image" $image}}
   imagePullPolicy: {{ $image.pullPolicy }}
@@ -92,13 +92,13 @@ Expand the name of the chart.
 {{- if $extAuth.deployment.glooAddress }}
       value: {{ $extAuth.deployment.glooAddress }}
 {{- else }}
-      {{- if .Values.global.glooMtls.enabled }}
+      {{- if $.Values.global.glooMtls.enabled }}
       value: "127.0.0.1:9955"
       {{- else }}
-      {{- if .Values.gloo.gloo }}
+      {{- if $.Values.gloo.gloo }}
       value: gloo:{{ .Values.gloo.gloo.deployment.xdsPort }}
       {{- else }}
-      value: gloo:{{ .Values.gloo.deployment.xdsPort }}
+      value: gloo:{{ $.Values.gloo.deployment.xdsPort }}
       {{- end }}
       {{- end }}
 {{- end }}

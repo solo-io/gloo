@@ -1,0 +1,10 @@
+changelog:
+  - type: HELM
+    description: >-
+      Add the new helm value `global.extensions.dataplanePerProxy` (default false). When true, Gloo will deploy a set
+      of dataplane resources for each proxy deployment (i.e., gateway/ingress). These resources include the extauth
+      server and rate limit server, as well as their dependent resources. Note that if `dataplanePerProxy` is enabled,
+      that each `Gateway` resource will need to be updated to point to their respective dataplane, via the
+      `gatewayProxies.NAME.gatewaySettings.customHttpGateway` and/or the
+      `gatewayProxies.NAME.gatewaySettings.customHttpsGateway` helm values.
+    issueLink: https://github.com/solo-io/gloo/issues/3236
