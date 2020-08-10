@@ -311,10 +311,19 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 
 	case *extauthv1.ExtAuthConfig_Config_ApiKeyAuth:
-		apiKeyCfg := apikeys.Config{
-			ValidApiKeyAndUserName: cfg.ApiKeyAuth.ValidApiKeyAndUser,
+		validApiKeys := map[string]apikeys.KeyMetadata{}
+		for apiKey, metadata := range cfg.ApiKeyAuth.ValidApiKeys {
+			validApiKeys[apiKey] = apikeys.KeyMetadata{
+				UserName: metadata.Username,
+				Metadata: metadata.Metadata,
+			}
 		}
-		return &apiKeyCfg, "", nil
+		apiKeyAuthService := apikeys.NewAPIKeyService(
+			cfg.ApiKeyAuth.HeaderName,
+			validApiKeys,
+			cfg.ApiKeyAuth.HeadersFromKeyMetadata,
+		)
+		return apiKeyAuthService, "", nil
 
 	case *extauthv1.ExtAuthConfig_Config_PluginAuth:
 		p, err := c.pluginLoader.LoadAuthPlugin(ctx, cfg.PluginAuth)

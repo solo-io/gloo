@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
+
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -18,8 +20,16 @@ import (
 var (
 	unknownConfigTypeError = errors.New("unknown ext auth configuration")
 	emptyQueryError        = errors.New("no query provided")
-	emptyApiKeyError       = errors.New("no apikey found on apikey secret")
-	duplicateModuleError   = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
+	NonApiKeySecretError   = func(secret *v1.Secret) error {
+		return errors.Errorf("secret [%s] is not an API key secret", secret.Metadata.Ref().Key())
+	}
+	EmptyApiKeyError = func(secret *v1.Secret) error {
+		return errors.Errorf("no API key found on API key secret [%s]", secret.Metadata.Ref().Key())
+	}
+	MissingRequiredMetadataError = func(requiredKey string, secret *v1.Secret) error {
+		return errors.Errorf("API key secret [%s] does not contain the required [%s] metadata entry", secret.Metadata.Ref().Key(), requiredKey)
+	}
+	duplicateModuleError = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
 )
 
 // Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
@@ -51,10 +61,10 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1.ApiSnapshot, authC
 	}, nil
 }
 
-func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
+func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
 	extAuthConfig := &extauth.ExtAuthConfig_Config{}
 
-	switch config := config.AuthConfig.(type) {
+	switch config := cfg.AuthConfig.(type) {
 	case *extauth.AuthConfig_Config_BasicAuth:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_BasicAuth{
 			BasicAuth: config.BasicAuth,
@@ -89,12 +99,12 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.
 			}
 		}
 	case *extauth.AuthConfig_Config_ApiKeyAuth:
-		cfg, err := translateApiKey(snap, config.ApiKeyAuth)
+		apiKeyConfig, err := translateApiKey(snap, config.ApiKeyAuth)
 		if err != nil {
 			return nil, err
 		}
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_ApiKeyAuth{
-			ApiKeyAuth: cfg,
+			ApiKeyAuth: apiKeyConfig,
 		}
 	case *extauth.AuthConfig_Config_PluginAuth:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_PluginAuth{
@@ -148,43 +158,99 @@ func translateOpaConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extau
 }
 
 func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
-	validApiKeyAndUser := make(map[string]string)
+	var (
+		matchingSecrets []*v1.Secret
+		searchErrs      = &multierror.Error{}
+		secretErrs      = &multierror.Error{}
+	)
 
-	// add valid apikey/user map entries using provided secret refs
+	// Find directly referenced secrets
 	for _, secretRef := range config.ApiKeySecretRefs {
 		secret, err := snap.Secrets.Find(secretRef.Namespace, secretRef.Name)
 		if err != nil {
-			return nil, err
+			searchErrs = multierror.Append(searchErrs, err)
+			continue
 		}
-		apiKey := secret.GetApiKey().GetApiKey()
-		if apiKey == "" {
-			return nil, emptyApiKeyError
-		}
-		validApiKeyAndUser[apiKey] = secretRef.Name
+		matchingSecrets = append(matchingSecrets, secret)
 	}
 
-	// add valid apikey/user map entries using secrets matching provided label selector
+	// Find secrets matching provided label selector
 	if config.LabelSelector != nil && len(config.LabelSelector) > 0 {
 		foundAny := false
 		for _, secret := range snap.Secrets {
 			selector := labels.Set(config.LabelSelector).AsSelectorPreValidated()
 			if selector.Matches(labels.Set(secret.Metadata.Labels)) {
-				apiKey := secret.GetApiKey().GetApiKey()
-				if apiKey == "" {
-					return nil, emptyApiKeyError
-				}
-				validApiKeyAndUser[apiKey] = secret.Metadata.Name
+				matchingSecrets = append(matchingSecrets, secret)
 				foundAny = true
 			}
 		}
 		if !foundAny {
-			return nil, NoMatchesForGroupError(config.LabelSelector)
+			searchErrs = multierror.Append(searchErrs, NoMatchesForGroupError(config.LabelSelector))
 		}
 	}
 
-	return &extauth.ExtAuthConfig_ApiKeyAuthConfig{
-		ValidApiKeyAndUser: validApiKeyAndUser,
-	}, nil
+	if err := searchErrs.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+
+	var requiredSecretKeys []string
+	for _, secretKey := range config.HeadersFromMetadata {
+		if secretKey.Required {
+			requiredSecretKeys = append(requiredSecretKeys, secretKey.Name)
+		}
+	}
+
+	validApiKeys := make(map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata)
+	for _, secret := range matchingSecrets {
+		apiKeySecret := secret.GetApiKey()
+		if apiKeySecret == nil {
+			secretErrs = multierror.Append(secretErrs, NonApiKeySecretError(secret))
+			continue
+		}
+
+		apiKey := apiKeySecret.GetApiKey()
+		if apiKey == "" {
+			secretErrs = multierror.Append(secretErrs, EmptyApiKeyError(secret))
+			continue
+		}
+
+		// If there is required metadata, make sure the secret contains it
+		secretMetadata := apiKeySecret.GetMetadata()
+		for _, requiredKey := range requiredSecretKeys {
+			if _, ok := secretMetadata[requiredKey]; !ok {
+				secretErrs = multierror.Append(secretErrs, MissingRequiredMetadataError(requiredKey, secret))
+				continue
+			}
+		}
+
+		apiKeyMetadata := &extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+			Username: secret.Metadata.Name,
+		}
+
+		if len(secretMetadata) > 0 {
+			apiKeyMetadata.Metadata = make(map[string]string)
+			for k, v := range secretMetadata {
+				apiKeyMetadata.Metadata[k] = v
+			}
+		}
+
+		validApiKeys[apiKey] = apiKeyMetadata
+	}
+
+	apiKeyAuthConfig := &extauth.ExtAuthConfig_ApiKeyAuthConfig{
+		HeaderName:   config.HeaderName,
+		ValidApiKeys: validApiKeys,
+	}
+
+	// Add metadata if present
+	if len(config.HeadersFromMetadata) > 0 {
+		apiKeyAuthConfig.HeadersFromKeyMetadata = make(map[string]string)
+		for k, v := range config.HeadersFromMetadata {
+			apiKeyAuthConfig.HeadersFromKeyMetadata[k] = v.GetName()
+		}
+	}
+
+	return apiKeyAuthConfig, secretErrs.ErrorOrNil()
 }
 
 // translate deprecated config

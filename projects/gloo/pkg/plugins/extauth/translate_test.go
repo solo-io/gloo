@@ -178,12 +178,13 @@ var _ = Describe("Translate", func() {
 
 			authConfig = &extauth.AuthConfig{
 				Metadata: core.Metadata{
-					Name:      "oauth",
+					Name:      "apikey",
 					Namespace: "gloo-system",
 				},
 				Configs: []*extauth.AuthConfig_Config{{
 					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
 						ApiKeyAuth: &extauth.ApiKeyAuth{
+							HeaderName:       "x-api-key",
 							ApiKeySecretRefs: []*core.ResourceRef{&secretRef},
 						},
 					},
@@ -197,9 +198,24 @@ var _ = Describe("Translate", func() {
 			}
 
 			params.Snapshot = &v1.ApiSnapshot{
-				Upstreams:   v1.UpstreamList{upstream},
 				AuthConfigs: extauth.AuthConfigList{authConfig},
 			}
+		})
+
+		Context("secret is malformed", func() {
+			It("returns expected error when secret is not of API key type", func() {
+				secret.Kind = &v1.Secret_Aws{}
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring(NonApiKeySecretError(secret).Error())))
+			})
+
+			It("returns expected error when the secret does not contain an API key", func() {
+				secret.GetApiKey().ApiKey = ""
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring(EmptyApiKeyError(secret).Error())))
+			})
 		})
 
 		Context("with api key extauth, secret ref matching", func() {
@@ -209,7 +225,14 @@ var _ = Describe("Translate", func() {
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
 				actual := translated.Configs[0].GetApiKeyAuth()
-				Expect(actual.ValidApiKeyAndUser).To(Equal(map[string]string{"apiKey1": "secretName"}))
+				Expect(actual).To(Equal(&extauth.ExtAuthConfig_ApiKeyAuthConfig{
+					HeaderName: "x-api-key",
+					ValidApiKeys: map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+						"apiKey1": {
+							Username: "secretName",
+						},
+					},
+				}))
 			})
 
 			It("should translate api keys config for extauth server - mismatching secret ref", func() {
@@ -220,11 +243,117 @@ var _ = Describe("Translate", func() {
 			})
 		})
 
+		Describe("API keys with metadata", func() {
+
+			BeforeEach(func() {
+				secret = &v1.Secret{
+					Metadata: core.Metadata{
+						Name:      "secretName",
+						Namespace: "default",
+						Labels:    map[string]string{"team": "infrastructure"},
+					},
+					Kind: &v1.Secret_ApiKey{
+						ApiKey: &extauth.ApiKeySecret{
+							ApiKey: "apiKey1",
+							Metadata: map[string]string{
+								"user-id": "123",
+							},
+						},
+					},
+				}
+				secretRef := secret.Metadata.Ref()
+				authConfig = &extauth.AuthConfig{
+					Metadata: core.Metadata{
+						Name:      "apikey",
+						Namespace: "gloo-system",
+					},
+					Configs: []*extauth.AuthConfig_Config{{
+						AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
+							ApiKeyAuth: &extauth.ApiKeyAuth{
+								HeaderName:       "x-api-key",
+								ApiKeySecretRefs: []*core.ResourceRef{&secretRef},
+								HeadersFromMetadata: map[string]*extauth.ApiKeyAuth_SecretKey{
+									"x-user-id": {
+										Name:     "user-id",
+										Required: true,
+									},
+								},
+							},
+						},
+					}},
+				}
+				authConfigRef = authConfig.Metadata.Ref()
+				extAuthExtension = &extauth.ExtAuthExtension{
+					Spec: &extauth.ExtAuthExtension_ConfigRef{
+						ConfigRef: &authConfigRef,
+					},
+				}
+
+				params.Snapshot = &v1.ApiSnapshot{
+					AuthConfigs: extauth.AuthConfigList{authConfig},
+				}
+			})
+
+			It("should fail if required metadata is missing on the secret", func() {
+				secret.GetApiKey().Metadata = nil
+
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring(MissingRequiredMetadataError("user-id", secret).Error())))
+			})
+
+			It("should include secret metadata in the API key metadata", func() {
+				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+				Expect(translated.Configs).To(HaveLen(1))
+				actual := translated.Configs[0].GetApiKeyAuth()
+				Expect(actual).To(Equal(&extauth.ExtAuthConfig_ApiKeyAuthConfig{
+					HeaderName: "x-api-key",
+					ValidApiKeys: map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+						"apiKey1": {
+							Username: "secretName",
+							Metadata: map[string]string{
+								"user-id": "123",
+							},
+						},
+					},
+					HeadersFromKeyMetadata: map[string]string{
+						"x-user-id": "user-id",
+					},
+				}))
+			})
+
+			When("metadata is not required", func() {
+				It("does not fail if the secret does not contain the metadata", func() {
+					secret.GetApiKey().Metadata = nil
+					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadata()["x-user-id"].Required = false
+
+					translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+					Expect(translated.Configs).To(HaveLen(1))
+					actual := translated.Configs[0].GetApiKeyAuth()
+					Expect(actual).To(Equal(&extauth.ExtAuthConfig_ApiKeyAuthConfig{
+						HeaderName: "x-api-key",
+						ValidApiKeys: map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+							"apiKey1": {
+								Username: "secretName",
+							},
+						},
+						HeadersFromKeyMetadata: map[string]string{
+							"x-user-id": "user-id",
+						},
+					}))
+				})
+			})
+		})
+
 		Context("with api key ext auth, label matching", func() {
 			BeforeEach(func() {
 				authConfig = &extauth.AuthConfig{
 					Metadata: core.Metadata{
-						Name:      "oauth",
+						Name:      "apikey",
 						Namespace: "gloo-system",
 					},
 					Configs: []*extauth.AuthConfig_Config{{
@@ -243,7 +372,6 @@ var _ = Describe("Translate", func() {
 				}
 
 				params.Snapshot = &v1.ApiSnapshot{
-					Upstreams:   v1.UpstreamList{upstream},
 					AuthConfigs: extauth.AuthConfigList{authConfig},
 				}
 			})
@@ -254,7 +382,11 @@ var _ = Describe("Translate", func() {
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
 				actual := translated.Configs[0].GetApiKeyAuth()
-				Expect(actual.ValidApiKeyAndUser).To(Equal(map[string]string{"apiKey1": "secretName"}))
+				Expect(actual.ValidApiKeys).To(Equal(map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+					"apiKey1": {
+						Username: "secretName",
+					},
+				}))
 			})
 
 			It("should translate api keys config for extauth server - mismatched labels", func() {

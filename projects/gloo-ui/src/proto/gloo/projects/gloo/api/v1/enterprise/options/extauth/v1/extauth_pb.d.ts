@@ -643,6 +643,11 @@ export class ApiKeyAuth extends jspb.Message {
   setApiKeySecretRefsList(value: Array<solo_kit_api_v1_ref_pb.ResourceRef>): void;
   addApiKeySecretRefs(value?: solo_kit_api_v1_ref_pb.ResourceRef, index?: number): solo_kit_api_v1_ref_pb.ResourceRef;
 
+  getHeaderName(): string;
+  setHeaderName(value: string): void;
+
+  getHeadersFromMetadataMap(): jspb.Map<string, ApiKeyAuth.SecretKey>;
+  clearHeadersFromMetadataMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKeyAuth.AsObject;
   static toObject(includeInstance: boolean, msg: ApiKeyAuth): ApiKeyAuth.AsObject;
@@ -657,6 +662,32 @@ export namespace ApiKeyAuth {
   export type AsObject = {
     labelSelectorMap: Array<[string, string]>,
     apiKeySecretRefsList: Array<solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+    headerName: string,
+    headersFromMetadataMap: Array<[string, ApiKeyAuth.SecretKey.AsObject]>,
+  }
+
+  export class SecretKey extends jspb.Message {
+    getName(): string;
+    setName(value: string): void;
+
+    getRequired(): boolean;
+    setRequired(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SecretKey.AsObject;
+    static toObject(includeInstance: boolean, msg: SecretKey): SecretKey.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SecretKey, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SecretKey;
+    static deserializeBinaryFromReader(message: SecretKey, reader: jspb.BinaryReader): SecretKey;
+  }
+
+  export namespace SecretKey {
+    export type AsObject = {
+      name: string,
+      required: boolean,
+    }
   }
 }
 
@@ -672,6 +703,8 @@ export class ApiKeySecret extends jspb.Message {
   setLabelsList(value: Array<string>): void;
   addLabels(value: string, index?: number): string;
 
+  getMetadataMap(): jspb.Map<string, string>;
+  clearMetadataMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKeySecret.AsObject;
   static toObject(includeInstance: boolean, msg: ApiKeySecret): ApiKeySecret.AsObject;
@@ -687,6 +720,7 @@ export namespace ApiKeySecret {
     generateApiKey: boolean,
     apiKey: string,
     labelsList: Array<string>,
+    metadataMap: Array<[string, string]>,
   }
 }
 
@@ -935,8 +969,13 @@ export namespace ExtAuthConfig {
   }
 
   export class ApiKeyAuthConfig extends jspb.Message {
-    getValidApiKeyAndUserMap(): jspb.Map<string, string>;
-    clearValidApiKeyAndUserMap(): void;
+    getValidApiKeysMap(): jspb.Map<string, ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata>;
+    clearValidApiKeysMap(): void;
+    getHeaderName(): string;
+    setHeaderName(value: string): void;
+
+    getHeadersFromKeyMetadataMap(): jspb.Map<string, string>;
+    clearHeadersFromKeyMetadataMap(): void;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ApiKeyAuthConfig.AsObject;
     static toObject(includeInstance: boolean, msg: ApiKeyAuthConfig): ApiKeyAuthConfig.AsObject;
@@ -949,7 +988,32 @@ export namespace ExtAuthConfig {
 
   export namespace ApiKeyAuthConfig {
     export type AsObject = {
-      validApiKeyAndUserMap: Array<[string, string]>,
+      validApiKeysMap: Array<[string, ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata.AsObject]>,
+      headerName: string,
+      headersFromKeyMetadataMap: Array<[string, string]>,
+    }
+
+    export class KeyMetadata extends jspb.Message {
+      getUsername(): string;
+      setUsername(value: string): void;
+
+      getMetadataMap(): jspb.Map<string, string>;
+      clearMetadataMap(): void;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): KeyMetadata.AsObject;
+      static toObject(includeInstance: boolean, msg: KeyMetadata): KeyMetadata.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: KeyMetadata, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): KeyMetadata;
+      static deserializeBinaryFromReader(message: KeyMetadata, reader: jspb.BinaryReader): KeyMetadata;
+    }
+
+    export namespace KeyMetadata {
+      export type AsObject = {
+        username: string,
+        metadataMap: Array<[string, string]>,
+      }
     }
   }
 

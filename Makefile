@@ -72,6 +72,10 @@ endef
 define get_test_tag_wasm
 	$(GCR_REPO_PREFIX)/$(1):wasm-$(TEST_IMAGE_TAG)
 endef
+# Wasm version
+define get_test_tag_wasm_option
+	-t $(GCR_REPO_PREFIX)/$(1):wasm-$(TEST_IMAGE_TAG)
+endef
 endif
 endif
 
@@ -545,7 +549,7 @@ gloo-ee-envoy-wasm-wrapper-docker: $(ENVOYWASM_OUT_DIR)/.gloo-ee-envoy-wasm-wrap
 $(ENVOYWASM_OUT_DIR)/.gloo-ee-envoy-wasm-wrapper-docker: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64 $(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm  $(ENVOYWASM_OUT_DIR)/docker-entrypoint.sh
 	docker build $(ENVOYWASM_OUT_DIR) -f $(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm \
         --build-arg ENVOY_IMAGE=$(ENVOY_WASM_GLOO_IMAGE) \
-		-t $(call get_test_tag_wasm,gloo-ee-envoy-wrapper) \
+		$(call get_test_tag_wasm_option,gloo-ee-envoy-wrapper) \
 		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(WASM_VERSION)
 	touch $@
 

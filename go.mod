@@ -35,8 +35,8 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
-	github.com/solo-io/ext-auth-service v0.6.13
-	github.com/solo-io/gloo v1.5.0-beta16
+	github.com/solo-io/ext-auth-service v0.6.15
+	github.com/solo-io/gloo v1.5.0-beta17
 	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
@@ -67,15 +67,10 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
-	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.0.5
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 
-	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
-	github.com/hashicorp/consul/api => github.com/hashicorp/consul/api v1.1.0
-	github.com/hashicorp/vault => github.com/hashicorp/vault v1.3.0
-	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
 	// We need to pin this to the version used by solo-kit, because dev-portal currently uses v1.3.1 (incompatible)
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
@@ -105,10 +100,8 @@ replace (
 	k8s.io/kubelet => k8s.io/kubelet v0.17.1
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.17.1
 	k8s.io/metrics => k8s.io/metrics v0.17.1
-	k8s.io/node-api => k8s.io/node-api v0.17.1
 	k8s.io/repo-infra => k8s.io/repo-infra v0.0.0-20181204233714-00fe14e3d1a3
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.17.1
-	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.17.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.17.1
 	k8s.io/utils => k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 )

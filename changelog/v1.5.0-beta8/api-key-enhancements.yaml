@@ -1,0 +1,24 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.5.0-beta17
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.6.15
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/3385
+  description: >
+    Allow adding arbitrary API key secret data to the headers of successfully authorized requests.
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/3390
+  description: >
+    Allow users to change the name of the header that the Gloo Enterprise external auth server inspects for API keys.
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/3472
+  description: >
+    The API keys can now be provided as simple Kubernetes secrets. Instead of being nested in a YAML document inside
+    the secret data, the key is now simply the value of the `api-key` data key. This change is backwards compatible,
+    i.e. Gloo will still support existing secrets with the old format. `glooctl create secret apikey` will now generate
+    secrets with the new format.

@@ -16,7 +16,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
 
 	"github.com/golang/mock/gomock"
-	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	chainmocks "github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain/mocks"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins/mocks"
@@ -146,8 +145,20 @@ var _ = Describe("Config Generator", func() {
 						{
 							AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
 								ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
-									ValidApiKeyAndUser: map[string]string{
-										"key": "user",
+									ValidApiKeys: map[string]*extauthv1.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+										"key-1": {
+											Username: "foo",
+										},
+										"key-2": {
+											Username: "bar",
+											Metadata: map[string]string{
+												"user-id": "123",
+											},
+										},
+									},
+									HeaderName: "x-api-key",
+									HeadersFromKeyMetadata: map[string]string{
+										"x-user-id": "user-id",
 									},
 								},
 							},
@@ -234,13 +245,7 @@ var _ = Describe("Config Generator", func() {
 			)
 
 			service = getAuthService(pluginCfg, resources[2].AuthConfigRefName)
-			akConfig, ok := service.(*apikeys.Config)
-			Expect(ok).To(BeTrue())
-			Expect(akConfig.ValidApiKeyAndUserName).To(BeEquivalentTo(
-				map[string]string{
-					"key": "user",
-				}),
-			)
+			Expect(service).NotTo(BeNil())
 
 			// Test that the Issuer Url always appends a trailing slash
 			service = getAuthService(pluginCfg, resources[3].AuthConfigRefName)
