@@ -27,7 +27,7 @@ steps:
       git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
   id: "configure-git"
 
-- name: "golang:1.14.0"
+- name: "golang:1.14.6"
   args: ["go", "env", "-w", "GOPRIVATE=github.com/solo-io"]
   id: "set-private"
 
@@ -79,7 +79,7 @@ steps:
   id: "yarn-build"
 
 # Setup and run e2es
-- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.2.1'
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.4.5'
   entrypoint: "bash"
   args:
     - "-ce"
@@ -156,13 +156,13 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["glooctl-linux-amd64"]
   dir: *dir
   waitFor: ["test", "prepare-workspace"]
   id: "build-glooctl"
 
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["docker"]
   env:
     - "TAGGED_VERSION=$TAG_NAME"
@@ -175,7 +175,7 @@ steps:
   id: "build-images"
 
   # Run regression tests
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["build-test-assets"]
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
@@ -217,7 +217,7 @@ steps:
   waitFor: ["regression-tests"]
   id: "docker-login-push"
 
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["docker-push"]
   env:
     - "TAGGED_VERSION=$TAG_NAME"
@@ -228,7 +228,7 @@ steps:
   id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.2.1"
+- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args:
     [
       "manifest",
