@@ -34,7 +34,9 @@ var _ = AfterSuite(func() {
 func TestE2e(t *testing.T) {
 
 	// set default port to an unprivileged port for local testing.
-	defaults.HttpPort = 8081
+	// 8081 is used by validation. see here:
+	// test/services/gateway.go:233
+	defaults.HttpPort = 8083
 
 	helpers.RegisterCommonFailHandlers()
 	helpers.SetupLog()

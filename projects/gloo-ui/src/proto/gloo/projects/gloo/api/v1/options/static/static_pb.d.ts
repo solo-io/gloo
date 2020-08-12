@@ -47,6 +47,11 @@ export class Host extends jspb.Message {
   getPort(): number;
   setPort(value: number): void;
 
+  hasHealthCheckConfig(): boolean;
+  clearHealthCheckConfig(): void;
+  getHealthCheckConfig(): Host.HealthCheckConfig | undefined;
+  setHealthCheckConfig(value?: Host.HealthCheckConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Host.AsObject;
   static toObject(includeInstance: boolean, msg: Host): Host.AsObject;
@@ -61,5 +66,26 @@ export namespace Host {
   export type AsObject = {
     addr: string,
     port: number,
+    healthCheckConfig?: Host.HealthCheckConfig.AsObject,
+  }
+
+  export class HealthCheckConfig extends jspb.Message {
+    getPath(): string;
+    setPath(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HealthCheckConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: HealthCheckConfig): HealthCheckConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HealthCheckConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HealthCheckConfig;
+    static deserializeBinaryFromReader(message: HealthCheckConfig, reader: jspb.BinaryReader): HealthCheckConfig;
+  }
+
+  export namespace HealthCheckConfig {
+    export type AsObject = {
+      path: string,
+    }
   }
 }

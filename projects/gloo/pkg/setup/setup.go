@@ -23,6 +23,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/http_path"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
@@ -114,6 +115,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 			func() plugins.Plugin { return dlp.NewPlugin() },
 			func() plugins.Plugin { return proxylatency.NewPlugin() },
 			func() plugins.Plugin { return failover.NewFailoverPlugin(utils.NewSslConfigTranslator()) },
+			func() plugins.Plugin { return http_path.NewPlugin() },
 		},
 	}
 }

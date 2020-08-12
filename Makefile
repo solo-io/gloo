@@ -33,7 +33,7 @@ ifeq ($(VERSION), $(WASM_VERSION))
 	WASM_VERSION = wasm-$(VERSION)
 endif
 
-ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-patch2
+ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-patch3
 # Envoy-gloo-ee image built on top of envoy-wasm fork
 ENVOY_WASM_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-wasm-rc1
 
