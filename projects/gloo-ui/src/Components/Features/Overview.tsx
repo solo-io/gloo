@@ -167,14 +167,10 @@ export const Overview = () => {
 
 const HealthStatus = () => {
   let history = useHistory();
-  const { data: envoyList, error } = useSWR(
+  const { data: envoyList, error: envoyListError } = useSWR(
     'listEnvoys',
     envoyAPI.getEnvoyList
   );
-
-  if (!envoyList) {
-    return <Loading />;
-  }
 
   const goToAdmin = (): void => {
     history.push('/admin/');
@@ -182,7 +178,7 @@ const HealthStatus = () => {
 
   let envoyStatus = healthConstants.Pending.value;
   let envoyErrorCount = 0;
-  envoyList.forEach(envoy => {
+  envoyList?.forEach(envoy => {
     if (envoy.status!.code === 0) {
       envoyStatus = healthConstants.Pending.value;
       envoyErrorCount += 1;
@@ -214,9 +210,7 @@ const HealthStatus = () => {
             <Link onClick={goToAdmin}>Go to Admin View</Link>
           </EnvoyHealthHeader>
 
-          {!envoyList.length ? (
-            <div>Loading...</div>
-          ) : !!envoyList.length ? (
+          {!!envoyList?.length ? (
             <div>
               {envoyStatus === healthConstants.Error.value ? (
                 <TallyInformationDisplay
@@ -259,7 +253,14 @@ const HealthStatus = () => {
               )}
             </div>
           ) : (
-            <div>You have no envoy configurations yet.</div>
+            <div>
+              <TallyInformationDisplay
+                tallyDescription={
+                  envoyListError?.message ?? `No envoy configuration found.`
+                }
+                color='orange'
+              />
+            </div>
           )}
         </EnvoyHealthContent>
       </StatusTile>

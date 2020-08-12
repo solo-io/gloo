@@ -70,12 +70,8 @@ export const Envoy = (props: Props) => {
     }
   }, [envoysList?.length]);
 
-  if (!envoysList) {
-    return <div>Loading...</div>;
-  }
-
-  if (!envoysList.length) {
-    return <div>You have no Envoy configurations.</div>;
+  if (!envoysList?.length) {
+    return <div>No Envoy cofiguration found.</div>;
   }
 
   const toggleExpansion = (indexToggled: number) => {
