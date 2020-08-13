@@ -1,6 +1,7 @@
 {{- if .Values.apiServer.enable }}
 {{- $apiServerImage := .Values.apiServer.deployment.server.image }}
 {{- $uiImage := .Values.apiServer.deployment.ui.image }}
+{{- $envoy := .Values.apiServer.deployment.envoy }}
 {{- $envoyImage := .Values.apiServer.deployment.envoy.image }}
 {{- $statsConfig := coalesce .Values.apiServer.deployment.stats .Values.global.glooStats -}}
 {{- if .Values.global  }}
@@ -97,9 +98,9 @@ spec:
         - name: gloo-grpcserver-envoy
           image: {{template "gloo.image" $envoyImage}}
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
-          {{- if .Values.apiServer.deployment.envoy.resources }}
+          {{- if $envoy.resources }}
           resources:
-{{ toYaml .Values.apiServer.deployment.envoy.resources | indent 12}}
+{{ toYaml $envoy.resources | indent 12}}
           {{- end}}
           readinessProbe:
             httpGet:
@@ -107,11 +108,18 @@ spec:
               port: 8080
             periodSeconds: 10
             initialDelaySeconds: 5
+          volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy
+            readOnly: true
       volumes:
         - name: empty-cache
           emptyDir: {}
         - name: empty-run
           emptyDir: {}
+        - name: envoy-config
+          configMap:
+            name: {{ $envoy.bootstrapConfig.configMapName }}
       {{- if $apiServerImage.pullSecret }}
       imagePullSecrets:
         - name: {{ $apiServerImage.pullSecret }}

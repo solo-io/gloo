@@ -1104,6 +1104,8 @@ spec:
 		})
 
 		Context("apiserver deployment", func() {
+			const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
+
 			var expectedDeployment *appsv1.Deployment
 
 			BeforeEach(func() {
@@ -1161,6 +1163,9 @@ spec:
 					Name:            "gloo-grpcserver-envoy",
 					Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
 					ImagePullPolicy: v1.PullAlways,
+					VolumeMounts: []v1.VolumeMount{
+						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
+					},
 					ReadinessProbe: &v1.Probe{
 						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
 							Path: "/",
@@ -1190,6 +1195,11 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
 					{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 					{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+					{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: defaultBootstrapConfigMapName,
+						},
+					}}},
 				}
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
@@ -1201,6 +1211,12 @@ spec:
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("does render the default bootstrap config map for the envoy sidecar", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
 			})
 
 			It("correctly sets resource limits", func() {
@@ -1316,6 +1332,39 @@ spec:
 					}
 					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
+			})
+
+			When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
+				const customConfigMapName = "custom-bootstrap-config"
+				var actualManifest TestManifest
+
+				BeforeEach(func() {
+					var err error
+					actualManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"apiServer.deployment.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
+					expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+						{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: customConfigMapName,
+							},
+						}}},
+					}
+					actualManifest.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+
+				It("does not render the default config map", func() {
+					actualManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).To(BeNil())
+				})
+
 			})
 
 			It("can be set as NodePort service", func() {
@@ -1688,6 +1737,9 @@ spec:
 				})
 
 				Context("apiserver deployment", func() {
+
+					const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
+
 					var deploy *appsv1.Deployment
 
 					BeforeEach(func() {
@@ -1733,6 +1785,9 @@ spec:
 							Name:            "gloo-grpcserver-envoy",
 							Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
 							ImagePullPolicy: v1.PullAlways,
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
+							},
 							ReadinessProbe: &v1.Probe{
 								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
 									Path: "/",
@@ -1762,6 +1817,11 @@ spec:
 						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
 							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
 							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+							{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+								LocalObjectReference: v1.LocalObjectReference{
+									Name: defaultBootstrapConfigMapName,
+								},
+							}}},
 						}
 						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
 						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
@@ -1773,6 +1833,44 @@ spec:
 						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
 						Expect(err).NotTo(HaveOccurred())
 						testManifest.ExpectDeploymentAppsV1(deploy)
+					})
+
+					It("does render the default bootstrap config map for the envoy sidecar", func() {
+						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
+						Expect(err).NotTo(HaveOccurred())
+						testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
+					})
+
+					When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
+						const customConfigMapName = "custom-bootstrap-config"
+						var actualManifest TestManifest
+
+						BeforeEach(func() {
+							var err error
+							actualManifest, err = BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
+								valuesArgs: []string{
+									"apiServer.deployment.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
+								},
+							})
+							Expect(err).NotTo(HaveOccurred())
+						})
+
+						It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
+							deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+								{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+								{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+								{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: customConfigMapName,
+									},
+								}}},
+							}
+							actualManifest.ExpectDeploymentAppsV1(deploy)
+						})
+
+						It("does not render the default config map", func() {
+							actualManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).To(BeNil())
+						})
 					})
 				})
 			})

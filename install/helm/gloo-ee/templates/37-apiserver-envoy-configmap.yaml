@@ -1,0 +1,13 @@
+{{- if eq .Values.apiServer.deployment.envoy.bootstrapConfig.configMapName "default-apiserver-envoy-config" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: default-apiserver-envoy-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: gloo
+    gloo: {{ .Values.apiServer.service.name }}
+data:
+  config.yaml: |-
+{{ .Files.Get "files/default-apiserver-envoy-config.yaml" | indent 4 }}
+{{- end }}

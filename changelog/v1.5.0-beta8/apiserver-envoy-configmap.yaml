@@ -1,0 +1,11 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/solo-io/gloo/issues/3477
+  description: >-
+    The bootstrap configuration for the Envoy sidecar that handles traffic between the Gloo Enterprise Admin Dashboard
+    and the API server is now exposed as a `ConfigMap` named `default-apiserver-envoy-config`. This `ConfigMap` is
+    installed by default by the Gloo Enterprise Helm chart.
+    Users can provide their own custom bootstrap configuration for the sidecar via the new
+    `apiServer.deployment.envoy.bootstrapConfig.configMapName` Helm value. The value must contain the name of a `ConfigMap`
+    that is present in the same namespace as the `api-server` deployment. This `ConfigMap` must contain the Envoy
+    bootstrap configuration in YAMl format under a `data` entry named `config.yaml`.

@@ -159,7 +159,6 @@ type ApiServer struct {
 	Enterprise bool                 `json:"enterprise,omitempty"`
 	Deployment *ApiServerDeployment `json:"deployment,omitempty"`
 	Service    *ApiServerService    `json:"service,omitempty"`
-	ConfigMap  *ApiServerConfigMap  `json:"configMap,omitempty"`
 	EnableBeta bool                 `json:"enableBeta,omitempty"`
 }
 
@@ -181,8 +180,13 @@ type ApiServerServerDeployment struct {
 }
 
 type ApiServerEnvoyDeployment struct {
-	Image *glooGen.Image `json:"image"`
+	Image           *glooGen.Image                 `json:"image"`
+	BootstrapConfig *ApiServerEnvoyBootstrapConfig `json:"bootstrapConfig"`
 	*glooGen.DeploymentSpec
+}
+
+type ApiServerEnvoyBootstrapConfig struct {
+	ConfigMapName string `json:"configMapName" desc:"Name of the ConfigMap that contains the bootstrap configuration for the API server envoy sidecar. The configuration must be stored in a data entry named 'config.yaml' in the ConfigMap"`
 }
 
 type ApiServerUiDeployment struct {
@@ -194,10 +198,6 @@ type ApiServerUiDeployment struct {
 type ApiServerService struct {
 	Name        string `json:"name"`
 	ServiceType string `json:"serviceType"`
-}
-
-type ApiServerConfigMap struct {
-	Name string `json:"name"`
 }
 
 type OAuth struct {

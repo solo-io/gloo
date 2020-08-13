@@ -261,7 +261,6 @@ $(GRPCSERVER_OUT_DIR)/.grpcserver-docker: $(GRPCSERVER_OUT_DIR)/grpcserver-linux
 #----------------------------------------------------------------------------------
 # grpcserver-envoy
 #----------------------------------------------------------------------------------
-CONFIG_YAML=envoy_config_grpcserver.yaml
 GRPC_ENVOY_OUT=$(OUTPUT_DIR)/grpcserverenvoy
 
 .PHONY: grpcserver-envoy-docker
@@ -270,7 +269,6 @@ grpcserver-envoy-docker: $(GRPC_ENVOY_OUT)/Dockerfile
 
 $(GRPC_ENVOY_OUT)/Dockerfile: $(GRPCSERVER_DIR)/envoy/Dockerfile
 	mkdir -p $(GRPC_ENVOY_OUT)
-	cp $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) $(GRPC_ENVOY_OUT)/$(CONFIG_YAML)
 	cp $< $@
 
 # helpers for local testing
@@ -586,9 +584,11 @@ $(OUTPUT_DIR)/.helm-initialized:
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
+	mkdir -p install/helm/gloo-os-with-ui/files
 	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
 	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
 	cp install/helm/gloo-ee/templates/40-settings.yaml install/helm/gloo-os-with-ui/templates/40-settings.yaml
+	cp -r install/helm/gloo-ee/files install/helm/gloo-os-with-ui
 	helm dependency update install/helm/gloo-os-with-ui
 	touch $@
 

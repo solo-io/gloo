@@ -138,6 +138,8 @@ apiServer:
       image:
         name: "grpcserver-envoy"
         repository: grpcserver-envoy
+      bootstrapConfig:
+        configMapName: default-apiserver-envoy-config
   service:
     name: "apiserver-ui"
     serviceType: ClusterIP
