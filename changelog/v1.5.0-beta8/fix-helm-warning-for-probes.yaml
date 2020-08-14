@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: >
+      Resolve helm warnings during installation regarding `customReadinessProbe`
+    issueLink: https://github.com/solo-io/gloo/issues/3467
+    resolvesIssue: false

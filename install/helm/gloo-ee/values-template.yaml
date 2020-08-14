@@ -60,7 +60,7 @@ gloo:
         gracefulShutdown:
           enabled: false
           sleepTimeSeconds: 25
-          customReadinessProbe: {}
+        customReadinessProbe: {}
         image:
           repository: gloo-ee-envoy-wrapper
       service:
