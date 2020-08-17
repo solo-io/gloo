@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Removes crd permissions from the apiserver-ui Role so namespaced glooE can be installed by a namespaced user.
+  issueLink: https://github.com/solo-io/gloo/issues/3424

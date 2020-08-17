@@ -32,12 +32,6 @@ func ApplyPermissionsForReadOnlyApiserver(namespace string, permissions *manifes
 	permissions.AddExpectedPermission(
 		"gloo-system.apiserver-ui",
 		namespace,
-		[]string{"apiextensions.k8s.io"},
-		[]string{"customresourcedefinitions"},
-		[]string{"get"})
-	permissions.AddExpectedPermission(
-		"gloo-system.apiserver-ui",
-		namespace,
 		[]string{"gloo.solo.io"},
 		[]string{"artifacts", "upstreams", "upstreamgroups", "proxies", "secrets"},
 		[]string{"get", "list", "watch"})
@@ -69,12 +63,6 @@ func ApplyPermissionsAddedForMutableApiserver(namespace string, permissions *man
 		[]string{""},
 		[]string{"secrets"},
 		[]string{"create", "update", "delete"})
-	permissions.AddExpectedPermission(
-		"gloo-system.apiserver-ui",
-		namespace,
-		[]string{"apiextensions.k8s.io"},
-		[]string{"customresourcedefinitions"},
-		[]string{"create"})
 	permissions.AddExpectedPermission(
 		"gloo-system.apiserver-ui",
 		namespace,
