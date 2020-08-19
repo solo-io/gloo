@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Upgrade a node package to include a security patch.
+    dependencyOwner: serialize-javascript
+    dependencyRepo: gloo-ui
+    dependencyTag: 3.1.0
+  - type: DEPENDENCY_BUMP
+    description: Upgrade a node package to include a security patch.
+    dependencyOwner: dot-prop
+    dependencyRepo: gloo-ui
+    dependencyTag: 4.2.1
