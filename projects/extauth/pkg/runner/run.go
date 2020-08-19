@@ -108,7 +108,13 @@ func StartExtAuth(ctx context.Context, settings Settings, service *extauth.Serve
 		tlsMode = "secure"
 		keyPair, err := tls.LoadX509KeyPair(settings.CertPath, settings.KeyPath)
 		if err != nil {
-			return err
+			if len(settings.Cert) == 0 || len(settings.Key) == 0 {
+				return err
+			}
+			keyPair, err = tls.X509KeyPair(settings.Cert, settings.Key)
+			if err != nil {
+				return err
+			}
 		}
 		cfg := &tls.Config{Certificates: []tls.Certificate{keyPair}}
 		lis, err = tls.Listen(network, addr, cfg)

@@ -129,6 +129,18 @@ Expand the name of the chart.
     - name: TLS_ENABLED
       value: "true"
     {{- end}}
+    {{- if $extAuth.secretName }}
+    - name: CERT
+      valueFrom:
+        secretKeyRef:
+          name: {{ $extAuth.secretName }}
+          key: tls.crt
+    - name: KEY
+      valueFrom:
+        secretKeyRef:
+          name: {{ $extAuth.secretName }}
+          key: tls.key
+    {{- end}}
     {{- if $extAuth.certPath }}
     - name: CERT_PATH
       value: {{ $extAuth.certPath }}

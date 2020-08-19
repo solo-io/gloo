@@ -1602,6 +1602,34 @@ spec:
 					}
 				})
 			})
+
+			It("should allow extauth service to handle TLS itself using a kubernetes secret", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.extAuth.tlsEnabled=true,global.extensions.extAuth.secretName=my-secret"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					if structuredDeployment.GetName() == "extauth" {
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "TLS_ENABLED", Value: "true"}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "CERT",
+							ValueFrom: &v1.EnvVarSource{
+								SecretKeyRef: &v1.SecretKeySelector{LocalObjectReference: v1.LocalObjectReference{Name: "my-secret"}, Key: "tls.crt"},
+							}}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(v1.EnvVar{Name: "KEY",
+							ValueFrom: &v1.EnvVarSource{
+								SecretKeyRef: &v1.SecretKeySelector{LocalObjectReference: v1.LocalObjectReference{Name: "my-secret"}, Key: "tls.key"},
+							}}))
+					}
+				})
+			})
 		})
 
 	})

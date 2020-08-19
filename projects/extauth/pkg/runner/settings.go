@@ -8,6 +8,8 @@ type Settings struct {
 	GlooAddress     string `envconfig:"GLOO_ADDRESS" default:"control-plane:8080"`
 	SigningKey      string `envconfig:"SIGNING_KEY" default:""`
 	TlsEnabled      bool   `envconfig:"TLS_ENABLED" default:"false"`
+	Cert            []byte `envconfig:"CERT" default:""`
+	Key             []byte `envconfig:"KEY" default:""`
 	CertPath        string `envconfig:"CERT_PATH" default:"/etc/envoy/ssl/tls.crt"`
 	KeyPath         string `envconfig:"KEY_PATH" default:"/etc/envoy/ssl/tls.key"`
 	DebugPort       int    `envconfig:"DEBUG_PORT" default:"9091"`
