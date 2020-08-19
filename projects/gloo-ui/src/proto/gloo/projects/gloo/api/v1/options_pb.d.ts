@@ -12,6 +12,7 @@ import * as gloo_projects_gloo_api_v1_options_rest_rest_pb from "../../../../../
 import * as gloo_projects_gloo_api_v1_options_grpc_grpc_pb from "../../../../../gloo/projects/gloo/api/v1/options/grpc/grpc_pb";
 import * as gloo_projects_gloo_api_v1_options_als_als_pb from "../../../../../gloo/projects/gloo/api/v1/options/als/als_pb";
 import * as gloo_projects_gloo_api_v1_options_grpc_web_grpc_web_pb from "../../../../../gloo/projects/gloo/api/v1/options/grpc_web/grpc_web_pb";
+import * as gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb from "../../../../../gloo/projects/gloo/api/v1/options/grpc_json/grpc_json_pb";
 import * as gloo_projects_gloo_api_v1_options_hcm_hcm_pb from "../../../../../gloo/projects/gloo/api/v1/options/hcm/hcm_pb";
 import * as gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb from "../../../../../gloo/projects/gloo/api/v1/options/lbhash/lbhash_pb";
 import * as gloo_projects_gloo_api_v1_options_shadowing_shadowing_pb from "../../../../../gloo/projects/gloo/api/v1/options/shadowing/shadowing_pb";
@@ -135,6 +136,11 @@ export class HttpListenerOptions extends jspb.Message {
   getBuffer(): gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer | undefined;
   setBuffer(value?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer): void;
 
+  hasGrpcJsonTranscoder(): boolean;
+  clearGrpcJsonTranscoder(): void;
+  getGrpcJsonTranscoder(): gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder | undefined;
+  setGrpcJsonTranscoder(value?: gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -159,6 +165,7 @@ export namespace HttpListenerOptions {
     gzip?: gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
     proxyLatency?: gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
     buffer?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.AsObject,
+    grpcJsonTranscoder?: gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
   }
 }
 

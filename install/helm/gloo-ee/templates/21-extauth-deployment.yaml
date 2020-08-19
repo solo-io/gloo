@@ -1,7 +1,8 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- if .Values.global.extensions.extAuth.standaloneDeployment }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
-{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- $statsConfig := coalesce $extAuth.deployment.stats $.Values.global.glooStats -}}
 {{- $image := merge $extAuth.deployment.image $.Values.global.image }}
 {{- $extAuthName := $extAuth.deployment.name }}
@@ -104,6 +105,6 @@ spec:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
 ---
-{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.global.extensions.standaloneDeployment
 {{- end }} # enabled

@@ -1,5 +1,6 @@
 {{- if .Values.rateLimit.enabled }}
-{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- $rateLimitName := $.Values.rateLimit.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
@@ -27,5 +28,5 @@ spec:
     serviceSpec:
       grpc: {}
 ---
-{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.rateLimit.enabled

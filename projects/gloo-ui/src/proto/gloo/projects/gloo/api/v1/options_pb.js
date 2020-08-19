@@ -21,6 +21,7 @@ var gloo_projects_gloo_api_v1_options_rest_rest_pb = require('../../../../../glo
 var gloo_projects_gloo_api_v1_options_grpc_grpc_pb = require('../../../../../gloo/projects/gloo/api/v1/options/grpc/grpc_pb.js');
 var gloo_projects_gloo_api_v1_options_als_als_pb = require('../../../../../gloo/projects/gloo/api/v1/options/als/als_pb.js');
 var gloo_projects_gloo_api_v1_options_grpc_web_grpc_web_pb = require('../../../../../gloo/projects/gloo/api/v1/options/grpc_web/grpc_web_pb.js');
+var gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb = require('../../../../../gloo/projects/gloo/api/v1/options/grpc_json/grpc_json_pb.js');
 var gloo_projects_gloo_api_v1_options_hcm_hcm_pb = require('../../../../../gloo/projects/gloo/api/v1/options/hcm/hcm_pb.js');
 var gloo_projects_gloo_api_v1_options_lbhash_lbhash_pb = require('../../../../../gloo/projects/gloo/api/v1/options/lbhash/lbhash_pb.js');
 var gloo_projects_gloo_api_v1_options_shadowing_shadowing_pb = require('../../../../../gloo/projects/gloo/api/v1/options/shadowing/shadowing_pb.js');
@@ -360,7 +361,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     ratelimitServer: (f = msg.getRatelimitServer()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     gzip: (f = msg.getGzip()) && gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f),
-    buffer: (f = msg.getBuffer()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f)
+    buffer: (f = msg.getBuffer()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f),
+    grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -456,6 +458,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.deserializeBinaryFromReader);
       msg.setBuffer(value);
+      break;
+    case 13:
+      var value = new gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder;
+      reader.readMessage(value,gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.deserializeBinaryFromReader);
+      msg.setGrpcJsonTranscoder(value);
       break;
     default:
       reader.skipField();
@@ -580,6 +587,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       12,
       f,
       gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.serializeBinaryToWriter
+    );
+  }
+  f = message.getGrpcJsonTranscoder();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.serializeBinaryToWriter
     );
   }
 };
@@ -942,6 +957,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearBuffer = function() {
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasBuffer = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional grpc_json.options.gloo.solo.io.GrpcJsonTranscoder grpc_json_transcoder = 13;
+ * @return {?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getGrpcJsonTranscoder = function() {
+  return /** @type{?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder, 13));
+};
+
+
+/** @param {?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setGrpcJsonTranscoder = function(value) {
+  jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearGrpcJsonTranscoder = function() {
+  this.setGrpcJsonTranscoder(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasGrpcJsonTranscoder = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

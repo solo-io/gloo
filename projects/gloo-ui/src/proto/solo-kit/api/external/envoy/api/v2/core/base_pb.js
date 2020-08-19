@@ -20,6 +20,7 @@ var validate_validate_pb = require('../../../../../../../validate/validate_pb.js
 var envoy_type_percent_pb = require('../../../../../../../solo-kit/api/external/envoy/type/percent_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var solo$kit_api_v1_ref_pb = require('../../../../../../../solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.envoy.api.v2.core.AsyncDataSource', null, global);
 goog.exportSymbol('proto.envoy.api.v2.core.ControlPlane', null, global);
 goog.exportSymbol('proto.envoy.api.v2.core.DataSource', null, global);
@@ -1199,12 +1200,38 @@ proto.envoy.api.v2.core.HeaderValue.prototype.setValue = function(value) {
  * @constructor
  */
 proto.envoy.api.v2.core.HeaderValueOption = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.api.v2.core.HeaderValueOption.oneofGroups_);
 };
 goog.inherits(proto.envoy.api.v2.core.HeaderValueOption, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.api.v2.core.HeaderValueOption.displayName = 'proto.envoy.api.v2.core.HeaderValueOption';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.envoy.api.v2.core.HeaderValueOption.oneofGroups_ = [[1,3]];
+
+/**
+ * @enum {number}
+ */
+proto.envoy.api.v2.core.HeaderValueOption.HeaderOptionCase = {
+  HEADER_OPTION_NOT_SET: 0,
+  HEADER: 1,
+  HEADER_SECRET_REF: 3
+};
+
+/**
+ * @return {proto.envoy.api.v2.core.HeaderValueOption.HeaderOptionCase}
+ */
+proto.envoy.api.v2.core.HeaderValueOption.prototype.getHeaderOptionCase = function() {
+  return /** @type {proto.envoy.api.v2.core.HeaderValueOption.HeaderOptionCase} */(jspb.Message.computeOneofCase(this, proto.envoy.api.v2.core.HeaderValueOption.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1235,6 +1262,7 @@ proto.envoy.api.v2.core.HeaderValueOption.prototype.toObject = function(opt_incl
 proto.envoy.api.v2.core.HeaderValueOption.toObject = function(includeInstance, msg) {
   var f, obj = {
     header: (f = msg.getHeader()) && proto.envoy.api.v2.core.HeaderValue.toObject(includeInstance, f),
+    headerSecretRef: (f = msg.getHeaderSecretRef()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     append: (f = msg.getAppend()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
@@ -1276,6 +1304,11 @@ proto.envoy.api.v2.core.HeaderValueOption.deserializeBinaryFromReader = function
       var value = new proto.envoy.api.v2.core.HeaderValue;
       reader.readMessage(value,proto.envoy.api.v2.core.HeaderValue.deserializeBinaryFromReader);
       msg.setHeader(value);
+      break;
+    case 3:
+      var value = new solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setHeaderSecretRef(value);
       break;
     case 2:
       var value = new google_protobuf_wrappers_pb.BoolValue;
@@ -1319,6 +1352,14 @@ proto.envoy.api.v2.core.HeaderValueOption.serializeBinaryToWriter = function(mes
       proto.envoy.api.v2.core.HeaderValue.serializeBinaryToWriter
     );
   }
+  f = message.getHeaderSecretRef();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
   f = message.getAppend();
   if (f != null) {
     writer.writeMessage(
@@ -1342,7 +1383,7 @@ proto.envoy.api.v2.core.HeaderValueOption.prototype.getHeader = function() {
 
 /** @param {?proto.envoy.api.v2.core.HeaderValue|undefined} value */
 proto.envoy.api.v2.core.HeaderValueOption.prototype.setHeader = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
+  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.api.v2.core.HeaderValueOption.oneofGroups_[0], value);
 };
 
 
@@ -1357,6 +1398,36 @@ proto.envoy.api.v2.core.HeaderValueOption.prototype.clearHeader = function() {
  */
 proto.envoy.api.v2.core.HeaderValueOption.prototype.hasHeader = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef header_secret_ref = 3;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.envoy.api.v2.core.HeaderValueOption.prototype.getHeaderSecretRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, solo$kit_api_v1_ref_pb.ResourceRef, 3));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.envoy.api.v2.core.HeaderValueOption.prototype.setHeaderSecretRef = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.envoy.api.v2.core.HeaderValueOption.oneofGroups_[0], value);
+};
+
+
+proto.envoy.api.v2.core.HeaderValueOption.prototype.clearHeaderSecretRef = function() {
+  this.setHeaderSecretRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.api.v2.core.HeaderValueOption.prototype.hasHeaderSecretRef = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

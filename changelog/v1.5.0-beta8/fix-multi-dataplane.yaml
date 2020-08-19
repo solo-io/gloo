@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Fix the multi dataplane helm changes. This change is marked as non user facing, as this fixes changes that haven't
+      been released yet (but did make it into master).
+    issueLink: https://github.com/solo-io/gloo/issues/3516
+    resolvesIssue: false
+
+

@@ -1,7 +1,8 @@
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- if $extAuth.standaloneDeployment }}
-{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- $extAuthName := $extAuth.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuthName ($name | kebabcase) }}
@@ -22,6 +23,6 @@ spec:
   selector:
     gloo: {{ $extAuthName }}
 ---
-{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # enabled
 {{- end }} # .Values.global.extensions.extAuth.standaloneDeployment

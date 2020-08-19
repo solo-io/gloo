@@ -36,6 +36,11 @@ export class Secret extends jspb.Message {
   getApiKey(): gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret | undefined;
   setApiKey(value?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret): void;
 
+  hasHeader(): boolean;
+  clearHeader(): void;
+  getHeader(): HeaderSecret | undefined;
+  setHeader(value?: HeaderSecret): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
@@ -64,6 +69,7 @@ export namespace Secret {
     tls?: TlsSecret.AsObject,
     oauth?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.OauthSecret.AsObject,
     apiKey?: gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ApiKeySecret.AsObject,
+    header?: HeaderSecret.AsObject,
     extensions?: gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
@@ -75,6 +81,7 @@ export namespace Secret {
     TLS = 3,
     OAUTH = 5,
     API_KEY = 6,
+    HEADER = 8,
     EXTENSIONS = 4,
   }
 }
@@ -151,5 +158,24 @@ export namespace TlsSecret {
     certChain: string,
     privateKey: string,
     rootCa: string,
+  }
+}
+
+export class HeaderSecret extends jspb.Message {
+  getHeadersMap(): jspb.Map<string, string>;
+  clearHeadersMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HeaderSecret.AsObject;
+  static toObject(includeInstance: boolean, msg: HeaderSecret): HeaderSecret.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HeaderSecret, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HeaderSecret;
+  static deserializeBinaryFromReader(message: HeaderSecret, reader: jspb.BinaryReader): HeaderSecret;
+}
+
+export namespace HeaderSecret {
+  export type AsObject = {
+    headersMap: Array<[string, string]>,
   }
 }

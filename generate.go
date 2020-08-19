@@ -34,7 +34,7 @@ func main() {
 	}
 	// Import rate limit API
 	imports.External[SoloAPIsPkg] = []string{
-		"api/**/*.proto",
+		"api/rate-limiter/**/*.proto",
 	}
 	// Import skv2 APIs
 	imports.External[Skv2Pkg] = []string{

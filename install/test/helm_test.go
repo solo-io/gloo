@@ -445,12 +445,13 @@ var _ = Describe("Helm Test", func() {
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
-			It("allows dataplane per proxy", func() {
+			Context("dataplane per proxy", func() {
 
-				helmOverrideFileContents := `
+				helmOverrideFileContents := func(dataplanePerProxy bool) string {
+					return fmt.Sprintf(`
 global:
   extensions:
-    dataplanePerProxy: true
+    dataplanePerProxy: %t
   glooStats:
     enabled: true
 gloo:
@@ -551,47 +552,81 @@ gloo:
           prometheus.io/path: "/metrics"
           prometheus.io/port: "8081"
           prometheus.io/scrape: "true"
-`
-
-				helmOverrideFile := "helm-override-*.yaml"
-				tmpFile, err := ioutil.TempFile("", helmOverrideFile)
-				Expect(err).ToNot(HaveOccurred())
-				_, err = tmpFile.Write([]byte(helmOverrideFileContents))
-				Expect(err).NotTo(HaveOccurred())
-				defer tmpFile.Close()
-				defer os.Remove(tmpFile.Name())
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesFile: tmpFile.Name(),
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				assertExpectedResourcesForProxy := func(proxyName string) {
-					gatewayProxyRateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
-						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("rate-limit-%s", proxyName)
-					})
-
-					// Deployment, Service, Upstream
-					Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting RateLimit Deployment, Service, and Upstream", proxyName))
-
-					gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
-						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
-					})
-
-					// Deployment, Service
-					Expect(gatewayProxyRedisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis Deployment and Service", proxyName))
-
-					gatewayProxyExtAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
-						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("extauth-%s", proxyName)
-					})
-
-					// Deployment, Service, Upstream
-					Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream", proxyName))
-
+`, dataplanePerProxy)
 				}
 
-				assertExpectedResourcesForProxy("gateway-proxy")
-				assertExpectedResourcesForProxy("custom-proxy")
+				It("allows dataplane per proxy", func() {
 
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(true)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					assertExpectedResourcesForProxy := func(proxyName string) {
+						gatewayProxyRateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("rate-limit-%s", proxyName)
+						})
+
+						// Deployment, Service, Upstream
+						Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting RateLimit Deployment, Service, and Upstream", proxyName))
+
+						gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
+						})
+
+						// Deployment, Service
+						Expect(gatewayProxyRedisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis Deployment and Service", proxyName))
+
+						gatewayProxyExtAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("extauth-%s", proxyName)
+						})
+
+						// Deployment, Service, Upstream
+						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream", proxyName))
+
+					}
+
+					assertExpectedResourcesForProxy("gateway-proxy")
+					assertExpectedResourcesForProxy("custom-proxy")
+
+				})
+
+				It("allows doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
+
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					rateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "rate-limit"
+					})
+					Expect(rateLimitResources.NumResources()).To(Equal(4), "Expecting RateLimit Deployment, Service, Upstream and ServiceAccount")
+
+					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "redis"
+					})
+					Expect(redisResources.NumResources()).To(Equal(2), "Expecting Redis Deployment and Service")
+
+					extAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "extauth"
+					})
+					Expect(extAuthResources.NumResources()).To(Equal(5), "Expecting ExtAuth Deployment, Service, Upstream, ServiceAccount, and Secret")
+				})
 			})
 
 			It("allows setting the number of replicas for the deployment", func() {

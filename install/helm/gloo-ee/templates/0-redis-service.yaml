@@ -1,5 +1,6 @@
 {{- if .Values.rateLimit.enabled }}
-{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- $redisName := $.Values.redis.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
@@ -20,5 +21,5 @@ spec:
   selector:
     gloo: {{ $redisName }}
 ---
-{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.rateLimit.enabled

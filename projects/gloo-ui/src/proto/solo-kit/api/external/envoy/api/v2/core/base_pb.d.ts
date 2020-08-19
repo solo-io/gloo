@@ -11,6 +11,7 @@ import * as validate_validate_pb from "../../../../../../../validate/validate_pb
 import * as envoy_type_percent_pb from "../../../../../../../envoy/type/percent_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
+import * as solo_kit_api_v1_ref_pb from "../../../../../../../solo-kit/api/v1/ref_pb";
 
 export class Locality extends jspb.Message {
   getRegion(): string;
@@ -179,11 +180,17 @@ export class HeaderValueOption extends jspb.Message {
   getHeader(): HeaderValue | undefined;
   setHeader(value?: HeaderValue): void;
 
+  hasHeaderSecretRef(): boolean;
+  clearHeaderSecretRef(): void;
+  getHeaderSecretRef(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setHeaderSecretRef(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
+
   hasAppend(): boolean;
   clearAppend(): void;
   getAppend(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setAppend(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  getHeaderOptionCase(): HeaderValueOption.HeaderOptionCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HeaderValueOption.AsObject;
   static toObject(includeInstance: boolean, msg: HeaderValueOption): HeaderValueOption.AsObject;
@@ -197,7 +204,14 @@ export class HeaderValueOption extends jspb.Message {
 export namespace HeaderValueOption {
   export type AsObject = {
     header?: HeaderValue.AsObject,
+    headerSecretRef?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     append?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+  }
+
+  export enum HeaderOptionCase {
+    HEADER_OPTION_NOT_SET = 0,
+    HEADER = 1,
+    HEADER_SECRET_REF = 3,
   }
 }
 

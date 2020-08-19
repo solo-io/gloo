@@ -160,3 +160,23 @@ Expand the name of the chart.
   {{- end }}
   {{- end }}
 {{- end }}
+
+{{/* Helper used to properly set the ProxiesToCreateDataplaneFor value at the top scope.
+     This exists because we need to iterate over the provided proxies if the `dataplanePerProxy`
+     helm value is true, but we don't want to iterate over the proxies if this value is false.
+
+     Since there are no conditional ranges in helm, instead opted to create the map with the
+     correct contents (i.e., if `dataplanePerProxy` is false, just pick any proxy to do the render).
+
+     Pulled this logic out into a helm helper so we don't have to duplicate it everywhere it's needed
+ */}}
+{{- define "gloo.dataplaneperproxyhelper" -}}
+{{- $proxiesToCreateDataplaneFor := dict }}
+{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{ $proxiesToCreateDataplaneFor = merge $proxiesToCreateDataplaneFor .Values.gloo.gatewayProxies }}
+{{- else }}
+{{- $firstKey := keys .Values.gloo.gatewayProxies | sortAlpha | first }}
+{{- $proxiesToCreateDataplaneFor = pick .Values.gloo.gatewayProxies $firstKey }}
+{{- end }}
+{{- $_ := set $ "ProxiesToCreateDataplaneFor" $proxiesToCreateDataplaneFor -}}
+{{- end }}

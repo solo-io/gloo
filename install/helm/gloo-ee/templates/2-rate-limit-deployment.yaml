@@ -1,7 +1,8 @@
 {{- if .Values.rateLimit.enabled }}
 {{- $statsConfig := coalesce .Values.rateLimit.deployment.stats .Values.global.glooStats -}}
 {{- $image := merge .Values.rateLimit.deployment.image .Values.global.image }}
-{{- range $name, $spec := .Values.gloo.gatewayProxies }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- $rateLimitName := $.Values.rateLimit.deployment.name }}
 {{- $redisName := $.Values.redis.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
@@ -123,5 +124,5 @@ spec:
             name: rate-limit-sidecar-config
       {{- end }} # .Values.global.glooMtls.enabled
 ---
-{{- end }} # range $name, $spec := .Values.gatewayProxies
+{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }}
