@@ -7,13 +7,12 @@ import { FileDownloadLink } from 'Components/Common/FileDownloadLink';
 import { SectionCard } from 'Components/Common/SectionCard';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory, useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router-dom';
 import { AppState } from 'store';
 import { updateVirtualServiceYaml } from 'store/virtualServices/actions';
 import { colors, healthConstants, soloConstants } from 'Styles';
 import { Domains } from './Domains';
 import { ExtAuth } from './ExtAuth';
-import { RateLimit } from './RateLimit';
 import { Routes } from './Routes';
 import { RouteParent } from '../RouteTableDetails';
 import { virtualServiceAPI } from 'store/virtualServices/api';
@@ -22,7 +21,7 @@ import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 export const ConfigContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   background: ${colors.januaryGrey};
   height: 80%;
   border-radius: ${soloConstants.smallRadius}px;
@@ -210,9 +209,6 @@ export const VirtualServiceDetails = () => {
               <ConfigContainer>
                 <ConfigItem>
                   <ExtAuth externalAuth={externalAuth} />
-                </ConfigItem>
-                <ConfigItem>
-                  <RateLimit rateLimits={rateLimits} />
                 </ConfigItem>
               </ConfigContainer>
             </>

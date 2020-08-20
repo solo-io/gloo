@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Remove the unused Rate Limit feature from the gloo UI.
+    issueLink: https://github.com/solo-io/gloo/issues/3484
