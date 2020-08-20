@@ -36,6 +36,7 @@ type configGrpcService struct {
 	rawGetter       rawgetter.RawGetter
 	version         setup.BuildVersion
 	podNamespace    string
+	isNamespaced    setup.RbacNamespaced
 }
 
 func NewConfigGrpcService(
@@ -46,7 +47,9 @@ func NewConfigGrpcService(
 	rawGetter rawgetter.RawGetter,
 	oAuthEndpoint v1.OAuthEndpoint,
 	version setup.BuildVersion,
-	podNamespace string) (v1.ConfigApiServer, error) {
+	podNamespace string,
+	isNamespaced setup.RbacNamespaced,
+) (v1.ConfigApiServer, error) {
 
 	return &configGrpcService{
 		ctx:             ctx,
@@ -57,6 +60,7 @@ func NewConfigGrpcService(
 		oAuthEndpoint:   oAuthEndpoint,
 		version:         version,
 		podNamespace:    podNamespace,
+		isNamespaced:    isNamespaced,
 	}, nil
 }
 
@@ -170,7 +174,12 @@ func (s *configGrpcService) UpdateSettingsYaml(ctx context.Context, request *v1.
 	return &v1.UpdateSettingsResponse{SettingsDetails: s.getDetails(written)}, nil
 }
 
-func (s *configGrpcService) ListNamespaces(ctx context.Context, request *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
+func (s *configGrpcService) ListNamespaces(_ context.Context, request *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
+	if s.isNamespaced {
+		// If we are running in namespaced mode, just return the pod namespace.
+		// A call to ListNamespaces would fail due to limited permissions.
+		return &v1.ListNamespacesResponse{Namespaces: []string{s.podNamespace}}, nil
+	}
 	namespaceList, err := s.namespaceClient.ListNamespaces()
 	if err != nil {
 		wrapped := FailedToListNamespacesError(err)

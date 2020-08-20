@@ -41,6 +41,7 @@ func InitializeServer(ctx context.Context, listener net.Listener, registrar devp
 	wire.Build(
 		// If more strings are provided after PodNamespace, they will have to be typed. see configsvc.BuildVersion
 		envutils.MustGetPodNamespace,
+		setup.MustGetRbacNamespaced,
 		setup.GetBuildVersion,
 		setup.MustSettings,
 		setup.NewOAuthEndpoint,

@@ -138,7 +138,7 @@ export const ExtAuthForm = (props: Props) => {
       })
     );
   };
-  if (!podNamespace || !namespacesList) {
+  if (!podNamespace) {
     return <div>Loading...</div>;
   }
   return (
@@ -197,7 +197,7 @@ export const ExtAuthForm = (props: Props) => {
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
                 defaultValue={podNamespace}
-                presetOptions={namespacesList.map(ns => {
+                presetOptions={(namespacesList ?? []).map(ns => {
                   return { value: ns };
                 })}
               />

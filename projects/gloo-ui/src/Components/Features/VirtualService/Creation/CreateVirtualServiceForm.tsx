@@ -76,7 +76,7 @@ export const CreateVirtualServiceForm = (props: Props) => {
   );
 
   const dispatch = useDispatch();
-  if (!podNamespace || !namespacesList) {
+  if (!podNamespace) {
     return <div>Loading...</div>;
   }
   // this is to match the value displayed by the typeahead
@@ -163,7 +163,7 @@ export const CreateVirtualServiceForm = (props: Props) => {
                 name='namespace'
                 title='Virtual Service Namespace'
                 defaultValue={values.namespace}
-                presetOptions={namespacesList.map(ns => {
+                presetOptions={(namespacesList ?? []).map(ns => {
                   return { value: ns };
                 })}
               />

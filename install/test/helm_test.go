@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -1156,6 +1158,10 @@ spec:
 					Name:  "GRPC_PORT",
 					Value: "10101",
 				}
+				rbacNamespacedEnvVar := v1.EnvVar{
+					Name:  setup.NamespacedRbacEnvName,
+					Value: "false",
+				}
 				noAuthEnvVar := v1.EnvVar{
 					Name:  "NO_AUTH",
 					Value: "1",
@@ -1188,6 +1194,7 @@ spec:
 					Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
 					Env: []v1.EnvVar{
 						GetPodNamespaceEnvVar(),
+						rbacNamespacedEnvVar,
 						grpcPortEnvVar,
 						statsEnvVar,
 						noAuthEnvVar,
@@ -1324,6 +1331,23 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("correctly sets the RBAC_NAMESPACED env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.glooRbac.namespaced=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
+				for i, env := range envs {
+					if env.Name == setup.NamespacedRbacEnvName {
+						envs[i].Value = "true"
+					}
+				}
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			When("developer portal is enabled", func() {
 
 				BeforeEach(func() {
@@ -1332,10 +1356,6 @@ spec:
 						v1.EnvVar{
 							Name:  "DEV_PORTAL_ENABLED",
 							Value: "true",
-						},
-						v1.EnvVar{
-							Name:  "RBAC_NAMESPACED",
-							Value: "false",
 						},
 					)
 				})
@@ -1347,24 +1367,6 @@ spec:
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
-					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-				})
-
-				It("correctly sets the RBAC_NAMESPACED env", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{
-							"devPortal.enabled=true",
-							"global.glooRbac.namespaced=true",
-						},
-					})
-					Expect(err).NotTo(HaveOccurred())
-
-					envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
-					for i, env := range envs {
-						if env.Name == "RBAC_NAMESPACED" {
-							envs[i].Value = "true"
-						}
-					}
 					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
 			})
@@ -1818,6 +1820,10 @@ spec:
 							Name:  "GRPC_PORT",
 							Value: "10101",
 						}
+						rbacNamespacedEnvVar := v1.EnvVar{
+							Name:  setup.NamespacedRbacEnvName,
+							Value: "false",
+						}
 						noAuthEnvVar := v1.EnvVar{
 							Name:  "NO_AUTH",
 							Value: "1",
@@ -1839,6 +1845,7 @@ spec:
 							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
 							Env: []v1.EnvVar{
 								GetPodNamespaceEnvVar(),
+								rbacNamespacedEnvVar,
 								grpcPortEnvVar,
 								statsEnvVar,
 								noAuthEnvVar,

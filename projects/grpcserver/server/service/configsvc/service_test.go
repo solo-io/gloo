@@ -35,6 +35,7 @@ var (
 	namespaceClient   *mock_namespace.MockNamespaceClient
 	clientCache       *mocks.MockClientCache
 	rawGetter         *mock_rawgetter.MockRawGetter
+	rbacNamespaced    setup.RbacNamespaced
 	podNamespace      = "pod-ns"
 	testVersion       = setup.BuildVersion("test-version")
 	testOAuthEndpoint = v1.OAuthEndpoint{Url: "test", ClientName: "name"}
@@ -62,10 +63,12 @@ var _ = Describe("ServiceTest", func() {
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
 		clientCache = mocks.NewMockClientCache(mockCtrl)
 		rawGetter = mock_rawgetter.NewMockRawGetter(mockCtrl)
+		rbacNamespaced = false
+	})
 
-		server, err := configsvc.NewConfigGrpcService(context.TODO(), clientCache, licenseClient, namespaceClient, rawGetter, testOAuthEndpoint, testVersion, podNamespace)
+	JustBeforeEach(func() {
+		server, err := configsvc.NewConfigGrpcService(context.TODO(), clientCache, licenseClient, namespaceClient, rawGetter, testOAuthEndpoint, testVersion, podNamespace, rbacNamespaced)
 		Expect(err).NotTo(HaveOccurred())
-
 		apiserver = server
 	})
 
@@ -344,6 +347,19 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err).To(HaveOccurred())
 			expectedErr := configsvc.FailedToListNamespacesError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
+		When("installation is namespace-scoped", func() {
+			BeforeEach(func() {
+				rbacNamespaced = true
+			})
+
+			It("does not attempt to list all namespaced and just returns the pod namespace", func() {
+				expected := &v1.ListNamespacesResponse{Namespaces: []string{podNamespace}}
+				actual, err := apiserver.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).To(Equal(expected))
+			})
 		})
 	})
 

@@ -70,7 +70,8 @@ func InitializeServer(ctx context.Context, listener net.Listener, registrar devp
 	namespaceClient := kube.NewNamespaceClient(namespacesGetter)
 	oAuthEndpoint := setup.NewOAuthEndpoint()
 	buildVersion := setup.GetBuildVersion()
-	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, rawGetter, oAuthEndpoint, buildVersion, string2)
+	rbacNamespaced := setup.MustGetRbacNamespaced(ctx)
+	configApiServer, err := configsvc.NewConfigGrpcService(ctx, clientCache, licenseClient, namespaceClient, rawGetter, oAuthEndpoint, buildVersion, string2, rbacNamespaced)
 	if err != nil {
 		return nil, err
 	}

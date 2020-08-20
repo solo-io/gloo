@@ -66,6 +66,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: RBAC_NAMESPACED
+              value: {{ quote .Values.global.glooRbac.namespaced }}
             - name: GRPC_PORT
               value: '{{ .Values.apiServer.deployment.server.grpcPort }}'
             {{- if $statsConfig.enabled }}
@@ -83,8 +85,6 @@ spec:
             {{- if .Values.devPortal.enabled }}
             - name: DEV_PORTAL_ENABLED
               value: "true"
-            - name: RBAC_NAMESPACED
-              value: {{ quote .Values.global.glooRbac.namespaced }}{{/* Needed to set the scope of the k8s manager */}}
             {{- end}}
           {{- if .Values.apiServer.deployment.server.resources }}
           resources:

@@ -43,7 +43,7 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
     configAPI.getPodNamespace
   );
 
-  if (!podNamespace || !namespacesList) {
+  if (!podNamespace) {
     return <div>Loading...</div>;
   }
   return (
@@ -61,7 +61,7 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
             name='kubeServiceNamespace'
             title='Service Namespace'
             defaultValue={podNamespace}
-            presetOptions={namespacesList.map(ns => {
+            presetOptions={(namespacesList ?? []).map(ns => {
               return { value: ns };
             })}
           />

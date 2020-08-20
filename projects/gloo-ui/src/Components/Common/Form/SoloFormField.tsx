@@ -373,12 +373,7 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
       'listRouteTables',
       routeTableAPI.listRouteTables
     );
-    if (
-      !namespacesList ||
-      !upstreamsList ||
-      !routeTablesList ||
-      !upstreamGroupsList
-    ) {
+    if (!upstreamsList || !routeTablesList || !upstreamGroupsList) {
       return <div>Loading...</div>;
     }
 
@@ -455,7 +450,7 @@ export const RouteDestinationDropdown: React.FC<RouteDestinationDropdownProps> =
           placeholder='Destination...'
           defaultValue={defaultValue?.upstream?.metadata?.name}
           onChange={handleChange}>
-          {namespacesList.map((ns: string) => (
+          {(namespacesList ?? []).map((ns: string) => (
             <Select.OptGroup key={ns} label={ns}>
               {props.optionsList
                 .filter(option => option!.namespace === ns)
@@ -665,7 +660,7 @@ export const SoloFormSecretRefInput: React.FC<{
       setNoSecrets(true);
     }
   }, [selectedNS]);
-  if (!namespacesList || !secretsList) {
+  if (!secretsList) {
     return <div>Loading...</div>;
   }
   return (
@@ -674,7 +669,7 @@ export const SoloFormSecretRefInput: React.FC<{
         <SoloTypeahead
           {...namespaceField}
           title='Secret Ref Namespace'
-          presetOptions={namespacesList.map(ns => {
+          presetOptions={(namespacesList ?? []).map(ns => {
             return { value: ns };
           })}
           onChange={value => {

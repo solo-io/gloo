@@ -147,7 +147,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
   );
 
   const dispatch = useDispatch();
-  if (!namespace || !namespacesList) {
+  if (!namespace) {
     return <div>Loading...</div>;
   }
   const initialValues = {
@@ -187,7 +187,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
     };
     if (values.type === UPSTREAM_SPEC_TYPES.AWS) {
       const { awsRegion: region, awsSecretRef: secretRef } = values;
-      const roleArn: string = ""; // TODO: incorporate into UI at a later date, defaulting to "" is fine for now
+      const roleArn: string = ''; // TODO: incorporate into UI at a later date, defaulting to "" is fine for now
       const aws: Upstream.AsObject = {
         ...initialUpstreamSpec,
 
@@ -195,7 +195,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
           region,
           secretRef,
           lambdaFunctionsList: [],
-          roleArn,
+          roleArn
         }
       };
 
@@ -340,7 +340,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
                   name='namespace'
                   title='Upstream Namespace'
                   defaultValue={namespace}
-                  presetOptions={namespacesList.map(ns => {
+                  presetOptions={(namespacesList ?? []).map(ns => {
                     return { value: ns };
                   })}
                 />

@@ -46,7 +46,7 @@ export const SecretForm: React.FC<Props> = props => {
     'getPodNamespace',
     configAPI.getPodNamespace
   );
-  if (!podNamespace || !namespacesList) {
+  if (!podNamespace) {
     return <div>Loading...</div>;
   }
 
@@ -95,7 +95,7 @@ export const SecretForm: React.FC<Props> = props => {
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
                 defaultValue={podNamespace}
-                presetOptions={namespacesList.map(ns => {
+                presetOptions={(namespacesList ?? []).map(ns => {
                   return { value: ns };
                 })}
               />

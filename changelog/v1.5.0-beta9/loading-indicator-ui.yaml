@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow user to create resources even when running a namespaced version of glooE.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1847
