@@ -8,8 +8,6 @@ import (
 	"syscall"
 
 	"github.com/solo-io/envoy-operator/pkg/downward"
-	// Needed to allow for initialization of v3 tcp proxy in bootstrap config
-	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 )
 
 func getConfig() (string, error) {

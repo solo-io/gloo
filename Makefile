@@ -500,7 +500,7 @@ ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | gr
 ENVOYINIT_OUT_DIR=$(OUTPUT_DIR)/envoyinit
 
 $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go $(ENVOYINIT_DIR)/filter_types.gen.go
 
 .PHONY: envoyinit
 envoyinit: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64
@@ -530,7 +530,7 @@ ENVOY_WASM_SOURCES=$(shell find $(ENVOY_WASM_DIR) -name "*.go" | grep -v test | 
 ENVOYWASM_OUT_DIR=$(OUTPUT_DIR)/envoywasm
 
 $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64: $(ENVOY_WASM_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOY_WASM_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOY_WASM_DIR)/main.go $(ENVOY_WASM_DIR)/filter_types.gen.go
 
 .PHONY: envoywasm
 envoywasm: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64
