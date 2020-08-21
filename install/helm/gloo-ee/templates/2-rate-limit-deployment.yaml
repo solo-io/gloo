@@ -26,6 +26,11 @@ spec:
     metadata:
       labels:
         gloo: {{ $rateLimitName }}
+        {{- if $.Values.rateLimit.deployment.extraRateLimitLabels }}
+        {{- range $key, $value :=  $.Values.rateLimit.deployment.extraRateLimitLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
       {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics

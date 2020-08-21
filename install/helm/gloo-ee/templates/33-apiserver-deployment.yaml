@@ -28,6 +28,11 @@ spec:
       labels:
         app: gloo
         gloo: {{ .Values.apiServer.service.name }}
+        {{- if .Values.apiServer.deployment.extraApiServerLabels }}
+        {{- range $key, $value := .Values.apiServer.deployment.extraApiServerLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
       {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics

@@ -26,6 +26,11 @@ spec:
     metadata:
       labels:
         gloo: {{ $extAuthName }}
+        {{- if $extAuth.deployment.extraExtAuthLabels }}
+        {{- range $key, $value := $extAuth.deployment.extraExtAuthLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
       {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics

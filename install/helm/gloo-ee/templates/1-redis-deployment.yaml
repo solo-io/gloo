@@ -23,6 +23,11 @@ spec:
     metadata:
       labels:
         gloo: {{ $redisName }}
+        {{- if $.Values.redis.deployment.extraRedisLabels }}
+        {{- range $key, $value := $.Values.redis.deployment.extraRedisLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
     spec:
       containers:
         - image: {{template  "gloo.image" $image}}

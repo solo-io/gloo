@@ -436,6 +436,68 @@ var _ = Describe("Helm Test", func() {
 					}}
 			})
 
+			It("should be able to set custom labels for pods", func() {
+				// This test checks for labeling in the 5 deployments that are added by Gloo-E.
+				// Subchart deployments (like those for graphana) are ignored.
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"rateLimit.enabled=true",
+						"apiServer.enable=true",
+						"global.extensions.extAuth.enabled=true",
+						"observability.enabled=true",
+						"rateLimit.deployment.extraRateLimitLabels.foo=bar",
+						"redis.deployment.extraRedisLabels.foo=bar",
+						"apiServer.deployment.extraApiServerLabels.foo=bar",
+						"observability.deployment.extraObservabilityLabels.foo=bar",
+						"global.extensions.extAuth.deployment.extraExtAuthLabels.foo=bar",
+					},
+				})
+
+				deploymentBlacklist := []string{
+					"gloo",
+					"discovery",
+					"gateway",
+					"gateway-proxy",
+					"glooe-grafana",
+					"glooe-prometheus-kube-state-metrics",
+					"glooe-prometheus-server",
+				}
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(testManifest).NotTo(BeNil())
+				var resourcesTested = 0
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					// don't test against blacklisted deployments
+					deploymentName := structuredDeployment.GetName()
+					isCheckable := true
+					for _, blacklistedDeployment := range deploymentBlacklist {
+						if deploymentName == blacklistedDeployment {
+							isCheckable = false
+							break
+						}
+					}
+					if !isCheckable {
+						return
+					}
+
+					deploymentLabels := structuredDeployment.Spec.Template.Labels
+					value, ok := deploymentLabels["foo"]
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Coundn't find test label 'foo' in deployment %s", deploymentName))
+					Expect(value).To(Equal("bar"), fmt.Sprintf("Test label 'foo' in deployment %s, had unexpected value '%s'", deploymentName, value))
+					resourcesTested += 1
+				})
+				// Is there an elegant way to parameterized the expected number of deployments based on the valueArgs?
+				Expect(resourcesTested).To(Equal(5), "Tested %d resources when we were expecting 5."+
+					" Was a new pod added, or is an existing pod no longer being generated?", resourcesTested)
+			})
+
 			It("produces expected default deployment", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())

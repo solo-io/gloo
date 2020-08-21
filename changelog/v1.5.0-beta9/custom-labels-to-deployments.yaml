@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Can now add custom labels to the deployments added by gloo-E (that aren't from subcharts)
+    issueLink: https://github.com/solo-io/gloo/issues/3441

@@ -24,6 +24,11 @@ spec:
       labels:
         app: gloo
         gloo: observability
+        {{- if .Values.observability.deployment.extraObservabilityLabels }}
+        {{- range $key, $value := .Values.observability.deployment.extraObservabilityLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
       {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics
