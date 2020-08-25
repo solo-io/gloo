@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      The virtual services list page's table view crashed when there was an error with the virtual service.
+    issueLink: https://github.com/solo-io/gloo/issues/3521

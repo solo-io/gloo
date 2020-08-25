@@ -489,7 +489,7 @@ export const VirtualServicesListing = () => {
 
   const formatVSTableData = (data: VSorRTData[]) => {
     const dataUsed = data.map(vsDetails => {
-      const resource = vsDetails.virtualService! || vsDetails.routeTable!;
+      const resource = vsDetails.virtualService! || vsDetails.routeTable;
 
       return {
         ...resource,
@@ -507,7 +507,7 @@ export const VirtualServicesListing = () => {
         domains: getVSDomains(resource),
         routes: resource.virtualHost!.routesList.length,
         status: resource.status,
-        key: `${resource.metadata!.name}`,
+        key: `${resource.metadata?.name}`,
         actions: vsDetails
       };
     });

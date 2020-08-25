@@ -73,7 +73,7 @@ export const HealthInformation = (props: Props) => {
 
   return (
     <Health health={usedState}>
-      {status.text}
+      {status?.text ?? ''}
       {!!props.healthStatus &&
         !!props.healthStatus.reason &&
         !!props.healthStatus.reason.length && (
