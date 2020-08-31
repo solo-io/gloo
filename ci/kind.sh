@@ -17,9 +17,4 @@ echo ">> Temporary output file ${TEMP_FILE}"
 # grab the image names out of the `make docker` output
 sed -nE 's|Successfully tagged (.*$)|\1|p' ${TEMP_FILE} | while read f; do kind load docker-image --name kind $f; done
 
-# This is just for a time optimization, so that we aren't pulling the testrunner image during the test
-docker pull soloio/testrunner:latest
-kind load docker-image soloio/testrunner
-
-make VERSION=kind build-kind-chart build-os-with-ui-kind-chart
-make glooctl-linux-amd64
+make VERSION=kind build-test-chart build-os-with-ui-test-chart glooctl-linux-amd64

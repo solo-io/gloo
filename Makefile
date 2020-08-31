@@ -103,6 +103,14 @@ install-go-tools:
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
 	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/gogoproto
 	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
+	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
+
+# command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
+# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
+.PHONY: run-ci-regression-tests
+run-ci-regression-tests: install-go-tools
+	go env -w GOPRIVATE=github.com/solo-io
+	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/...
 
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
@@ -142,6 +150,8 @@ generate-all: generated-code generated-ui
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code:
+	go mod tidy
+	rm -rf vendor_any
 	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=0 go generate ./...
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
@@ -625,14 +635,6 @@ endif
 # Release
 #----------------------------------------------------------------------------------
 
-CHANGELOGS_BUCKET=gloo-ee-changelogs
-
-.PHONY: upload-changelog
-upload-changelog:
-ifeq ($(RELEASE),"true")
-	gsutil -m cp -r './changelog' gs://$(CHANGELOGS_BUCKET)/$(VERSION)
-endif
-
 .PHONY: upload-github-release-assets
 upload-github-release-assets: produce-manifests
 	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
@@ -698,7 +700,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
 endif
 
-push-kind-images: docker
+push-kind-images:
 	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
@@ -710,25 +712,8 @@ push-kind-images: docker
 	kind load docker-image $(IMAGE_REPO)/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
 
-#----------------------------------------------------------------------------------
-# Build assets for regression tests
-#----------------------------------------------------------------------------------
-#
-# The following targets are used to generate the assets on which the regression tests rely upon. The following actions are performed:
-#
-#   1. Push the images to GCR (images have been tagged as $(GCR_REPO_PREFIX)/<image-name>:$(TEST_IMAGE_TAG)
-#   2. Generate GlooE value files providing overrides to make the image elements point to GCR
-#      - override the repository prefix for all repository names (e.g. quay.io/solo-io/gateway -> gcr.io/gloo-ee/gateway)
-#      - set the tag for each image to TEST_IMAGE_TAG
-#   3. Package the Gloo Helm chart to the _test directory (also generate an index file)
-#
-# The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
-
-.PHONY: build-test-assets
-build-test-assets: docker push-test-images build-test-chart build-os-with-ui-test-chart
-
 .PHONY: build-kind-assets
-build-kind-assets: push-kind-images build-kind-chart
+build-kind-assets: push-kind-images build-test-chart
 
 TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test gloo-ee-envoy-wasm-wrapper-docker-test
 
@@ -766,7 +751,7 @@ gloo-ee-envoy-wasm-wrapper-docker-test: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd
 .PHONY: build-test-chart
 build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
@@ -776,23 +761,12 @@ build-test-chart:
 .PHONY: build-os-with-ui-test-chart
 build-os-with-ui-test-chart: init-helm
 	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-os-with-ui
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-os-with-ui
 	helm repo index $(TEST_ASSET_DIR)
-
-.PHONY: build-kind-chart
-build-kind-chart:
-	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
-	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
-	helm dependency update install/helm/gloo-ee
-	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
-	helm repo index $(TEST_ASSET_DIR)
-
 
 #----------------------------------------------------------------------------------
 # Printing makefile variables utility

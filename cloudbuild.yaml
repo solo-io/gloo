@@ -157,12 +157,6 @@ steps:
   id: "docker-login"
 
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
-  args: ["glooctl-linux-amd64"]
-  dir: *dir
-  waitFor: ["test", "prepare-workspace"]
-  id: "build-glooctl"
-
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["docker"]
   env:
     - "TAGGED_VERSION=$TAG_NAME"
@@ -174,38 +168,6 @@ steps:
   waitFor: ["prepare-workspace", "yarn-build"]
   id: "build-images"
 
-  # Run regression tests
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
-  args: ["build-test-assets"]
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "BUILD_ID=$BUILD_ID"
-    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
-    - "HELM_HOME=/root/.helm"
-    - "TAGGED_VERSION=$TAG_NAME"
-  secretEnv: ["GITHUB_TOKEN"]
-  dir: *dir
-  waitFor: ["build-glooctl", "build-images", "docker-login", "test"]
-  id: "build-test-assets"
-
-- name: gcr.io/cloud-builders/gcloud
-  args: ["config", "set", "compute/zone", "us-central1-a"]
-  id: "set-zone-regression"
-
-- name: gcr.io/cloud-builders/gcloud
-  args:
-    ["container", "clusters", "get-credentials", "solo-projects-regression"]
-  id: "get-credentials-regression"
-
-- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "RUN_KUBE2E_TESTS=1"
-  dir: *dir
-  args: ["-r", "-failFast", "-trace", "-progress", "-race", "-compilers=4", "-failOnPending", "-noColor", "test/regressions"]
-  waitFor: ["build-test-assets", "get-credentials-regression"]
-  id: "regression-tests"
-
 - name: "gcr.io/cloud-builders/docker"
   entrypoint: "bash"
   args:
@@ -214,7 +176,7 @@ steps:
       'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
     ]
   secretEnv: ["QUAY_IO_PASSWORD"]
-  waitFor: ["regression-tests"]
+  waitFor: ["build-images"]
   id: "docker-login-push"
 
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
@@ -234,7 +196,6 @@ steps:
       "manifest",
       "upload-github-release-assets",
       "fetch-package-and-save-helm",
-      "upload-changelog",
       "publish-dependencies",
     ]
   env:

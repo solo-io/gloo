@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go"
+	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-projects/test/regressions"
 
 	. "github.com/onsi/ginkgo"
@@ -30,7 +31,9 @@ import (
 // This file is largely copied from test/regressions/gateway/gateway_suite_test.go (May 2020)
 
 func TestGateway(t *testing.T) {
-	if testutils.AreTestsDisabled() {
+	if os.Getenv("KUBE2E_TESTS") != "gloomtls" {
+		log.Warnf("This test is disabled. " +
+			"To enable, set KUBE2E_TESTS to 'gloomtls' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()

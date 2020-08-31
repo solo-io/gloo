@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/go-utils/testutils/clusterlock"
 	"github.com/solo-io/go-utils/testutils/exec"
@@ -29,7 +30,9 @@ import (
 )
 
 func TestGateway(t *testing.T) {
-	if testutils.AreTestsDisabled() {
+	if os.Getenv("KUBE2E_TESTS") != "gateway" {
+		log.Warnf("This test is disabled. " +
+			"To enable, set KUBE2E_TESTS to 'gateway' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()

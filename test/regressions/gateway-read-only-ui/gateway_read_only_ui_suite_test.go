@@ -12,6 +12,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/log"
 	"go.uber.org/zap"
 
 	"github.com/avast/retry-go"
@@ -40,7 +41,9 @@ import (
 // This file is largely copied from test/regressions/gateway/gateway_suite_test.go (May 2020)
 
 func TestGateway(t *testing.T) {
-	if testutils.AreTestsDisabled() {
+	if os.Getenv("KUBE2E_TESTS") != "readonlyui" {
+		log.Warnf("This test is disabled. " +
+			"To enable, set KUBE2E_TESTS to 'readonlyui' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()

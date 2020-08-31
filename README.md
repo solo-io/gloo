@@ -52,10 +52,14 @@ make extauth
 
 ## Noteworthy make targets
 
-- `build-test-assets`: pushes all images and creates the zipped helm chart
-  - requires `BUILD_ID` and `GCLOUD_PROJECT_ID` set
-  - zipped helm chart saved in the `_test` dir
+- `docker`: builds all images
+  - for local builds, set `LOCAL_BUILD` to `true`
   - when running locally, should set `LOCAL_BUILD=1` in order to build the ui resources
+  - may want to set `VERSION` env var to `kind`
+- `push-kind-images`: pushes images built by `make docker` target to your kind cluster
+  - requires `CLUSTER_NAME` env var set. default kind cluster is named `kind`
+- `build-test-chart` and `build-os-with-ui-test-chart`: zipped helm chart saved in the `_test` dir
+  - may want to set `VERSION` env var to `kind`
 
 ## Additional Notes
 
