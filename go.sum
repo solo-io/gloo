@@ -1180,8 +1180,8 @@ github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4ts
 github.com/solo-io/ext-auth-service v0.6.15 h1:tp6mi8cfzsPTu7F+1LtueaJRy8n5KmhHGMVBeEnuw0M=
 github.com/solo-io/ext-auth-service v0.6.15/go.mod h1:YoFnC7CpaQ+LP7jwcOj5hSQPK8oFqTxyNaT0F6p9/EM=
 github.com/solo-io/gloo v1.3.1/go.mod h1:08u6J9vpfFGRDsZybTQ65UX7UuJr+EBsZz++J1wtKkQ=
-github.com/solo-io/gloo v1.5.0-beta19 h1:O08iO3/4SrKQAjH+DpYHohC4/mSPmZ/yoFsT6IunDNc=
-github.com/solo-io/gloo v1.5.0-beta19/go.mod h1:Y5HXVcxlUR/i3t42quzNQzXIqm6NF9LTJDq/idpT3vQ=
+github.com/solo-io/gloo v1.5.0-beta20 h1:QtcWqH+6Yb455R39xvuhUwmydgaYgLrlygx2xkcmibw=
+github.com/solo-io/gloo v1.5.0-beta20/go.mod h1:Y5HXVcxlUR/i3t42quzNQzXIqm6NF9LTJDq/idpT3vQ=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.0/go.mod h1:R8lbLuLtMaTOhD+6wGpdxj60r1Vwt63fHe1UxlObHig=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=

@@ -174,12 +174,18 @@ export class SDSConfig extends jspb.Message {
   getCallCredentials(): CallCredentials | undefined;
   setCallCredentials(value?: CallCredentials): void;
 
+  hasClusterName(): boolean;
+  clearClusterName(): void;
+  getClusterName(): string;
+  setClusterName(value: string): void;
+
   getCertificatesSecretName(): string;
   setCertificatesSecretName(value: string): void;
 
   getValidationContextName(): string;
   setValidationContextName(value: string): void;
 
+  getSdsBuilderCase(): SDSConfig.SdsBuilderCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SDSConfig.AsObject;
   static toObject(includeInstance: boolean, msg: SDSConfig): SDSConfig.AsObject;
@@ -194,8 +200,15 @@ export namespace SDSConfig {
   export type AsObject = {
     targetUri: string,
     callCredentials?: CallCredentials.AsObject,
+    clusterName: string,
     certificatesSecretName: string,
     validationContextName: string,
+  }
+
+  export enum SdsBuilderCase {
+    SDS_BUILDER_NOT_SET = 0,
+    CALL_CREDENTIALS = 2,
+    CLUSTER_NAME = 5,
   }
 }
 

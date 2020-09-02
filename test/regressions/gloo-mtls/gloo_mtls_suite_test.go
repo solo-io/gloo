@@ -40,7 +40,7 @@ func TestGateway(t *testing.T) {
 	skhelpers.SetupLog()
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(regressions.PrintGlooDebugLogs)
-	RunSpecs(t, "Gateway Suite")
+	RunSpecs(t, "Gloo mTLS Suite")
 }
 
 var (
@@ -127,7 +127,7 @@ func getHelmOverrides() (filename string, cleanup func()) {
 	// Set global.glooMtls.enabled = true, and make sure to pull the quay.io/solo-io
 	_, err = values.Write([]byte(`
 gloo:
-  rbac:    
+  rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
 settings:

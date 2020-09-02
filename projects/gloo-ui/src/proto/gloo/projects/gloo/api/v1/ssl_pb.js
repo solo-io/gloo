@@ -1113,12 +1113,38 @@ proto.gloo.solo.io.UpstreamSslConfig.prototype.clearAlpnProtocolsList = function
  * @constructor
  */
 proto.gloo.solo.io.SDSConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.SDSConfig.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.SDSConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.SDSConfig.displayName = 'proto.gloo.solo.io.SDSConfig';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.SDSConfig.oneofGroups_ = [[2,5]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.SDSConfig.SdsBuilderCase = {
+  SDS_BUILDER_NOT_SET: 0,
+  CALL_CREDENTIALS: 2,
+  CLUSTER_NAME: 5
+};
+
+/**
+ * @return {proto.gloo.solo.io.SDSConfig.SdsBuilderCase}
+ */
+proto.gloo.solo.io.SDSConfig.prototype.getSdsBuilderCase = function() {
+  return /** @type {proto.gloo.solo.io.SDSConfig.SdsBuilderCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.SDSConfig.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1150,6 +1176,7 @@ proto.gloo.solo.io.SDSConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     targetUri: jspb.Message.getFieldWithDefault(msg, 1, ""),
     callCredentials: (f = msg.getCallCredentials()) && proto.gloo.solo.io.CallCredentials.toObject(includeInstance, f),
+    clusterName: jspb.Message.getFieldWithDefault(msg, 5, ""),
     certificatesSecretName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     validationContextName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
@@ -1196,6 +1223,10 @@ proto.gloo.solo.io.SDSConfig.deserializeBinaryFromReader = function(msg, reader)
       var value = new proto.gloo.solo.io.CallCredentials;
       reader.readMessage(value,proto.gloo.solo.io.CallCredentials.deserializeBinaryFromReader);
       msg.setCallCredentials(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClusterName(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -1249,6 +1280,13 @@ proto.gloo.solo.io.SDSConfig.serializeBinaryToWriter = function(message, writer)
       proto.gloo.solo.io.CallCredentials.serializeBinaryToWriter
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 5));
+  if (f != null) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
   f = message.getCertificatesSecretName();
   if (f.length > 0) {
     writer.writeString(
@@ -1293,7 +1331,7 @@ proto.gloo.solo.io.SDSConfig.prototype.getCallCredentials = function() {
 
 /** @param {?proto.gloo.solo.io.CallCredentials|undefined} value */
 proto.gloo.solo.io.SDSConfig.prototype.setCallCredentials = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
+  jspb.Message.setOneofWrapperField(this, 2, proto.gloo.solo.io.SDSConfig.oneofGroups_[0], value);
 };
 
 
@@ -1308,6 +1346,35 @@ proto.gloo.solo.io.SDSConfig.prototype.clearCallCredentials = function() {
  */
 proto.gloo.solo.io.SDSConfig.prototype.hasCallCredentials = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string cluster_name = 5;
+ * @return {string}
+ */
+proto.gloo.solo.io.SDSConfig.prototype.getClusterName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SDSConfig.prototype.setClusterName = function(value) {
+  jspb.Message.setOneofField(this, 5, proto.gloo.solo.io.SDSConfig.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.SDSConfig.prototype.clearClusterName = function() {
+  jspb.Message.setOneofField(this, 5, proto.gloo.solo.io.SDSConfig.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SDSConfig.prototype.hasClusterName = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
