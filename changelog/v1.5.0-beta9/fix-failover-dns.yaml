@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  description: Add DNS resolution to Failover Endpoints
+  issueLink: https://github.com/solo-io/gloo/issues/3565
+  resolvesIssue: false

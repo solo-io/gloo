@@ -122,7 +122,7 @@ var _ = Describe("Failover", func() {
 
 		var testRequest = func(result string) {
 			var resp *http.Response
-			Eventually(func() (int, error) {
+			EventuallyWithOffset(2, func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 				Expect(err).NotTo(HaveOccurred())
@@ -134,35 +134,19 @@ var _ = Describe("Failover", func() {
 					return 0, nil
 				}
 				return resp.StatusCode, nil
-			}, "10s", "1s").Should(Equal(http.StatusOK))
+			}, "20s", "1s").Should(Equal(http.StatusOK))
 			bodyStr, err := ioutil.ReadAll(resp.Body)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(bodyStr).To(ContainSubstring(result))
+			ExpectWithOffset(2, err).NotTo(HaveOccurred())
+			ExpectWithOffset(2, bodyStr).To(ContainSubstring(result))
 		}
 
-		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = envoyInstance.Run(testClients.GlooPort)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
-			}
-		})
-
-		It("Will failover to testUpstream2 when the first is unhealthy", func() {
-
+		var testFailover = func(address string) {
 			unhealthyCtx, unhealthyCancel := context.WithCancel(context.Background())
 
 			secret := helpers.GetKubeSecret("tls", "gloo-system")
 			glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
 			_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			testUpstream = v1helpers.NewTestHttpUpstreamWithReply(unhealthyCtx, envoyInstance.LocalAddr(), "hello")
 			testUpstream2 := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "world")
@@ -191,7 +175,7 @@ var _ = Describe("Failover", func() {
 							{
 								LbEndpoints: []*gloov1.LbEndpoint{
 									{
-										Address: envoyInstance.LocalAddr(),
+										Address: address,
 										Port:    testUpstream2.Port,
 										UpstreamSslConfig: &gloov1.UpstreamSslConfig{
 											SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
@@ -209,14 +193,14 @@ var _ = Describe("Failover", func() {
 				},
 			}
 			_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
 			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
-			Expect(err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
+			EventuallyWithOffset(1, func() (core.Status, error) {
 				proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 				if err != nil {
 					return core.Status{}, err
@@ -231,6 +215,34 @@ var _ = Describe("Failover", func() {
 			testRequest("hello")
 			unhealthyCancel()
 			testRequest("world")
+		}
+
+		BeforeEach(func() {
+			var err error
+			envoyInstance, err = envoyFactory.NewEnvoyInstance()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = envoyInstance.Run(testClients.GlooPort)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			if envoyInstance != nil {
+				envoyInstance.Clean()
+			}
+		})
+
+		It("Will failover to testUpstream2 when the first is unhealthy", func() {
+			testFailover(envoyInstance.LocalAddr())
+		})
+
+		It("Will failover to testUpstream2 when the first is unhealthy with DNS resolution", func() {
+			if envoyInstance.LocalAddr() == "127.0.0.1" {
+				// Domain which resolves to "127.0.0.1"
+				testFailover("thing.solo.io")
+			} else {
+				testFailover(fmt.Sprintf("%s.xip.io", envoyInstance.LocalAddr()))
+			}
 		})
 	})
 

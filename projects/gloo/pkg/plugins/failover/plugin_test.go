@@ -2,9 +2,12 @@ package failover_test
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
+	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -32,6 +35,7 @@ var _ = Describe("Failover", func() {
 		ctrl          *gomock.Controller
 		ctx           context.Context
 		sslTranslator *mock_utils.MockSslConfigTranslator
+		dnsResolver   *mock_consul.MockDnsResolver
 
 		sslEndpoint = &gloov1.LbEndpoint{
 			Address: "ssl.address.who.dis",
@@ -39,15 +43,18 @@ var _ = Describe("Failover", func() {
 			UpstreamSslConfig: &gloov1.UpstreamSslConfig{
 				Sni: "test",
 			},
-			LoadBalancingWeight: &types.UInt32Value{
-				Value: 9999,
-			},
 		}
 		tlsContext = &envoytls.UpstreamTlsContext{
 			Sni: "test",
 		}
+		ipAddr1 = net.IPAddr{
+			IP: []byte("10.0.0.1"),
+		}
+		ipAddr2 = net.IPAddr{
+			IP: []byte("10.0.0.2"),
+		}
 		httpEndpoint = &gloov1.LbEndpoint{
-			Address: "http.address.who.dis",
+			Address: "127.0.0.1",
 			Port:    10101,
 			HealthCheckConfig: &gloov1.LbEndpoint_HealthCheckConfig{
 				PortValue: 9090,
@@ -126,7 +133,7 @@ var _ = Describe("Failover", func() {
 									Address: &envoy_api_v2_core.Address{
 										Address: &envoy_api_v2_core.Address_SocketAddress{
 											SocketAddress: &envoy_api_v2_core.SocketAddress{
-												Address: sslEndpoint.GetAddress(),
+												Address: ipAddr1.IP.String(),
 												PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
 													PortValue: sslEndpoint.GetPort(),
 												},
@@ -140,8 +147,26 @@ var _ = Describe("Failover", func() {
 									failover.TransportSocketMatchKey: metadataMatch,
 								},
 							},
-							LoadBalancingWeight: &wrappers.UInt32Value{
-								Value: sslEndpoint.GetLoadBalancingWeight().GetValue(),
+						},
+						{
+							HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
+								Endpoint: &envoy_api_v2_endpoint.Endpoint{
+									Address: &envoy_api_v2_core.Address{
+										Address: &envoy_api_v2_core.Address_SocketAddress{
+											SocketAddress: &envoy_api_v2_core.SocketAddress{
+												Address: ipAddr2.IP.String(),
+												PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_api_v2_core.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									failover.TransportSocketMatchKey: metadataMatch,
+								},
 							},
 						},
 					},
@@ -177,7 +202,7 @@ var _ = Describe("Failover", func() {
 								},
 							},
 							LoadBalancingWeight: &wrappers.UInt32Value{
-								Value: sslEndpoint.GetLoadBalancingWeight().GetValue(),
+								Value: httpEndpoint.GetLoadBalancingWeight().GetValue(),
 							},
 						},
 					},
@@ -232,8 +257,8 @@ var _ = Describe("Failover", func() {
 
 	BeforeEach(func() {
 		ctrl, ctx = gomock.WithContext(context.TODO(), GinkgoT())
-
 		sslTranslator = mock_utils.NewMockSslConfigTranslator(ctrl)
+		dnsResolver = mock_consul.NewMockDnsResolver(ctrl)
 	})
 
 	AfterEach(func() {
@@ -241,16 +266,42 @@ var _ = Describe("Failover", func() {
 	})
 
 	It("will return nil if failover cfg is nil", func() {
-		plugin := failover.NewFailoverPlugin(sslTranslator)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
 		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{}, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("will fail if no healthchecks are present", func() {
-		plugin := failover.NewFailoverPlugin(sslTranslator)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
 		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{Failover: &gloov1.Failover{}}, nil, nil)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(testutils.HaveInErrorChain(failover.NoHealthCheckError))
+	})
+
+	It("will fail if a DNS endpoint is specified with weights", func() {
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{
+			OutlierDetection: &cluster.OutlierDetection{},
+			Failover: &gloov1.Failover{
+				PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+					{
+						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+							{
+								LbEndpoints: []*gloov1.LbEndpoint{
+									{
+										Address: "dns.name",
+										LoadBalancingWeight: &types.UInt32Value{
+											Value: 9999,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}}, nil, nil)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(testutils.HaveInErrorChain(failover.WeightedDnsError))
 	})
 
 	It("will successfully return failover endpoints in the Cluster.ClusterLoadAssignment", func() {
@@ -259,12 +310,14 @@ var _ = Describe("Failover", func() {
 			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
 			Return(tlsContext, nil)
 
+		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
+
 		cluster := &v2.Cluster{}
 		cluster.LoadAssignment = &v2.ClusterLoadAssignment{}
 		expectedCluster := buildExpectedCluster()
 		expectedCluster.LoadAssignment = expected
 
-		plugin := failover.NewFailoverPlugin(sslTranslator)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
 		params := plugins.Params{
 			Ctx: ctx,
 			Snapshot: &gloov1.ApiSnapshot{
@@ -282,6 +335,8 @@ var _ = Describe("Failover", func() {
 		sslTranslator.EXPECT().
 			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
 			Return(tlsContext, nil)
+
+		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
 
 		cluster := &v2.Cluster{}
 		cluster.ClusterDiscoveryType = &v2.Cluster_Type{
@@ -306,7 +361,7 @@ var _ = Describe("Failover", func() {
 			},
 		}
 
-		plugin := failover.NewFailoverPlugin(sslTranslator)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
 		params := plugins.Params{
 			Ctx: ctx,
 			Snapshot: &gloov1.ApiSnapshot{

@@ -1,19 +1,23 @@
 package failover
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"time"
 
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoy_api_v2_endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/gogo/protobuf/types"
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -28,23 +32,32 @@ const (
 )
 
 var (
-	NoHealthCheckError = eris.New("No health checks found, at least one is required to enable failover")
+	NoHealthCheckError = eris.New("No health checks or outlier detection present, " +
+		"at least one is required to enable failover")
+
+	NoIpAddrError = func(dnsName string) error {
+		return eris.Errorf("DNS service returned an address that couldn't be parsed as an IP (%s)", dnsName)
+	}
+
+	WeightedDnsError = eris.New("Weights cannot be supplied alongside a DNS host in a prioritized locality")
 
 	_ plugins.Plugin         = new(failoverPluginImpl)
 	_ plugins.UpstreamPlugin = new(failoverPluginImpl)
 	_ plugins.EndpointPlugin = new(failoverPluginImpl)
 )
 
-func NewFailoverPlugin(translator utils.SslConfigTranslator) plugins.Plugin {
+func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver) plugins.Plugin {
 	return &failoverPluginImpl{
 		sslConfigTranslator: translator,
 		endpoints:           map[core.ResourceRef][]*envoy_api_v2_endpoint.LocalityLbEndpoints{},
+		dnsResolver:         dnsResolver,
 	}
 }
 
 type failoverPluginImpl struct {
 	sslConfigTranslator utils.SslConfigTranslator
 	endpoints           map[core.ResourceRef][]*envoy_api_v2_endpoint.LocalityLbEndpoints
+	dnsResolver         consul.DnsResolver
 }
 
 func (f *failoverPluginImpl) Init(_ plugins.InitParams) error {
@@ -57,8 +70,9 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 		return nil
 	}
 
-	// If no health checks have been set on the Upstream, throw an error as this will cause failover to fail in envoy.
-	if len(in.GetHealthChecks()) == 0 {
+	// If no health checks or outlier detection have been set on the Upstream,
+	// throw an error as this will cause failover to fail in envoy.
+	if len(in.GetHealthChecks()) == 0 && in.GetOutlierDetection() == nil {
 		return NoHealthCheckError
 	}
 
@@ -77,12 +91,10 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 			EdsConfig: &envoy_api_v2_core.ConfigSource{
 				ConfigSourceSpecifier: &envoy_api_v2_core.ConfigSource_ApiConfigSource{
 					ApiConfigSource: &envoy_api_v2_core.ApiConfigSource{
-						ApiType:                   envoy_api_v2_core.ApiConfigSource_REST,
-						ClusterNames:              []string{RestXdsCluster},
-						RefreshDelay:              ptypes.DurationProto(time.Second * 5),
-						RequestTimeout:            ptypes.DurationProto(time.Second * 5),
-						RateLimitSettings:         nil,
-						SetNodeOnFirstMessageOnly: false,
+						ApiType:        envoy_api_v2_core.ApiConfigSource_REST,
+						ClusterNames:   []string{RestXdsCluster},
+						RefreshDelay:   ptypes.DurationProto(time.Second * 5),
+						RequestTimeout: ptypes.DurationProto(time.Second * 5),
 					},
 				},
 			},
@@ -98,7 +110,7 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 }
 
 func (f *failoverPluginImpl) ProcessEndpoints(
-	params plugins.Params,
+	_ plugins.Params,
 	in *gloov1.Upstream,
 	out *v2.ClusterLoadAssignment,
 ) error {
@@ -126,13 +138,18 @@ func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 	var localityLbEndpoints []*envoy_api_v2_endpoint.LocalityLbEndpoints
 	for idx, priority := range failoverCfg.GetPrioritizedLocalities() {
 		for _, localityEndpoints := range priority.GetLocalityEndpoints() {
+			if err := ValidateGlooLocalityLbEndpoint(localityEndpoints); err != nil {
+				return nil, nil, err
+			}
 			// Use index+1 for the priority because the priority of the primary endpoints is automatically set to 0,
 			// and each corresponding failover endpoint has 1 greater
 			envoyEndpoints, socketMatches, err := GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
+				params.Ctx,
 				localityEndpoints,
 				uint32(idx+1),
 				f.sslConfigTranslator,
 				params.Snapshot.Secrets,
+				f.dnsResolver,
 			)
 			if err != nil {
 				return nil, nil, err
@@ -167,16 +184,68 @@ func GlooLocalityToEnvoyLocality(locality *gloov1.Locality) *envoy_api_v2_core.L
 	}
 }
 
+func ValidateGlooLocalityLbEndpoint(
+	endpoints *gloov1.LocalityLbEndpoints,
+) error {
+	var weighted, hasDns bool
+
+	for _, v := range endpoints.GetLbEndpoints() {
+		addr := net.ParseIP(v.GetAddress())
+		if addr == nil {
+			hasDns = true
+		}
+
+		if v.GetLoadBalancingWeight() != nil {
+			weighted = true
+		}
+
+		if weighted && hasDns {
+			return WeightedDnsError
+		}
+	}
+	return nil
+}
+
 func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
+	ctx context.Context,
 	endpoints *gloov1.LocalityLbEndpoints,
 	priority uint32,
 	translator utils.SslConfigTranslator,
 	secrets []*gloov1.Secret,
+	dnsResolver consul.DnsResolver,
 ) (*envoy_api_v2_endpoint.LocalityLbEndpoints, []*v2.Cluster_TransportSocketMatch, error) {
 	var lbEndpoints []*envoy_api_v2_endpoint.LbEndpoint
 	var transportSocketMatches []*v2.Cluster_TransportSocketMatch
 	// Generate an envoy `LbEndpoint` for each endpoint in the locality.
 	for idx, v := range endpoints.GetLbEndpoints() {
+
+		var resolvedIPLBEndpoints []*envoy_api_v2_endpoint.LbEndpoint
+		addr := net.ParseIP(v.GetAddress())
+		if addr == nil {
+			// the address is not an IP, need to do a DnsLookup
+			ips, err := dnsResolver.Resolve(ctx, v.GetAddress())
+			if err != nil {
+				return nil, nil, err
+			}
+			if len(ips) == 0 {
+				return nil, nil, NoIpAddrError(v.GetAddress())
+			}
+			for i := range ips {
+				resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
+					ips[i].IP,
+					v.GetPort(),
+					nil),
+				)
+			}
+
+		} else {
+			resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
+				addr,
+				v.GetPort(),
+				v.GetLoadBalancingWeight()),
+			)
+		}
+
 		uniqueName := PrioritizedEndpointName(v.GetAddress(), v.GetPort(), priority, idx)
 		// Create a unique metadata match for each endpoint to support unique Transport Sockets in the Cluster
 		metadataMatch := &structpb.Struct{
@@ -188,27 +257,13 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				},
 			},
 		}
-		lbEndpoint := &envoy_api_v2_endpoint.LbEndpoint{
-			HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
-				Endpoint: &envoy_api_v2_endpoint.Endpoint{
-					Address: &envoy_api_v2_core.Address{
-						Address: &envoy_api_v2_core.Address_SocketAddress{
-							SocketAddress: &envoy_api_v2_core.SocketAddress{
-								Address: v.GetAddress(),
-								PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
-									PortValue: v.GetPort(),
-								},
-							},
-						},
-					},
-				},
-			},
-			LoadBalancingWeight: gogoutils.UInt32GogoToProto(v.GetLoadBalancingWeight()),
-		}
+
 		if v.GetHealthCheckConfig() != nil {
-			lbEndpoint.GetEndpoint().HealthCheckConfig = &envoy_api_v2_endpoint.Endpoint_HealthCheckConfig{
-				PortValue: v.GetHealthCheckConfig().GetPortValue(),
-				Hostname:  v.GetHealthCheckConfig().GetHostname(),
+			for i := range resolvedIPLBEndpoints {
+				resolvedIPLBEndpoints[i].GetEndpoint().HealthCheckConfig = &envoy_api_v2_endpoint.Endpoint_HealthCheckConfig{
+					PortValue: v.GetHealthCheckConfig().GetPortValue(),
+					Hostname:  v.GetHealthCheckConfig().GetHostname(),
+				}
 			}
 		}
 		// If UpstreamSslConfig is set, resolve it.
@@ -233,13 +288,16 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				},
 			})
 			// Set the match criteria for the transport socket match on the endpoint
-			lbEndpoint.Metadata = &envoy_api_v2_core.Metadata{
-				FilterMetadata: map[string]*structpb.Struct{
-					TransportSocketMatchKey: metadataMatch,
-				},
+
+			for i := range resolvedIPLBEndpoints {
+				resolvedIPLBEndpoints[i].Metadata = &envoy_api_v2_core.Metadata{
+					FilterMetadata: map[string]*structpb.Struct{
+						TransportSocketMatchKey: metadataMatch,
+					},
+				}
 			}
 		}
-		lbEndpoints = append(lbEndpoints, lbEndpoint)
+		lbEndpoints = append(lbEndpoints, resolvedIPLBEndpoints...)
 	}
 	return &envoy_api_v2_endpoint.LocalityLbEndpoints{
 		Locality:            GlooLocalityToEnvoyLocality(endpoints.GetLocality()),
@@ -247,4 +305,24 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 		LoadBalancingWeight: gogoutils.UInt32GogoToProto(endpoints.GetLoadBalancingWeight()),
 		Priority:            priority,
 	}, transportSocketMatches, nil
+}
+
+func buildLbEndpoint(ipAddr net.IP, port uint32, weight *types.UInt32Value) *envoy_api_v2_endpoint.LbEndpoint {
+	return &envoy_api_v2_endpoint.LbEndpoint{
+		HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
+			Endpoint: &envoy_api_v2_endpoint.Endpoint{
+				Address: &envoy_api_v2_core.Address{
+					Address: &envoy_api_v2_core.Address_SocketAddress{
+						SocketAddress: &envoy_api_v2_core.SocketAddress{
+							Address: ipAddr.String(),
+							PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+								PortValue: port,
+							},
+						},
+					},
+				},
+			},
+		},
+		LoadBalancingWeight: gogoutils.UInt32GogoToProto(weight),
+	}
 }

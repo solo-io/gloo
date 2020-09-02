@@ -79,6 +79,12 @@ jobs:
       - uses: azure/setup-helm@v1
         with:
           version: v3.2.0
+      - name: Configure git for private modules
+        env:
+          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
+          # because secrets.GITHUB_ACTION is reserved in github workflows
+          TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Setup test env
         run: |
           ./ci/kind.sh

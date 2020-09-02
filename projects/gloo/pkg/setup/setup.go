@@ -114,7 +114,12 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 			func() plugins.Plugin { return waf.NewPlugin() },
 			func() plugins.Plugin { return dlp.NewPlugin() },
 			func() plugins.Plugin { return proxylatency.NewPlugin() },
-			func() plugins.Plugin { return failover.NewFailoverPlugin(utils.NewSslConfigTranslator()) },
+			func() plugins.Plugin {
+				return failover.NewFailoverPlugin(
+					utils.NewSslConfigTranslator(),
+					failover.NewDnsResolver(),
+				)
+			},
 			func() plugins.Plugin { return http_path.NewPlugin() },
 		},
 	}
