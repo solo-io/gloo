@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/avast/retry-go v2.4.3+incompatible
-	github.com/aws/aws-sdk-go v1.30.15
+	github.com/aws/aws-sdk-go v1.34.9
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9
@@ -35,14 +35,14 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.15
-	github.com/solo-io/gloo v1.5.0-beta20
+	github.com/solo-io/gloo v1.5.0-beta22
 	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
 	github.com/solo-io/rate-limiter v0.1.0
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-apis v0.0.0-20200807174746-9ea7dfeef2cb
-	github.com/solo-io/solo-kit v0.13.11
+	github.com/solo-io/solo-kit v0.13.13
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.2
 	go.uber.org/atomic v1.6.0

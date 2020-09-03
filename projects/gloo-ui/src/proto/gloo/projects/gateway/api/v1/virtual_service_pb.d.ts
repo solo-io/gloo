@@ -208,6 +208,11 @@ export class RouteTableSelector extends jspb.Message {
 
   getLabelsMap(): jspb.Map<string, string>;
   clearLabelsMap(): void;
+  clearExpressionsList(): void;
+  getExpressionsList(): Array<RouteTableSelector.Expression>;
+  setExpressionsList(value: Array<RouteTableSelector.Expression>): void;
+  addExpressions(value?: RouteTableSelector.Expression, index?: number): RouteTableSelector.Expression;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteTableSelector.AsObject;
   static toObject(includeInstance: boolean, msg: RouteTableSelector): RouteTableSelector.AsObject;
@@ -222,5 +227,50 @@ export namespace RouteTableSelector {
   export type AsObject = {
     namespacesList: Array<string>,
     labelsMap: Array<[string, string]>,
+    expressionsList: Array<RouteTableSelector.Expression.AsObject>,
+  }
+
+  export class Expression extends jspb.Message {
+    getKey(): string;
+    setKey(value: string): void;
+
+    getOperator(): RouteTableSelector.Expression.OperatorMap[keyof RouteTableSelector.Expression.OperatorMap];
+    setOperator(value: RouteTableSelector.Expression.OperatorMap[keyof RouteTableSelector.Expression.OperatorMap]): void;
+
+    clearValuesList(): void;
+    getValuesList(): Array<string>;
+    setValuesList(value: Array<string>): void;
+    addValues(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Expression.AsObject;
+    static toObject(includeInstance: boolean, msg: Expression): Expression.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Expression, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Expression;
+    static deserializeBinaryFromReader(message: Expression, reader: jspb.BinaryReader): Expression;
+  }
+
+  export namespace Expression {
+    export type AsObject = {
+      key: string,
+      operator: RouteTableSelector.Expression.OperatorMap[keyof RouteTableSelector.Expression.OperatorMap],
+      valuesList: Array<string>,
+    }
+
+    export interface OperatorMap {
+      EQUALS: 0;
+      DOUBLEEQUALS: 1;
+      NOTEQUALS: 2;
+      IN: 3;
+      NOTIN: 4;
+      EXISTS: 5;
+      DOESNOTEXIST: 6;
+      GREATERTHAN: 7;
+      LESSTHAN: 8;
+    }
+
+    export const Operator: OperatorMap;
   }
 }

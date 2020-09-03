@@ -229,7 +229,10 @@ func findDelegatedRouteTables(
 		result = append(result, routeTable)
 
 	} else if selector := action.GetSelector(); selector != nil {
-		matchingRouteTables := translator.RouteTablesForSelector(allRouteTables, selector, ownerNamespace)
+		matchingRouteTables, err := translator.RouteTablesForSelector(allRouteTables, selector, ownerNamespace)
+		if err != nil {
+			return nil, err
+		}
 		for _, rt := range matchingRouteTables {
 			result = append(result, rt)
 		}
