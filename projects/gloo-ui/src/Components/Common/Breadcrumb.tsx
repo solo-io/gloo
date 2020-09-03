@@ -17,9 +17,6 @@ const breadcrumbNameMap: { [key: string]: string } = {
   '/admin': 'Admin',
   '/settings': 'Settings',
   '/settings/secrets': 'Secrets',
-  '/dev-portal': 'Developer Portal',
-  '/dev-portal/portals': 'Portals',
-  '/dev-portal/apis': 'APIs'
 };
 export interface RouteParams {
   virtualservicename?: string;

@@ -87,10 +87,6 @@ spec:
                 secretKeyRef:
                   name: license
                   key: license-key
-            {{- if .Values.devPortal.enabled }}
-            - name: DEV_PORTAL_ENABLED
-              value: "true"
-            {{- end}}
           {{- if .Values.apiServer.deployment.server.resources }}
           resources:
 {{ toYaml .Values.apiServer.deployment.server.resources | indent 12}}

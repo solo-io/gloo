@@ -11,7 +11,6 @@ import (
 
 	"github.com/solo-io/go-utils/envutils"
 	"github.com/solo-io/solo-projects/pkg/license"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/status"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
@@ -39,7 +38,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeServer(ctx context.Context, listener net.Listener, registrar devportal.Registrar) (*GlooGrpcService, error) {
+func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcService, error) {
 	string2 := envutils.MustGetPodNamespace(ctx)
 	v1Settings := setup.MustSettings(ctx, string2)
 	config, err := setup.NewKubeConfig()
@@ -92,6 +91,6 @@ func InitializeServer(ctx context.Context, listener net.Listener, registrar devp
 	envoydetailsClient := envoydetails.NewClient(podsGetter, httpGetter, envoyStatusGetter)
 	envoyApiServer := envoysvc.NewEnvoyGrpcService(ctx, envoydetailsClient, string2)
 	updater := client.NewClientUpdater(clientCache, config, token, string2)
-	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, upstreamGroupApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, routeTableApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater, registrar)
+	glooGrpcService := NewGlooGrpcService(ctx, listener, upstreamApiServer, upstreamGroupApiServer, artifactApiServer, configApiServer, secretApiServer, virtualServiceApiServer, routeTableApiServer, gatewayApiServer, proxyApiServer, envoyApiServer, updater)
 	return glooGrpcService, nil
 }

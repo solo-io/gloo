@@ -1501,14 +1501,6 @@
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.3.tgz#5405ee8e444ed212db44e79351f0c70a582aae25"
   integrity sha512-DetpxZw1fzPD5xUBrIAoplLChO2VB8DlL5Gg+I1IR9b2wPqYIca2WSUxL5g1vLeR4MsQq1NeWriXAVffV+U1Fw==
 
-"@solo-io/dev-portal-grpc@0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@solo-io/dev-portal-grpc/-/dev-portal-grpc-0.1.11.tgz#a36a60adbbbd8420709664078134fec7654f99ef"
-  integrity sha512-RxAGAcQG3ttF9SqJUGmgw41WREFe/hfN/CrfbYswaJsYTGyU27yWbQGPjmGzcHhm5BeG6/ZbplJN55mi3AN7dg==
-  dependencies:
-    "@types/google-protobuf" "^3.2.7"
-    google-protobuf "^3.8.0-rc.1"
-
 "@svgr/babel-plugin-add-jsx-attribute@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-4.2.0.tgz#dadcb6218503532d6884b210e7f3c502caaa44b1"
@@ -1731,7 +1723,7 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
-"@types/google-protobuf@^3.2.7", "@types/google-protobuf@^3.7.2":
+"@types/google-protobuf@^3.7.2":
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/@types/google-protobuf/-/google-protobuf-3.7.2.tgz#cd8a360c193ce4d672575a20a79f49ba036d38d2"
   integrity sha512-ifFemzjNchFBCtHS6bZNhSZCBu7tbtOe0e8qY0z2J4HtFXmPJjm6fXSaQsTG7yhShBEZtt2oP/bkwu5k+emlkQ==
@@ -5923,7 +5915,7 @@ globby@^6.1.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
 
-google-protobuf@^3.11.0, google-protobuf@^3.6.1, google-protobuf@^3.8.0-rc.1:
+google-protobuf@^3.11.0, google-protobuf@^3.6.1:
   version "3.11.4"
   resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.11.4.tgz#598ca405a3cfa917a2132994d008b5932ef42014"
   integrity sha512-lL6b04rDirurUBOgsY2+LalI6Evq8eH5TcNzi7TYQ3BsIWelT0KSOQSBsXuavEkNf+odQU6c0lgz3UsZXeNX9Q==

@@ -13,6 +13,3 @@ dependencies:
     condition: grafana.defaultInstallationEnabled
     tags:
       - monitoring
-  - name: dev-portal
-    repository: https://storage.googleapis.com/dev-portal-helm
-    condition: devPortal.enabled

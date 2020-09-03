@@ -351,27 +351,3 @@ export namespace ListNamespacesResponse {
     namespacesList: Array<string>,
   }
 }
-
-export class IsDeveloperPortalEnabledResponse extends jspb.Message {
-  getEnabled(): boolean;
-  setEnabled(value: boolean): void;
-
-  getDisabledReason(): string;
-  setDisabledReason(value: string): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): IsDeveloperPortalEnabledResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: IsDeveloperPortalEnabledResponse): IsDeveloperPortalEnabledResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: IsDeveloperPortalEnabledResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): IsDeveloperPortalEnabledResponse;
-  static deserializeBinaryFromReader(message: IsDeveloperPortalEnabledResponse, reader: jspb.BinaryReader): IsDeveloperPortalEnabledResponse;
-}
-
-export namespace IsDeveloperPortalEnabledResponse {
-  export type AsObject = {
-    enabled: boolean,
-    disabledReason: string,
-  }
-}

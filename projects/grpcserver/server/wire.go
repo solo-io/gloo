@@ -6,8 +6,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
-
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/truncate"
@@ -37,7 +35,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 )
 
-func InitializeServer(ctx context.Context, listener net.Listener, registrar devportal.Registrar) (*GlooGrpcService, error) {
+func InitializeServer(ctx context.Context, listener net.Listener) (*GlooGrpcService, error) {
 	wire.Build(
 		// If more strings are provided after PodNamespace, they will have to be typed. see configsvc.BuildVersion
 		envutils.MustGetPodNamespace,

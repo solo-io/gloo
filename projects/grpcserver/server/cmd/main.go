@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
-
 	"github.com/solo-io/go-utils/stats"
 	"github.com/solo-io/solo-projects/pkg/version"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server"
@@ -29,12 +27,7 @@ func main() {
 			zap.Error(err))
 	}
 
-	devPortalRegistrar, err := initDevPortal(ctx)
-	if err != nil {
-		contextutils.LoggerFrom(ctx).Fatalw("Failed to initialize developer portal", zap.Error(err))
-	}
-
-	glooGrpcService, err := server.InitializeServer(ctx, lis, devPortalRegistrar)
+	glooGrpcService, err := server.InitializeServer(ctx, lis)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Failed while initializing gloo grpc service", zap.Error(err))
 	}
@@ -48,11 +41,4 @@ func getInitialContext() context.Context {
 	ctx := contextutils.WithLogger(context.Background(), "gloo-grpcserver")
 	ctx = contextutils.WithLoggerValues(ctx, loggingContext...)
 	return ctx
-}
-
-func initDevPortal(ctx context.Context) (devportal.Registrar, error) {
-	if devportal.IsEnabled() {
-		return devportal.InitDevPortal(ctx)
-	}
-	return devportal.NewNoOpRegistrar(), nil
 }

@@ -16,8 +16,7 @@ import {
   UpdateSettingsRequest,
   UpdateSettingsResponse,
   SettingsDetails,
-  UpdateSettingsYamlRequest,
-  IsDeveloperPortalEnabledResponse
+  UpdateSettingsYamlRequest
 } from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
 import {
   ConfigApiClient,
@@ -46,8 +45,7 @@ export const configAPI = {
   listNamespaces,
   getPodNamespace,
   updateRefreshRate,
-  updateWatchNamespaces,
-  isDeveloperPortalEnabled
+  updateWatchNamespaces
 };
 
 function getVersion(): Promise<string> {
@@ -266,35 +264,6 @@ function getPodNamespace(): Promise<string> {
         reject(error);
       } else {
         resolve(data!.toObject().namespace);
-      }
-    });
-  });
-}
-
-function isDeveloperPortalEnabled(): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    grpc.invoke(ConfigApi.IsDeveloperPortalEnabled, {
-      request: new Empty(),
-      host,
-      metadata: new grpc.Metadata(),
-      onHeaders: (headers: grpc.Metadata) => {
-        // console.log('onheaders', headers);
-      },
-      onMessage: (message: IsDeveloperPortalEnabledResponse) => {
-        // console.log('message', message);
-        if (message) {
-          resolve(message.toObject().enabled);
-        }
-      },
-      onEnd: (
-        status: grpc.Code,
-        statusMessage: string,
-        trailers: grpc.Metadata
-      ) => {
-        // console.log('onEnd', status, statusMessage, trailers);
-        if (status !== grpc.Code.OK) {
-          reject(statusMessage);
-        }
       }
     });
   });

@@ -69,4 +69,3 @@ make extauth
 ## Helm Repositories
 - [GlooE](https://console.cloud.google.com/storage/browser/gloo-ee-helm)
 - [Gloo with read-only UI](https://console.cloud.google.com/storage/browser/gloo-os-ui-helm)
-- [Dev portal](https://console.cloud.google.com/storage/browser/dev-portal-helm)

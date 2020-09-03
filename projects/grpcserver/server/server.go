@@ -12,8 +12,6 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/devportal"
-
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -40,7 +38,6 @@ func NewGlooGrpcService(
 	proxyService v1.ProxyApiServer,
 	envoyService v1.EnvoyApiServer,
 	clientUpdater client.Updater,
-	registrar devportal.Registrar,
 ) *GlooGrpcService {
 
 	logger := contextutils.LoggerFrom(ctx).Desugar()
@@ -54,7 +51,7 @@ func NewGlooGrpcService(
 				// Logs generic info about responses (e.g. errors, code, etc)
 				grpc_zap.UnaryServerInterceptor(logger, logOkAtDebugLevel()),
 				// Logs request/response payloads at the debug level
-				logging.RequestResponseDebugInterceptor(logger, registrar.GetDebugLoggingDecider()),
+				logging.RequestResponseDebugInterceptor(logger),
 			),
 		),
 		listener: listener,
@@ -70,9 +67,6 @@ func NewGlooGrpcService(
 	v1.RegisterGatewayApiServer(glooServer.server, gatewayService)
 	v1.RegisterProxyApiServer(glooServer.server, proxyService)
 	v1.RegisterEnvoyApiServer(glooServer.server, envoyService)
-
-	// Register Dev Portal services
-	registrar.RegisterTo(glooServer.server)
 
 	// just responsible for kicking off the settings watch loop that rebuilds all the clients
 	// (the client updater has to be passed somewhere, otherwise wire complains about an unused provider)

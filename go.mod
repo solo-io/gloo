@@ -31,7 +31,6 @@ require (
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.4.0
 	github.com/solo-io/anyvendor v0.0.1
-	github.com/solo-io/dev-portal v0.1.12
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
@@ -61,7 +60,6 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.18.2
 	k8s.io/kubernetes v1.17.1
-	sigs.k8s.io/controller-runtime v0.5.8
 	sigs.k8s.io/yaml v1.2.0
 )
 
@@ -73,8 +71,6 @@ replace (
 	// needed by gloo
 	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 
-	// We need to pin this to the version used by solo-kit, because dev-portal currently uses v1.3.1 (incompatible)
-	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 
 	// kube 1.17

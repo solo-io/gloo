@@ -12,18 +12,12 @@ import (
 )
 
 const (
-	glooOsDependencyName    = "gloo"
-	glooOsModuleName        = "github.com/solo-io/gloo"
-	devPortalDependencyName = "dev-portal"
-	devPortalModuleName     = "github.com/solo-io/dev-portal"
+	glooOsDependencyName = "gloo"
+	glooOsModuleName     = "github.com/solo-io/gloo"
 )
 
 func GetGlooOsVersion(filesets ...*GenerationFiles) (string, error) {
 	return getDependencyVersion(glooOsDependencyName, glooOsModuleName, filesets...)
-}
-
-func GetDevPortalVersion(filesets ...*GenerationFiles) (string, error) {
-	return getDependencyVersion(devPortalDependencyName, devPortalModuleName, filesets...)
 }
 
 func getDependencyVersion(dependencyName, moduleName string, filesets ...*GenerationFiles) (string, error) {
@@ -85,7 +79,7 @@ func readConfig(path string) (HelmConfig, error) {
 	return config, nil
 }
 
-func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion, devPortalVersion string) error {
+func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string) error {
 	var dl DependencyList
 	if err := readYaml(requirementsTemplatePath, &dl); err != nil {
 		return err
@@ -93,9 +87,6 @@ func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersio
 	for i, v := range dl.Dependencies {
 		if v.Name == glooOsDependencyName && v.Version == "" {
 			dl.Dependencies[i].Version = osGlooVersion
-		}
-		if v.Name == devPortalDependencyName && v.Version == "" {
-			dl.Dependencies[i].Version = devPortalVersion
 		}
 	}
 	return writeYaml(dl, outputPath)

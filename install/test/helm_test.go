@@ -1410,29 +1410,6 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
-			When("developer portal is enabled", func() {
-
-				BeforeEach(func() {
-					expectedDeployment.Spec.Template.Spec.Containers[1].Env = append(
-						expectedDeployment.Spec.Template.Spec.Containers[1].Env,
-						v1.EnvVar{
-							Name:  "DEV_PORTAL_ENABLED",
-							Value: "true",
-						},
-					)
-				})
-
-				It("correctly sets additional environment variables", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{
-							"devPortal.enabled=true",
-						},
-					})
-					Expect(err).NotTo(HaveOccurred())
-					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-				})
-			})
-
 			When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
 				const customConfigMapName = "custom-bootstrap-config"
 				var actualManifest TestManifest

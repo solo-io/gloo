@@ -111,16 +111,6 @@ export const MainMenu = () => {
     { refreshInterval: 0 }
   );
 
-  const {
-    data: isDeveloperPortalEnabled,
-    error: isDeveloperPortalEnabledError
-  } = useSWR('isDeveloperPortalEnabled', configAPI.isDeveloperPortalEnabled, {
-    refreshInterval: 0
-  });
-
-  // if (!version || !licenseData?.isLicenseValid) {
-  //   return <div>Loading...</div>;
-  // }
   const hasValidLicense = licenseData?.isLicenseValid;
   return (
     <Container>
@@ -158,18 +148,6 @@ export const MainMenu = () => {
           Upstreams
         </NavLink>
 
-        {isDeveloperPortalEnabled && (
-          <NavLink
-            data-testid='dev-portal-navlink'
-            style={NavLinkStyles}
-            to='/dev-portal'
-            activeStyle={activeStyle}>
-            Dev Portal
-          </NavLink>
-        )}
-        {/*<NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
-          Stats
-        </NavLink>*/}
         <NavLink
           data-testid='settings-navlink'
           style={{

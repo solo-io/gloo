@@ -1,0 +1,10 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Remove all dev-portal code from the Gloo UI. The new dev-portal will have its own admin dashboard.
+  issueLink: https://github.com/solo-io/dev-portal/issues/643
+- type: NON_USER_FACING
+  description: >
+    Remove all backend code related to dev-portal. The new dev-portal will be a standalone application
+    installed independently from Gloo.
+  issueLink: https://github.com/solo-io/dev-portal/issues/644

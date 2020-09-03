@@ -18,7 +18,6 @@ WORKDIR /go/src/github.com/solo-io/solo-projects/
 RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https://github.com/
 
 RUN go env -w GOPRIVATE=github.com/solo-io/ext-auth-service
-RUN go env -w GOPRIVATE=github.com/solo-io/dev-portal
 
 # Build plugins with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
