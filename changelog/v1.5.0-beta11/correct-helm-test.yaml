@@ -1,0 +1,4 @@
+changelog:
+  - description: Correct yaml that was causing warnings to be printed out during helm tests.
+    type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/3467
