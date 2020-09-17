@@ -264,6 +264,8 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.toObject = function(in
     proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance),
     customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 3, ""),
     auditLogging: (f = msg.getAuditLogging()) && proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.toObject(includeInstance, f),
+    requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
+    responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false),
     regressionLogs: jspb.Message.getFieldWithDefault(msg, 4, false)
   };
 
@@ -318,6 +320,14 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.deserializeBinaryFromR
       var value = new proto.envoy.config.filter.http.modsecurity.v2.AuditLogging;
       reader.readMessage(value,proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.deserializeBinaryFromReader);
       msg.setAuditLogging(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRequestHeadersOnly(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setResponseHeadersOnly(value);
       break;
     case 4:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -380,6 +390,20 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.serializeBinaryToWrite
       5,
       f,
       proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
+  f = message.getResponseHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
     );
   }
   f = message.getRegressionLogs();
@@ -482,6 +506,40 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.clearAuditLo
  */
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.hasAuditLogging = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional bool request_headers_only = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.getRequestHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.setRequestHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
+};
+
+
+/**
+ * optional bool response_headers_only = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.getResponseHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.setResponseHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 
@@ -777,7 +835,9 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.toObject = fun
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
     proto.envoy.config.filter.http.modsecurity.v2.RuleSet.toObject, includeInstance),
     customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    auditLogging: (f = msg.getAuditLogging()) && proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.toObject(includeInstance, f)
+    auditLogging: (f = msg.getAuditLogging()) && proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.toObject(includeInstance, f),
+    requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
+    responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -831,6 +891,14 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.deserializeBin
       var value = new proto.envoy.config.filter.http.modsecurity.v2.AuditLogging;
       reader.readMessage(value,proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.deserializeBinaryFromReader);
       msg.setAuditLogging(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRequestHeadersOnly(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setResponseHeadersOnly(value);
       break;
     default:
       reader.skipField();
@@ -889,6 +957,20 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.serializeBinar
       5,
       f,
       proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
+  f = message.getResponseHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
     );
   }
 };
@@ -984,6 +1066,40 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.clea
  */
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.hasAuditLogging = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional bool request_headers_only = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.getRequestHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.setRequestHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
+};
+
+
+/**
+ * optional bool response_headers_only = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.getResponseHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.setResponseHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var envoy_api_v2_core_base_pb = require('../../../../../../../solo-kit/api/external/envoy/api/v2/core/base_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.headers.options.gloo.solo.io.HeaderManipulation', null, global);
 goog.exportSymbol('proto.headers.options.gloo.solo.io.HeaderValue', null, global);
@@ -73,7 +74,7 @@ proto.headers.options.gloo.solo.io.HeaderManipulation.prototype.toObject = funct
 proto.headers.options.gloo.solo.io.HeaderManipulation.toObject = function(includeInstance, msg) {
   var f, obj = {
     requestHeadersToAddList: jspb.Message.toObjectList(msg.getRequestHeadersToAddList(),
-    proto.headers.options.gloo.solo.io.HeaderValueOption.toObject, includeInstance),
+    envoy_api_v2_core_base_pb.HeaderValueOption.toObject, includeInstance),
     requestHeadersToRemoveList: jspb.Message.getRepeatedField(msg, 2),
     responseHeadersToAddList: jspb.Message.toObjectList(msg.getResponseHeadersToAddList(),
     proto.headers.options.gloo.solo.io.HeaderValueOption.toObject, includeInstance),
@@ -115,8 +116,8 @@ proto.headers.options.gloo.solo.io.HeaderManipulation.deserializeBinaryFromReade
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.headers.options.gloo.solo.io.HeaderValueOption;
-      reader.readMessage(value,proto.headers.options.gloo.solo.io.HeaderValueOption.deserializeBinaryFromReader);
+      var value = new envoy_api_v2_core_base_pb.HeaderValueOption;
+      reader.readMessage(value,envoy_api_v2_core_base_pb.HeaderValueOption.deserializeBinaryFromReader);
       msg.addRequestHeadersToAdd(value);
       break;
     case 2:
@@ -166,7 +167,7 @@ proto.headers.options.gloo.solo.io.HeaderManipulation.serializeBinaryToWriter = 
     writer.writeRepeatedMessage(
       1,
       f,
-      proto.headers.options.gloo.solo.io.HeaderValueOption.serializeBinaryToWriter
+      envoy_api_v2_core_base_pb.HeaderValueOption.serializeBinaryToWriter
     );
   }
   f = message.getRequestHeadersToRemoveList();
@@ -195,28 +196,28 @@ proto.headers.options.gloo.solo.io.HeaderManipulation.serializeBinaryToWriter = 
 
 
 /**
- * repeated HeaderValueOption request_headers_to_add = 1;
- * @return {!Array<!proto.headers.options.gloo.solo.io.HeaderValueOption>}
+ * repeated envoy.api.v2.core.HeaderValueOption request_headers_to_add = 1;
+ * @return {!Array<!proto.envoy.api.v2.core.HeaderValueOption>}
  */
 proto.headers.options.gloo.solo.io.HeaderManipulation.prototype.getRequestHeadersToAddList = function() {
-  return /** @type{!Array<!proto.headers.options.gloo.solo.io.HeaderValueOption>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.headers.options.gloo.solo.io.HeaderValueOption, 1));
+  return /** @type{!Array<!proto.envoy.api.v2.core.HeaderValueOption>} */ (
+    jspb.Message.getRepeatedWrapperField(this, envoy_api_v2_core_base_pb.HeaderValueOption, 1));
 };
 
 
-/** @param {!Array<!proto.headers.options.gloo.solo.io.HeaderValueOption>} value */
+/** @param {!Array<!proto.envoy.api.v2.core.HeaderValueOption>} value */
 proto.headers.options.gloo.solo.io.HeaderManipulation.prototype.setRequestHeadersToAddList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.headers.options.gloo.solo.io.HeaderValueOption=} opt_value
+ * @param {!proto.envoy.api.v2.core.HeaderValueOption=} opt_value
  * @param {number=} opt_index
- * @return {!proto.headers.options.gloo.solo.io.HeaderValueOption}
+ * @return {!proto.envoy.api.v2.core.HeaderValueOption}
  */
 proto.headers.options.gloo.solo.io.HeaderManipulation.prototype.addRequestHeadersToAdd = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.headers.options.gloo.solo.io.HeaderValueOption, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.envoy.api.v2.core.HeaderValueOption, opt_index);
 };
 
 

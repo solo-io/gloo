@@ -29,6 +29,12 @@ export class Settings extends jspb.Message {
   getAuditLogging(): gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging | undefined;
   setAuditLogging(value?: gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging): void;
 
+  getRequestHeadersOnly(): boolean;
+  setRequestHeadersOnly(value: boolean): void;
+
+  getResponseHeadersOnly(): boolean;
+  setResponseHeadersOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -46,6 +52,8 @@ export namespace Settings {
     coreRuleSet?: CoreRuleSet.AsObject,
     ruleSetsList: Array<gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.AsObject>,
     auditLogging?: gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.AsObject,
+    requestHeadersOnly: boolean,
+    responseHeadersOnly: boolean,
   }
 }
 

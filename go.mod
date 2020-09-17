@@ -13,7 +13,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1
+	github.com/golang/mock v1.4.4
 	// protobuf v1.4.x uses their v2 API, including breaking changes to reflection: causes Gloo to go into CrashLoopBackOff
 	github.com/golang/protobuf v1.4.2
 	github.com/google/wire v0.4.0
@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.15
-	github.com/solo-io/gloo v1.5.0-beta22
+	github.com/solo-io/gloo v1.5.0-beta24
 	github.com/solo-io/go-utils v0.16.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9

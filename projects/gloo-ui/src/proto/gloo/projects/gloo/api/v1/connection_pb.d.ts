@@ -27,6 +27,11 @@ export class ConnectionConfig extends jspb.Message {
   getPerConnectionBufferLimitBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setPerConnectionBufferLimitBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  hasCommonHttpProtocolOptions(): boolean;
+  clearCommonHttpProtocolOptions(): void;
+  getCommonHttpProtocolOptions(): ConnectionConfig.HttpProtocolOptions | undefined;
+  setCommonHttpProtocolOptions(value?: ConnectionConfig.HttpProtocolOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConnectionConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ConnectionConfig): ConnectionConfig.AsObject;
@@ -43,6 +48,7 @@ export namespace ConnectionConfig {
     connectTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     tcpKeepalive?: ConnectionConfig.TcpKeepAlive.AsObject,
     perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    commonHttpProtocolOptions?: ConnectionConfig.HttpProtocolOptions.AsObject,
   }
 
   export class TcpKeepAlive extends jspb.Message {
@@ -75,5 +81,49 @@ export namespace ConnectionConfig {
       keepaliveTime?: google_protobuf_duration_pb.Duration.AsObject,
       keepaliveInterval?: google_protobuf_duration_pb.Duration.AsObject,
     }
+  }
+
+  export class HttpProtocolOptions extends jspb.Message {
+    hasIdleTimeout(): boolean;
+    clearIdleTimeout(): void;
+    getIdleTimeout(): google_protobuf_duration_pb.Duration | undefined;
+    setIdleTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+    getMaxHeadersCount(): number;
+    setMaxHeadersCount(value: number): void;
+
+    hasMaxStreamDuration(): boolean;
+    clearMaxStreamDuration(): void;
+    getMaxStreamDuration(): google_protobuf_duration_pb.Duration | undefined;
+    setMaxStreamDuration(value?: google_protobuf_duration_pb.Duration): void;
+
+    getHeadersWithUnderscoresAction(): ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap[keyof ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap];
+    setHeadersWithUnderscoresAction(value: ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap[keyof ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap]): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HttpProtocolOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: HttpProtocolOptions): HttpProtocolOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HttpProtocolOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HttpProtocolOptions;
+    static deserializeBinaryFromReader(message: HttpProtocolOptions, reader: jspb.BinaryReader): HttpProtocolOptions;
+  }
+
+  export namespace HttpProtocolOptions {
+    export type AsObject = {
+      idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+      maxHeadersCount: number,
+      maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
+      headersWithUnderscoresAction: ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap[keyof ConnectionConfig.HttpProtocolOptions.HeadersWithUnderscoresActionMap],
+    }
+
+    export interface HeadersWithUnderscoresActionMap {
+      ALLOW: 0;
+      REJECT_REQUEST: 1;
+      DROP_HEADER: 2;
+    }
+
+    export const HeadersWithUnderscoresAction: HeadersWithUnderscoresActionMap;
   }
 }

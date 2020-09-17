@@ -65,6 +65,8 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		Disabled:                  wafConfig.GetDisabled(),
 		AuditLogging:              wafConfig.GetAuditLogging(),
 		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
+		RequestHeadersOnly:        wafConfig.GetRequestHeadersOnly(),
+		ResponseHeadersOnly:       wafConfig.GetResponseHeadersOnly(),
 	}
 
 	perVhostCfg.RuleSets = wafConfig.GetRuleSets()
@@ -91,6 +93,8 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		Disabled:                  wafConfig.GetDisabled(),
 		AuditLogging:              wafConfig.GetAuditLogging(),
 		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
+		RequestHeadersOnly:        wafConfig.GetRequestHeadersOnly(),
+		ResponseHeadersOnly:       wafConfig.GetResponseHeadersOnly(),
 	}
 
 	perRouteCfg.RuleSets = wafConfig.GetRuleSets()
@@ -127,6 +131,8 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		modSecurityConfig.AuditLogging = settings.GetAuditLogging()
 		modSecurityConfig.Disabled = settings.GetDisabled()
 		modSecurityConfig.CustomInterventionMessage = settings.GetCustomInterventionMessage()
+		modSecurityConfig.RequestHeadersOnly = settings.GetRequestHeadersOnly()
+		modSecurityConfig.ResponseHeadersOnly = settings.GetResponseHeadersOnly()
 
 		if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
 			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet...)

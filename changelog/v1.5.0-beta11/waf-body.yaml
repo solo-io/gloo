@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Allow skipping the body processing in the WAF filter.
+    issueLink: https://github.com/solo-io/gloo/issues/3540

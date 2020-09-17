@@ -5,13 +5,14 @@
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
+import * as envoy_api_v2_core_base_pb from "../../../../../../../envoy/api/v2/core/base_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class HeaderManipulation extends jspb.Message {
   clearRequestHeadersToAddList(): void;
-  getRequestHeadersToAddList(): Array<HeaderValueOption>;
-  setRequestHeadersToAddList(value: Array<HeaderValueOption>): void;
-  addRequestHeadersToAdd(value?: HeaderValueOption, index?: number): HeaderValueOption;
+  getRequestHeadersToAddList(): Array<envoy_api_v2_core_base_pb.HeaderValueOption>;
+  setRequestHeadersToAddList(value: Array<envoy_api_v2_core_base_pb.HeaderValueOption>): void;
+  addRequestHeadersToAdd(value?: envoy_api_v2_core_base_pb.HeaderValueOption, index?: number): envoy_api_v2_core_base_pb.HeaderValueOption;
 
   clearRequestHeadersToRemoveList(): void;
   getRequestHeadersToRemoveList(): Array<string>;
@@ -40,7 +41,7 @@ export class HeaderManipulation extends jspb.Message {
 
 export namespace HeaderManipulation {
   export type AsObject = {
-    requestHeadersToAddList: Array<HeaderValueOption.AsObject>,
+    requestHeadersToAddList: Array<envoy_api_v2_core_base_pb.HeaderValueOption.AsObject>,
     requestHeadersToRemoveList: Array<string>,
     responseHeadersToAddList: Array<HeaderValueOption.AsObject>,
     responseHeadersToRemoveList: Array<string>,

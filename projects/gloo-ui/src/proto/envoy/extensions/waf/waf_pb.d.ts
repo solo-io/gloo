@@ -61,6 +61,12 @@ export class ModSecurity extends jspb.Message {
   getAuditLogging(): AuditLogging | undefined;
   setAuditLogging(value?: AuditLogging): void;
 
+  getRequestHeadersOnly(): boolean;
+  setRequestHeadersOnly(value: boolean): void;
+
+  getResponseHeadersOnly(): boolean;
+  setResponseHeadersOnly(value: boolean): void;
+
   getRegressionLogs(): boolean;
   setRegressionLogs(value: boolean): void;
 
@@ -80,6 +86,8 @@ export namespace ModSecurity {
     ruleSetsList: Array<RuleSet.AsObject>,
     customInterventionMessage: string,
     auditLogging?: AuditLogging.AsObject,
+    requestHeadersOnly: boolean,
+    responseHeadersOnly: boolean,
     regressionLogs: boolean,
   }
 }
@@ -131,6 +139,12 @@ export class ModSecurityPerRoute extends jspb.Message {
   getAuditLogging(): AuditLogging | undefined;
   setAuditLogging(value?: AuditLogging): void;
 
+  getRequestHeadersOnly(): boolean;
+  setRequestHeadersOnly(value: boolean): void;
+
+  getResponseHeadersOnly(): boolean;
+  setResponseHeadersOnly(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModSecurityPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: ModSecurityPerRoute): ModSecurityPerRoute.AsObject;
@@ -147,5 +161,7 @@ export namespace ModSecurityPerRoute {
     ruleSetsList: Array<RuleSet.AsObject>,
     customInterventionMessage: string,
     auditLogging?: AuditLogging.AsObject,
+    requestHeadersOnly: boolean,
+    responseHeadersOnly: boolean,
   }
 }

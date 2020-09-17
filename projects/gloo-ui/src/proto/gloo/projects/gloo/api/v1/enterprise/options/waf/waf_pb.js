@@ -76,7 +76,9 @@ proto.waf.options.gloo.solo.io.Settings.toObject = function(includeInstance, msg
     coreRuleSet: (f = msg.getCoreRuleSet()) && proto.waf.options.gloo.solo.io.CoreRuleSet.toObject(includeInstance, f),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
     gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.RuleSet.toObject, includeInstance),
-    auditLogging: (f = msg.getAuditLogging()) && gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.toObject(includeInstance, f)
+    auditLogging: (f = msg.getAuditLogging()) && gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.toObject(includeInstance, f),
+    requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
+    responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -135,6 +137,14 @@ proto.waf.options.gloo.solo.io.Settings.deserializeBinaryFromReader = function(m
       var value = new gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging;
       reader.readMessage(value,gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.deserializeBinaryFromReader);
       msg.setAuditLogging(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRequestHeadersOnly(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setResponseHeadersOnly(value);
       break;
     default:
       reader.skipField();
@@ -201,6 +211,20 @@ proto.waf.options.gloo.solo.io.Settings.serializeBinaryToWriter = function(messa
       5,
       f,
       gloo_projects_gloo_api_external_envoy_extensions_waf_waf_pb.AuditLogging.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
+  f = message.getResponseHeadersOnly();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
     );
   }
 };
@@ -326,6 +350,40 @@ proto.waf.options.gloo.solo.io.Settings.prototype.clearAuditLogging = function()
  */
 proto.waf.options.gloo.solo.io.Settings.prototype.hasAuditLogging = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional bool request_headers_only = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.getRequestHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.waf.options.gloo.solo.io.Settings.prototype.setRequestHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
+};
+
+
+/**
+ * optional bool response_headers_only = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.getResponseHeadersOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.waf.options.gloo.solo.io.Settings.prototype.setResponseHeadersOnly = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

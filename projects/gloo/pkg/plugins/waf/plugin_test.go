@@ -106,6 +106,8 @@ var _ = Describe("waf plugin", func() {
 						},
 						RuleSets:                  ruleSets,
 						CustomInterventionMessage: customInterventionMessage,
+						RequestHeadersOnly:        true,
+						ResponseHeadersOnly:       true,
 					}
 				})
 
@@ -121,6 +123,8 @@ var _ = Describe("waf plugin", func() {
 					err := types.UnmarshalAny(gogoTypedConfig, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					checkRuleSets(filterWaf.RuleSets)
+					Expect(filterWaf.RequestHeadersOnly).To(BeTrue())
+					Expect(filterWaf.ResponseHeadersOnly).To(BeTrue())
 				})
 			})
 
@@ -177,6 +181,8 @@ var _ = Describe("waf plugin", func() {
 							},
 							RuleSets:                  ruleSets,
 							CustomInterventionMessage: customInterventionMessage,
+							RequestHeadersOnly:        true,
+							ResponseHeadersOnly:       true,
 						}
 
 						wafVhost = &waf.Settings{
@@ -187,10 +193,12 @@ var _ = Describe("waf plugin", func() {
 							},
 							RuleSets:                  ruleSets,
 							CustomInterventionMessage: customInterventionMessage,
+							RequestHeadersOnly:        true,
+							ResponseHeadersOnly:       true,
 						}
 					})
 
-					It("sets disabled on route", func() {
+					It("sets properties on route", func() {
 						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
@@ -198,10 +206,12 @@ var _ = Describe("waf plugin", func() {
 						err := types.UnmarshalAny(gogoTpfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeFalse())
+						Expect(perRouteWaf.RequestHeadersOnly).To(BeTrue())
+						Expect(perRouteWaf.ResponseHeadersOnly).To(BeTrue())
 						checkRuleSets(perRouteWaf.RuleSets)
 					})
 
-					It("sets disabled on vhost", func() {
+					It("sets properties on vhost", func() {
 						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
@@ -209,6 +219,8 @@ var _ = Describe("waf plugin", func() {
 						err := types.UnmarshalAny(gogoTpfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeFalse())
+						Expect(perVhostWaf.RequestHeadersOnly).To(BeTrue())
+						Expect(perVhostWaf.ResponseHeadersOnly).To(BeTrue())
 						checkRuleSets(perVhostWaf.RuleSets)
 					})
 				})
@@ -238,12 +250,7 @@ var _ = Describe("waf plugin", func() {
 				},
 			},
 			Options: &v1.RouteOptions{
-				Waf: &waf.Settings{
-					Disabled:                  wafRoute.Disabled,
-					CoreRuleSet:               wafRoute.CoreRuleSet,
-					RuleSets:                  wafRoute.RuleSets,
-					CustomInterventionMessage: wafRoute.CustomInterventionMessage,
-				},
+				Waf: wafRoute,
 			},
 		}
 
@@ -255,12 +262,7 @@ var _ = Describe("waf plugin", func() {
 			Name:    "virt1",
 			Domains: []string{"*"},
 			Options: &v1.VirtualHostOptions{
-				Waf: &waf.Settings{
-					Disabled:                  wafVhost.Disabled,
-					CoreRuleSet:               wafVhost.CoreRuleSet,
-					RuleSets:                  wafVhost.RuleSets,
-					CustomInterventionMessage: wafVhost.CustomInterventionMessage,
-				},
+				Waf: wafVhost,
 			},
 			Routes: []*v1.Route{route},
 		}

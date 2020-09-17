@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/pkg/utils"
@@ -272,6 +274,162 @@ var _ = Describe("waf", func() {
 					}
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+		})
+
+		Context("no body processing rules", func() {
+			var (
+				proxy *gloov1.Proxy
+				route bool
+				vhost bool
+			)
+
+			prep := func(request, bodypassthrough bool) {
+				// make sure body rules are passed through
+				rules := `
+				# Turn rule engine on
+				SecRuleEngine On
+				SecResponseBodyAccess On
+	 `
+				wafCfg := &waf.Settings{
+					CustomInterventionMessage: customInterventionMessage,
+				}
+				if request {
+					rules += `
+					SecRule REQUEST_BODY "@contains nikto" "deny,status:403,id:107,phase:2,msg:'blocked nikto scammer'"
+					`
+					if bodypassthrough {
+						wafCfg.RequestHeadersOnly = true
+					}
+				} else {
+					rules += `
+					SecRule RESPONSE_BODY "@contains nikto" "deny,status:403,id:107,phase:4,msg:'blocked nikto scammer'"
+					`
+					if bodypassthrough {
+						wafCfg.ResponseHeadersOnly = true
+					}
+				}
+
+				ruleset := &envoywaf.RuleSet{
+					RuleStr: rules,
+				}
+				wafCfg.RuleSets = []*envoywaf.RuleSet{ruleset}
+				if vhost {
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, wafCfg, nil)
+				} else if route {
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, nil, wafCfg)
+				} else {
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg, nil, nil)
+				}
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(func() (core.Status, error) {
+					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+					return proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+			}
+
+			EventuallyWithBody := func() gomega.AsyncAssertion {
+				return EventuallyWithOffset(1, func() (int, error) {
+					client := http.DefaultClient
+					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(&http.Request{
+						Method: http.MethodPost,
+						URL:    reqUrl,
+						Body:   ioutil.NopCloser(bytes.NewBuffer([]byte("nikto"))),
+					})
+					if resp == nil {
+						return 0, nil
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s")
+			}
+			Context("on listener", func() {
+				BeforeEach(func() {
+					route = false
+					vhost = false
+				})
+
+				It("will reject request body", func() {
+					prep(true, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+				It("will reject response body", func() {
+					prep(false, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+
+				It("will NOT reject request body", func() {
+					prep(true, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
+
+				It("will NOT reject response body", func() {
+					prep(false, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
+			})
+
+			Context("on vhost", func() {
+				BeforeEach(func() {
+					route = false
+					vhost = true
+				})
+
+				It("will reject request body", func() {
+					prep(true, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+				It("will reject response body", func() {
+					prep(false, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+
+				It("will NOT reject request body", func() {
+					prep(true, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
+
+				It("will NOT reject response body", func() {
+					prep(false, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
+			})
+
+			Context("on route", func() {
+				BeforeEach(func() {
+					route = true
+					vhost = false
+				})
+
+				It("will reject request body", func() {
+					prep(true, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+				It("will reject response body", func() {
+					prep(false, false)
+					EventuallyWithBody().Should(Equal(http.StatusForbidden))
+				})
+
+				It("will NOT reject request body", func() {
+					prep(true, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
+
+				It("will NOT reject response body", func() {
+					prep(false, true)
+					EventuallyWithBody().Should(Equal(http.StatusOK))
+				})
 			})
 
 		})
