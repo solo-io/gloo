@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.5.0-beta25
+  - type: NON_USER_FACING
+    description: Speed up ci by gating cleanup logic in env var

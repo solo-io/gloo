@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../gogoproto/gogo_pb";
 import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as solo_kit_api_v1_status_pb from "../../../../../solo-kit/api/v1/status_pb";
 import * as solo_kit_api_v1_ref_pb from "../../../../../solo-kit/api/v1/ref_pb";
@@ -98,6 +99,11 @@ export class Route extends jspb.Message {
   setMatchersList(value: Array<gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher>): void;
   addMatchers(value?: gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher, index?: number): gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher;
 
+  hasInheritableMatchers(): boolean;
+  clearInheritableMatchers(): void;
+  getInheritableMatchers(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setInheritableMatchers(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   hasRouteAction(): boolean;
   clearRouteAction(): void;
   getRouteAction(): gloo_projects_gloo_api_v1_proxy_pb.RouteAction | undefined;
@@ -140,6 +146,7 @@ export class Route extends jspb.Message {
 export namespace Route {
   export type AsObject = {
     matchersList: Array<gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.AsObject>,
+    inheritableMatchers?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     routeAction?: gloo_projects_gloo_api_v1_proxy_pb.RouteAction.AsObject,
     redirectAction?: gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,

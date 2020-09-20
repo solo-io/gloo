@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/avast/retry-go"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
@@ -19,7 +18,6 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils"
-	"github.com/solo-io/go-utils/testutils/clusterlock"
 	"github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/go-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -50,7 +48,6 @@ const (
 
 var (
 	testHelper *helper.SoloTestHelper
-	locker     *clusterlock.TestClusterLocker
 )
 
 var _ = BeforeSuite(func() {
@@ -67,10 +64,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
-
-	locker, err = clusterlock.NewKubeClusterLocker(regressions.MustKubeClient(), clusterlock.Options{})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(locker.AcquireLock(retry.Attempts(40))).NotTo(HaveOccurred())
 
 	// Install Gloo
 	values, cleanup := getHelmOverrides()
@@ -116,20 +109,20 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	defer locker.ReleaseLock()
+	if os.Getenv("TEAR_DOWN") == "true" {
+		cleanupLdapServer(regressions.MustKubeClient())
 
-	cleanupLdapServer(regressions.MustKubeClient())
+		err := testHelper.UninstallGloo()
+		Expect(err).NotTo(HaveOccurred())
 
-	err := testHelper.UninstallGloo()
-	Expect(err).NotTo(HaveOccurred())
+		// glooctl should delete the namespace. we do it again just in case it failed
+		// ignore errors
+		_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
 
-	// glooctl should delete the namespace. we do it again just in case it failed
-	// ignore errors
-	_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
-
-	EventuallyWithOffset(1, func() error {
-		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
-	}, "60s", "1s").Should(HaveOccurred())
+		EventuallyWithOffset(1, func() error {
+			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
+		}, "60s", "1s").Should(HaveOccurred())
+	}
 })
 
 func getHelmOverrides() (filename string, cleanup func()) {

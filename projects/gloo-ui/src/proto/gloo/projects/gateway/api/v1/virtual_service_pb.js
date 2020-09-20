@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var gogoproto_gogo_pb = require('../../../../../gogoproto/gogo_pb.js');
 var extproto_ext_pb = require('../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var solo$kit_api_v1_metadata_pb = require('../../../../../solo-kit/api/v1/metadata_pb.js');
 var solo$kit_api_v1_status_pb = require('../../../../../solo-kit/api/v1/status_pb.js');
 var solo$kit_api_v1_ref_pb = require('../../../../../solo-kit/api/v1/ref_pb.js');
@@ -684,6 +685,7 @@ proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
   var f, obj = {
     matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
     gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.toObject, includeInstance),
+    inheritableMatchers: (f = msg.getInheritableMatchers()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     routeAction: (f = msg.getRouteAction()) && gloo_projects_gloo_api_v1_proxy_pb.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
@@ -730,6 +732,11 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
       var value = new gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher;
       reader.readMessage(value,gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.deserializeBinaryFromReader);
       msg.addMatchers(value);
+      break;
+    case 8:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setInheritableMatchers(value);
       break;
     case 2:
       var value = new gloo_projects_gloo_api_v1_proxy_pb.RouteAction;
@@ -795,6 +802,14 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
       1,
       f,
       gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getInheritableMatchers();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getRouteAction();
@@ -875,6 +890,36 @@ proto.gateway.solo.io.Route.prototype.addMatchers = function(opt_value, opt_inde
 
 proto.gateway.solo.io.Route.prototype.clearMatchersList = function() {
   this.setMatchersList([]);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue inheritable_matchers = 8;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gateway.solo.io.Route.prototype.getInheritableMatchers = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 8));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gateway.solo.io.Route.prototype.setInheritableMatchers = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gateway.solo.io.Route.prototype.clearInheritableMatchers = function() {
+  this.setInheritableMatchers(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.Route.prototype.hasInheritableMatchers = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
