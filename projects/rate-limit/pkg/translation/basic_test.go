@@ -160,7 +160,7 @@ var _ = Describe("Basic Rate Limit Config Translation", func() {
 				},
 			}
 
-			actual := translator.GenerateVirtualHostConfig(virtualHostName, headerName, stage)
+			actual := translator.GenerateResourceConfig(virtualHostName, headerName, stage)
 			Expect(actual).To(Equal(expected))
 		})
 	})

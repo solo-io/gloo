@@ -1,7 +1,7 @@
 package translation
 
 import (
-	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
 	rl_opts "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -44,7 +44,7 @@ Given this envoy configuration, the appropriate server configuration would be:
 
 descriptors:
 - key: generic_key
-  value: <vhost_name>
+  value: <resource_name>
   descriptors:
   - key: header_match
     value: not-authenticated
@@ -62,8 +62,8 @@ descriptors:
         requests_per_unit: 10
 */
 type BasicRateLimitTranslator interface {
-	GenerateServerConfig(virtualHostName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error)
-	GenerateVirtualHostConfig(virtualHostName, headerName string, stage uint32) []*envoyvhostratelimit.RateLimit
+	GenerateServerConfig(resourceName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error)
+	GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoyratelimit.RateLimit
 }
 
 type translator struct{}
@@ -72,10 +72,10 @@ func NewBasicRateLimitTranslator() BasicRateLimitTranslator {
 	return translator{}
 }
 
-func (translator) GenerateServerConfig(virtualHostName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error) {
+func (translator) GenerateServerConfig(resourceName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error) {
 	rootDescriptor := &solo_api_rl_types.Descriptor{
 		Key:         internal.GenericKey,
-		Value:       virtualHostName,
+		Value:       resourceName,
 		Descriptors: []*solo_api_rl_types.Descriptor{},
 	}
 
@@ -121,7 +121,7 @@ func (translator) GenerateServerConfig(virtualHostName string, ingressRl rl_opts
 	return rootDescriptor, nil
 }
 
-func (translator) GenerateVirtualHostConfig(virtualHostName, headerName string, stage uint32) []*envoyvhostratelimit.RateLimit {
+func (translator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoyratelimit.RateLimit {
 	// the filter config, virtual host config are always the same:
 
 	if headerName == "" {
@@ -129,46 +129,46 @@ func (translator) GenerateVirtualHostConfig(virtualHostName, headerName string, 
 		headerName = "not-a-header"
 	}
 
-	vhostAction := getPerVhostRateLimit(virtualHostName)
+	action := getPerResourceRateLimit(resourceName)
 
-	getAuthRateLimits := func(b bool) *envoyvhostratelimit.RateLimit_Action { return getAuthHeaderRateLimit(headerName, b) }
+	getAuthRateLimits := func(b bool) *envoyratelimit.RateLimit_Action { return getAuthHeaderRateLimit(headerName, b) }
 
-	vhostrl := []*envoyvhostratelimit.RateLimit{
+	rateLimits := []*envoyratelimit.RateLimit{
 		{
 			Stage: &wrappers.UInt32Value{Value: stage},
-			Actions: []*envoyvhostratelimit.RateLimit_Action{
-				vhostAction,
+			Actions: []*envoyratelimit.RateLimit_Action{
+				action,
 				getAuthRateLimits(true),
 				getUserIdRateLimit(headerName),
 			},
 		},
 		{
 			Stage: &wrappers.UInt32Value{Value: stage},
-			Actions: []*envoyvhostratelimit.RateLimit_Action{
-				vhostAction,
+			Actions: []*envoyratelimit.RateLimit_Action{
+				action,
 				getAuthRateLimits(false),
 				getPerIpRateLimit(),
 			},
 		},
 	}
-	return vhostrl
+	return rateLimits
 }
 
-func getPerVhostRateLimit(vhostname string) *envoyvhostratelimit.RateLimit_Action {
-	return &envoyvhostratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_GenericKey_{
-			GenericKey: &envoyvhostratelimit.RateLimit_Action_GenericKey{
-				DescriptorValue: vhostname,
+func getPerResourceRateLimit(resourceName string) *envoyratelimit.RateLimit_Action {
+	return &envoyratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyratelimit.RateLimit_Action_GenericKey_{
+			GenericKey: &envoyratelimit.RateLimit_Action_GenericKey{
+				DescriptorValue: resourceName,
 			},
 		},
 	}
 }
 
-func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.RateLimit_Action {
+func getAuthHeaderRateLimit(headername string, match bool) *envoyratelimit.RateLimit_Action {
 
-	headersmatcher := []*envoyvhostratelimit.HeaderMatcher{{
+	headersmatcher := []*envoyratelimit.HeaderMatcher{{
 		Name:                 headername,
-		HeaderMatchSpecifier: &envoyvhostratelimit.HeaderMatcher_PresentMatch{PresentMatch: true},
+		HeaderMatchSpecifier: &envoyratelimit.HeaderMatcher_PresentMatch{PresentMatch: true},
 	}}
 
 	var value string
@@ -178,9 +178,9 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.
 		value = internal.Anonymous
 	}
 
-	return &envoyvhostratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
-			HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
+	return &envoyratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyratelimit.RateLimit_Action_HeaderValueMatch_{
+			HeaderValueMatch: &envoyratelimit.RateLimit_Action_HeaderValueMatch{
 				DescriptorValue: value,
 				ExpectMatch:     &wrappers.BoolValue{Value: match},
 				Headers:         headersmatcher,
@@ -189,10 +189,10 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.
 	}
 }
 
-func getUserIdRateLimit(headername string) *envoyvhostratelimit.RateLimit_Action {
-	return &envoyvhostratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RequestHeaders_{
-			RequestHeaders: &envoyvhostratelimit.RateLimit_Action_RequestHeaders{
+func getUserIdRateLimit(headername string) *envoyratelimit.RateLimit_Action {
+	return &envoyratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyratelimit.RateLimit_Action_RequestHeaders_{
+			RequestHeaders: &envoyratelimit.RateLimit_Action_RequestHeaders{
 				DescriptorKey: internal.UserId,
 				HeaderName:    headername,
 			},
@@ -200,10 +200,10 @@ func getUserIdRateLimit(headername string) *envoyvhostratelimit.RateLimit_Action
 	}
 }
 
-func getPerIpRateLimit() *envoyvhostratelimit.RateLimit_Action {
-	return &envoyvhostratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RemoteAddress_{
-			RemoteAddress: &envoyvhostratelimit.RateLimit_Action_RemoteAddress{},
+func getPerIpRateLimit() *envoyratelimit.RateLimit_Action {
+	return &envoyratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyratelimit.RateLimit_Action_RemoteAddress_{
+			RemoteAddress: &envoyratelimit.RateLimit_Action_RemoteAddress{},
 		},
 	}
 }

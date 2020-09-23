@@ -263,6 +263,55 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 	})
 
+	Context("Route level rate limits", func() {
+		var (
+			inRoute = gloov1.Route{
+				Name: "test-route",
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{
+					RatelimitBasic: &ratelimitpb.IngressRateLimit{
+						AuthorizedLimits: &rl_api.RateLimit{
+							Unit:            rl_api.RateLimit_HOUR,
+							RequestsPerUnit: 10,
+						},
+					},
+				},
+			}
+			outRoute    envoyroute.Route
+			routeParams = plugins.RouteParams{
+				VirtualHostParams: plugins.VirtualHostParams{
+					Params: plugins.Params{
+						Ctx:      context.TODO(),
+						Snapshot: &gloov1.ApiSnapshot{},
+					},
+				},
+				VirtualHost: &gloov1.VirtualHost{
+					Name:    "test-vh",
+					Options: &gloov1.VirtualHostOptions{},
+				},
+			}
+		)
+
+		BeforeEach(func() {
+			rlSettings.RateLimitBeforeAuth = false
+		})
+
+		JustBeforeEach(func() {
+			outRoute = envoyroute.Route{
+				Action: &envoyroute.Route_Route{
+					Route: &envoyroute.RouteAction{},
+				},
+			}
+		})
+
+		It("should fail for nameless routes", func() {
+			inRoute.Name = ""
+			err := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute)
+			Expect(err).To(MatchError(ContainSubstring(MissingNameErr.Error())))
+		})
+	})
 })
 
 func getTypedConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {

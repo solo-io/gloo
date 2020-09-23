@@ -41,8 +41,19 @@ func (i *basicConfigCollector) ProcessVirtualHost(virtualHost *gloov1.VirtualHos
 	i.descriptors = append(i.descriptors, descriptor)
 }
 
-func (i *basicConfigCollector) ProcessRoute(_ *gloov1.Route, _ *gloov1.VirtualHost, _ *gloov1.Proxy) {
-	// nothing to do here
+func (i *basicConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.VirtualHost, parentProxy *gloov1.Proxy) {
+	rateLimit := route.GetOptions().GetRatelimitBasic()
+	if rateLimit == nil {
+		return
+	}
+
+	descriptor, err := i.translator.GenerateServerConfig(route.Name, *rateLimit)
+	if err != nil {
+		i.reports.AddError(parentProxy, err)
+		return
+	}
+
+	i.descriptors = append(i.descriptors, descriptor)
 }
 
 func (i *basicConfigCollector) ToXdsConfiguration() *enterprise.RateLimitConfig {

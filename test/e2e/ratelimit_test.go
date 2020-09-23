@@ -135,6 +135,28 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				EventuallyRateLimited("host2", envoyPort)
 			})
 
+			It("should ratelimit on route", func() {
+				ingressRateLimit := &ratelimit.IngressRateLimit{
+					AnonymousLimits: &rlv1alpha1.RateLimit{
+						RequestsPerUnit: 1,
+						Unit:            rlv1alpha1.RateLimit_SECOND,
+					},
+				}
+				rlb := RlProxyBuilder{
+					envoyPort:                    envoyPort,
+					upstream:                     testUpstream.Upstream.Metadata.Ref(),
+					hostsToVirtualHostRateLimits: map[string]bool{"host1": false},
+					hostsToRouteRateLimits:       map[string]bool{"host1": true},
+					ingressRateLimit:             ingressRateLimit,
+				}
+				proxy := rlb.getProxy()
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(isServerHealthy, "5s").Should(BeTrue())
+				EventuallyRateLimited("host1/noauth", envoyPort)
+			})
+
 			Context("with auth", func() {
 
 				BeforeEach(func() {
@@ -203,10 +225,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}
 					rlb := RlProxyBuilder{
-						envoyPort:         envoyPort,
-						upstream:          testUpstream.Upstream.Metadata.Ref(),
-						hostsToRateLimits: map[string]bool{"host1": true},
-						ingressRateLimit:  ingressRateLimit,
+						envoyPort:                    envoyPort,
+						upstream:                     testUpstream.Upstream.Metadata.Ref(),
+						hostsToVirtualHostRateLimits: map[string]bool{"host1": true},
+						ingressRateLimit:             ingressRateLimit,
 					}
 					proxy := rlb.getProxy()
 					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
@@ -520,31 +542,38 @@ func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRat
 		},
 	}
 	rlb := RlProxyBuilder{
-		envoyPort:         envoyPort,
-		upstream:          upstream,
-		hostsToRateLimits: hostsToRateLimits,
-		ingressRateLimit:  ingressRateLimit,
+		envoyPort:                    envoyPort,
+		upstream:                     upstream,
+		hostsToVirtualHostRateLimits: hostsToRateLimits,
+		ingressRateLimit:             ingressRateLimit,
 	}
 	return rlb.getProxy()
 }
 
 type RlProxyBuilder struct {
-	ingressRateLimit  *ratelimit.IngressRateLimit
-	upstream          core.ResourceRef
-	hostsToRateLimits map[string]bool
-	envoyPort         uint32
+	ingressRateLimit             *ratelimit.IngressRateLimit
+	upstream                     core.ResourceRef
+	hostsToVirtualHostRateLimits map[string]bool
+	hostsToRouteRateLimits       map[string]bool
+	envoyPort                    uint32
 }
 
 func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 
 	var vhosts []*gloov1.VirtualHost
 
-	for hostname, enableRateLimits := range b.hostsToRateLimits {
+	for hostname, enableRateLimits := range b.hostsToVirtualHostRateLimits {
+		routeRateLimit := b.ingressRateLimit
+		if !b.hostsToRouteRateLimits[hostname] {
+			routeRateLimit = nil
+		}
+
 		vhost := &gloov1.VirtualHost{
-			Name:    "gloo-system.virt" + hostname,
+			Name:    "gloo-system_virt" + hostname,
 			Domains: []string{hostname},
 			Routes: []*gloov1.Route{
 				{
+					Name: "gloo-system_route-noauth-" + hostname,
 					Matchers: []*matchers.Matcher{{
 						PathSpecifier: &matchers.Matcher_Prefix{
 							Prefix: "/noauth",
@@ -562,10 +591,12 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 						},
 					},
 					Options: &gloov1.RouteOptions{
-						Extauth: &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
+						Extauth:        &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
+						RatelimitBasic: routeRateLimit,
 					},
 				},
 				{
+					Name: "gloo-system_route-auth-" + hostname,
 					Action: &gloov1.Route_RouteAction{
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
@@ -576,6 +607,9 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 								},
 							},
 						},
+					},
+					Options: &gloov1.RouteOptions{
+						RatelimitBasic: routeRateLimit,
 					},
 				},
 			},
@@ -634,7 +668,7 @@ func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
 
 	for hostname, enableRateLimits := range b.hostsToRateLimits {
 		vhost := &gloov1.VirtualHost{
-			Name:    "gloo-system.virt" + hostname,
+			Name:    "gloo-system_virt" + hostname,
 			Domains: []string{hostname},
 			Routes: []*gloov1.Route{
 				{

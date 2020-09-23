@@ -101,7 +101,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 				}}
 
 				basicTranslator.EXPECT().GenerateServerConfig(glooVirtualHost.Name, basicConfig).Return(nil, nil)
-				basicTranslator.EXPECT().GenerateVirtualHostConfig(
+				basicTranslator.EXPECT().GenerateResourceConfig(
 					glooVirtualHost.Name, extauth.DefaultAuthHeader, rlPlugin.IngressRateLimitStage,
 				).Return(rateLimits)
 

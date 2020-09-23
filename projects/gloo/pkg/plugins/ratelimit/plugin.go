@@ -32,6 +32,10 @@ var (
 	ReferencedConfigErr = func(err error, ns, name string) error {
 		return eris.Wrapf(err, "failed to process RateLimitConfig resource with name [%s] in namespace [%s]", name, ns)
 	}
+	MissingNameErr     = eris.Errorf("Cannot configure basic rate limit for resource without name.")
+	DuplicateNameError = func(name string) error {
+		return eris.Errorf("Basic rate limit already configured for resource with name [%s]; routes and virtual hosts must have distinct names if configured with basic ratelimits.", name)
+	}
 )
 
 const (
@@ -52,6 +56,9 @@ type Plugin struct {
 	basicConfigTranslator translation.BasicRateLimitTranslator
 
 	crdConfigTranslator shims.RateLimitConfigTranslator
+
+	// Set of virtual host / route names for resources with Basic rate limits configured.
+	basicRatelimitDescriptorNames map[string]struct{}
 }
 
 func NewPlugin() *Plugin {
@@ -82,6 +89,8 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 		p.rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
 	}
 
+	p.basicRatelimitDescriptorNames = make(map[string]struct{})
+
 	return nil
 }
 
@@ -91,7 +100,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		errs   = &multierror.Error{}
 	)
 
-	basicRateLimits, err := p.getBasicRateLimits(in, params)
+	basicRateLimits, err := p.getBasicRateLimits(in.GetOptions().GetRatelimitBasic(), in.GetName(), params)
 	if err != nil {
 		errs = multierror.Append(errs, err)
 	}
@@ -121,15 +130,31 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return RouteTypeMismatchErr // should never happen
 	}
 
-	crdRateLimits, err := p.getCrdRateLimits(params.Ctx, in.GetOptions(), params.Snapshot)
-	if len(crdRateLimits) > 0 {
-		outRouteAction.RateLimits = append(outRouteAction.RateLimits, crdRateLimits...)
+	var (
+		limits []*envoyroute.RateLimit
+		errs   = &multierror.Error{}
+	)
+
+	basicRateLimits, err := p.getBasicRateLimits(in.GetOptions().GetRatelimitBasic(), in.GetName(), params.VirtualHostParams)
+	if err != nil {
+		errs = multierror.Append(errs, err)
 	}
-	return err
+	limits = append(limits, basicRateLimits...)
+
+	crdRateLimits, err := p.getCrdRateLimits(params.Ctx, in.GetOptions(), params.Snapshot)
+	if err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	limits = append(limits, crdRateLimits...)
+
+	if len(limits) > 0 {
+		outRouteAction.RateLimits = append(outRouteAction.RateLimits, limits...)
+	}
+
+	return errs.ErrorOrNil()
 }
 
-func (p *Plugin) getBasicRateLimits(virtualHost *v1.VirtualHost, params plugins.VirtualHostParams) ([]*envoyroute.RateLimit, error) {
-	rateLimit := virtualHost.GetOptions().GetRatelimitBasic()
+func (p *Plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name string, params plugins.VirtualHostParams) ([]*envoyroute.RateLimit, error) {
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
 		return nil, nil
@@ -140,11 +165,19 @@ func (p *Plugin) getBasicRateLimits(virtualHost *v1.VirtualHost, params plugins.
 		return nil, RateLimitAuthOrderingConflict
 	}
 
-	if _, err := p.basicConfigTranslator.GenerateServerConfig(virtualHost.Name, *rateLimit); err != nil {
+	if name == "" {
+		return nil, MissingNameErr
+	}
+
+	if _, exists := p.basicRatelimitDescriptorNames[name]; exists {
+		return nil, DuplicateNameError(name)
+	}
+
+	if _, err := p.basicConfigTranslator.GenerateServerConfig(name, *rateLimit); err != nil {
 		return nil, err
 	}
 
-	return p.basicConfigTranslator.GenerateVirtualHostConfig(virtualHost.Name, p.authUserIdHeader, IngressRateLimitStage), nil
+	return p.basicConfigTranslator.GenerateResourceConfig(name, p.authUserIdHeader, IngressRateLimitStage), nil
 }
 
 type rateLimitOpts interface {

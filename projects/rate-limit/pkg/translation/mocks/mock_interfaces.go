@@ -37,30 +37,30 @@ func (m *MockBasicRateLimitTranslator) EXPECT() *MockBasicRateLimitTranslatorMoc
 }
 
 // GenerateServerConfig mocks base method
-func (m *MockBasicRateLimitTranslator) GenerateServerConfig(virtualHostName string, ingressRl ratelimit.IngressRateLimit) (*v1alpha1.Descriptor, error) {
+func (m *MockBasicRateLimitTranslator) GenerateServerConfig(resourceName string, ingressRl ratelimit.IngressRateLimit) (*v1alpha1.Descriptor, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateServerConfig", virtualHostName, ingressRl)
+	ret := m.ctrl.Call(m, "GenerateServerConfig", resourceName, ingressRl)
 	ret0, _ := ret[0].(*v1alpha1.Descriptor)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateServerConfig indicates an expected call of GenerateServerConfig
-func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateServerConfig(virtualHostName, ingressRl interface{}) *gomock.Call {
+func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateServerConfig(resourceName, ingressRl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateServerConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateServerConfig), virtualHostName, ingressRl)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateServerConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateServerConfig), resourceName, ingressRl)
 }
 
-// GenerateVirtualHostConfig mocks base method
-func (m *MockBasicRateLimitTranslator) GenerateVirtualHostConfig(virtualHostName, headerName string, stage uint32) []*envoy_api_v2_route.RateLimit {
+// GenerateResourceConfig mocks base method
+func (m *MockBasicRateLimitTranslator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_api_v2_route.RateLimit {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateVirtualHostConfig", virtualHostName, headerName, stage)
+	ret := m.ctrl.Call(m, "GenerateResourceConfig", resourceName, headerName, stage)
 	ret0, _ := ret[0].([]*envoy_api_v2_route.RateLimit)
 	return ret0
 }
 
-// GenerateVirtualHostConfig indicates an expected call of GenerateVirtualHostConfig
-func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateVirtualHostConfig(virtualHostName, headerName, stage interface{}) *gomock.Call {
+// GenerateResourceConfig indicates an expected call of GenerateResourceConfig
+func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateResourceConfig(resourceName, headerName, stage interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateVirtualHostConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateVirtualHostConfig), virtualHostName, headerName, stage)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateResourceConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateResourceConfig), resourceName, headerName, stage)
 }

@@ -1,0 +1,5 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/2517
+  description: >-
+    Allow users to specify rate limits at the route level using the Gloo basic rate limit API.
