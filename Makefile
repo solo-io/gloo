@@ -35,7 +35,7 @@ endif
 
 ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.16.0-rc3
 # Envoy-gloo-ee image built on top of envoy-wasm fork
-ENVOY_WASM_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.15.0-wasm-rc1
+ENVOY_WASM_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.16.0-wasm-rc1
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'

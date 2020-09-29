@@ -35,8 +35,8 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.15
-	github.com/solo-io/gloo v1.5.0-beta25
-	github.com/solo-io/go-utils v0.16.5
+	github.com/solo-io/gloo v1.5.0-beta26
+	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
 	github.com/solo-io/rate-limiter v0.1.0
@@ -44,19 +44,19 @@ require (
 	github.com/solo-io/solo-apis v0.0.0-20200807174746-9ea7dfeef2cb
 	github.com/solo-io/solo-kit v0.13.13
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
-	go.opencensus.io v0.22.2
+	go.opencensus.io v0.22.4
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/mod v0.3.0
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344
-	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6
-	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d
-	google.golang.org/grpc v1.28.1
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3
+	google.golang.org/genproto v0.0.0-20200626011028-ee7919e894b5
+	google.golang.org/grpc v1.29.1
 	gopkg.in/square/go-jose.v2 v2.3.1
 	helm.sh/helm/v3 v3.1.2
-	k8s.io/api v0.18.5
+	k8s.io/api v0.18.8
 	k8s.io/apiextensions-apiserver v0.18.2
-	k8s.io/apimachinery v0.18.5
+	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.18.2
 	k8s.io/kubernetes v1.17.1
@@ -64,6 +64,7 @@ require (
 )
 
 replace (
+	cloud.google.com/go => cloud.google.com/go v0.52.0 // cloud.google.com/go/iam breaks with v0.53.0+
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
@@ -72,6 +73,7 @@ replace (
 	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
+	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // override wasme requirement
 
 	// kube 1.17
 	k8s.io/api => k8s.io/api v0.17.1

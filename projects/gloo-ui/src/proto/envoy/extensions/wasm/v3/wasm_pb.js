@@ -16,7 +16,6 @@ var envoy_config_core_v3_base_pb = require('../../../../envoy/config/core/v3/bas
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var validate_validate_pb = require('../../../../validate/validate_pb.js');
 var gogoproto_gogo_pb = require('../../../../gogoproto/gogo_pb.js');
-var extproto_ext_pb = require('../../../../protoc-gen-ext/extproto/ext_pb.js');
 goog.exportSymbol('proto.envoy.extensions.wasm.v3.PluginConfig', null, global);
 goog.exportSymbol('proto.envoy.extensions.wasm.v3.VmConfig', null, global);
 goog.exportSymbol('proto.envoy.extensions.wasm.v3.WasmService', null, global);
@@ -71,7 +70,8 @@ proto.envoy.extensions.wasm.v3.VmConfig.toObject = function(includeInstance, msg
     runtime: jspb.Message.getFieldWithDefault(msg, 2, ""),
     code: (f = msg.getCode()) && envoy_config_core_v3_base_pb.AsyncDataSource.toObject(includeInstance, f),
     configuration: (f = msg.getConfiguration()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
-    allowPrecompiled: jspb.Message.getFieldWithDefault(msg, 5, false)
+    allowPrecompiled: jspb.Message.getFieldWithDefault(msg, 5, false),
+    nackOnCodeCacheMiss: jspb.Message.getFieldWithDefault(msg, 6, false)
   };
 
   if (includeInstance) {
@@ -129,6 +129,10 @@ proto.envoy.extensions.wasm.v3.VmConfig.deserializeBinaryFromReader = function(m
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setAllowPrecompiled(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setNackOnCodeCacheMiss(value);
       break;
     default:
       reader.skipField();
@@ -193,6 +197,13 @@ proto.envoy.extensions.wasm.v3.VmConfig.serializeBinaryToWriter = function(messa
   if (f) {
     writer.writeBool(
       5,
+      f
+    );
+  }
+  f = message.getNackOnCodeCacheMiss();
+  if (f) {
+    writer.writeBool(
+      6,
       f
     );
   }
@@ -303,6 +314,23 @@ proto.envoy.extensions.wasm.v3.VmConfig.prototype.getAllowPrecompiled = function
 /** @param {boolean} value */
 proto.envoy.extensions.wasm.v3.VmConfig.prototype.setAllowPrecompiled = function(value) {
   jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * optional bool nack_on_code_cache_miss = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.extensions.wasm.v3.VmConfig.prototype.getNackOnCodeCacheMiss = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.extensions.wasm.v3.VmConfig.prototype.setNackOnCodeCacheMiss = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

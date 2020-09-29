@@ -7,7 +7,6 @@ import * as envoy_config_core_v3_base_pb from "../../../../envoy/config/core/v3/
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as validate_validate_pb from "../../../../validate/validate_pb";
 import * as gogoproto_gogo_pb from "../../../../gogoproto/gogo_pb";
-import * as extproto_ext_pb from "../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class VmConfig extends jspb.Message {
   getVmId(): string;
@@ -29,6 +28,9 @@ export class VmConfig extends jspb.Message {
   getAllowPrecompiled(): boolean;
   setAllowPrecompiled(value: boolean): void;
 
+  getNackOnCodeCacheMiss(): boolean;
+  setNackOnCodeCacheMiss(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VmConfig.AsObject;
   static toObject(includeInstance: boolean, msg: VmConfig): VmConfig.AsObject;
@@ -46,6 +48,7 @@ export namespace VmConfig {
     code?: envoy_config_core_v3_base_pb.AsyncDataSource.AsObject,
     configuration?: google_protobuf_any_pb.Any.AsObject,
     allowPrecompiled: boolean,
+    nackOnCodeCacheMiss: boolean,
   }
 }
 
