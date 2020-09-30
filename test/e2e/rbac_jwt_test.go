@@ -621,7 +621,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 				Matchers: []*matchers.Matcher{{
 					Headers: []*matchers.HeaderMatcher{{
 						Name:  "x-sub",
-						Value: "teatime",
+						Value: "teatime,teatime",
 					}},
 					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/authnonly",
