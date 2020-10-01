@@ -31,6 +31,11 @@ export class AuthConfig extends jspb.Message {
   setConfigsList(value: Array<AuthConfig.Config>): void;
   addConfigs(value?: AuthConfig.Config, index?: number): AuthConfig.Config;
 
+  hasBooleanExpr(): boolean;
+  clearBooleanExpr(): void;
+  getBooleanExpr(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setBooleanExpr(value?: google_protobuf_wrappers_pb.StringValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AuthConfig.AsObject;
   static toObject(includeInstance: boolean, msg: AuthConfig): AuthConfig.AsObject;
@@ -46,9 +51,15 @@ export namespace AuthConfig {
     status?: solo_kit_api_v1_status_pb.Status.AsObject,
     metadata?: solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     configsList: Array<AuthConfig.Config.AsObject>,
+    booleanExpr?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export class Config extends jspb.Message {
+    hasName(): boolean;
+    clearName(): void;
+    getName(): google_protobuf_wrappers_pb.StringValue | undefined;
+    setName(value?: google_protobuf_wrappers_pb.StringValue): void;
+
     hasBasicAuth(): boolean;
     clearBasicAuth(): void;
     getBasicAuth(): BasicAuth | undefined;
@@ -97,6 +108,7 @@ export namespace AuthConfig {
 
   export namespace Config {
     export type AsObject = {
+      name?: google_protobuf_wrappers_pb.StringValue.AsObject,
       basicAuth?: BasicAuth.AsObject,
       oauth?: OAuth.AsObject,
       oauth2?: OAuth2.AsObject,
@@ -827,6 +839,11 @@ export class ExtAuthConfig extends jspb.Message {
   setConfigsList(value: Array<ExtAuthConfig.Config>): void;
   addConfigs(value?: ExtAuthConfig.Config, index?: number): ExtAuthConfig.Config;
 
+  hasBooleanExpr(): boolean;
+  clearBooleanExpr(): void;
+  getBooleanExpr(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setBooleanExpr(value?: google_protobuf_wrappers_pb.StringValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ExtAuthConfig): ExtAuthConfig.AsObject;
@@ -841,6 +858,7 @@ export namespace ExtAuthConfig {
   export type AsObject = {
     authConfigRefName: string,
     configsList: Array<ExtAuthConfig.Config.AsObject>,
+    booleanExpr?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export class OAuthConfig extends jspb.Message {
@@ -1041,6 +1059,11 @@ export namespace ExtAuthConfig {
   }
 
   export class Config extends jspb.Message {
+    hasName(): boolean;
+    clearName(): void;
+    getName(): google_protobuf_wrappers_pb.StringValue | undefined;
+    setName(value?: google_protobuf_wrappers_pb.StringValue): void;
+
     hasOauth(): boolean;
     clearOauth(): void;
     getOauth(): ExtAuthConfig.OAuthConfig | undefined;
@@ -1089,6 +1112,7 @@ export namespace ExtAuthConfig {
 
   export namespace Config {
     export type AsObject = {
+      name?: google_protobuf_wrappers_pb.StringValue.AsObject,
       oauth?: ExtAuthConfig.OAuthConfig.AsObject,
       oauth2?: ExtAuthConfig.OAuth2Config.AsObject,
       basicAuth?: BasicAuth.AsObject,

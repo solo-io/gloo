@@ -112,7 +112,8 @@ proto.enterprise.gloo.solo.io.AuthConfig.toObject = function(includeInstance, ms
     status: (f = msg.getStatus()) && solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     configsList: jspb.Message.toObjectList(msg.getConfigsList(),
-    proto.enterprise.gloo.solo.io.AuthConfig.Config.toObject, includeInstance)
+    proto.enterprise.gloo.solo.io.AuthConfig.Config.toObject, includeInstance),
+    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -163,6 +164,11 @@ proto.enterprise.gloo.solo.io.AuthConfig.deserializeBinaryFromReader = function(
       var value = new proto.enterprise.gloo.solo.io.AuthConfig.Config;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AuthConfig.Config.deserializeBinaryFromReader);
       msg.addConfigs(value);
+      break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setBooleanExpr(value);
       break;
     default:
       reader.skipField();
@@ -215,6 +221,14 @@ proto.enterprise.gloo.solo.io.AuthConfig.serializeBinaryToWriter = function(mess
       3,
       f,
       proto.enterprise.gloo.solo.io.AuthConfig.Config.serializeBinaryToWriter
+    );
+  }
+  f = message.getBooleanExpr();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -298,6 +312,7 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.toObject = function(op
  */
 proto.enterprise.gloo.solo.io.AuthConfig.Config.toObject = function(includeInstance, msg) {
   var f, obj = {
+    name: (f = msg.getName()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.enterprise.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
     oauth: (f = msg.getOauth()) && proto.enterprise.gloo.solo.io.OAuth.toObject(includeInstance, f),
     oauth2: (f = msg.getOauth2()) && proto.enterprise.gloo.solo.io.OAuth2.toObject(includeInstance, f),
@@ -341,6 +356,11 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.deserializeBinaryFromReader = fu
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 9:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setName(value);
+      break;
     case 1:
       var value = new proto.enterprise.gloo.solo.io.BasicAuth;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.BasicAuth.deserializeBinaryFromReader);
@@ -405,6 +425,14 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.serializeBinary = func
  */
 proto.enterprise.gloo.solo.io.AuthConfig.Config.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getName();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
   f = message.getBasicAuth();
   if (f != null) {
     writer.writeMessage(
@@ -461,6 +489,36 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.serializeBinaryToWriter = functi
       proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter
     );
   }
+};
+
+
+/**
+ * optional google.protobuf.StringValue name = 9;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.getName = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.setName = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.clearName = function() {
+  this.setName(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.hasName = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
@@ -762,6 +820,36 @@ proto.enterprise.gloo.solo.io.AuthConfig.prototype.addConfigs = function(opt_val
 
 proto.enterprise.gloo.solo.io.AuthConfig.prototype.clearConfigsList = function() {
   this.setConfigsList([]);
+};
+
+
+/**
+ * optional google.protobuf.StringValue boolean_expr = 10;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.prototype.getBooleanExpr = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 10));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.enterprise.gloo.solo.io.AuthConfig.prototype.setBooleanExpr = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.enterprise.gloo.solo.io.AuthConfig.prototype.clearBooleanExpr = function() {
+  this.setBooleanExpr(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.prototype.hasBooleanExpr = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
@@ -5846,7 +5934,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.toObject = function(includeInstance,
   var f, obj = {
     authConfigRefName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     configsList: jspb.Message.toObjectList(msg.getConfigsList(),
-    proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject, includeInstance)
+    proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject, includeInstance),
+    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5892,6 +5981,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.deserializeBinaryFromReader = functi
       reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.deserializeBinaryFromReader);
       msg.addConfigs(value);
       break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setBooleanExpr(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5934,6 +6028,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.serializeBinaryToWriter = function(m
       8,
       f,
       proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter
+    );
+  }
+  f = message.getBooleanExpr();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -7442,6 +7544,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.toObject = function
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject = function(includeInstance, msg) {
   var f, obj = {
+    name: (f = msg.getName()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     oauth: (f = msg.getOauth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig.toObject(includeInstance, f),
     oauth2: (f = msg.getOauth2()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.toObject(includeInstance, f),
     basicAuth: (f = msg.getBasicAuth()) && proto.enterprise.gloo.solo.io.BasicAuth.toObject(includeInstance, f),
@@ -7485,6 +7588,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.deserializeBinaryFromReader =
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 11:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setName(value);
+      break;
     case 3:
       var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig.deserializeBinaryFromReader);
@@ -7549,6 +7657,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.serializeBinary = f
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getName();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
   f = message.getOauth();
   if (f != null) {
     writer.writeMessage(
@@ -7605,6 +7721,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter = fun
       proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter
     );
   }
+};
+
+
+/**
+ * optional google.protobuf.StringValue name = 11;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.getName = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 11));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.setName = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearName = function() {
+  this.setName(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasName = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -7861,6 +8007,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.addConfigs = function(opt_
 
 proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.clearConfigsList = function() {
   this.setConfigsList([]);
+};
+
+
+/**
+ * optional google.protobuf.StringValue boolean_expr = 10;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.getBooleanExpr = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 10));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.setBooleanExpr = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.clearBooleanExpr = function() {
+  this.setBooleanExpr(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.hasBooleanExpr = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
