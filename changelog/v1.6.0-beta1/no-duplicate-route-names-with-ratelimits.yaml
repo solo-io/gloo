@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Prohibit duplicate route names for routes with Basic rate limits configured.
+    issueLink: https://github.com/solo-io/gloo/issues/3674

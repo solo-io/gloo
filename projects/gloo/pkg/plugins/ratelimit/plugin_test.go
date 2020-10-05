@@ -263,22 +263,9 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 	})
 
-	Context("Route level rate limits", func() {
+	Context("route level rate limits", func() {
 		var (
-			inRoute = gloov1.Route{
-				Name: "test-route",
-				Action: &gloov1.Route_RouteAction{
-					RouteAction: &gloov1.RouteAction{},
-				},
-				Options: &gloov1.RouteOptions{
-					RatelimitBasic: &ratelimitpb.IngressRateLimit{
-						AuthorizedLimits: &rl_api.RateLimit{
-							Unit:            rl_api.RateLimit_HOUR,
-							RequestsPerUnit: 10,
-						},
-					},
-				},
-			}
+			inRoute     gloov1.Route
 			outRoute    envoyroute.Route
 			routeParams = plugins.RouteParams{
 				VirtualHostParams: plugins.VirtualHostParams{
@@ -299,6 +286,20 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		JustBeforeEach(func() {
+			inRoute = gloov1.Route{
+				Name: "test-route",
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{
+					RatelimitBasic: &ratelimitpb.IngressRateLimit{
+						AuthorizedLimits: &rl_api.RateLimit{
+							Unit:            rl_api.RateLimit_HOUR,
+							RequestsPerUnit: 10,
+						},
+					},
+				},
+			}
 			outRoute = envoyroute.Route{
 				Action: &envoyroute.Route_Route{
 					Route: &envoyroute.RouteAction{},
@@ -310,6 +311,51 @@ var _ = Describe("RateLimit Plugin", func() {
 			inRoute.Name = ""
 			err := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute)
 			Expect(err).To(MatchError(ContainSubstring(MissingNameErr.Error())))
+		})
+
+		Context("routes with duplicate names", func() {
+			var outRoute2 envoyroute.Route
+			JustBeforeEach(func() {
+				outRoute2 = envoyroute.Route{
+					Action: &envoyroute.Route_Route{
+						Route: &envoyroute.RouteAction{},
+					},
+				}
+			})
+
+			It("should fail for routes with rate limits and duplicate names", func() {
+				err := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute)
+				Expect(err).To(Not(HaveOccurred()))
+				err2 := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute2)
+				Expect(err2).To(MatchError(ContainSubstring(DuplicateNameError(inRoute.Name).Error())))
+			})
+
+			It("should allow duplicate names for routes without limits configured", func() {
+				outRoute3 := envoyroute.Route{
+					Action: &envoyroute.Route_Route{
+						Route: &envoyroute.RouteAction{},
+					},
+				}
+
+				opts := inRoute.Options
+
+				// Add a new route without basic rate limits configured.
+				inRoute.Options = &gloov1.RouteOptions{}
+				err := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute)
+				Expect(err).ToNot(HaveOccurred())
+
+				// Add a new route with basic rate limits configured, observing that already having
+				// a route without rate limits doesn't preclude adding a route with them.
+				inRoute.Options = opts
+				err = rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute2)
+				Expect(err).ToNot(HaveOccurred())
+
+				// Add another new route without basic rate limits configured, observing that already having
+				// a route with rate limits doesn't preclude adding a route without them.
+				inRoute.Options = &gloov1.RouteOptions{}
+				err = rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute3)
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 	})
 })

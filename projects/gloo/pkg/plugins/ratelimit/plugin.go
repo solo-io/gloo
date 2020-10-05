@@ -172,6 +172,7 @@ func (p *Plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name 
 	if _, exists := p.basicRatelimitDescriptorNames[name]; exists {
 		return nil, DuplicateNameError(name)
 	}
+	p.basicRatelimitDescriptorNames[name] = struct{}{}
 
 	if _, err := p.basicConfigTranslator.GenerateServerConfig(name, *rateLimit); err != nil {
 		return nil, err
