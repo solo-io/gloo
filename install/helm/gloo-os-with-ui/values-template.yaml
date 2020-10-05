@@ -72,6 +72,7 @@ gloo:
     serviceAccount: {}
     deployment:
       runAsUser: 10101
+      fsGroup: 10101
       image:
         repository: discovery
         registry: quay.io/solo-io
