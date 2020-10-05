@@ -9,6 +9,7 @@ import (
 	kubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	"github.com/ghodss/yaml"
 	"github.com/solo-io/go-utils/contextutils"
@@ -34,10 +35,16 @@ func NewKubeYamlRawGetter() RawGetter {
 
 func (kubeYamlGetter) GetRaw(ctx context.Context, in resources.InputResource, resourceCrd crd.Crd) *v1.Raw {
 	var contentRenderError string
-	content, err := yaml.Marshal(resourceCrd.KubeResource(in))
+	var content []byte
+	r, err := resourceCrd.KubeResource(in)
 	if err != nil {
 		contentRenderError = FailedToGetKubeYaml(resourceCrd.KindName, in.GetMetadata().Namespace, in.GetMetadata().Name)
-		contextutils.LoggerFrom(ctx).Warnw(contentRenderError, zap.Error(err), zap.Any("resource", in))
+	} else {
+		content, err = yaml.Marshal(r)
+		if err != nil {
+			contentRenderError = FailedToGetKubeYaml(resourceCrd.KindName, in.GetMetadata().Namespace, in.GetMetadata().Name)
+			contextutils.LoggerFrom(ctx).Warnw(contentRenderError, zap.Error(err), zap.Any("resource", in))
+		}
 	}
 	return &v1.Raw{
 		FileName:           in.GetMetadata().Name + ".yaml",
@@ -73,8 +80,13 @@ func (kubeYamlGetter) InitResourceFromYamlString(ctx context.Context,
 	emptyInputResource.SetMetadata(kubeutils.FromKubeMeta(resourceFromYaml.ObjectMeta))
 
 	if withStatus, ok := emptyInputResource.(resources.InputResource); ok {
-		resources.UpdateStatus(withStatus, func(status *core.Status) {
-			*status = resourceFromYaml.Status
+		resources.UpdateStatus(withStatus, func(status *core.Status) error {
+			typedStatus := core.Status{}
+			if err := skprotoutils.UnmarshalMapToProto(resourceFromYaml.Status, &typedStatus); err != nil {
+				return err
+			}
+			*status = typedStatus
+			return nil
 		})
 	}
 

@@ -695,6 +695,9 @@ export class GatewayOptions extends jspb.Message {
   getAlwaysSortRouteTableRoutes(): boolean;
   setAlwaysSortRouteTableRoutes(value: boolean): void;
 
+  getCompressedProxySpec(): boolean;
+  setCompressedProxySpec(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -711,6 +714,7 @@ export namespace GatewayOptions {
     validation?: GatewayOptions.ValidationOptions.AsObject,
     readGatewaysFromAllNamespaces: boolean,
     alwaysSortRouteTableRoutes: boolean,
+    compressedProxySpec: boolean,
   }
 
   export class ValidationOptions extends jspb.Message {

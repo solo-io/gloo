@@ -4695,7 +4695,8 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
     validationServerAddr: jspb.Message.getFieldWithDefault(msg, 1, ""),
     validation: (f = msg.getValidation()) && proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject(includeInstance, f),
     readGatewaysFromAllNamespaces: jspb.Message.getFieldWithDefault(msg, 4, false),
-    alwaysSortRouteTableRoutes: jspb.Message.getFieldWithDefault(msg, 5, false)
+    alwaysSortRouteTableRoutes: jspb.Message.getFieldWithDefault(msg, 5, false),
+    compressedProxySpec: jspb.Message.getFieldWithDefault(msg, 6, false)
   };
 
   if (includeInstance) {
@@ -4748,6 +4749,10 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setAlwaysSortRouteTableRoutes(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setCompressedProxySpec(value);
       break;
     default:
       reader.skipField();
@@ -4804,6 +4809,13 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
   if (f) {
     writer.writeBool(
       5,
+      f
+    );
+  }
+  f = message.getCompressedProxySpec();
+  if (f) {
+    writer.writeBool(
+      6,
       f
     );
   }
@@ -5199,6 +5211,23 @@ proto.gloo.solo.io.GatewayOptions.prototype.getAlwaysSortRouteTableRoutes = func
 /** @param {boolean} value */
 proto.gloo.solo.io.GatewayOptions.prototype.setAlwaysSortRouteTableRoutes = function(value) {
   jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * optional bool compressed_proxy_spec = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getCompressedProxySpec = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setCompressedProxySpec = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 
