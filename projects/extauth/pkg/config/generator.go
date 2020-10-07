@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
+	"go/ast"
+	"go/parser"
 	"time"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
@@ -212,7 +214,7 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauthv1.Ext
 	contextutils.LoggerFrom(c.originalCtx).Debugw("Getting config for resource", zap.Any("resource", resource))
 
 	if len(resource.Configs) != 0 {
-		return c.getConfigs(ctx, resource.Configs)
+		return c.getConfigs(ctx, resource.BooleanExpr.GetValue(), resource.Configs)
 	}
 
 	return nil, nil
@@ -229,7 +231,8 @@ func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassw
 	return ret
 }
 
-func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauthv1.ExtAuthConfig_Config) (svc api.AuthService, err error) {
+func (c *configGenerator) getConfigs(ctx context.Context, boolLogic string, configs []*extauthv1.ExtAuthConfig_Config) (svc api.AuthService, err error) {
+
 	services := chain.NewAuthServiceChain()
 	for i, config := range configs {
 		svc, name, err := c.authConfigToService(ctx, config)
@@ -237,12 +240,26 @@ func (c *configGenerator) getConfigs(ctx context.Context, configs []*extauthv1.E
 			return nil, err
 		}
 		if name == "" {
-			name = fmt.Sprintf("%T-%d", svc, i)
+			name = fmt.Sprintf("config_%d", i)
 		}
 		if err := services.AddAuthService(name, svc); err != nil {
 			return nil, err
 		}
 	}
+
+	var expr ast.Expr
+	if len(boolLogic) > 0 {
+		expr, err = parser.ParseExpr(boolLogic)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = services.SetAuthorizer(expr)
+	if err != nil {
+		return nil, err
+	}
+
 	return services, nil
 }
 
@@ -254,7 +271,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			SaltAndHashedPasswordPerUsername: convertAprUsers(cfg.BasicAuth.GetApr().GetUsers()),
 		}
 
-		return &aprCfg, "", nil
+		return &aprCfg, config.GetName().GetValue(), nil
 
 	// support deprecated config
 	case *extauthv1.ExtAuthConfig_Config_Oauth:
@@ -267,9 +284,9 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
 			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner)
 		if err != nil {
-			return nil, "", err
+			return nil, config.GetName().GetValue(), err
 		}
-		return iss, "", nil
+		return iss, config.GetName().GetValue(), nil
 
 	case *extauthv1.ExtAuthConfig_Config_Oauth2:
 
@@ -284,9 +301,9 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			iss, err := oidc.NewIssuer(ctx, oauthCfg.OidcAuthorizationCode.ClientId, oauthCfg.OidcAuthorizationCode.ClientSecret, oauthCfg.OidcAuthorizationCode.IssuerUrl, oauthCfg.OidcAuthorizationCode.AppUrl, cb,
 				oauthCfg.OidcAuthorizationCode.AuthEndpointQueryParams, oauthCfg.OidcAuthorizationCode.Scopes, stateSigner)
 			if err != nil {
-				return nil, "", err
+				return nil, config.GetName().GetValue(), err
 			}
-			return iss, "", nil
+			return iss, config.GetName().GetValue(), nil
 		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation:
 			userInfoUrl := oauthCfg.AccessTokenValidation.GetUserinfoUrl()
 
@@ -304,9 +321,9 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 					UserInfoUrl:      userInfoUrl,
 				})
 
-				return token_validation.NewTokenIntrospectionAuth(introspectionClients.TokenValidator, introspectionClients.UserInfoClient), "", nil
+				return token_validation.NewTokenIntrospectionAuth(introspectionClients.TokenValidator, introspectionClients.UserInfoClient), config.GetName().GetValue(), nil
 			default:
-				return nil, "", errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidation.ValidationType)
+				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidation.ValidationType)
 			}
 		}
 
@@ -323,23 +340,23 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			validApiKeys,
 			cfg.ApiKeyAuth.HeadersFromKeyMetadata,
 		)
-		return apiKeyAuthService, "", nil
+		return apiKeyAuthService, config.GetName().GetValue(), nil
 
 	case *extauthv1.ExtAuthConfig_Config_PluginAuth:
 		p, err := c.pluginLoader.LoadAuthPlugin(ctx, cfg.PluginAuth)
-		return p, cfg.PluginAuth.Name, err
+		return p, cfg.PluginAuth.Name, err // plugin name takes precedent over auth config name
 	case *extauthv1.ExtAuthConfig_Config_OpaAuth:
 		opaCfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
 		if err != nil {
 			return nil, "", err
 		}
-		return opaCfg, "", nil
+		return opaCfg, config.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_Ldap:
 		ldapSvc, err := getLdapAuthService(ctx, cfg.Ldap)
 		if err != nil {
 			return nil, "", err
 		}
-		return ldapSvc, "", nil
+		return ldapSvc, config.GetName().GetValue(), nil
 	}
 	return nil, "", errors.New("unknown auth configuration")
 }

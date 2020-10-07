@@ -11,7 +11,7 @@ import (
 type serverState struct {
 	// The set of currently running AuthService instances.
 	configs map[string]*configState
-	// The name of the header used  by Gloo to identify authenticated users.
+	// The name of the header used by Gloo to identify authenticated users.
 	userAuthHeader string
 }
 

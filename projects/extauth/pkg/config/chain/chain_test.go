@@ -2,6 +2,11 @@ package chain
 
 import (
 	"context"
+	"go/parser"
+
+	"github.com/solo-io/gloo/test/matchers"
+
+	. "github.com/onsi/ginkgo/extensions/table"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 
@@ -19,6 +24,7 @@ import (
 
 var _ = Describe("Plugin Chain", func() {
 
+	// these tests aren't great since they test implementation, not the exposed interface
 	Describe("mergeHeaders function", func() {
 
 		var (
@@ -170,10 +176,13 @@ var _ = Describe("Plugin Chain", func() {
 				})
 
 				It("runs all authorize functions", func() {
+					err := pluginWrapper.SetAuthorizer(nil)
+					Expect(err).NotTo(HaveOccurred())
 					response, err := pluginWrapper.Authorize(context.Background(), &api.AuthorizationRequest{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(response).To(BeEquivalentTo(api.AuthorizedResponse()))
 				})
+
 			})
 
 			Context("a function fails", func() {
@@ -189,6 +198,164 @@ var _ = Describe("Plugin Chain", func() {
 					Expect(err).To(HaveOccurred())
 				})
 			})
+
+			// somewhat duplicated from "mergeHeaders function" context, but actually tests the exposed API
+			// these tests would actually fail if we removed the merge headers logic from the Authorize() impl
+			Context("headers", func() {
+				var (
+					buildHeader = func(key, value string, append bool) *envoycore.HeaderValueOption {
+						return &envoycore.HeaderValueOption{
+							Header: &envoycore.HeaderValue{
+								Key:   key,
+								Value: value,
+							},
+							Append: &wrappers.BoolValue{
+								Value: append,
+							},
+						}
+					}
+
+					getFirst = func() *envoyauthv2.OkHttpResponse {
+						return &envoyauthv2.OkHttpResponse{
+							Headers: []*envoycore.HeaderValueOption{
+								buildHeader("a", "foo", true),
+								buildHeader("b", "bar", false),
+								buildHeader("c", "baz", true),
+							},
+						}
+					}
+
+					getSecond = func() *envoyauthv2.OkHttpResponse {
+						return &envoyauthv2.OkHttpResponse{
+							Headers: []*envoycore.HeaderValueOption{
+								buildHeader("b", "new-b", true),
+								buildHeader("c", "new-c", false),
+							},
+						}
+					}
+
+					getThirdDenied = func() *envoyauthv2.DeniedHttpResponse {
+						return &envoyauthv2.DeniedHttpResponse{
+							Headers: []*envoycore.HeaderValueOption{
+								buildHeader("denied", "val-1", true),
+								buildHeader("also-denied", "val-2", false),
+							},
+						}
+					}
+				)
+				BeforeEach(func() {
+					f := api.AuthorizedResponse()
+					f.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_OkResponse{OkResponse: getFirst()}
+
+					s := api.AuthorizedResponse()
+					s.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_OkResponse{OkResponse: getSecond()}
+
+					mockSvc1.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(f, nil).Times(1)
+					mockSvc2.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(s, nil).Times(1)
+				})
+
+				It("runs all authorize functions and merges headers from successful authentications", func() {
+					mockSvc3.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(api.AuthorizedResponse(), nil).Times(1)
+
+					err := pluginWrapper.SetAuthorizer(nil)
+					Expect(err).NotTo(HaveOccurred())
+					response, err := pluginWrapper.Authorize(context.Background(), &api.AuthorizationRequest{})
+					Expect(err).NotTo(HaveOccurred())
+					expected := api.AuthorizedResponse()
+					expected.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_OkResponse{OkResponse: &envoyauthv2.OkHttpResponse{
+						Headers: []*envoycore.HeaderValueOption{
+							buildHeader("a", "foo", true),
+							buildHeader("b", "bar, new-b", true),
+							buildHeader("c", "new-c", false),
+						},
+					}}
+
+					// non-deterministic order of headers means we can't use BeEquivalentTo on the entire response or else there will be test flakes
+					// we assert headers, then nil them out and compare the responses
+					Expect(response.CheckResponse.GetOkResponse().GetHeaders()).To(ConsistOf(expected.CheckResponse.GetOkResponse().GetHeaders()))
+
+					r := response.CheckResponse.GetOkResponse()
+					r.Headers = nil
+					e := expected.CheckResponse.GetOkResponse()
+					e.Headers = nil
+					Expect(response).To(matchers.BeEquivalentToDiff(expected))
+				})
+
+				It("runs all authorize functions and returns headers on denied response", func() {
+					t := api.UnauthorizedResponse()
+					t.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_DeniedResponse{DeniedResponse: getThirdDenied()}
+					mockSvc3.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(t, nil).Times(1)
+
+					err := pluginWrapper.SetAuthorizer(nil)
+					Expect(err).NotTo(HaveOccurred())
+					response, err := pluginWrapper.Authorize(context.Background(), &api.AuthorizationRequest{})
+					Expect(err).NotTo(HaveOccurred())
+					expected := api.UnauthorizedResponse()
+					expected.CheckResponse.HttpResponse = &envoyauthv2.CheckResponse_DeniedResponse{DeniedResponse: &envoyauthv2.DeniedHttpResponse{
+						Headers: []*envoycore.HeaderValueOption{
+							buildHeader("denied", "val-1", true),
+							buildHeader("also-denied", "val-2", false),
+						},
+					}}
+
+					// non-deterministic order of headers means we can't use BeEquivalentTo on the entire response or else there will be test flakes
+					// we assert headers, then nil them out and compare the responses
+					Expect(response.CheckResponse.GetDeniedResponse().GetHeaders()).To(ConsistOf(expected.CheckResponse.GetDeniedResponse().GetHeaders()))
+
+					r := response.CheckResponse.GetDeniedResponse()
+					r.Headers = nil
+					e := expected.CheckResponse.GetDeniedResponse()
+					e.Headers = nil
+					Expect(response).To(matchers.BeEquivalentToDiff(expected))
+				})
+			})
+
+			DescribeTable("complex boolean logic",
+				func(expr string, expectedResponse, svc1Resp, svc2Resp, svc3Resp *api.AuthorizationResponse) {
+					pluginWrapper = authServiceChain{}
+					parsedExpr, parseErr := parser.ParseExpr(expr)
+					Expect(parseErr).ToNot(HaveOccurred())
+					err := pluginWrapper.SetAuthorizer(parsedExpr)
+					Expect(err).NotTo(HaveOccurred())
+					err = pluginWrapper.AddAuthService("One", mockSvc1)
+					Expect(err).NotTo(HaveOccurred())
+					err = pluginWrapper.AddAuthService("Two", mockSvc2)
+					Expect(err).NotTo(HaveOccurred())
+					err = pluginWrapper.AddAuthService("Three", mockSvc3)
+					Expect(err).NotTo(HaveOccurred())
+
+					if svc1Resp == nil {
+						mockSvc1.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc1Resp, nil).Times(0)
+					} else {
+						mockSvc1.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc1Resp, nil).Times(1)
+					}
+					if svc2Resp == nil {
+						mockSvc2.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc2Resp, nil).Times(0)
+					} else {
+						mockSvc2.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc2Resp, nil).Times(1)
+					}
+					if svc3Resp == nil {
+						mockSvc3.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc3Resp, nil).Times(0)
+					} else {
+						mockSvc3.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(svc3Resp, nil).Times(1)
+					}
+
+					response, err := pluginWrapper.Authorize(context.Background(), &api.AuthorizationRequest{})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(response).To(BeEquivalentTo(expectedResponse))
+				},
+				Entry("and all - all accepted", "One && Two && Three", api.AuthorizedResponse(), api.AuthorizedResponse(), api.AuthorizedResponse(), api.AuthorizedResponse()),
+				Entry("and all - single reject", "One && Two && Three", api.UnauthorizedResponse(), api.AuthorizedResponse(), api.AuthorizedResponse(), api.UnauthorizedResponse()),
+				Entry("or all - one accepted", "One || Two || Three", api.AuthorizedResponse(), api.UnauthorizedResponse(), api.UnauthorizedResponse(), api.AuthorizedResponse()),
+				Entry("or all - single reject", "One || Two || Three", api.AuthorizedResponse(), api.UnauthorizedResponse(), api.AuthorizedResponse(), nil),
+				Entry("short circuits left to right with and", "One && Two || Three", api.AuthorizedResponse(), api.AuthorizedResponse(), api.AuthorizedResponse(), nil),
+				Entry("short circuits left to right with or", "One || Two && Three", api.AuthorizedResponse(), api.AuthorizedResponse(), nil, nil),
+				Entry("and honors parens", "One || (Two && Three)", api.AuthorizedResponse(), nil, api.AuthorizedResponse(), api.AuthorizedResponse()),
+				Entry("and honors parens - w/ short circuit", "One || (Two && Three)", api.AuthorizedResponse(), api.AuthorizedResponse(), api.UnauthorizedResponse(), nil),
+				Entry("or honors parens", "One || (Two || Three)", api.AuthorizedResponse(), nil, api.AuthorizedResponse(), nil),
+				Entry("not works - flipping unauthorized", "!One && !Two && !Three", api.AuthorizedResponse(), api.UnauthorizedResponse(), api.UnauthorizedResponse(), api.UnauthorizedResponse()),
+				Entry("not works - flipping authorized", "!One && !Two && !Three", api.UnauthorizedResponse(), api.AuthorizedResponse(), nil, nil),
+			)
 		})
 	})
 })

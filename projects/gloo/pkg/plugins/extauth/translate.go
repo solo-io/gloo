@@ -56,13 +56,16 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1.ApiSnapshot, authC
 	}
 
 	return &extauth.ExtAuthConfig{
+		BooleanExpr:       configResource.BooleanExpr,
 		AuthConfigRefName: authConfigRef.Key(),
 		Configs:           translatedConfigs,
 	}, nil
 }
 
 func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
-	extAuthConfig := &extauth.ExtAuthConfig_Config{}
+	extAuthConfig := &extauth.ExtAuthConfig_Config{
+		Name: cfg.Name,
+	}
 
 	switch config := cfg.AuthConfig.(type) {
 	case *extauth.AuthConfig_Config_BasicAuth:
