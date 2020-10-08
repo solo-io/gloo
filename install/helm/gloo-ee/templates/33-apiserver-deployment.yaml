@@ -57,7 +57,11 @@ spec:
               mountPath: /var/run
           ports:
             - name: static
-              containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
+              {{- if .Values.global.glooMtls.enabled }}
+              containerPort: 8443
+              {{- else }}
+              containerPort: 8080
+              {{- end }}
               protocol: TCP
           {{- if .Values.apiServer.deployment.ui.resources }}
           resources:
@@ -106,13 +110,36 @@ spec:
           readinessProbe:
             httpGet:
               path: /
+            {{- if .Values.global.glooMtls.enabled }}
+              port: 8443
+              scheme: HTTPS
+            {{- else }}
               port: 8080
+            {{- end }} # .Values.global.glooMtls.enabled
             periodSeconds: 10
             initialDelaySeconds: 5
           volumeMounts:
           - name: envoy-config
             mountPath: /etc/envoy
             readOnly: true
+        {{- if .Values.global.glooMtls.enabled }}
+          - mountPath: /etc/envoy/ssl
+            name: gloo-mtls-certs
+            readOnly: true
+        {{- end }} # .Values.global.glooMtls.enabled
+        {{- if .Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
+        - name: sds
+          image: {{ template "gloo.image" $sdsImage }}
+          imagePullPolicy: {{ $sdsImage.pullPolicy }}
+          env:
+            - name: GLOO_MTLS_SDS_ENABLED
+              value: "true"
+          volumeMounts:
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
+        {{- end }} # .Values.global.glooMtls.enabled
       volumes:
         - name: empty-cache
           emptyDir: {}
@@ -121,6 +148,12 @@ spec:
         - name: envoy-config
           configMap:
             name: {{ $envoy.bootstrapConfig.configMapName }}
+      {{- if $.Values.global.glooMtls.enabled }}
+        - name: gloo-mtls-certs
+          secret:
+            defaultMode: 420
+            secretName: gloo-mtls-certs
+      {{- end }} # .Values.global.glooMtls.enabled
       {{- if $apiServerImage.pullSecret }}
       imagePullSecrets:
         - name: {{ $apiServerImage.pullSecret }}

@@ -1,17 +1,24 @@
 package test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
+	"github.com/ghodss/yaml"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/aws/aws-sdk-go/aws"
+	bootstrapv3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/installutils/kuberesource"
@@ -1570,33 +1577,75 @@ spec:
 					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
 
 					if structuredDeployment.GetName() == "gloo" {
-						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 
 					if structuredDeployment.GetName() == "gateway-proxy" {
-						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 
 					// should add envoy, sds sidecars to the Extauth and Rate-Limit Deployment
 					if structuredDeployment.GetName() == "rate-limit" {
-						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+						Expect(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
 							"rate-limit", "GLOO_ADDRESS", "127.0.0.1:9955")).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
 					}
 
 					if structuredDeployment.GetName() == "extauth" {
-						Ω(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
-						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+						Expect(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
 							"extauth", "GLOO_ADDRESS", "127.0.0.1:9955")).To(BeTrue())
-						Ω(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+						Expect(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
 							"extauth", "SERVER_PORT", "8084")).To(BeTrue())
 						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+					}
+
+					if structuredDeployment.GetName() == "api-server" {
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(glooMtlsSecretVolume))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Scheme).To(Equal(v1.URISchemeHTTPS))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Port).To(Equal(intstr.IntOrString{IntVal: 8443}))
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Service"
+				}).ExpectAll(func(svc *unstructured.Unstructured) {
+					serviceObj, err := kuberesource.ConvertUnstructured(svc)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Service %+v should be able to convert from unstructured", svc))
+					structuredService, ok := serviceObj.(*v1.Service)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Service %+v should be able to cast to a structured service", svc))
+
+					if structuredService.GetName() == "apiserver-ui" {
+						Expect(structuredService.Spec.Ports[0].Port).To(BeEquivalentTo(8443))
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "ConfigMap"
+				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
+					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
+					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
+
+					if structuredConfigMap.GetName() == "default-apiserver-envoy-config" {
+						bootstrap := bootstrapv3.Bootstrap{}
+						Expect(structuredConfigMap.Data["config.yaml"]).NotTo(BeEmpty())
+						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["config.yaml"]))
+						if err != nil {
+							Expect(err).NotTo(HaveOccurred())
+						}
+						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(bootstrap.Node).To(Equal(&corev3.Node{Id: "sds_client", Cluster: "sds_client"}))
+						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
 					}
 				})
 			})

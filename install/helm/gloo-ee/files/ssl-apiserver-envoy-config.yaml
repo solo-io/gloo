@@ -1,0 +1,125 @@
+node:
+  id: sds_client
+  cluster: sds_client
+static_resources:
+  listeners:
+  - name: https
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 8443
+    filter_chains:
+    - transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificate_sds_secret_configs:
+              - name: server_cert
+                sds_config:
+                  api_config_source:
+                    api_type: GRPC
+                    grpc_services:
+                      - envoy_grpc:
+                          cluster_name: gloo_client_sds
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          codec_type: AUTO
+          stat_prefix: ingress_https
+          route_config:
+            name: gloo-webgrpc
+            virtual_hosts:
+            - name: gloo-webgrpc
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                  headers:
+                  - name: content-type
+                    prefix_match: application/grpc
+                route:
+                  cluster: gloo-grpcserver
+                  timeout: 15s
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: gloo-ui
+                  timeout: 15s
+              cors:
+                allow_origin_string_match:
+                - safe_regex:
+                    google_re2: {}
+                    regex: \*
+                allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web
+                max_age: "1728000"
+                expose_headers: grpc-status,grpc-message
+                filter_enabled: # the values 100/HUNDRED are the default. Still, we want to explicitly define them until we know that the envoy we are using conforms to the new api
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+          http_filters:
+          - name: envoy.filters.http.grpc_web
+          - name: envoy.filters.http.cors
+          - name: envoy.filters.http.router
+  clusters:
+  - name: gloo_client_sds
+    connect_timeout: 0.25s
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: gloo_client_sds
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 8234
+  - name: gloo-grpcserver
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    http2_protocol_options: {}
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: gloo-grpcserver
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 10101
+  - name: gloo-ui
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: gloo-ui
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 20202
+  - name: admin_port_cluster
+    connect_timeout: 5.000s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: admin_port_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 19000
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 19000

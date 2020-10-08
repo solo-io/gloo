@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Expose apiserver over HTTPS using self-signed certs when running in glooMtls mode.
+    issueLink: https://github.com/solo-io/gloo/issues/3384
+
+

@@ -12,7 +12,11 @@ metadata:
 spec:
   ports:
     - name: static
-      port: {{.Values.apiServer.deployment.ui.staticPort}}
+      {{- if .Values.global.glooMtls.enabled }}
+      port: 8443
+      {{- else }}
+      port: 8080
+      {{- end }}
       protocol: TCP
   selector:
     gloo: {{ .Values.apiServer.service.name }}
