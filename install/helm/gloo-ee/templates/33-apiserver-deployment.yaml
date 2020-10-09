@@ -101,6 +101,12 @@ spec:
               containerPort: {{.Values.apiServer.deployment.server.grpcPort}}
               protocol: TCP
         - name: gloo-grpcserver-envoy
+          securityContext:
+            runAsUser: 101
+          env:
+            {{/* Prevents Envoy from trying to chown things away from default user 101 */}}
+            - name: ENVOY_UID
+              value: "0"
           image: {{template "gloo.image" $envoyImage}}
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
           {{- if $envoy.resources }}

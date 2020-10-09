@@ -1277,6 +1277,15 @@ spec:
 					VolumeMounts: []v1.VolumeMount{
 						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
 					},
+					Env: []v1.EnvVar{
+						{
+							Name:  "ENVOY_UID",
+							Value: "0",
+						},
+					},
+					SecurityContext: &v1.SecurityContext{
+						RunAsUser: aws.Int64(101),
+					},
 					ReadinessProbe: &v1.Probe{
 						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
 							Path: "/",
@@ -1953,6 +1962,15 @@ spec:
 								}},
 								InitialDelaySeconds: 5,
 								PeriodSeconds:       10,
+							},
+							Env: []v1.EnvVar{
+								{
+									Name:  "ENVOY_UID",
+									Value: "0",
+								},
+							},
+							SecurityContext: &v1.SecurityContext{
+								RunAsUser: aws.Int64(101),
 							},
 						}
 

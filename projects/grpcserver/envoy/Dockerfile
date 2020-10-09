@@ -1,5 +1,5 @@
-FROM envoyproxy/envoy:v1.14.3
+FROM envoyproxy/envoy:v1.15.2
 
 RUN apt-get update
 
-CMD /usr/local/bin/envoy -c /etc/envoy/config.yaml
+ENTRYPOINT ["/usr/local/bin/envoy", "-c", "/etc/envoy/config.yaml"]

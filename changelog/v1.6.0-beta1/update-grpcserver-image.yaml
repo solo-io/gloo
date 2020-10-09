@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3617
+    description: >
+      Upgrade base image for grpcserver-enovy image
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3616
+    description: >
+      Upgrade base image for grpcserver-ui image
