@@ -259,7 +259,7 @@ func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth
 // translate deprecated config
 func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAuthConfig_OAuthConfig, error) {
 
-	secret, err := snap.Secrets.Find(config.GetClientSecretRef().Namespace, config.GetClientSecretRef().Name)
+	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAu
 
 func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
 
-	secret, err := snap.Secrets.Find(config.GetClientSecretRef().Namespace, config.GetClientSecretRef().Name)
+	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
 		return nil, err
 	}
