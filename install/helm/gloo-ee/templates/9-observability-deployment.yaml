@@ -14,7 +14,9 @@ metadata:
   name: observability
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+{{- if not (kindIs "invalid" .Values.observability.deployment.replicas) }}
+  replicas: {{ .Values.observability.deployment.replicas }}
+{{- end }}
   selector:
     matchLabels:
       app: gloo

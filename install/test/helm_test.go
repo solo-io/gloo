@@ -175,6 +175,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 
 				observabilityDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+				observabilityDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
 
 				grafanaBuilder := ResourceBuilder{
 					Namespace: "", // grafana installs to empty namespace during tests
@@ -233,6 +234,19 @@ var _ = Describe("Helm Test", func() {
 					observabilityDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &customUser
 
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
+				It("should support changing the number of replicas", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"observability.deployment.replicas=2"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					customNumReplicas := int32(2)
+					observabilityDeployment.Spec.Replicas = &customNumReplicas
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+
 				})
 			})
 
@@ -440,7 +454,9 @@ var _ = Describe("Helm Test", func() {
 								},
 							},
 						},
-					}}
+					},
+				}
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
 			})
 
 			It("should be able to set custom labels for pods", func() {
@@ -1325,6 +1341,7 @@ spec:
 				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
 				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
 			})
 
 			It("is there by default", func() {
@@ -1405,6 +1422,18 @@ spec:
 
 				uid := int64(10102)
 				expectedDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("allows setting a custom number of replicas", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"apiServer.deployment.replicas=2"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				customNumReplicas := int32(2)
+				expectedDeployment.Spec.Replicas = &customNumReplicas
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
@@ -2003,12 +2032,27 @@ spec:
 						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
 						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 						deploy.Spec.Template.Spec.SecurityContext = nonRootSC
+						deploy.Spec.Replicas = nil
 					})
 
 					It("is there by default", func() {
 						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
 						Expect(err).NotTo(HaveOccurred())
 						testManifest.ExpectDeploymentAppsV1(deploy)
+					})
+
+					It("can customize number of replicas", func() {
+						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
+							valuesArgs: []string{"apiServer.deployment.replicas=2"},
+						})
+
+						Expect(err).NotTo(HaveOccurred())
+
+						customNumReplicas := int32(2)
+						deploy.Spec.Replicas = &customNumReplicas
+
+						testManifest.ExpectDeploymentAppsV1(deploy)
+
 					})
 
 					It("does render the default bootstrap config map for the envoy sidecar", func() {

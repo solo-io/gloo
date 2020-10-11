@@ -15,7 +15,9 @@ metadata:
   name: {{ $redisName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: 1
+{{- if not (kindIs "invalid" $.Values.redis.deployment.replicas) }}
+  replicas: {{ $.Values.redis.deployment.replicas }}
+{{- end }}
   selector:
     matchLabels:
       gloo: {{ $redisName }}

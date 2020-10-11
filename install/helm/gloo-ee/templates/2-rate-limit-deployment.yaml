@@ -18,7 +18,9 @@ metadata:
   name: {{ $rateLimitName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: 1
+{{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
+  replicas: {{ $.Values.rateLimit.deployment.replicas }}
+{{- end }}
   selector:
     matchLabels:
       gloo: {{ $rateLimitName }}

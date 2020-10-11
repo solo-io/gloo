@@ -18,7 +18,9 @@ metadata:
   name: {{ $extAuthName }}
   namespace: {{ $.Release.Namespace }}
 spec:
+{{- if not (kindIs "invalid" $extAuth.deployment.replicas) }}
   replicas: {{ $extAuth.deployment.replicas }}
+{{- end }}
   selector:
     matchLabels:
       gloo: {{ $extAuthName }}

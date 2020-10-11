@@ -1,0 +1,16 @@
+changelog:
+  - type: HELM
+    description: >
+      Add the ability to specify a number of replicas for the redis, rate-limit,
+      apiserver, and observability deployments via helm values.
+      Note: Extra redis replicas still won't scale properly until
+      https://github.com/solo-io/gloo/issues/3269 is addressed.
+    issueLink: https://github.com/solo-io/gloo/issues/3262
+  - type: HELM
+    description: >
+      Add the ability to NOT specify a number of replicas for the redis, rate-limit,
+      apiserver, observability and extAuth deployments explicitly in deployments.
+      This prevents issues when using flux and horizontal autoscaling.
+      See https://docs.fluxcd.io/en/1.18.0/faq.html#how-can-i-prevent-flux-overriding-the-replicas-when-using-hpa
+      for more details.
+    issueLink: https://github.com/solo-io/gloo/issues/2650

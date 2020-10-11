@@ -18,7 +18,9 @@ metadata:
     app: gloo
     gloo: {{ .Values.apiServer.service.name }}
 spec:
-  replicas: 1
+{{- if not (kindIs "invalid" .Values.apiServer.deployment.replicas) }}
+  replicas: {{ .Values.apiServer.deployment.replicas }}
+{{- end }}
   selector:
     matchLabels:
       app: gloo

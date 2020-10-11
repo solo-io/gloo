@@ -233,7 +233,6 @@ global:
         image:
           repository: extauth-ee
         port: 8083
-        replicas: 1
         runAsUser: 10101
         fsGroup: 10101
       service:
