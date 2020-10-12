@@ -96,7 +96,9 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f),
     preserveExternalRequestId: jspb.Message.getFieldWithDefault(msg, 20, false),
     upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
-    gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance)
+    gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance),
+    maxConnectionDuration: (f = msg.getMaxConnectionDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    maxStreamDuration: (f = msg.getMaxStreamDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -227,6 +229,16 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
       reader.readMessage(value,gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.deserializeBinaryFromReader);
       msg.addUpgrades(value);
+      break;
+    case 23:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setMaxConnectionDuration(value);
+      break;
+    case 24:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setMaxStreamDuration(value);
       break;
     default:
       reader.skipField();
@@ -413,6 +425,22 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       21,
       f,
       gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getMaxConnectionDuration();
+  if (f != null) {
+    writer.writeMessage(
+      23,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getMaxStreamDuration();
+  if (f != null) {
+    writer.writeMessage(
+      24,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -1192,6 +1220,66 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.addUpgrad
 
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearUpgradesList = function() {
   this.setUpgradesList([]);
+};
+
+
+/**
+ * optional google.protobuf.Duration max_connection_duration = 23;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMaxConnectionDuration = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 23));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMaxConnectionDuration = function(value) {
+  jspb.Message.setWrapperField(this, 23, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMaxConnectionDuration = function() {
+  this.setMaxConnectionDuration(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxConnectionDuration = function() {
+  return jspb.Message.getField(this, 23) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration max_stream_duration = 24;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMaxStreamDuration = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 24));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMaxStreamDuration = function(value) {
+  jspb.Message.setWrapperField(this, 24, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMaxStreamDuration = function() {
+  this.setMaxStreamDuration(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxStreamDuration = function() {
+  return jspb.Message.getField(this, 24) != null;
 };
 
 

@@ -6,4 +6,6 @@ RUN apk upgrade --update-cache \
 
 COPY grpcserver-linux-amd64 /usr/local/bin/grpcserver
 
+USER 10101
+
 ENTRYPOINT ["/usr/local/bin/grpcserver"]

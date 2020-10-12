@@ -7,4 +7,6 @@ RUN apk upgrade --update-cache \
 
 COPY gloo-linux-amd64 /usr/local/bin/gloo
 
+USER 10101
+
 ENTRYPOINT ["/usr/local/bin/gloo"]

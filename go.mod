@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.6.15
-	github.com/solo-io/gloo v1.5.0
+	github.com/solo-io/gloo v1.6.0-beta2
 	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9

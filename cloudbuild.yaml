@@ -156,18 +156,6 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
-  args: ["docker"]
-  env:
-    - "TAGGED_VERSION=$TAG_NAME"
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "BUILD_ID=$BUILD_ID"
-    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
-  dir: *dir
-  secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
-  waitFor: ["prepare-workspace", "yarn-build"]
-  id: "build-images"
-
 - name: "gcr.io/cloud-builders/docker"
   entrypoint: "bash"
   args:
@@ -176,17 +164,19 @@ steps:
       'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
     ]
   secretEnv: ["QUAY_IO_PASSWORD"]
-  waitFor: ["build-images"]
+  waitFor: ["prepare-workspace"]
   id: "docker-login-push"
 
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
-  args: ["docker-push"]
+  args: ["docker-push-extended"]
   env:
     - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "BUILD_ID=$BUILD_ID"
+    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
-  waitFor: ["docker-login-push"]
+  waitFor: ["docker-login-push", "yarn-build"]
   id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make

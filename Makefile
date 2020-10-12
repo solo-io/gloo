@@ -112,6 +112,7 @@ run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/...
 
+.PHONY: update-ui-deps
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
 
@@ -697,6 +698,12 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
+endif
+
+.PHONY: docker-push-extended
+docker-push-extended:
+ifeq ($(RELEASE),"true")
+	ci/extended-docker/extended-docker.sh
 endif
 
 push-kind-images:

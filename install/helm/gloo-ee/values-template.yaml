@@ -217,6 +217,7 @@ global:
   image:
     registry: quay.io/solo-io
     pullPolicy: IfNotPresent
+    extended: false
   glooStats:
     enabled: true
   glooRbac:

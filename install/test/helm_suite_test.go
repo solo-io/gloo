@@ -9,8 +9,6 @@ import (
 
 	soloprojectsinstall "github.com/solo-io/solo-projects/pkg/install"
 
-	"github.com/solo-io/gloo/pkg/cliutil/helm"
-
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/strvals"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -92,12 +90,7 @@ func BuildTestManifest(chartName string, namespace string, values helmValues) (T
 	_, err = f.Write([]byte(rel.Manifest))
 	Expect(err).NotTo(HaveOccurred(), "Should be able to write the release manifest to the temp file for the helm unit tests")
 
-	// also need to add in the hooks, which are not included in the release manifest
-	// be sure to skip the resources that we duplicate because of Helm hook weirdness (see the comment on helm.GetNonCleanupHooks)
-	nonCleanupHooks, err := helm.GetNonCleanupHooks(rel.Hooks)
-	Expect(err).NotTo(HaveOccurred(), "Should be able to get the non-cleanup hooks in the helm unit test setup")
-
-	for _, hook := range nonCleanupHooks {
+	for _, hook := range rel.Hooks {
 		manifest := hook.Manifest
 		_, err = f.Write([]byte("\n---\n" + manifest))
 		Expect(err).NotTo(HaveOccurred(), "Should be able to write the hook manifest to the temp file for the helm unit tests")

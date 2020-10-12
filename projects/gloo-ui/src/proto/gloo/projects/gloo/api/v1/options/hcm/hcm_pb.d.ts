@@ -96,6 +96,16 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   setUpgradesList(value: Array<gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>): void;
   addUpgrades(value?: gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig, index?: number): gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig;
 
+  hasMaxConnectionDuration(): boolean;
+  clearMaxConnectionDuration(): void;
+  getMaxConnectionDuration(): google_protobuf_duration_pb.Duration | undefined;
+  setMaxConnectionDuration(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasMaxStreamDuration(): boolean;
+  clearMaxStreamDuration(): void;
+  getMaxStreamDuration(): google_protobuf_duration_pb.Duration | undefined;
+  setMaxStreamDuration(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -129,6 +139,8 @@ export namespace HttpConnectionManagerSettings {
     setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
     preserveExternalRequestId: boolean,
     upgradesList: Array<gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
+    maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
+    maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
