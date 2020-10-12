@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Remove some extra cloudbuild env vars so release assets are built and pushed to quay not gcr by the wrong tag

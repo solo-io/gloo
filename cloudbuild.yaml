@@ -172,8 +172,6 @@ steps:
   env:
     - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "BUILD_ID=$BUILD_ID"
-    - "GCLOUD_PROJECT_ID=$PROJECT_ID"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   waitFor: ["docker-login-push", "yarn-build"]
