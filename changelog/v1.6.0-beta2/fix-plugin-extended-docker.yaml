@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      fix extended docker make target for auth plugins and grpcserver envoy by removing the extended image creation for
+      auth plugins (as it is a demo image) and using ubuntu install commands as backup so curl installs on grpcserver
+      properly

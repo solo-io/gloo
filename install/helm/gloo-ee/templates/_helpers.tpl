@@ -192,3 +192,10 @@ Expand the name of the chart.
 {{- end }}
 {{- $_ := set $ "ProxiesToCreateDataplaneFor" $proxiesToCreateDataplaneFor -}}
 {{- end }}
+
+{{/*
+Expand the name of a container image
+*/}}
+{{- define "glooe.imagenonextended" -}}
+{{ .registry }}/{{ .repository }}:{{ .tag }}
+{{- end -}}

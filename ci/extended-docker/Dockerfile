@@ -4,6 +4,6 @@ FROM $BASE_IMAGE
 
 USER root
 
-RUN apk add curl
+RUN apk add curl | apt install curl -y
 
 USER 10101
