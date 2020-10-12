@@ -156,17 +156,6 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/cloud-builders/docker"
-  entrypoint: "bash"
-  args:
-    [
-      "-c",
-      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
-    ]
-  secretEnv: ["QUAY_IO_PASSWORD"]
-  waitFor: ["prepare-workspace"]
-  id: "docker-login-push"
-
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.5"
   args: ["docker-push-extended"]
   env:
@@ -174,7 +163,7 @@ steps:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
-  waitFor: ["docker-login-push", "yarn-build"]
+  waitFor: ["docker-login", "yarn-build"]
   id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
@@ -193,21 +182,6 @@ steps:
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   id: "release"
-
-- name: "gcr.io/cloud-builders/docker"
-  entrypoint: "bash"
-  args: ["-c", "docker logout"]
-  id: "docker-logout"
-
-- name: "gcr.io/cloud-builders/docker"
-  entrypoint: "bash"
-  args:
-    [
-      "-c",
-      'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD',
-    ]
-  secretEnv: ["QUAY_IO_PASSWORD"]
-  id: "docker-login-again"
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key

@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix extended docker to work in ci, not just locally -- also remove some extra ci cruft
