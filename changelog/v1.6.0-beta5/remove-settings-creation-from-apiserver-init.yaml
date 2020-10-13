@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3677
+    description: No longer let the api-server create a default settings CRD when none is provided.

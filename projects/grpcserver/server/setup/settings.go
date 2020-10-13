@@ -2,9 +2,7 @@ package setup
 
 import (
 	"context"
-	"time"
 
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -13,18 +11,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kube2 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"go.uber.org/zap"
 )
 
 func mustGetSettings(ctx context.Context, podNamespace string) *gloov1.Settings {
 	settingsClient := mustGetSettingsClient(ctx, podNamespace)
 	name := defaults.SettingsName
-	err := writeDefaultSettings(podNamespace, name, settingsClient)
-	if err != nil {
-		contextutils.LoggerFrom(ctx).Fatalw("Failed to write default settings", zap.Error(err))
-	}
 	settings, err := settingsClient.Read(podNamespace, name, clients.ReadOpts{})
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Failed to read settings", zap.Error(err))
@@ -57,29 +49,4 @@ func mustGetSettingsClient(ctx context.Context, podNamespace string) gloov1.Sett
 		contextutils.LoggerFrom(ctx).Fatalw("Could not register settings client", zap.Error(err))
 	}
 	return settingsClient
-}
-
-func writeDefaultSettings(settingsNamespace, name string, cli gloov1.SettingsClient) error {
-	settings := &gloov1.Settings{
-		ConfigSource: &gloov1.Settings_KubernetesConfigSource{
-			KubernetesConfigSource: &gloov1.Settings_KubernetesCrds{},
-		},
-		ArtifactSource: &gloov1.Settings_KubernetesArtifactSource{
-			KubernetesArtifactSource: &gloov1.Settings_KubernetesConfigmaps{},
-		},
-		SecretSource: &gloov1.Settings_KubernetesSecretSource{
-			KubernetesSecretSource: &gloov1.Settings_KubernetesSecrets{},
-		},
-		Gloo: &gloov1.GlooOptions{
-			XdsBindAddr: "0.0.0.0:9977",
-		},
-		RefreshRate:        types.DurationProto(time.Minute),
-		DevMode:            true,
-		DiscoveryNamespace: settingsNamespace,
-		Metadata:           core.Metadata{Namespace: settingsNamespace, Name: name},
-	}
-	if _, err := cli.Write(settings, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-		return errors.Wrapf(err, "failed to create default settings")
-	}
-	return nil
 }
