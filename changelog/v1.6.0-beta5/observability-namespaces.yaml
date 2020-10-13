@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3060
+    description: Correct observability watch namespace behavior to default to all namespaces if none are provided.

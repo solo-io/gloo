@@ -12,6 +12,7 @@ import (
 	errors "github.com/rotisserie/eris"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
@@ -65,17 +66,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	if writeNamespace == "" {
 		writeNamespace = gloodefaults.GlooSystem
 	}
-	watchNamespaces := settings.WatchNamespaces
-	var writeNamespaceProvided bool
-	for _, ns := range watchNamespaces {
-		if ns == writeNamespace {
-			writeNamespaceProvided = true
-			break
-		}
-	}
-	if !writeNamespaceProvided {
-		watchNamespaces = append(watchNamespaces, writeNamespace)
-	}
+	watchNamespaces := utils.ProcessWatchNamespaces(settings.WatchNamespaces, writeNamespace)
 	opts := Opts{
 		WriteNamespace:  writeNamespace,
 		WatchNamespaces: watchNamespaces,
