@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/3498
+    description: Add in same test from gloo repo to solo-projects to ensure we don't have duplicate resources in our chart.
