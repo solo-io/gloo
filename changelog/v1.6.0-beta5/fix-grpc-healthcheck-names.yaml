@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3745
+    description: >-
+      Fix the grpc service names in health checks. This fixes a regression that was introduced in Gloo enterprise
+      v1.5.0-beta8 and v1.4.7. Without this fix, the rate-limit and ext-auth grpc services will fail health checks
+      and go into panic mode (which by default, ignores health checks, so requests still work).

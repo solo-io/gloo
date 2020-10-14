@@ -20,7 +20,7 @@ spec:
     unhealthyThreshold: 5
     healthyThreshold: 5
     grpcHealthCheck:
-      serviceName: {{ $rateLimitName }}
+      serviceName: ratelimit
   kube:
     serviceName: {{ $rateLimitName }}
     serviceNamespace: {{ $.Release.Namespace }}

@@ -39,7 +39,7 @@ spec:
     unhealthyThreshold: 3
     healthyThreshold: 3
     grpcHealthCheck:
-      serviceName: {{ $extAuthName }}
+      serviceName: {{ $extAuth.service.name }}
   kube:
     serviceName: {{ $extAuthName }}
     serviceNamespace: {{ $.Release.Namespace }}
