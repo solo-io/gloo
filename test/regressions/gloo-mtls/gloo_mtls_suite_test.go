@@ -29,9 +29,9 @@ import (
 // This file is largely copied from test/regressions/gateway/gateway_suite_test.go (May 2020)
 
 func TestGateway(t *testing.T) {
-	if os.Getenv("KUBE2E_TESTS") != "gloomtls" {
+	if os.Getenv("KUBE2E_TESTS") != "gloo-mtls" {
 		log.Warnf("This test is disabled. " +
-			"To enable, set KUBE2E_TESTS to 'gloomtls' in your env.")
+			"To enable, set KUBE2E_TESTS to 'gloo-mtls' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()

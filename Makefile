@@ -110,7 +110,7 @@ install-go-tools:
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/...
+	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
 
 .PHONY: update-ui-deps
 update-ui-deps:
@@ -316,6 +316,11 @@ ifneq ($(LOCAL_BUILD),)
 	yarn --cwd $(GRPCSERVER_UI_DIR) install && \
 	yarn --cwd $(GRPCSERVER_UI_DIR) build
 endif
+
+.PHONY: cleanup-node-modules
+cleanup-node-modules:
+	# Remove node_modules to save disk-space (Eg in CI)
+	rm -rf $(GRPCSERVER_UI_DIR)/node_modules
 
 .PHONY: setup-ui-out-dir
 setup-ui-out-dir: grpcserver-ui-build-local $(GRPCSERVER_UI_DIR)/Dockerfile
