@@ -25,17 +25,7 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 
-# WASM version has '-wasm' added after major.minor.patch but before label. Eg 1.2.3-wasm or 1.2.3-wasm-rc1
-WASM_VERSION ?= $(shell echo $(VERSION) | sed 's/\([0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\)/\1-wasm/g')
-
-# For non-versioned releases like local or dev builds, just prepend 'wasm-', eg wasm-dev
-ifeq ($(VERSION), $(WASM_VERSION))
-	WASM_VERSION = wasm-$(VERSION)
-endif
-
-ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.16.0-rc6
-# Envoy-gloo-ee image built on top of envoy-wasm fork
-ENVOY_WASM_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.16.0-wasm-rc1
+ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.17.0-rc1
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
@@ -67,14 +57,6 @@ endef
 # Same as above, but returns only the tag name without the '-t' prefix
 define get_test_tag
 	$(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
-endef
-# Wasm version
-define get_test_tag_wasm
-	$(GCR_REPO_PREFIX)/$(1):wasm-$(TEST_IMAGE_TAG)
-endef
-# Wasm version
-define get_test_tag_wasm_option
-	-t $(GCR_REPO_PREFIX)/$(1):wasm-$(TEST_IMAGE_TAG)
 endef
 endif
 endif
@@ -538,37 +520,6 @@ $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyin
 	touch $@
 
 #----------------------------------------------------------------------------------
-# Envoy init (WASM)
-#----------------------------------------------------------------------------------
-
-ENVOY_WASM_DIR=cmd/envoyinit
-ENVOY_WASM_SOURCES=$(shell find $(ENVOY_WASM_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-ENVOYWASM_OUT_DIR=$(OUTPUT_DIR)/envoywasm
-
-$(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64: $(ENVOY_WASM_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOY_WASM_DIR)/main.go $(ENVOY_WASM_DIR)/filter_types.gen.go
-
-.PHONY: envoywasm
-envoywasm: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64
-
-$(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm: $(ENVOY_WASM_DIR)/Dockerfile.envoywasm
-	cp $< $@
-
-$(ENVOYWASM_OUT_DIR)/docker-entrypoint.sh: $(ENVOY_WASM_DIR)/docker-entrypoint.sh
-	cp $< $@
-
-.PHONY: gloo-ee-envoy-wasm-wrapper-docker
-gloo-ee-envoy-wasm-wrapper-docker: $(ENVOYWASM_OUT_DIR)/.gloo-ee-envoy-wasm-wrapper-docker
-
-
-$(ENVOYWASM_OUT_DIR)/.gloo-ee-envoy-wasm-wrapper-docker: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64 $(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm  $(ENVOYWASM_OUT_DIR)/docker-entrypoint.sh
-	docker build $(ENVOYWASM_OUT_DIR) -f $(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm \
-        --build-arg ENVOY_IMAGE=$(ENVOY_WASM_GLOO_IMAGE) \
-		$(call get_test_tag_wasm_option,gloo-ee-envoy-wrapper) \
-		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(WASM_VERSION)
-	touch $@
-
-#----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
 HELM_SYNC_DIR_FOR_GLOO_EE := $(OUTPUT_DIR)/helm
@@ -685,7 +636,7 @@ endif
 
 .PHONY: docker docker-push
  docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
- 	gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wasm-wrapper-docker observability-docker auth-plugins
+ 	gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -699,7 +650,6 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/grpcserver-ui:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(WASM_VERSION) && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
@@ -718,7 +668,6 @@ push-kind-images:
 	kind load docker-image $(IMAGE_REPO)/grpcserver-ui:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(WASM_VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
@@ -726,7 +675,7 @@ push-kind-images:
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
 
-TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test gloo-ee-envoy-wasm-wrapper-docker-test
+TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
@@ -754,9 +703,6 @@ gloo-docker-test: gloo-docker
 
 gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit gloo-ee-envoy-wrapper-docker
 	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
-
-gloo-ee-envoy-wasm-wrapper-docker-test: $(ENVOYWASM_OUT_DIR)/envoywasm-linux-amd64 $(ENVOYWASM_OUT_DIR)/Dockerfile.envoywasm gloo-ee-envoy-wasm-wrapper-docker
-	docker push $(call get_test_tag_wasm,gloo-ee-envoy-wrapper)
 
 
 .PHONY: build-test-chart

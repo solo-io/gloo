@@ -8,6 +8,7 @@ import * as extproto_ext_pb from "../../../../../protoc-gen-ext/extproto/ext_pb"
 import * as solo_kit_api_v1_metadata_pb from "../../../../../solo-kit/api/v1/metadata_pb";
 import * as solo_kit_api_v1_status_pb from "../../../../../solo-kit/api/v1/status_pb";
 import * as solo_kit_api_v1_solo_kit_pb from "../../../../../solo-kit/api/v1/solo-kit_pb";
+import * as solo_kit_api_v1_ref_pb from "../../../../../solo-kit/api/v1/ref_pb";
 import * as gloo_projects_gloo_api_v1_extensions_pb from "../../../../../gloo/projects/gloo/api/v1/extensions_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb";
 import * as gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
@@ -107,6 +108,11 @@ export class Settings extends jspb.Message {
   getConsul(): Settings.ConsulConfiguration | undefined;
   setConsul(value?: Settings.ConsulConfiguration): void;
 
+  hasConsuldiscovery(): boolean;
+  clearConsuldiscovery(): void;
+  getConsuldiscovery(): Settings.ConsulUpstreamDiscoveryConfiguration | undefined;
+  setConsuldiscovery(value?: Settings.ConsulUpstreamDiscoveryConfiguration): void;
+
   hasKubernetes(): boolean;
   clearKubernetes(): void;
   getKubernetes(): Settings.KubernetesConfiguration | undefined;
@@ -181,6 +187,7 @@ export namespace Settings {
     gloo?: GlooOptions.AsObject,
     gateway?: GatewayOptions.AsObject,
     consul?: Settings.ConsulConfiguration.AsObject,
+    consuldiscovery?: Settings.ConsulUpstreamDiscoveryConfiguration.AsObject,
     kubernetes?: Settings.KubernetesConfiguration.AsObject,
     extensions?: gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     ratelimit?: gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.AsObject,
@@ -393,17 +400,6 @@ export namespace Settings {
     getAddress(): string;
     setAddress(value: string): void;
 
-    getHttpAddress(): string;
-    setHttpAddress(value: string): void;
-
-    getDnsAddress(): string;
-    setDnsAddress(value: string): void;
-
-    hasDnsPollingInterval(): boolean;
-    clearDnsPollingInterval(): void;
-    getDnsPollingInterval(): google_protobuf_duration_pb.Duration | undefined;
-    setDnsPollingInterval(value?: google_protobuf_duration_pb.Duration): void;
-
     getDatacenter(): string;
     setDatacenter(value: string): void;
 
@@ -443,6 +439,17 @@ export namespace Settings {
     getServiceDiscovery(): Settings.ConsulConfiguration.ServiceDiscoveryOptions | undefined;
     setServiceDiscovery(value?: Settings.ConsulConfiguration.ServiceDiscoveryOptions): void;
 
+    getHttpAddress(): string;
+    setHttpAddress(value: string): void;
+
+    getDnsAddress(): string;
+    setDnsAddress(value: string): void;
+
+    hasDnsPollingInterval(): boolean;
+    clearDnsPollingInterval(): void;
+    getDnsPollingInterval(): google_protobuf_duration_pb.Duration | undefined;
+    setDnsPollingInterval(value?: google_protobuf_duration_pb.Duration): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulConfiguration.AsObject;
     static toObject(includeInstance: boolean, msg: ConsulConfiguration): ConsulConfiguration.AsObject;
@@ -456,9 +463,6 @@ export namespace Settings {
   export namespace ConsulConfiguration {
     export type AsObject = {
       address: string,
-      httpAddress: string,
-      dnsAddress: string,
-      dnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
       datacenter: string,
       username: string,
       password: string,
@@ -470,6 +474,9 @@ export namespace Settings {
       insecureSkipVerify?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       waitTime?: google_protobuf_duration_pb.Duration.AsObject,
       serviceDiscovery?: Settings.ConsulConfiguration.ServiceDiscoveryOptions.AsObject,
+      httpAddress: string,
+      dnsAddress: string,
+      dnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
     }
 
     export class ServiceDiscoveryOptions extends jspb.Message {
@@ -492,6 +499,40 @@ export namespace Settings {
       export type AsObject = {
         dataCentersList: Array<string>,
       }
+    }
+  }
+
+  export class ConsulUpstreamDiscoveryConfiguration extends jspb.Message {
+    getUsetlstagging(): boolean;
+    setUsetlstagging(value: boolean): void;
+
+    getTlstagname(): string;
+    setTlstagname(value: string): void;
+
+    hasRootca(): boolean;
+    clearRootca(): void;
+    getRootca(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setRootca(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    getSplittlsservices(): boolean;
+    setSplittlsservices(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConsulUpstreamDiscoveryConfiguration.AsObject;
+    static toObject(includeInstance: boolean, msg: ConsulUpstreamDiscoveryConfiguration): ConsulUpstreamDiscoveryConfiguration.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConsulUpstreamDiscoveryConfiguration, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConsulUpstreamDiscoveryConfiguration;
+    static deserializeBinaryFromReader(message: ConsulUpstreamDiscoveryConfiguration, reader: jspb.BinaryReader): ConsulUpstreamDiscoveryConfiguration;
+  }
+
+  export namespace ConsulUpstreamDiscoveryConfiguration {
+    export type AsObject = {
+      usetlstagging: boolean,
+      tlstagname: string,
+      rootca?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+      splittlsservices: boolean,
     }
   }
 

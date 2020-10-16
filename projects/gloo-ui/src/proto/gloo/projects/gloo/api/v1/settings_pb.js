@@ -17,6 +17,7 @@ var extproto_ext_pb = require('../../../../../protoc-gen-ext/extproto/ext_pb.js'
 var solo$kit_api_v1_metadata_pb = require('../../../../../solo-kit/api/v1/metadata_pb.js');
 var solo$kit_api_v1_status_pb = require('../../../../../solo-kit/api/v1/status_pb.js');
 var solo$kit_api_v1_solo$kit_pb = require('../../../../../solo-kit/api/v1/solo-kit_pb.js');
+var solo$kit_api_v1_ref_pb = require('../../../../../solo-kit/api/v1/ref_pb.js');
 var gloo_projects_gloo_api_v1_extensions_pb = require('../../../../../gloo/projects/gloo/api/v1/extensions_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb.js');
 var gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
@@ -34,6 +35,7 @@ goog.exportSymbol('proto.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulKv', null, global);
+goog.exportSymbol('proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.Directory', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.DiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Settings.DiscoveryOptions.FdsMode', null, global);
@@ -178,6 +180,7 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     gloo: (f = msg.getGloo()) && proto.gloo.solo.io.GlooOptions.toObject(includeInstance, f),
     gateway: (f = msg.getGateway()) && proto.gloo.solo.io.GatewayOptions.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && proto.gloo.solo.io.Settings.ConsulConfiguration.toObject(includeInstance, f),
+    consuldiscovery: (f = msg.getConsuldiscovery()) && proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.toObject(includeInstance, f),
     kubernetes: (f = msg.getKubernetes()) && proto.gloo.solo.io.Settings.KubernetesConfiguration.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     ratelimit: (f = msg.getRatelimit()) && gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.ServiceSettings.toObject(includeInstance, f),
@@ -312,6 +315,11 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new proto.gloo.solo.io.Settings.ConsulConfiguration;
       reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader);
       msg.setConsul(value);
+      break;
+    case 30:
+      var value = new proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration;
+      reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.deserializeBinaryFromReader);
+      msg.setConsuldiscovery(value);
       break;
     case 22:
       var value = new proto.gloo.solo.io.Settings.KubernetesConfiguration;
@@ -528,6 +536,14 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       20,
       f,
       proto.gloo.solo.io.Settings.ConsulConfiguration.serializeBinaryToWriter
+    );
+  }
+  f = message.getConsuldiscovery();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.serializeBinaryToWriter
     );
   }
   f = message.getKubernetes();
@@ -1999,9 +2015,6 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.toObject = function(op
 proto.gloo.solo.io.Settings.ConsulConfiguration.toObject = function(includeInstance, msg) {
   var f, obj = {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    httpAddress: jspb.Message.getFieldWithDefault(msg, 13, ""),
-    dnsAddress: jspb.Message.getFieldWithDefault(msg, 14, ""),
-    dnsPollingInterval: (f = msg.getDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     datacenter: jspb.Message.getFieldWithDefault(msg, 2, ""),
     username: jspb.Message.getFieldWithDefault(msg, 3, ""),
     password: jspb.Message.getFieldWithDefault(msg, 4, ""),
@@ -2012,7 +2025,10 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.toObject = function(includeInsta
     keyFile: jspb.Message.getFieldWithDefault(msg, 9, ""),
     insecureSkipVerify: (f = msg.getInsecureSkipVerify()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     waitTime: (f = msg.getWaitTime()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    serviceDiscovery: (f = msg.getServiceDiscovery()) && proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions.toObject(includeInstance, f)
+    serviceDiscovery: (f = msg.getServiceDiscovery()) && proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions.toObject(includeInstance, f),
+    httpAddress: jspb.Message.getFieldWithDefault(msg, 13, ""),
+    dnsAddress: jspb.Message.getFieldWithDefault(msg, 14, ""),
+    dnsPollingInterval: (f = msg.getDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2052,19 +2068,6 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader = fu
     case 1:
       var value = /** @type {string} */ (reader.readString());
       msg.setAddress(value);
-      break;
-    case 13:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setHttpAddress(value);
-      break;
-    case 14:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDnsAddress(value);
-      break;
-    case 15:
-      var value = new google_protobuf_duration_pb.Duration;
-      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
-      msg.setDnsPollingInterval(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -2113,6 +2116,19 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.deserializeBinaryFromReader = fu
       reader.readMessage(value,proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions.deserializeBinaryFromReader);
       msg.setServiceDiscovery(value);
       break;
+    case 13:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHttpAddress(value);
+      break;
+    case 14:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDnsAddress(value);
+      break;
+    case 15:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDnsPollingInterval(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2147,28 +2163,6 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.serializeBinaryToWriter = functi
     writer.writeString(
       1,
       f
-    );
-  }
-  f = message.getHttpAddress();
-  if (f.length > 0) {
-    writer.writeString(
-      13,
-      f
-    );
-  }
-  f = message.getDnsAddress();
-  if (f.length > 0) {
-    writer.writeString(
-      14,
-      f
-    );
-  }
-  f = message.getDnsPollingInterval();
-  if (f != null) {
-    writer.writeMessage(
-      15,
-      f,
-      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
   f = message.getDatacenter();
@@ -2249,6 +2243,28 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.serializeBinaryToWriter = functi
       12,
       f,
       proto.gloo.solo.io.Settings.ConsulConfiguration.ServiceDiscoveryOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      13,
+      f
+    );
+  }
+  f = message.getDnsAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      14,
+      f
+    );
+  }
+  f = message.getDnsPollingInterval();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -2429,66 +2445,6 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getAddress = function(
 /** @param {string} value */
 proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setAddress = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string http_address = 13;
- * @return {string}
- */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getHttpAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 13, ""));
-};
-
-
-/** @param {string} value */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setHttpAddress = function(value) {
-  jspb.Message.setProto3StringField(this, 13, value);
-};
-
-
-/**
- * optional string dns_address = 14;
- * @return {string}
- */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
-};
-
-
-/** @param {string} value */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsAddress = function(value) {
-  jspb.Message.setProto3StringField(this, 14, value);
-};
-
-
-/**
- * optional google.protobuf.Duration dns_polling_interval = 15;
- * @return {?proto.google.protobuf.Duration}
- */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsPollingInterval = function() {
-  return /** @type{?proto.google.protobuf.Duration} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 15));
-};
-
-
-/** @param {?proto.google.protobuf.Duration|undefined} value */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsPollingInterval = function(value) {
-  jspb.Message.setWrapperField(this, 15, value);
-};
-
-
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.clearDnsPollingInterval = function() {
-  this.setDnsPollingInterval(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.hasDnsPollingInterval = function() {
-  return jspb.Message.getField(this, 15) != null;
 };
 
 
@@ -2699,6 +2655,310 @@ proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.clearServiceDiscovery 
  */
 proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.hasServiceDiscovery = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional string http_address = 13;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getHttpAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 13, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setHttpAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 13, value);
+};
+
+
+/**
+ * optional string dns_address = 14;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 14, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration dns_polling_interval = 15;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.getDnsPollingInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 15));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.setDnsPollingInterval = function(value) {
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.clearDnsPollingInterval = function() {
+  this.setDnsPollingInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.ConsulConfiguration.prototype.hasDnsPollingInterval = function() {
+  return jspb.Message.getField(this, 15) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.displayName = 'proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    usetlstagging: jspb.Message.getFieldWithDefault(msg, 16, false),
+    tlstagname: jspb.Message.getFieldWithDefault(msg, 17, ""),
+    rootca: (f = msg.getRootca()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration;
+  return proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 16:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUsetlstagging(value);
+      break;
+    case 17:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTlstagname(value);
+      break;
+    case 18:
+      var value = new solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setRootca(value);
+      break;
+    case 19:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSplittlsservices(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUsetlstagging();
+  if (f) {
+    writer.writeBool(
+      16,
+      f
+    );
+  }
+  f = message.getTlstagname();
+  if (f.length > 0) {
+    writer.writeString(
+      17,
+      f
+    );
+  }
+  f = message.getRootca();
+  if (f != null) {
+    writer.writeMessage(
+      18,
+      f,
+      solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getSplittlsservices();
+  if (f) {
+    writer.writeBool(
+      19,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool useTlsTagging = 16;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.getUsetlstagging = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 16, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.setUsetlstagging = function(value) {
+  jspb.Message.setProto3BooleanField(this, 16, value);
+};
+
+
+/**
+ * optional string tlsTagName = 17;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.getTlstagname = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 17, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.setTlstagname = function(value) {
+  jspb.Message.setProto3StringField(this, 17, value);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef rootCa = 18;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.getRootca = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, solo$kit_api_v1_ref_pb.ResourceRef, 18));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.setRootca = function(value) {
+  jspb.Message.setWrapperField(this, 18, value);
+};
+
+
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.clearRootca = function() {
+  this.setRootca(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.hasRootca = function() {
+  return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
+ * optional bool splitTlsServices = 19;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.getSplittlsservices = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 19, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration.prototype.setSplittlsservices = function(value) {
+  jspb.Message.setProto3BooleanField(this, 19, value);
 };
 
 
@@ -3555,6 +3815,36 @@ proto.gloo.solo.io.Settings.prototype.clearConsul = function() {
  */
 proto.gloo.solo.io.Settings.prototype.hasConsul = function() {
   return jspb.Message.getField(this, 20) != null;
+};
+
+
+/**
+ * optional ConsulUpstreamDiscoveryConfiguration consulDiscovery = 30;
+ * @return {?proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration}
+ */
+proto.gloo.solo.io.Settings.prototype.getConsuldiscovery = function() {
+  return /** @type{?proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration, 30));
+};
+
+
+/** @param {?proto.gloo.solo.io.Settings.ConsulUpstreamDiscoveryConfiguration|undefined} value */
+proto.gloo.solo.io.Settings.prototype.setConsuldiscovery = function(value) {
+  jspb.Message.setWrapperField(this, 30, value);
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearConsuldiscovery = function() {
+  this.setConsuldiscovery(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Settings.prototype.hasConsuldiscovery = function() {
+  return jspb.Message.getField(this, 30) != null;
 };
 
 

@@ -26,6 +26,11 @@ export class UpstreamSpec extends jspb.Message {
   setInstanceTagsList(value: Array<string>): void;
   addInstanceTags(value: string, index?: number): string;
 
+  clearInstanceBlacklistTagsList(): void;
+  getInstanceBlacklistTagsList(): Array<string>;
+  setInstanceBlacklistTagsList(value: Array<string>): void;
+  addInstanceBlacklistTags(value: string, index?: number): string;
+
   hasServiceSpec(): boolean;
   clearServiceSpec(): void;
   getServiceSpec(): gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec | undefined;
@@ -55,6 +60,7 @@ export namespace UpstreamSpec {
     serviceTagsList: Array<string>,
     subsetTagsList: Array<string>,
     instanceTagsList: Array<string>,
+    instanceBlacklistTagsList: Array<string>,
     serviceSpec?: gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec.AsObject,
     connectEnabled: boolean,
     dataCentersList: Array<string>,

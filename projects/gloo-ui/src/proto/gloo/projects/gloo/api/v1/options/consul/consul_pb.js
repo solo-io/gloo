@@ -39,7 +39,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.consul.options.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2,6,7,5];
+proto.consul.options.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2,6,7,8,5];
 
 
 
@@ -74,6 +74,7 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
     serviceTagsList: jspb.Message.getRepeatedField(msg, 2),
     subsetTagsList: jspb.Message.getRepeatedField(msg, 6),
     instanceTagsList: jspb.Message.getRepeatedField(msg, 7),
+    instanceBlacklistTagsList: jspb.Message.getRepeatedField(msg, 8),
     serviceSpec: (f = msg.getServiceSpec()) && gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec.toObject(includeInstance, f),
     connectEnabled: jspb.Message.getFieldWithDefault(msg, 4, false),
     dataCentersList: jspb.Message.getRepeatedField(msg, 5)
@@ -128,6 +129,10 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.addInstanceTags(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addInstanceBlacklistTags(value);
       break;
     case 3:
       var value = new gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec;
@@ -196,6 +201,13 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
   if (f.length > 0) {
     writer.writeRepeatedString(
       7,
+      f
+    );
+  }
+  f = message.getInstanceBlacklistTagsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      8,
       f
     );
   }
@@ -323,6 +335,35 @@ proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.addInstanceTags = funct
 
 proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.clearInstanceTagsList = function() {
   this.setInstanceTagsList([]);
+};
+
+
+/**
+ * repeated string instance_blacklist_tags = 8;
+ * @return {!Array<string>}
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.getInstanceBlacklistTagsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 8));
+};
+
+
+/** @param {!Array<string>} value */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.setInstanceBlacklistTagsList = function(value) {
+  jspb.Message.setField(this, 8, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.addInstanceBlacklistTags = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 8, value, opt_index);
+};
+
+
+proto.consul.options.gloo.solo.io.UpstreamSpec.prototype.clearInstanceBlacklistTagsList = function() {
+  this.setInstanceBlacklistTagsList([]);
 };
 
 

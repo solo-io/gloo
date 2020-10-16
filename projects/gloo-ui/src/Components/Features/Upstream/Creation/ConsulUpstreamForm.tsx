@@ -21,6 +21,7 @@ export interface ConsulVauesType {
   consulDataCentersList: string[];
   consulSubsetTagsList: string[];
   consulInstanceTagsList: string[];
+  consulInstanceBlacklistTagsList: string[];
 }
 
 export const consulInitialValues: ConsulVauesType = {
@@ -29,7 +30,8 @@ export const consulInitialValues: ConsulVauesType = {
   consulConnectEnabled: false,
   consulDataCentersList: [''],
   consulSubsetTagsList: [''],
-  consulInstanceTagsList: ['']
+  consulInstanceTagsList: [''],
+  consulInstanceBlacklistTagsList: ['']
 };
 
 interface Props {}

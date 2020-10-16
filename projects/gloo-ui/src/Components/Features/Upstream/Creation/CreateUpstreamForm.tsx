@@ -283,7 +283,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
         consulServiceName,
         consulServiceTagsList,
         consulSubsetTagsList,
-        consulInstanceTagsList
+        consulInstanceTagsList,
+        consulInstanceBlacklistTagsList
       } = values;
       let consul: Upstream.AsObject = {
         ...initialUpstreamSpec,
@@ -293,7 +294,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
           serviceName: consulServiceName,
           serviceTagsList: consulServiceTagsList,
           subsetTagsList: consulSubsetTagsList,
-          instanceTagsList: consulInstanceTagsList
+          instanceTagsList: consulInstanceTagsList,
+          instanceBlacklistTagsList: consulInstanceBlacklistTagsList
         }
       };
       dispatch(
