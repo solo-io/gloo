@@ -1,0 +1,17 @@
+apiVersion: gloo.solo.io/v1
+kind: Proxy
+metadata:
+  annotations:
+    gloo.solo.io/compress: "true"
+  creationTimestamp: null
+  generation: 7
+  labels:
+    created_by: gateway
+  name: gateway-proxy
+  namespace: gloo-system
+  resourceVersion: "183096"
+spec:
+  compressedSpec: eJzkk09r3DwQxr/LHIPt3ZCFN+j05pQWeggN5BKWZWyNvaKSJTRj75pF373I3u2mh/6BBnroSfaD5uH3aGZOYA0L9RQZ1OsJatPrB60jMYMCpaCYpScfBdT9+n5dwF4kfDoXgTqBD2J8z/nzgOzy2RorF8fG963psvq/TIFAQT6qzvvOEgbDVePdavmtQvTi66GtniWavntBOxAUMM6nAiGW9S2kAozDLisHqpGZXG2n/VBXxq/Ya4f9KqOUTQhlZ70vcyGrcV3dQgE9ulzqpgVznbXovXzUoAC13u0JNcVd1nZGQ9qmVMBoogxoP3iWJZj2Dk3O/Qo3sC3AkaBGwRyV/RAbWu59MX02vhlvq5fF45niaBq6omhqcbByFjhgk9WZnCcWclCAr5niSPoxvzvmJwf1X9qmbyZvrldXw+gHOYM4lGZ/aQsdsRFQsEJry0DCkP5mhjdDFCK15viZDtEIzYTBrBbCc5yHZik9AZu+s5S/hsASCefx+55oTic+Upnn9yd8KaW0nWl+4xkeUeiA0zV/twhliP44/VknLytZKnVhHpiesvFTXhBQLVqmVPxqXzebu390X9+jiSWzfcdGbjZ3P2rkNn0NAAD//+n77LU=
+status:
+  reportedBy: gloo
+  state: 1

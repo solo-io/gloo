@@ -2,6 +2,8 @@ package proxysvc_test
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
@@ -181,4 +183,43 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
+
+	Describe("DecompressSpec", func() {
+		It("should return decompressed proxy spec, given a compressedSpec proxy", func() {
+			// Basic Example proxy with a wasm filter configured
+			file, openErr := os.Open("./fixtures/compressed-proxy.yaml")
+			Expect(openErr).NotTo(HaveOccurred())
+			yamlBytes, readErr := ioutil.ReadAll(file)
+			Expect(readErr).NotTo(HaveOccurred())
+
+			raw := &v1.Raw{
+				Content: string(yamlBytes),
+			}
+
+			Expect(raw.Content).To(ContainSubstring("compressedSpec:"))
+			Expect(raw.Content).NotTo(ContainSubstring("bindPort: 8080:"))
+
+			err := proxysvc.DecompressSpec(raw)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(raw.Content).NotTo(ContainSubstring("compressedSpec:"))
+			Expect(raw.Content).To(ContainSubstring("bindPort: 8080"))
+		})
+
+		It("should throw an err if decompression of an uncompressed spec is attempted", func() {
+			file, openErr := os.Open("./fixtures/uncompressed-proxy.yaml")
+			Expect(openErr).NotTo(HaveOccurred())
+			yamlBytes, readErr := ioutil.ReadAll(file)
+			Expect(readErr).NotTo(HaveOccurred())
+
+			raw := &v1.Raw{
+				Content: string(yamlBytes),
+			}
+
+			err := proxysvc.DecompressSpec(raw)
+			Expect(err).To(MatchError(proxysvc.ErrNotCompressed))
+		})
+
+	})
+
 })

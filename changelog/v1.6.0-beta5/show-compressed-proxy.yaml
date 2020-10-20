@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3718
+    description: >-
+      When Proxies are viewed in the Gloo admin UI, render the entire Proxy spec,
+      even if it is compressed. Compression is determined by the presence of the
+      gloo.solo.io/compress annotation on the Proxy.
