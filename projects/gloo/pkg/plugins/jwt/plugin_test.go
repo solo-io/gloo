@@ -507,6 +507,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			Expect(err).NotTo(HaveOccurred())
 			// make certs empty and not nil for comparison
 			jwks.Keys[0].Certificates = make([]*x509.Certificate, 0)
+			// set to empty array instead of nil, so assert below will work
+			jwks.Keys[0].CertificateThumbprintSHA1 = []byte{}
+			jwks.Keys[0].CertificateThumbprintSHA256 = []byte{}
 			Expect(*jwks).To(BeEquivalentTo(keySet))
 		})
 		It("should translate key", func() {

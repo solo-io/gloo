@@ -542,6 +542,161 @@ export namespace OAuth2 {
   }
 }
 
+export class RedisOptions extends jspb.Message {
+  getHost(): string;
+  setHost(value: string): void;
+
+  getDb(): number;
+  setDb(value: number): void;
+
+  getPoolSize(): number;
+  setPoolSize(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RedisOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: RedisOptions): RedisOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RedisOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RedisOptions;
+  static deserializeBinaryFromReader(message: RedisOptions, reader: jspb.BinaryReader): RedisOptions;
+}
+
+export namespace RedisOptions {
+  export type AsObject = {
+    host: string,
+    db: number,
+    poolSize: number,
+  }
+}
+
+export class UserSession extends jspb.Message {
+  getFailOnFetchFailure(): boolean;
+  setFailOnFetchFailure(value: boolean): void;
+
+  hasCookieOptions(): boolean;
+  clearCookieOptions(): void;
+  getCookieOptions(): UserSession.CookieOptions | undefined;
+  setCookieOptions(value?: UserSession.CookieOptions): void;
+
+  hasCookie(): boolean;
+  clearCookie(): void;
+  getCookie(): UserSession.InternalSession | undefined;
+  setCookie(value?: UserSession.InternalSession): void;
+
+  hasRedis(): boolean;
+  clearRedis(): void;
+  getRedis(): UserSession.RedisSession | undefined;
+  setRedis(value?: UserSession.RedisSession): void;
+
+  getSessionCase(): UserSession.SessionCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UserSession.AsObject;
+  static toObject(includeInstance: boolean, msg: UserSession): UserSession.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UserSession, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UserSession;
+  static deserializeBinaryFromReader(message: UserSession, reader: jspb.BinaryReader): UserSession;
+}
+
+export namespace UserSession {
+  export type AsObject = {
+    failOnFetchFailure: boolean,
+    cookieOptions?: UserSession.CookieOptions.AsObject,
+    cookie?: UserSession.InternalSession.AsObject,
+    redis?: UserSession.RedisSession.AsObject,
+  }
+
+  export class InternalSession extends jspb.Message {
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InternalSession.AsObject;
+    static toObject(includeInstance: boolean, msg: InternalSession): InternalSession.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InternalSession, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InternalSession;
+    static deserializeBinaryFromReader(message: InternalSession, reader: jspb.BinaryReader): InternalSession;
+  }
+
+  export namespace InternalSession {
+    export type AsObject = {
+    }
+  }
+
+  export class RedisSession extends jspb.Message {
+    hasOptions(): boolean;
+    clearOptions(): void;
+    getOptions(): RedisOptions | undefined;
+    setOptions(value?: RedisOptions): void;
+
+    getKeyPrefix(): string;
+    setKeyPrefix(value: string): void;
+
+    getCookieName(): string;
+    setCookieName(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RedisSession.AsObject;
+    static toObject(includeInstance: boolean, msg: RedisSession): RedisSession.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RedisSession, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RedisSession;
+    static deserializeBinaryFromReader(message: RedisSession, reader: jspb.BinaryReader): RedisSession;
+  }
+
+  export namespace RedisSession {
+    export type AsObject = {
+      options?: RedisOptions.AsObject,
+      keyPrefix: string,
+      cookieName: string,
+    }
+  }
+
+  export class CookieOptions extends jspb.Message {
+    hasMaxAge(): boolean;
+    clearMaxAge(): void;
+    getMaxAge(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+    setMaxAge(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+    getNotSecure(): boolean;
+    setNotSecure(value: boolean): void;
+
+    hasPath(): boolean;
+    clearPath(): void;
+    getPath(): google_protobuf_wrappers_pb.StringValue | undefined;
+    setPath(value?: google_protobuf_wrappers_pb.StringValue): void;
+
+    getDomain(): string;
+    setDomain(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CookieOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: CookieOptions): CookieOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: CookieOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CookieOptions;
+    static deserializeBinaryFromReader(message: CookieOptions, reader: jspb.BinaryReader): CookieOptions;
+  }
+
+  export namespace CookieOptions {
+    export type AsObject = {
+      maxAge?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+      notSecure: boolean,
+      path?: google_protobuf_wrappers_pb.StringValue.AsObject,
+      domain: string,
+    }
+  }
+
+  export enum SessionCase {
+    SESSION_NOT_SET = 0,
+    COOKIE = 3,
+    REDIS = 4,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -562,10 +717,18 @@ export class OidcAuthorizationCode extends jspb.Message {
   getCallbackPath(): string;
   setCallbackPath(value: string): void;
 
+  getLogoutPath(): string;
+  setLogoutPath(value: string): void;
+
   clearScopesList(): void;
   getScopesList(): Array<string>;
   setScopesList(value: Array<string>): void;
   addScopes(value: string, index?: number): string;
+
+  hasSession(): boolean;
+  clearSession(): void;
+  getSession(): UserSession | undefined;
+  setSession(value?: UserSession): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
@@ -585,7 +748,9 @@ export namespace OidcAuthorizationCode {
     authEndpointQueryParamsMap: Array<[string, string]>,
     appUrl: string,
     callbackPath: string,
+    logoutPath: string,
     scopesList: Array<string>,
+    session?: UserSession.AsObject,
   }
 }
 
@@ -924,10 +1089,18 @@ export namespace ExtAuthConfig {
     getCallbackPath(): string;
     setCallbackPath(value: string): void;
 
+    getLogoutPath(): string;
+    setLogoutPath(value: string): void;
+
     clearScopesList(): void;
     getScopesList(): Array<string>;
     setScopesList(value: Array<string>): void;
     addScopes(value: string, index?: number): string;
+
+    hasSession(): boolean;
+    clearSession(): void;
+    getSession(): UserSession | undefined;
+    setSession(value?: UserSession): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
@@ -947,7 +1120,9 @@ export namespace ExtAuthConfig {
       authEndpointQueryParamsMap: Array<[string, string]>,
       appUrl: string,
       callbackPath: string,
+      logoutPath: string,
       scopesList: Array<string>,
+      session?: UserSession.AsObject,
     }
   }
 

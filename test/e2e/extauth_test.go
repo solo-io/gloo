@@ -9,6 +9,9 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"sync"
@@ -27,6 +30,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/gstruct"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
@@ -240,11 +245,14 @@ var _ = Describe("External auth", func() {
 
 			Context("oidc sanity", func() {
 				var (
+					authConfig      *extauth.AuthConfig
+					oauth2          *extauth.OAuth2_OidcAuthorizationCode
 					privateKey      *rsa.PrivateKey
 					discoveryServer fakeDiscoveryServer
 					secret          *gloov1.Secret
 					proxy           *gloov1.Proxy
 					token           string
+					cookies         []*http.Cookie
 				)
 				BeforeEach(func() {
 					discoveryServer = fakeDiscoveryServer{}
@@ -266,8 +274,8 @@ var _ = Describe("External auth", func() {
 					}
 					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
-
-					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+					oauth2 = getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
+					authConfig = &extauth.AuthConfig{
 						Metadata: core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
@@ -275,12 +283,11 @@ var _ = Describe("External auth", func() {
 						Configs: []*extauth.AuthConfig_Config{{
 							AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 								Oauth2: &extauth.OAuth2{
-									OauthType: getOidcAuthCodeConfig(secret.Metadata.Ref()),
+									OauthType: oauth2,
 								},
 							},
 						}},
-					}, clients.WriteOpts{Ctx: ctx})
-					Expect(err).NotTo(HaveOccurred())
+					}
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
@@ -297,7 +304,10 @@ var _ = Describe("External auth", func() {
 				})
 
 				JustBeforeEach(func() {
-					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
 					Eventually(func() (core.Status, error) {
@@ -317,6 +327,93 @@ var _ = Describe("External auth", func() {
 					discoveryServer.Stop()
 				})
 
+				ExpectHappyPathToWork := func() {
+					// do auth flow and make sure we have a cookie named cookie:
+					finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
+					jar, err := cookiejar.New(nil)
+					Expect(err).NotTo(HaveOccurred())
+					client := &http.Client{Jar: &unsecureCookieJar{CookieJar: jar}}
+
+					req, err := http.NewRequest("GET", finalpage, nil)
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(func() (http.Response, error) {
+						r, err := client.Do(req)
+						if err != nil {
+							return http.Response{}, err
+						}
+						return *r, err
+					}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+						"StatusCode": Equal(http.StatusOK),
+					}))
+
+					finalurl, err := url.Parse(finalpage)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(finalurl.Path).To(Equal("/success"))
+
+					// check the cookie jar
+					cookies = jar.Cookies(finalurl)
+					Expect(cookies).NotTo(BeEmpty())
+				}
+
+				Context("redis for session store", func() {
+
+					const (
+						redisaddr  = "127.0.0.1"
+						redisport  = uint32(6379)
+						cookieName = "cookie"
+					)
+					var (
+						redisSession *gexec.Session
+					)
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Session = &extauth.UserSession{
+							FailOnFetchFailure: true,
+							Session: &extauth.UserSession_Redis{
+								Redis: &extauth.UserSession_RedisSession{
+									Options: &extauth.RedisOptions{
+										Host: fmt.Sprintf("%s:%d", redisaddr, redisport),
+									},
+									KeyPrefix:  "key",
+									CookieName: cookieName,
+								},
+							},
+						}
+
+						command := exec.Command(getRedisPath(), "--port", fmt.Sprintf("%d", redisport))
+						var err error
+						redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).NotTo(HaveOccurred())
+						// give redis a chance to start
+						Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
+					})
+
+					AfterEach(func() {
+						redisSession.Kill()
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork()
+						Expect(cookies[0].Name).To(Equal(cookieName))
+					})
+
+				})
+
+				Context("happy path with default settings (no redis)", func() {
+
+					It("should work", func() {
+						ExpectHappyPathToWork()
+						Expect(cookies).ToNot(BeEmpty())
+						var cookienames []string
+						for _, c := range cookies {
+							cookienames = append(cookienames, c.Name)
+						}
+						Expect(cookienames).To(ConsistOf("id_token", "access_token"))
+					})
+
+				})
+
 				Context("Oidc tests that don't forward to upstream", func() {
 					BeforeEach(func() {
 						// drain channel as we dont care about it
@@ -327,8 +424,19 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should redirect to auth page", func() {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								// stop at the auth point
+								if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+									return http.ErrUseLastResponse
+								}
+								return nil
+							},
+						}
 						Eventually(func() (string, error) {
-							resp, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort))
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							Expect(err).NotTo(HaveOccurred())
+							resp, err := client.Do(req)
 							if err != nil {
 								return "", err
 							}
@@ -336,6 +444,7 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
+							fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
 							return string(body), nil
 						}, "5s", "0.5s").Should(Equal("auth"))
 					})
@@ -415,7 +524,7 @@ var _ = Describe("External auth", func() {
 									{
 										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 											Oauth2: &extauth.OAuth2{
-												OauthType: getOidcAuthCodeConfig(secret.Metadata.Ref()),
+												OauthType: getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref()),
 											},
 										},
 									},
@@ -505,7 +614,7 @@ var _ = Describe("External auth", func() {
 								{
 									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 										Oauth2: &extauth.OAuth2{
-											OauthType: getOidcAuthCodeConfig(secret.Metadata.Ref()),
+											OauthType: getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref()),
 										},
 									},
 								},
@@ -794,7 +903,7 @@ var _ = Describe("External auth", func() {
 						},
 						Configs: []*extauth.AuthConfig_Config{{
 							AuthConfig: &extauth.AuthConfig_Config_Oauth{
-								Oauth: getOauthConfig(secret.Metadata.Ref()),
+								Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
 							},
 						}},
 					}, clients.WriteOpts{Ctx: ctx})
@@ -845,8 +954,19 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should redirect to auth page", func() {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								// stop at the auth point
+								if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+									return http.ErrUseLastResponse
+								}
+								return nil
+							},
+						}
 						Eventually(func() (string, error) {
-							resp, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort))
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							Expect(err).NotTo(HaveOccurred())
+							resp, err := client.Do(req)
 							if err != nil {
 								return "", err
 							}
@@ -932,7 +1052,7 @@ var _ = Describe("External auth", func() {
 								Configs: []*extauth.AuthConfig_Config{
 									{
 										AuthConfig: &extauth.AuthConfig_Config_Oauth{
-											Oauth: getOauthConfig(secret.Metadata.Ref()),
+											Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
 										},
 									},
 									{
@@ -1020,7 +1140,7 @@ var _ = Describe("External auth", func() {
 							Configs: []*extauth.AuthConfig_Config{
 								{
 									AuthConfig: &extauth.AuthConfig_Config_Oauth{
-										Oauth: getOauthConfig(secret.Metadata.Ref()),
+										Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
 									},
 								},
 								{
@@ -1127,10 +1247,23 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 	}
 
 	f.s.Handler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		defer GinkgoRecover()
 		rw.Header().Set("content-type", "application/json")
 
 		switch r.URL.Path {
 		case "/auth":
+			// redirect back immediately. This simulates a user that's already logged in by the IDP.
+			redirect_uri := r.URL.Query().Get("redirect_uri")
+			state := r.URL.Query().Get("state")
+			u, err := url.Parse(redirect_uri)
+			Expect(err).NotTo(HaveOccurred())
+
+			u.RawQuery = "code=1234&state=" + state
+			fmt.Fprintf(GinkgoWriter, "redirecting to %s\n", u.String())
+			rw.Header().Add("Location", u.String())
+			rw.Header().Add("x-auth", "auth")
+			rw.WriteHeader(http.StatusFound)
+
 			_, _ = rw.Write([]byte(`auth`))
 		case "/.well-known/openid-configuration":
 			_, _ = rw.Write([]byte(`
@@ -1222,24 +1355,24 @@ func getProxyExtAuthOauthTokenIntrospection(envoyPort uint32, upstream core.Reso
 	return getProxyExtAuth(envoyPort, upstream, getOauthTokenIntrospectionExtAuthExtension())
 }
 
-func getOauthConfig(secretRef core.ResourceRef) *extauth.OAuth {
+func getOauthConfig(envoyPort uint32, secretRef core.ResourceRef) *extauth.OAuth {
 	return &extauth.OAuth{
 		ClientId:        "test-clientid",
 		ClientSecretRef: &secretRef,
 		IssuerUrl:       "http://localhost:5556/",
-		AppUrl:          "http://example.com",
+		AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 		CallbackPath:    "/callback",
 		Scopes:          []string{"email"},
 	}
 }
 
-func getOidcAuthCodeConfig(secretRef core.ResourceRef) *extauth.OAuth2_OidcAuthorizationCode {
+func getOidcAuthCodeConfig(envoyPort uint32, secretRef core.ResourceRef) *extauth.OAuth2_OidcAuthorizationCode {
 	return &extauth.OAuth2_OidcAuthorizationCode{
 		OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
 			ClientId:        "test-clientid",
 			ClientSecretRef: &secretRef,
 			IssuerUrl:       "http://localhost:5556/",
-			AppUrl:          "http://example.com",
+			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 			CallbackPath:    "/callback",
 			Scopes:          []string{"email"},
 		},
@@ -1384,4 +1517,16 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 	}
 
 	return p
+}
+
+type unsecureCookieJar struct {
+	http.CookieJar
+}
+
+func (j *unsecureCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	for _, c := range cookies {
+		// hack to work around go client impl that doesn't consider localhost secure.
+		c.Secure = false
+	}
+	j.CookieJar.SetCookies(u, cookies)
 }

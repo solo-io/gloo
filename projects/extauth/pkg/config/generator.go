@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"runtime/debug"
 	"time"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
@@ -20,17 +21,22 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
+	"github.com/solo-io/ext-auth-service/pkg/session"
+	redissession "github.com/solo-io/ext-auth-service/pkg/session/redis"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 )
 
 const (
 	DefaultCallback      = "/oauth-gloo-callback"
 	DefaultOAuthCacheTtl = time.Minute * 10
+	// Default to 30 days (in seconds)
+	defaultMaxAge = 30 * 24 * 60 * 60
 )
 
 var (
@@ -207,7 +213,8 @@ func (c *configGenerator) getConfig(ctx context.Context, resource *extauthv1.Ext
 	defer func() {
 		if r := recover(); r != nil {
 			svc = nil
-			err = errors.Errorf("panicked while retrieving config for resource %v: %v", resource, r)
+			stack := string(debug.Stack())
+			err = errors.Errorf("panicked while retrieving config for resource %v: %v %v", resource, r, stack)
 		}
 	}()
 
@@ -263,6 +270,71 @@ func (c *configGenerator) getConfigs(ctx context.Context, boolLogic string, conf
 	return services, nil
 }
 
+func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, error) {
+	if us == nil {
+		return nil, nil
+	}
+	usersession := us.Session
+	if usersession == nil {
+		return nil, nil
+	}
+
+	switch s := usersession.(type) {
+	case *extauthv1.UserSession_Cookie:
+		return nil, nil
+	case *extauthv1.UserSession_Redis:
+		options := s.Redis.GetOptions()
+		opts := &redis.UniversalOptions{
+			Addrs:    []string{options.GetHost()},
+			DB:       int(options.GetDb()),
+			PoolSize: int(options.GetPoolSize()),
+		}
+
+		client := redis.NewUniversalClient(opts)
+
+		rs := redissession.NewRedisSession(client, s.Redis.CookieName, s.Redis.KeyPrefix)
+		return rs, nil
+	}
+	return nil, fmt.Errorf("no matching session config")
+}
+
+func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOptions) *session.Options {
+	var sessionOptions *session.Options
+	if cookieOptions != nil {
+		var path *string
+		if pathFromOpt := cookieOptions.GetPath(); pathFromOpt != nil {
+			tmp := pathFromOpt.Value
+			path = &tmp
+		}
+		maxAge := defaultMaxAge
+		if maxAgeConfig := cookieOptions.MaxAge; maxAgeConfig != nil {
+			maxAge = int(maxAgeConfig.Value)
+		}
+
+		sessionOptions = &session.Options{
+			Path:     path,
+			Domain:   cookieOptions.GetDomain(),
+			HttpOnly: true,
+			Secure:   !cookieOptions.GetNotSecure(),
+			MaxAge:   maxAge,
+		}
+	}
+	return sessionOptions
+}
+
+func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
+	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
+	session, err := sessionToStore(userSession)
+	if err != nil {
+		return oidc.SessionParameters{}, err
+	}
+	return oidc.SessionParameters{
+		ErrOnSessionFetch: userSession.GetFailOnFetchFailure(),
+		Store:             session,
+		Options:           sessionOptions,
+	}, nil
+}
+
 func (c *configGenerator) authConfigToService(ctx context.Context, config *extauthv1.ExtAuthConfig_Config) (svc api.AuthService, name string, err error) {
 	switch cfg := config.AuthConfig.(type) {
 	case *extauthv1.ExtAuthConfig_Config_BasicAuth:
@@ -282,7 +354,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner)
+			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{})
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -297,9 +369,16 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 			if cb == "" {
 				cb = DefaultCallback
 			}
+
 			oauthCfg.OidcAuthorizationCode.IssuerUrl = addTrailingSlash(oauthCfg.OidcAuthorizationCode.IssuerUrl)
+
+			sessionParameters, err := ToSessionParameters(oauthCfg.OidcAuthorizationCode.GetSession())
+			if err != nil {
+				return nil, config.GetName().GetValue(), err
+			}
+
 			iss, err := oidc.NewIssuer(ctx, oauthCfg.OidcAuthorizationCode.ClientId, oauthCfg.OidcAuthorizationCode.ClientSecret, oauthCfg.OidcAuthorizationCode.IssuerUrl, oauthCfg.OidcAuthorizationCode.AppUrl, cb,
-				oauthCfg.OidcAuthorizationCode.AuthEndpointQueryParams, oauthCfg.OidcAuthorizationCode.Scopes, stateSigner)
+				oauthCfg.OidcAuthorizationCode.AuthEndpointQueryParams, oauthCfg.OidcAuthorizationCode.Scopes, stateSigner, sessionParameters)
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}

@@ -8,6 +8,8 @@ import (
 	mock_token_validation "github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/mocks"
 	user_info_mocks "github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info/mocks"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	"github.com/solo-io/ext-auth-service/pkg/session"
+	"github.com/solo-io/ext-auth-service/pkg/session/redis"
 
 	configapi "github.com/solo-io/ext-auth-service/pkg/config"
 
@@ -622,4 +624,51 @@ var _ = Describe("Config Generator", func() {
 			})
 		})
 	})
+
+	Context("oidc session", func() {
+		It("should translate nil session", func() {
+			params, err := config.ToSessionParameters(nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{}))
+		})
+		It("should translate FailOnFetchFailure", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{FailOnFetchFailure: true})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true}))
+		})
+		It("should translate CookieOptions", func() {
+			path := "/foo"
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
+				MaxAge:    &pbtypes.UInt32Value{Value: 1},
+				Domain:    "foo.com",
+				NotSecure: true,
+				Path:      &pbtypes.StringValue{Value: path},
+			}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+				Path:     &path,
+				Domain:   "foo.com",
+				HttpOnly: true,
+				MaxAge:   1,
+				Secure:   false,
+			}}))
+		})
+		It("should translate CookieSessionStore", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Cookie{},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.Store).To(BeNil())
+		})
+		It("should translate RedisSessionStore", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Redis{
+					Redis: &extauthv1.UserSession_RedisSession{},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
+		})
+	})
+
 })

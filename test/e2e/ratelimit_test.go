@@ -396,13 +396,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	}
 
 	Context("Redis-backed rate limiting", func() {
-		getRedisPath := func() string {
-			binaryPath := os.Getenv("REDIS_BINARY")
-			if binaryPath != "" {
-				return binaryPath
-			}
-			return "redis-server"
-		}
+
 		BeforeEach(func() {
 			var err error
 			os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
@@ -715,4 +709,11 @@ func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
 	}
 
 	return p
+}
+func getRedisPath() string {
+	binaryPath := os.Getenv("REDIS_BINARY")
+	if binaryPath != "" {
+		return binaryPath
+	}
+	return "redis-server"
 }

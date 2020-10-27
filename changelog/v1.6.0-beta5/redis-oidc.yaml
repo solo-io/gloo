@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow storing session data in redis session when using OIDC.
+    issueLink: https://github.com/solo-io/gloo/issues/3656
