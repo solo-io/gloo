@@ -8,9 +8,12 @@ metadata:
     app: gloo
     gloo: {{ .Values.apiServer.service.name }}
 data:
-{{- if .Values.global.glooMtls.enabled }}
+{{- if .Values.apiServer.sslSecretName }}
   config.yaml: |-
 {{ .Files.Get "files/ssl-apiserver-envoy-config.yaml" | indent 4 }}
+{{- else if .Values.global.glooMtls.enabled }}
+  config.yaml: |-
+{{ .Files.Get "files/ssl-sds-apiserver-envoy-config.yaml" | indent 4 }}
 {{- else }}
   config.yaml: |-
 {{ .Files.Get "files/default-apiserver-envoy-config.yaml" | indent 4 }}

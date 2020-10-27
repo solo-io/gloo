@@ -118,7 +118,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-            {{- if .Values.global.glooMtls.enabled }}
+            {{- if or .Values.global.glooMtls.enabled .Values.apiServer.sslSecretName }}
               port: 8443
               scheme: HTTPS
             {{- else }}
@@ -130,6 +130,11 @@ spec:
           - name: envoy-config
             mountPath: /etc/envoy
             readOnly: true
+        {{- if $.Values.apiServer.sslSecretName }}
+          - mountPath: /etc/apiserver/ssl
+            name: apiserver-ssl-certs
+            readOnly: true
+        {{- end }}    
         {{- if .Values.global.glooMtls.enabled }}
           - mountPath: /etc/envoy/ssl
             name: gloo-mtls-certs
@@ -156,6 +161,12 @@ spec:
         - name: envoy-config
           configMap:
             name: {{ $envoy.bootstrapConfig.configMapName }}
+      {{- if $.Values.apiServer.sslSecretName }}
+        - name: apiserver-ssl-certs
+          secret:
+            defaultMode: 420
+            secretName: {{ $.Values.apiServer.sslSecretName }}
+      {{- end }}    
       {{- if $.Values.global.glooMtls.enabled }}
         - name: gloo-mtls-certs
           secret:

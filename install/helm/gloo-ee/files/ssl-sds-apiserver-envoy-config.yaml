@@ -1,3 +1,6 @@
+node:
+  id: sds_client
+  cluster: sds_client
 static_resources:
   listeners:
   - name: https
@@ -11,11 +14,14 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
           common_tls_context:
-            tls_certificates:
-            - certificate_chain:
-                filename: /etc/apiserver/ssl/tls.crt
-              private_key:
-                filename: /etc/apiserver/ssl/tls.key
+            tls_certificate_sds_secret_configs:
+              - name: server_cert
+                sds_config:
+                  api_config_source:
+                    api_type: GRPC
+                    grpc_services:
+                      - envoy_grpc:
+                          cluster_name: gloo_client_sds
       filters:
       - name: envoy.filters.network.http_connection_manager
         typed_config:
@@ -59,6 +65,18 @@ static_resources:
           - name: envoy.filters.http.cors
           - name: envoy.filters.http.router
   clusters:
+  - name: gloo_client_sds
+    connect_timeout: 0.25s
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: gloo_client_sds
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 8234
   - name: gloo-grpcserver
     connect_timeout: 0.25s
     type: LOGICAL_DNS

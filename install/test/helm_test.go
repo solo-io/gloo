@@ -10,6 +10,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -18,13 +19,14 @@ import (
 	bootstrapv3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
-	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/installutils/kuberesource"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/pkg/install"
 	jobsv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8s "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -1708,6 +1710,33 @@ spec:
 						Expect(err).NotTo(HaveOccurred())
 						Expect(bootstrap.Node).To(Equal(&corev3.Node{Id: "sds_client", Cluster: "sds_client"}))
 						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
+						tlsContext := tlsv3.DownstreamTlsContext{}
+						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
+						Expect(tlsContext).To(Equal(tlsv3.DownstreamTlsContext{
+							CommonTlsContext: &tlsv3.CommonTlsContext{
+								TlsCertificateSdsSecretConfigs: []*tlsv3.SdsSecretConfig{
+									{
+										Name: "server_cert",
+										SdsConfig: &corev3.ConfigSource{
+											ConfigSourceSpecifier: &corev3.ConfigSource_ApiConfigSource{
+												ApiConfigSource: &corev3.ApiConfigSource{
+													ApiType: corev3.ApiConfigSource_GRPC,
+													GrpcServices: []*corev3.GrpcService{
+														{
+															TargetSpecifier: &corev3.GrpcService_EnvoyGrpc_{
+																EnvoyGrpc: &corev3.GrpcService_EnvoyGrpc{
+																	ClusterName: "gloo_client_sds",
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						}))
 					}
 				})
 			})
@@ -1781,6 +1810,80 @@ spec:
 							}}))
 					}
 				})
+			})
+
+			It("should allow apiserver service to handle TLS itself using a kubernetes secret", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"apiServer.sslSecretName=ssl-secret"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					if structuredDeployment.GetName() == "api-server" {
+						mode := int32(420)
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].Name).To(Equal("apiserver-ssl-certs"))
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].VolumeSource.Secret).To(Equal(&corev1.SecretVolumeSource{
+							SecretName:  "ssl-secret",
+							DefaultMode: &mode,
+						}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].VolumeMounts[1]).To(Equal(corev1.VolumeMount{
+							MountPath: "/etc/apiserver/ssl",
+							ReadOnly:  true,
+							Name:      "apiserver-ssl-certs",
+						}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Scheme).To(Equal(corev1.URISchemeHTTPS))
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "ConfigMap"
+				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
+					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
+					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
+
+					if structuredConfigMap.GetName() == "default-apiserver-envoy-config" {
+						bootstrap := bootstrapv3.Bootstrap{}
+						Expect(structuredConfigMap.Data["config.yaml"]).NotTo(BeEmpty())
+						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["config.yaml"]))
+						if err != nil {
+							Expect(err).NotTo(HaveOccurred())
+						}
+						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
+						tlsContext := tlsv3.DownstreamTlsContext{}
+						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
+						Expect(tlsContext).To(Equal(tlsv3.DownstreamTlsContext{
+							CommonTlsContext: &tlsv3.CommonTlsContext{
+								TlsCertificates: []*tlsv3.TlsCertificate{
+									{
+										CertificateChain: &corev3.DataSource{
+											Specifier: &corev3.DataSource_Filename{
+												Filename: "/etc/apiserver/ssl/tls.crt",
+											},
+										},
+										PrivateKey: &corev3.DataSource{
+											Specifier: &corev3.DataSource_Filename{
+												Filename: "/etc/apiserver/ssl/tls.key",
+											},
+										},
+									},
+								},
+							},
+						}))
+					}
+				})
+
 			})
 		})
 

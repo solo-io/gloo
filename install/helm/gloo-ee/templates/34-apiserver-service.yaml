@@ -12,7 +12,7 @@ metadata:
 spec:
   ports:
     - name: static
-      {{- if .Values.global.glooMtls.enabled }}
+      {{- if or .Values.global.glooMtls.enabled .Values.apiServer.sslSecretName  }}
       port: 8443
       {{- else }}
       port: 8080

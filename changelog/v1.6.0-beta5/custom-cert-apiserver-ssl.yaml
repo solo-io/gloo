@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Expose apiserver over HTTPS using custom certs.
+    issueLink: https://github.com/solo-io/gloo/issues/3384

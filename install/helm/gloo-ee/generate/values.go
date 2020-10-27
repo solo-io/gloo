@@ -173,6 +173,7 @@ type ApiServerDeployment struct {
 	RunAsUser            float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the 3 api-server containers to run as. Default is 10101"`
 	FloatingUserId       bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraApiServerLabels map[string]string          `json:"extraApiServerLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ApiServer deployment."`
+	SslSecretName        string                     `json:"sslSecretName`
 	*glooGen.DeploymentSpec
 }
 
