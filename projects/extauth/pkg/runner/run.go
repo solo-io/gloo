@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -63,7 +64,14 @@ func Run() {
 func RunWithSettings(ctx context.Context, settings Settings) error {
 	ctx = contextutils.WithLogger(ctx, "extauth")
 
-	err := StartExtAuth(ctx, settings, extauth.NewServer())
+	var extAuthSettings *extauth.Settings
+	if settings.HeadersToRedact != "" || settings.HeadersToRedact != "-" {
+		extAuthSettings = &extauth.Settings{
+			HeadersToRedact: strings.Fields(settings.HeadersToRedact),
+		}
+	}
+
+	err := StartExtAuth(ctx, settings, extauth.NewServerWithSettings(extAuthSettings))
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}

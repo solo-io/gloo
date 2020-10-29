@@ -289,6 +289,7 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 		IssuerUrl:               config.IssuerUrl,
 		AuthEndpointQueryParams: config.AuthEndpointQueryParams,
 		CallbackPath:            config.CallbackPath,
+		LogoutPath:              config.LogoutPath,
 		Scopes:                  config.Scopes,
 		Session:                 config.Session,
 	}, nil

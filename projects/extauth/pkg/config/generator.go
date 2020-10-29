@@ -354,7 +354,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{})
+			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{})
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -364,21 +364,22 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 
 		switch oauthCfg := cfg.Oauth2.OauthType.(type) {
 		case *extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode:
+			oidcCfg := oauthCfg.OidcAuthorizationCode
 			stateSigner := oidc.NewStateSigner(c.key)
-			cb := oauthCfg.OidcAuthorizationCode.CallbackPath
+			cb := oidcCfg.CallbackPath
 			if cb == "" {
 				cb = DefaultCallback
 			}
 
-			oauthCfg.OidcAuthorizationCode.IssuerUrl = addTrailingSlash(oauthCfg.OidcAuthorizationCode.IssuerUrl)
+			oidcCfg.IssuerUrl = addTrailingSlash(oidcCfg.IssuerUrl)
 
-			sessionParameters, err := ToSessionParameters(oauthCfg.OidcAuthorizationCode.GetSession())
+			sessionParameters, err := ToSessionParameters(oidcCfg.GetSession())
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
 
-			iss, err := oidc.NewIssuer(ctx, oauthCfg.OidcAuthorizationCode.ClientId, oauthCfg.OidcAuthorizationCode.ClientSecret, oauthCfg.OidcAuthorizationCode.IssuerUrl, oauthCfg.OidcAuthorizationCode.AppUrl, cb,
-				oauthCfg.OidcAuthorizationCode.AuthEndpointQueryParams, oauthCfg.OidcAuthorizationCode.Scopes, stateSigner, sessionParameters)
+			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
+				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters)
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}

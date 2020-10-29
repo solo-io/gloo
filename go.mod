@@ -33,30 +33,30 @@ require (
 	github.com/rotisserie/eris v0.4.0
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
-	github.com/solo-io/ext-auth-plugin-examples v0.1.2-0.20191219182743-362e50211779
+	github.com/solo-io/ext-auth-plugin-examples v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.1.2
-	github.com/solo-io/ext-auth-service v0.6.16
+	github.com/solo-io/ext-auth-service v0.6.18
 	github.com/solo-io/gloo v1.6.0-beta5
 	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
 	github.com/solo-io/rate-limiter v0.1.0
 	github.com/solo-io/reporting-client v0.1.2
-	github.com/solo-io/solo-apis v0.0.0-20200807174746-9ea7dfeef2cb
+	github.com/solo-io/solo-apis v0.0.0-20201028141937-2a39d2705f4f
 	github.com/solo-io/solo-kit v0.13.13
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.4
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/mod v0.3.0
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
+	golang.org/x/tools v0.0.0-20201027213030-631220838841
 	google.golang.org/genproto v0.0.0-20200626011028-ee7919e894b5
 	google.golang.org/grpc v1.29.1
 	gopkg.in/square/go-jose.v2 v2.5.1
 	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.18.8
-	k8s.io/apiextensions-apiserver v0.18.2
+	k8s.io/apiextensions-apiserver v0.18.6
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.18.2

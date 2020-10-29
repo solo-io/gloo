@@ -327,9 +327,12 @@ var _ = Describe("External auth", func() {
 					discoveryServer.Stop()
 				})
 
-				ExpectHappyPathToWork := func() {
+				ExpectHappyPathToWork := func(loginSucessExpectation func()) {
 					// do auth flow and make sure we have a cookie named cookie:
-					finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
+					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+
+					finalpage := fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort)
 					jar, err := cookiejar.New(nil)
 					Expect(err).NotTo(HaveOccurred())
 					client := &http.Client{Jar: &unsecureCookieJar{CookieJar: jar}}
@@ -350,10 +353,27 @@ var _ = Describe("External auth", func() {
 					finalurl, err := url.Parse(finalpage)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(finalurl.Path).To(Equal("/success"))
+					// make sure query is passed through as well
+					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
 
 					// check the cookie jar
-					cookies = jar.Cookies(finalurl)
+					cookies = jar.Cookies(appPage)
 					Expect(cookies).NotTo(BeEmpty())
+
+					// make sure login is successful
+					loginSucessExpectation()
+
+					// try to logout:
+
+					logout := fmt.Sprintf("http://%s:%d/logout", "localhost", envoyPort)
+					req, err = http.NewRequest("GET", logout, nil)
+					Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+					cookies = jar.Cookies(appPage)
+					Expect(cookies).To(BeEmpty())
 				}
 
 				Context("redis for session store", func() {
@@ -394,24 +414,23 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should work", func() {
-						ExpectHappyPathToWork()
-						Expect(cookies[0].Name).To(Equal(cookieName))
+						ExpectHappyPathToWork(func() {
+							Expect(cookies[0].Name).To(Equal(cookieName))
+						})
 					})
-
 				})
 
 				Context("happy path with default settings (no redis)", func() {
-
 					It("should work", func() {
-						ExpectHappyPathToWork()
-						Expect(cookies).ToNot(BeEmpty())
-						var cookienames []string
-						for _, c := range cookies {
-							cookienames = append(cookienames, c.Name)
-						}
-						Expect(cookienames).To(ConsistOf("id_token", "access_token"))
+						ExpectHappyPathToWork(func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+							}
+							Expect(cookienames).To(ConsistOf("id_token", "access_token"))
+						})
 					})
-
 				})
 
 				Context("Oidc tests that don't forward to upstream", func() {
@@ -1374,6 +1393,7 @@ func getOidcAuthCodeConfig(envoyPort uint32, secretRef core.ResourceRef) *extaut
 			IssuerUrl:       "http://localhost:5556/",
 			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 			CallbackPath:    "/callback",
+			LogoutPath:      "/logout",
 			Scopes:          []string{"email"},
 		},
 	}

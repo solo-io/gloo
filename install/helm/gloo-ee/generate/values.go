@@ -127,6 +127,7 @@ type ExtAuth struct {
 	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
 	ServiceName          string                    `json:"serviceName,omitempty"`
 	RequestTimeout       string                    `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
+	HeadersToRedact      string                    `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify "-" as the value`
 }
 
 type ExtAuthDeployment struct {

@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Add logout url support to OIDC.
+    issueLink: https://github.com/solo-io/gloo/issues/3328
+  - type: FIX
+    description: URLs with query params will redirect correctly with OIDC.
+    issueLink: https://github.com/solo-io/gloo/issues/3765

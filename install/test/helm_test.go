@@ -584,6 +584,24 @@ var _ = Describe("Helm Test", func() {
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("configures headers to redact", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.headersToRedact=authorize foo",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(expectedDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+					Name:  "HEADERS_TO_REDACT",
+					Value: "authorize foo",
+				})
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			Context("dataplane per proxy", func() {
 
 				helmOverrideFileContents := func(dataplanePerProxy bool) string {

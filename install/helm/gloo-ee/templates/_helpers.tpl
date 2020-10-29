@@ -153,6 +153,10 @@ Expand the name of the chart.
     - name: KEY_PATH
       value: {{ $extAuth.keyPath }}
     {{- end}}
+    {{- if $extAuth.headersToRedact }}
+    - name: HEADERS_TO_REDACT
+      value: {{ $extAuth.headersToRedact | quote }}
+    {{- end }}
   {{- if ne $extAuthMode "sidecar" }}
   readinessProbe:
     exec:

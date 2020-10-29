@@ -18,6 +18,7 @@ type Settings struct {
 	ServerUDSAddr   string `envconfig:"UDS_ADDR" default:""`
 	UserIdHeader    string `envconfig:"USER_ID_HEADER" default:""`
 	PluginDirectory string `envconfig:"PLUGIN_DIRECTORY" default:"/auth-plugins/"`
+	HeadersToRedact string `envconfig:"HEADERS_TO_REDACT" default:"authorization"`
 }
 
 func NewSettings() Settings {
