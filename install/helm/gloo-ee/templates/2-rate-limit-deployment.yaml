@@ -45,6 +45,10 @@ spec:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
+          {{- if $.Values.rateLimit.deployment.resources }}
+          resources:
+{{ toYaml $.Values.rateLimit.deployment.resources | indent 12}}
+          {{- end}}
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -100,6 +104,10 @@ spec:
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
+          {{- if $.Values.global.glooMtls.envoySidecarResources }}
+          resources:
+{{ toYaml $.Values.global.glooMtls.envoySidecarResources | indent 12}}
+          {{- end}}
         - name: sds
           image: {{ template "gloo.image" $sdsImage }}
           imagePullPolicy: {{ $sdsImage.pullPolicy }}
@@ -110,6 +118,10 @@ spec:
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
+          {{- if $.Values.global.glooMtls.sdsResources }}
+          resources:
+{{ toYaml $.Values.global.glooMtls.sdsResources | indent 12}}
+        {{- end}}
         {{- end }}
       {{- if $image.pullSecret }}
       imagePullSecrets:

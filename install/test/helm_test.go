@@ -251,6 +251,32 @@ var _ = Describe("Helm Test", func() {
 
 				})
 
+				It("correctly sets resource limits for the observability deployment", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"observability.deployment.resources.limits.cpu=300m",
+							"observability.deployment.resources.limits.memory=300Mi",
+							"observability.deployment.resources.requests.cpu=30m",
+							"observability.deployment.resources.requests.memory=30Mi",
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					// UI
+					observabilityDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
+						Limits: v1.ResourceList{
+							v1.ResourceCPU:    resource.MustParse("300m"),
+							v1.ResourceMemory: resource.MustParse("300Mi"),
+						},
+						Requests: v1.ResourceList{
+							v1.ResourceCPU:    resource.MustParse("30m"),
+							v1.ResourceMemory: resource.MustParse("30Mi"),
+						},
+					}
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
 				It("Should have no duplicate resources", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{"observability.deployment.replicas=2"},
@@ -756,6 +782,31 @@ gloo:
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("correctly sets resource limits for the extauth deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.deployment.resources.limits.cpu=300m",
+						"global.extensions.extAuth.deployment.resources.limits.memory=300Mi",
+						"global.extensions.extAuth.deployment.resources.requests.cpu=30m",
+						"global.extensions.extAuth.deployment.resources.requests.memory=30Mi",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("300m"),
+						v1.ResourceMemory: resource.MustParse("300Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("30m"),
+						v1.ResourceMemory: resource.MustParse("30Mi"),
+					},
+				}
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			It("allows setting custom runAsUser", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"global.extensions.extAuth.deployment.runAsUser=10102"},
@@ -1155,6 +1206,78 @@ spec:
   discoveryNamespace: ` + namespace + `
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
+			It("finds resources on all sds and sidecar containers", func() {
+				envoySidecarVals := []string{"100Mi", "200m", "300Mi", "400m"}
+				sdsVals := []string{"101Mi", "201m", "301Mi", "401m"}
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.glooMtls.enabled=true", // adds gloo/gateway proxy side containers
+						fmt.Sprintf("global.glooMtls.envoySidecarResources.requests.memory=%s", envoySidecarVals[0]),
+						fmt.Sprintf("global.glooMtls.envoySidecarResources.requests.cpu=%s", envoySidecarVals[1]),
+						fmt.Sprintf("global.glooMtls.envoySidecarResources.limits.memory=%s", envoySidecarVals[2]),
+						fmt.Sprintf("global.glooMtls.envoySidecarResources.limits.cpu=%s", envoySidecarVals[3]),
+						fmt.Sprintf("global.glooMtls.sdsResources.requests.memory=%s", sdsVals[0]),
+						fmt.Sprintf("global.glooMtls.sdsResources.requests.cpu=%s", sdsVals[1]),
+						fmt.Sprintf("global.glooMtls.sdsResources.limits.memory=%s", sdsVals[2]),
+						fmt.Sprintf("global.glooMtls.sdsResources.limits.cpu=%s", sdsVals[3]),
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// get all deployments for arbitrary examination/testing
+				var deployments []*unstructured.Unstructured
+				testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					if unstructured.GetKind() == "Deployment" {
+						deployments = append(deployments, unstructured)
+					}
+					return true
+				})
+				count := 0
+
+				for _, deployment := range deployments {
+					if deployment.GetName() == "gloo" || deployment.GetName() == "gateway-proxy" {
+						continue
+					}
+					// marshall unstructured object into deployment
+					rawDeploy, err := deployment.MarshalJSON()
+					Expect(err).NotTo(HaveOccurred())
+					deploy := appsv1.Deployment{}
+					err = json.Unmarshal(rawDeploy, &deploy)
+					Expect(err).NotTo(HaveOccurred())
+
+					// look for sidecar and sds containers, then test their resource values.
+					for _, container := range deploy.Spec.Template.Spec.Containers {
+						// still make sure non-sds/sidecar containers have non-nil resources, since all
+						// other containers should have default resources values set in their templates.
+						if container.Name == "envoy-sidecar" || container.Name == "sds" {
+							var expectedVals = sdsVals
+							if container.Name == "envoy-sidecar" {
+								expectedVals = envoySidecarVals
+							}
+							fmt.Printf("\n%s/%s\n", deployment.GetName(), container.Name)
+
+							Expect(container.Resources.Requests.Memory().String()).To(Equal(expectedVals[0]),
+								"deployment/container %s/%s had incorrect request memory: expected %s, got %s",
+								deployment.GetName(), container.Name, expectedVals[0], container.Resources.Requests.Memory().String())
+
+							Expect(container.Resources.Requests.Cpu().String()).To(Equal(expectedVals[1]),
+								"deployment/container %s/%s had incorrect request cpu: expected %s, got %s",
+								deployment.GetName(), container.Name, expectedVals[1], container.Resources.Requests.Cpu().String())
+
+							Expect(container.Resources.Limits.Memory().String()).To(Equal(expectedVals[2]),
+								"deployment/container %s/%s had incorrect limit memory: expected %s, got %s",
+								deployment.GetName(), container.Name, expectedVals[2], container.Resources.Limits.Memory().String())
+
+							Expect(container.Resources.Limits.Cpu().String()).To(Equal(expectedVals[3]),
+								"deployment/container %s/%s had incorrect limit cpu: expected %s, got %s",
+								deployment.GetName(), container.Name, expectedVals[3], container.Resources.Limits.Cpu().String())
+							count += 1
+						}
+					}
+				}
 			})
 
 			It("creates a deployment without extauth sidecar", func() {

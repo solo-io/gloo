@@ -54,6 +54,10 @@ spec:
             - name: upstream-dashboard-template
               mountPath: /observability
               readOnly: true
+          {{- if $.Values.observability.deployment.resources }}
+          resources:
+{{ toYaml $.Values.observability.deployment.resources | indent 12}}
+          {{- end}}
           env:
             - name: GLOO_LICENSE_KEY
               valueFrom:

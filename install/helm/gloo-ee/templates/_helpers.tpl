@@ -79,6 +79,10 @@ Expand the name of the chart.
 {{- $extAuthServerPort := $.Values.global.glooMtls.enabled | ternary 8084 $extAuth.deployment.port -}}
 {{- $extAuthMode := default "sidecar" .ExtAuthMode -}}
 - image: {{template "gloo.image" $image}}
+  {{- if $extAuth.deployment.resources }}
+  resources:
+{{ toYaml $extAuth.deployment.resources | indent 4}}
+  {{- end}}
   imagePullPolicy: {{ $image.pullPolicy }}
   name: {{ $extAuth.deployment.name }}
   env:

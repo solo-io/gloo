@@ -43,6 +43,10 @@ spec:
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
+          {{- if $.Values.redis.deployment.resources }}
+          resources:
+{{ toYaml $.Values.redis.deployment.resources | indent 12}}
+          {{- end}}
       securityContext:
         runAsNonRoot: true
         runAsGroup: {{ printf "%.0f" (float64 $.Values.redis.deployment.runAsGroup) }}

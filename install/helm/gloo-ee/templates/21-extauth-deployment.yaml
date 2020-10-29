@@ -80,6 +80,10 @@ spec:
           preStop:
             exec:
               command: ["/bin/sh","-c","while nc -z localhost 8084; do sleep .1; done;"]
+        {{- if $.Values.global.glooMtls.envoySidecarResources }}
+        resources:
+{{ toYaml $.Values.global.glooMtls.envoySidecarResources | indent 10}}
+        {{- end}}
       - name: sds
         image: {{ template "gloo.image" $sdsImage }}
         imagePullPolicy: {{ $sdsImage.pullPolicy }}
@@ -94,6 +98,10 @@ spec:
           preStop:
             exec:
               command: ["/bin/sh","-c","while nc -z localhost 8084; do sleep .1; done;"]
+        {{- if $.Values.global.glooMtls.sdsResources }}
+        resources:
+{{ toYaml $.Values.global.glooMtls.sdsResources | indent 10}}
+        {{- end}}
       {{- end }}
       {{- if $image.pullSecret }}
       imagePullSecrets:
