@@ -9,9 +9,6 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
@@ -23,6 +20,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-projects/test/regressions"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	errors "github.com/rotisserie/eris"
+	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -225,4 +228,8 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 		_, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
 		return isNotFound(err)
 	}, "15s", "0.5s").Should(BeTrue())
+}
+
+func isNotFound(err error) bool {
+	return err != nil && kubeerrors.IsNotFound(err)
 }

@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        kube-e2e-test-type: ['gateway', 'gateway-read-only-ui', 'gloo-mtls']
+        kube-e2e-test-type: ['gateway', 'gateway-read-only-ui', 'gloo-mtls', 'redis-clientside-sharding']
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1

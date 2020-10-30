@@ -1,4 +1,4 @@
-package gloo_mtls_test
+package clientside_sharding_test
 
 import (
 	"context"
@@ -25,19 +25,17 @@ import (
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 )
 
-// This file is largely copied from test/regressions/gateway/gateway_suite_test.go (May 2020)
-
 func TestGateway(t *testing.T) {
-	if os.Getenv("KUBE2E_TESTS") != "gloo-mtls" {
+	if os.Getenv("KUBE2E_TESTS") != "redis-clientside-sharding" {
 		log.Warnf("This test is disabled. " +
-			"To enable, set KUBE2E_TESTS to 'gloo-mtls' in your env.")
+			"To enable, set KUBE2E_TESTS to 'redis-clientside-sharding' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()
 	skhelpers.SetupLog()
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(regressions.PrintGlooDebugLogs)
-	RunSpecs(t, "Gloo mTLS Suite")
+	RunSpecs(t, "Gloo clientside sharding Suite")
 }
 
 var (
@@ -115,7 +113,7 @@ var _ = AfterSuite(func() {
 func getHelmOverrides() (filename string, cleanup func()) {
 	values, err := ioutil.TempFile("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
-	// Set global.glooMtls.enabled = true, and make sure to pull the quay.io/solo-io
+	// Set up gloo with mTLS enabled, clientSideSharding enabled, and redis scaled to 2
 	_, err = values.Write([]byte(`
 gloo:
   rbac:
@@ -133,10 +131,16 @@ grafana:
 global:
   glooMtls:
     enabled: true
-  extensions:
-    extAuth:
-      # we want to deploy extauth as both a standalone deployment (the default) and as a sidecar in the envoy pod, so we can test both
-      envoySidecar: true
+redis:
+  clientSideShardingEnabled: true
+  deployment:
+    replicas: 2
+rateLimit:
+  enabled: true
+ratelimitServer:
+  ratelimitServerRef:
+    name: rate-limit
+    namespace: gloo-system
 `))
 	Expect(err).NotTo(HaveOccurred())
 	err = values.Close()

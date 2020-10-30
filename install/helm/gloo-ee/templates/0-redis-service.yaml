@@ -20,6 +20,9 @@ spec:
       protocol: TCP
   selector:
     gloo: {{ $redisName }}
+  {{- if $.Values.redis.clientSideShardingEnabled }}
+  clusterIP: "None" {{/* Headless Service so Envoy can LB between Redis instances */}}
+  {{- end }}
 ---
 {{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.rateLimit.enabled

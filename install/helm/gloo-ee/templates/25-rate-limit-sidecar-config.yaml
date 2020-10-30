@@ -1,7 +1,7 @@
 {{- if .Values.gloo.gateway.updateValues -}}
 {{- include "gloo.updatevalues" . -}}
 {{- end -}}
-{{- if .Values.global.glooMtls.enabled }}
+{{- if or .Values.global.glooMtls.enabled $.Values.redis.clientSideShardingEnabled}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -18,8 +18,56 @@ data:
       cluster: sds_client
     static_resources:
       listeners:
+      {{- if .Values.global.glooMtls.enabled }}
       {{- include "gloo.sidecarlisteners" $ | nindent 6 }}
+      {{- end }}
+      {{- if $.Values.redis.clientSideShardingEnabled }}
+      - name: redis_listener
+        address:
+          pipe:
+            path: /var/run/envoy/ratelimit.sock
+        filter_chains:
+        - filters:
+          - name: envoy.redis_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.redis_proxy.v3.RedisProxy
+              stat_prefix: ratelimit_redis
+              settings:
+                op_timeout: 5s
+              prefix_routes:
+                catch_all_route:
+                  cluster: redis_cluster
+      {{- end }}
       clusters:
+      {{- if $.Values.redis.clientSideShardingEnabled }}
+      - name: redis_cluster
+        connect_timeout: 1s
+        type: STRICT_DNS
+        lb_policy: MAGLEV
+        outlier_detection:
+          consecutive_5xx: 10
+        health_checks:
+        - timeout: 1s
+          interval: 1s
+          no_traffic_interval: 5s
+          interval_jitter: 1s
+          unhealthy_threshold: 1
+          healthy_threshold: 1
+          custom_health_check:
+            name: envoy.health_checkers.redis
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.redis_proxy.v3.RedisProxy
+        load_assignment:
+          cluster_name: redis_cluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: redis
+                    port_value: 6379
+      {{- end }}
+      {{- if .Values.global.glooMtls.enabled }}
       - name: gloo_client_sds
         connect_timeout: 0.25s
         http2_protocol_options: {}
@@ -70,6 +118,7 @@ data:
                     grpc_services:
                       - envoy_grpc:
                           cluster_name: gloo_client_sds
+      {{- end }}
     admin:
       access_log_path: "/dev/null"
       address:

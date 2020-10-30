@@ -17,9 +17,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	bootstrapv3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
+	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/config/health_checker/redis/v2"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/installutils/kuberesource"
@@ -2025,6 +2029,126 @@ spec:
 					}
 				})
 
+			})
+		})
+
+		Context("redis scaled with client-side sharding", func() {
+			var (
+				glooMtlsSecretVolume = v1.Volume{
+					Name: "gloo-mtls-certs",
+					VolumeSource: v1.VolumeSource{
+						Secret: &v1.SecretVolumeSource{
+							SecretName:  "gloo-mtls-certs",
+							Items:       nil,
+							DefaultMode: proto.Int(420),
+						},
+					},
+				}
+
+				haveEnvoySidecar = func(containers []v1.Container) bool {
+					for _, c := range containers {
+						if c.Name == "envoy-sidecar" {
+							return true
+						}
+					}
+					return false
+				}
+
+				haveSdsSidecar = func(containers []v1.Container) bool {
+					for _, c := range containers {
+						if c.Name == "sds" {
+							return true
+						}
+					}
+					return false
+				}
+
+				haveEnvVariable = func(containers []v1.Container, containerName, env, value string) bool {
+					for _, c := range containers {
+						if c.Name == containerName {
+							Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
+							return true
+						}
+					}
+					return false
+				}
+			)
+
+			It("should add or change the correct components in the resulting helm chart", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"rateLimit.enabled=true",
+						"ratelimitServer.ratelimitServerRef.name=rate-limit",
+						"ratelimitServer.ratelimitServerRef.namespace=gloo-system",
+						"redis.clientSideShardingEnabled=true",
+						"redis.deployment.replicas=2",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					// should add envoy, but not sds sidecar to the Rate-Limit Deployment
+					if structuredDeployment.GetName() == "rate-limit" {
+						Expect(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeTrue(), "should have envoy sidecar")
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeFalse(), "shouldn't have SDS sidecar")
+						Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(2), "should have exactly 2 containers")
+						Expect(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+							"rate-limit", "REDIS_URL", "/var/run/envoy/ratelimit.sock")).To(BeTrue(), "should use unix socket for redis url")
+						Expect(haveEnvVariable(structuredDeployment.Spec.Template.Spec.Containers,
+							"rate-limit", "REDIS_SOCKET_TYPE", "unix")).To(BeTrue(), "should use unix socket for redis url")
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).NotTo(ContainElement(glooMtlsSecretVolume))
+					}
+
+					// Extauth deployment should not have SDS or envoy sidecars
+					if structuredDeployment.GetName() == "extauth" {
+						Expect(haveEnvoySidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeFalse())
+						Expect(haveSdsSidecar(structuredDeployment.Spec.Template.Spec.Containers)).To(BeFalse())
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes).NotTo(ContainElement(glooMtlsSecretVolume))
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Service"
+				}).ExpectAll(func(svc *unstructured.Unstructured) {
+					serviceObj, err := kuberesource.ConvertUnstructured(svc)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Service %+v should be able to convert from unstructured", svc))
+					structuredService, ok := serviceObj.(*v1.Service)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Service %+v should be able to cast to a structured service", svc))
+
+					if structuredService.GetName() == "redis" {
+						Expect(structuredService.Spec.ClusterIP).To(BeEquivalentTo("None"), "ClusterIP should be 'None' to indicate headless service")
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "ConfigMap"
+				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
+					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
+					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
+
+					if structuredConfigMap.GetName() == "rate-limit-sidecar-config" {
+						bootstrap := bootstrapv3.Bootstrap{}
+						Expect(structuredConfigMap.Data["envoy-sidecar.yaml"]).NotTo(BeEmpty())
+						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["envoy-sidecar.yaml"]))
+						if err != nil {
+							Expect(err).NotTo(HaveOccurred(), "could not parse envoy sidecar config yaml")
+						}
+						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("unable to unmarshal from json to pb - \n%v\n", string(jsn)))
+						Expect(bootstrap.StaticResources.Listeners[0].Name).To(Equal("redis_listener"), "the sidecar envoy should have a redis listener")
+						Expect(bootstrap.StaticResources.Clusters[0].Name).To(Equal("redis_cluster"), "the sidecar envoy should have a redis cluster")
+						Expect(bootstrap.StaticResources.Clusters[0].LbPolicy).To(Equal(clusterv3.Cluster_MAGLEV), "it should use the maglev algorithm for load balancing")
+					}
+				})
 			})
 		})
 

@@ -18,9 +18,9 @@ metadata:
   name: {{ $rateLimitName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-{{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
+  {{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
   replicas: {{ $.Values.rateLimit.deployment.replicas }}
-{{- end }}
+  {{- end }}
   selector:
     matchLabels:
       gloo: {{ $rateLimitName }}
@@ -83,14 +83,23 @@ spec:
               value: {{ $.Values.rateLimit.deployment.dynamodb.consistentReads | quote }}
             - name: DYNAMODB_BATCH_SIZE
               value: {{ $.Values.rateLimit.deployment.dynamodb.batchSize | quote }}
-            {{- else }} # .Values.rateLimit.deployment.dynamodb.secretName
+            {{- else if $.Values.redis.clientSideShardingEnabled }} {{/* end .Values.rateLimit.deployment.dynamodb.secretName */}}
+            - name: REDIS_URL
+              value: /var/run/envoy/ratelimit.sock
+            - name: REDIS_SOCKET_TYPE
+              value: unix
+            {{- else }}
             - name: REDIS_URL
               value: {{ printf "%s:%v" $redisName $.Values.redis.service.port }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }} # .Values.rateLimit.deployment.dynamodb.secretName
-        {{- if $.Values.global.glooMtls.enabled }}
-        {{- $sdsImage := merge $.Values.global.glooMtls.sds.image $.Values.global.image }}
+          {{- if $.Values.redis.clientSideShardingEnabled }}
+          volumeMounts:
+            - mountPath: /var/run/envoy/
+              name: redis-socket
+          {{- end }}
+        {{- if or $.Values.global.glooMtls.enabled $.Values.redis.clientSideShardingEnabled }}
         {{- $envoyImage := merge $.Values.global.glooMtls.envoy.image $.Values.global.image}}
         - name: envoy-sidecar
           env:
@@ -101,13 +110,22 @@ spec:
           volumeMounts:
             - mountPath: /etc/envoy
               name: rate-limit-sidecar-config
+            {{- if $.Values.global.glooMtls.enabled }}
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
+            {{- end }}
+            {{- if $.Values.redis.clientSideShardingEnabled }}
+            - mountPath: /var/run/envoy/
+              name: redis-socket
+            {{- end }}
           {{- if $.Values.global.glooMtls.envoySidecarResources }}
           resources:
 {{ toYaml $.Values.global.glooMtls.envoySidecarResources | indent 12}}
           {{- end}}
+        {{- end }} {{/* End envoy sidecar */}}
+        {{- if $.Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge $.Values.global.glooMtls.sds.image $.Values.global.image }}
         - name: sds
           image: {{ template "gloo.image" $sdsImage }}
           imagePullPolicy: {{ $sdsImage.pullPolicy }}
@@ -121,8 +139,8 @@ spec:
           {{- if $.Values.global.glooMtls.sdsResources }}
           resources:
 {{ toYaml $.Values.global.glooMtls.sdsResources | indent 12}}
-        {{- end}}
-        {{- end }}
+          {{- end }}
+        {{- end }} {{/* End SDS container */}}
       {{- if $image.pullSecret }}
       imagePullSecrets:
         - name: {{ $image.pullSecret }}
@@ -135,16 +153,22 @@ spec:
         {{- if not $.Values.rateLimit.deployment.floatingUserId }}
         runAsUser: {{ printf "%.0f" (float64 $.Values.rateLimit.deployment.runAsUser) -}}
         {{- end }}
-      {{- if $.Values.global.glooMtls.enabled }}
+      {{- if or $.Values.global.glooMtls.enabled $.Values.redis.clientSideShardingEnabled }}
       volumes:
+        {{- if $.Values.global.glooMtls.enabled }}
         - name: gloo-mtls-certs
           secret:
             defaultMode: 420
             secretName: gloo-mtls-certs
+        {{- end }}
         - name: rate-limit-sidecar-config
           configMap:
             name: rate-limit-sidecar-config
-      {{- end }} # .Values.global.glooMtls.enabled
+        {{- if $.Values.redis.clientSideShardingEnabled }}
+        - emptyDir: {}
+          name: redis-socket
+        {{- end }}
+      {{- end }} {{/* .Values.global.glooMtls.enabled || $.Values.redis.clientSideShardingEnabled */}}
 ---
 {{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }}

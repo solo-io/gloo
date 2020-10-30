@@ -1,4 +1,4 @@
-package gateway_test
+package clientside_sharding_test
 
 import (
 	. "github.com/solo-io/solo-projects/test/regressions/internal"
@@ -14,7 +14,6 @@ var _ = Describe("ExtAuth tests", func() {
 
 	BeforeEach(func() {
 		sharedInputs.TestHelper = testHelper
-		sharedInputs.ShouldTestLDAP = true
 	})
 
 	Context("running ExtAuth tests", func() {

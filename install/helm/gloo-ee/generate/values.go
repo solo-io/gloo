@@ -71,14 +71,15 @@ type Redis struct {
 }
 
 type RedisDeployment struct {
-	Image            *glooGen.Image    `json:"image,omitempty"`
-	Name             string            `json:"name"`
-	StaticPort       uint              `json:"staticPort"`
-	RunAsUser        float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
-	RunAsGroup       float64           `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`
-	FsGroup          float64           `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as. Default is 999"`
-	FloatingUserId   bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraRedisLabels map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
+	Image                     *glooGen.Image    `json:"image,omitempty"`
+	Name                      string            `json:"name"`
+	StaticPort                uint              `json:"staticPort"`
+	RunAsUser                 float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
+	RunAsGroup                float64           `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`
+	FsGroup                   float64           `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as. Default is 999"`
+	FloatingUserId            bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraRedisLabels          map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
+	ClientSideShardingEnabled bool              `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
 	*glooGen.DeploymentSpec
 }
 

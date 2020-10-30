@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3269
+    description: Added the ability to enable client-side sharding for scaling Redis replicas.
