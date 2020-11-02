@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.6.19
+    description: >-
+      Updated ext-auth-service.
+  - type: NEW_FEATURE
+    description: Make the token introspection response available in the request state for use by extauth plugins on the chain.
+    issueLink: https://github.com/solo-io/gloo/issues/3767

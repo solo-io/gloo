@@ -1072,6 +1072,8 @@ github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910/go.mod h1:
 github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 h1:gQz4mCbXsO+nc9n1hCxHcGA3Zx3Eo+UHZoInFGUIXNM=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
+github.com/prometheus/client_model v0.2.0 h1:uq5h0d+GuxiXLJLNABMgp2qUWDPiLvgCzz2dUR+/W/M=
+github.com/prometheus/client_model v0.2.0/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/common v0.0.0-20180110214958-89604d197083/go.mod h1:daVV7qP5qjZbuso7PdcryaAu0sAZbrN9i7WWcTMWvro=
 github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39/go.mod h1:daVV7qP5qjZbuso7PdcryaAu0sAZbrN9i7WWcTMWvro=
 github.com/prometheus/common v0.0.0-20181113130724-41aa239b4cce/go.mod h1:daVV7qP5qjZbuso7PdcryaAu0sAZbrN9i7WWcTMWvro=
@@ -1171,8 +1173,8 @@ github.com/solo-io/ext-auth-plugin-examples v0.2.1 h1:61bc1Y9O+g+HRyfuI7HdcG1bCr
 github.com/solo-io/ext-auth-plugin-examples v0.2.1/go.mod h1:7xzslxJXQLRkhlBsxx375eP8MYDQ0VV1W4Ibn1+Y9zE=
 github.com/solo-io/ext-auth-plugins v0.1.2 h1:6Ia7KG+titlg6R/uF1HlYFwZU0IHh3rg3Kpb0d5pP/c=
 github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4tsgN8AMseGq6W/TlnU=
-github.com/solo-io/ext-auth-service v0.6.18 h1:0jiz1wV0CSLSkBh2rjDzsrAiJlc6UggQgEeZb2Pxa+U=
-github.com/solo-io/ext-auth-service v0.6.18/go.mod h1:Sj2sdJGemRIRLceA6SuwutgBYhWvx5o7E5jAln2OeWQ=
+github.com/solo-io/ext-auth-service v0.6.19 h1:jtO9Pi592Q/vKM6yTuQLAzF5hcacbuaUjXYeLrRFmIA=
+github.com/solo-io/ext-auth-service v0.6.19/go.mod h1:78F5K2M/dTWOmgsQNBFYVdSDo8z633VYo0unJKoUV0M=
 github.com/solo-io/external-apis v0.0.6/go.mod h1:bAI7nedgxkHR4x3RgQ113Ir2Nfkfs9ndbdGaj8vQAYU=
 github.com/solo-io/gloo v1.6.0-beta5 h1:W45iOIKH0PQ5lbYaYXKK/Hzgq0dYPCw5o+BwLKmygkw=
 github.com/solo-io/gloo v1.6.0-beta5/go.mod h1:927hrLB1uelHCun5yVyvvhjxiP2oAHlxL/XlEsRcP8U=

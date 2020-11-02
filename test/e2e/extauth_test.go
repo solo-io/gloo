@@ -667,7 +667,7 @@ var _ = Describe("External auth", func() {
 					server = test_utils.NewAuthServer(fmt.Sprintf(":%d", 5556), &test_utils.AuthEndpoints{
 						TokenIntrospectionEndpoint: "/introspection",
 						UserInfoEndpoint:           "/userinfo",
-					}, sets.NewString("valid-access-token"), map[string]*user_info.UserInfo{})
+					}, sets.NewString("valid-access-token"), map[string]user_info.UserInfo{})
 					server.Start()
 
 					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
