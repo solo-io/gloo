@@ -97,7 +97,7 @@ func (t *translatorInstance) initializeCluster(upstream *v1.Upstream, endpoints 
 
 	// set Type = EDS if we have endpoints for the upstream
 	if len(endpointsForUpstream(upstream, endpoints)) > 0 {
-		xds.SetEdsOnCluster(out)
+		xds.SetEdsOnCluster(out, t.settings)
 	}
 	return out
 }
