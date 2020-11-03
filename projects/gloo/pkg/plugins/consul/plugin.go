@@ -30,6 +30,7 @@ type plugin struct {
 	client             consul.ConsulWatcher
 	resolver           DnsResolver
 	dnsPollingInterval time.Duration
+	settings           *v1.Settings
 }
 
 func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
@@ -83,6 +84,7 @@ func NewPlugin(client consul.ConsulWatcher, resolver DnsResolver, dnsPollingInte
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.settings = params.Settings
 	return nil
 }
 
@@ -93,7 +95,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// consul upstreams use EDS
-	xds.SetEdsOnCluster(out)
+	xds.SetEdsOnCluster(out, p.settings)
 
 	return nil
 }
