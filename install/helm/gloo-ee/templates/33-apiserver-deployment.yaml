@@ -177,8 +177,5 @@ spec:
             defaultMode: 420
             secretName: gloo-mtls-certs
       {{- end }} # .Values.global.glooMtls.enabled
-      {{- if $apiServerImage.pullSecret }}
-      imagePullSecrets:
-        - name: {{ $apiServerImage.pullSecret }}
-      {{- end }}
+      {{- include "gloo.pullSecret" $apiServerImage | nindent 6}}
 {{- end }} # .Values.apiServer.enable

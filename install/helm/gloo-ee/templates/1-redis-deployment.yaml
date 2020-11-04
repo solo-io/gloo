@@ -48,6 +48,7 @@ spec:
           resources:
 {{ toYaml $.Values.redis.deployment.resources | indent 12}}
           {{- end}}
+      {{- include "gloo.pullSecret" $image | nindent 6}}
       securityContext:
         runAsNonRoot: true
         runAsGroup: {{ printf "%.0f" (float64 $.Values.redis.deployment.runAsGroup) }}

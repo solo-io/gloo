@@ -77,10 +77,7 @@ spec:
                 name: {{.Release.Name}}-observability-config
             - secretRef:
                 name: {{.Release.Name}}-observability-secrets
-      {{- if $image.pullSecret }}
-      imagePullSecrets:
-        - name: {{ $image.pullSecret }}
-      {{- end }}
+      {{- include "gloo.pullSecret" $image | nindent 6 }}
       securityContext:
         runAsNonRoot: true
         {{- if not .Values.observability.deployment.floatingUserId }}

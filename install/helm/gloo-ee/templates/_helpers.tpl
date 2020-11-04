@@ -207,3 +207,10 @@ Expand the name of a container image
 {{- define "glooe.imagenonextended" -}}
 {{ .registry }}/{{ .repository }}:{{ .tag }}
 {{- end -}}
+
+{{- define "gloo.pullSecret" -}}
+{{- if .pullSecret -}}
+imagePullSecrets:
+- name: {{ .pullSecret }}
+{{- end -}}
+{{- end -}}

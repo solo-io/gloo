@@ -141,10 +141,7 @@ spec:
 {{ toYaml $.Values.global.glooMtls.sdsResources | indent 12}}
           {{- end }}
         {{- end }} {{/* End SDS container */}}
-      {{- if $image.pullSecret }}
-      imagePullSecrets:
-        - name: {{ $image.pullSecret }}
-      {{- end }}
+      {{- include "gloo.pullSecret" $image | nindent 6}}
       securityContext:
         runAsNonRoot: true
         {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}

@@ -304,6 +304,47 @@ var _ = Describe("Helm Test", func() {
 						}
 					}
 				})
+
+				Context("pass image pull secrets", func() {
+					pullSecretName := "test-pull-secret"
+					pullSecret := []v1.LocalObjectReference{
+						{Name: pullSecretName},
+					}
+
+					It("via global values", func() {
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesArgs: []string{fmt.Sprintf("global.image.pullSecret=%s", pullSecretName)},
+						})
+						observabilityDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+						testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("via podTemplate values", func() {
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesArgs: []string{
+								fmt.Sprintf("observability.deployment.image.pullSecret=%s", pullSecretName),
+							},
+						})
+						Expect(err).NotTo(HaveOccurred())
+
+						observabilityDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+						testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+					})
+
+					It("podTemplate values win over global", func() {
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesArgs: []string{
+								"global.image.pullSecret=wrong",
+								fmt.Sprintf("observability.deployment.image.pullSecret=%s", pullSecretName),
+							},
+						})
+						Expect(err).NotTo(HaveOccurred())
+						observabilityDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+						testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+					})
+
+				})
 			})
 
 			Context("observability secret", func() {
@@ -947,6 +988,49 @@ global:
 				}
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
+			Context("pass image pull secrets", func() {
+
+				pullSecretName := "test-pull-secret"
+				pullSecret := []v1.LocalObjectReference{
+					{Name: pullSecretName},
+				}
+
+				It("via global values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{fmt.Sprintf("global.image.pullSecret=%s", pullSecretName)},
+					})
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("via podTemplate values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							fmt.Sprintf("global.extensions.extAuth.deployment.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+
+				It("podTemplate values win over global", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.image.pullSecret=wrong",
+							fmt.Sprintf("global.extensions.extAuth.deployment.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+
+			})
+
 		})
 
 		Context("gateway-proxy deployment", func() {
@@ -1429,6 +1513,47 @@ spec:
 
 				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 			})
+
+			Context("pass image pull secrets", func() {
+				pullSecretName := "test-pull-secret"
+				pullSecret := []v1.LocalObjectReference{
+					{Name: pullSecretName},
+				}
+
+				It("via global values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{fmt.Sprintf("global.image.pullSecret=%s", pullSecretName)},
+					})
+					gatewayProxyDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("via podTemplate values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							fmt.Sprintf("gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					gatewayProxyDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
+				It("podTemplate values win over global", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.image.pullSecret=wrong",
+							fmt.Sprintf("gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					gatewayProxyDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+				})
+
+			})
 		})
 
 		Context("apiserver deployment", func() {
@@ -1746,6 +1871,49 @@ spec:
 				})
 
 				Expect(apiServerService.NumResources()).To(Equal(1), "Should have found the apiserver-ui service")
+			})
+
+			Context("pass image pull secrets", func() {
+				pullSecretName := "test-pull-secret"
+				pullSecret := []v1.LocalObjectReference{
+					{Name: pullSecretName},
+				}
+
+				It("via global values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{fmt.Sprintf("global.image.pullSecret=%s", pullSecretName)},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+
+				})
+
+				It("via podTemplate values", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							fmt.Sprintf("apiServer.deployment.server.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+
+				It("podTemplate values win over global", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{
+							"global.image.pullSecret=wrong",
+							fmt.Sprintf("apiServer.deployment.server.image.pullSecret=%s", pullSecretName),
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+
 			})
 		})
 
