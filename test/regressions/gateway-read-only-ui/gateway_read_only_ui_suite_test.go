@@ -18,7 +18,6 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
@@ -94,14 +93,7 @@ var _ = BeforeSuite(func() {
 				Namespace: testHelper.InstallNamespace,
 			},
 		}
-		ok, err := check.CheckResources(opts)
-		if err != nil {
-			return errors.Wrapf(err, "unable to run glooctl check")
-		}
-		if ok {
-			return nil
-		}
-		return errors.New("glooctl check detected a problem with the installation")
+		return check.CheckResources(opts)
 	}, 2*time.Minute, "5s").Should(BeNil())
 
 	// Print out the versions of CLI and server components

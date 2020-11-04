@@ -671,4 +671,15 @@ var _ = Describe("Config Generator", func() {
 		})
 	})
 
+	Context("headers", func() {
+		It("nil headers go to nil", func() {
+			Expect(config.ToHeaderConfig(nil)).To(BeNil())
+		})
+		It("translates id token header", func() {
+			hc := &extauthv1.HeaderConfiguration{IdTokenHeader: "foo"}
+			expected := &oidc.HeaderConfig{IdTokenHeader: "foo"}
+			Expect(config.ToHeaderConfig(hc)).To(Equal(expected))
+		})
+	})
+
 })

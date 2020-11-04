@@ -697,6 +697,26 @@ export namespace UserSession {
   }
 }
 
+export class HeaderConfiguration extends jspb.Message {
+  getIdTokenHeader(): string;
+  setIdTokenHeader(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HeaderConfiguration.AsObject;
+  static toObject(includeInstance: boolean, msg: HeaderConfiguration): HeaderConfiguration.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HeaderConfiguration, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HeaderConfiguration;
+  static deserializeBinaryFromReader(message: HeaderConfiguration, reader: jspb.BinaryReader): HeaderConfiguration;
+}
+
+export namespace HeaderConfiguration {
+  export type AsObject = {
+    idTokenHeader: string,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -730,6 +750,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getSession(): UserSession | undefined;
   setSession(value?: UserSession): void;
 
+  hasHeaders(): boolean;
+  clearHeaders(): void;
+  getHeaders(): HeaderConfiguration | undefined;
+  setHeaders(value?: HeaderConfiguration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -751,6 +776,7 @@ export namespace OidcAuthorizationCode {
     logoutPath: string,
     scopesList: Array<string>,
     session?: UserSession.AsObject,
+    headers?: HeaderConfiguration.AsObject,
   }
 }
 
@@ -1102,6 +1128,11 @@ export namespace ExtAuthConfig {
     getSession(): UserSession | undefined;
     setSession(value?: UserSession): void;
 
+    hasHeaders(): boolean;
+    clearHeaders(): void;
+    getHeaders(): HeaderConfiguration | undefined;
+    setHeaders(value?: HeaderConfiguration): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1123,6 +1154,7 @@ export namespace ExtAuthConfig {
       logoutPath: string,
       scopesList: Array<string>,
       session?: UserSession.AsObject,
+      headers?: HeaderConfiguration.AsObject,
     }
   }
 

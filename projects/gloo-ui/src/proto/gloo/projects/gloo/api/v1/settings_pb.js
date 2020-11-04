@@ -4145,7 +4145,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     disableGrpcWeb: (f = msg.getDisableGrpcWeb()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
-    restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, "")
+    restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4232,6 +4233,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
     case 11:
       var value = /** @type {string} */ (reader.readString());
       msg.setRestXdsBindAddr(value);
+      break;
+    case 12:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEnableRestEds(value);
       break;
     default:
       reader.skipField();
@@ -4344,6 +4350,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
     writer.writeString(
       11,
       f
+    );
+  }
+  f = message.getEnableRestEds();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -5044,6 +5058,36 @@ proto.gloo.solo.io.GlooOptions.prototype.getRestXdsBindAddr = function() {
 /** @param {string} value */
 proto.gloo.solo.io.GlooOptions.prototype.setRestXdsBindAddr = function(value) {
   jspb.Message.setProto3StringField(this, 11, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue enable_rest_eds = 12;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getEnableRestEds = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 12));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setEnableRestEds = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearEnableRestEds = function() {
+  this.setEnableRestEds(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasEnableRestEds = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

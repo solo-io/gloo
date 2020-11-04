@@ -327,20 +327,25 @@ var _ = Describe("External auth", func() {
 					discoveryServer.Stop()
 				})
 
-				ExpectHappyPathToWork := func(loginSucessExpectation func()) {
+				ExpectHappyPathToWork := func(loginSuccessExpectation func()) {
 					// do auth flow and make sure we have a cookie named cookie:
 					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
 
-					finalpage := fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort)
+					var finalurl *url.URL
 					jar, err := cookiejar.New(nil)
 					Expect(err).NotTo(HaveOccurred())
-					client := &http.Client{Jar: &unsecureCookieJar{CookieJar: jar}}
-
-					req, err := http.NewRequest("GET", finalpage, nil)
-					Expect(err).NotTo(HaveOccurred())
+					client := &http.Client{
+						Jar: &unsecureCookieJar{CookieJar: jar},
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							finalurl = req.URL
+							return nil
+						},
+					}
 
 					Eventually(func() (http.Response, error) {
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
+						Expect(err).NotTo(HaveOccurred())
 						r, err := client.Do(req)
 						if err != nil {
 							return http.Response{}, err
@@ -350,8 +355,7 @@ var _ = Describe("External auth", func() {
 						"StatusCode": Equal(http.StatusOK),
 					}))
 
-					finalurl, err := url.Parse(finalpage)
-					Expect(err).NotTo(HaveOccurred())
+					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/success"))
 					// make sure query is passed through as well
 					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
@@ -361,12 +365,12 @@ var _ = Describe("External auth", func() {
 					Expect(cookies).NotTo(BeEmpty())
 
 					// make sure login is successful
-					loginSucessExpectation()
+					loginSuccessExpectation()
 
 					// try to logout:
 
 					logout := fmt.Sprintf("http://%s:%d/logout", "localhost", envoyPort)
-					req, err = http.NewRequest("GET", logout, nil)
+					req, err := http.NewRequest("GET", logout, nil)
 					Expect(err).NotTo(HaveOccurred())
 					resp, err := client.Do(req)
 					Expect(err).NotTo(HaveOccurred())
@@ -417,6 +421,26 @@ var _ = Describe("External auth", func() {
 						ExpectHappyPathToWork(func() {
 							Expect(cookies[0].Name).To(Equal(cookieName))
 						})
+					})
+				})
+				Context("forward id token", func() {
+
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader: "foo",
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).NotTo(BeEmpty())
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
 					})
 				})
 

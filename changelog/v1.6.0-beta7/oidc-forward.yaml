@@ -1,0 +1,4 @@
+changelog:
+- type: NEW_FEATURE
+  description: Allow forwarding ID token as upstream header
+  issueLink: https://github.com/solo-io/gloo/issues/3816 

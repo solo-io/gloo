@@ -22,6 +22,11 @@ export class UpstreamSpec extends jspb.Message {
   getServiceSpec(): gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec | undefined;
   setServiceSpec(value?: gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec): void;
 
+  hasAutoSniRewrite(): boolean;
+  clearAutoSniRewrite(): void;
+  getAutoSniRewrite(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAutoSniRewrite(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -37,6 +42,7 @@ export namespace UpstreamSpec {
     hostsList: Array<Host.AsObject>,
     useTls: boolean,
     serviceSpec?: gloo_projects_gloo_api_v1_options_service_spec_pb.ServiceSpec.AsObject,
+    autoSniRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -46,6 +52,9 @@ export class Host extends jspb.Message {
 
   getPort(): number;
   setPort(value: number): void;
+
+  getSniAddr(): string;
+  setSniAddr(value: string): void;
 
   hasHealthCheckConfig(): boolean;
   clearHealthCheckConfig(): void;
@@ -66,6 +75,7 @@ export namespace Host {
   export type AsObject = {
     addr: string,
     port: number,
+    sniAddr: string,
     healthCheckConfig?: Host.HealthCheckConfig.AsObject,
   }
 

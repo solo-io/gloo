@@ -257,7 +257,8 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
       let hostsList = values.staticHostList.map(h => {
         return {
           addr: h.name,
-          port: +h.value
+          port: +h.value,
+          sniAddr: ""
         };
       });
       const pb_static: Upstream.AsObject = {
@@ -265,7 +266,7 @@ export const CreateUpstreamForm: React.FC<Props> = props => {
 
         pb_static: {
           useTls,
-          hostsList
+          hostsList,
         }
       };
       dispatch(

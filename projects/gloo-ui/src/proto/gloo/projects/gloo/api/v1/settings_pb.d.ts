@@ -652,6 +652,11 @@ export class GlooOptions extends jspb.Message {
   getRestXdsBindAddr(): string;
   setRestXdsBindAddr(value: string): void;
 
+  hasEnableRestEds(): boolean;
+  clearEnableRestEds(): void;
+  getEnableRestEds(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setEnableRestEds(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -675,6 +680,7 @@ export namespace GlooOptions {
     disableProxyGarbageCollection?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     regexMaxProgramSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     restXdsBindAddr: string,
+    enableRestEds?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {

@@ -83,14 +83,7 @@ var _ = BeforeSuite(func() {
 				Namespace: testHelper.InstallNamespace,
 			},
 		}
-		ok, err := check.CheckResources(opts)
-		if err != nil {
-			return errors.Wrapf(err, "unable to run glooctl check")
-		}
-		if ok {
-			return nil
-		}
-		return errors.New("glooctl check detected a problem with the installation")
+		return check.CheckResources(opts)
 	}, 2*time.Minute, "5s").Should(BeNil())
 
 	// Print out the versions of CLI and server components

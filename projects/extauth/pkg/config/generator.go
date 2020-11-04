@@ -322,6 +322,16 @@ func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOpt
 	return sessionOptions
 }
 
+func ToHeaderConfig(hc *extauthv1.HeaderConfiguration) *oidc.HeaderConfig {
+	var headersConfig *oidc.HeaderConfig
+	if hc != nil {
+		headersConfig = &oidc.HeaderConfig{
+			IdTokenHeader: hc.GetIdTokenHeader(),
+		}
+	}
+	return headersConfig
+}
+
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
 	session, err := sessionToStore(userSession)
@@ -354,7 +364,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{})
+			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil)
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -378,8 +388,10 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 				return nil, config.GetName().GetValue(), err
 			}
 
+			headersConfig := ToHeaderConfig(oidcCfg.GetHeaders())
+
 			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
-				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters)
+				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig)
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
