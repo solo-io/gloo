@@ -8,7 +8,7 @@
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,7 +20,7 @@ metadata:
 spec:
 {{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
   replicas: {{ $.Values.rateLimit.deployment.replicas }}
-{{- end }} # if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas)
+{{- end }} {{/* if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) */}}
   selector:
     matchLabels:
       gloo: {{ $rateLimitName }}
@@ -38,7 +38,7 @@ spec:
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
-      {{- end}} # $statsConfig.enabled
+      {{- end}} {{/* $statsConfig.enabled */}}
     spec:
       serviceAccountName: {{ $.Values.rateLimit.service.name }}
       containers:
@@ -48,7 +48,7 @@ spec:
           {{- if $.Values.rateLimit.deployment.resources }}
           resources:
 {{ toYaml $.Values.rateLimit.deployment.resources | indent 12}}
-          {{- end}} # $.Values.rateLimit.deployment.resources
+          {{- end}} {{/* $.Values.rateLimit.deployment.resources */}}
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -59,11 +59,11 @@ spec:
               value: "127.0.0.1:9955"
               {{- else }}
               value: {{ $.Values.rateLimit.deployment.glooAddress }}
-              {{- end }} # $.Values.global.glooMtls.enabled
+              {{- end }} {{/* $.Values.global.glooMtls.enabled */}}
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
-            {{- end}} # $statsConfig.enabled
+            {{- end}} {{/* $statsConfig.enabled */}}
             {{- if $.Values.rateLimit.deployment.dynamodb.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -93,7 +93,7 @@ spec:
               value: {{ printf "%s:%v" $redisName $.Values.redis.service.port }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
-            {{- end }} # .Values.rateLimit.deployment.dynamodb.secretName
+            {{- end }} {{/* .Values.rateLimit.deployment.dynamodb.secretName */}}
           {{- if $.Values.redis.clientSideShardingEnabled }}
           volumeMounts:
             - mountPath: /var/run/envoy/
@@ -167,5 +167,5 @@ spec:
         {{- end }}
       {{- end }} {{/* .Values.global.glooMtls.enabled || $.Values.redis.clientSideShardingEnabled */}}
 ---
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }}

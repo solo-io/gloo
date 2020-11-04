@@ -33,5 +33,5 @@ subjects:
   - kind: ServiceAccount
     name: observability
     namespace: {{ .Release.Namespace }}
-{{- end }} # observability enabled
-{{- end }} # glooRbac.create
+{{- end }} {{/* observability enabled */}}
+{{- end }} {{/* glooRbac.create */}}

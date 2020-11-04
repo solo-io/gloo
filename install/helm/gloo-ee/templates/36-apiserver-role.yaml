@@ -41,6 +41,6 @@ rules:
   - apiGroups: ["gateway.solo.io"]
     resources: ["virtualservices", "routetables"]
     verbs: ["create", "update", "delete"]
-  {{- end }} # .Values.apiServer.enterprise
-{{- end }} # .Values.apiServer.enable
+  {{- end }} {{/* .Values.apiServer.enterprise */}}
+{{- end }} {{/* .Values.apiServer.enable */}}
 {{- end }}

@@ -6,7 +6,7 @@
 {{- $redisName := $.Values.redis.deployment.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,6 +60,6 @@ spec:
         - name: data
           emptyDir: {}
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # .Values.rateLimit.enabled
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* .Values.rateLimit.enabled */}}

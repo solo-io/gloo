@@ -54,7 +54,7 @@ spec:
       namespace: gloo-system
   {{- end }}
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # $extAuth.standaloneDeployment
-{{- end }} # .Values.global.extensions.extAuth.enabled
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* $extAuth.standaloneDeployment */}}
+{{- end }} {{/* .Values.global.extensions.extAuth.enabled */}}

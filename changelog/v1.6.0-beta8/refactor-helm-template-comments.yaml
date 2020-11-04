@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: refactoring comments so that the comments don't appear in the rendered helm template.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1954

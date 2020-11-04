@@ -5,7 +5,7 @@
 {{- $redisName := $.Values.redis.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -25,6 +25,6 @@ spec:
   clusterIP: "None" {{/* Headless Service so Envoy can LB between Redis instances */}}
   {{- end }}
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # .Values.rateLimit.enabled
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* .Values.rateLimit.enabled */}}

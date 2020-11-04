@@ -18,5 +18,5 @@ roleRef:
   kind: {{ include "gloo.roleKind" . }}
   name: {{ .Values.apiServer.service.name }}{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }} # .Values.apiServer.enable
-{{- end }} # glooRbac.create
+{{- end }} {{/* .Values.apiServer.enable */}}
+{{- end }} {{/* glooRbac.create */}}

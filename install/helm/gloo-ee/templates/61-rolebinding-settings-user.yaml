@@ -18,5 +18,5 @@ roleRef:
   kind: {{ include "gloo.roleKind" . }}
   name: settings-user{{ include "gloo.rbacNameSuffix" . }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }} # if defaultInstallation or customGrafana
-{{- end }} # if glooRbac.create
+{{- end }} {{/* if defaultInstallation or customGrafana */}}
+{{- end }} {{/* if glooRbac.create */}}

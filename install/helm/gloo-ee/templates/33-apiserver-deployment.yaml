@@ -84,7 +84,7 @@ spec:
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
-            {{- end}} # stats
+            {{- end}} {{/* stats */}}
             - name: NO_AUTH
               value: "1"
       {{- if .Values.apiServer.enterprise }}
@@ -97,7 +97,7 @@ spec:
           resources:
 {{ toYaml .Values.apiServer.deployment.server.resources | indent 12}}
           {{- end}}
-      {{- end}} # .Values.apiServer.enterprise
+      {{- end}} {{/* .Values.apiServer.enterprise */}}
           ports:
             - name: grpcport
               containerPort: {{.Values.apiServer.deployment.server.grpcPort}}
@@ -123,7 +123,7 @@ spec:
               scheme: HTTPS
             {{- else }}
               port: 8080
-            {{- end }} # .Values.global.glooMtls.enabled
+            {{- end }} {{/* .Values.global.glooMtls.enabled */}}
             periodSeconds: 10
             initialDelaySeconds: 5
           volumeMounts:
@@ -139,7 +139,7 @@ spec:
           - mountPath: /etc/envoy/ssl
             name: gloo-mtls-certs
             readOnly: true
-        {{- end }} # .Values.global.glooMtls.enabled
+        {{- end }} {{/* .Values.global.glooMtls.enabled */}}
         {{- if .Values.global.glooMtls.enabled }}
         {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
         - name: sds
@@ -156,7 +156,7 @@ spec:
           resources:
 {{ toYaml $.Values.global.glooMtls.sdsResources | indent 12}}
           {{- end}}
-        {{- end }} # .Values.global.glooMtls.enabled
+        {{- end }} {{/* .Values.global.glooMtls.enabled */}}
       volumes:
         - name: empty-cache
           emptyDir: {}
@@ -176,6 +176,6 @@ spec:
           secret:
             defaultMode: 420
             secretName: gloo-mtls-certs
-      {{- end }} # .Values.global.glooMtls.enabled
+      {{- end }} {{/* .Values.global.glooMtls.enabled */}}
       {{- include "gloo.pullSecret" $apiServerImage | nindent 6}}
-{{- end }} # .Values.apiServer.enable
+{{- end }} {{/* .Values.apiServer.enable */}}

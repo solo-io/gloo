@@ -5,7 +5,7 @@
 {{- $rateLimitName := $.Values.rateLimit.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
@@ -29,6 +29,6 @@ spec:
     serviceSpec:
       grpc: {}
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # .Values.rateLimit.enabled
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* .Values.rateLimit.enabled */}}

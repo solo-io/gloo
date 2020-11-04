@@ -13,13 +13,13 @@ Expand the name of the chart.
 {{- if $plugins -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraInitContainersHelper" "gloo.extauthinitcontainers" -}}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraVolumeHelper" "gloo.extauthpluginvolume" -}}
-{{- end -}} # if plugins
+{{- end -}} {{/* if plugins */}}
 {{- if $.Values.global.glooMtls.enabled }}
 {{- $_ = set (index $.Values.gatewayProxies $proxyName) "extraListenersHelper" "gloo.sidecarlisteners" -}}
-{{- end -}} # end glooMtls.enabled
-{{- end -}} # end range
-{{- end -}} # if envoySidecar
-{{- end -}} # end define
+{{- end -}} {{/* end glooMtls.enabled */}}
+{{- end -}} {{/* end range */}}
+{{- end -}} {{/* if envoySidecar */}}
+{{- end -}} {{/* end define */}}
 
 {{/* Volume definition needed for ext auth plugin setup */}}
 {{- define "gloo.extauthpluginvolume" -}}

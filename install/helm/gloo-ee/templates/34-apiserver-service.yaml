@@ -21,4 +21,4 @@ spec:
   selector:
     gloo: {{ .Values.apiServer.service.name }}
   type: {{.Values.apiServer.service.serviceType}}
-{{- end }} # .Values.apiServer.enable
+{{- end }} {{/* .Values.apiServer.enable */}}

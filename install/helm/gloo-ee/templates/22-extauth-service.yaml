@@ -7,7 +7,7 @@
 {{- $extAuthName := $extAuth.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuthName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -24,7 +24,7 @@ spec:
   selector:
     gloo: {{ $extAuthName }}
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # enabled
-{{- end }} # .Values.global.extensions.extAuth.standaloneDeployment
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* enabled */}}
+{{- end }} {{/* .Values.global.extensions.extAuth.standaloneDeployment */}}

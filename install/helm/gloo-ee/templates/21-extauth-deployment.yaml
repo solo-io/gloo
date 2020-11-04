@@ -9,7 +9,7 @@
 {{- $extAuthName := $extAuth.deployment.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuthName ($name | kebabcase) }}
-{{- end }} # .Values.global.extensions.dataplanePerProxy
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,7 +39,7 @@ spec:
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
-      {{- end}} # $extAuth.deployment.stats
+      {{- end}} {{/* $extAuth.deployment.stats */}}
     spec:
       serviceAccountName: {{ $extAuth.service.name }}
       {{- if or $extAuth.plugins $.Values.global.glooMtls.enabled}}
@@ -52,12 +52,12 @@ spec:
       - name: extauth-sidecar-config
         configMap:
           name: extauth-sidecar-config
-      {{- end }} # .Values.global.glooMtls.enabled
+      {{- end }} {{/* .Values.global.glooMtls.enabled */}}
       {{- if $extAuth.plugins }}
       {{- include "gloo.extauthpluginvolume" $ | nindent 6 }}
       initContainers:
       {{- include "gloo.extauthinitcontainers" $ | nindent 6 }}
-      {{- end }} # $extAuth.plugins
+      {{- end }} {{/* $extAuth.plugins */}}
       {{- end}}
       containers:
       {{- $data := dict "Values" $.Values "ExtAuthMode" "standalone" -}}
@@ -121,7 +121,7 @@ spec:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
 ---
-{{- end }} # if not $spec.disabled
-{{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
-{{- end }} # .Values.global.extensions.standaloneDeployment
-{{- end }} # enabled
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* .Values.global.extensions.standaloneDeployment */}}
+{{- end }} {{/* enabled */}}
