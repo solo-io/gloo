@@ -3,6 +3,7 @@
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled }}
 {{- $statsConfig := coalesce $extAuth.deployment.stats $.Values.global.glooStats -}}
 {{- $image := merge $extAuth.deployment.image $.Values.global.image }}
 {{- $extAuthName := $extAuth.deployment.name }}
@@ -123,6 +124,7 @@ spec:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
 ---
+{{- end }} # if not $spec.disabled
 {{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.global.extensions.standaloneDeployment
 {{- end }} # enabled

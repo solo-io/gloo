@@ -18,9 +18,9 @@ metadata:
   name: {{ $rateLimitName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
+{{- if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas) }}
   replicas: {{ $.Values.rateLimit.deployment.replicas }}
-  {{- end }}
+{{- end }} # if not (kindIs "invalid" $.Values.rateLimit.deployment.replicas)
   selector:
     matchLabels:
       gloo: {{ $rateLimitName }}
@@ -38,7 +38,7 @@ spec:
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
-      {{- end}}
+      {{- end}} # $statsConfig.enabled
     spec:
       serviceAccountName: {{ $.Values.rateLimit.service.name }}
       containers:
@@ -48,7 +48,7 @@ spec:
           {{- if $.Values.rateLimit.deployment.resources }}
           resources:
 {{ toYaml $.Values.rateLimit.deployment.resources | indent 12}}
-          {{- end}}
+          {{- end}} # $.Values.rateLimit.deployment.resources
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -59,11 +59,11 @@ spec:
               value: "127.0.0.1:9955"
               {{- else }}
               value: {{ $.Values.rateLimit.deployment.glooAddress }}
-              {{- end }}
+              {{- end }} # $.Values.global.glooMtls.enabled
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
-            {{- end}}
+            {{- end}} # $statsConfig.enabled
             {{- if $.Values.rateLimit.deployment.dynamodb.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:

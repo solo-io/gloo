@@ -759,7 +759,42 @@ gloo:
 
 				})
 
-				It("allows doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
+				It("doesn't create resources for disabled proxies", func() {
+
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.disabled=true"},
+					})
+
+					Expect(err).NotTo(HaveOccurred())
+
+					assertExpectedResourcesForDisabledProxy := func(proxyName string) {
+						gatewayProxyRateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("rate-limit-%s", proxyName)
+						})
+
+						// Deployment, Service, Upstream
+						Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting RateLimit Deployment, Service, and Upstream to not be created", proxyName))
+
+						gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
+						})
+
+						// Deployment, Service
+						Expect(gatewayProxyRedisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis Deployment and Service to not be created", proxyName))
+
+						gatewayProxyExtAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("extauth-%s", proxyName)
+						})
+
+						// Deployment, Service, Upstream
+						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream to not be created", proxyName))
+
+					}
+					assertExpectedResourcesForDisabledProxy("gateway-proxy")
+
+				})
+
+				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
 
 					helmOverrideFile := "helm-override-*.yaml"
 					tmpFile, err := ioutil.TempFile("", helmOverrideFile)

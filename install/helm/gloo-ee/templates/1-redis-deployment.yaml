@@ -2,6 +2,7 @@
 {{- $image := merge .Values.redis.deployment.image .Values.global.image }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled }}
 {{- $redisName := $.Values.redis.deployment.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
@@ -58,5 +59,6 @@ spec:
         - name: data
           emptyDir: {}
 ---
+{{- end }} # if not $spec.disabled
 {{- end }} # range $name, $spec := $.ProxiesToCreateDataplaneFor
 {{- end }} # .Values.rateLimit.enabled
