@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { ReactComponent as CloseX } from 'assets/close-x.svg';
-import * as React from 'react';
+import React, {useEffect} from 'react';
 import { colors, soloConstants } from 'Styles';
 
 const ModalWindow = styled.div`
@@ -15,11 +15,6 @@ const ModalWindow = styled.div`
   background: rgba(0, 0, 0, 0.1);
   line-height: 19px;
   z-index: 100;
-`;
-
-const BlockHolder = styled.div`
-  max-height: 90vh;
-  overflow: scroll;
 `;
 
 type ModalBlockProps = {
@@ -84,11 +79,24 @@ export const SoloModal = (props: ModalProps) => {
     return null;
   }
 
+  const escapeListener = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && !!onClose){
+      onClose();
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', escapeListener)
+    return () => {
+      window.removeEventListener('keydown', escapeListener)
+    }
+  }, [])
+
   document.body.style.overflow = 'hidden';
 
   return (
     <ModalWindow>
-      <BlockHolder
+      <div
         onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
         <ModalBlock width={width}>
           {!!onClose && (
@@ -99,7 +107,7 @@ export const SoloModal = (props: ModalProps) => {
           {!!title && <Title>{title}</Title>}
           <Content noPadding={noPadding}>{children}</Content>
         </ModalBlock>
-      </BlockHolder>
+      </div>
     </ModalWindow>
   );
 };

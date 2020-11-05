@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Modals in Gloo UI are able to be closed by hitting escape. Modal borders have been debugged.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1955
