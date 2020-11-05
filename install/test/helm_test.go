@@ -252,7 +252,29 @@ var _ = Describe("Helm Test", func() {
 					observabilityDeployment.Spec.Replicas = &customNumReplicas
 
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
 
+				It("correctly sets the GLOO_LICENSE_KEY env", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"license_secret_name=custom-license-secret"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					licenseKeyEnvVarSource := v1.EnvVarSource{
+						SecretKeyRef: &v1.SecretKeySelector{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: "custom-license-secret",
+							},
+							Key: "license-key",
+						},
+					}
+					envs := observabilityDeployment.Spec.Template.Spec.Containers[0].Env
+					for i, env := range envs {
+						if env.Name == "GLOO_LICENSE_KEY" {
+							envs[i].ValueFrom = &licenseKeyEnvVarSource
+						}
+					}
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
 				})
 
 				It("correctly sets resource limits for the observability deployment", func() {
@@ -1766,6 +1788,32 @@ spec:
 				customNumReplicas := int32(2)
 				expectedDeployment.Spec.Replicas = &customNumReplicas
 
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("correctly sets the GLOO_LICENSE_KEY env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"apiServer.enterprise=true",
+						"license_secret_name=custom-license-secret",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				licenseKeyEnvVarSource := v1.EnvVarSource{
+					SecretKeyRef: &v1.SecretKeySelector{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: "custom-license-secret",
+						},
+						Key: "license-key",
+					},
+				}
+				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
+				for i, env := range envs {
+					if env.Name == "GLOO_LICENSE_KEY" {
+						envs[i].ValueFrom = &licenseKeyEnvVarSource
+					}
+				}
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 

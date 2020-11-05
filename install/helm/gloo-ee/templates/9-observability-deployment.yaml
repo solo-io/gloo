@@ -62,7 +62,7 @@ spec:
             - name: GLOO_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: license
+                  name: {{ .Values.license_secret_name }}
                   key: license-key
             - name: POD_NAMESPACE
               valueFrom:
