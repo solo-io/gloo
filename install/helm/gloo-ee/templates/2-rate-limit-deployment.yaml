@@ -3,6 +3,7 @@
 {{- $image := merge .Values.rateLimit.deployment.image .Values.global.image }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled }}
 {{- $rateLimitName := $.Values.rateLimit.deployment.name }}
 {{- $redisName := $.Values.redis.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
@@ -167,5 +168,6 @@ spec:
         {{- end }}
       {{- end }} {{/* .Values.global.glooMtls.enabled || $.Values.redis.clientSideShardingEnabled */}}
 ---
+{{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }}

@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Fixes bug where rate limit gateway proxy pod is still being created even when gateway proxy is disabled
+    issueLink: https://github.com/solo-io/gloo/issues/3751

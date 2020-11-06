@@ -790,6 +790,7 @@ gloo:
 					defer os.Remove(tmpFile.Name())
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesFile: tmpFile.Name(),
+						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.disabled=false"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -822,12 +823,18 @@ gloo:
 
 				})
 
-				It("doesn't create resources for disabled proxies", func() {
-
+				It("gateway proxy objects are not created when gatewayProxy is disabled", func() {
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
 						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.disabled=true"},
 					})
-
 					Expect(err).NotTo(HaveOccurred())
 
 					assertExpectedResourcesForDisabledProxy := func(proxyName string) {
@@ -853,8 +860,8 @@ gloo:
 						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream to not be created", proxyName))
 
 					}
-					assertExpectedResourcesForDisabledProxy("gateway-proxy")
 
+					assertExpectedResourcesForDisabledProxy("gateway-proxy")
 				})
 
 				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
