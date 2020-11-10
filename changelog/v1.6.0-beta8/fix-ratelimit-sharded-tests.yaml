@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Fix flaking tests in clientside ratelimit sharding kube e2e tests.

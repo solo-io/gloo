@@ -99,6 +99,8 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 
 			rateLimitConfigClient, err = v1alpha1.NewRateLimitConfigClient(rateLimitConfigClientFactory)
 			Expect(err).NotTo(HaveOccurred())
+
+			regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		})
 
 		BeforeEach(func() {

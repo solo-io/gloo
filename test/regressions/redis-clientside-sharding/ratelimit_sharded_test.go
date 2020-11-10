@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/test/regressions"
 
@@ -19,7 +22,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
 	"github.com/solo-io/go-utils/kubeutils"
 
@@ -40,18 +42,18 @@ var _ = Describe("RateLimit tests", func() {
 		cancel context.CancelFunc
 		cfg    *rest.Config
 
-		cache                 kube.SharedCache
-		gatewayClient         v2.GatewayClient
-		virtualServiceClient  v1.VirtualServiceClient
-		settingsClient        gloov1.SettingsClient
-		origSettings          *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
-		uniqueDescriptorValue string
+		cache                kube.SharedCache
+		gatewayClient        v2.GatewayClient
+		virtualServiceClient v1.VirtualServiceClient
+		settingsClient       gloov1.SettingsClient
+		origSettings         *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
 	)
 
 	const (
-		response200 = "HTTP/1.1 200 OK"
-		response401 = "HTTP/1.1 401 Unauthorized"
-		response429 = "HTTP/1.1 429 Too Many Requests"
+		response200         = "HTTP/1.1 200 OK"
+		response401         = "HTTP/1.1 401 Unauthorized"
+		response429         = "HTTP/1.1 429 Too Many Requests"
+		rateLimitDescriptor = "shard-limit-test"
 	)
 
 	BeforeEach(func() {
@@ -67,10 +69,6 @@ var _ = Describe("RateLimit tests", func() {
 		}
 		settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-		if uniqueDescriptorValue == "" {
-			uniqueDescriptorValue = "sharding-test-limit"
-		}
-		uniqueDescriptorValue = uniqueDescriptorValue + "1"
 
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         v2.GatewayCrd,
@@ -87,12 +85,35 @@ var _ = Describe("RateLimit tests", func() {
 
 		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-	})
 
-	BeforeEach(func() {
-		var err error
+		err = virtualServiceClient.Register()
+		Expect(err).NotTo(HaveOccurred())
+
 		origSettings, err = settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred(), "Should be able to read initial settings")
+
+		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+		Eventually(func() error {
+			virtualservices, err := virtualServiceClient.List(testHelper.InstallNamespace, clients.ListOpts{})
+			if err != nil {
+				return err
+			}
+			if len(virtualservices) > 0 {
+				return fmt.Errorf("should not have any virtualservices before test runs, found %v", len(virtualservices))
+			}
+			return nil
+		}).Should(BeNil())
+
+		// Enable RateLimit with DenyOnFail
+		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred(), "Should be able to read current settings")
+		currentSettings.RatelimitServer.RatelimitServerRef = &core.ResourceRef{
+			Name:      "rate-limit",
+			Namespace: testHelper.InstallNamespace,
+		}
+		currentSettings.RatelimitServer.DenyOnFail = true
+		_, err = settingsClient.Write(currentSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -103,6 +124,7 @@ var _ = Describe("RateLimit tests", func() {
 
 		if origSettings.Metadata.ResourceVersion != currentSettings.Metadata.ResourceVersion {
 			origSettings.Metadata.ResourceVersion = currentSettings.Metadata.ResourceVersion // so we can overwrite settings
+			origSettings.RatelimitServer.DenyOnFail = true
 			_, err = settingsClient.Write(origSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
 			Expect(err).ToNot(HaveOccurred())
 		}
@@ -125,15 +147,15 @@ var _ = Describe("RateLimit tests", func() {
 				return nil, fmt.Errorf("gateway proxy resource not yet accepted")
 			}
 			return g, err
-		}, "15s", "0.5s").Should(Not(BeNil()))
+		}, "60s", "0.5s").Should(Not(BeNil()))
 	}
 
-	requestOnLimitedPath := func() (string, error) {
+	requestOnPath := func(path string) (string, error) {
 		res, err := testHelper.Curl(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              regressions.TestMatcherPrefix,
+			Path:              path,
 			Method:            "GET",
-			Host:              defaults.GatewayProxyName,
+			Host:              "rate-limit.example.com",
 			Service:           defaults.GatewayProxyName,
 			Port:              80,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
@@ -147,20 +169,23 @@ var _ = Describe("RateLimit tests", func() {
 
 	Context("rate limit at specific rate, even with scaled redis", func() {
 
-		var (
-			ingressRateLimit = &ratelimit.IngressRateLimit{
-				AnonymousLimits: &rlv1alpha1.RateLimit{
-					RequestsPerUnit: 10,
-					Unit:            rlv1alpha1.RateLimit_DAY,
-				},
-			}
-			virtualHostPlugins = &gloov1.VirtualHostOptions{
-				RatelimitBasic: ingressRateLimit,
-			}
-		)
-
 		It("can rate limit to upstream", func() {
-			regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
+			vs := defaults.DefaultVirtualService(testHelper.InstallNamespace, "sharding-test-vs")
+
+			var vsRoutes []*v1.Route
+			// Matches Exact /HealthCheck with no rate limit
+			vsRoutes = append(vsRoutes, generateHealthCheckRoute())
+			// Matches Exact /test with 10 / day rate limit
+			vsRoutes = append(vsRoutes, generateRateLimitedRoute(rateLimitDescriptor))
+			vs.VirtualHost.Routes = vsRoutes
+
+			vs.VirtualHost.Domains = []string{"rate-limit.example.com"}
+			Eventually(func() error {
+				// Retry vs write on error if Gloo hasn't picked up the RateLimitConfig yet
+				_, err := virtualServiceClient.Write(vs, clients.WriteOpts{})
+				return err
+			}, "60s", "2s").Should(BeNil())
+
 			waitForGateway()
 
 			// If we're about to roll over to the next day and
@@ -173,28 +198,130 @@ var _ = Describe("RateLimit tests", func() {
 
 			// Wait for the service to be happily responding
 			Eventually(func() (string, error) {
-				return requestOnLimitedPath()
-			}, "15s", "0.5s").Should(ContainSubstring(response200))
+				return requestOnPath("/HealthCheck")
+			}, "120s", "1s").Should(ContainSubstring(response200))
 
-			for i := 0; i < 9; i++ {
-				// First 10 (next 9) requests should work (all should go to the same Redis)
-				res, err := requestOnLimitedPath()
+			totalRequestsSent := 0
+			for i := 0; i < 10; i++ {
+				// First 10 requests should work (all should go to the same Redis)
+				res, err := requestOnPath(regressions.TestMatcherPrefix)
+				totalRequestsSent++
 				Expect(err).NotTo(HaveOccurred())
-				Expect(res).To(ContainSubstring(response200), "request #"+strconv.Itoa(i+1)+" should not be rate limited")
+				Expect(res).To(ContainSubstring(response200), "request #"+strconv.Itoa(totalRequestsSent)+" should not be rate limited")
 			}
 
 			// After we've hit our limit, we should consistently be rate limited:
 			Consistently(func() error {
-				res, err := requestOnLimitedPath()
+				res, err := requestOnPath(regressions.TestMatcherPrefix)
+				totalRequestsSent++
 				if err != nil {
 					return err
 				}
 				if !strings.Contains(res, response429) {
-					return fmt.Errorf("response was not rate limited, expected %v to be found within %v", response429, res)
+					return fmt.Errorf("request #"+strconv.Itoa(totalRequestsSent)+" was not rate limited, expected %v to be found within %v", response429, res)
 				}
 				return nil
-			}, "5s", ".1s").Should(BeNil())
+			}, "5s", ".5s").Should(BeNil())
 
 		})
 	})
 })
+
+func generateRateLimitedRoute(rateLimitDescriptor string) *v1.Route {
+	return &v1.Route{
+		Action: &v1.Route_RouteAction{
+			RouteAction: &gloov1.RouteAction{
+				Destination: &gloov1.RouteAction_Single{
+					Single: &gloov1.Destination{
+						DestinationType: &gloov1.Destination_Upstream{
+							Upstream: &core.ResourceRef{
+								Name:      "gloo-system-testrunner-1234",
+								Namespace: testHelper.InstallNamespace,
+							},
+						},
+					},
+				},
+			},
+		},
+		Name: "rateLimitedRoute",
+		Options: &gloov1.RouteOptions{
+			PrefixRewrite: &types.StringValue{
+				Value: "/",
+			},
+			RatelimitBasic: &ratelimit.IngressRateLimit{
+				AnonymousLimits: &rlv1alpha1.RateLimit{
+					Unit:            rlv1alpha1.RateLimit_DAY,
+					RequestsPerUnit: 10,
+				},
+			},
+		},
+		Matchers: []*matchers.Matcher{
+			{
+				PathSpecifier: &matchers.Matcher_Exact{
+					Exact: regressions.TestMatcherPrefix,
+				},
+			},
+		},
+	}
+}
+
+func generateHealthCheckRoute() *v1.Route {
+	return &v1.Route{
+		Action: &v1.Route_RouteAction{
+			RouteAction: &gloov1.RouteAction{
+				Destination: &gloov1.RouteAction_Single{
+					Single: &gloov1.Destination{
+						DestinationType: &gloov1.Destination_Upstream{
+							Upstream: &core.ResourceRef{
+								Name:      "gloo-system-testrunner-1234",
+								Namespace: testHelper.InstallNamespace,
+							},
+						},
+					},
+				},
+			},
+		},
+		Options: &gloov1.RouteOptions{
+			PrefixRewrite: &types.StringValue{
+				Value: "/",
+			},
+		},
+		Matchers: []*matchers.Matcher{
+			{
+				PathSpecifier: &matchers.Matcher_Exact{
+					Exact: "/HealthCheck",
+				},
+			},
+		},
+	}
+}
+
+func get10DayRateLimitSpec(rateLimitDescriptor string) rlv1alpha1.RateLimitConfigSpec {
+	return rlv1alpha1.RateLimitConfigSpec{
+		ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
+			Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
+				Descriptors: []*rlv1alpha1.Descriptor{{
+					Key:   "generic_key",
+					Value: rateLimitDescriptor,
+					RateLimit: &rlv1alpha1.RateLimit{
+						RequestsPerUnit: 10,
+						Unit:            rlv1alpha1.RateLimit_DAY,
+					},
+				}},
+				RateLimits: []*rlv1alpha1.RateLimitActions{
+					{
+						Actions: []*rlv1alpha1.Action{
+							{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{
+										DescriptorValue: rateLimitDescriptor,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
