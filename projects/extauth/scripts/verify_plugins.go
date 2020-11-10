@@ -7,13 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 
+	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
+
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/types"
 	errors "github.com/rotisserie/eris"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/protoutils"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 	"go.uber.org/zap"
 )
 

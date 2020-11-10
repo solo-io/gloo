@@ -12,7 +12,6 @@ require (
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-redis/redis/v8 v8.2.3
-	github.com/gogo/googleapis v1.3.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.4.4
 	// protobuf v1.4.x uses their v2 API, including breaking changes to reflection: causes Gloo to go into CrashLoopBackOff
@@ -35,7 +34,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.1.2
-	github.com/solo-io/ext-auth-service v0.6.20
+	github.com/solo-io/ext-auth-service v0.7.0
 	github.com/solo-io/gloo v1.6.0-beta7
 	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
@@ -46,7 +45,6 @@ require (
 	github.com/solo-io/solo-kit v0.13.14
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.4
-	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/mod v0.3.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974

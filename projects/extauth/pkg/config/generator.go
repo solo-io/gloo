@@ -3,10 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"go/ast"
-	"go/parser"
 	"runtime/debug"
 	"time"
+
+	"github.com/solo-io/ext-auth-service/pkg/chain"
+	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
@@ -15,9 +16,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/ext-auth-plugins/api"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
-
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 
@@ -254,16 +252,7 @@ func (c *configGenerator) getConfigs(ctx context.Context, boolLogic string, conf
 		}
 	}
 
-	var expr ast.Expr
-	if len(boolLogic) > 0 {
-		expr, err = parser.ParseExpr(boolLogic)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = services.SetAuthorizer(expr)
-	if err != nil {
+	if err = services.SetAuthorizer(boolLogic); err != nil {
 		return nil, err
 	}
 

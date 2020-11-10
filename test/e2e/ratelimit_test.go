@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/server"
+
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
 	"github.com/gogo/protobuf/types"
@@ -202,11 +204,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					glooSettings.Extauth = extauthSettings
 
 					settings := extauthrunner.Settings{
-						GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
-						DebugPort:    0,
-						ServerPort:   int(extauthport),
-						SigningKey:   "hello",
-						UserIdHeader: "X-User-Id",
+						GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),
+						ExtAuthSettings: server.Settings{
+							DebugPort:    0,
+							ServerPort:   int(extauthport),
+							SigningKey:   "hello",
+							UserIdHeader: "X-User-Id",
+						},
 					}
 					go func(testctx context.Context) {
 						defer GinkgoRecover()

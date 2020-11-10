@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
+
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/anyvendor/pkg/modutils"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins"
 
 	"github.com/gogo/protobuf/types"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"

@@ -18,6 +18,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/server"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -109,13 +111,15 @@ var _ = Describe("External auth", func() {
 		}
 
 		settings = extauthrunner.Settings{
-			GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
-			DebugPort:    0,
-			ServerPort:   int(extAuthPort),
-			SigningKey:   "hello",
-			UserIdHeader: "X-User-Id",
+			GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),
+			ExtAuthSettings: server.Settings{
+				DebugPort:              0,
+				ServerPort:             int(extAuthPort),
+				SigningKey:             "hello",
+				UserIdHeader:           "X-User-Id",
+				HealthCheckFailTimeout: 2, // seconds
+			},
 		}
-
 		glooSettings := &gloov1.Settings{Extauth: extauthSettings}
 
 		what := services.What{
@@ -521,7 +525,7 @@ var _ = Describe("External auth", func() {
 							},
 						}
 
-						st := oidc.NewStateSigner([]byte(settings.SigningKey))
+						st := oidc.NewStateSigner([]byte(settings.ExtAuthSettings.SigningKey))
 						signedState, err := st.Sign(finalpage)
 						Expect(err).NotTo(HaveOccurred())
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/callback?code=1234&state="+string(signedState), "localhost", envoyPort), nil)
@@ -1050,7 +1054,7 @@ var _ = Describe("External auth", func() {
 							},
 						}
 
-						st := oidc.NewStateSigner([]byte(settings.SigningKey))
+						st := oidc.NewStateSigner([]byte(settings.ExtAuthSettings.SigningKey))
 						signedState, err := st.Sign(finalpage)
 						Expect(err).NotTo(HaveOccurred())
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/callback?code=1234&state="+string(signedState), "localhost", envoyPort), nil)
@@ -1215,13 +1219,13 @@ var _ = Describe("External auth", func() {
 		It("should fail healthcheck immediately on shutdown", func() {
 
 			// Connects to the extauth service's health check
-			conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ServerPort), grpc.WithInsecure())
+			conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ExtAuthSettings.ServerPort), grpc.WithInsecure())
 			Expect(err).To(BeNil())
 			defer conn.Close()
 			healthCheckClient := grpc_health_v1.NewHealthClient(conn)
 			Eventually(func() bool { // Wait for the extauth server to start up
 				resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-					Service: settings.ServiceName,
+					Service: settings.ExtAuthSettings.ServiceName,
 				})
 				if err != nil {
 					return false
@@ -1237,7 +1241,7 @@ var _ = Describe("External auth", func() {
 					ctx = context.Background()
 					var header metadata.MD
 					healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-						Service: settings.ServiceName,
+						Service: settings.ExtAuthSettings.ServiceName,
 					}, grpc.Header(&header))
 					return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
 				}, "5s", ".1s").Should(BeTrue())

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
 	errors "github.com/rotisserie/eris"
@@ -16,7 +18,6 @@ import (
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"go.uber.org/zap"
 )

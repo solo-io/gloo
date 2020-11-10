@@ -5,24 +5,24 @@ import (
 	"errors"
 	"time"
 
+	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
+
+	"github.com/solo-io/ext-auth-service/pkg/chain"
+	mock_plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin/mocks"
+
 	mock_token_validation "github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/mocks"
 	user_info_mocks "github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info/mocks"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/session"
 	"github.com/solo-io/ext-auth-service/pkg/session/redis"
 
-	configapi "github.com/solo-io/ext-auth-service/pkg/config"
+	configapi "github.com/solo-io/ext-auth-service/pkg/service"
 
 	pbtypes "github.com/gogo/protobuf/types"
 
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain"
-
 	"github.com/golang/mock/gomock"
-	"github.com/solo-io/ext-auth-service/pkg/config/apr"
-	chainmocks "github.com/solo-io/solo-projects/projects/extauth/pkg/config/chain/mocks"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/plugins/mocks"
-
 	"github.com/solo-io/ext-auth-plugins/api"
+	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,22 +35,23 @@ var _ = Describe("Config Generator", func() {
 	var (
 		ctrl             *gomock.Controller
 		generator        config.Generator
-		pluginLoaderMock *mocks.MockLoader
+		pluginLoaderMock *mock_plugins.MockLoader
 		userInfoClient   *user_info_mocks.MockClient
 		tokenValidator   *mock_token_validation.MockValidator
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
-		pluginLoaderMock = mocks.NewMockLoader(ctrl)
+		pluginLoaderMock = mock_plugins.NewMockLoader(ctrl)
 		userInfoClient = user_info_mocks.NewMockClient(ctrl)
 		tokenValidator = mock_token_validation.NewMockValidator(ctrl)
-		generator = config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock, func(_ time.Duration, _ config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
-			return &config.OAuthIntrospectionClients{
-				TokenValidator: tokenValidator,
-				UserInfoClient: userInfoClient,
-			}
-		})
+		generator = config.NewGenerator(context.Background(), nil, "test-user-id-header", pluginLoaderMock,
+			func(_ time.Duration, _ config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
+				return &config.OAuthIntrospectionClients{
+					TokenValidator: tokenValidator,
+					UserInfoClient: userInfoClient,
+				}
+			})
 	})
 
 	AfterEach(func() {
@@ -104,7 +105,7 @@ var _ = Describe("Config Generator", func() {
 				Expect(services).To(HaveLen(1))
 				return services[0]
 			}
-			authServiceMock := chainmocks.NewMockAuthService(ctrl)
+			authServiceMock := mocks_auth_service.NewMockAuthService(ctrl)
 			authServiceMock.EXPECT().Start(gomock.Any()).Return(nil).AnyTimes()
 			authServiceMock.EXPECT().Authorize(gomock.Any(), gomock.Any()).Times(0)
 
@@ -233,7 +234,7 @@ var _ = Describe("Config Generator", func() {
 			Expect(pluginCfg.GetConfigCount()).To(Equal(len(resources)))
 
 			service := getAuthService(pluginCfg, resources[0].AuthConfigRefName)
-			_, ok := service.(*chainmocks.MockAuthService)
+			_, ok := service.(*mocks_auth_service.MockAuthService)
 			Expect(ok).To(BeTrue())
 
 			service = getAuthService(pluginCfg, resources[1].AuthConfigRefName)
@@ -342,7 +343,7 @@ var _ = Describe("Config Generator", func() {
 			)
 
 			BeforeEach(func() {
-				authServiceMock := chainmocks.NewMockAuthService(ctrl)
+				authServiceMock := mocks_auth_service.NewMockAuthService(ctrl)
 				// Start is called only one time
 				authServiceMock.EXPECT().Start(gomock.Any()).DoAndReturn(func(ctx context.Context) error {
 					// Start functions are called asynchronously by the generator, so we need to wait for them to run
@@ -422,7 +423,7 @@ var _ = Describe("Config Generator", func() {
 			)
 
 			BeforeEach(func() {
-				authServiceMock := chainmocks.NewMockAuthService(ctrl)
+				authServiceMock := mocks_auth_service.NewMockAuthService(ctrl)
 				authServiceMock.EXPECT().Start(gomock.Any()).DoAndReturn(func(ctx context.Context) error {
 					ctxChan <- ctx
 					return nil
@@ -493,7 +494,7 @@ var _ = Describe("Config Generator", func() {
 			)
 
 			BeforeEach(func() {
-				authServiceMock := chainmocks.NewMockAuthService(ctrl)
+				authServiceMock := mocks_auth_service.NewMockAuthService(ctrl)
 				authServiceMock.EXPECT().Start(gomock.Any()).DoAndReturn(func(ctx context.Context) error {
 					ctxChan <- ctx
 					return nil
@@ -553,7 +554,7 @@ var _ = Describe("Config Generator", func() {
 			)
 
 			BeforeEach(func() {
-				authServiceMock := chainmocks.NewMockAuthService(ctrl)
+				authServiceMock := mocks_auth_service.NewMockAuthService(ctrl)
 				authServiceMock.EXPECT().Start(gomock.Any()).DoAndReturn(func(ctx context.Context) error {
 					ctxChan <- ctx
 					return nil
