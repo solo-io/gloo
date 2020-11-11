@@ -17,7 +17,8 @@ export const SoloWarningContent = (
     case INVALID_LICENSE_ERROR_ID:
       return (
         <>
-          This feature requires an Enterprise Gloo license. <br />
+          This feature requires a Gloo Edge Enterprise license.
+          <br />
           <a href='http://www.solo.io/gloo-trial'>
             Click here to request a trial license
           </a>

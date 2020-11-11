@@ -175,7 +175,7 @@ export const updateSettings = (
 
 // this string should be unique among errors
 export const INVALID_LICENSE_ERROR_ID =
-  "This feature requires an Enterprise Gloo license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license.";
+  "This feature requires a Gloo Edge Enterprise license. Click <a href='http://www.solo.io/gloo-trial'>here</a> to request a trial license.";
 
 export const guardByLicense = () => {
   return async (dispatch: Dispatch) => {

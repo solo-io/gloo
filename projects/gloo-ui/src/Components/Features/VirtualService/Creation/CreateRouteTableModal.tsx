@@ -71,8 +71,8 @@ export const CreateRouteTableModal = (props: Props) => {
         onClose={() => setShowModal(false)}>
         <>
           <Legend>
-            The RouteTable is a child Routing object for the Gloo Gateway. A
-            RouteTable gets built into the complete routing configuration when
+            The RouteTable is a child Routing object for the Gloo Edge Gateway.
+            A RouteTable gets built into the complete routing configuration when
             it is referenced by a delegateAction, either in a parent
             VirtualService or another RouteTable. Routes specified in a
             RouteTable must have their paths start with the prefix provided in

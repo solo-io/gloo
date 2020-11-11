@@ -37,8 +37,9 @@ const App = () => {
   return (
     <SWRConfig
       value={{
-        refreshInterval: 3000,
+        // refreshInterval: 3000,
         dedupingInterval: 3000,
+
         shouldRetryOnError: false
       }}>
       <SuccessModal visible={!!showModal} successMessage={modalMessage} />

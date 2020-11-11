@@ -121,17 +121,19 @@ export const AdminLanding: React.FC<RouteProps> = props => {
     return <div>Loading...</div>;
   }
 
+  let glooEdition = licenseData?.isLicenseValid
+    ? 'Gloo Edge Enterprise'
+    : 'Gloo Edge';
+
   return (
     <ErrorBoundary
       fallback={<div>There was an error with the Admin section</div>}>
       <Container>
         <Header>
           <div>
-            <PageTitle>{`${
-              licenseData?.isLicenseValid ? 'Enterprise' : ''
-            } Gloo Administration`}</PageTitle>
+            <PageTitle>{`${glooEdition} Administration`}</PageTitle>
             <PageSubtitle>
-              Advanced Administration for your Gloo Configuration
+              {`Advanced Administration for your ${glooEdition} Configuration`}
             </PageSubtitle>
           </div>
           <HealthScoreContainer health={healthConstants.Good.value}>
@@ -171,7 +173,7 @@ export const AdminLanding: React.FC<RouteProps> = props => {
               link: '/admin/watched-namespaces'
             }}
             titleText='Watched Namespaces'
-            description='Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.In a usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. '></StatusTile>
+            description='Use this setting to restrict the namespaces that Gloo Edge controllers take into consideration when watching for resources.In a usual production scenario, RBAC policies will limit the namespaces that Gloo Edge has access to. '></StatusTile>
           <StatusTile
             titleIcon={
               <span className='text-blue-500'>
@@ -183,7 +185,7 @@ export const AdminLanding: React.FC<RouteProps> = props => {
               link: '/admin/secrets/'
             }}
             titleText='Secrets'
-            description='Certain features such as the AWS Lambda option require the use of secrets for authentication, configuration of SSL Certificates, and other data that should not be stored in plaintext configuration. Gloo runs an independent (goroutine) controller to monitor secrets. Secrets are stored in their own secret storage layer.'></StatusTile>
+            description='Certain features such as the AWS Lambda option require the use of secrets for authentication, configuration of SSL Certificates, and other data that should not be stored in plaintext configuration. Gloo Edge runs an independent (goroutine) controller to monitor secrets. Secrets are stored in their own secret storage layer.'></StatusTile>
         </div>
       </Container>
     </ErrorBoundary>
@@ -294,7 +296,7 @@ const ProxyOverview = () => {
         titleText={'Proxy Configuration'}
         titleIcon={<ProxyConfigLogo />}
         description={
-          'Gloo generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'
+          'Gloo Edge generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'
         }
         exploreMoreLink={{
           prompt: 'View Proxy',

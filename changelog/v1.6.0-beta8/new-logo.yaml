@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Use the new logo for the Gloo Edge UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1967

@@ -126,7 +126,7 @@ export const Envoy = (props: Props) => {
               </>
             ) : (
               <div>
-                <i>Install Gloo with </i>
+                <i>Install Gloo Edge with </i>
                 <code>gloo.gatewayProxies.gatewayProxy.readConfig</code>{' '}
                 <i>enabled to view Envoy config.</i>
               </div>

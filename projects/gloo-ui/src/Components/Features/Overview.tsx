@@ -138,14 +138,15 @@ export const Overview = () => {
     configAPI.getIsLicenseValid,
     { refreshInterval: 0 }
   );
+  let glooEdition = licenseData?.isLicenseValid
+    ? 'Gloo Edge Enterprise'
+    : 'Gloo Edge';
   return (
     <ErrorBoundary fallback={<div>There was an error with the Overview</div>}>
       <Container>
         <Header>
           <div>
-            <PageTitle>{`${
-              licenseData?.isLicenseValid ? 'Enterprise' : ''
-            } Gloo Overview`}</PageTitle>
+            <PageTitle>{`${glooEdition} Overview`}</PageTitle>
             <PageSubtitle>
               Your current configuration health at a glance
             </PageSubtitle>
@@ -201,7 +202,7 @@ const HealthStatus = () => {
                 Status
               </EnvoyHealthTitle>
               <EnvoyHealthSubtitle>
-                Gloo is responsible for configuring Envoy. Whenever Virtual
+                Gloo Edge is responsible for configuring Envoy. Whenever Virtual
                 Services or other configs change that affect the proxy, Gloo
                 will immediately detect that change and update Envoy's
                 configuration.

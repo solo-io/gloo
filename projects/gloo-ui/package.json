@@ -114,7 +114,7 @@
     "swagger-ui": "^3.25.0",
     "swagger-ui-react": "^3.25.0",
     "swr": "^0.2.0-beta.0",
-    "tailwindcss": "^1.2.0",
+    "tailwindcss": "^1.9.6",
     "terser-webpack-plugin": "2.2.2",
     "timeago.js": "^4.0.2",
     "ts-pnp": "1.1.4",

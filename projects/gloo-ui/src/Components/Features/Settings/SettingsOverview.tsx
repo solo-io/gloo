@@ -17,6 +17,11 @@ const Container = styled.div`
 `;
 
 export const SettingsOverview = () => {
+  const { data: licenseData, error: licenseError } = useSWR(
+    'hasValidLicense',
+    configAPI.getIsLicenseValid,
+    { refreshInterval: 0 }
+  );
   const { data: settingsDetails, error: settingsError } = useSWR(
     'getSettings',
     configAPI.getSettings
@@ -31,6 +36,10 @@ export const SettingsOverview = () => {
     'listNamespaces',
     configAPI.listNamespaces
   );
+  let glooEdition = licenseData?.isLicenseValid
+    ? 'Gloo Edge Enterprise'
+    : 'Gloo Edge';
+
   if (!settingsDetails || !secretsList || !watchedNamespacesList) {
     return <div>Loading...</div>;
   }
@@ -59,7 +68,7 @@ export const SettingsOverview = () => {
               font-size: 22px;
               margin-bottom: 10px;
             `}>
-            Gloo Configuration
+            {`${glooEdition} Configuration`}
           </div>
           <div
             css={css`
@@ -126,17 +135,7 @@ export const SettingsOverview = () => {
                 }}
                 descriptionMinHeight={'65px'}>
                 <>
-                  {/* <TallyInformationDisplay
-                    tallyCount={0}
-                    tallyDescription={`proxy error`}
-                    color='orange'
-                    moreInfoLink={{
-                      prompt: 'View',
-                      link: '/admin/proxy/?status=Rejected'
-                    }}
-                  /> */}
                   <GoodStateCongratulations typeOfItem={'secrets'} />
-
                   <TallyInformationDisplay
                     tallyCount={secretsList.length}
                     tallyDescription={`secret${

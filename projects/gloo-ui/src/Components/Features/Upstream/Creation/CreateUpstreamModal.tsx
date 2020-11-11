@@ -53,11 +53,11 @@ export const CreateUpstreamModal = (props: Props) => {
         onClose={() => setShowModal(false)}>
         <>
           <Legend>
-            Upstreams define destinations for routes. Upstreams tell Gloo what
-            to route to and how to route to them. Gloo determines how to handle
-            routing for the upstream based on its spec field. Upstreams have a
-            type-specific spec field which must be used to provide routing
-            information to Gloo.
+            Upstreams define destinations for routes. Upstreams tell Gloo Edge
+            what to route to and how to route to them. Gloo Edge determines how
+            to handle routing for the upstream based on its spec field.
+            Upstreams have a type-specific spec field which must be used to
+            provide routing information to Gloo.
           </Legend>
           <CreateUpstreamForm toggleModal={setShowModal} />
         </>

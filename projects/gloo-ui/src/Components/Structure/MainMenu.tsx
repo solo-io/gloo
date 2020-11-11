@@ -10,6 +10,8 @@ import { NavLink } from 'react-router-dom';
 import { colors } from 'Styles';
 import useSWR from 'swr';
 import { configAPI } from '../../store/config/api';
+import glooEdge from 'assets/gloo-edge.png';
+import glooEdgeE from 'assets/gloo-edge-e.png';
 
 const NavLinkStyles = {
   display: 'inline-block',
@@ -21,10 +23,11 @@ const NavLinkStyles = {
 };
 
 const Container = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   min-width: 1070px;
-  padding: 10px 0;
   height: 55px;
-  line-height: 36px;
   background: ${colors.seaBlue};
 `;
 const InnerContainer = styled.div`
@@ -34,13 +37,12 @@ const InnerContainer = styled.div`
 `;
 
 const TitleDiv = styled.div`
-  position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  width: auto;
   color: ${colors.puddleBlue};
   font-size: 18px;
-  margin-right: 50px;
   padding-right: 50px;
-  padding-left: 60px;
   border-right: 1px solid ${colors.lakeBlue};
   cursor: default;
 
@@ -113,80 +115,105 @@ export const MainMenu = () => {
 
   const hasValidLicense = licenseData?.isLicenseValid;
   return (
-    <Container>
-      <InnerContainer>
-        <TitleDiv>
-          {hasValidLicense ? (
-            <>
-              <GlooE /> Gloo Enterprise
-            </>
-          ) : (
-            <>
-              <Gloo /> Gloo
-            </>
-          )}
-        </TitleDiv>
-        <NavLink
-          data-testid='overview-navlink'
-          style={NavLinkStyles}
-          to='/overview'
-          activeStyle={activeStyle}>
-          Overview
-        </NavLink>
-        <NavLink
-          data-testid='virtual-services-navlink'
-          style={NavLinkStyles}
-          to='/virtualservices/'
-          activeStyle={activeStyle}>
-          Virtual Services
-        </NavLink>
-        <NavLink
-          data-testid='upstreams-navlink'
-          style={NavLinkStyles}
-          to='/upstreams/'
-          activeStyle={activeStyle}>
-          Upstreams
-        </NavLink>
+    <div
+      className='relative flex items-center justify-between max-w-full pt-2 px-28'
+      style={{ backgroundColor: colors.seaBlue }}>
+      <div className='flex items-center justify-between min-w-full'>
+        <div className='flex items-center justify-start mt-2 justify-items-start '>
+          <div className='flex items-center w-auto pb-3 mr-4'>
+            {hasValidLicense ? (
+              <>
+                <img
+                  src={glooEdgeE}
+                  alt='Gloo Edge Enterprise'
+                  className='object-cover h-12 pb-1 w-30'
+                />
+                <div
+                  style={{
+                    color: colors.lakeBlue,
+                    backgroundColor: colors.lakeBlue
+                  }}
+                  className='w-px mx-6 h-9'></div>
+              </>
+            ) : (
+              <>
+                <img
+                  src={glooEdge}
+                  alt='Gloo Edge'
+                  className='object-cover h-12 pb-1 w-30'
+                />
 
-        <NavLink
-          data-testid='settings-navlink'
-          style={{
-            ...NavLinkStyles,
-            float: 'right',
-            fontSize: '33px',
-            marginRight: '0',
-            display: 'flex',
-            height: '36px',
-            lineHeight: '36px',
-            alignItems: 'center'
-          }}
-          to='/admin/'
-          activeStyle={activeSettingsStyle}>
-          <SettingsGear />
-        </NavLink>
+                <div
+                  style={{
+                    color: colors.lakeBlue,
+                    backgroundColor: colors.lakeBlue
+                  }}
+                  className='w-px mx-6 h-9'></div>
+              </>
+            )}
+          </div>
+          <NavLink
+            data-testid='overview-navlink'
+            style={NavLinkStyles}
+            to='/overview'
+            activeStyle={activeStyle}>
+            Overview
+          </NavLink>
+          <NavLink
+            data-testid='virtual-services-navlink'
+            style={NavLinkStyles}
+            to='/virtualservices/'
+            activeStyle={activeStyle}>
+            Virtual Services
+          </NavLink>
+          <NavLink
+            data-testid='upstreams-navlink'
+            style={NavLinkStyles}
+            to='/upstreams/'
+            activeStyle={activeStyle}>
+            Upstreams
+          </NavLink>
+        </div>
+        <div>
+          <NavLink
+            data-testid='settings-navlink'
+            style={{
+              ...NavLinkStyles,
+              float: 'right',
+              fontSize: '33px',
+              marginRight: '0',
+              display: 'flex',
+              height: '36px',
+              lineHeight: '36px',
+              alignItems: 'center'
+            }}
+            to='/admin/'
+            activeStyle={activeSettingsStyle}>
+            <SettingsGear />
+          </NavLink>
+          <HelpHolder>
+            <Popover
+              trigger='click'
+              mouseLeaveDelay={0.2}
+              content={
+                <div>
+                  <DocumentationLink
+                    href='https://slack.solo.io/'
+                    target='_blank'>
+                    Join the Community
+                  </DocumentationLink>
 
-        <HelpHolder>
-          <Popover
-            trigger='click'
-            mouseLeaveDelay={0.2}
-            content={
-              <div>
-                <DocumentationLink
-                  href='https://slack.solo.io/'
-                  target='_blank'>
-                  Join the Community
-                </DocumentationLink>
-
-                <VersionDisplay>
-                  {hasValidLicense ? 'Version: ' : 'UI Version: '}
-                  {version !== undefined ? version : 'unknown'}
-                </VersionDisplay>
-              </div>
-            }>
-            <HelpBubble />
-          </Popover>
-        </HelpHolder>
-      </InnerContainer>
-    </Container>
+                  <VersionDisplay>
+                    {hasValidLicense ? 'Version: ' : 'UI Version: '}
+                    {version !== undefined ? version : 'unknown'}
+                  </VersionDisplay>
+                </div>
+              }>
+              <HelpBubble />
+            </Popover>
+          </HelpHolder>
+        </div>
+      </div>
+    </div>
   );
 };
