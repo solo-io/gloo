@@ -726,6 +726,30 @@ build-os-with-ui-test-chart: init-helm
 	helm repo index $(TEST_ASSET_DIR)
 
 #----------------------------------------------------------------------------------
+# CI: Escrow
+#----------------------------------------------------------------------------------
+
+DEPOSITOR_NAME ?= 'Janice Morales'
+DEPOSITOR_EMAIL ?= 'janice.morales@solo.io'
+DEPOSITOR_PHONE ?= '(617)-893-7557'
+DEPOSIT_DATE ?= '$(shell date)'
+
+.PHONY: tar-repo
+tar-repo:
+	$(eval GIT_BRANCH=$(shell git rev-parse HEAD))
+	git checkout v$(VERSION)
+	go mod vendor
+	tar -cvf gloo-ee-$(VERSION).tar ./
+	mkdir -p _gloo-ee-source/
+	mv gloo-ee-$(VERSION).tar _gloo-ee-source/
+	git checkout $(GIT_BRANCH)
+
+.PHONY: generate-escrow-pdf
+generate-escrow-pdf: tar-repo
+	$(eval DEPOSIT_BYTES=$(shell wc -c < _gloo-ee-source/gloo-ee-$(VERSION).tar))
+	deno run --allow-read --allow-write --allow-net ci/escrow/modify-pdf.ts $(VERSION) $(DEPOSIT_BYTES) $(DEPOSITOR_NAME) $(DEPOSIT_DATE) $(DEPOSITOR_EMAIL) $(DEPOSITOR_PHONE)
+
+#----------------------------------------------------------------------------------
 # Printing makefile variables utility
 #----------------------------------------------------------------------------------
 
