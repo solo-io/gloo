@@ -2,22 +2,17 @@ package setup
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
 
-	"github.com/envoyproxy/go-control-plane/pkg/resource/v2"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/utils/usage"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/metrics/pkg/metricsservice"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
@@ -48,7 +43,6 @@ func Main() error {
 
 	return setuputils.Main(setuputils.SetupOpts{
 		SetupFunc: NewSetupFuncWithRestControlPlaneAndExtensions(
-			cancellableCtx,
 			GetGlooEeExtensions(cancellableCtx),
 		),
 		ExitOnError:   true,
@@ -59,39 +53,8 @@ func Main() error {
 	})
 }
 
-var (
-	DefaultRestXdsBindAddr = fmt.Sprintf("0.0.0.0:%v", defaults.GlooRestXdsPort)
-)
-
-func NewSetupFuncWithRestControlPlaneAndExtensions(ctx context.Context, extensions syncer.Extensions) setuputils.SetupFunc {
+func NewSetupFuncWithRestControlPlaneAndExtensions(extensions syncer.Extensions) setuputils.SetupFunc {
 	runWithExtensions := func(opts bootstrap.Opts) error {
-
-		restClient := server.NewHTTPGateway(
-			contextutils.LoggerFrom(ctx),
-			opts.ControlPlane.XDSServer,
-			map[string]string{
-				resource.FetchEndpoints: resource.EndpointType,
-			},
-		)
-		restXdsAddr := opts.Settings.GetGloo().GetRestXdsBindAddr()
-		if restXdsAddr == "" {
-			restXdsAddr = DefaultRestXdsBindAddr
-		}
-		srv := &http.Server{
-			Addr:    restXdsAddr,
-			Handler: restClient,
-		}
-		go func() {
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				contextutils.LoggerFrom(ctx).Warnf("error while running REST xDS server", zap.Error(err))
-			}
-		}()
-		go func() {
-			<-ctx.Done()
-			if err := srv.Close(); err != nil {
-				contextutils.LoggerFrom(ctx).Warnf("error while shutting down REST xDS server", zap.Error(err))
-			}
-		}()
 		return syncer.RunGlooWithExtensions(opts, extensions)
 	}
 	return syncer.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)

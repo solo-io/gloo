@@ -106,6 +106,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getMaxStreamDuration(): google_protobuf_duration_pb.Duration | undefined;
   setMaxStreamDuration(value?: google_protobuf_duration_pb.Duration): void;
 
+  getServerHeaderTransformation(): HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap];
+  setServerHeaderTransformation(value: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -141,6 +144,7 @@ export namespace HttpConnectionManagerSettings {
     upgradesList: Array<gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
     maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
+    serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
@@ -190,4 +194,12 @@ export namespace HttpConnectionManagerSettings {
   }
 
   export const ForwardClientCertDetails: ForwardClientCertDetailsMap;
+
+  export interface ServerHeaderTransformationMap {
+    OVERWRITE: 0;
+    APPEND_IF_ABSENT: 1;
+    PASS_THROUGH: 2;
+  }
+
+  export const ServerHeaderTransformation: ServerHeaderTransformationMap;
 }

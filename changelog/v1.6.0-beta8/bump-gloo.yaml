@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/gloo/issues/3846
+    resolvesIssue: true
+    dependencyOwner: gloo
+    dependencyRepo: solo-io
+    dependencyTag: v1.6.0-beta9
+    description: >-
+      Update gloo to v1.6.0-beta9

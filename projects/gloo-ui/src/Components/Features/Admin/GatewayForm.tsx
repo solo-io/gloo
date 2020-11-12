@@ -109,7 +109,8 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   upgradesList: (undefined as unknown) as Array<
     github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject
   >,
-  forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap]
+  forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
+  serverHeaderTransformation: (undefined as unknown) as HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
 };
 
 const validationSchema = yup.object().shape({

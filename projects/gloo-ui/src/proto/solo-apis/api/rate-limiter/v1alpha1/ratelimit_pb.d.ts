@@ -40,6 +40,11 @@ export namespace RateLimitConfigSpec {
     setRateLimitsList(value: Array<RateLimitActions>): void;
     addRateLimits(value?: RateLimitActions, index?: number): RateLimitActions;
 
+    clearSetDescriptorsList(): void;
+    getSetDescriptorsList(): Array<SetDescriptor>;
+    setSetDescriptorsList(value: Array<SetDescriptor>): void;
+    addSetDescriptors(value?: SetDescriptor, index?: number): SetDescriptor;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Raw.AsObject;
     static toObject(includeInstance: boolean, msg: Raw): Raw.AsObject;
@@ -54,6 +59,7 @@ export namespace RateLimitConfigSpec {
     export type AsObject = {
       descriptorsList: Array<Descriptor.AsObject>,
       rateLimitsList: Array<RateLimitActions.AsObject>,
+      setDescriptorsList: Array<SetDescriptor.AsObject>,
     }
   }
 
@@ -143,11 +149,72 @@ export namespace Descriptor {
   }
 }
 
+export class SetDescriptor extends jspb.Message {
+  clearSimpleDescriptorsList(): void;
+  getSimpleDescriptorsList(): Array<SimpleDescriptor>;
+  setSimpleDescriptorsList(value: Array<SimpleDescriptor>): void;
+  addSimpleDescriptors(value?: SimpleDescriptor, index?: number): SimpleDescriptor;
+
+  hasRateLimit(): boolean;
+  clearRateLimit(): void;
+  getRateLimit(): RateLimit | undefined;
+  setRateLimit(value?: RateLimit): void;
+
+  getAlwaysApply(): boolean;
+  setAlwaysApply(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetDescriptor.AsObject;
+  static toObject(includeInstance: boolean, msg: SetDescriptor): SetDescriptor.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetDescriptor, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetDescriptor;
+  static deserializeBinaryFromReader(message: SetDescriptor, reader: jspb.BinaryReader): SetDescriptor;
+}
+
+export namespace SetDescriptor {
+  export type AsObject = {
+    simpleDescriptorsList: Array<SimpleDescriptor.AsObject>,
+    rateLimit?: RateLimit.AsObject,
+    alwaysApply: boolean,
+  }
+}
+
+export class SimpleDescriptor extends jspb.Message {
+  getKey(): string;
+  setKey(value: string): void;
+
+  getValue(): string;
+  setValue(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SimpleDescriptor.AsObject;
+  static toObject(includeInstance: boolean, msg: SimpleDescriptor): SimpleDescriptor.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SimpleDescriptor, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SimpleDescriptor;
+  static deserializeBinaryFromReader(message: SimpleDescriptor, reader: jspb.BinaryReader): SimpleDescriptor;
+}
+
+export namespace SimpleDescriptor {
+  export type AsObject = {
+    key: string,
+    value: string,
+  }
+}
+
 export class RateLimitActions extends jspb.Message {
   clearActionsList(): void;
   getActionsList(): Array<Action>;
   setActionsList(value: Array<Action>): void;
   addActions(value?: Action, index?: number): Action;
+
+  clearSetActionsList(): void;
+  getSetActionsList(): Array<Action>;
+  setSetActionsList(value: Array<Action>): void;
+  addSetActions(value?: Action, index?: number): Action;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitActions.AsObject;
@@ -162,6 +229,7 @@ export class RateLimitActions extends jspb.Message {
 export namespace RateLimitActions {
   export type AsObject = {
     actionsList: Array<Action.AsObject>,
+    setActionsList: Array<Action.AsObject>,
   }
 }
 

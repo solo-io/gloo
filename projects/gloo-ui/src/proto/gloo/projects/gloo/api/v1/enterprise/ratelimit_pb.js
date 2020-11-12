@@ -41,7 +41,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.glooe.solo.io.RateLimitConfig.repeatedFields_ = [2];
+proto.glooe.solo.io.RateLimitConfig.repeatedFields_ = [2,3];
 
 
 
@@ -74,7 +74,9 @@ proto.glooe.solo.io.RateLimitConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     domain: jspb.Message.getFieldWithDefault(msg, 1, ""),
     descriptorsList: jspb.Message.toObjectList(msg.getDescriptorsList(),
-    solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.toObject, includeInstance)
+    solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.toObject, includeInstance),
+    setDescriptorsList: jspb.Message.toObjectList(msg.getSetDescriptorsList(),
+    solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.SetDescriptor.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -120,6 +122,11 @@ proto.glooe.solo.io.RateLimitConfig.deserializeBinaryFromReader = function(msg, 
       reader.readMessage(value,solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.deserializeBinaryFromReader);
       msg.addDescriptors(value);
       break;
+    case 3:
+      var value = new solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.SetDescriptor;
+      reader.readMessage(value,solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.SetDescriptor.deserializeBinaryFromReader);
+      msg.addSetDescriptors(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -162,6 +169,14 @@ proto.glooe.solo.io.RateLimitConfig.serializeBinaryToWriter = function(message, 
       2,
       f,
       solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.Descriptor.serializeBinaryToWriter
+    );
+  }
+  f = message.getSetDescriptorsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      3,
+      f,
+      solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.SetDescriptor.serializeBinaryToWriter
     );
   }
 };
@@ -210,6 +225,37 @@ proto.glooe.solo.io.RateLimitConfig.prototype.addDescriptors = function(opt_valu
 
 proto.glooe.solo.io.RateLimitConfig.prototype.clearDescriptorsList = function() {
   this.setDescriptorsList([]);
+};
+
+
+/**
+ * repeated ratelimit.api.solo.io.SetDescriptor set_descriptors = 3;
+ * @return {!Array<!proto.ratelimit.api.solo.io.SetDescriptor>}
+ */
+proto.glooe.solo.io.RateLimitConfig.prototype.getSetDescriptorsList = function() {
+  return /** @type{!Array<!proto.ratelimit.api.solo.io.SetDescriptor>} */ (
+    jspb.Message.getRepeatedWrapperField(this, solo$apis_api_rate$limiter_v1alpha1_ratelimit_pb.SetDescriptor, 3));
+};
+
+
+/** @param {!Array<!proto.ratelimit.api.solo.io.SetDescriptor>} value */
+proto.glooe.solo.io.RateLimitConfig.prototype.setSetDescriptorsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 3, value);
+};
+
+
+/**
+ * @param {!proto.ratelimit.api.solo.io.SetDescriptor=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.ratelimit.api.solo.io.SetDescriptor}
+ */
+proto.glooe.solo.io.RateLimitConfig.prototype.addSetDescriptors = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.ratelimit.api.solo.io.SetDescriptor, opt_index);
+};
+
+
+proto.glooe.solo.io.RateLimitConfig.prototype.clearSetDescriptorsList = function() {
+  this.setSetDescriptorsList([]);
 };
 
 

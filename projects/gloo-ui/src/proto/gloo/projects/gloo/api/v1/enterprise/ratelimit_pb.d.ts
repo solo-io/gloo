@@ -18,6 +18,11 @@ export class RateLimitConfig extends jspb.Message {
   setDescriptorsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor>): void;
   addDescriptors(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor;
 
+  clearSetDescriptorsList(): void;
+  getSetDescriptorsList(): Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.SetDescriptor>;
+  setSetDescriptorsList(value: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.SetDescriptor>): void;
+  addSetDescriptors(value?: solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.SetDescriptor, index?: number): solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.SetDescriptor;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RateLimitConfig.AsObject;
   static toObject(includeInstance: boolean, msg: RateLimitConfig): RateLimitConfig.AsObject;
@@ -32,5 +37,6 @@ export namespace RateLimitConfig {
   export type AsObject = {
     domain: string,
     descriptorsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.Descriptor.AsObject>,
+    setDescriptorsList: Array<solo_apis_api_rate_limiter_v1alpha1_ratelimit_pb.SetDescriptor.AsObject>,
   }
 }
