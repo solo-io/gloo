@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Setting resource limits for the api server deployment no longer requires apiServer.Enterprise to be true.
+    issueLink: https://github.com/solo-io/gloo/issues/3793

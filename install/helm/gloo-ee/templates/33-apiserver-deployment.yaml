@@ -93,11 +93,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.license_secret_name }}
                   key: license-key
+      {{- end}} {{/* .Values.apiServer.enterprise */}}
           {{- if .Values.apiServer.deployment.server.resources }}
           resources:
 {{ toYaml .Values.apiServer.deployment.server.resources | indent 12}}
           {{- end}}
-      {{- end}} {{/* .Values.apiServer.enterprise */}}
           ports:
             - name: grpcport
               containerPort: {{.Values.apiServer.deployment.server.grpcPort}}
