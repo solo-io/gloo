@@ -140,7 +140,7 @@ export const MainMenu = () => {
                 <img
                   src={glooEdge}
                   alt='Gloo Edge'
-                  className='object-cover h-12 pb-1 w-30'
+                  className='object-cover w-64 h-12 pb-1'
                 />
 
                 <div
