@@ -4,7 +4,8 @@
 # write the output to a temp file so that we can grab the image names out of it
 # also ensure we clean up the file once we're done
 TEMP_FILE=$(mktemp)
-VERSION=kind LOCAL_BUILD=true make docker cleanup-node-modules | tee ${TEMP_FILE}
+VERSION=kind LOCAL_BUILD=true make docker --jobs=2 | tee ${TEMP_FILE}
+make cleanup-node-modules
 
 cleanup() {
     echo ">> Removing ${TEMP_FILE}"
