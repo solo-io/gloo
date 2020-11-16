@@ -4,6 +4,6 @@ changelog:
     resolvesIssue: true
     dependencyOwner: gloo
     dependencyRepo: solo-io
-    dependencyTag: v1.6.0-beta9
+    dependencyTag: v1.6.0-beta10
     description: >-
-      Update gloo to v1.6.0-beta9
+      Update gloo to v1.6.0-beta10

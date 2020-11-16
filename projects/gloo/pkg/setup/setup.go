@@ -4,14 +4,15 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/go-utils/contextutils"
+	"go.uber.org/zap"
+
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/utils/usage"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/gloo/projects/metrics/pkg/metricsservice"
-	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
@@ -26,7 +27,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
-	"go.uber.org/zap"
 )
 
 const (
@@ -34,6 +34,7 @@ const (
 )
 
 func Main() error {
+
 	enterpriseUsageReader, err := NewEnterpriseUsageReader()
 	if err != nil {
 		contextutils.LoggerFrom(context.Background()).Warnw("Could not create enterprise usage reporter", zap.Error(err))
@@ -106,12 +107,7 @@ func (e *enterpriseUsageReader) GetPayload() (map[string]string, error) {
 }
 
 func NewEnterpriseUsageReader() (client.UsagePayloadReader, error) {
-	metricsStorage, err := metricsservice.NewDefaultConfigMapStorage(os.Getenv("POD_NAMESPACE"))
-	if err != nil {
-		return nil, err
-	}
-
-	defaultPayloadReader := usage.DefaultUsageReader{MetricsStorage: metricsStorage}
+	defaultPayloadReader := usage.DefaultUsageReader{}
 
 	return &enterpriseUsageReader{
 		defaultPayloadReader: &defaultPayloadReader,
