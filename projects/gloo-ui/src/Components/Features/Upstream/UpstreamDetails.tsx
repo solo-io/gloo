@@ -62,7 +62,10 @@ const ConfigSectionHeader = styled.div`
 
 export const UpstreamDetails = () => {
   const [showConfig, setShowConfig] = useState(false);
-  let { upstreamnamespace, upstreamname } = useParams();
+  let { upstreamnamespace, upstreamname } = useParams<{
+    upstreamnamespace: string;
+    upstreamname: string;
+  }>();
   const history = useHistory();
   const [isLoading, setIsLoading] = useState(false);
   const { data: currentUpstream, error: upstreamError, isValidating } = useSWR(

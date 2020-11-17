@@ -662,6 +662,7 @@ export const UpstreamsListing = () => {
                             </EmptyPrompt>
                           ) : (
                             <CardsListing
+                              //@ts-ignore
                               cardsData={formatUpstreamGroupData(
                                 upstreamGroupsList,
                                 nameFilterValue,

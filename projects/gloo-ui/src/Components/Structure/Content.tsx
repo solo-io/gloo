@@ -9,6 +9,9 @@ import { UpstreamGroupDetails } from 'Components/Features/Upstream/UpstreamGroup
 import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing';
 import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
 import { VirtualServicesListing } from 'Components/Features/VirtualService/VirtualServicesListing';
+import { WasmListing } from 'Components/Features/Wasm/WasmListing';
+import { WasmGatewayDetails } from 'Components/Features/Wasm/WasmGatewayDetails';
+
 import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
@@ -51,7 +54,12 @@ export const Content = () => (
       <Route path='/admin' exact>
         <AdminLanding />
       </Route>
-
+      <Route path='/wasm/' exact>
+        <WasmListing />
+      </Route>
+      <Route path='/wasm/gateway/:gatewayname' exact>
+        <WasmGatewayDetails />
+      </Route>
       <Route path='/admin/:sublocation'>
         <AdminHub />
       </Route>

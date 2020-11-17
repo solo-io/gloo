@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Show list of wasm filters associated with gateways in the Admin Dashboard.
+    issueLink: https://github.com/solo-io/solo-projects/issues/1966

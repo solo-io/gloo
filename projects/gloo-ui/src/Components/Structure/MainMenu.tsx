@@ -173,6 +173,13 @@ export const MainMenu = () => {
             activeStyle={activeStyle}>
             Upstreams
           </NavLink>
+          <NavLink
+            data-testid='wasm-navlink'
+            style={NavLinkStyles}
+            to='/wasm/'
+            activeStyle={activeStyle}>
+            Wasm
+          </NavLink>
         </div>
         <div>
           <NavLink

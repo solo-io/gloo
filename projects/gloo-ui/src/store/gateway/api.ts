@@ -83,7 +83,7 @@ function listGateways(): Promise<GatewayDetails.AsObject[]> {
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data?.toObject().gatewayDetailsList);
+        resolve(data?.toObject().gatewayDetailsList!);
       }
     });
   });

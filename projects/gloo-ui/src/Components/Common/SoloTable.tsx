@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import Table from 'antd/lib/table';
+import Table, { PaginationConfig } from 'antd/lib/table';
 import * as React from 'react';
 import { soloConstants } from 'Styles';
 import { colors, hslToHSLA } from 'Styles/colors';
@@ -86,6 +86,7 @@ export interface TableProps {
   dataSource: any[];
   formComponent?: React.FC;
   title?: string;
+  pagination?: PaginationConfig;
 }
 
 // TODO: figure out if edit row should always be shown or always be last row
@@ -121,11 +122,12 @@ export const SoloTable = (props: TableProps) => {
   return (
     <TableContainer>
       <Table
+        {...props}
         title={props.title ? () => <b>{props.title}</b> : undefined}
         dataSource={props.dataSource}
         columns={props.columns}
         components={components}
-        pagination={{ defaultPageSize: 20 }}
+        pagination={props.pagination}
         onRow={record => {
           return {
             ...record,
