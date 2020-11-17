@@ -23,7 +23,7 @@ ifeq ($(TAGGED_VERSION),)
 	RELEASE := "false"
 endif
 
-VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
+VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
 ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.17.0-rc1
 
