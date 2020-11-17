@@ -174,7 +174,22 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 
 	var clientset kubernetes.Interface
 	memCache := memory.NewInMemoryResourceCache()
-	opts, err := constructOpts(ctx, &clientset, k8sCache, nil, nil, memCache, settings)
+
+	var vaultClient *vaultapi.Client
+	if vaultSettings := settings.GetVaultSecretSource(); vaultSettings != nil {
+		var err error
+		vaultClient, err = bootstrap.VaultClientForSettings(vaultSettings)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	consulClient, err := bootstrap.ConsulClientForSettings(ctx, settings)
+	if err != nil {
+		return nil, err
+	}
+
+	opts, err := constructOpts(ctx, &clientset, k8sCache, consulClient, vaultClient, memCache, settings)
 	if err != nil {
 		return nil, err
 	}

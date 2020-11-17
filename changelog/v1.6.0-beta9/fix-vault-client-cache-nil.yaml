@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3735
+    description: fixes an issue where vault is unable to be accessed by the apiserver due to an issue with the vault client cache never being configured correctly.
