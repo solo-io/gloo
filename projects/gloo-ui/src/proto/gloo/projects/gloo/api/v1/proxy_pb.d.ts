@@ -391,6 +391,11 @@ export class RouteAction extends jspb.Message {
   getUpstreamGroup(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setUpstreamGroup(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
 
+  hasClusterHeader(): boolean;
+  clearClusterHeader(): void;
+  getClusterHeader(): string;
+  setClusterHeader(value: string): void;
+
   getDestinationCase(): RouteAction.DestinationCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteAction.AsObject;
@@ -407,6 +412,7 @@ export namespace RouteAction {
     single?: Destination.AsObject,
     multi?: MultiDestination.AsObject,
     upstreamGroup?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    clusterHeader: string,
   }
 
   export enum DestinationCase {
@@ -414,6 +420,7 @@ export namespace RouteAction {
     SINGLE = 1,
     MULTI = 2,
     UPSTREAM_GROUP = 3,
+    CLUSTER_HEADER = 4,
   }
 }
 

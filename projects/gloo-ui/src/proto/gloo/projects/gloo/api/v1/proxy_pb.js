@@ -2613,7 +2613,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.RouteAction.oneofGroups_ = [[1,2,3]];
+proto.gloo.solo.io.RouteAction.oneofGroups_ = [[1,2,3,4]];
 
 /**
  * @enum {number}
@@ -2622,7 +2622,8 @@ proto.gloo.solo.io.RouteAction.DestinationCase = {
   DESTINATION_NOT_SET: 0,
   SINGLE: 1,
   MULTI: 2,
-  UPSTREAM_GROUP: 3
+  UPSTREAM_GROUP: 3,
+  CLUSTER_HEADER: 4
 };
 
 /**
@@ -2663,7 +2664,8 @@ proto.gloo.solo.io.RouteAction.toObject = function(includeInstance, msg) {
   var f, obj = {
     single: (f = msg.getSingle()) && proto.gloo.solo.io.Destination.toObject(includeInstance, f),
     multi: (f = msg.getMulti()) && proto.gloo.solo.io.MultiDestination.toObject(includeInstance, f),
-    upstreamGroup: (f = msg.getUpstreamGroup()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+    upstreamGroup: (f = msg.getUpstreamGroup()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    clusterHeader: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -2714,6 +2716,10 @@ proto.gloo.solo.io.RouteAction.deserializeBinaryFromReader = function(msg, reade
       var value = new solo$kit_api_v1_ref_pb.ResourceRef;
       reader.readMessage(value,solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setUpstreamGroup(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClusterHeader(value);
       break;
     default:
       reader.skipField();
@@ -2766,6 +2772,13 @@ proto.gloo.solo.io.RouteAction.serializeBinaryToWriter = function(message, write
       3,
       f,
       solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -2858,6 +2871,35 @@ proto.gloo.solo.io.RouteAction.prototype.clearUpstreamGroup = function() {
  */
 proto.gloo.solo.io.RouteAction.prototype.hasUpstreamGroup = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string cluster_header = 4;
+ * @return {string}
+ */
+proto.gloo.solo.io.RouteAction.prototype.getClusterHeader = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.RouteAction.prototype.setClusterHeader = function(value) {
+  jspb.Message.setOneofField(this, 4, proto.gloo.solo.io.RouteAction.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.RouteAction.prototype.clearClusterHeader = function() {
+  jspb.Message.setOneofField(this, 4, proto.gloo.solo.io.RouteAction.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteAction.prototype.hasClusterHeader = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

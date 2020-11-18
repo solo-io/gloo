@@ -362,7 +362,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     gzip: (f = msg.getGzip()) && gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f),
     buffer: (f = msg.getBuffer()) && gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f),
-    grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f)
+    grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f),
+    sanitizeClusterHeader: (f = msg.getSanitizeClusterHeader()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -463,6 +464,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder;
       reader.readMessage(value,gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.deserializeBinaryFromReader);
       msg.setGrpcJsonTranscoder(value);
+      break;
+    case 14:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setSanitizeClusterHeader(value);
       break;
     default:
       reader.skipField();
@@ -595,6 +601,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       13,
       f,
       gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.serializeBinaryToWriter
+    );
+  }
+  f = message.getSanitizeClusterHeader();
+  if (f != null) {
+    writer.writeMessage(
+      14,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -987,6 +1001,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearGrpcJsonTranscoder = funct
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasGrpcJsonTranscoder = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue sanitize_cluster_header = 14;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getSanitizeClusterHeader = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 14));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setSanitizeClusterHeader = function(value) {
+  jspb.Message.setWrapperField(this, 14, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearSanitizeClusterHeader = function() {
+  this.setSanitizeClusterHeader(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasSanitizeClusterHeader = function() {
+  return jspb.Message.getField(this, 14) != null;
 };
 
 

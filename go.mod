@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/ext-auth-plugin-examples v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.1.2
 	github.com/solo-io/ext-auth-service v0.7.0
-	github.com/solo-io/gloo v1.6.0-beta10
+	github.com/solo-io/gloo v1.6.0-beta11
 	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
@@ -48,7 +48,7 @@ require (
 	go.uber.org/zap v1.15.0
 	golang.org/x/mod v0.3.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
-	golang.org/x/tools v0.0.0-20201027213030-631220838841
+	golang.org/x/tools v0.0.0-20201117152513-9036a0f9af11
 	google.golang.org/genproto v0.0.0-20200626011028-ee7919e894b5
 	google.golang.org/grpc v1.29.1
 	gopkg.in/square/go-jose.v2 v2.5.1
@@ -70,7 +70,6 @@ replace (
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
-
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // override wasme requirement
 

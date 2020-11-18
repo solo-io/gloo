@@ -299,6 +299,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
               name: values.routeDestination?.metadata?.name!,
               namespace: values.routeDestination?.metadata?.namespace!
             }
+            , clusterHeader : ""
           }
         };
       } else if (values.destinationType === 'Upstream') {
@@ -314,10 +315,11 @@ export const CreateRouteModal = React.memo((props: Props) => {
                 namespace: values.routeDestination!.metadata!.namespace
               },
               destinationSpec
-            }
+            },
+            clusterHeader: ""
           }
         };
-      }
+      } 
 
       dispatch(
         updateRouteTable({
@@ -341,7 +343,7 @@ export const CreateRouteModal = React.memo((props: Props) => {
                     queryParametersList: values.queryParameters
                   }
                 ],
-                ...destination
+                ...destination,
               },
               ...newRoutesList
             ]
@@ -416,7 +418,8 @@ export const CreateRouteModal = React.memo((props: Props) => {
                   upstreamGroup: {
                     name: values.routeDestination!.metadata!.name,
                     namespace: values.routeDestination!.metadata!.namespace
-                  }
+                  },
+                  clusterHeader: ""
                 }
               },
               virtualServiceRef: {
@@ -462,7 +465,8 @@ export const CreateRouteModal = React.memo((props: Props) => {
                       namespace: values.routeDestination!.metadata!.namespace
                     },
                     destinationSpec
-                  }
+                  },
+                  clusterHeader: ""
                 }
               }
             }

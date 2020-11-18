@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/sanitize_cluster_header"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
@@ -73,6 +74,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 		PluginExtensionsFuncs: []func() plugins.Plugin{
 			func() plugins.Plugin { return ratelimit.NewPlugin() },
 			func() plugins.Plugin { return extauth.NewPlugin() },
+			func() plugins.Plugin { return sanitize_cluster_header.NewPlugin() },
 			func() plugins.Plugin { return rbac.NewPlugin() },
 			func() plugins.Plugin { return jwt.NewPlugin() },
 			func() plugins.Plugin { return waf.NewPlugin() },

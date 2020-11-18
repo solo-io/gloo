@@ -141,6 +141,11 @@ export class HttpListenerOptions extends jspb.Message {
   getGrpcJsonTranscoder(): gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder | undefined;
   setGrpcJsonTranscoder(value?: gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder): void;
 
+  hasSanitizeClusterHeader(): boolean;
+  clearSanitizeClusterHeader(): void;
+  getSanitizeClusterHeader(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setSanitizeClusterHeader(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -166,6 +171,7 @@ export namespace HttpListenerOptions {
     proxyLatency?: gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
     buffer?: gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.AsObject,
     grpcJsonTranscoder?: gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
+    sanitizeClusterHeader?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 

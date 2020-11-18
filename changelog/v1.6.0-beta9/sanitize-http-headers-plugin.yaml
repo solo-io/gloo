@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/3749
+    resolvesIssue: true
+    description: >
+      Sanitize downstream headers that match envoy's cluster_header destination type.
+      See https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-field-config-route-v3-routeaction-cluster-header
+      for more details about this field.

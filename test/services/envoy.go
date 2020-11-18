@@ -94,6 +94,12 @@ func NewEnvoyFactory() (*EnvoyFactory, error) {
 		}, nil
 	}
 
+	// if ENVOY_IMAGE_TAG is specified, always use docker image
+	if imageTag := os.Getenv("ENVOY_IMAGE_TAG"); imageTag != "" {
+		log.Printf("Using docker to run envoy")
+		return &EnvoyFactory{useDocker: true}, nil
+	}
+
 	// maybe it is in the path?!
 	envoypath, err := exec.LookPath("envoy")
 	if err == nil {
@@ -311,6 +317,7 @@ func (ei *EnvoyInstance) runContainer() error {
 	image := "quay.io/solo-io/gloo-ee-envoy-wrapper:" + envoyImageTag
 	args := []string{"run", "-d", "--rm", "--name", containerName,
 		"-p", "8080:8080",
+		"-p", "8083:8083",
 		"-p", "8443:8443",
 		"-p", fmt.Sprintf("%v:%v", ei.AdminPort, ei.AdminPort),
 		"--entrypoint=envoy",

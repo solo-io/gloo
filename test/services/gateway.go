@@ -176,6 +176,7 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 		Gateways:        f,
 		VirtualServices: f,
 		Proxies:         f,
+		RouteTables:     f,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
