@@ -12,6 +12,7 @@ import (
 	enterprise "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	reporter "github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	collectors "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/collectors"
+	zap "go.uber.org/zap"
 )
 
 // MockConfigCollector is a mock of ConfigCollector interface
@@ -62,11 +63,12 @@ func (mr *MockConfigCollectorMockRecorder) ProcessRoute(route, virtualHost, prox
 }
 
 // ToXdsConfiguration mocks base method
-func (m *MockConfigCollector) ToXdsConfiguration() *enterprise.RateLimitConfig {
+func (m *MockConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToXdsConfiguration")
 	ret0, _ := ret[0].(*enterprise.RateLimitConfig)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ToXdsConfiguration indicates an expected call of ToXdsConfiguration
@@ -99,16 +101,16 @@ func (m *MockConfigCollectorFactory) EXPECT() *MockConfigCollectorFactoryMockRec
 }
 
 // MakeInstance mocks base method
-func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, reports reporter.ResourceReports) (collectors.ConfigCollector, error) {
+func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, reports reporter.ResourceReports, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, reports)
+	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, reports, logger)
 	ret0, _ := ret[0].(collectors.ConfigCollector)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // MakeInstance indicates an expected call of MakeInstance
-func (mr *MockConfigCollectorFactoryMockRecorder) MakeInstance(typ, snapshot, reports interface{}) *gomock.Call {
+func (mr *MockConfigCollectorFactoryMockRecorder) MakeInstance(typ, snapshot, reports, logger interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeInstance", reflect.TypeOf((*MockConfigCollectorFactory)(nil).MakeInstance), typ, snapshot, reports)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeInstance", reflect.TypeOf((*MockConfigCollectorFactory)(nil).MakeInstance), typ, snapshot, reports, logger)
 }

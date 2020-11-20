@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
+	"go.uber.org/zap"
 )
 
 var UnknownCollectorTypeErr = func(typ CollectorType) error {
@@ -15,26 +16,29 @@ var UnknownCollectorTypeErr = func(typ CollectorType) error {
 
 type collectorFactory struct {
 	settings                *ratelimit.ServiceSettings
+	globalTranslator        shims.GlobalRateLimitTranslator
 	crdTranslator           shims.RateLimitConfigTranslator
 	ingressConfigTranslator translation.BasicRateLimitTranslator
 }
 
 func NewCollectorFactory(
 	settings *ratelimit.ServiceSettings,
+	globalTranslator shims.GlobalRateLimitTranslator,
 	crdTranslator shims.RateLimitConfigTranslator,
 	ingressConfigTranslator translation.BasicRateLimitTranslator,
 ) ConfigCollectorFactory {
 	return collectorFactory{
 		settings:                settings,
+		globalTranslator:        globalTranslator,
 		crdTranslator:           crdTranslator,
 		ingressConfigTranslator: ingressConfigTranslator,
 	}
 }
 
-func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1.ApiSnapshot, reports reporter.ResourceReports) (ConfigCollector, error) {
+func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1.ApiSnapshot, reports reporter.ResourceReports, logger *zap.SugaredLogger) (ConfigCollector, error) {
 	switch typ {
 	case Global:
-		return NewGlobalConfigCollector(f.settings), nil
+		return NewGlobalConfigCollector(f.settings, logger, f.globalTranslator), nil
 	case Basic:
 		return NewBasicConfigCollector(reports, f.ingressConfigTranslator), nil
 	case Crd:

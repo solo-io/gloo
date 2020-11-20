@@ -53,9 +53,9 @@ type Plugin struct {
 
 	authUserIdHeader string
 
-	basicConfigTranslator translation.BasicRateLimitTranslator
-
-	crdConfigTranslator shims.RateLimitConfigTranslator
+	basicConfigTranslator  translation.BasicRateLimitTranslator
+	globalConfigTranslator shims.GlobalRateLimitTranslator
+	crdConfigTranslator    shims.RateLimitConfigTranslator
 
 	// Set of virtual host / route names for resources with Basic rate limits configured.
 	basicRatelimitDescriptorNames map[string]struct{}
@@ -64,17 +64,20 @@ type Plugin struct {
 func NewPlugin() *Plugin {
 	return NewPluginWithTranslators(
 		translation.NewBasicRateLimitTranslator(),
+		shims.NewGlobalRateLimitTranslator(),
 		shims.NewRateLimitConfigTranslator(),
 	)
 }
 
 func NewPluginWithTranslators(
 	basic translation.BasicRateLimitTranslator,
+	global shims.GlobalRateLimitTranslator,
 	crd shims.RateLimitConfigTranslator,
 ) *Plugin {
 	return &Plugin{
-		basicConfigTranslator: basic,
-		crdConfigTranslator:   crd,
+		basicConfigTranslator:  basic,
+		globalConfigTranslator: global,
+		crdConfigTranslator:    crd,
 	}
 }
 
@@ -100,6 +103,13 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		errs   = &multierror.Error{}
 	)
 
+	// include SetActions which were ignored in Gloo OS
+	setRateLimits, err := p.getSetRateLimits(params.Ctx, in.GetOptions().GetRatelimit().GetRateLimits())
+	if err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	limits = setRateLimits
+
 	basicRateLimits, err := p.getBasicRateLimits(in.GetOptions().GetRatelimitBasic(), in.GetName(), params)
 	if err != nil {
 		errs = multierror.Append(errs, err)
@@ -113,7 +123,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	limits = append(limits, crdRateLimits...)
 
 	if len(limits) > 0 {
-		out.RateLimits = limits
+		out.RateLimits = append(out.RateLimits, limits...)
 	}
 	return errs.ErrorOrNil()
 }
@@ -134,6 +144,13 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		limits []*envoyroute.RateLimit
 		errs   = &multierror.Error{}
 	)
+
+	// include SetActions which were ignored in Gloo OS
+	setRateLimits, err := p.getSetRateLimits(params.Ctx, in.GetOptions().GetRatelimit().GetRateLimits())
+	if err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	limits = setRateLimits
 
 	basicRateLimits, err := p.getBasicRateLimits(in.GetOptions().GetRatelimitBasic(), in.GetName(), params.VirtualHostParams)
 	if err != nil {
@@ -185,6 +202,30 @@ type rateLimitOpts interface {
 	GetRateLimitConfigs() *ratelimit.RateLimitConfigRefs
 }
 
+func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_api_rl_types.RateLimitActions) ([]*envoyroute.RateLimit, error) {
+	if len(soloApiActions) == 0 {
+		return nil, nil
+	}
+
+	rlActions, err := p.globalConfigTranslator.ToActions(soloApiActions)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []*envoyroute.RateLimit
+	for _, rlAction := range rlActions {
+		if len(rlAction.SetActions) != 0 {
+			rl := &envoyroute.RateLimit{
+				Stage: &wrappers.UInt32Value{Value: rlplugin.CustomStage},
+			}
+			// rlAction.SetActions has the prepended action by now from rate-limiter ToActions() translation
+			rl.Actions = rlplugin.ConvertActions(ctx, rlAction.SetActions)
+			ret = append(ret, rl)
+		}
+	}
+	return ret, nil
+}
+
 func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1.ApiSnapshot) ([]*envoyroute.RateLimit, error) {
 	var (
 		result []*envoyroute.RateLimit
@@ -211,11 +252,22 @@ func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 
 		// Translate the actions to the envoy config format
 		for _, rateLimitActions := range actions {
-			rl := &envoyroute.RateLimit{
-				Stage: &wrappers.UInt32Value{Value: CrdStage},
+			if len(rateLimitActions.Actions) != 0 {
+				rl := &envoyroute.RateLimit{
+					Stage: &wrappers.UInt32Value{Value: CrdStage},
+				}
+				rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.Actions)
+				result = append(result, rl)
 			}
-			rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.Actions)
-			result = append(result, rl)
+
+			if len(rateLimitActions.SetActions) != 0 {
+				rl := &envoyroute.RateLimit{
+					Stage: &wrappers.UInt32Value{Value: CrdStage},
+				}
+				// rateLimitActions.SetActions has the prepended actions by now from rate-limiter ToActions() translation
+				rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.SetActions)
+				result = append(result, rl)
+			}
 		}
 	}
 

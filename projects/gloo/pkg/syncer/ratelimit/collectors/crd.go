@@ -17,7 +17,7 @@ type crdConfigCollector struct {
 	reports    reporter.ResourceReports
 	translator rate_limiter_shims.RateLimitConfigTranslator
 
-	resources map[core.ResourceRef]*solo_api_rl_types.Descriptor
+	resources map[core.ResourceRef]*solo_api_rl_types.RateLimitConfigSpec_Raw
 }
 
 func NewCrdConfigCollector(
@@ -29,7 +29,7 @@ func NewCrdConfigCollector(
 		snapshot:   snapshot,
 		reports:    reports,
 		translator: translator,
-		resources:  map[core.ResourceRef]*solo_api_rl_types.Descriptor{},
+		resources:  map[core.ResourceRef]*solo_api_rl_types.RateLimitConfigSpec_Raw{},
 	}
 }
 
@@ -49,14 +49,15 @@ func (c *crdConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.Virtual
 	c.processConfigRef(configRef, proxy)
 }
 
-func (c *crdConfigCollector) ToXdsConfiguration() *enterprise.RateLimitConfig {
+func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
 	rlCrdConfig := &enterprise.RateLimitConfig{
 		Domain: rlIngressPlugin.ConfigCrdDomain,
 	}
 	for _, descriptor := range c.resources {
-		rlCrdConfig.Descriptors = append(rlCrdConfig.Descriptors, descriptor)
+		rlCrdConfig.Descriptors = append(rlCrdConfig.Descriptors, descriptor.Descriptors...)
+		rlCrdConfig.SetDescriptors = append(rlCrdConfig.SetDescriptors, descriptor.SetDescriptors...)
 	}
-	return rlCrdConfig
+	return rlCrdConfig, nil
 }
 
 func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRefs, parentProxy resources.InputResource) {
@@ -75,13 +76,13 @@ func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRef
 		}
 
 		soloApiResource := solo_api_rl_types.RateLimitConfig(glooApiResource.RateLimitConfig)
-		descriptor, err := c.translator.ToDescriptor(&soloApiResource)
+		descriptors, err := c.translator.ToDescriptors(&soloApiResource)
 		if err != nil {
 			c.reports.AddError(parentProxy, err)
 			c.reports.AddError(glooApiResource, err)
 			continue
 		}
 
-		c.resources[resourceRef] = descriptor
+		c.resources[resourceRef] = descriptors
 	}
 }

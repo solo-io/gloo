@@ -76,7 +76,8 @@ var _ = Describe("Basic Config Collector", func() {
 
 			collector.ProcessVirtualHost(virtualHost1, proxy)
 
-			actual := collector.ToXdsConfiguration()
+			actual, err := collector.ToXdsConfiguration()
+			Expect(err).To(BeNil())
 			Expect(actual).To(Equal(emptyXdsConfig))
 			Expect(reports).To(HaveLen(1))
 
@@ -102,7 +103,8 @@ var _ = Describe("Basic Config Collector", func() {
 				Descriptors: []*v1alpha1.Descriptor{descriptor1, descriptor2},
 			}
 
-			actual := collector.ToXdsConfiguration()
+			actual, err := collector.ToXdsConfiguration()
+			Expect(err).To(BeNil())
 			Expect(reports).To(HaveLen(0))
 			Expect(actual).To(Equal(expected))
 		})

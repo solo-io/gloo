@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 
+	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/rotisserie/eris"
@@ -66,7 +68,8 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 			logger.Debugw("received new rate limit config", zap.Any("config", resources))
 
 			for _, cfg := range resources {
-				domain, err := x.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain, cfg.Descriptors)
+				domain, err := x.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain,
+					&solo_api_rl.RateLimitConfigSpec_Raw{Descriptors: cfg.Descriptors, SetDescriptors: cfg.SetDescriptors})
 				if err != nil {
 					logger.Errorw("failed to generate configuration for domain", zap.String("domain", cfg.Domain), zap.Error(err))
 					return ConfigGenErr(err, cfg.Domain)

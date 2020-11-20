@@ -3,10 +3,14 @@
 // file: gloo/projects/gloo/api/v1/options/tracing/tracing.proto
 
 import * as jspb from "google-protobuf";
+import * as gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb from "../../../../../../../gloo/projects/gloo/api/external/envoy/config/trace/v3/zipkin_pb";
+import * as gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb from "../../../../../../../gloo/projects/gloo/api/external/envoy/config/trace/v3/datadog_pb";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
+import * as solo_kit_api_v1_ref_pb from "../../../../../../../solo-kit/api/v1/ref_pb";
 
 export class ListenerTracingSettings extends jspb.Message {
   clearRequestHeadersForTagsList(): void;
@@ -22,6 +26,17 @@ export class ListenerTracingSettings extends jspb.Message {
   getTracePercentages(): TracePercentages | undefined;
   setTracePercentages(value?: TracePercentages): void;
 
+  hasZipkinConfig(): boolean;
+  clearZipkinConfig(): void;
+  getZipkinConfig(): gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig | undefined;
+  setZipkinConfig(value?: gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig): void;
+
+  hasDatadogConfig(): boolean;
+  clearDatadogConfig(): void;
+  getDatadogConfig(): gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig | undefined;
+  setDatadogConfig(value?: gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig): void;
+
+  getProviderConfigCase(): ListenerTracingSettings.ProviderConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerTracingSettings.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerTracingSettings): ListenerTracingSettings.AsObject;
@@ -37,6 +52,14 @@ export namespace ListenerTracingSettings {
     requestHeadersForTagsList: Array<string>,
     verbose: boolean,
     tracePercentages?: TracePercentages.AsObject,
+    zipkinConfig?: gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.AsObject,
+    datadogConfig?: gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.AsObject,
+  }
+
+  export enum ProviderConfigCase {
+    PROVIDER_CONFIG_NOT_SET = 0,
+    ZIPKIN_CONFIG = 4,
+    DATADOG_CONFIG = 5,
   }
 }
 

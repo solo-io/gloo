@@ -36,19 +36,19 @@ func (m *MockRateLimitConfigTranslator) EXPECT() *MockRateLimitConfigTranslatorM
 	return m.recorder
 }
 
-// ToDescriptor mocks base method
-func (m *MockRateLimitConfigTranslator) ToDescriptor(config *v1alpha1.RateLimitConfig) (*v1alpha1.Descriptor, error) {
+// ToDescriptors mocks base method
+func (m *MockRateLimitConfigTranslator) ToDescriptors(soloApiConfig *v1alpha1.RateLimitConfig) (*v1alpha1.RateLimitConfigSpec_Raw, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ToDescriptor", config)
-	ret0, _ := ret[0].(*v1alpha1.Descriptor)
+	ret := m.ctrl.Call(m, "ToDescriptors", soloApiConfig)
+	ret0, _ := ret[0].(*v1alpha1.RateLimitConfigSpec_Raw)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ToDescriptor indicates an expected call of ToDescriptor
-func (mr *MockRateLimitConfigTranslatorMockRecorder) ToDescriptor(config interface{}) *gomock.Call {
+// ToDescriptors indicates an expected call of ToDescriptors
+func (mr *MockRateLimitConfigTranslatorMockRecorder) ToDescriptors(soloApiConfig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToDescriptor", reflect.TypeOf((*MockRateLimitConfigTranslator)(nil).ToDescriptor), config)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToDescriptors", reflect.TypeOf((*MockRateLimitConfigTranslator)(nil).ToDescriptors), soloApiConfig)
 }
 
 // ToActions mocks base method
@@ -90,16 +90,69 @@ func (m *MockRateLimitDomainGenerator) EXPECT() *MockRateLimitDomainGeneratorMoc
 }
 
 // NewRateLimitDomain mocks base method
-func (m *MockRateLimitDomainGenerator) NewRateLimitDomain(ctx context.Context, domain string, descriptors []*v1alpha1.Descriptor) (config.RateLimitDomain, error) {
+func (m *MockRateLimitDomainGenerator) NewRateLimitDomain(ctx context.Context, domain string, rateLimitConfig *v1alpha1.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewRateLimitDomain", ctx, domain, descriptors)
+	ret := m.ctrl.Call(m, "NewRateLimitDomain", ctx, domain, rateLimitConfig)
 	ret0, _ := ret[0].(config.RateLimitDomain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NewRateLimitDomain indicates an expected call of NewRateLimitDomain
-func (mr *MockRateLimitDomainGeneratorMockRecorder) NewRateLimitDomain(ctx, domain, descriptors interface{}) *gomock.Call {
+func (mr *MockRateLimitDomainGeneratorMockRecorder) NewRateLimitDomain(ctx, domain, rateLimitConfig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRateLimitDomain", reflect.TypeOf((*MockRateLimitDomainGenerator)(nil).NewRateLimitDomain), ctx, domain, descriptors)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRateLimitDomain", reflect.TypeOf((*MockRateLimitDomainGenerator)(nil).NewRateLimitDomain), ctx, domain, rateLimitConfig)
+}
+
+// MockGlobalRateLimitTranslator is a mock of GlobalRateLimitTranslator interface
+type MockGlobalRateLimitTranslator struct {
+	ctrl     *gomock.Controller
+	recorder *MockGlobalRateLimitTranslatorMockRecorder
+}
+
+// MockGlobalRateLimitTranslatorMockRecorder is the mock recorder for MockGlobalRateLimitTranslator
+type MockGlobalRateLimitTranslatorMockRecorder struct {
+	mock *MockGlobalRateLimitTranslator
+}
+
+// NewMockGlobalRateLimitTranslator creates a new mock instance
+func NewMockGlobalRateLimitTranslator(ctrl *gomock.Controller) *MockGlobalRateLimitTranslator {
+	mock := &MockGlobalRateLimitTranslator{ctrl: ctrl}
+	mock.recorder = &MockGlobalRateLimitTranslatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockGlobalRateLimitTranslator) EXPECT() *MockGlobalRateLimitTranslatorMockRecorder {
+	return m.recorder
+}
+
+// ToSetDescriptors mocks base method
+func (m *MockGlobalRateLimitTranslator) ToSetDescriptors(descriptors []*v1alpha1.Descriptor, setDescriptors []*v1alpha1.SetDescriptor) ([]*v1alpha1.SetDescriptor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToSetDescriptors", descriptors, setDescriptors)
+	ret0, _ := ret[0].([]*v1alpha1.SetDescriptor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ToSetDescriptors indicates an expected call of ToSetDescriptors
+func (mr *MockGlobalRateLimitTranslatorMockRecorder) ToSetDescriptors(descriptors, setDescriptors interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToSetDescriptors", reflect.TypeOf((*MockGlobalRateLimitTranslator)(nil).ToSetDescriptors), descriptors, setDescriptors)
+}
+
+// ToActions mocks base method
+func (m *MockGlobalRateLimitTranslator) ToActions(rlActions []*v1alpha1.RateLimitActions) ([]*v1alpha1.RateLimitActions, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToActions", rlActions)
+	ret0, _ := ret[0].([]*v1alpha1.RateLimitActions)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ToActions indicates an expected call of ToActions
+func (mr *MockGlobalRateLimitTranslatorMockRecorder) ToActions(rlActions interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToActions", reflect.TypeOf((*MockGlobalRateLimitTranslator)(nil).ToActions), rlActions)
 }

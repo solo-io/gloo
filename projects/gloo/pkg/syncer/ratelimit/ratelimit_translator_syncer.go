@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/collectors"
@@ -66,10 +68,14 @@ func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyn
 	if params.RateLimitServiceSettings.GetDescriptors() != nil {
 		settings.Descriptors = params.RateLimitServiceSettings.Descriptors
 	}
+	if params.RateLimitServiceSettings.GetSetDescriptors() != nil {
+		settings.SetDescriptors = params.RateLimitServiceSettings.SetDescriptors
+	}
 
 	return NewTranslatorSyncer(
 		collectors.NewCollectorFactory(
 			&settings,
+			rate_limiter_shims.NewGlobalRateLimitTranslator(),
 			rate_limiter_shims.NewRateLimitConfigTranslator(),
 			translation.NewBasicRateLimitTranslator(),
 		),
@@ -108,7 +114,7 @@ func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSn
 		}
 	}()
 
-	configCollectors, err := newCollectorSet(s.collectorFactory, snap, reports)
+	configCollectors, err := newCollectorSet(s.collectorFactory, snap, reports, logger)
 	if err != nil {
 		return syncerError(ctx, err)
 	}
@@ -138,16 +144,19 @@ func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSn
 		}
 	}
 
-	// Get all the collected rate limit config
-	configs := configCollectors.toXdsConfigurations()
-
 	var (
 		errs              = &multierror.Error{}
 		snapshotResources []envoycache.Resource
 	)
+
+	// Get all the collected rate limit config
+	configs, err := configCollectors.toXdsConfigurations()
+	errs = multierror.Append(errs, err)
+
 	for _, cfg := range configs {
 		// Verify xDS configuration can be translated to valid RL server configuration
-		if _, err := s.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain, cfg.Descriptors); err != nil {
+		if _, err := s.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain,
+			&solo_api_rl.RateLimitConfigSpec_Raw{Descriptors: cfg.Descriptors, SetDescriptors: cfg.SetDescriptors}); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 		snapshotResources = append(snapshotResources, v1.NewRateLimitConfigXdsResourceWrapper(cfg))
@@ -188,6 +197,7 @@ func newCollectorSet(
 	collectorFactory collectors.ConfigCollectorFactory,
 	snapshot *gloov1.ApiSnapshot,
 	reports reporter.ResourceReports,
+	logger *zap.SugaredLogger,
 ) (configCollectorSet, error) {
 	set := configCollectorSet{}
 
@@ -196,7 +206,7 @@ func newCollectorSet(
 		collectors.Basic,
 		collectors.Crd,
 	} {
-		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, reports)
+		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, reports, logger)
 		if err != nil {
 			return configCollectorSet{}, err
 		}
@@ -217,10 +227,15 @@ func (c configCollectorSet) processRoute(route *gloov1.Route, virtualHost *gloov
 	}
 }
 
-func (c configCollectorSet) toXdsConfigurations() []*v1.RateLimitConfig {
+func (c configCollectorSet) toXdsConfigurations() ([]*v1.RateLimitConfig, error) {
 	var result []*v1.RateLimitConfig
+	var errs *multierror.Error
 	for _, collector := range c.collectors {
-		result = append(result, collector.ToXdsConfiguration())
+		config, err := collector.ToXdsConfiguration()
+		if err != nil {
+			errs = multierror.Append(errs, err)
+		}
+		result = append(result, config)
 	}
-	return result
+	return result, errs.ErrorOrNil()
 }

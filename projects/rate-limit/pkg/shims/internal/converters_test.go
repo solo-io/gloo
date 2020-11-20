@@ -168,7 +168,164 @@ var _ = Describe("Converters", func() {
 		}, 10)
 	})
 
-	Describe("converting rate-limiter actions to their solo-apis equivalents", func() {
+	Describe("converting RateLimitConfigSpec_Raw type between solo-apis and rate-limiter equivalents", func() {
+		var (
+			soloApiResource         *solo_apis.RateLimitConfigSpec_Raw
+			rlApiEquivalentResource *rl_api_types.RateLimitConfigSpec_Raw
+		)
+
+		BeforeEach(func() {
+			soloApiResource = &solo_apis.RateLimitConfigSpec_Raw{
+				Descriptors: []*solo_apis_types.Descriptor{
+					{
+						Key:   "key",
+						Value: "val",
+						RateLimit: &solo_apis_types.RateLimit{
+							Unit:            solo_apis_types.RateLimit_SECOND,
+							RequestsPerUnit: 10,
+						},
+						Descriptors: []*solo_apis_types.Descriptor{
+							{
+								Key:   "nested-key",
+								Value: "nested-val",
+								RateLimit: &solo_apis_types.RateLimit{
+									Unit:            solo_apis_types.RateLimit_SECOND,
+									RequestsPerUnit: 20,
+								},
+							},
+						},
+						Weight:      42,
+						AlwaysApply: true,
+					},
+				},
+				SetDescriptors: []*solo_apis_types.SetDescriptor{
+					{
+						SimpleDescriptors: []*solo_apis_types.SimpleDescriptor{
+							{
+								Key:   "key",
+								Value: "val",
+							},
+							{
+								Key:   "next-key",
+								Value: "next-val",
+							},
+						},
+						RateLimit: &solo_apis_types.RateLimit{
+							Unit:            solo_apis_types.RateLimit_SECOND,
+							RequestsPerUnit: 10,
+						},
+						AlwaysApply: true,
+					},
+				},
+				RateLimits: []*solo_apis_types.RateLimitActions{
+					{
+						Actions: []*solo_apis_types.Action{
+							{
+								ActionSpecifier: &solo_apis_types.Action_GenericKey_{
+									GenericKey: &solo_apis_types.Action_GenericKey{
+										DescriptorValue: "foo",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			rlApiEquivalentResource = &rl_api_types.RateLimitConfigSpec_Raw{
+				Descriptors: []*rl_api_types.Descriptor{
+					{
+						Key:   "key",
+						Value: "val",
+						RateLimit: &rl_api_types.RateLimit{
+							Unit:            rl_api_types.RateLimit_SECOND,
+							RequestsPerUnit: 10,
+						},
+						Descriptors: []*rl_api_types.Descriptor{
+							{
+								Key:   "nested-key",
+								Value: "nested-val",
+								RateLimit: &rl_api_types.RateLimit{
+									Unit:            rl_api_types.RateLimit_SECOND,
+									RequestsPerUnit: 20,
+								},
+							},
+						},
+						Weight:      42,
+						AlwaysApply: true,
+					},
+				},
+				SetDescriptors: []*rl_api_types.SetDescriptor{
+					{
+						SimpleDescriptors: []*rl_api_types.SimpleDescriptor{
+							{
+								Key:   "key",
+								Value: "val",
+							},
+							{
+								Key:   "next-key",
+								Value: "next-val",
+							},
+						},
+						RateLimit: &rl_api_types.RateLimit{
+							Unit:            rl_api_types.RateLimit_SECOND,
+							RequestsPerUnit: 10,
+						},
+						AlwaysApply: true,
+					},
+				},
+				RateLimits: []*rl_api_types.RateLimitActions{
+					{
+						Actions: []*rl_api_types.Action{
+							{
+								ActionSpecifier: &rl_api_types.Action_GenericKey_{
+									GenericKey: &rl_api_types.Action_GenericKey{
+										DescriptorValue: "foo",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("should successfully convert the resource to rate-limiter", func() {
+			actual, err := internal.ToRateLimiterResourceSpec_Raw(soloApiResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(rlApiEquivalentResource))
+		})
+
+		Measure("1000 function calls", func(b Benchmarker) {
+			runtime := b.Time("runtime", func() {
+				for i := 0; i < 1000; i++ {
+					_, err := internal.ToRateLimiterResourceSpec_Raw(soloApiResource)
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
+
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+		}, 10)
+
+		It("should successfully convert the resource to solo-apis", func() {
+			actual, err := internal.ToSoloAPIsResourceSpec_Raw(rlApiEquivalentResource)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(soloApiResource))
+		})
+
+		Measure("1000 function calls", func(b Benchmarker) {
+			runtime := b.Time("runtime", func() {
+				for i := 0; i < 1000; i++ {
+					_, err := internal.ToSoloAPIsResourceSpec_Raw(rlApiEquivalentResource)
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
+
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+		}, 10)
+	})
+
+	Describe("converting actions between rate-limiter and solo-apis equivalents", func() {
 		var (
 			rlApiActions             []*rl_api_types.RateLimitActions
 			equivalentSoloApiActions []*solo_apis_types.RateLimitActions
@@ -245,7 +402,7 @@ var _ = Describe("Converters", func() {
 			}
 		})
 
-		It("should successfully convert the resources", func() {
+		It("should successfully convert the resources to solo-apis", func() {
 			actual, err := internal.ToSoloAPIsActionsSlice(rlApiActions)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(actual).To(Equal(equivalentSoloApiActions))
@@ -255,6 +412,23 @@ var _ = Describe("Converters", func() {
 			runtime := b.Time("runtime", func() {
 				for i := 0; i < 1000; i++ {
 					_, err := internal.ToSoloAPIsActionsSlice(rlApiActions)
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
+
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+		}, 10)
+
+		It("should successfully convert the resources to rate-limiter", func() {
+			actual, err := internal.ToRateLimiterActionsSlice(equivalentSoloApiActions)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(rlApiActions))
+		})
+
+		Measure("1000 function calls", func(b Benchmarker) {
+			runtime := b.Time("runtime", func() {
+				for i := 0; i < 1000; i++ {
+					_, err := internal.ToRateLimiterActionsSlice(equivalentSoloApiActions)
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -342,6 +516,100 @@ var _ = Describe("Converters", func() {
 			runtime := b.Time("runtime", func() {
 				for i := 0; i < 1000; i++ {
 					_, err := internal.ToRateLimiterDescriptors(soloApiDescriptors)
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
+
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+		}, 10)
+	})
+
+	Describe("converting setDescriptors between their solo-apis and rate-limiter equivalents", func() {
+		var (
+			soloApiDescriptors         []*solo_apis_types.SetDescriptor
+			rlApiEquivalentDescriptors []*rl_api_types.SetDescriptor
+		)
+
+		BeforeEach(func() {
+			soloApiDescriptors = []*solo_apis_types.SetDescriptor{
+				{
+					SimpleDescriptors: []*solo_apis_types.SimpleDescriptor{
+						{
+							Key:   "key-1",
+							Value: "val-1",
+						},
+						{
+							Key:   "next-key",
+							Value: "next-val",
+						},
+					},
+					RateLimit: &solo_apis_types.RateLimit{
+						Unit:            solo_apis_types.RateLimit_SECOND,
+						RequestsPerUnit: 10,
+					},
+					AlwaysApply: true,
+				},
+				{
+					RateLimit: &solo_apis_types.RateLimit{
+						Unit:            solo_apis_types.RateLimit_HOUR,
+						RequestsPerUnit: 3600,
+					},
+				},
+			}
+			rlApiEquivalentDescriptors = []*rl_api_types.SetDescriptor{
+				{
+					SimpleDescriptors: []*rl_api_types.SimpleDescriptor{
+						{
+							Key:   "key-1",
+							Value: "val-1",
+						},
+						{
+							Key:   "next-key",
+							Value: "next-val",
+						},
+					},
+					RateLimit: &rl_api_types.RateLimit{
+						Unit:            rl_api_types.RateLimit_SECOND,
+						RequestsPerUnit: 10,
+					},
+					AlwaysApply: true,
+				},
+				{
+					RateLimit: &rl_api_types.RateLimit{
+						Unit:            rl_api_types.RateLimit_HOUR,
+						RequestsPerUnit: 3600,
+					},
+				},
+			}
+		})
+
+		It("should successfully convert the resources to rate-limiter", func() {
+			actual, err := internal.ToRateLimiterSetDescriptors(soloApiDescriptors)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(rlApiEquivalentDescriptors))
+		})
+
+		Measure("1000 function calls", func(b Benchmarker) {
+			runtime := b.Time("runtime", func() {
+				for i := 0; i < 1000; i++ {
+					_, err := internal.ToRateLimiterSetDescriptors(soloApiDescriptors)
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
+
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+		}, 10)
+
+		It("should successfully convert the resources to rate-limiter", func() {
+			actual, err := internal.ToSoloAPIsSetDescriptors(rlApiEquivalentDescriptors)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(soloApiDescriptors))
+		})
+
+		Measure("1000 function calls", func(b Benchmarker) {
+			runtime := b.Time("runtime", func() {
+				for i := 0; i < 1000; i++ {
+					_, err := internal.ToSoloAPIsSetDescriptors(rlApiEquivalentDescriptors)
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})

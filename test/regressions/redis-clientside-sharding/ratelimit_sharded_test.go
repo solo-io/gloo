@@ -102,7 +102,7 @@ var _ = Describe("RateLimit tests", func() {
 				return fmt.Errorf("should not have any virtualservices before test runs, found %v", len(virtualservices))
 			}
 			return nil
-		}).Should(BeNil())
+		}, "5s", "1s").Should(BeNil())
 
 		// Enable RateLimit with DenyOnFail
 		currentSettings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})

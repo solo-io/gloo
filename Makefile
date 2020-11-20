@@ -304,6 +304,15 @@ cleanup-node-modules:
 	# Remove node_modules to save disk-space (Eg in CI)
 	rm -rf $(GRPCSERVER_UI_DIR)/node_modules
 
+.PHONY: cleanup-local-docker-images
+cleanup-local-docker-images:
+	# Remove all of the kind images
+	docker images | grep solo-io | xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
+	# Remove the downloaded envoy-gloo-ee image
+	docker image rm $(ENVOY_GLOO_IMAGE)
+
+
+
 .PHONY: setup-ui-out-dir
 setup-ui-out-dir: grpcserver-ui-build-local $(GRPCSERVER_UI_DIR)/Dockerfile
 	mkdir -p $(GLOO_UI_OUT_DIR)

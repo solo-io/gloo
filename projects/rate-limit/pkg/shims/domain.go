@@ -14,9 +14,9 @@ func NewRateLimitDomainGenerator() RateLimitDomainGenerator {
 	return domainGenerator{}
 }
 
-func (domainGenerator) NewRateLimitDomain(ctx context.Context, domain string, descriptors []*solo_api_rl.Descriptor) (config.RateLimitDomain, error) {
+func (domainGenerator) NewRateLimitDomain(ctx context.Context, domain string, rateLimitConfig *solo_api_rl.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error) {
 	// Convert descriptors from the solo-api type to the rate-limiter type
-	convertedDescriptors, err := internal.ToRateLimiterDescriptors(descriptors)
+	convertedDescriptors, err := internal.ToRateLimiterResourceSpec_Raw(rateLimitConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -12,10 +12,14 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb = require('../../../../../../../envoy/config/trace/v3/zipkin_pb.js');
+var gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb = require('../../../../../../../envoy/config/trace/v3/datadog_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var extproto_ext_pb = require('../../../../../../../protoc-gen-ext/extproto/ext_pb.js');
+var solo$kit_api_v1_ref_pb = require('../../../../../../../solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.tracing.options.gloo.solo.io.ListenerTracingSettings', null, global);
 goog.exportSymbol('proto.tracing.options.gloo.solo.io.RouteTracingSettings', null, global);
 goog.exportSymbol('proto.tracing.options.gloo.solo.io.TracePercentages', null, global);
@@ -31,7 +35,7 @@ goog.exportSymbol('proto.tracing.options.gloo.solo.io.TracePercentages', null, g
  * @constructor
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.repeatedFields_, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_);
 };
 goog.inherits(proto.tracing.options.gloo.solo.io.ListenerTracingSettings, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -43,6 +47,32 @@ if (goog.DEBUG && !COMPILED) {
  * @const
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.repeatedFields_ = [1];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_ = [[4,5]];
+
+/**
+ * @enum {number}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.ProviderConfigCase = {
+  PROVIDER_CONFIG_NOT_SET: 0,
+  ZIPKIN_CONFIG: 4,
+  DATADOG_CONFIG: 5
+};
+
+/**
+ * @return {proto.tracing.options.gloo.solo.io.ListenerTracingSettings.ProviderConfigCase}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getProviderConfigCase = function() {
+  return /** @type {proto.tracing.options.gloo.solo.io.ListenerTracingSettings.ProviderConfigCase} */(jspb.Message.computeOneofCase(this, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_[0]));
+};
 
 
 
@@ -75,7 +105,9 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.toObject = function(i
   var f, obj = {
     requestHeadersForTagsList: jspb.Message.getRepeatedField(msg, 1),
     verbose: jspb.Message.getFieldWithDefault(msg, 2, false),
-    tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f)
+    tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f),
+    zipkinConfig: (f = msg.getZipkinConfig()) && gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.toObject(includeInstance, f),
+    datadogConfig: (f = msg.getDatadogConfig()) && gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -124,6 +156,16 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.deserializeBinaryFrom
       var value = new proto.tracing.options.gloo.solo.io.TracePercentages;
       reader.readMessage(value,proto.tracing.options.gloo.solo.io.TracePercentages.deserializeBinaryFromReader);
       msg.setTracePercentages(value);
+      break;
+    case 4:
+      var value = new gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig;
+      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.deserializeBinaryFromReader);
+      msg.setZipkinConfig(value);
+      break;
+    case 5:
+      var value = new gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig;
+      reader.readMessage(value,gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.deserializeBinaryFromReader);
+      msg.setDatadogConfig(value);
       break;
     default:
       reader.skipField();
@@ -174,6 +216,22 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.serializeBinaryToWrit
       3,
       f,
       proto.tracing.options.gloo.solo.io.TracePercentages.serializeBinaryToWriter
+    );
+  }
+  f = message.getZipkinConfig();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getDatadogConfig();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.serializeBinaryToWriter
     );
   }
 };
@@ -252,6 +310,66 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearTraceP
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasTracePercentages = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional envoy.config.trace.v3.ZipkinConfig zipkin_config = 4;
+ * @return {?proto.envoy.config.trace.v3.ZipkinConfig}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getZipkinConfig = function() {
+  return /** @type{?proto.envoy.config.trace.v3.ZipkinConfig} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig, 4));
+};
+
+
+/** @param {?proto.envoy.config.trace.v3.ZipkinConfig|undefined} value */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setZipkinConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_[0], value);
+};
+
+
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearZipkinConfig = function() {
+  this.setZipkinConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasZipkinConfig = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional envoy.config.trace.v3.DatadogConfig datadog_config = 5;
+ * @return {?proto.envoy.config.trace.v3.DatadogConfig}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getDatadogConfig = function() {
+  return /** @type{?proto.envoy.config.trace.v3.DatadogConfig} */ (
+    jspb.Message.getWrapperField(this, gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig, 5));
+};
+
+
+/** @param {?proto.envoy.config.trace.v3.DatadogConfig|undefined} value */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setDatadogConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_[0], value);
+};
+
+
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearDatadogConfig = function() {
+  this.setDatadogConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasDatadogConfig = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

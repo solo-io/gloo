@@ -56,7 +56,7 @@ func (i *basicConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.Virtu
 	i.descriptors = append(i.descriptors, descriptor)
 }
 
-func (i *basicConfigCollector) ToXdsConfiguration() *enterprise.RateLimitConfig {
+func (i *basicConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
 	basicConfig := &enterprise.RateLimitConfig{
 		Domain: rl_plugin.IngressDomain,
 	}
@@ -65,5 +65,5 @@ func (i *basicConfigCollector) ToXdsConfiguration() *enterprise.RateLimitConfig 
 		basicConfig.Descriptors = append(basicConfig.Descriptors, descriptor)
 	}
 
-	return basicConfig
+	return basicConfig, nil
 }

@@ -74,7 +74,8 @@ var _ = Describe("CRD Config Collector", func() {
 			It("generated no descriptors", func() {
 				collector.ProcessVirtualHost(&v1.VirtualHost{Options: &v1.VirtualHostOptions{}}, proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(0))
 			})
@@ -86,7 +87,8 @@ var _ = Describe("CRD Config Collector", func() {
 
 				collector.ProcessVirtualHost(virtualHostWithConfigs(invalidRef), proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(1))
 
@@ -102,11 +104,12 @@ var _ = Describe("CRD Config Collector", func() {
 			It("reports the corresponding error on both the resource and the proxy", func() {
 				testErr := eris.New("test error")
 
-				translator.EXPECT().ToDescriptor(toSoloApiResource(rl1)).Return(nil, testErr)
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(nil, testErr)
 
 				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(2))
 
@@ -123,16 +126,23 @@ var _ = Describe("CRD Config Collector", func() {
 		When("an existing config is referenced", func() {
 			It("generates the expected descriptors", func() {
 				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
 				expected := &enterprise.RateLimitConfig{
-					Domain:      rlIngressPlugin.ConfigCrdDomain,
-					Descriptors: []*v1alpha1.Descriptor{descriptor},
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
 				}
 
-				translator.EXPECT().ToDescriptor(toSoloApiResource(rl1)).Return(descriptor, nil)
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
 
 				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(expected))
 				Expect(reports).To(HaveLen(0))
 			})
@@ -145,7 +155,8 @@ var _ = Describe("CRD Config Collector", func() {
 			It("generated no descriptors", func() {
 				collector.ProcessRoute(&v1.Route{}, &v1.VirtualHost{}, proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(0))
 			})
@@ -157,7 +168,8 @@ var _ = Describe("CRD Config Collector", func() {
 
 				collector.ProcessRoute(routeWithConfigs(invalidRef), &v1.VirtualHost{}, proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(1))
 
@@ -173,11 +185,12 @@ var _ = Describe("CRD Config Collector", func() {
 			It("reports the corresponding error on the proxy", func() {
 				testErr := eris.New("test error")
 
-				translator.EXPECT().ToDescriptor(toSoloApiResource(rl1)).Return(nil, testErr)
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(nil, testErr)
 
 				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(emptyXdsConfig))
 				Expect(reports).To(HaveLen(2))
 
@@ -194,16 +207,23 @@ var _ = Describe("CRD Config Collector", func() {
 		When("an existing config is referenced", func() {
 			It("generates the expected descriptors", func() {
 				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
 				expected := &enterprise.RateLimitConfig{
-					Domain:      rlIngressPlugin.ConfigCrdDomain,
-					Descriptors: []*v1alpha1.Descriptor{descriptor},
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
 				}
 
-				translator.EXPECT().ToDescriptor(toSoloApiResource(rl1)).Return(descriptor, nil)
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
 
 				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
 
-				actual := collector.ToXdsConfiguration()
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
 				Expect(actual).To(Equal(expected))
 				Expect(reports).To(HaveLen(0))
 			})
@@ -217,10 +237,24 @@ var _ = Describe("CRD Config Collector", func() {
 			descriptor2 := &v1alpha1.Descriptor{Key: "bar"}
 			descriptor3 := &v1alpha1.Descriptor{Key: "baz"}
 
+			setDescriptor1 := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "s-foo"}}}
+			setDescriptor2 := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "s-bar1"}, {Key: "s-bar2"}}}
+			setDescriptor3a := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "s-baz1"}}}
+			setDescriptor3b := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "s-baz2"}}}
+
 			// Note that the expectation is for each one of these to be called exactly one time
-			translator.EXPECT().ToDescriptor(toSoloApiResource(rl1)).Return(descriptor1, nil)
-			translator.EXPECT().ToDescriptor(toSoloApiResource(rl2)).Return(descriptor2, nil)
-			translator.EXPECT().ToDescriptor(toSoloApiResource(rl3)).Return(descriptor3, nil)
+			translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+				&v1alpha1.RateLimitConfigSpec_Raw{
+					Descriptors:    []*v1alpha1.Descriptor{descriptor1},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor1}}, nil)
+			translator.EXPECT().ToDescriptors(toSoloApiResource(rl2)).Return(
+				&v1alpha1.RateLimitConfigSpec_Raw{
+					Descriptors:    []*v1alpha1.Descriptor{descriptor2},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor2}}, nil)
+			translator.EXPECT().ToDescriptors(toSoloApiResource(rl3)).Return(
+				&v1alpha1.RateLimitConfigSpec_Raw{
+					Descriptors:    []*v1alpha1.Descriptor{descriptor3},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor3a, setDescriptor3b}}, nil)
 
 			collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
 			collector.ProcessRoute(routeWithConfigs(rl2.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
@@ -230,12 +264,19 @@ var _ = Describe("CRD Config Collector", func() {
 			collector.ProcessVirtualHost(virtualHostWithConfigs(rl2.GetMetadata().Ref()), proxy)
 			collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref(), rl3.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
 
-			actual := collector.ToXdsConfiguration()
+			actual, err := collector.ToXdsConfiguration()
+			Expect(err).To(BeNil())
 			Expect(actual.Domain).To(Equal(rlIngressPlugin.ConfigCrdDomain))
 			Expect(actual.Descriptors).To(ConsistOf(
 				descriptor1,
 				descriptor2,
 				descriptor3,
+			))
+			Expect(actual.SetDescriptors).To(ConsistOf(
+				setDescriptor1,
+				setDescriptor2,
+				setDescriptor3a,
+				setDescriptor3b,
 			))
 			Expect(reports).To(HaveLen(0))
 		})

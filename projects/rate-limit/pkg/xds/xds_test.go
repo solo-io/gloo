@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+
 	envoy_api_v2_ratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -11,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
 	glloo_rl_api "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	gloo_rl_plugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/rate-limiter/pkg/config"
 	"github.com/solo-io/rate-limiter/pkg/modules"
@@ -39,10 +40,10 @@ var _ = Describe("xDS Runnable Module", func() {
 		rateLimitServer *mock_service.MockRateLimitServiceServer
 		domainGenerator *mock_shims.MockRateLimitDomainGenerator
 
-		testClients        services.TestClients
-		proxy              *gloov1.Proxy
-		glooRlConfig       *glloo_rl_api.RateLimitConfig
-		expectedDescriptor *solo_apis_rl.Descriptor
+		testClients         services.TestClients
+		proxy               *gloov1.Proxy
+		glooRlConfig        *glloo_rl_api.RateLimitConfig
+		expectedDescriptors *solo_apis_rl.RateLimitConfigSpec_Raw
 
 		xdsRateLimitModule modules.RunnableModule
 	)
@@ -95,11 +96,28 @@ var _ = Describe("xDS Runnable Module", func() {
 								RequestsPerUnit: 1,
 							},
 						}},
+						SetDescriptors: []*solo_apis_rl.SetDescriptor{{
+							SimpleDescriptors: []*solo_apis_rl.SimpleDescriptor{{
+								Key:   "generic_key",
+								Value: "baz",
+							}},
+							RateLimit: &solo_apis_rl.RateLimit{
+								Unit:            solo_apis_rl.RateLimit_SECOND,
+								RequestsPerUnit: 1,
+							},
+						}},
 						RateLimits: []*solo_apis_rl.RateLimitActions{{
 							Actions: []*solo_apis_rl.Action{{
 								ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
 									GenericKey: &solo_apis_rl.Action_GenericKey{
 										DescriptorValue: "bar",
+									},
+								},
+							}},
+							SetActions: []*solo_apis_rl.Action{{
+								ActionSpecifier: &solo_apis_rl.Action_GenericKey_{
+									GenericKey: &solo_apis_rl.Action_GenericKey{
+										DescriptorValue: "baz",
 									},
 								},
 							}},
@@ -113,7 +131,7 @@ var _ = Describe("xDS Runnable Module", func() {
 			RateLimitConfig: ratelimit.RateLimitConfig(soloApiRlConfig),
 		}
 
-		expectedDescriptor, err = shims.NewRateLimitConfigTranslator().ToDescriptor(&soloApiRlConfig)
+		expectedDescriptors, err = shims.NewRateLimitConfigTranslator().ToDescriptors(&soloApiRlConfig)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Create a rate limit config to reference
@@ -156,20 +174,22 @@ var _ = Describe("xDS Runnable Module", func() {
 
 	It("works as expected", func() {
 
+		emptySpec_Raw := &solo_apis_rl.RateLimitConfigSpec_Raw{}
+
 		// Expectations for the initial sync
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, nil).Return(basicDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, nil).Return(customDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, nil).Return(crdDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, emptySpec_Raw).Return(basicDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, emptySpec_Raw).Return(customDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, emptySpec_Raw).Return(crdDomain{}, nil)
 
 		initBasic, initCustom, initCrd := make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1)
-		rateLimitServer.EXPECT().SetDomain(basicDomain{}).DoAndReturn(func(domain config.RateLimitDomain) { initBasic <- struct{}{} })
-		rateLimitServer.EXPECT().SetDomain(customDomain{}).DoAndReturn(func(domain config.RateLimitDomain) { initCustom <- struct{}{} })
-		rateLimitServer.EXPECT().SetDomain(crdDomain{}).DoAndReturn(func(domain config.RateLimitDomain) { initCrd <- struct{}{} })
+		rateLimitServer.EXPECT().SetDomain(basicDomain{}).Do(func(domain config.RateLimitDomain) { initBasic <- struct{}{} })
+		rateLimitServer.EXPECT().SetDomain(customDomain{}).Do(func(domain config.RateLimitDomain) { initCustom <- struct{}{} })
+		rateLimitServer.EXPECT().SetDomain(crdDomain{}).Do(func(domain config.RateLimitDomain) { initCrd <- struct{}{} })
 
 		// Expectations for the initial sync
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, nil).Return(basicDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, nil).Return(customDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, []*solo_apis_rl.Descriptor{expectedDescriptor}).Return(crdDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, emptySpec_Raw).Return(basicDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, emptySpec_Raw).Return(customDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, expectedDescriptors).Return(crdDomain{}, nil)
 
 		basicUpdated, customUpdated, crdUpdated := make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1)
 		rateLimitServer.EXPECT().SetDomain(basicDomain{}).DoAndReturn(func(domain config.RateLimitDomain) { basicUpdated <- struct{}{} })
@@ -231,6 +251,10 @@ func (rateLimitDomain) Dump() string {
 }
 
 func (rateLimitDomain) GetLimit(_ context.Context, _ *envoy_api_v2_ratelimit.RateLimitDescriptor) *config.RateLimit {
+	panic("implement me")
+}
+
+func (rateLimitDomain) GetSetLimits(_ *envoy_api_v2_ratelimit.RateLimitDescriptor) []*config.RateLimit {
 	panic("implement me")
 }
 

@@ -247,7 +247,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 			})
 
-			Context("reserved keyword rules (i.e., weighted and applyAlways rules)", func() {
+			Context("tree limits- reserved keyword rules (i.e., weighted and alwaysApply rules)", func() {
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
 						Descriptors: []*rlv1alpha1.Descriptor{
@@ -358,6 +358,320 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 			})
 
+			Context("set limits- set functionality", func() {
+				BeforeEach(func() {
+					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+						SetDescriptors: []*rlv1alpha1.SetDescriptor{
+							{
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "generic_key",
+										Value: "foo",
+									},
+									{
+										Key:   "generic_key",
+										Value: "bar",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+						},
+					}
+				})
+
+				It("should honor rate limit rules with a subset of the SetActions", func() {
+					hosts := map[string]bool{"host1": true}
+					// add rate limit setActions such that the rule requires only a subset of the actions
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "foo"},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					EventuallyRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// replace with new rate limit setActions that do not contain all actions the rule specifies
+					rateLimits = []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+							}},
+						},
+					}}
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// we do not expect this to rate limit anymore
+					ConsistentlyNotRateLimited("host1", envoyPort)
+				})
+			})
+
+			Context("set limits- alwaysApply rules and rules with no simpleDescriptors", func() {
+				BeforeEach(func() {
+					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+						SetDescriptors: []*rlv1alpha1.SetDescriptor{
+							{
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "generic_key",
+										Value: "first",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_SECOND,
+									RequestsPerUnit: 1000,
+								},
+							},
+							{
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "generic_key",
+										Value: "always",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+								AlwaysApply: true,
+							},
+							{
+								SimpleDescriptors: nil, // also works with []*rlv1alpha1.SimpleDescriptor{}
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+						},
+					}
+				})
+
+				It("should honor alwaysApply rate limit rules", func() {
+					hosts := map[string]bool{"host1": true}
+					// add a rate limit setAction that points to a rule with generous limit
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "first"},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					// rule has generous limit that will not be hit. the last rule, which also matches, should be
+					// ignored since an earlier rule has already matched these setActions. we do not expect this to rate limit.
+					ConsistentlyNotRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// replace with new rate limit setActions that also point to a "concurrent" rule, i.e. always evaluated
+					rateLimits = []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{
+							{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "first"},
+								},
+							},
+							{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "always"},
+								},
+							},
+						},
+					}}
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// we set ratelimit setActions that point to a rule with alwaysApply: true. Even though an
+					// earlier rule matches, we will still evaluate this rule. the original request matched a rule
+					// that was too generous to return a 429, but the new rule should trigger and return a 429
+					EventuallyRateLimited("host1", envoyPort)
+				})
+
+				It("should honor rate limit rule with no simpleDescriptors", func() {
+					hosts := map[string]bool{"host1": true}
+					// add a rate limit with any SetActions to match the rule with no simpleDescriptors
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "dummyValue"},
+							},
+						}},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					EventuallyRateLimited("host1", envoyPort)
+				})
+			})
+
+			Context("tree and set limits", func() {
+				BeforeEach(func() {
+					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+						Descriptors: []*rlv1alpha1.Descriptor{
+							{
+								Key:   "generic_key",
+								Value: "treeGenerous",
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_SECOND,
+									RequestsPerUnit: 1000,
+								},
+							},
+							{
+								Key:   "generic_key",
+								Value: "treeRestrictive",
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+						},
+						SetDescriptors: []*rlv1alpha1.SetDescriptor{
+							{
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "generic_key",
+										Value: "setRestrictive",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+							{
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "generic_key",
+										Value: "setGenerous",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_SECOND,
+									RequestsPerUnit: 1000,
+								},
+							},
+						},
+					}
+				})
+
+				It("should honor set rules when tree rules also apply", func() {
+					hosts := map[string]bool{"host1": true}
+					// add a rate limit action that points to a rule with generous limit
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "treeGenerous"},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					// rule has generous limit that will not be hit. we do not expect this to rate limit.
+					ConsistentlyNotRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// add a new rate limit setAction
+					weightedAction := &rlv1alpha1.RateLimitActions{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "setRestrictive"},
+							}},
+						}}
+					rateLimits = append(rateLimits, weightedAction)
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// we added a ratelimit setAction. Even though a tree rule matches, we will still
+					// evaluate this rule. the original request matched a rule
+					// that was too generous to return a 429, but the new rule should trigger and return a 429
+					EventuallyRateLimited("host1", envoyPort)
+				})
+
+				It("should honor tree rules when set rules also apply", func() {
+					hosts := map[string]bool{"host1": true}
+					// add a rate limit setAction that points to a rule with generous limit
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "setGenerous"},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					// rule has generous limit that will not be hit. we do not expect this to rate limit.
+					ConsistentlyNotRateLimited("host1", envoyPort)
+
+					err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// add a new rate limit action
+					weightedAction := &rlv1alpha1.RateLimitActions{
+						Actions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+								GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "treeRestrictive"},
+							}},
+						}}
+					rateLimits = append(rateLimits, weightedAction)
+
+					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// we added a ratelimit action. Even though a set rule matches, we will still
+					// evaluate this rule. the original request matched a rule
+					// that was too generous to return a 429, but the new rule should trigger and return a 429
+					EventuallyRateLimited("host1", envoyPort)
+				})
+			})
+
 		})
 	}
 	justBeforeEach := func() {
@@ -384,6 +698,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		ref := rlserver.Metadata.Ref()
 		rlSettings := &ratelimit.Settings{
 			RatelimitServerRef: &ref,
+			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
 		}
 
 		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rladdr, testClients.GlooPort)

@@ -4,6 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/rotisserie/eris"
+
+	"github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
+	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	rl_api "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -31,6 +39,11 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 )
+
+// copied from rate-limiter: pkg/config/translation/crd_translator.go
+const setDescriptorValue = "solo.setDescriptor.uniqueValue"
+
+var IllegalActionsErr = eris.Errorf("rate limit actions cannot include special purpose generic_key %s", setDescriptorValue)
 
 var _ = Describe("RateLimit Plugin", func() {
 	var (
@@ -358,6 +371,512 @@ var _ = Describe("RateLimit Plugin", func() {
 			})
 		})
 	})
+
+	Context("crd set rate limits", func() {
+
+		var (
+			inRoute  gloov1.Route
+			outRoute envoyroute.Route
+			inVHost  gloov1.VirtualHost
+			outVHost envoyroute.VirtualHost
+
+			rlConfigName  = "myRlConfig"
+			namespace     = "gloo-system"
+			crdGenericVal = namespace + "." + rlConfigName
+		)
+
+		BeforeEach(func() {
+
+			rlConfigs := ratelimitpb.RateLimitConfigRefs{
+				Refs: []*ratelimitpb.RateLimitConfigRef{{
+					Name:      rlConfigName,
+					Namespace: namespace,
+				}},
+			}
+
+			inRoute = gloov1.Route{
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{
+					RateLimitConfigType: &gloov1.RouteOptions_RateLimitConfigs{
+						RateLimitConfigs: &rlConfigs,
+					},
+				},
+			}
+			outRoute = envoyroute.Route{
+				Action: &envoyroute.Route_Route{
+					Route: &envoyroute.RouteAction{},
+				},
+			}
+
+			inVHost.Options = &gloov1.VirtualHostOptions{
+				RateLimitConfigType: &gloov1.VirtualHostOptions_RateLimitConfigs{
+					RateLimitConfigs: &rlConfigs,
+				},
+			}
+
+			outVHost = envoyroute.VirtualHost{}
+
+		})
+
+		vhostParamsWithLimits := func(limits []*rl_api.RateLimitActions) plugins.VirtualHostParams {
+			rlConfig := rl_api.RateLimitConfig{
+				ObjectMeta: metav1.ObjectMeta{Name: "myRlConfig", Namespace: "gloo-system"},
+				Spec: rl_api.RateLimitConfigSpec{
+					ConfigType: &rl_api.RateLimitConfigSpec_Raw_{
+						Raw: &rl_api.RateLimitConfigSpec_Raw{
+							RateLimits:     limits,
+							SetDescriptors: []*rl_api.SetDescriptor{{}},
+						},
+					},
+				},
+			}
+
+			return plugins.VirtualHostParams{
+				Params: plugins.Params{
+					Snapshot: &gloov1.ApiSnapshot{
+						Ratelimitconfigs: []*v1alpha1.RateLimitConfig{
+							{
+								RateLimitConfig: ratelimit.RateLimitConfig(rlConfig),
+							},
+						},
+					},
+				},
+			}
+
+		}
+
+		It("should properly set one set-style rate limit on a route", func() {
+
+			vhostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+				SetActions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{
+							DescriptorValue: "foo",
+						},
+					}},
+				}},
+			})
+			routeParams := plugins.RouteParams{VirtualHostParams: vhostParams}
+
+			err := rlPlugin.ProcessRoute(routeParams, &inRoute, &outRoute)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outRoute.GetRoute().GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(1))
+			// expect the actions to include special genericKeys
+			outRateLimitActions := outRateLimits[0].GetActions()
+			Expect(outRateLimitActions).To(HaveLen(3))
+			Expect(outRateLimitActions[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(outRateLimitActions[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(outRateLimitActions[2].GetGenericKey().GetDescriptorValue()).To(Equal("foo"))
+		})
+
+		It("should properly set one set-style rate limit on a virtualservice", func() {
+
+			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+				SetActions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{
+							DescriptorValue: "foo",
+						},
+					}},
+				}},
+			})
+
+			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outVHost.GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(1))
+			// expect the actions to include special genericKeys
+			outRateLimitActions := outRateLimits[0].GetActions()
+			Expect(outRateLimitActions).To(HaveLen(3))
+			Expect(outRateLimitActions[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(outRateLimitActions[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(outRateLimitActions[2].GetGenericKey().GetDescriptorValue()).To(Equal("foo"))
+		})
+
+		It("should not allow the special setDescriptor genericKey on non-set Actions", func() {
+
+			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+				Actions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{
+							DescriptorValue: setDescriptorValue,
+						},
+					},
+				}},
+			}})
+
+			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(IllegalActionsErr.Error())))
+		})
+
+		It("should properly set several rate limits", func() {
+
+			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{
+				{
+					SetActions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "set1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "set2",
+								},
+							},
+						},
+					},
+				},
+				{
+					Actions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "tree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "tree2",
+								},
+							},
+						},
+					},
+				},
+				{
+					SetActions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothSet1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothSet2",
+								},
+							},
+						},
+					},
+					Actions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothTree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothTree2",
+								},
+							},
+						},
+					},
+				},
+			})
+
+			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outVHost.GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(4))
+
+			setInput := outRateLimits[0].GetActions()
+			Expect(setInput).To(HaveLen(4))
+			Expect(setInput[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(setInput[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(setInput[2].GetGenericKey().GetDescriptorValue()).To(Equal("set1"))
+			Expect(setInput[3].GetGenericKey().GetDescriptorValue()).To(Equal("set2"))
+
+			treeInput := outRateLimits[1].GetActions()
+			Expect(treeInput).To(HaveLen(3))
+			Expect(treeInput[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(treeInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("tree1"))
+			Expect(treeInput[2].GetGenericKey().GetDescriptorValue()).To(Equal("tree2"))
+
+			bothInput_treeOut := outRateLimits[2].GetActions()
+			Expect(bothInput_treeOut).To(HaveLen(3))
+			Expect(bothInput_treeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(bothInput_treeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
+			Expect(bothInput_treeOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
+
+			bothInput_setOut := outRateLimits[3].GetActions()
+			Expect(bothInput_setOut).To(HaveLen(4))
+			Expect(bothInput_setOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(bothInput_setOut[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(bothInput_setOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
+			Expect(bothInput_setOut[3].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
+		})
+	})
+
+	Context("global set rate limits", func() {
+
+		var (
+			inRoute  gloov1.Route
+			outRoute envoyroute.Route
+			inVHost  gloov1.VirtualHost
+			outVHost envoyroute.VirtualHost
+		)
+
+		BeforeEach(func() {
+
+			inRoute = gloov1.Route{
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{
+					RateLimitConfigType: &gloov1.RouteOptions_Ratelimit{
+						Ratelimit: &ratelimitpb.RateLimitRouteExtension{},
+					},
+				},
+			}
+			outRoute = envoyroute.Route{
+				Action: &envoyroute.Route_Route{
+					Route: &envoyroute.RouteAction{},
+				},
+			}
+
+			inVHost.Options = &gloov1.VirtualHostOptions{
+				RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
+					Ratelimit: &ratelimitpb.RateLimitVhostExtension{},
+				},
+			}
+
+			outVHost = envoyroute.VirtualHost{}
+
+		})
+
+		It("should properly set one set-style rate limit on a route", func() {
+
+			inRoute.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
+				SetActions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{
+							DescriptorValue: "foo",
+						},
+					},
+				}},
+			}}
+
+			err := rlPlugin.ProcessRoute(plugins.RouteParams{}, &inRoute, &outRoute)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outRoute.GetRoute().GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(1))
+
+			// expect the actions to include special setDescriptor genericKey and the one specified above
+			outRateLimitActions := outRateLimits[0].GetActions()
+			Expect(outRateLimitActions).To(HaveLen(2))
+			Expect(outRateLimitActions[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(outRateLimitActions[1].GetGenericKey().GetDescriptorValue()).To(Equal("foo"))
+		})
+
+		It("should properly set one set-style rate limit on a virtualservice", func() {
+
+			inVHost.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
+				SetActions: []*rl_api.Action{{
+					ActionSpecifier: &rl_api.Action_GenericKey_{
+						GenericKey: &rl_api.Action_GenericKey{
+							DescriptorValue: "foo",
+						},
+					},
+				}},
+			}}
+
+			err := rlPlugin.ProcessVirtualHost(plugins.VirtualHostParams{}, &inVHost, &outVHost)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outVHost.GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(1))
+			// expect the actions to include special setDescriptor genericKey and the one specified above
+			outRateLimitActions := outRateLimits[0].GetActions()
+			Expect(outRateLimitActions).To(HaveLen(2))
+			Expect(outRateLimitActions[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(outRateLimitActions[1].GetGenericKey().GetDescriptorValue()).To(Equal("foo"))
+		})
+
+		It("should not allow the special setDescriptor genericKey on non-set Actions", func() {
+
+			inVHost.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
+				Actions: []*rl_api.Action{
+					{
+						ActionSpecifier: &rl_api.Action_GenericKey_{
+							GenericKey: &rl_api.Action_GenericKey{
+								DescriptorValue: "foo",
+							},
+						},
+					},
+					{
+						ActionSpecifier: &rl_api.Action_GenericKey_{
+							GenericKey: &rl_api.Action_GenericKey{
+								DescriptorValue: setDescriptorValue,
+							},
+						},
+					},
+				},
+			}}
+
+			err := rlPlugin.ProcessVirtualHost(plugins.VirtualHostParams{}, &inVHost, &outVHost)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(IllegalActionsErr.Error())))
+		})
+
+		It("should properly set several rate limits", func() {
+
+			outRoute.GetRoute().RateLimits = []*envoyroute.RateLimit{
+				// populate outRoute with correct ratelimits to "mock" OS plugin behavior
+				{
+					Stage: &wrappers.UInt32Value{Value: 1},
+					Actions: []*envoyroute.RateLimit_Action{
+						{
+							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
+								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+									DescriptorValue: "tree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
+								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+									DescriptorValue: "tree2",
+								},
+							},
+						},
+					},
+				},
+				{
+					Stage: &wrappers.UInt32Value{Value: 1},
+					Actions: []*envoyroute.RateLimit_Action{
+						{
+							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
+								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+									DescriptorValue: "bothTree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
+								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+									DescriptorValue: "bothTree2",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			inRoute.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{
+				{
+					SetActions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "set1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "set2",
+								},
+							},
+						},
+					},
+				},
+				{
+					Actions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "tree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "tree2",
+								},
+							},
+						},
+					},
+				},
+				{
+					SetActions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothSet1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothSet2",
+								},
+							},
+						},
+					},
+					Actions: []*rl_api.Action{
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothTree1",
+								},
+							},
+						},
+						{
+							ActionSpecifier: &rl_api.Action_GenericKey_{
+								GenericKey: &rl_api.Action_GenericKey{
+									DescriptorValue: "bothTree2",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			err := rlPlugin.ProcessRoute(plugins.RouteParams{}, &inRoute, &outRoute)
+			Expect(err).ToNot(HaveOccurred())
+			outRateLimits := outRoute.GetRoute().GetRateLimits()
+			Expect(outRateLimits).To(HaveLen(4))
+
+			treeInput := outRateLimits[0].GetActions()
+			Expect(treeInput).To(HaveLen(2))
+			Expect(treeInput[0].GetGenericKey().GetDescriptorValue()).To(Equal("tree1"))
+			Expect(treeInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("tree2"))
+
+			bothInput_treeOut := outRateLimits[1].GetActions()
+			Expect(bothInput_treeOut).To(HaveLen(2))
+			Expect(bothInput_treeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
+			Expect(bothInput_treeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
+
+			setInput := outRateLimits[2].GetActions()
+			Expect(setInput).To(HaveLen(3))
+			Expect(setInput[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(setInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("set1"))
+			Expect(setInput[2].GetGenericKey().GetDescriptorValue()).To(Equal("set2"))
+
+			bothInput_setOut := outRateLimits[3].GetActions()
+			Expect(bothInput_setOut).To(HaveLen(3))
+			Expect(bothInput_setOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(bothInput_setOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
+			Expect(bothInput_setOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
+		})
+	})
+
 })
 
 func getTypedConfig(f *envoyhttp.HttpFilter) *envoyratelimit.RateLimit {

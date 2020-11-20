@@ -23,9 +23,10 @@ import (
 var _ = Describe("Rate Limit Plugin Config Processing", func() {
 
 	var (
-		ctrl            *gomock.Controller
-		basicTranslator *mock_translation.MockBasicRateLimitTranslator
-		crdTranslator   *mock_shims.MockRateLimitConfigTranslator
+		ctrl             *gomock.Controller
+		basicTranslator  *mock_translation.MockBasicRateLimitTranslator
+		globalTranslator *mock_shims.MockGlobalRateLimitTranslator
+		crdTranslator    *mock_shims.MockRateLimitConfigTranslator
 
 		testErr error
 
@@ -36,9 +37,10 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 		ctrl = gomock.NewController(GinkgoT())
 
 		basicTranslator = mock_translation.NewMockBasicRateLimitTranslator(ctrl)
+		globalTranslator = mock_shims.NewMockGlobalRateLimitTranslator(ctrl)
 		crdTranslator = mock_shims.NewMockRateLimitConfigTranslator(ctrl)
 
-		plugin = rlPlugin.NewPluginWithTranslators(basicTranslator, crdTranslator)
+		plugin = rlPlugin.NewPluginWithTranslators(basicTranslator, globalTranslator, crdTranslator)
 
 		testErr = eris.New("test error")
 
