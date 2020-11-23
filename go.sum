@@ -1200,8 +1200,8 @@ github.com/solo-io/licensing v0.1.17/go.mod h1:D4H3wnaqW015S90fKqSRFWLK8J9H/zrJy
 github.com/solo-io/protoc-gen-ext v0.0.7/go.mod h1:zZIFs9Ch3EU3uQgL2ZwCHlUGAtwiz4Cbw6tBcmaNsEk=
 github.com/solo-io/protoc-gen-ext v0.0.9 h1:dU9C8nSLNkjqLXd5QGJ2dvBcrNUvNUP92qlxMfe3t7A=
 github.com/solo-io/protoc-gen-ext v0.0.9/go.mod h1:zZIFs9Ch3EU3uQgL2ZwCHlUGAtwiz4Cbw6tBcmaNsEk=
-github.com/solo-io/rate-limiter v0.1.2-0.20201119225643-f4fe3145fa65 h1:UjIYYS4kd3rvUuSmjcTe8bUoS0mI2b3ZKAC2q02dC9o=
-github.com/solo-io/rate-limiter v0.1.2-0.20201119225643-f4fe3145fa65/go.mod h1:64LvMRxPKXWtqSPRQrVJs9ENjKuEAjmBJ/S31t0qY3M=
+github.com/solo-io/rate-limiter v0.1.2 h1:90xNaflPL/8SijvMwgzzyxVvxgm7kCTv8G3CTXONlkA=
+github.com/solo-io/rate-limiter v0.1.2/go.mod h1:64LvMRxPKXWtqSPRQrVJs9ENjKuEAjmBJ/S31t0qY3M=
 github.com/solo-io/reporting-client v0.1.2 h1:U585Q5UlB5/UUewtgEAQz94SWuNRBxoHc4tPthhnYko=
 github.com/solo-io/reporting-client v0.1.2/go.mod h1:FmBDzwc1zEwayCCrlP+1w7NcpM0FIuvU+NSePj4wJq8=
 github.com/solo-io/skv2 v0.7.2/go.mod h1:08Hye4vNGdG+E3BlLS+gpCDjd9fXAbQzGPCSlsWfjSQ=

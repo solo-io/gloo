@@ -15,11 +15,6 @@ changelog:
   dependencyRepo: gloo
   dependencyTag: v1.6.0-beta12
 - type: DEPENDENCY_BUMP
-  description: Bumped the version of rate-limiter to pick up the set descriptor functionality.
-  dependencyOwner: solo-io
-  dependencyRepo: rate-limiter
-  dependencyTag: v0.1.2
-- type: DEPENDENCY_BUMP
   description: Bumped the version of solo-apis to pick up the new ratelimit protos and docs.
   dependencyOwner: solo-io
   dependencyRepo: solo-apis

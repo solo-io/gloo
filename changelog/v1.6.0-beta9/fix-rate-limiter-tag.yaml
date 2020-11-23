@@ -1,0 +1,6 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  description: Bumped the version of rate-limiter to pick up the set descriptor functionality.
+  dependencyOwner: solo-io
+  dependencyRepo: rate-limiter
+  dependencyTag: v0.1.2

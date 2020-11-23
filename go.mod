@@ -39,7 +39,7 @@ require (
 	github.com/solo-io/go-utils v0.16.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9
-	github.com/solo-io/rate-limiter v0.1.2-0.20201119225643-f4fe3145fa65 // master
+	github.com/solo-io/rate-limiter v0.1.2
 	github.com/solo-io/reporting-client v0.1.2
 	github.com/solo-io/solo-apis v0.0.0-20201118222008-1b098636eb85
 	github.com/solo-io/solo-kit v0.13.14
