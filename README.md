@@ -65,6 +65,7 @@ make extauth
 
 - Shared projects across Solo.io.
 - This repo contains the git history for Gloo and Solo-Kit.
+- Make sure to follow the [developer guide](https://github.com/solo-io/dev-docs/blob/master/new_hire_guide.md#dev-environment-setup-guides) for IDE and git config setup.
 
 ## Helm Repositories
 - [GlooE](https://console.cloud.google.com/storage/browser/gloo-ee-helm)
