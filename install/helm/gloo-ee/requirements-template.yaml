@@ -2,13 +2,13 @@ dependencies:
   - name: gloo
     repository: https://storage.googleapis.com/solo-public-helm
   - name: prometheus
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://charts.helm.sh/stable
     version: 9.5.1
     condition: prometheus.enabled
     tags:
       - monitoring
   - name: grafana
-    repository: https://kubernetes-charts.storage.googleapis.com/
+    repository: https://charts.helm.sh/stable
     version: 5.0.8
     condition: grafana.defaultInstallationEnabled
     tags:

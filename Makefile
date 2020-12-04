@@ -555,7 +555,7 @@ helm-template:
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 
 $(OUTPUT_DIR)/.helm-initialized:
-	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
@@ -718,7 +718,7 @@ gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(
 build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
-	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
@@ -728,7 +728,7 @@ build-test-chart:
 build-os-with-ui-test-chart: init-helm
 	mkdir -p $(TEST_ASSET_DIR)
 	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
-	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-os-with-ui
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-os-with-ui
