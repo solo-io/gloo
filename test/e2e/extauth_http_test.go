@@ -77,7 +77,7 @@ var _ = Describe("External http", func() {
 
 		// Get test clients
 		cache = memory.NewInMemoryResourceCache()
-		testClients = services.GetTestClients(cache)
+		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		// Start Envoy

@@ -1,7 +1,7 @@
 package ratelimit_test
 
 import (
-	envoy_api_v2_route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
@@ -58,7 +58,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 			basicConfig      rl_api.IngressRateLimit
 			glooVirtualHost  *gloov1.VirtualHost
 			vhParams         plugins.VirtualHostParams
-			envoyVirtualHost *envoy_api_v2_route.VirtualHost
+			envoyVirtualHost *envoy_config_route_v3.VirtualHost
 		)
 
 		BeforeEach(func() {
@@ -74,7 +74,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 					RatelimitBasic: &basicConfig,
 				},
 			}
-			envoyVirtualHost = &envoy_api_v2_route.VirtualHost{}
+			envoyVirtualHost = &envoy_config_route_v3.VirtualHost{}
 		})
 
 		When("no basic rate limit configuration is present", func() {
@@ -97,9 +97,9 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 
 		When("no errors are encountered", func() {
 			It("sets the expected rate limits on the virtual host", func() {
-				rateLimits := []*envoy_api_v2_route.RateLimit{{
+				rateLimits := []*envoy_config_route_v3.RateLimit{{
 					Stage:   &wrappers.UInt32Value{Value: rlPlugin.IngressRateLimitStage},
-					Actions: []*envoy_api_v2_route.RateLimit_Action{},
+					Actions: []*envoy_config_route_v3.RateLimit_Action{},
 				}}
 
 				basicTranslator.EXPECT().GenerateServerConfig(glooVirtualHost.Name, basicConfig).Return(nil, nil)
@@ -119,12 +119,12 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 		var (
 			vhParams                           plugins.VirtualHostParams
 			routeParams                        plugins.RouteParams
-			envoyVirtualHost                   *envoy_api_v2_route.VirtualHost
-			envoyRoute                         *envoy_api_v2_route.Route
+			envoyVirtualHost                   *envoy_config_route_v3.VirtualHost
+			envoyRoute                         *envoy_config_route_v3.Route
 			rlConfig1, rlConfig2               solo_apis_rl.RateLimitConfig
 			ref1, ref2                         *rl_api.RateLimitConfigRef
 			config1Actions, config2Actions     []*solo_apis_rl.RateLimitActions
-			config1RateLimit, config2RateLimit *envoy_api_v2_route.RateLimit
+			config1RateLimit, config2RateLimit *envoy_config_route_v3.RateLimit
 		)
 
 		BeforeEach(func() {
@@ -191,22 +191,22 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 				},
 			}
 
-			config1RateLimit = &envoy_api_v2_route.RateLimit{
+			config1RateLimit = &envoy_config_route_v3.RateLimit{
 				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdStage},
-				Actions: []*envoy_api_v2_route.RateLimit_Action{
+				Actions: []*envoy_config_route_v3.RateLimit_Action{
 					{
-						ActionSpecifier: &envoy_api_v2_route.RateLimit_Action_RemoteAddress_{
-							RemoteAddress: &envoy_api_v2_route.RateLimit_Action_RemoteAddress{},
+						ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RemoteAddress_{
+							RemoteAddress: &envoy_config_route_v3.RateLimit_Action_RemoteAddress{},
 						},
 					},
 				},
 			}
-			config2RateLimit = &envoy_api_v2_route.RateLimit{
+			config2RateLimit = &envoy_config_route_v3.RateLimit{
 				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdStage},
-				Actions: []*envoy_api_v2_route.RateLimit_Action{
+				Actions: []*envoy_config_route_v3.RateLimit_Action{
 					{
-						ActionSpecifier: &envoy_api_v2_route.RateLimit_Action_GenericKey_{
-							GenericKey: &envoy_api_v2_route.RateLimit_Action_GenericKey{
+						ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+							GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 								DescriptorValue: "baz",
 							},
 						},
@@ -214,10 +214,10 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 				},
 			}
 
-			envoyVirtualHost = &envoy_api_v2_route.VirtualHost{}
-			envoyRoute = &envoy_api_v2_route.Route{
-				Action: &envoy_api_v2_route.Route_Route{
-					Route: &envoy_api_v2_route.RouteAction{},
+			envoyVirtualHost = &envoy_config_route_v3.VirtualHost{}
+			envoyRoute = &envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
 				},
 			}
 		})
@@ -254,7 +254,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 					crdTranslator.EXPECT().ToActions(&rlConfig1).Return(nil, testErr)
 					crdTranslator.EXPECT().ToActions(&rlConfig2).Return(config2Actions, nil)
 
-					expectedRateLimits := []*envoy_api_v2_route.RateLimit{config2RateLimit}
+					expectedRateLimits := []*envoy_config_route_v3.RateLimit{config2RateLimit}
 
 					err := plugin.ProcessVirtualHost(vhParams, virtualHost, envoyVirtualHost)
 					Expect(err).To(HaveOccurred())
@@ -272,7 +272,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 					crdTranslator.EXPECT().ToActions(&rlConfig1).Return(config1Actions, nil)
 					crdTranslator.EXPECT().ToActions(&rlConfig2).Return(config2Actions, nil)
 
-					expectedRateLimits := []*envoy_api_v2_route.RateLimit{
+					expectedRateLimits := []*envoy_config_route_v3.RateLimit{
 						config1RateLimit,
 						config2RateLimit,
 					}
@@ -317,7 +317,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 					crdTranslator.EXPECT().ToActions(&rlConfig1).Return(nil, testErr)
 					crdTranslator.EXPECT().ToActions(&rlConfig2).Return(config2Actions, nil)
 
-					expectedRateLimits := []*envoy_api_v2_route.RateLimit{config2RateLimit}
+					expectedRateLimits := []*envoy_config_route_v3.RateLimit{config2RateLimit}
 
 					err := plugin.ProcessRoute(routeParams, route, envoyRoute)
 					Expect(err).To(HaveOccurred())
@@ -335,7 +335,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 					crdTranslator.EXPECT().ToActions(&rlConfig1).Return(config1Actions, nil)
 					crdTranslator.EXPECT().ToActions(&rlConfig2).Return(config2Actions, nil)
 
-					expectedRateLimits := []*envoy_api_v2_route.RateLimit{
+					expectedRateLimits := []*envoy_config_route_v3.RateLimit{
 						config1RateLimit,
 						config2RateLimit,
 					}

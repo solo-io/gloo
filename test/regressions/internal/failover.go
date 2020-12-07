@@ -11,8 +11,8 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/go-utils/kubeutils"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -128,12 +128,12 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 		SharedCache: cache,
 	}
 
-	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(virtualServiceClientFactory)
+	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 	Expect(err).NotTo(HaveOccurred())
 	err = virtualServiceClient.Register()
 	Expect(err).NotTo(HaveOccurred())
 
-	upstreamClient, err := gloov1.NewUpstreamClient(upstreamClientFactory)
+	upstreamClient, err := gloov1.NewUpstreamClient(ctx, upstreamClientFactory)
 	Expect(err).NotTo(HaveOccurred())
 	err = upstreamClient.Register()
 	Expect(err).NotTo(HaveOccurred())
@@ -171,7 +171,7 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 		Status: appsv1.DeploymentStatus{},
 	}
 
-	redDeployment, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Create(deployment)
+	redDeployment, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Create(ctx, deployment, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	// green pod - no label
@@ -180,7 +180,7 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 	deployment.Spec.Template.Labels["text"] = "green"
 	deployment.Spec.Template.Spec.Containers[0].Args = []string{"-text=\"green-pod\""}
 
-	greenDeployment, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Create(deployment)
+	greenDeployment, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Create(ctx, deployment, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	service := &corev1.Service{
@@ -196,11 +196,11 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 			Type: corev1.ServiceTypeClusterIP,
 		},
 	}
-	redService, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Create(service)
+	redService, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Create(ctx, service, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 	service.Spec.Selector["text"] = "green"
-	greenService, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Create(service)
+	greenService, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Create(ctx, service, metav1.CreateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 	return &FailoverTest{
 		Ctx:                  ctx,
@@ -216,29 +216,30 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 }
 
 func FailoverAfterEach(
+	ctx context.Context,
 	failoverTest *FailoverTest,
 	testHelper *helper.SoloTestHelper,
 ) {
 	if failoverTest.RedDeployment != nil {
-		err := failoverTest.kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Delete(failoverTest.RedDeployment.Name, &metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+		err := failoverTest.kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Delete(ctx, failoverTest.RedDeployment.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 		if !kubeerrors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	}
 	if failoverTest.GreenDeployment != nil {
-		err := failoverTest.kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Delete(failoverTest.GreenDeployment.Name, &metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+		err := failoverTest.kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Delete(ctx, failoverTest.GreenDeployment.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 		if !kubeerrors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	}
 	if failoverTest.RedService != nil {
-		err := failoverTest.kubeClient.CoreV1().Services(testHelper.InstallNamespace).Delete(failoverTest.RedService.Name, &metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+		err := failoverTest.kubeClient.CoreV1().Services(testHelper.InstallNamespace).Delete(ctx, failoverTest.RedService.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 		if !kubeerrors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
 	}
 	if failoverTest.GreenService != nil {
-		err := failoverTest.kubeClient.CoreV1().Services(testHelper.InstallNamespace).Delete(failoverTest.GreenService.Name, &metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
+		err := failoverTest.kubeClient.CoreV1().Services(testHelper.InstallNamespace).Delete(ctx, failoverTest.GreenService.Name, metav1.DeleteOptions{GracePeriodSeconds: proto.Int64(0)})
 		if !kubeerrors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}

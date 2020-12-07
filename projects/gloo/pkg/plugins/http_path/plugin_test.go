@@ -1,14 +1,15 @@
 package http_path_test
 
 import (
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_type_v3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	gogotypes "github.com/gogo/protobuf/types"
 	wrapperspb "github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pbhttp_path "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/http_path"
-	envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -23,29 +24,28 @@ var _ = Describe("Plugin", func() {
 		params          plugins.Params
 		upstream        *v1.Upstream
 		upstreamSpec    *v1static.UpstreamSpec
-		out             *envoyapi.Cluster
-		baseHealthCheck *envoy_api_v2_core.HealthCheck_HttpHealthCheck
+		out             *envoy_config_cluster_v3.Cluster
+		baseHealthCheck *envoy_config_core_v3.HealthCheck_HttpHealthCheck
 	)
 
 	BeforeEach(func() {
 		p = NewPlugin()
-		out = new(envoyapi.Cluster)
-		baseHealthCheck = &envoy_api_v2_core.HealthCheck_HttpHealthCheck{
-			UseHttp2:               true,
+		out = new(envoy_config_cluster_v3.Cluster)
+		baseHealthCheck = &envoy_config_core_v3.HealthCheck_HttpHealthCheck{
 			Host:                   "foo",
 			Path:                   "/health",
-			ServiceName:            "svc",
+			CodecClientType:        envoy_type_v3.CodecClientType_HTTP2,
 			RequestHeadersToRemove: []string{"test"},
-			RequestHeadersToAdd: []*envoy_api_v2_core.HeaderValueOption{
-				&envoy_api_v2_core.HeaderValueOption{
-					Header: &envoy_api_v2_core.HeaderValue{Key: "key", Value: "value"},
+			RequestHeadersToAdd: []*envoy_config_core_v3.HeaderValueOption{
+				&envoy_config_core_v3.HeaderValueOption{
+					Header: &envoy_config_core_v3.HeaderValue{Key: "key", Value: "value"},
 					Append: &wrapperspb.BoolValue{Value: true},
 				},
 			},
 		}
-		out.HealthChecks = []*envoy_api_v2_core.HealthCheck{
+		out.HealthChecks = []*envoy_config_core_v3.HealthCheck{
 			{
-				HealthChecker: &envoy_api_v2_core.HealthCheck_HttpHealthCheck_{
+				HealthChecker: &envoy_config_core_v3.HealthCheck_HttpHealthCheck_{
 
 					HttpHealthCheck: baseHealthCheck,
 				},
@@ -86,8 +86,7 @@ var _ = Describe("Plugin", func() {
 
 		Expect(out.HttpHealthCheck.Path).To(Equal(baseHealthCheck.Path))
 		Expect(out.HttpHealthCheck.Host).To(Equal(baseHealthCheck.Host))
-		Expect(out.HttpHealthCheck.CodecClientType).To(Equal(envoy_type_v3.CodecClientType_HTTP2))
-		Expect(out.HttpHealthCheck.GetServiceNameMatcher().GetPrefix()).To(Equal(baseHealthCheck.ServiceName))
+		Expect(out.HttpHealthCheck.CodecClientType).To(Equal(v3.CodecClientType_HTTP2))
 		Expect(out.HttpHealthCheck.RequestHeadersToRemove).To(Equal(baseHealthCheck.RequestHeadersToRemove))
 		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Header.Key).To(Equal(baseHealthCheck.RequestHeadersToAdd[0].Header.Key))
 		Expect(out.HttpHealthCheck.RequestHeadersToAdd[0].Header.Value).To(Equal(baseHealthCheck.RequestHeadersToAdd[0].Header.Value))

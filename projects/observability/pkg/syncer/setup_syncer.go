@@ -85,7 +85,7 @@ func RunObservability(opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "observability")
 
-	upstreamClient, err := gloov1.NewUpstreamClient(opts.Upstreams)
+	upstreamClient, err := gloov1.NewUpstreamClient(opts.WatchOpts.Ctx, opts.Upstreams)
 	if err != nil {
 		return err
 	}

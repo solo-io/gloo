@@ -7,36 +7,30 @@ import (
 	"reflect"
 	"strings"
 
+	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
+	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/fgrosse/zaptest"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
-	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
-
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-	"github.com/solo-io/solo-projects/test/services"
-
-	"github.com/fgrosse/zaptest"
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
+	"github.com/solo-io/solo-projects/test/services"
 	"github.com/solo-io/solo-projects/test/v1helpers"
-
-	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
-	// when we move to v3, use this instead of the v2 one
-	// envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
-	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/ptypes"
 )
 
 var _ = Describe("Proxy latency", func() {
@@ -57,7 +51,7 @@ var _ = Describe("Proxy latency", func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		cache = memory.NewInMemoryResourceCache()
 
-		testClients = services.GetTestClients(cache)
+		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		what := services.What{

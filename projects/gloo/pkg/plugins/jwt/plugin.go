@@ -8,22 +8,20 @@ import (
 	"fmt"
 	"sort"
 
-	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
-
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/jwt_authn/v3"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	"github.com/hashicorp/go-multierror"
-	"gopkg.in/square/go-jose.v2"
-
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/gogoutils"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"gopkg.in/square/go-jose.v2"
 )
 
 const (
@@ -37,6 +35,11 @@ const (
 )
 
 var (
+	_ plugins.Plugin            = new(Plugin)
+	_ plugins.VirtualHostPlugin = new(Plugin)
+	_ plugins.RoutePlugin       = new(Plugin)
+	_ plugins.HttpFilterPlugin  = new(Plugin)
+
 	filterStage = plugins.DuringStage(plugins.AuthNStage)
 )
 
@@ -66,7 +69,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	jwtRoute := in.GetOptions().GetJwt()
 	if jwtRoute == nil {
 		// no config found, nothing to do here
@@ -79,7 +82,11 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(
+	params plugins.VirtualHostParams,
+	in *v1.VirtualHost,
+	out *envoy_config_route_v3.VirtualHost,
+) error {
 	var jwtExt = in.GetOptions().GetJwt()
 	if jwtExt == nil {
 		// no config found, nothing to do here

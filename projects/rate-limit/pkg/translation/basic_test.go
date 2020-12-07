@@ -1,7 +1,7 @@
 package translation_test
 
 import (
-	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -80,30 +80,30 @@ var _ = Describe("Basic Rate Limit Config Translation", func() {
 			headerName := "x-foo"
 			stage := uint32(2)
 
-			expected := []*envoyvhostratelimit.RateLimit{
+			expected := []*envoy_config_route_v3.RateLimit{
 				{
 					Stage: &wrappers.UInt32Value{
 						Value: stage,
 					},
-					Actions: []*envoyvhostratelimit.RateLimit_Action{
+					Actions: []*envoy_config_route_v3.RateLimit_Action{
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyvhostratelimit.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: virtualHostName,
 								},
 							},
 						},
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
-								HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch_{
+								HeaderValueMatch: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch{
 									DescriptorValue: internal.Authenticated,
 									ExpectMatch: &wrappers.BoolValue{
 										Value: true,
 									},
-									Headers: []*envoyvhostratelimit.HeaderMatcher{
+									Headers: []*envoy_config_route_v3.HeaderMatcher{
 										{
 											Name: headerName,
-											HeaderMatchSpecifier: &envoyvhostratelimit.HeaderMatcher_PresentMatch{
+											HeaderMatchSpecifier: &envoy_config_route_v3.HeaderMatcher_PresentMatch{
 												PresentMatch: true,
 											},
 										},
@@ -112,8 +112,8 @@ var _ = Describe("Basic Rate Limit Config Translation", func() {
 							},
 						},
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RequestHeaders_{
-								RequestHeaders: &envoyvhostratelimit.RateLimit_Action_RequestHeaders{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RequestHeaders_{
+								RequestHeaders: &envoy_config_route_v3.RateLimit_Action_RequestHeaders{
 									DescriptorKey: internal.UserId,
 									HeaderName:    headerName,
 								},
@@ -125,25 +125,25 @@ var _ = Describe("Basic Rate Limit Config Translation", func() {
 					Stage: &wrappers.UInt32Value{
 						Value: stage,
 					},
-					Actions: []*envoyvhostratelimit.RateLimit_Action{
+					Actions: []*envoy_config_route_v3.RateLimit_Action{
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyvhostratelimit.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: virtualHostName,
 								},
 							},
 						},
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
-								HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch_{
+								HeaderValueMatch: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch{
 									DescriptorValue: internal.Anonymous,
 									ExpectMatch: &wrappers.BoolValue{
 										Value: false,
 									},
-									Headers: []*envoyvhostratelimit.HeaderMatcher{
+									Headers: []*envoy_config_route_v3.HeaderMatcher{
 										{
 											Name: headerName,
-											HeaderMatchSpecifier: &envoyvhostratelimit.HeaderMatcher_PresentMatch{
+											HeaderMatchSpecifier: &envoy_config_route_v3.HeaderMatcher_PresentMatch{
 												PresentMatch: true,
 											},
 										},
@@ -152,8 +152,8 @@ var _ = Describe("Basic Rate Limit Config Translation", func() {
 							},
 						},
 						{
-							ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RemoteAddress_{
-								RemoteAddress: &envoyvhostratelimit.RateLimit_Action_RemoteAddress{},
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RemoteAddress_{
+								RemoteAddress: &envoy_config_route_v3.RateLimit_Action_RemoteAddress{},
 							},
 						},
 					},

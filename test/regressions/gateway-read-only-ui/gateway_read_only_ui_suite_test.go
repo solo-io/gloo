@@ -23,10 +23,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/go-utils/testutils/exec"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -62,10 +62,13 @@ const (
 
 var (
 	testHelper *helper.SoloTestHelper
+	ctx        context.Context
+	cancel     context.CancelFunc
 )
 
 var _ = BeforeSuite(func() {
 	cwd, err := os.Getwd()
+	ctx, cancel = context.WithCancel(context.Background())
 	Expect(err).NotTo(HaveOccurred())
 
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
@@ -82,7 +85,7 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "--with-admin-console"))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "--with-admin-console"))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -122,6 +125,8 @@ var _ = AfterSuite(func() {
 		EventuallyWithOffset(1, func() error {
 			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
 		}, "60s", "1s").Should(HaveOccurred())
+
+		cancel()
 	}
 })
 
@@ -165,7 +170,7 @@ func enableStrictValidation() {
 		SharedCache: kubeCache,
 	}
 
-	settingsClient, err := gloov1.NewSettingsClient(settingsClientFactory)
+	settingsClient, err := gloov1.NewSettingsClient(ctx, settingsClientFactory)
 	Expect(err).NotTo(HaveOccurred())
 
 	settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})

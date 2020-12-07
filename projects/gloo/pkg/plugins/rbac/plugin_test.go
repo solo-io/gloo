@@ -1,8 +1,10 @@
 package rbac_test
 
 import (
-	envoyroutev2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"context"
+
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
@@ -104,7 +106,7 @@ var _ = Describe("Plugin", func() {
 				},
 			}},
 		}
-
+		params.Ctx = context.Background()
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
 		}
@@ -209,15 +211,15 @@ var _ = Describe("Plugin", func() {
 
 	Context("Process snapshot", func() {
 		var (
-			outRoute   envoyroutev2.Route
-			outVhost   envoyroutev2.VirtualHost
+			outRoute   envoy_config_route_v3.Route
+			outVhost   envoy_config_route_v3.VirtualHost
 			outFilters []plugins.StagedHttpFilter
 		)
 		JustBeforeEach(func() {
-			outVhost = envoyroutev2.VirtualHost{
+			outVhost = envoy_config_route_v3.VirtualHost{
 				Name: "test",
 			}
-			outRoute = envoyroutev2.Route{}
+			outRoute = envoy_config_route_v3.Route{}
 			routesParams := plugins.RouteParams{
 				VirtualHostParams: vhostParams,
 				VirtualHost:       virtualHost,

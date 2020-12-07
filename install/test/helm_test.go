@@ -26,7 +26,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	"github.com/solo-io/go-utils/installutils/kuberesource"
+	"github.com/solo-io/k8s-utils/installutils/kuberesource"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/pkg/install"
 	jobsv1 "k8s.io/api/batch/v1"
@@ -38,7 +38,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/go-utils/manifesttestutils"
+	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 )
@@ -2121,9 +2121,11 @@ spec:
 									{
 										Name: "server_cert",
 										SdsConfig: &corev3.ConfigSource{
+											ResourceApiVersion: corev3.ApiVersion_V3,
 											ConfigSourceSpecifier: &corev3.ConfigSource_ApiConfigSource{
 												ApiConfigSource: &corev3.ApiConfigSource{
-													ApiType: corev3.ApiConfigSource_GRPC,
+													ApiType:             corev3.ApiConfigSource_GRPC,
+													TransportApiVersion: corev3.ApiVersion_V3,
 													GrpcServices: []*corev3.GrpcService{
 														{
 															TargetSpecifier: &corev3.GrpcService_EnvoyGrpc_{

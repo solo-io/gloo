@@ -5079,7 +5079,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
-    headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f)
+    headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
+    configurationOverride: (f = msg.getConfigurationOverride()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5160,6 +5161,11 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.HeaderConfiguration;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.HeaderConfiguration.deserializeBinaryFromReader);
       msg.setHeaders(value);
+      break;
+    case 11:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setConfigurationOverride(value);
       break;
     default:
       reader.skipField();
@@ -5258,6 +5264,14 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       10,
       f,
       proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter
+    );
+  }
+  f = message.getConfigurationOverride();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -5472,6 +5486,36 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearHeaders = fun
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasHeaders = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct configuration_override = 11;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getConfigurationOverride = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 11));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setConfigurationOverride = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearConfigurationOverride = function() {
+  this.setConfigurationOverride(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasConfigurationOverride = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -7780,7 +7824,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
-    headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f)
+    headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
+    configurationOverride: (f = msg.getConfigurationOverride()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -7860,6 +7905,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       var value = new proto.enterprise.gloo.solo.io.HeaderConfiguration;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.HeaderConfiguration.deserializeBinaryFromReader);
       msg.setHeaders(value);
+      break;
+    case 11:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setConfigurationOverride(value);
       break;
     default:
       reader.skipField();
@@ -7957,6 +8007,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       10,
       f,
       proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter
+    );
+  }
+  f = message.getConfigurationOverride();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -8156,6 +8214,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasHeaders = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct configuration_override = 11;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getConfigurationOverride = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 11));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setConfigurationOverride = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearConfigurationOverride = function() {
+  this.setConfigurationOverride(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasConfigurationOverride = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

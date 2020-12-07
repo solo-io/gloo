@@ -6,13 +6,13 @@ import (
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
@@ -53,10 +53,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			SharedCache: cache,
 		}
 
-		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
+		gatewayClient, err = v2.NewGatewayClient(ctx, gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
+		virtualServiceClient, err = v1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 	})

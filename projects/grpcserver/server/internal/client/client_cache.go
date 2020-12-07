@@ -194,37 +194,37 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 		return nil, err
 	}
 
-	upstreamClient, err := gloov1.NewUpstreamClientWithToken(opts.Upstreams, *token)
+	upstreamClient, err := gloov1.NewUpstreamClientWithToken(ctx, opts.Upstreams, *token)
 	if err != nil {
 		return nil, err
 	}
 
-	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(ctx, factoryFor(gatewayv1.VirtualServiceCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	upstreamGroupClient, err := gloov1.NewUpstreamGroupClientWithToken(opts.UpstreamGroups, *token)
+	upstreamGroupClient, err := gloov1.NewUpstreamGroupClientWithToken(ctx, opts.UpstreamGroups, *token)
 	if err != nil {
 		return nil, err
 	}
 
-	gatewayClient, err := gatewayv2.NewGatewayClientWithToken(factoryFor(gatewayv2.GatewayCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	gatewayClient, err := gatewayv2.NewGatewayClientWithToken(ctx, factoryFor(gatewayv2.GatewayCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	proxyClient, err := gloov1.NewProxyClientWithToken(factoryFor(gloov1.ProxyCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	proxyClient, err := gloov1.NewProxyClientWithToken(ctx, factoryFor(gloov1.ProxyCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	settingsClient, err := gloov1.NewSettingsClientWithToken(ctx, factoryFor(gloov1.SettingsCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
 
-	routeTableClient, err := gatewayv1.NewRouteTableClientWithToken(factoryFor(gatewayv1.RouteTableCrd, *cfg, k8sCache, settings, podNamespace), *token)
+	routeTableClient, err := gatewayv1.NewRouteTableClientWithToken(ctx, factoryFor(gatewayv1.RouteTableCrd, *cfg, k8sCache, settings, podNamespace), *token)
 	if err != nil {
 		return nil, err
 	}
@@ -236,12 +236,12 @@ func NewClientCache(ctx context.Context, settings *gloov1.Settings, cfg *rest.Co
 	}
 
 	// replace this with the gloo factory
-	secretClient, err := gloov1.NewSecretClientWithToken(opts.Secrets, *token)
+	secretClient, err := gloov1.NewSecretClientWithToken(ctx, opts.Secrets, *token)
 	if err != nil {
 		return nil, err
 	}
 
-	artifactClient, err := gloov1.NewArtifactClientWithToken(opts.Artifacts, *token)
+	artifactClient, err := gloov1.NewArtifactClientWithToken(ctx, opts.Artifacts, *token)
 	if err != nil {
 		return nil, err
 	}

@@ -73,33 +73,33 @@ func RunGatewayWithSettings(ctx context.Context, justgloo bool, extensions *v1.E
 func RunGatewayWithKubeClientAndSettings(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) TestClients {
 	cache := memory.NewInMemoryResourceCache()
 
-	testclients := GetTestClients(cache)
+	testclients := GetTestClients(ctx, cache)
 	testclients.GlooPort = RunGlooGatewayUdsFds(ctx, cache, What{DisableGateway: justgloo}, ns, kubeclient, extensions)
 	return testclients
 }
 
-func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
+func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) TestClients {
 
 	// construct our own resources:
 	rcFactory := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 
-	gatewayClient, err := gatewayv1.NewGatewayClient(rcFactory)
+	gatewayClient, err := gatewayv1.NewGatewayClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(rcFactory)
+	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	upstreamClient, err := gloov1.NewUpstreamClient(rcFactory)
+	upstreamClient, err := gloov1.NewUpstreamClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	secretClient, err := gloov1.NewSecretClient(rcFactory)
+	secretClient, err := gloov1.NewSecretClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	artifactClient, err := gloov1.NewArtifactClient(rcFactory)
+	artifactClient, err := gloov1.NewArtifactClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	proxyClient, err := gloov1.NewProxyClient(rcFactory)
+	proxyClient, err := gloov1.NewProxyClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	authConfigClient, err := extauthv1.NewAuthConfigClient(rcFactory)
+	authConfigClient, err := extauthv1.NewAuthConfigClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	rlcClient, err := v1alpha1.NewRateLimitConfigClient(rcFactory)
+	rlcClient, err := v1alpha1.NewRateLimitConfigClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{

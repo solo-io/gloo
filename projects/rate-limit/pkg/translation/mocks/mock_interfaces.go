@@ -7,7 +7,7 @@ package mock_translation
 import (
 	reflect "reflect"
 
-	envoy_api_v2_route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	gomock "github.com/golang/mock/gomock"
 	ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
@@ -52,10 +52,10 @@ func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateServerConfig(resourc
 }
 
 // GenerateResourceConfig mocks base method
-func (m *MockBasicRateLimitTranslator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_api_v2_route.RateLimit {
+func (m *MockBasicRateLimitTranslator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_config_route_v3.RateLimit {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateResourceConfig", resourceName, headerName, stage)
-	ret0, _ := ret[0].([]*envoy_api_v2_route.RateLimit)
+	ret0, _ := ret[0].([]*envoy_config_route_v3.RateLimit)
 	return ret0
 }
 

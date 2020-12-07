@@ -1,6 +1,8 @@
 package mutation_test
 
 import (
+	"bytes"
+
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,10 +13,14 @@ import (
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	. "github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
+
+	"errors"
+
+	"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
 )
 
 var (
@@ -71,7 +77,7 @@ var _ = Describe("MutationFactory", func() {
 		}
 
 		getRateLimitStruct := func() *types.Struct {
-			rlStruct, err := util.MessageToStruct(getRateLimit())
+			rlStruct, err := MessageToStruct(getRateLimit())
 			Expect(err).NotTo(HaveOccurred())
 			return rlStruct
 		}
@@ -500,3 +506,24 @@ var _ = Describe("MutationFactory", func() {
 		})
 	})
 })
+
+// todo copied from an older version of go-utils, since the modern equivalent in
+// github.com/envoyproxy/go-control-plane/pkg/conversion doesn't play nice with the older types defined in
+// gloo's extensions struct defined here: projects/gloo/pkg/api/v1/extensions.pb.go/
+func MessageToStruct(msg proto.Message) (*types.Struct, error) {
+	if msg == nil {
+		return nil, errors.New("nil message")
+	}
+
+	buf := &bytes.Buffer{}
+	if err := (&jsonpb.Marshaler{OrigName: true}).Marshal(buf, msg); err != nil {
+		return nil, err
+	}
+
+	pbs := &types.Struct{}
+	if err := jsonpb.Unmarshal(buf, pbs); err != nil {
+		return nil, err
+	}
+
+	return pbs, nil
+}

@@ -78,7 +78,7 @@ var _ = Describe("External auth", func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		cache = memory.NewInMemoryResourceCache()
 
-		testClients = services.GetTestClients(cache)
+		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		extauthAddr := "localhost"
@@ -173,6 +173,38 @@ var _ = Describe("External auth", func() {
 			}
 		})
 
+		var basicConfigSetup = func() {
+			_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+				Metadata: core.Metadata{
+					Name:      GetBasicAuthExtension().GetConfigRef().Name,
+					Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
+						BasicAuth: getBasicAuthConfig(),
+					},
+				}},
+			}, clients.WriteOpts{Ctx: ctx})
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+			proxy := getProxyExtAuthBasicAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+			EventuallyWithOffset(1, func() (core.Status, error) {
+				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				if err != nil {
+					return core.Status{}, err
+				}
+
+				return proxy.Status, nil
+			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+				"Reason": BeEmpty(),
+				"State":  Equal(core.Status_Accepted),
+			}))
+		}
+
 		Context("using new config format", func() {
 
 			Context("basic auth sanity tests", func() {
@@ -185,35 +217,7 @@ var _ = Describe("External auth", func() {
 						}
 					}(*testUpstream)
 
-					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-						Metadata: core.Metadata{
-							Name:      GetBasicAuthExtension().GetConfigRef().Name,
-							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
-						},
-						Configs: []*extauth.AuthConfig_Config{{
-							AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
-								BasicAuth: getBasicAuthConfig(),
-							},
-						}},
-					}, clients.WriteOpts{Ctx: ctx})
-					Expect(err).NotTo(HaveOccurred())
-
-					proxy := getProxyExtAuthBasicAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
-
-					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
-					Expect(err).NotTo(HaveOccurred())
-
-					Eventually(func() (core.Status, error) {
-						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-						if err != nil {
-							return core.Status{}, err
-						}
-
-						return proxy.Status, nil
-					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-						"Reason": BeEmpty(),
-						"State":  Equal(core.Status_Accepted),
-					}))
+					basicConfigSetup()
 				})
 
 				It("should deny ext auth envoy", func() {
@@ -1211,49 +1215,54 @@ var _ = Describe("External auth", func() {
 			})
 
 		})
-	})
 
-	Context("health checker", func() {
+		Context("health checker", func() {
 
-		// NOTE: This test MUST run last, since it runs cancel()
-		It("should fail healthcheck immediately on shutdown", func() {
+			// NOTE: This test MUST run last, since it runs cancel()
+			It("should fail healthcheck immediately on shutdown", func() {
+				// Need to create some generic config so that extauth starts passing health checks
+				basicConfigSetup()
 
-			// Connects to the extauth service's health check
-			conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ExtAuthSettings.ServerPort), grpc.WithInsecure())
-			Expect(err).To(BeNil())
-			defer conn.Close()
-			healthCheckClient := grpc_health_v1.NewHealthClient(conn)
-			Eventually(func() bool { // Wait for the extauth server to start up
-				resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-					Service: settings.ExtAuthSettings.ServiceName,
-				})
-				if err != nil {
-					return false
-				}
-				return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
-			}, "5s", ".1s").Should(BeTrue())
-
-			// Start sending health checking requests continuously
-			waitForHealthcheck := make(chan struct{})
-			go func(waitForHealthcheck chan struct{}) {
-				defer GinkgoRecover()
-				Eventually(func() bool {
-					ctx = context.Background()
+				// Connects to the extauth service's health check
+				conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ExtAuthSettings.ServerPort), grpc.WithInsecure())
+				Expect(err).To(BeNil())
+				defer conn.Close()
+				healthCheckClient := grpc_health_v1.NewHealthClient(conn)
+				Eventually(func() bool { // Wait for the extauth server to start up
 					var header metadata.MD
-					healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+					resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
 						Service: settings.ExtAuthSettings.ServiceName,
 					}, grpc.Header(&header))
-					return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
-				}, "5s", ".1s").Should(BeTrue())
-				waitForHealthcheck <- struct{}{}
-			}(waitForHealthcheck)
+					if err != nil {
+						return false
+					}
 
-			// Start the health checker first, then cancel
-			time.Sleep(200 * time.Millisecond)
-			cancel()
-			Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+					return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
+				}, "5m", ".1s").Should(BeTrue())
+
+				// Start sending health checking requests continuously
+				waitForHealthcheck := make(chan struct{})
+				go func(waitForHealthcheck chan struct{}) {
+					defer GinkgoRecover()
+					Eventually(func() bool {
+						ctx = context.Background()
+						var header metadata.MD
+						healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+							Service: settings.ExtAuthSettings.ServiceName,
+						}, grpc.Header(&header))
+						return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
+					}, "5s", ".1s").Should(BeTrue())
+					waitForHealthcheck <- struct{}{}
+				}(waitForHealthcheck)
+
+				// Start the health checker first, then cancel
+				time.Sleep(200 * time.Millisecond)
+				cancel()
+				Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+			})
 		})
 	})
+
 })
 
 var startDiscoveryServerOnce sync.Once

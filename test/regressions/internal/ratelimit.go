@@ -14,8 +14,8 @@ import (
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	"github.com/solo-io/go-utils/kubeutils"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -71,7 +71,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				Cfg:         cfg,
 				SharedCache: cache,
 			}
-			settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
+			settingsClient, err = gloov1.NewSettingsClient(ctx, settingsClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 			uniqueDescriptorValue = uniqueDescriptorValue + "1"
 
@@ -80,7 +80,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				Cfg:         cfg,
 				SharedCache: cache,
 			}
-			gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
+			gatewayClient, err = v2.NewGatewayClient(ctx, gatewayClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
 			virtualServiceClientFactory := &factory.KubeResourceClientFactory{
@@ -88,7 +88,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				Cfg:         cfg,
 				SharedCache: cache,
 			}
-			virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
+			virtualServiceClient, err = v1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
 			rateLimitConfigClientFactory := &factory.KubeResourceClientFactory{
@@ -97,7 +97,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				SharedCache: cache,
 			}
 
-			rateLimitConfigClient, err = v1alpha1.NewRateLimitConfigClient(rateLimitConfigClientFactory)
+			rateLimitConfigClient, err = v1alpha1.NewRateLimitConfigClient(ctx, rateLimitConfigClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
 			regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
@@ -212,7 +212,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 						Cfg:         cfg,
 						SharedCache: kubeCache,
 					}
-					authConfigClient, err := extauthv1.NewAuthConfigClient(authConfigClientFactory)
+					authConfigClient, err := extauthv1.NewAuthConfigClient(ctx, authConfigClientFactory)
 					Expect(err).NotTo(HaveOccurred(), "Should create auth config client")
 					authConfig, err := authConfigClient.Write(&extauthv1.AuthConfig{
 						Metadata: core.Metadata{

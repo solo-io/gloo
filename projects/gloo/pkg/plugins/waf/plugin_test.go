@@ -1,7 +1,7 @@
 package waf
 
 import (
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,8 +35,8 @@ var _ = Describe("waf plugin", func() {
 	allTests := func() {
 		Context("process snapshot", func() {
 			var (
-				outRoute   envoyroute.Route
-				outVhost   envoyroute.VirtualHost
+				outRoute   envoy_config_route_v3.Route
+				outVhost   envoy_config_route_v3.VirtualHost
 				outFilters []plugins.StagedHttpFilter
 			)
 
@@ -51,10 +51,10 @@ var _ = Describe("waf plugin", func() {
 			}
 
 			JustBeforeEach(func() {
-				outVhost = envoyroute.VirtualHost{
+				outVhost = envoy_config_route_v3.VirtualHost{
 					Name: "test",
 				}
-				outRoute = envoyroute.Route{}
+				outRoute = envoy_config_route_v3.Route{}
 				routesParams := plugins.RouteParams{
 					VirtualHostParams: vhostParams,
 					VirtualHost:       virtualHost,

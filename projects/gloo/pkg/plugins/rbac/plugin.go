@@ -4,19 +4,17 @@ import (
 	"context"
 	"sort"
 
-	envoyroutev2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
-	"github.com/gogo/protobuf/proto"
-
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
+	"github.com/gogo/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/go-utils/contextutils"
-
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
 
@@ -26,8 +24,11 @@ const (
 )
 
 var (
-	_           plugins.Plugin = new(Plugin)
-	filterStage                = plugins.DuringStage(plugins.AuthZStage)
+	_           plugins.Plugin            = new(Plugin)
+	_           plugins.RoutePlugin       = new(Plugin)
+	_           plugins.VirtualHostPlugin = new(Plugin)
+	_           plugins.HttpFilterPlugin  = new(Plugin)
+	filterStage                           = plugins.DuringStage(plugins.AuthZStage)
 )
 
 type Plugin struct {
@@ -43,7 +44,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroutev2.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 	rbacConf := in.Options.GetRbac()
 	if rbacConf == nil {
 		// no config found, nothing to do here
@@ -65,7 +66,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroutev2.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	rbacConfig := in.GetOptions().GetRbac()
 	if rbacConfig == nil {
 		// no config found, nothing to do here

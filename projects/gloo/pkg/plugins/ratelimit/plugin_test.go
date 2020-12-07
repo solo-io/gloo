@@ -4,40 +4,30 @@ import (
 	"context"
 	"time"
 
-	"github.com/rotisserie/eris"
-
-	"github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
-	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-
-	rl_api "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-
-	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-
-	"github.com/golang/protobuf/ptypes/duration"
-
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/golang/protobuf/ptypes"
-	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
+	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	ratelimitpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	rl_api "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // copied from rate-limiter: pkg/config/translation/crd_translator.go
@@ -250,7 +240,7 @@ var _ = Describe("RateLimit Plugin", func() {
 						},
 					},
 				},
-			}, &envoyroute.VirtualHost{})
+			}, &envoy_config_route_v3.VirtualHost{})
 
 			Expect(err).To(MatchError(ContainSubstring(RateLimitAuthOrderingConflict.Error())),
 				"Should not allow auth-based rate limits when rate limiting before auth")
@@ -279,7 +269,7 @@ var _ = Describe("RateLimit Plugin", func() {
 	Context("route level rate limits", func() {
 		var (
 			inRoute     gloov1.Route
-			outRoute    envoyroute.Route
+			outRoute    envoy_config_route_v3.Route
 			routeParams = plugins.RouteParams{
 				VirtualHostParams: plugins.VirtualHostParams{
 					Params: plugins.Params{
@@ -313,9 +303,9 @@ var _ = Describe("RateLimit Plugin", func() {
 					},
 				},
 			}
-			outRoute = envoyroute.Route{
-				Action: &envoyroute.Route_Route{
-					Route: &envoyroute.RouteAction{},
+			outRoute = envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
 				},
 			}
 		})
@@ -327,11 +317,11 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		Context("routes with duplicate names", func() {
-			var outRoute2 envoyroute.Route
+			var outRoute2 envoy_config_route_v3.Route
 			JustBeforeEach(func() {
-				outRoute2 = envoyroute.Route{
-					Action: &envoyroute.Route_Route{
-						Route: &envoyroute.RouteAction{},
+				outRoute2 = envoy_config_route_v3.Route{
+					Action: &envoy_config_route_v3.Route_Route{
+						Route: &envoy_config_route_v3.RouteAction{},
 					},
 				}
 			})
@@ -344,9 +334,9 @@ var _ = Describe("RateLimit Plugin", func() {
 			})
 
 			It("should allow duplicate names for routes without limits configured", func() {
-				outRoute3 := envoyroute.Route{
-					Action: &envoyroute.Route_Route{
-						Route: &envoyroute.RouteAction{},
+				outRoute3 := envoy_config_route_v3.Route{
+					Action: &envoy_config_route_v3.Route_Route{
+						Route: &envoy_config_route_v3.RouteAction{},
 					},
 				}
 
@@ -376,9 +366,9 @@ var _ = Describe("RateLimit Plugin", func() {
 
 		var (
 			inRoute  gloov1.Route
-			outRoute envoyroute.Route
+			outRoute envoy_config_route_v3.Route
 			inVHost  gloov1.VirtualHost
-			outVHost envoyroute.VirtualHost
+			outVHost envoy_config_route_v3.VirtualHost
 
 			rlConfigName  = "myRlConfig"
 			namespace     = "gloo-system"
@@ -404,9 +394,9 @@ var _ = Describe("RateLimit Plugin", func() {
 					},
 				},
 			}
-			outRoute = envoyroute.Route{
-				Action: &envoyroute.Route_Route{
-					Route: &envoyroute.RouteAction{},
+			outRoute = envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
 				},
 			}
 
@@ -416,7 +406,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 			}
 
-			outVHost = envoyroute.VirtualHost{}
+			outVHost = envoy_config_route_v3.VirtualHost{}
 
 		})
 
@@ -625,9 +615,9 @@ var _ = Describe("RateLimit Plugin", func() {
 
 		var (
 			inRoute  gloov1.Route
-			outRoute envoyroute.Route
+			outRoute envoy_config_route_v3.Route
 			inVHost  gloov1.VirtualHost
-			outVHost envoyroute.VirtualHost
+			outVHost envoy_config_route_v3.VirtualHost
 		)
 
 		BeforeEach(func() {
@@ -642,9 +632,9 @@ var _ = Describe("RateLimit Plugin", func() {
 					},
 				},
 			}
-			outRoute = envoyroute.Route{
-				Action: &envoyroute.Route_Route{
-					Route: &envoyroute.RouteAction{},
+			outRoute = envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
 				},
 			}
 
@@ -654,7 +644,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 			}
 
-			outVHost = envoyroute.VirtualHost{}
+			outVHost = envoy_config_route_v3.VirtualHost{}
 
 		})
 
@@ -733,21 +723,21 @@ var _ = Describe("RateLimit Plugin", func() {
 
 		It("should properly set several rate limits", func() {
 
-			outRoute.GetRoute().RateLimits = []*envoyroute.RateLimit{
+			outRoute.GetRoute().RateLimits = []*envoy_config_route_v3.RateLimit{
 				// populate outRoute with correct ratelimits to "mock" OS plugin behavior
 				{
 					Stage: &wrappers.UInt32Value{Value: 1},
-					Actions: []*envoyroute.RateLimit_Action{
+					Actions: []*envoy_config_route_v3.RateLimit_Action{
 						{
-							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: "tree1",
 								},
 							},
 						},
 						{
-							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: "tree2",
 								},
 							},
@@ -756,17 +746,17 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 				{
 					Stage: &wrappers.UInt32Value{Value: 1},
-					Actions: []*envoyroute.RateLimit_Action{
+					Actions: []*envoy_config_route_v3.RateLimit_Action{
 						{
-							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: "bothTree1",
 								},
 							},
 						},
 						{
-							ActionSpecifier: &envoyroute.RateLimit_Action_GenericKey_{
-								GenericKey: &envoyroute.RateLimit_Action_GenericKey{
+							ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+								GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 									DescriptorValue: "bothTree2",
 								},
 							},

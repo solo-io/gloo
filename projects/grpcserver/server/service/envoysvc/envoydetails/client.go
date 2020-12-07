@@ -47,7 +47,7 @@ func NewClient(podsGetter corev1.PodsGetter, httpGetter HttpGetter, envoyStatusG
 }
 
 func (c *client) List(ctx context.Context, namespace string) ([]*v1.EnvoyDetails, error) {
-	podList, err := c.podsGetter.Pods(namespace).List(metav1.ListOptions{LabelSelector: GatewayProxyLabelSelector})
+	podList, err := c.podsGetter.Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: GatewayProxyLabelSelector})
 	if err != nil {
 		wrapped := FailedToListPodsError(err, namespace, GatewayProxyLabelSelector)
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(),

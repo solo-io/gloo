@@ -2,7 +2,7 @@ package test
 
 import (
 	glooTest "github.com/solo-io/gloo/install/test"
-	"github.com/solo-io/go-utils/manifesttestutils"
+	"github.com/solo-io/k8s-utils/manifesttestutils"
 )
 
 func GetGlooEServiceAccountPermissions(namespace string) *manifesttestutils.ServiceAccountPermissions {

@@ -755,6 +755,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getHeaders(): HeaderConfiguration | undefined;
   setHeaders(value?: HeaderConfiguration): void;
 
+  hasConfigurationOverride(): boolean;
+  clearConfigurationOverride(): void;
+  getConfigurationOverride(): google_protobuf_struct_pb.Struct | undefined;
+  setConfigurationOverride(value?: google_protobuf_struct_pb.Struct): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -777,6 +782,7 @@ export namespace OidcAuthorizationCode {
     scopesList: Array<string>,
     session?: UserSession.AsObject,
     headers?: HeaderConfiguration.AsObject,
+    configurationOverride?: google_protobuf_struct_pb.Struct.AsObject,
   }
 }
 
@@ -1133,6 +1139,11 @@ export namespace ExtAuthConfig {
     getHeaders(): HeaderConfiguration | undefined;
     setHeaders(value?: HeaderConfiguration): void;
 
+    hasConfigurationOverride(): boolean;
+    clearConfigurationOverride(): void;
+    getConfigurationOverride(): google_protobuf_struct_pb.Struct | undefined;
+    setConfigurationOverride(value?: google_protobuf_struct_pb.Struct): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1155,6 +1166,7 @@ export namespace ExtAuthConfig {
       scopesList: Array<string>,
       session?: UserSession.AsObject,
       headers?: HeaderConfiguration.AsObject,
+      configurationOverride?: google_protobuf_struct_pb.Struct.AsObject,
     }
   }
 

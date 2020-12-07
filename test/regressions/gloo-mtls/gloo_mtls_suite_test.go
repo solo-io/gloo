@@ -19,7 +19,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/go-utils/testutils/exec"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 )
@@ -41,9 +41,12 @@ func TestGateway(t *testing.T) {
 
 var (
 	testHelper *helper.SoloTestHelper
+	ctx        context.Context
+	cancel     context.CancelFunc
 )
 
 var _ = BeforeSuite(func() {
+	ctx, cancel = context.WithCancel(context.Background())
 	cwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred())
 
@@ -62,7 +65,7 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "-v"))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "-v"))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -101,6 +104,7 @@ var _ = AfterSuite(func() {
 		EventuallyWithOffset(1, func() error {
 			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
 		}, "60s", "1s").Should(HaveOccurred())
+		cancel()
 	}
 })
 

@@ -55,14 +55,22 @@ static_resources:
     http2_protocol_options: {}
     type: STATIC
 
+layered_runtime:
+  layers:
+  - name: admin_layer
+    admin_layer: {}
+
 dynamic_resources:
   ads_config:
+    transport_api_version: {{ .ApiVersion }}
     api_type: GRPC
     grpc_services:
     - envoy_grpc: {cluster_name: xds_cluster}
   cds_config:
+    resource_api_version: {{ .ApiVersion }}
     ads: {}
   lds_config:
+    resource_api_version: {{ .ApiVersion }}
     ads: {}
   
 admin:
@@ -192,6 +200,7 @@ type EnvoyInstance struct {
 	GlooAddr      string // address for gloo and services
 	Port          uint32
 	AdminPort     int32
+	ApiVersion    string
 }
 
 func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
@@ -211,10 +220,11 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 	}
 
 	ei := &EnvoyInstance{
-		envoypath: ef.envoypath,
-		useDocker: ef.useDocker,
-		GlooAddr:  gloo,
-		AdminPort: int32(adminPort),
+		envoypath:  ef.envoypath,
+		useDocker:  ef.useDocker,
+		GlooAddr:   gloo,
+		AdminPort:  int32(adminPort),
+		ApiVersion: "V3",
 	}
 	ef.instances = append(ef.instances, ei)
 	return ei, nil

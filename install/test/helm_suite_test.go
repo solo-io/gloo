@@ -19,8 +19,8 @@ import (
 	"helm.sh/helm/v3/pkg/action"
 	k8syamlutil "sigs.k8s.io/yaml"
 
-	. "github.com/solo-io/go-utils/manifesttestutils"
 	"github.com/solo-io/go-utils/testutils"
+	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	"helm.sh/helm/v3/pkg/chart/loader"
 
 	. "github.com/onsi/ginkgo"

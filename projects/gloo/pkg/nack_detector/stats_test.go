@@ -14,15 +14,17 @@ import (
 
 var _ = Describe("Stats", func() {
 	var (
+		ctx         context.Context
 		changeState func(newstate State)
-		s           *StatGen
+		s           StateChangedCallback
 	)
 	BeforeEach(func() {
-		s = NewStatsGen(context.Background())
+		ctx = context.Background()
+		s = NewStatsGen()
 		var id EnvoyStatusId
 		st := New
 		changeState = func(newstate State) {
-			s.Stat(id, st, newstate)
+			s(ctx, id, st, newstate)
 			st = newstate
 		}
 	})
@@ -45,8 +47,8 @@ var _ = Describe("Stats", func() {
 		id.StreamId = DiscoveryServiceId{TypeUrl: "cds"}
 		var id2 EnvoyStatusId
 		id2.StreamId = DiscoveryServiceId{TypeUrl: "rds"}
-		s.Stat(id, New, New)
-		s.Stat(id2, New, New)
+		s(ctx, id, New, New)
+		s(ctx, id2, New, New)
 
 		d, err := view.RetrieveData(GlooeTotalEntities.Name)
 		Expect(err).NotTo(HaveOccurred())

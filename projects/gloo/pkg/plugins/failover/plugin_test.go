@@ -5,14 +5,14 @@ import (
 	"net"
 	"time"
 
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_api_v2_endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoytls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/gogo/protobuf/types"
@@ -118,23 +118,23 @@ var _ = Describe("Failover", func() {
 			},
 		}
 
-		expected = &v2.ClusterLoadAssignment{
-			Endpoints: []*envoy_api_v2_endpoint.LocalityLbEndpoints{
+		expected = &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
-					Locality: &envoy_api_v2_core.Locality{
+					Locality: &envoy_config_core_v3.Locality{
 						Region:  "p1_region",
 						Zone:    "p1_zone",
 						SubZone: "p1_sub_zone",
 					},
-					LbEndpoints: []*envoy_api_v2_endpoint.LbEndpoint{
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
 						{
-							HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
-								Endpoint: &envoy_api_v2_endpoint.Endpoint{
-									Address: &envoy_api_v2_core.Address{
-										Address: &envoy_api_v2_core.Address_SocketAddress{
-											SocketAddress: &envoy_api_v2_core.SocketAddress{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
 												Address: ipAddr1.IP.String(),
-												PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 													PortValue: sslEndpoint.GetPort(),
 												},
 											},
@@ -142,20 +142,20 @@ var _ = Describe("Failover", func() {
 									},
 								},
 							},
-							Metadata: &envoy_api_v2_core.Metadata{
+							Metadata: &envoy_config_core_v3.Metadata{
 								FilterMetadata: map[string]*structpb.Struct{
 									failover.TransportSocketMatchKey: metadataMatch,
 								},
 							},
 						},
 						{
-							HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
-								Endpoint: &envoy_api_v2_endpoint.Endpoint{
-									Address: &envoy_api_v2_core.Address{
-										Address: &envoy_api_v2_core.Address_SocketAddress{
-											SocketAddress: &envoy_api_v2_core.SocketAddress{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
 												Address: ipAddr2.IP.String(),
-												PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 													PortValue: sslEndpoint.GetPort(),
 												},
 											},
@@ -163,7 +163,7 @@ var _ = Describe("Failover", func() {
 									},
 								},
 							},
-							Metadata: &envoy_api_v2_core.Metadata{
+							Metadata: &envoy_config_core_v3.Metadata{
 								FilterMetadata: map[string]*structpb.Struct{
 									failover.TransportSocketMatchKey: metadataMatch,
 								},
@@ -176,26 +176,26 @@ var _ = Describe("Failover", func() {
 					Priority: 1,
 				},
 				{
-					Locality: &envoy_api_v2_core.Locality{
+					Locality: &envoy_config_core_v3.Locality{
 						Region:  "p2_region",
 						Zone:    "p2_zone",
 						SubZone: "p2_sub_zone",
 					},
-					LbEndpoints: []*envoy_api_v2_endpoint.LbEndpoint{
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
 						{
-							HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
-								Endpoint: &envoy_api_v2_endpoint.Endpoint{
-									Address: &envoy_api_v2_core.Address{
-										Address: &envoy_api_v2_core.Address_SocketAddress{
-											SocketAddress: &envoy_api_v2_core.SocketAddress{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
 												Address: httpEndpoint.GetAddress(),
-												PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 													PortValue: httpEndpoint.GetPort(),
 												},
 											},
 										},
 									},
-									HealthCheckConfig: &envoy_api_v2_endpoint.Endpoint_HealthCheckConfig{
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
 										PortValue: httpEndpoint.GetHealthCheckConfig().GetPortValue(),
 										Hostname:  httpEndpoint.GetHealthCheckConfig().GetHostname(),
 									},
@@ -214,18 +214,18 @@ var _ = Describe("Failover", func() {
 			},
 		}
 
-		buildExpectedCluster = func() *v2.Cluster {
+		buildExpectedCluster = func() *envoy_config_cluster_v3.Cluster {
 			anyCfg, err := utils.MessageToAny(tlsContext)
 			Expect(err).NotTo(HaveOccurred())
 
-			return &v2.Cluster{
-				TransportSocketMatches: []*v2.Cluster_TransportSocketMatch{
+			return &envoy_config_cluster_v3.Cluster{
+				TransportSocketMatches: []*envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 					{
 						Name:  uniqueName,
 						Match: metadataMatch,
-						TransportSocket: &envoy_api_v2_core.TransportSocket{
+						TransportSocket: &envoy_config_core_v3.TransportSocket{
 							Name: wellknown.TransportSocketTls,
-							ConfigType: &envoy_api_v2_core.TransportSocket_TypedConfig{
+							ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
 								TypedConfig: anyCfg,
 							},
 						},
@@ -238,8 +238,8 @@ var _ = Describe("Failover", func() {
 			plugin plugins.Plugin,
 			params plugins.Params,
 			upstream *gloov1.Upstream,
-			cluster *v2.Cluster,
-			endpoints *v2.ClusterLoadAssignment,
+			cluster *envoy_config_cluster_v3.Cluster,
+			endpoints *envoy_config_endpoint_v3.ClusterLoadAssignment,
 		) error {
 			err := plugin.Init(plugins.InitParams{Ctx: ctx})
 			Expect(err).NotTo(HaveOccurred())
@@ -312,8 +312,8 @@ var _ = Describe("Failover", func() {
 
 		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
 
-		cluster := &v2.Cluster{}
-		cluster.LoadAssignment = &v2.ClusterLoadAssignment{}
+		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster.LoadAssignment = &envoy_config_endpoint_v3.ClusterLoadAssignment{}
 		expectedCluster := buildExpectedCluster()
 		expectedCluster.LoadAssignment = expected
 
@@ -338,19 +338,21 @@ var _ = Describe("Failover", func() {
 
 		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
 
-		cluster := &v2.Cluster{}
-		cluster.ClusterDiscoveryType = &v2.Cluster_Type{
-			Type: v2.Cluster_EDS,
+		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
 		}
 		expectedCluster := buildExpectedCluster()
-		expectedCluster.ClusterDiscoveryType = &v2.Cluster_Type{
-			Type: v2.Cluster_EDS,
+		expectedCluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
 		}
-		expectedCluster.EdsClusterConfig = &v2.Cluster_EdsClusterConfig{
-			EdsConfig: &envoy_api_v2_core.ConfigSource{
-				ConfigSourceSpecifier: &envoy_api_v2_core.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_api_v2_core.ApiConfigSource{
-						ApiType:                   envoy_api_v2_core.ApiConfigSource_REST,
+		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
+			EdsConfig: &envoy_config_core_v3.ConfigSource{
+				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
+						TransportApiVersion:       envoy_config_core_v3.ApiVersion_V3,
+						ApiType:                   envoy_config_core_v3.ApiConfigSource_REST,
 						ClusterNames:              []string{failover.RestXdsCluster},
 						RefreshDelay:              ptypes.DurationProto(time.Second * 5),
 						RequestTimeout:            ptypes.DurationProto(time.Second * 5),
@@ -368,7 +370,7 @@ var _ = Describe("Failover", func() {
 				Secrets: secretList,
 			},
 		}
-		endpoints := &v2.ClusterLoadAssignment{}
+		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
 		err := runPlugin(plugin, params, upstream, cluster, endpoints)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cluster).To(Equal(expectedCluster))

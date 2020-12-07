@@ -4,27 +4,23 @@ import (
 	"crypto/x509"
 	"encoding/json"
 
-	"github.com/golang/protobuf/ptypes"
-
-	"github.com/gogo/protobuf/types"
-	duration "github.com/golang/protobuf/ptypes/duration"
-
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/jwt_authn/v3"
+	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/duration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"gopkg.in/square/go-jose.v2"
-
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
+	"gopkg.in/square/go-jose.v2"
 )
 
 var _ = Describe("JWT Plugin", func() {
@@ -146,17 +142,17 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 	Context("Process snapshot", func() {
 		var (
-			outRoute     envoyroute.Route
-			outVhost     envoyroute.VirtualHost
+			outRoute     envoy_config_route_v3.Route
+			outVhost     envoy_config_route_v3.VirtualHost
 			outFilters   []plugins.StagedHttpFilter
 			keySetString []byte
 			cfg          *envoyauth.JwtAuthentication
 		)
 		JustBeforeEach(func() {
-			outVhost = envoyroute.VirtualHost{
+			outVhost = envoy_config_route_v3.VirtualHost{
 				Name: "test",
 			}
-			outRoute = envoyroute.Route{}
+			outRoute = envoy_config_route_v3.Route{}
 
 			// run it like the translator:
 			err := plugin.ProcessRoute(routeParams, route, &outRoute)

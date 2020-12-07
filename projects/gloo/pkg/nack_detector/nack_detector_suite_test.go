@@ -13,5 +13,5 @@ func TestNackDetector(t *testing.T) {
 	RegisterFailHandler(Fail)
 	helpers.SetupLog()
 
-	RunSpecs(t, "NackDetector Suite")
+	RunSpecs(t, "nackDetector Suite")
 }

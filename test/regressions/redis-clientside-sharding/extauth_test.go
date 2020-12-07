@@ -4,7 +4,7 @@ import (
 	"context"
 
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -37,7 +37,7 @@ var _ = Describe("ExtAuth tests", func() {
 			Cfg:         cfg,
 			SharedCache: kubeCache,
 		}
-		authConfigClient, err := extauthv1.NewAuthConfigClient(authConfigClientFactory)
+		authConfigClient, err := extauthv1.NewAuthConfigClient(ctx, authConfigClientFactory)
 		Expect(err).NotTo(HaveOccurred(), "should create auth config client")
 		authConfigs, err := authConfigClient.List(testHelper.InstallNamespace, clients.ListOpts{})
 		for _, authConfig := range authConfigs {

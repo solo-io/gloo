@@ -5,11 +5,9 @@ import (
 	"sync"
 	"time"
 
+	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"github.com/solo-io/go-utils/contextutils"
-
 	xds "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
-
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 )
 
 type State int
@@ -64,13 +62,13 @@ type EnvoyStatusId struct {
 }
 
 type StateChangedHandler interface {
-	StateChanged(eid EnvoyStatusId, oldState, newState State)
+	StateChanged(ctx context.Context, eid EnvoyStatusId, oldState, newState State)
 }
 
-type StateChangedCallback func(eid EnvoyStatusId, oldState, newState State)
+type StateChangedCallback func(ctx context.Context, eid EnvoyStatusId, oldState, newState State)
 
-func (f StateChangedCallback) StateChanged(eid EnvoyStatusId, oldState, newState State) {
-	f(eid, oldState, newState)
+func (f StateChangedCallback) StateChanged(ctx context.Context, eid EnvoyStatusId, oldState, newState State) {
+	f(ctx, eid, oldState, newState)
 }
 
 type EnvoyStatus struct {
@@ -97,8 +95,6 @@ type EnvoysState struct {
 	WaitTimeForSync time.Duration
 
 	TimeProvider TimeProvider
-
-	ctx context.Context
 }
 
 func (ess *EnvoysState) Get(id DiscoveryServiceId) *EnvoyState {
@@ -126,7 +122,7 @@ func (ess *EnvoysState) Get(id DiscoveryServiceId) *EnvoyState {
 	return stcopy
 }
 
-func (ess *EnvoysState) Delete(id int64) {
+func (ess *EnvoysState) Delete(ctx context.Context, id int64) {
 	ess.maplock.Lock()
 	deadEnvoy := ess.values[id]
 	delete(ess.values, id)
@@ -137,7 +133,7 @@ func (ess *EnvoysState) Delete(id int64) {
 	// we provide the stream id to make sure we can deal with a race with envoy reconnecting.
 	for _, v := range deadEnvoy {
 		v.EnvoyStatus.State = Gone
-		ess.processStateChange(v)
+		ess.processStateChange(ctx, v)
 	}
 
 }
@@ -154,7 +150,7 @@ func (ess *EnvoysState) Set(id DiscoveryServiceId, es *EnvoyState) {
 	ess.maplock.Unlock()
 }
 
-func (ess *EnvoysState) CheckIsSync(id DiscoveryServiceId, vi, rn string) {
+func (ess *EnvoysState) CheckIsSync(ctx context.Context, id DiscoveryServiceId, vi, rn string) {
 
 	envoyState := ess.Get(id)
 	if envoyState.ServerVersion == "" {
@@ -164,53 +160,53 @@ func (ess *EnvoysState) CheckIsSync(id DiscoveryServiceId, vi, rn string) {
 		} else {
 			// envoy has a state, but we dont. that probably because gloo restarted and envoy didnt.
 			// assume that envoy state is good. gloo will correct it shortly if not.
-			ess.inSync(id, envoyState)
+			ess.inSync(ctx, id, envoyState)
 		}
 		return
 	}
-	contextutils.LoggerFrom(ess.ctx).Debugf("nackdetector: CheckIsSync: versions: %s %s nonces: %s %s", envoyState.ServerVersion, vi, envoyState.ServerNonce, rn)
+	contextutils.LoggerFrom(ctx).Debugf("nackdetector: CheckIsSync: versions: %s %s nonces: %s %s", envoyState.ServerVersion, vi, envoyState.ServerNonce, rn)
 
 	if envoyState.ServerVersion != vi {
 		// NACK maybe detected (if the nonce match)
 		nack := envoyState.ServerNonce == rn
-		ess.outOfSync(id, envoyState, nack)
+		ess.outOfSync(ctx, id, envoyState, nack)
 	} else {
 		// ACK detected
-		ess.inSync(id, envoyState)
+		ess.inSync(ctx, id, envoyState)
 	}
 }
 
-func (ess *EnvoysState) outOfSync(id DiscoveryServiceId, es *EnvoyState, nack bool) {
+func (ess *EnvoysState) outOfSync(ctx context.Context, id DiscoveryServiceId, es *EnvoyState, nack bool) {
 	if nack {
-		ess.preprocessStateChange(id, es, OutOfSyncNack)
+		ess.preprocessStateChange(ctx, id, es, OutOfSyncNack)
 	} else {
-		ess.preprocessStateChange(id, es, OutOfSync)
+		ess.preprocessStateChange(ctx, id, es, OutOfSync)
 	}
 }
 
-func (ess *EnvoysState) inSync(id DiscoveryServiceId, es *EnvoyState) {
-	ess.preprocessStateChange(id, es, InSync)
+func (ess *EnvoysState) inSync(ctx context.Context, id DiscoveryServiceId, es *EnvoyState) {
+	ess.preprocessStateChange(ctx, id, es, InSync)
 }
 
-func (ess *EnvoysState) newEnvoy(id DiscoveryServiceId, es *EnvoyState) {
-	ess.preprocessStateChange(id, es, New)
+func (ess *EnvoysState) newEnvoy(ctx context.Context, id DiscoveryServiceId, es *EnvoyState) {
+	ess.preprocessStateChange(ctx, id, es, New)
 }
 
-func (ess *EnvoysState) preprocessStateChange(id DiscoveryServiceId, es *EnvoyState, st State) {
+func (ess *EnvoysState) preprocessStateChange(ctx context.Context, id DiscoveryServiceId, es *EnvoyState, st State) {
 	es.EnvoyStatus.State = st
 	es.EnvoyStatus.LastModified = ess.TimeProvider.Now()
 	// save and notify
 	ess.Set(id, es)
-	ess.processStateChange(es)
+	ess.processStateChange(ctx, es)
 }
 
-func (ess *EnvoysState) processStateChange(es *EnvoyState) {
+func (ess *EnvoysState) processStateChange(ctx context.Context, es *EnvoyState) {
 	var envoyStatus EnvoyStatus
 	envoyStatus = es.EnvoyStatus
 	select {
 	case ess.changes <- envoyStatus:
 	default:
-		contextutils.LoggerFrom(ess.ctx).Warn("changes channel full! this might mean that the system is loaded. consider running more gloos")
+		contextutils.LoggerFrom(ctx).Warn("changes channel full! this might mean that the system is loaded. consider running more gloos")
 	}
 }
 
@@ -229,7 +225,7 @@ func (ess *EnvoysState) runNotifications(ctx context.Context) {
 			logger.Debugw("notifyNewState", "nodeID", nodeID, "old-state", oldst, "state", st)
 			defer logger.Debug("notifyNewState - done")
 			notifiedState[nodeID] = st
-			ess.stateChangedHandler.StateChanged(nodeID, oldst, st)
+			ess.stateChangedHandler.StateChanged(ctx, nodeID, oldst, st)
 		}
 	}
 
@@ -293,40 +289,34 @@ func NewEnvoysState(ctx context.Context, stateChangedHandler StateChangedHandler
 
 		stateChangedHandler: stateChangedHandler,
 		TimeProvider:        stdTime{},
-		ctx:                 ctx,
 	}
 	go es.runNotifications(ctx)
 	return es
 }
 
-type NackDetector struct {
+type nackDetector struct {
 	states              *EnvoysState
 	stateChangedHandler StateChangedHandler
 
 	ctx context.Context
 }
 
-var _ xds.Callbacks = (*NackDetector)(nil)
-
-func NewNackDetector(ctx context.Context, stChangedCB StateChangedHandler) *NackDetector {
-	return &NackDetector{
+func NewNackDetector(ctx context.Context, stChangedCB StateChangedHandler) *nackDetector {
+	return &nackDetector{
 		states: NewEnvoysState(ctx, stChangedCB),
 	}
 }
 
-func NewNackDetectorWithEnvoysState(ctx context.Context, envoysState *EnvoysState) *NackDetector {
-	return &NackDetector{states: envoysState}
+func NewNackDetectorWithEnvoysState(envoysState *EnvoysState) *nackDetector {
+	return &nackDetector{states: envoysState}
 }
 
-func (n *NackDetector) OnStreamOpen(id int64, url string) {
-	contextutils.LoggerFrom(n.ctx).Debugf("nackdetector: envoy stream open %d url %s", id, url)
+func (n *nackDetector) OnStreamOpen(ctx context.Context, id int64, url string) error {
+	contextutils.LoggerFrom(ctx).Debugf("nackdetector: envoy stream open %d url %s", id, url)
+	return nil
 }
 
-func (n *NackDetector) OnStreamClosed(id int64) {
-	n.states.Delete(id)
-}
-
-func (n *NackDetector) OnStreamRequest(id int64, req *v2.DiscoveryRequest) {
+func (n *nackDetector) OnStreamRequest(id int64, req *envoy_service_discovery_v3.DiscoveryRequest) error {
 	contextutils.LoggerFrom(n.ctx).Debugf("nackdetector: envoy requested %s %s nonce %s", req.VersionInfo, req.TypeUrl, req.ResponseNonce)
 	var dsid DiscoveryServiceId
 	dsid.GrpcStreamId = id
@@ -338,13 +328,14 @@ func (n *NackDetector) OnStreamRequest(id int64, req *v2.DiscoveryRequest) {
 		// set the id and type so that the callback can see them too.
 		envoyState.EnvoyStatus.EnvoyStatusId.NodeId = req.Node.Id
 		n.states.Set(dsid, envoyState)
-		n.states.newEnvoy(dsid, envoyState)
+		n.states.newEnvoy(n.ctx, dsid, envoyState)
 	}
 
-	n.states.CheckIsSync(dsid, req.VersionInfo, req.ResponseNonce)
+	n.states.CheckIsSync(n.ctx, dsid, req.VersionInfo, req.ResponseNonce)
+	return nil
 }
 
-func (n *NackDetector) OnStreamResponse(id int64, req *v2.DiscoveryRequest, resp *v2.DiscoveryResponse) {
+func (n *nackDetector) OnStreamResponse(id int64, req *envoy_service_discovery_v3.DiscoveryRequest, resp *envoy_service_discovery_v3.DiscoveryResponse) {
 	var dsid DiscoveryServiceId
 	dsid.GrpcStreamId = id
 	dsid.TypeUrl = req.TypeUrl
@@ -357,16 +348,23 @@ func (n *NackDetector) OnStreamResponse(id int64, req *v2.DiscoveryRequest, resp
 	// requesting new config
 	contextutils.LoggerFrom(n.ctx).Debugf("nackdetector: delivering new version %s nonce  %s to %s %s", resp.VersionInfo, resp.Nonce, envoyState.EnvoyStatus.EnvoyStatusId.NodeId, envoyState.EnvoyStatus.EnvoyStatusId.StreamId.TypeUrl)
 
-	n.states.CheckIsSync(dsid, req.VersionInfo, req.ResponseNonce)
+	n.states.CheckIsSync(n.ctx, dsid, req.VersionInfo, req.ResponseNonce)
 }
 
-func (n *NackDetector) OnFetchRequest(*v2.DiscoveryRequest) {
+func (n *nackDetector) OnFetchRequest(ctx context.Context, request *envoy_service_discovery_v3.DiscoveryRequest) error {
+	// gloo uses streaming api, so do nothing here
+	return nil
+}
+
+func (n *nackDetector) OnFetchResponse(request *envoy_service_discovery_v3.DiscoveryRequest, response *envoy_service_discovery_v3.DiscoveryResponse) {
 	// gloo uses streaming api, so do nothing here
 }
 
-func (n *NackDetector) OnFetchResponse(*v2.DiscoveryRequest, *v2.DiscoveryResponse) {
-	// gloo uses streaming api, so do nothing here
+func (n *nackDetector) OnStreamClosed(id int64) {
+	n.states.Delete(n.ctx, id)
 }
+
+var _ xds.Callbacks = (*nackDetector)(nil)
 
 /*
 TODO:

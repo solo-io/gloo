@@ -26,6 +26,8 @@ import (
 
 var _ = Describe("ExtauthTranslatorSyncer", func() {
 	var (
+		ctx              context.Context
+		cancel           context.CancelFunc
 		proxy            *gloov1.Proxy
 		params           syncer.TranslatorSyncerExtensionParams
 		translator       *TranslatorSyncerExtension
@@ -37,14 +39,15 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		proxyClient      clients.ResourceClient
 	)
 	JustBeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
 		var err error
 		helpers.UseMemoryClients()
 		resourceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
-		authConfigClient, err = resourceClientFactory.NewResourceClient(factory.NewResourceClientParams{ResourceType: &extauth.AuthConfig{}})
+		authConfigClient, err = resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &extauth.AuthConfig{}})
 		Expect(err).NotTo(HaveOccurred())
-		proxyClient, err = resourceClientFactory.NewResourceClient(factory.NewResourceClientParams{ResourceType: &gloov1.Proxy{}})
+		proxyClient, err = resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &gloov1.Proxy{}})
 		Expect(err).NotTo(HaveOccurred())
 
 		rep := reporter.NewReporter("test-reporter", authConfigClient, proxyClient)
@@ -66,7 +69,11 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 			AuthConfigs: extauth.AuthConfigList{oauthAuthConfig},
 		}
 		snapCache = &mockSetSnapshot{}
-		setupSettings()
+		setupSettings(ctx)
+	})
+
+	AfterEach(func() {
+		cancel()
 	})
 
 	translate := func() envoycache.Snapshot {
@@ -329,9 +336,9 @@ func (m *mockSetSnapshot) SetSnapshot(node string, snapshot envoycache.Snapshot)
 }
 
 // enable ReplaceInvalidRoutes so we can keep adding good routes after a misconfigured route is present
-func setupSettings() {
+func setupSettings(ctx context.Context) {
 	// create a settings object with ReplaceInvalidRoutes & write it
-	settingsClient := helpers.MustSettingsClient()
+	settingsClient := helpers.MustSettingsClient(ctx)
 	settings := &gloov1.Settings{
 		Metadata: skcore.Metadata{
 			Name:      defaults.DefaultValue,

@@ -58,21 +58,16 @@ func init() {
 	}
 }
 
-type StatGen struct {
-	ctx context.Context
+type statGen struct{}
+
+var _ StateChangedCallback = new(statGen).Stat
+
+func NewStatsGen() StateChangedCallback {
+	st := &statGen{}
+	return st.Stat
 }
 
-var _ StateChangedCallback = new(StatGen).Stat
-
-func NewStatsGen(ctx context.Context) *StatGen {
-	return &StatGen{
-		ctx: ctx,
-	}
-
-}
-
-func (s *StatGen) Stat(id EnvoyStatusId, oldst, st State) {
-	ctx := s.ctx
+func (s *statGen) Stat(ctx context.Context, id EnvoyStatusId, oldst, st State) {
 
 	// if ctxWithTags, err := tag.New(ctx, tag.Insert(nodeIdKey, id.NodeId)); err == nil {
 	// 	ctx = ctxWithTags

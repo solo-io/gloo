@@ -20,14 +20,14 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gatewayv2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
@@ -139,19 +139,19 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				SharedCache: kubeCache,
 			}
 
-			authConfigClient, err = extauthapi.NewAuthConfigClient(authConfigClientFactory)
+			authConfigClient, err = extauthapi.NewAuthConfigClient(ctx, authConfigClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			gatewayClient, err = gatewayv2.NewGatewayClient(gatewayClientFactory)
+			gatewayClient, err = gatewayv2.NewGatewayClient(ctx, gatewayClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			virtualServiceClient, err = gatewayv1.NewVirtualServiceClient(virtualServiceClientFactory)
+			virtualServiceClient, err = gatewayv1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			proxyClient, err = gloov1.NewProxyClient(proxyClientFactory)
+			proxyClient, err = gloov1.NewProxyClient(ctx, proxyClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
-			settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
+			settingsClient, err = gloov1.NewSettingsClient(ctx, settingsClientFactory)
 			Expect(err).NotTo(HaveOccurred(), "Should be able to build a settings client")
 		})
 
@@ -386,11 +386,11 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				cleanUpFuncs = nil
 
 				// Create two target http-echo deployments/services
-				cleanUp1, err := createHttpEchoDeploymentAndService(kubeClient, testHelper.InstallNamespace, appName1, echoAppPort)
+				cleanUp1, err := createHttpEchoDeploymentAndService(ctx, kubeClient, testHelper.InstallNamespace, appName1, echoAppPort)
 				Expect(err).NotTo(HaveOccurred())
 				cleanUpFuncs = append(cleanUpFuncs, cleanUp1)
 
-				cleanUp2, err := createHttpEchoDeploymentAndService(kubeClient, testHelper.InstallNamespace, appName2, echoAppPort)
+				cleanUp2, err := createHttpEchoDeploymentAndService(ctx, kubeClient, testHelper.InstallNamespace, appName2, echoAppPort)
 				Expect(err).NotTo(HaveOccurred())
 				cleanUpFuncs = append(cleanUpFuncs, cleanUp2)
 
@@ -798,8 +798,8 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 	})
 }
 
-func createHttpEchoDeploymentAndService(kubeClient kubernetes.Interface, namespace, appName string, port int32) (cleanupFunc, error) {
-	_, err := kubeClient.AppsV1().Deployments(namespace).Create(&appsv1.Deployment{
+func createHttpEchoDeploymentAndService(ctx context.Context, kubeClient kubernetes.Interface, namespace, appName string, port int32) (cleanupFunc, error) {
+	_, err := kubeClient.AppsV1().Deployments(namespace).Create(ctx, &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   appName,
 			Labels: map[string]string{"app": appName},
@@ -827,12 +827,12 @@ func createHttpEchoDeploymentAndService(kubeClient kubernetes.Interface, namespa
 				},
 			},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = kubeClient.CoreV1().Services(namespace).Create(&corev1.Service{
+	_, err = kubeClient.CoreV1().Services(namespace).Create(ctx, &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   appName,
 			Labels: map[string]string{"app": appName},
@@ -845,24 +845,24 @@ func createHttpEchoDeploymentAndService(kubeClient kubernetes.Interface, namespa
 				Port: port,
 			}},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	return func() {
-		err := kubeClient.AppsV1().Deployments(namespace).Delete(appName, &metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
+		err := kubeClient.AppsV1().Deployments(namespace).Delete(ctx, appName, metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
 		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-		err = kubeClient.CoreV1().Services(namespace).Delete(appName, &metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
+		err = kubeClient.CoreV1().Services(namespace).Delete(ctx, appName, metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
 		ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 		EventuallyWithOffset(1, func() bool {
-			_, err := kubeClient.AppsV1().Deployments(namespace).Get(appName, metav1.GetOptions{})
+			_, err := kubeClient.AppsV1().Deployments(namespace).Get(ctx, appName, metav1.GetOptions{})
 			return isNotFound(err)
 		}, "10s", "0.5s").Should(BeTrue())
 
 		EventuallyWithOffset(1, func() bool {
-			_, err := kubeClient.CoreV1().Services(namespace).Get(appName, metav1.GetOptions{})
+			_, err := kubeClient.CoreV1().Services(namespace).Get(ctx, appName, metav1.GetOptions{})
 			return isNotFound(err)
 		}, "10s", "0.5s").Should(BeTrue())
 	}, nil

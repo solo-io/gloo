@@ -10,6 +10,9 @@ const (
 )
 
 var (
+	_ plugins.Plugin           = new(Plugin)
+	_ plugins.HttpFilterPlugin = new(Plugin)
+
 	// This filter must be last as it is used to measure latency of all the other filters.
 	FilterStage = plugins.AfterStage(plugins.RouteStage)
 )

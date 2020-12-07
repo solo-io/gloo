@@ -4,9 +4,10 @@ import (
 	"context"
 	"plugin"
 
+	"github.com/gogo/protobuf/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	impl "github.com/solo-io/ext-auth-plugin-examples/plugins/required_header/pkg"
 	"github.com/solo-io/ext-auth-plugins/api"
 )
 
@@ -29,10 +30,9 @@ var _ = Describe("Plugin", func() {
 		instance, err := extAuthPlugin.NewConfigInstance(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
 
-		typedInstance, ok := instance.(*impl.Config)
+		typedInstance, ok := instance.(*types.Struct)
 		Expect(ok).To(BeTrue())
 
-		Expect(typedInstance.RequiredHeader).To(BeEmpty())
-		Expect(typedInstance.AllowedValues).To(BeEmpty())
+		Expect(typedInstance).To(Equal(&types.Struct{}))
 	})
 })

@@ -3,18 +3,16 @@ package dlp
 import (
 	"context"
 
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
+	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 )
@@ -62,7 +60,11 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 }
 
 // Process virtual host plugin
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(
+	params plugins.VirtualHostParams,
+	in *v1.VirtualHost,
+	out *envoy_config_route_v3.VirtualHost,
+) error {
 	dlpSettings := in.GetOptions().GetDlp()
 	// should never be nil
 	p.addListener(params.Listener.GetHttpListener())
@@ -85,7 +87,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 }
 
 // Process route plugin
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	dlpSettings := in.GetOptions().GetDlp()
 
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
@@ -121,8 +123,8 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		dlpConfig           proto.Message
 	)
 	for i, rule := range dlpSettings.GetDlpRules() {
-		envoyMatcher := envoyroute.RouteMatch{
-			PathSpecifier: &envoyroute.RouteMatch_Prefix{Prefix: "/"},
+		envoyMatcher := envoy_config_route_v3.RouteMatch{
+			PathSpecifier: &envoy_config_route_v3.RouteMatch_Prefix{Prefix: "/"},
 		}
 		if rule.GetMatcher() != nil {
 			envoyMatcher = translator.GlooMatcherToEnvoyMatcher(params, rule.GetMatcher())

@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	ctx                      context.Context
+	cancel                   context.CancelFunc
 	mockCtrl                 *gomock.Controller
 	podsGetter               *mocks.MockPodsGetter
 	podNamespacePodInterface *mocks.MockPodInterface
@@ -72,6 +74,7 @@ var _ = Describe("Envoy Details Client Test", func() {
 	}
 
 	BeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
 		mockCtrl = gomock.NewController(GinkgoT())
 		podsGetter = mocks.NewMockPodsGetter(mockCtrl)
 		podNamespacePodInterface = mocks.NewMockPodInterface(mockCtrl)
@@ -81,6 +84,10 @@ var _ = Describe("Envoy Details Client Test", func() {
 		podsGetter.EXPECT().Pods(podNamespace).Return(podNamespacePodInterface)
 
 		client = envoydetails.NewClient(podsGetter, httpGetter, envoyStatusGetter)
+	})
+
+	AfterEach(func() {
+		cancel()
 	})
 
 	Describe("List", func() {
@@ -94,14 +101,14 @@ var _ = Describe("Envoy Details Client Test", func() {
 				dumpB := "b config dump"
 
 				podNamespacePodInterface.EXPECT().
-					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
+					List(ctx, metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return(dumpA, nil)
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podA).Return(getStatus())
 				httpGetter.EXPECT().Get("ipb", "portb", "config-dump-b").Return(dumpB, nil)
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podB).Return(getStatus())
 
-				actual, err := client.List(context.Background(), podNamespace)
+				actual, err := client.List(ctx, podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
 					getDetails("proxy-a", dumpA, "", getStatus()),
@@ -119,13 +126,13 @@ var _ = Describe("Envoy Details Client Test", func() {
 				dumpB := ""
 
 				podNamespacePodInterface.EXPECT().
-					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
+					List(ctx, metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return(dumpA, nil)
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podB).Return(getStatus())
 
-				actual, err := client.List(context.Background(), podNamespace)
+				actual, err := client.List(ctx, podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
 					getDetails("proxy-a", dumpA, "", getStatus()),
@@ -143,13 +150,13 @@ var _ = Describe("Envoy Details Client Test", func() {
 				dumpB := "b config dump"
 
 				podNamespacePodInterface.EXPECT().
-					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
+					List(ctx, metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipb", "portb", "config-dump-b").Return(dumpB, nil)
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podA).Return(getStatus())
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), podB).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podA).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, podB).Return(getStatus())
 
-				actual, err := client.List(context.Background(), podNamespace)
+				actual, err := client.List(ctx, podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
 					getDetails("proxy-a", dumpA, "", getStatus()),
@@ -163,12 +170,12 @@ var _ = Describe("Envoy Details Client Test", func() {
 				podList := &kubev1.PodList{Items: []kubev1.Pod{pod}}
 
 				podNamespacePodInterface.EXPECT().
-					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
+					List(ctx, metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(podList, nil)
 				httpGetter.EXPECT().Get("ipa", "porta", "config-dump-a").Return("", testErr)
-				envoyStatusGetter.EXPECT().GetEnvoyStatus(context.Background(), pod).Return(getStatus())
+				envoyStatusGetter.EXPECT().GetEnvoyStatus(ctx, pod).Return(getStatus())
 
-				actual, err := client.List(context.Background(), podNamespace)
+				actual, err := client.List(ctx, podNamespace)
 				Expect(err).NotTo(HaveOccurred())
 				expected := []*v1.EnvoyDetails{
 					getDetails("proxy-a", "", envoydetails.FailedToGetEnvoyConfig(podNamespace, "a"), getStatus()),
@@ -180,10 +187,10 @@ var _ = Describe("Envoy Details Client Test", func() {
 		Context("errors", func() {
 			It("when the pod interface errors", func() {
 				podNamespacePodInterface.EXPECT().
-					List(metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
+					List(ctx, metav1.ListOptions{LabelSelector: envoydetails.GatewayProxyLabelSelector}).
 					Return(nil, testErr)
 
-				_, err := client.List(context.Background(), podNamespace)
+				_, err := client.List(ctx, podNamespace)
 				Expect(err).To(HaveOccurred())
 				expectedErr := envoydetails.FailedToListPodsError(testErr, podNamespace, envoydetails.GatewayProxyLabelSelector)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))

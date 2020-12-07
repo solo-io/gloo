@@ -21,14 +21,14 @@ import (
 	"github.com/solo-io/go-utils/testutils"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
@@ -72,10 +72,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			SharedCache: cache,
 		}
 
-		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
+		gatewayClient, err = v2.NewGatewayClient(ctx, gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
+		virtualServiceClient, err = v1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 	})
@@ -115,17 +115,17 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		})
 
 		AfterEach(func() {
-			err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Delete("secret", nil)
+			err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Delete(ctx, "secret", metav1.DeleteOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("can route https request to upstream", func() {
 			sslSecret := helpers.GetKubeSecret("secret", testHelper.InstallNamespace)
-			createdSecret, err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Create(sslSecret)
+			createdSecret, err := kubeClient.CoreV1().Secrets(testHelper.InstallNamespace).Create(ctx, sslSecret, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				_, err := kubeClient.CoreV1().Secrets(sslSecret.Namespace).Get(sslSecret.Name, metav1.GetOptions{})
+				_, err := kubeClient.CoreV1().Secrets(sslSecret.Namespace).Get(ctx, sslSecret.Name, metav1.GetOptions{})
 				return err
 			}, "10s", "0.5s").Should(BeNil())
 			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail

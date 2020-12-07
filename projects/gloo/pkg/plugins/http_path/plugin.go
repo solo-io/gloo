@@ -1,17 +1,16 @@
 package http_path
 
 import (
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_matcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"github.com/gogo/protobuf/types"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	envoy_core_v3_endpoint "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	pbhttp_path "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/http_path"
-	envoy_type_matcher_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	envoy_type_matcher_v3_solo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
-
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -47,7 +46,7 @@ func shouldProcess(in *gloov1.Upstream) bool {
 	return false
 }
 
-func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out *v2.Cluster) error {
+func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out *envoy_config_cluster_v3.Cluster) error {
 
 	// only do this for static upstreams with custom health path defined.
 	// so that we only use new logic when we have to. this is done to minimize potential error impact.
@@ -63,7 +62,7 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 
 		// when gloo transitions to v3, we can just serialize/deserialize the proto
 		// to convert it.
-		httpOut := convertV2ToV3(httpHealth)
+		httpOut := convertEnvoyToGloo(httpHealth)
 		healthCheckPath := pbhttp_path.HttpPath{
 			HttpHealthCheck: &httpOut,
 		}
@@ -72,10 +71,10 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 			return err
 		}
 		// if upstream has a health check, and its http health check:
-		out.HealthChecks[i].HealthChecker = &envoy_api_v2_core.HealthCheck_CustomHealthCheck_{
-			CustomHealthCheck: &envoy_api_v2_core.HealthCheck_CustomHealthCheck{
+		out.HealthChecks[i].HealthChecker = &envoy_config_core_v3.HealthCheck_CustomHealthCheck_{
+			CustomHealthCheck: &envoy_config_core_v3.HealthCheck_CustomHealthCheck{
 				Name: HealthCheckerName,
-				ConfigType: &envoy_api_v2_core.HealthCheck_CustomHealthCheck_TypedConfig{
+				ConfigType: &envoy_config_core_v3.HealthCheck_CustomHealthCheck_TypedConfig{
 					TypedConfig: serializedAny,
 				},
 			},
@@ -84,7 +83,7 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 	return nil
 }
 
-func convertV2ToV3(httpHealth *envoy_api_v2_core.HealthCheck_HttpHealthCheck) envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck {
+func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthCheck) envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck {
 	ret := envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck{
 		Host: httpHealth.Host,
 		Path: httpHealth.Path,
@@ -107,44 +106,44 @@ func convertV2ToV3(httpHealth *envoy_api_v2_core.HealthCheck_HttpHealthCheck) en
 	ret.RequestHeadersToRemove = httpHealth.RequestHeadersToRemove
 	ret.CodecClientType = envoy_type_v3.CodecClientType(httpHealth.CodecClientType)
 	if httpHealth.GetServiceNameMatcher().GetMatchPattern() != nil {
-		ret.ServiceNameMatcher = &envoy_type_matcher_v3.StringMatcher{
+		ret.ServiceNameMatcher = &envoy_type_matcher_v3_solo.StringMatcher{
 			IgnoreCase: httpHealth.GetServiceNameMatcher().IgnoreCase,
 		}
 		switch pattern := httpHealth.ServiceNameMatcher.MatchPattern.(type) {
-		case *envoy_matcher.StringMatcher_Exact:
-			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3.StringMatcher_Exact{
+		case *envoy_type_matcher_v3.StringMatcher_Exact:
+			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Exact{
 				Exact: pattern.Exact,
 			}
-		case *envoy_matcher.StringMatcher_Prefix:
-			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3.StringMatcher_Prefix{
+		case *envoy_type_matcher_v3.StringMatcher_Prefix:
+			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Prefix{
 				Prefix: pattern.Prefix,
 			}
 
-		case *envoy_matcher.StringMatcher_SafeRegex:
-			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3.StringMatcher_SafeRegex{
-				SafeRegex: &envoy_type_matcher_v3.RegexMatcher{
-					EngineType: &envoy_type_matcher_v3.RegexMatcher_GoogleRe2{GoogleRe2: &envoy_type_matcher_v3.RegexMatcher_GoogleRE2{
+		case *envoy_type_matcher_v3.StringMatcher_SafeRegex:
+			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_SafeRegex{
+				SafeRegex: &envoy_type_matcher_v3_solo.RegexMatcher{
+					EngineType: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRe2{GoogleRe2: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRE2{
 						MaxProgramSize: gogoutils.UInt32ProtoToGogo(pattern.SafeRegex.GetGoogleRe2().GetMaxProgramSize()),
 					}},
 					Regex: pattern.SafeRegex.Regex,
 				},
 			}
 
-		case *envoy_matcher.StringMatcher_Suffix:
-			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3.StringMatcher_Suffix{
+		case *envoy_type_matcher_v3.StringMatcher_Suffix:
+			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Suffix{
 				Suffix: pattern.Suffix,
 			}
 		}
 	}
 
 	// copy deprecated configs, if used
-	if httpHealth.UseHttp2 {
+	if httpHealth.GetHiddenEnvoyDeprecatedUseHttp2() {
 		ret.CodecClientType = envoy_type_v3.CodecClientType_HTTP2
 	}
-	if httpHealth.ServiceName != "" {
-		ret.ServiceNameMatcher = &envoy_type_matcher_v3.StringMatcher{
-			MatchPattern: &envoy_type_matcher_v3.StringMatcher_Prefix{
-				Prefix: httpHealth.ServiceName,
+	if httpHealth.GetHiddenEnvoyDeprecatedServiceName() != "" {
+		ret.ServiceNameMatcher = &envoy_type_matcher_v3_solo.StringMatcher{
+			MatchPattern: &envoy_type_matcher_v3_solo.StringMatcher_Prefix{
+				Prefix: httpHealth.GetHiddenEnvoyDeprecatedServiceName(),
 			},
 		}
 	}

@@ -3,14 +3,15 @@
 package v1
 
 import (
+	"context"
 	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/go-utils/kubeutils"
-	"github.com/solo-io/go-utils/testutils/clusterlock"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/testutils/clusterlock"
 	"github.com/solo-io/solo-kit/test/testutils"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,36 +32,37 @@ var (
 		if os.Getenv("RUN_KUBE_TESTS") != "1" {
 			return
 		}
+		ctx := context.Background()
 		var err error
 		cfg, err = kubeutils.GetConfig("", "")
 		Expect(err).NotTo(HaveOccurred())
 		clientset, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("artifacts.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "artifacts.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("authconfigs.enterprise.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "authconfigs.enterprise.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("endpoints.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "endpoints.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("gateways.gateway.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "gateways.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("ingresses.ingress.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "ingresses.ingress.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("services.ingress.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "services.ingress.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("proxies.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "proxies.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("routetables.gateway.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "routetables.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("secrets.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "secrets.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("settings.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "settings.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("upstreams.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "upstreams.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("upstreamgroups.gloo.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "upstreamgroups.gloo.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete("virtualservices.gateway.solo.io", &metav1.DeleteOptions{})
+		err = clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Delete(ctx, "virtualservices.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
 		Expect(lock.ReleaseLock()).NotTo(HaveOccurred())
 	})

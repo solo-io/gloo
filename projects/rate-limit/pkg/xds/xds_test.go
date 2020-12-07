@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	envoy_extensions_common_ratelimit_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
+
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
-	envoy_api_v2_ratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -56,7 +57,7 @@ var _ = Describe("xDS Runnable Module", func() {
 
 		cache := memory.NewInMemoryResourceCache()
 
-		testClients = services.GetTestClients(cache)
+		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		var err error
@@ -250,11 +251,11 @@ func (rateLimitDomain) Dump() string {
 	panic("implement me")
 }
 
-func (rateLimitDomain) GetLimit(_ context.Context, _ *envoy_api_v2_ratelimit.RateLimitDescriptor) *config.RateLimit {
+func (rateLimitDomain) GetLimit(_ context.Context, _ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) *config.RateLimit {
 	panic("implement me")
 }
 
-func (rateLimitDomain) GetSetLimits(_ *envoy_api_v2_ratelimit.RateLimitDescriptor) []*config.RateLimit {
+func (rateLimitDomain) GetSetLimits(_ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) []*config.RateLimit {
 	panic("implement me")
 }
 

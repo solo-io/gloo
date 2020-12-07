@@ -4,27 +4,29 @@ import (
 	"context"
 	"time"
 
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
-	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
-
-	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
+	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
 )
 
 var (
+	_ plugins.Plugin            = new(Plugin)
+	_ plugins.VirtualHostPlugin = new(Plugin)
+	_ plugins.RoutePlugin       = new(Plugin)
+	_ plugins.HttpFilterPlugin  = new(Plugin)
+
 	RouteTypeMismatchErr = eris.Errorf("internal error: input route has route action but output route has not")
 	ConfigNotFoundErr    = func(ns, name string) error {
 		return eris.Errorf("could not find RateLimitConfig resource with name [%s] in namespace [%s]", name, ns)
@@ -97,9 +99,9 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 	var (
-		limits []*envoyroute.RateLimit
+		limits []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}
 	)
 
@@ -128,7 +130,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return errs.ErrorOrNil()
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	routeAction := in.GetRouteAction()
 	if routeAction == nil {
 		// Only route actions can have rate limits
@@ -141,7 +143,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	}
 
 	var (
-		limits []*envoyroute.RateLimit
+		limits []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}
 	)
 
@@ -171,7 +173,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return errs.ErrorOrNil()
 }
 
-func (p *Plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name string, params plugins.VirtualHostParams) ([]*envoyroute.RateLimit, error) {
+func (p *Plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name string, params plugins.VirtualHostParams) ([]*envoy_config_route_v3.RateLimit, error) {
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
 		return nil, nil
@@ -202,7 +204,7 @@ type rateLimitOpts interface {
 	GetRateLimitConfigs() *ratelimit.RateLimitConfigRefs
 }
 
-func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_api_rl_types.RateLimitActions) ([]*envoyroute.RateLimit, error) {
+func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_api_rl_types.RateLimitActions) ([]*envoy_config_route_v3.RateLimit, error) {
 	if len(soloApiActions) == 0 {
 		return nil, nil
 	}
@@ -212,10 +214,10 @@ func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_ap
 		return nil, err
 	}
 
-	var ret []*envoyroute.RateLimit
+	var ret []*envoy_config_route_v3.RateLimit
 	for _, rlAction := range rlActions {
 		if len(rlAction.SetActions) != 0 {
-			rl := &envoyroute.RateLimit{
+			rl := &envoy_config_route_v3.RateLimit{
 				Stage: &wrappers.UInt32Value{Value: rlplugin.CustomStage},
 			}
 			// rlAction.SetActions has the prepended action by now from rate-limiter ToActions() translation
@@ -226,9 +228,9 @@ func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_ap
 	return ret, nil
 }
 
-func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1.ApiSnapshot) ([]*envoyroute.RateLimit, error) {
+func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1.ApiSnapshot) ([]*envoy_config_route_v3.RateLimit, error) {
 	var (
-		result []*envoyroute.RateLimit
+		result []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}
 	)
 
@@ -253,7 +255,7 @@ func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 		// Translate the actions to the envoy config format
 		for _, rateLimitActions := range actions {
 			if len(rateLimitActions.Actions) != 0 {
-				rl := &envoyroute.RateLimit{
+				rl := &envoy_config_route_v3.RateLimit{
 					Stage: &wrappers.UInt32Value{Value: CrdStage},
 				}
 				rl.Actions = rlplugin.ConvertActions(ctx, rateLimitActions.Actions)
@@ -261,7 +263,7 @@ func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 			}
 
 			if len(rateLimitActions.SetActions) != 0 {
-				rl := &envoyroute.RateLimit{
+				rl := &envoy_config_route_v3.RateLimit{
 					Stage: &wrappers.UInt32Value{Value: CrdStage},
 				}
 				// rateLimitActions.SetActions has the prepended actions by now from rate-limiter ToActions() translation

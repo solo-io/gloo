@@ -64,7 +64,7 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(extensions syncer.Extensions)
 
 func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 	return syncer.Extensions{
-		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.StateChangedCallback(nackdetector.NewStatsGen(ctx).Stat)),
+		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
 			func(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
@@ -95,8 +95,8 @@ type enterpriseUsageReader struct {
 	defaultPayloadReader client.UsagePayloadReader
 }
 
-func (e *enterpriseUsageReader) GetPayload() (map[string]string, error) {
-	defaultPayload, err := e.defaultPayloadReader.GetPayload()
+func (e *enterpriseUsageReader) GetPayload(ctx context.Context) (map[string]string, error) {
+	defaultPayload, err := e.defaultPayloadReader.GetPayload(ctx)
 	if err != nil {
 		return nil, err
 	}

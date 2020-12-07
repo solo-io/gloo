@@ -148,13 +148,13 @@ func (s *configGrpcService) UpdateSettingsYaml(ctx context.Context, request *v1.
 	return &v1.UpdateSettingsResponse{SettingsDetails: s.getDetails(written)}, nil
 }
 
-func (s *configGrpcService) ListNamespaces(_ context.Context, request *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
+func (s *configGrpcService) ListNamespaces(ctx context.Context, request *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
 	if s.isNamespaced {
 		// If we are running in namespaced mode, just return the pod namespace.
 		// A call to ListNamespaces would fail due to limited permissions.
 		return &v1.ListNamespacesResponse{Namespaces: []string{s.podNamespace}}, nil
 	}
-	namespaceList, err := s.namespaceClient.ListNamespaces()
+	namespaceList, err := s.namespaceClient.ListNamespaces(ctx)
 	if err != nil {
 		wrapped := FailedToListNamespacesError(err)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

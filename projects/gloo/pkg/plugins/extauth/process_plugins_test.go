@@ -4,23 +4,20 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	. "github.com/solo-io/solo-projects/test/extauth/helpers"
-
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
-	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	. "github.com/solo-io/solo-projects/test/extauth/helpers"
 )
 
 // We need to test three possible input values for the ext auth config (the value of the `*Plugins` attributes):
@@ -59,7 +56,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 		func(input, expected ConfigState) {
 			pluginContext := getPluginContext(input, Undefined, Undefined, StronglyTyped)
 
-			var out envoyv2.VirtualHost
+			var out envoy_config_route_v3.VirtualHost
 			err := pluginContext.PluginInstance.ProcessVirtualHost(pluginContext.VirtualHostParams, pluginContext.VirtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
@@ -73,7 +70,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 		func(input, expected ConfigState) {
 			pluginContext := getPluginContext(Undefined, input, Undefined, StronglyTyped)
 
-			var out envoyv2.Route
+			var out envoy_config_route_v3.Route
 			err := pluginContext.PluginInstance.ProcessRoute(pluginContext.RouteParams, pluginContext.Route, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())
@@ -87,7 +84,7 @@ var _ = Describe("Processing Extauth Plugins", func() {
 		func(input, expected ConfigState) {
 			pluginContext := getPluginContext(Undefined, Undefined, input, StronglyTyped)
 
-			var out envoyv2.WeightedCluster_ClusterWeight
+			var out envoy_config_route_v3.WeightedCluster_ClusterWeight
 			err := pluginContext.PluginInstance.ProcessWeightedDestination(pluginContext.RouteParams, pluginContext.WeightedDestination, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(validationFuncForConfigValue[expected](&out)).To(BeTrue())

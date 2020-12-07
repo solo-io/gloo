@@ -1,21 +1,23 @@
 package kube
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type NamespaceClient interface {
-	ListNamespaces() ([]string, error)
+	ListNamespaces(ctx context.Context) ([]string, error)
 }
 
 type namespaceClient struct {
 	namespacesGetter v1.NamespacesGetter
 }
 
-func (n *namespaceClient) ListNamespaces() ([]string, error) {
+func (n *namespaceClient) ListNamespaces(ctx context.Context) ([]string, error) {
 	var namespaces []string
-	nsList, err := n.namespacesGetter.Namespaces().List(metav1.ListOptions{})
+	nsList, err := n.namespacesGetter.Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ import (
 
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -67,7 +67,7 @@ var _ = Describe("RateLimit tests", func() {
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
-		settingsClient, err = gloov1.NewSettingsClient(settingsClientFactory)
+		settingsClient, err = gloov1.NewSettingsClient(ctx, settingsClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
@@ -80,10 +80,10 @@ var _ = Describe("RateLimit tests", func() {
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
-		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
+		gatewayClient, err = v2.NewGatewayClient(ctx, gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
+		virtualServiceClient, err = v1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = virtualServiceClient.Register()

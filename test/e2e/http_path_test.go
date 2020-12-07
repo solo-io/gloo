@@ -44,7 +44,7 @@ var _ = Describe("Happy path", func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		cache := memory.NewInMemoryResourceCache()
 
-		testClients = services.GetTestClients(cache)
+		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		var err error

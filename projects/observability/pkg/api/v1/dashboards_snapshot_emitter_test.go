@@ -13,8 +13,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/go-utils/log"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -35,6 +35,7 @@ var _ = Describe("V1Emitter", func() {
 		return
 	}
 	var (
+		ctx            context.Context
 		namespace1     string
 		namespace2     string
 		name1, name2   = "angela" + helpers.RandString(3), "bob" + helpers.RandString(3)
@@ -45,10 +46,11 @@ var _ = Describe("V1Emitter", func() {
 	)
 
 	BeforeEach(func() {
+		ctx = context.Background()
 		namespace1 = helpers.RandString(8)
 		namespace2 = helpers.RandString(8)
 		kube = helpers.MustKubeClient()
-		err := kubeutils.CreateNamespacesInParallel(kube, namespace1, namespace2)
+		err := kubeutils.CreateNamespacesInParallel(ctx, kube, namespace1, namespace2)
 		Expect(err).NotTo(HaveOccurred())
 		cfg, err = kubeutils.GetConfig("", "")
 		Expect(err).NotTo(HaveOccurred())
@@ -59,12 +61,12 @@ var _ = Describe("V1Emitter", func() {
 			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
 
-		upstreamClient, err = gloo_solo_io.NewUpstreamClient(upstreamClientFactory)
+		upstreamClient, err = gloo_solo_io.NewUpstreamClient(ctx, upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewDashboardsEmitter(upstreamClient)
 	})
 	AfterEach(func() {
-		err := kubeutils.DeleteNamespacesInParallelBlocking(kube, namespace1, namespace2)
+		err := kubeutils.DeleteNamespacesInParallelBlocking(ctx, kube, namespace1, namespace2)
 		Expect(err).NotTo(HaveOccurred())
 	})
 	It("tracks snapshots on changes to any resource", func() {

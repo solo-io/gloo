@@ -18,7 +18,7 @@ import (
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -238,7 +238,7 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("should not error processing vhost", func() {
-			var out envoyroute.VirtualHost
+			var out envoy_config_route_v3.VirtualHost
 			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
@@ -247,7 +247,7 @@ var _ = Describe("Plugin", func() {
 		It("should mark vhost with no auth as disabled", func() {
 			// remove auth extension
 			virtualHost.Options.Extauth = nil
-			var out envoyroute.VirtualHost
+			var out envoy_config_route_v3.VirtualHost
 			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
@@ -261,14 +261,14 @@ var _ = Describe("Plugin", func() {
 			route.Options = &v1.RouteOptions{
 				Extauth: disabled,
 			}
-			var out envoyroute.Route
+			var out envoy_config_route_v3.Route
 			err := plugin.ProcessRoute(routeParams, route, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
 
 		It("should do nothing to a route that's not explicitly disabled", func() {
-			var out envoyroute.Route
+			var out envoy_config_route_v3.Route
 			err := plugin.ProcessRoute(routeParams, route, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())

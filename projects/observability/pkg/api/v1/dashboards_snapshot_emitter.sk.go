@@ -165,7 +165,10 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				select {
 				case <-ctx.Done():
 					return
-				case upstreamList := <-upstreamNamespacesChan:
+				case upstreamList, ok := <-upstreamNamespacesChan:
+					if !ok {
+						return
+					}
 					select {
 					case <-ctx.Done():
 						return
@@ -209,7 +212,13 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			}
 		}
 		upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
-
+		defer func() {
+			close(snapshots)
+			// we must wait for done before closing the error chan,
+			// to avoid sending on close channel.
+			done.Wait()
+			close(errs)
+		}()
 		for {
 			record := func() { stats.Record(ctx, mDashboardsSnapshotIn.M(1)) }
 
@@ -217,14 +226,14 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			case <-timer.C:
 				sync()
 			case <-ctx.Done():
-				close(snapshots)
-				done.Wait()
-				close(errs)
 				return
 			case <-c.forceEmit:
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
-			case upstreamNamespacedList := <-upstreamChan:
+			case upstreamNamespacedList, ok := <-upstreamChan:
+				if !ok {
+					return
+				}
 				record()
 
 				namespace := upstreamNamespacedList.namespace

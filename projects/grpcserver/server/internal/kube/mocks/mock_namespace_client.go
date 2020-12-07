@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	"context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,7 +35,7 @@ func (m *MockNamespaceClient) EXPECT() *MockNamespaceClientMockRecorder {
 }
 
 // ListNamespaces mocks base method
-func (m *MockNamespaceClient) ListNamespaces() ([]string, error) {
+func (m *MockNamespaceClient) ListNamespaces(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListNamespaces")
 	ret0, _ := ret[0].([]string)

@@ -7,7 +7,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kube2 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -30,7 +30,7 @@ func kubeSettingsClient(ctx context.Context, podNamespace string) (gloov1.Settin
 		return nil, err
 	}
 
-	return gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
+	return gloov1.NewSettingsClient(ctx, &factory.KubeResourceClientFactory{
 		Crd:             gloov1.SettingsCrd,
 		Cfg:             cfg,
 		SharedCache:     kube2.NewKubeCache(ctx),

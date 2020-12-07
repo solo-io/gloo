@@ -48,6 +48,7 @@ gloo:
       replicas: 1
   gatewayProxies:
     gatewayProxy:
+      envoyApiVersion: V3
       kind:
         deployment:
           replicas: 1

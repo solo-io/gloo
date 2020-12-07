@@ -16,7 +16,7 @@ import (
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/go-utils/testutils/exec"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-projects/test/regressions"
@@ -51,9 +51,12 @@ const (
 
 var (
 	testHelper *helper.SoloTestHelper
+	ctx        context.Context
+	cancel     context.CancelFunc
 )
 
 var _ = BeforeSuite(func() {
+	ctx, cancel = context.WithCancel(context.Background())
 	cwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred())
 
@@ -72,7 +75,7 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -100,13 +103,13 @@ var _ = BeforeSuite(func() {
 
 	// This should not interfere with any test that is not LDAP related.
 	// If it does, we are doing something wrong
-	deployLdapServer(regressions.MustKubeClient(), testHelper)
+	deployLdapServer(ctx, regressions.MustKubeClient(), testHelper)
 
 })
 
 var _ = AfterSuite(func() {
 	if os.Getenv("TEAR_DOWN") == "true" {
-		cleanupLdapServer(regressions.MustKubeClient())
+		cleanupLdapServer(ctx, regressions.MustKubeClient())
 
 		err := testHelper.UninstallGloo()
 		Expect(err).NotTo(HaveOccurred())
@@ -118,6 +121,7 @@ var _ = AfterSuite(func() {
 		EventuallyWithOffset(1, func() error {
 			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
 		}, "60s", "1s").Should(HaveOccurred())
+		cancel()
 	}
 })
 
@@ -153,7 +157,7 @@ global:
 	}
 }
 
-func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.SoloTestHelper) {
+func deployLdapServer(ctx context.Context, kubeClient kubernetes.Interface, soloTestHelper *helper.SoloTestHelper) {
 
 	By("create a config map containing the bootstrap configuration for the LDAP server", func() {
 		err := testutils.Kubectl(
@@ -161,7 +165,7 @@ func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.So
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(func() error {
-			_, err := kubeClient.CoreV1().ConfigMaps(soloTestHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+			_, err := kubeClient.CoreV1().ConfigMaps(soloTestHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 			return err
 		}, "15s", "0.5s").Should(BeNil())
 	})
@@ -171,12 +175,12 @@ func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.So
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(func() error {
-			_, err := kubeClient.CoreV1().Services(soloTestHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+			_, err := kubeClient.CoreV1().Services(soloTestHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 			return err
 		}, "15s", "0.5s").Should(BeNil())
 
 		Eventually(func() error {
-			deployment, err := kubeClient.AppsV1().Deployments(soloTestHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+			deployment, err := kubeClient.AppsV1().Deployments(soloTestHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
@@ -199,14 +203,14 @@ func deployLdapServer(kubeClient kubernetes.Interface, soloTestHelper *helper.So
 	})
 }
 
-func cleanupLdapServer(kubeClient kubernetes.Interface) {
+func cleanupLdapServer(ctx context.Context, kubeClient kubernetes.Interface) {
 
 	// Delete config map
 	// Ignore the error on deletion (as it might have never been created if something went wrong in the suite setup),
 	// all we care about is that the config map does not exist
-	_ = kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Delete("ldap", &metav1.DeleteOptions{})
+	_ = kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Delete(ctx, "ldap", metav1.DeleteOptions{})
 	Eventually(func() bool {
-		_, err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+		_, err := kubeClient.CoreV1().ConfigMaps(testHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 		return isNotFound(err)
 	}, "15s", "0.5s").Should(BeTrue())
 
@@ -214,11 +218,11 @@ func cleanupLdapServer(kubeClient kubernetes.Interface) {
 	// We ignore the error on the deletion call for the same reason as above
 	_ = testutils.Kubectl("delete", "-n", testHelper.InstallNamespace, "-f", filepath.Join(ldapAssetDir, ldapServerManifestFilename))
 	Eventually(func() bool {
-		_, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+		_, err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 		return isNotFound(err)
 	}, "15s", "0.5s").Should(BeTrue())
 	Eventually(func() bool {
-		_, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Get("ldap", metav1.GetOptions{})
+		_, err := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace).Get(ctx, "ldap", metav1.GetOptions{})
 		return isNotFound(err)
 	}, "15s", "0.5s").Should(BeTrue())
 }

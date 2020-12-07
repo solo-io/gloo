@@ -1,7 +1,7 @@
 package translation
 
 import (
-	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
 	rl_opts "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -63,7 +63,7 @@ descriptors:
 */
 type BasicRateLimitTranslator interface {
 	GenerateServerConfig(resourceName string, ingressRl rl_opts.IngressRateLimit) (*solo_api_rl_types.Descriptor, error)
-	GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoyratelimit.RateLimit
+	GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_config_route_v3.RateLimit
 }
 
 type translator struct{}
@@ -121,7 +121,7 @@ func (translator) GenerateServerConfig(resourceName string, ingressRl rl_opts.In
 	return rootDescriptor, nil
 }
 
-func (translator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoyratelimit.RateLimit {
+func (translator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_config_route_v3.RateLimit {
 	// the filter config, virtual host config are always the same:
 
 	if headerName == "" {
@@ -131,12 +131,12 @@ func (translator) GenerateResourceConfig(resourceName, headerName string, stage 
 
 	action := getPerResourceRateLimit(resourceName)
 
-	getAuthRateLimits := func(b bool) *envoyratelimit.RateLimit_Action { return getAuthHeaderRateLimit(headerName, b) }
+	getAuthRateLimits := func(b bool) *envoy_config_route_v3.RateLimit_Action { return getAuthHeaderRateLimit(headerName, b) }
 
-	rateLimits := []*envoyratelimit.RateLimit{
+	rateLimits := []*envoy_config_route_v3.RateLimit{
 		{
 			Stage: &wrappers.UInt32Value{Value: stage},
-			Actions: []*envoyratelimit.RateLimit_Action{
+			Actions: []*envoy_config_route_v3.RateLimit_Action{
 				action,
 				getAuthRateLimits(true),
 				getUserIdRateLimit(headerName),
@@ -144,7 +144,7 @@ func (translator) GenerateResourceConfig(resourceName, headerName string, stage 
 		},
 		{
 			Stage: &wrappers.UInt32Value{Value: stage},
-			Actions: []*envoyratelimit.RateLimit_Action{
+			Actions: []*envoy_config_route_v3.RateLimit_Action{
 				action,
 				getAuthRateLimits(false),
 				getPerIpRateLimit(),
@@ -154,21 +154,21 @@ func (translator) GenerateResourceConfig(resourceName, headerName string, stage 
 	return rateLimits
 }
 
-func getPerResourceRateLimit(resourceName string) *envoyratelimit.RateLimit_Action {
-	return &envoyratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyratelimit.RateLimit_Action_GenericKey_{
-			GenericKey: &envoyratelimit.RateLimit_Action_GenericKey{
+func getPerResourceRateLimit(resourceName string) *envoy_config_route_v3.RateLimit_Action {
+	return &envoy_config_route_v3.RateLimit_Action{
+		ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{
+			GenericKey: &envoy_config_route_v3.RateLimit_Action_GenericKey{
 				DescriptorValue: resourceName,
 			},
 		},
 	}
 }
 
-func getAuthHeaderRateLimit(headername string, match bool) *envoyratelimit.RateLimit_Action {
+func getAuthHeaderRateLimit(headername string, match bool) *envoy_config_route_v3.RateLimit_Action {
 
-	headersmatcher := []*envoyratelimit.HeaderMatcher{{
+	headersmatcher := []*envoy_config_route_v3.HeaderMatcher{{
 		Name:                 headername,
-		HeaderMatchSpecifier: &envoyratelimit.HeaderMatcher_PresentMatch{PresentMatch: true},
+		HeaderMatchSpecifier: &envoy_config_route_v3.HeaderMatcher_PresentMatch{PresentMatch: true},
 	}}
 
 	var value string
@@ -178,9 +178,9 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyratelimit.RateL
 		value = internal.Anonymous
 	}
 
-	return &envoyratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyratelimit.RateLimit_Action_HeaderValueMatch_{
-			HeaderValueMatch: &envoyratelimit.RateLimit_Action_HeaderValueMatch{
+	return &envoy_config_route_v3.RateLimit_Action{
+		ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch_{
+			HeaderValueMatch: &envoy_config_route_v3.RateLimit_Action_HeaderValueMatch{
 				DescriptorValue: value,
 				ExpectMatch:     &wrappers.BoolValue{Value: match},
 				Headers:         headersmatcher,
@@ -189,10 +189,10 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyratelimit.RateL
 	}
 }
 
-func getUserIdRateLimit(headername string) *envoyratelimit.RateLimit_Action {
-	return &envoyratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyratelimit.RateLimit_Action_RequestHeaders_{
-			RequestHeaders: &envoyratelimit.RateLimit_Action_RequestHeaders{
+func getUserIdRateLimit(headername string) *envoy_config_route_v3.RateLimit_Action {
+	return &envoy_config_route_v3.RateLimit_Action{
+		ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RequestHeaders_{
+			RequestHeaders: &envoy_config_route_v3.RateLimit_Action_RequestHeaders{
 				DescriptorKey: internal.UserId,
 				HeaderName:    headername,
 			},
@@ -200,10 +200,10 @@ func getUserIdRateLimit(headername string) *envoyratelimit.RateLimit_Action {
 	}
 }
 
-func getPerIpRateLimit() *envoyratelimit.RateLimit_Action {
-	return &envoyratelimit.RateLimit_Action{
-		ActionSpecifier: &envoyratelimit.RateLimit_Action_RemoteAddress_{
-			RemoteAddress: &envoyratelimit.RateLimit_Action_RemoteAddress{},
+func getPerIpRateLimit() *envoy_config_route_v3.RateLimit_Action {
+	return &envoy_config_route_v3.RateLimit_Action{
+		ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RemoteAddress_{
+			RemoteAddress: &envoy_config_route_v3.RateLimit_Action_RemoteAddress{},
 		},
 	}
 }

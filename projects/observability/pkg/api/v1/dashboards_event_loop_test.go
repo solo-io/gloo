@@ -20,17 +20,19 @@ import (
 
 var _ = Describe("DashboardsEventLoop", func() {
 	var (
+		ctx       context.Context
 		namespace string
 		emitter   DashboardsEmitter
 		err       error
 	)
 
 	BeforeEach(func() {
+		ctx = context.Background()
 
 		upstreamClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
-		upstreamClient, err := gloo_solo_io.NewUpstreamClient(upstreamClientFactory)
+		upstreamClient, err := gloo_solo_io.NewUpstreamClient(ctx, upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		emitter = NewDashboardsEmitter(upstreamClient)

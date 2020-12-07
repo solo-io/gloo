@@ -18,7 +18,10 @@ var (
 type Plugin struct {
 }
 
-var _ plugins.Plugin = new(Plugin)
+var (
+	_ plugins.Plugin           = new(Plugin)
+	_ plugins.HttpFilterPlugin = new(Plugin)
+)
 
 func NewPlugin() *Plugin {
 	return &Plugin{}

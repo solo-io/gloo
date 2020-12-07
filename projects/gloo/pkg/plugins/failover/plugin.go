@@ -6,9 +6,9 @@ import (
 	"net"
 	"time"
 
-	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_api_v2_endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/gogo/protobuf/types"
 	"github.com/golang/protobuf/ptypes"
@@ -49,14 +49,14 @@ var (
 func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver) plugins.Plugin {
 	return &failoverPluginImpl{
 		sslConfigTranslator: translator,
-		endpoints:           map[core.ResourceRef][]*envoy_api_v2_endpoint.LocalityLbEndpoints{},
+		endpoints:           map[core.ResourceRef][]*envoy_config_endpoint_v3.LocalityLbEndpoints{},
 		dnsResolver:         dnsResolver,
 	}
 }
 
 type failoverPluginImpl struct {
 	sslConfigTranslator utils.SslConfigTranslator
-	endpoints           map[core.ResourceRef][]*envoy_api_v2_endpoint.LocalityLbEndpoints
+	endpoints           map[core.ResourceRef][]*envoy_config_endpoint_v3.LocalityLbEndpoints
 	dnsResolver         consul.DnsResolver
 }
 
@@ -64,7 +64,11 @@ func (f *failoverPluginImpl) Init(_ plugins.InitParams) error {
 	return nil
 }
 
-func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out *v2.Cluster) error {
+func (f *failoverPluginImpl) ProcessUpstream(
+	params plugins.Params,
+	in *gloov1.Upstream,
+	out *envoy_config_cluster_v3.Cluster,
+) error {
 	failoverCfg := in.GetFailover()
 	if failoverCfg == nil {
 		return nil
@@ -81,20 +85,22 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 		return err
 	}
 
-	if out.GetType() == v2.Cluster_EDS {
+	if out.GetType() == envoy_config_cluster_v3.Cluster_EDS {
 		f.endpoints[core.ResourceRef{
 			Name:      in.Metadata.Name,
 			Namespace: in.Metadata.Namespace,
 		}] = endpoints
 		// set the cluster config to rest for this specific EDS
-		out.EdsClusterConfig = &v2.Cluster_EdsClusterConfig{
-			EdsConfig: &envoy_api_v2_core.ConfigSource{
-				ConfigSourceSpecifier: &envoy_api_v2_core.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_api_v2_core.ApiConfigSource{
-						ApiType:        envoy_api_v2_core.ApiConfigSource_REST,
-						ClusterNames:   []string{RestXdsCluster},
-						RefreshDelay:   ptypes.DurationProto(time.Second * 5),
-						RequestTimeout: ptypes.DurationProto(time.Second * 5),
+		out.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
+			EdsConfig: &envoy_config_core_v3.ConfigSource{
+				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
+						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
+						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
+						ClusterNames:        []string{RestXdsCluster},
+						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
+						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
 					},
 				},
 			},
@@ -112,7 +118,7 @@ func (f *failoverPluginImpl) ProcessUpstream(params plugins.Params, in *gloov1.U
 func (f *failoverPluginImpl) ProcessEndpoints(
 	_ plugins.Params,
 	in *gloov1.Upstream,
-	out *v2.ClusterLoadAssignment,
+	out *envoy_config_endpoint_v3.ClusterLoadAssignment,
 ) error {
 	failoverCfg := in.GetFailover()
 	if failoverCfg == nil {
@@ -133,9 +139,9 @@ func (f *failoverPluginImpl) ProcessEndpoints(
 func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 	params plugins.Params,
 	failoverCfg *gloov1.Failover,
-) ([]*envoy_api_v2_endpoint.LocalityLbEndpoints, []*v2.Cluster_TransportSocketMatch, error) {
-	var transportSocketMatches []*v2.Cluster_TransportSocketMatch
-	var localityLbEndpoints []*envoy_api_v2_endpoint.LocalityLbEndpoints
+) ([]*envoy_config_endpoint_v3.LocalityLbEndpoints, []*envoy_config_cluster_v3.Cluster_TransportSocketMatch, error) {
+	var transportSocketMatches []*envoy_config_cluster_v3.Cluster_TransportSocketMatch
+	var localityLbEndpoints []*envoy_config_endpoint_v3.LocalityLbEndpoints
 	for idx, priority := range failoverCfg.GetPrioritizedLocalities() {
 		for _, localityEndpoints := range priority.GetLocalityEndpoints() {
 			if err := ValidateGlooLocalityLbEndpoint(localityEndpoints); err != nil {
@@ -173,11 +179,11 @@ func PrioritizedEndpointName(address string, port, priority uint32, idx int) str
 	return fmt.Sprintf("%s_%d_p%d_idx%d", address, port, priority, idx)
 }
 
-func GlooLocalityToEnvoyLocality(locality *gloov1.Locality) *envoy_api_v2_core.Locality {
+func GlooLocalityToEnvoyLocality(locality *gloov1.Locality) *envoy_config_core_v3.Locality {
 	if locality == nil {
 		return nil
 	}
-	return &envoy_api_v2_core.Locality{
+	return &envoy_config_core_v3.Locality{
 		Region:  locality.GetRegion(),
 		Zone:    locality.GetZone(),
 		SubZone: locality.GetSubZone(),
@@ -213,13 +219,13 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	translator utils.SslConfigTranslator,
 	secrets []*gloov1.Secret,
 	dnsResolver consul.DnsResolver,
-) (*envoy_api_v2_endpoint.LocalityLbEndpoints, []*v2.Cluster_TransportSocketMatch, error) {
-	var lbEndpoints []*envoy_api_v2_endpoint.LbEndpoint
-	var transportSocketMatches []*v2.Cluster_TransportSocketMatch
+) (*envoy_config_endpoint_v3.LocalityLbEndpoints, []*envoy_config_cluster_v3.Cluster_TransportSocketMatch, error) {
+	var lbEndpoints []*envoy_config_endpoint_v3.LbEndpoint
+	var transportSocketMatches []*envoy_config_cluster_v3.Cluster_TransportSocketMatch
 	// Generate an envoy `LbEndpoint` for each endpoint in the locality.
 	for idx, v := range endpoints.GetLbEndpoints() {
 
-		var resolvedIPLBEndpoints []*envoy_api_v2_endpoint.LbEndpoint
+		var resolvedIPLBEndpoints []*envoy_config_endpoint_v3.LbEndpoint
 		addr := net.ParseIP(v.GetAddress())
 		if addr == nil {
 			// the address is not an IP, need to do a DnsLookup
@@ -260,7 +266,7 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 
 		if v.GetHealthCheckConfig() != nil {
 			for i := range resolvedIPLBEndpoints {
-				resolvedIPLBEndpoints[i].GetEndpoint().HealthCheckConfig = &envoy_api_v2_endpoint.Endpoint_HealthCheckConfig{
+				resolvedIPLBEndpoints[i].GetEndpoint().HealthCheckConfig = &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
 					PortValue: v.GetHealthCheckConfig().GetPortValue(),
 					Hostname:  v.GetHealthCheckConfig().GetHostname(),
 				}
@@ -277,12 +283,12 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				return nil, nil, err
 
 			}
-			transportSocketMatches = append(transportSocketMatches, &v2.Cluster_TransportSocketMatch{
+			transportSocketMatches = append(transportSocketMatches, &envoy_config_cluster_v3.Cluster_TransportSocketMatch{
 				Name:  uniqueName,
 				Match: metadataMatch,
-				TransportSocket: &envoy_api_v2_core.TransportSocket{
+				TransportSocket: &envoy_config_core_v3.TransportSocket{
 					Name: wellknown.TransportSocketTls,
-					ConfigType: &envoy_api_v2_core.TransportSocket_TypedConfig{
+					ConfigType: &envoy_config_core_v3.TransportSocket_TypedConfig{
 						TypedConfig: anyCfg,
 					},
 				},
@@ -290,7 +296,7 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 			// Set the match criteria for the transport socket match on the endpoint
 
 			for i := range resolvedIPLBEndpoints {
-				resolvedIPLBEndpoints[i].Metadata = &envoy_api_v2_core.Metadata{
+				resolvedIPLBEndpoints[i].Metadata = &envoy_config_core_v3.Metadata{
 					FilterMetadata: map[string]*structpb.Struct{
 						TransportSocketMatchKey: metadataMatch,
 					},
@@ -299,7 +305,7 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 		}
 		lbEndpoints = append(lbEndpoints, resolvedIPLBEndpoints...)
 	}
-	return &envoy_api_v2_endpoint.LocalityLbEndpoints{
+	return &envoy_config_endpoint_v3.LocalityLbEndpoints{
 		Locality:            GlooLocalityToEnvoyLocality(endpoints.GetLocality()),
 		LbEndpoints:         lbEndpoints,
 		LoadBalancingWeight: gogoutils.UInt32GogoToProto(endpoints.GetLoadBalancingWeight()),
@@ -307,15 +313,15 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	}, transportSocketMatches, nil
 }
 
-func buildLbEndpoint(ipAddr net.IP, port uint32, weight *types.UInt32Value) *envoy_api_v2_endpoint.LbEndpoint {
-	return &envoy_api_v2_endpoint.LbEndpoint{
-		HostIdentifier: &envoy_api_v2_endpoint.LbEndpoint_Endpoint{
-			Endpoint: &envoy_api_v2_endpoint.Endpoint{
-				Address: &envoy_api_v2_core.Address{
-					Address: &envoy_api_v2_core.Address_SocketAddress{
-						SocketAddress: &envoy_api_v2_core.SocketAddress{
+func buildLbEndpoint(ipAddr net.IP, port uint32, weight *types.UInt32Value) *envoy_config_endpoint_v3.LbEndpoint {
+	return &envoy_config_endpoint_v3.LbEndpoint{
+		HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+			Endpoint: &envoy_config_endpoint_v3.Endpoint{
+				Address: &envoy_config_core_v3.Address{
+					Address: &envoy_config_core_v3.Address_SocketAddress{
+						SocketAddress: &envoy_config_core_v3.SocketAddress{
 							Address: ipAddr.String(),
-							PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+							PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 								PortValue: port,
 							},
 						},

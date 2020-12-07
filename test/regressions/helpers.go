@@ -13,8 +13,8 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/kubeutils"
-	"github.com/solo-io/go-utils/testutils/helper"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -132,14 +132,15 @@ func EnableStrictValidation(testHelper *helper.SoloTestHelper) {
 	cfg, err := kubeutils.GetConfig("", "")
 	Expect(err).NotTo(HaveOccurred())
 
-	kubeCache := kube.NewKubeCache(context.Background())
+	var ctx = context.Background()
+	kubeCache := kube.NewKubeCache(ctx)
 	settingsClientFactory := &factory.KubeResourceClientFactory{
 		Crd:         gloov1.SettingsCrd,
 		Cfg:         cfg,
 		SharedCache: kubeCache,
 	}
 
-	settingsClient, err := gloov1.NewSettingsClient(settingsClientFactory)
+	settingsClient, err := gloov1.NewSettingsClient(ctx, settingsClientFactory)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 	settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{})
