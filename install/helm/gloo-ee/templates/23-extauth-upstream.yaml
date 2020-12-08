@@ -51,7 +51,7 @@ spec:
   sslConfig:
     secretRef:
       name: gloo-mtls-certs
-      namespace: gloo-system
+      namespace: {{ $.Release.Namespace }}
   {{- end }}
 ---
 {{- end }} {{/* if not $spec.disabled */}}

@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  description: >
+    Un-hardcode the gloo-system namespace is hardcoded in the 23-extauth-upstream.yaml template.
+  issueLink: https://github.com/solo-io/gloo/issues/3938
+  resolvesIssue: true
