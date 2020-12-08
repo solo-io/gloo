@@ -42,8 +42,11 @@ spec:
       {{- end}} {{/* $extAuth.deployment.stats */}}
     spec:
       serviceAccountName: {{ $extAuth.service.name }}
-      {{- if or $extAuth.plugins $.Values.global.glooMtls.enabled}}
+      {{- if or $extAuth.deployment.extraVolume (or $extAuth.plugins $.Values.global.glooMtls.enabled)}}
       volumes:
+      {{- if $extAuth.deployment.extraVolume }}
+        {{- toYaml $extAuth.deployment.extraVolume | nindent 6 }}
+      {{- end }}
       {{- if $.Values.global.glooMtls.enabled }}
       - name: gloo-mtls-certs
         secret:

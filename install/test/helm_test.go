@@ -1018,6 +1018,63 @@ global:
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("can accept extra env vars for extauth deployment", func() {
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(
+					[]v1.EnvVar{
+						{
+							Name:  "TEST_EXTRA_ENV_VAR",
+							Value: "test",
+						},
+					},
+					expectedDeployment.Spec.Template.Spec.Containers[0].Env...,
+				)
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.deployment.customEnv[0].Name=TEST_EXTRA_ENV_VAR",
+						"global.extensions.extAuth.deployment.customEnv[0].Value=test",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("can add extra volume mounts to the extauth deployment", func() {
+
+				expectedDeployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+					expectedDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+					v1.VolumeMount{
+						Name:      "test-path",
+						MountPath: "/var/run/sds",
+					},
+				)
+
+				expectedDeployment.Spec.Template.Spec.Volumes = append(
+					expectedDeployment.Spec.Template.Spec.Volumes,
+					v1.Volume{
+						Name: "test-path",
+						VolumeSource: v1.VolumeSource{
+							HostPath: &v1.HostPathVolumeSource{
+								Path: "/var/run/sds",
+							},
+						},
+					},
+				)
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.deployment.extraVolume[0].Name=test-path",
+						"global.extensions.extAuth.deployment.extraVolume[0].HostPath.Path=/var/run/sds",
+						"global.extensions.extAuth.deployment.extraVolumeMount[0].Name=test-path",
+						"global.extensions.extAuth.deployment.extraVolumeMount[0].MountPath=/var/run/sds",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			Context("pass image pull secrets", func() {
 
 				pullSecretName := "test-pull-secret"
@@ -1533,6 +1590,101 @@ spec:
 							},
 						},
 						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "shared-data",
+								MountPath: "/usr/share/shared-data",
+							},
+						},
+					})
+
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
+
+			It("creates a deployment with extauth sidecar and extraVolumeMount", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.envoySidecar=true",
+						"global.extensions.extAuth.deployment.extraVolume[0].Name=test-path",
+						"global.extensions.extAuth.deployment.extraVolume[0].HostPath.Path=/var/run/sds",
+						"global.extensions.extAuth.deployment.extraVolumeMount[0].Name=test-path",
+						"global.extensions.extAuth.deployment.extraVolumeMount[0].MountPath=/var/run/sds",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				gatewayProxyDeployment.Spec.Template.Spec.Volumes = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Volumes,
+					v1.Volume{
+						Name: "shared-data",
+						VolumeSource: v1.VolumeSource{
+							EmptyDir: &v1.EmptyDirVolumeSource{},
+						},
+					})
+
+				gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+					v1.VolumeMount{
+						Name:      "shared-data",
+						MountPath: "/usr/share/shared-data",
+					})
+
+				gatewayProxyDeployment.Spec.Template.Spec.Containers = append(
+					gatewayProxyDeployment.Spec.Template.Spec.Containers,
+					v1.Container{
+						Name:            "extauth",
+						Image:           "quay.io/solo-io/extauth-ee:dev",
+						Ports:           nil,
+						ImagePullPolicy: getPullPolicy(),
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "SERVICE_NAME",
+								Value: "ext-auth",
+							},
+							{
+								Name:  "GLOO_ADDRESS",
+								Value: "gloo:9977",
+							},
+							{
+								Name: "SIGNING_KEY",
+								ValueFrom: &v1.EnvVarSource{
+									SecretKeyRef: &v1.SecretKeySelector{
+										LocalObjectReference: v1.LocalObjectReference{
+											Name: "extauth-signing-key",
+										},
+										Key: "signing-key",
+									},
+								},
+							},
+							{
+								Name:  "SERVER_PORT",
+								Value: "8083",
+							},
+							{
+								Name:  "UDS_ADDR",
+								Value: "/usr/share/shared-data/.sock",
+							},
+							{
+								Name:  "USER_ID_HEADER",
+								Value: "x-user-id",
+							},
+							{
+								Name:  "START_STATS_SERVER",
+								Value: "true",
+							},
+						},
+						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "test-path",
+								MountPath: "/var/run/sds",
+							},
 							{
 								Name:      "shared-data",
 								MountPath: "/usr/share/shared-data",

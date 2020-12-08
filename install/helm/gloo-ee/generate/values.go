@@ -1,6 +1,9 @@
 package generate
 
-import glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
+import (
+	glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
+	v1 "k8s.io/api/core/v1"
+)
 
 type HelmConfig struct {
 	Config
@@ -142,6 +145,8 @@ type ExtAuthDeployment struct {
 	FsGroup            float64           `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
 	FloatingUserId     bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraExtAuthLabels map[string]string `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
+	ExtraVolume        []v1.Volume       `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
+	ExtraVolumeMount   []v1.VolumeMount  `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
 	*glooGen.DeploymentSpec
 }
 

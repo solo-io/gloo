@@ -86,6 +86,9 @@ Expand the name of the chart.
   imagePullPolicy: {{ $image.pullPolicy }}
   name: {{ $extAuth.deployment.name }}
   env:
+{{- if $extAuth.deployment.customEnv }}
+{{ toYaml $extAuth.deployment.customEnv | indent 4 }}
+{{- end }}
     - name: POD_NAMESPACE
       valueFrom:
         fieldRef:
@@ -168,8 +171,11 @@ Expand the name of the chart.
     failureThreshold: 3
     successThreshold: 1
   {{- end }}
-  {{- if or $extAuth.plugins (eq $extAuthMode "sidecar") }}
+{{- if or $extAuth.deployment.extraVolumeMount (or $extAuth.plugins (eq $extAuthMode "sidecar")) }}
   volumeMounts:
+  {{- if $extAuth.deployment.extraVolumeMount }}
+   {{- toYaml $extAuth.deployment.extraVolumeMount | nindent 2 }}
+  {{- end }}
   {{- if eq $extAuthMode "sidecar" }}
   - name: shared-data
     mountPath: /usr/share/shared-data

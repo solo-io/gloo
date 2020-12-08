@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3922
+    description: Added the ability to enable customEnv, extraVolume and extraVolumeMount to extauth deployment
