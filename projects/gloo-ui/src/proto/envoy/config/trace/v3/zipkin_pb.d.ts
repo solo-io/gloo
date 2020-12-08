@@ -18,6 +18,11 @@ export class ZipkinConfig extends jspb.Message {
   getCollectorUpstreamRef(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setCollectorUpstreamRef(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
 
+  hasClusterName(): boolean;
+  clearClusterName(): void;
+  getClusterName(): string;
+  setClusterName(value: string): void;
+
   getCollectorEndpoint(): string;
   setCollectorEndpoint(value: string): void;
 
@@ -32,6 +37,7 @@ export class ZipkinConfig extends jspb.Message {
   getCollectorEndpointVersion(): ZipkinConfig.CollectorEndpointVersionMap[keyof ZipkinConfig.CollectorEndpointVersionMap];
   setCollectorEndpointVersion(value: ZipkinConfig.CollectorEndpointVersionMap[keyof ZipkinConfig.CollectorEndpointVersionMap]): void;
 
+  getCollectorClusterCase(): ZipkinConfig.CollectorClusterCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ZipkinConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ZipkinConfig): ZipkinConfig.AsObject;
@@ -45,6 +51,7 @@ export class ZipkinConfig extends jspb.Message {
 export namespace ZipkinConfig {
   export type AsObject = {
     collectorUpstreamRef?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    clusterName: string,
     collectorEndpoint: string,
     traceId128bit: boolean,
     sharedSpanContext?: google_protobuf_wrappers_pb.BoolValue.AsObject,
@@ -58,4 +65,10 @@ export namespace ZipkinConfig {
   }
 
   export const CollectorEndpointVersion: CollectorEndpointVersionMap;
+
+  export enum CollectorClusterCase {
+    COLLECTOR_CLUSTER_NOT_SET = 0,
+    COLLECTOR_UPSTREAM_REF = 1,
+    CLUSTER_NAME = 6,
+  }
 }

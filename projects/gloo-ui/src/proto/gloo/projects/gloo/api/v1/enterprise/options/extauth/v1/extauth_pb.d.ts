@@ -717,6 +717,70 @@ export namespace HeaderConfiguration {
   }
 }
 
+export class DiscoveryOverride extends jspb.Message {
+  getAuthEndpoint(): string;
+  setAuthEndpoint(value: string): void;
+
+  getTokenEndpoint(): string;
+  setTokenEndpoint(value: string): void;
+
+  getJwksUri(): string;
+  setJwksUri(value: string): void;
+
+  clearScopesList(): void;
+  getScopesList(): Array<string>;
+  setScopesList(value: Array<string>): void;
+  addScopes(value: string, index?: number): string;
+
+  clearResponseTypesList(): void;
+  getResponseTypesList(): Array<string>;
+  setResponseTypesList(value: Array<string>): void;
+  addResponseTypes(value: string, index?: number): string;
+
+  clearSubjectsList(): void;
+  getSubjectsList(): Array<string>;
+  setSubjectsList(value: Array<string>): void;
+  addSubjects(value: string, index?: number): string;
+
+  clearIdTokenAlgsList(): void;
+  getIdTokenAlgsList(): Array<string>;
+  setIdTokenAlgsList(value: Array<string>): void;
+  addIdTokenAlgs(value: string, index?: number): string;
+
+  clearAuthMethodsList(): void;
+  getAuthMethodsList(): Array<string>;
+  setAuthMethodsList(value: Array<string>): void;
+  addAuthMethods(value: string, index?: number): string;
+
+  clearClaimsList(): void;
+  getClaimsList(): Array<string>;
+  setClaimsList(value: Array<string>): void;
+  addClaims(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DiscoveryOverride.AsObject;
+  static toObject(includeInstance: boolean, msg: DiscoveryOverride): DiscoveryOverride.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DiscoveryOverride, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DiscoveryOverride;
+  static deserializeBinaryFromReader(message: DiscoveryOverride, reader: jspb.BinaryReader): DiscoveryOverride;
+}
+
+export namespace DiscoveryOverride {
+  export type AsObject = {
+    authEndpoint: string,
+    tokenEndpoint: string,
+    jwksUri: string,
+    scopesList: Array<string>,
+    responseTypesList: Array<string>,
+    subjectsList: Array<string>,
+    idTokenAlgsList: Array<string>,
+    authMethodsList: Array<string>,
+    claimsList: Array<string>,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -755,10 +819,10 @@ export class OidcAuthorizationCode extends jspb.Message {
   getHeaders(): HeaderConfiguration | undefined;
   setHeaders(value?: HeaderConfiguration): void;
 
-  hasConfigurationOverride(): boolean;
-  clearConfigurationOverride(): void;
-  getConfigurationOverride(): google_protobuf_struct_pb.Struct | undefined;
-  setConfigurationOverride(value?: google_protobuf_struct_pb.Struct): void;
+  hasDiscoveryOverride(): boolean;
+  clearDiscoveryOverride(): void;
+  getDiscoveryOverride(): DiscoveryOverride | undefined;
+  setDiscoveryOverride(value?: DiscoveryOverride): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
@@ -782,7 +846,7 @@ export namespace OidcAuthorizationCode {
     scopesList: Array<string>,
     session?: UserSession.AsObject,
     headers?: HeaderConfiguration.AsObject,
-    configurationOverride?: google_protobuf_struct_pb.Struct.AsObject,
+    discoveryOverride?: DiscoveryOverride.AsObject,
   }
 }
 
@@ -1139,10 +1203,10 @@ export namespace ExtAuthConfig {
     getHeaders(): HeaderConfiguration | undefined;
     setHeaders(value?: HeaderConfiguration): void;
 
-    hasConfigurationOverride(): boolean;
-    clearConfigurationOverride(): void;
-    getConfigurationOverride(): google_protobuf_struct_pb.Struct | undefined;
-    setConfigurationOverride(value?: google_protobuf_struct_pb.Struct): void;
+    hasDiscoveryOverride(): boolean;
+    clearDiscoveryOverride(): void;
+    getDiscoveryOverride(): DiscoveryOverride | undefined;
+    setDiscoveryOverride(value?: DiscoveryOverride): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
@@ -1166,7 +1230,7 @@ export namespace ExtAuthConfig {
       scopesList: Array<string>,
       session?: UserSession.AsObject,
       headers?: HeaderConfiguration.AsObject,
-      configurationOverride?: google_protobuf_struct_pb.Struct.AsObject,
+      discoveryOverride?: DiscoveryOverride.AsObject,
     }
   }
 

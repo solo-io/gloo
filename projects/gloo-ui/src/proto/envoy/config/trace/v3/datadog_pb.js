@@ -31,12 +31,38 @@ goog.exportSymbol('proto.envoy.config.trace.v3.DatadogConfig', null, global);
  * @constructor
  */
 proto.envoy.config.trace.v3.DatadogConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_);
 };
 goog.inherits(proto.envoy.config.trace.v3.DatadogConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.config.trace.v3.DatadogConfig.displayName = 'proto.envoy.config.trace.v3.DatadogConfig';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_ = [[1,3]];
+
+/**
+ * @enum {number}
+ */
+proto.envoy.config.trace.v3.DatadogConfig.CollectorClusterCase = {
+  COLLECTOR_CLUSTER_NOT_SET: 0,
+  COLLECTOR_UPSTREAM_REF: 1,
+  CLUSTER_NAME: 3
+};
+
+/**
+ * @return {proto.envoy.config.trace.v3.DatadogConfig.CollectorClusterCase}
+ */
+proto.envoy.config.trace.v3.DatadogConfig.prototype.getCollectorClusterCase = function() {
+  return /** @type {proto.envoy.config.trace.v3.DatadogConfig.CollectorClusterCase} */(jspb.Message.computeOneofCase(this, proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -67,6 +93,7 @@ proto.envoy.config.trace.v3.DatadogConfig.prototype.toObject = function(opt_incl
 proto.envoy.config.trace.v3.DatadogConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     collectorUpstreamRef: (f = msg.getCollectorUpstreamRef()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    clusterName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     serviceName: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
@@ -109,6 +136,10 @@ proto.envoy.config.trace.v3.DatadogConfig.deserializeBinaryFromReader = function
       reader.readMessage(value,solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setCollectorUpstreamRef(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClusterName(value);
+      break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setServiceName(value);
@@ -150,6 +181,13 @@ proto.envoy.config.trace.v3.DatadogConfig.serializeBinaryToWriter = function(mes
       solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getServiceName();
   if (f.length > 0) {
     writer.writeString(
@@ -172,7 +210,7 @@ proto.envoy.config.trace.v3.DatadogConfig.prototype.getCollectorUpstreamRef = fu
 
 /** @param {?proto.core.solo.io.ResourceRef|undefined} value */
 proto.envoy.config.trace.v3.DatadogConfig.prototype.setCollectorUpstreamRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
+  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_[0], value);
 };
 
 
@@ -187,6 +225,35 @@ proto.envoy.config.trace.v3.DatadogConfig.prototype.clearCollectorUpstreamRef = 
  */
 proto.envoy.config.trace.v3.DatadogConfig.prototype.hasCollectorUpstreamRef = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string cluster_name = 3;
+ * @return {string}
+ */
+proto.envoy.config.trace.v3.DatadogConfig.prototype.getClusterName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.trace.v3.DatadogConfig.prototype.setClusterName = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_[0], value);
+};
+
+
+proto.envoy.config.trace.v3.DatadogConfig.prototype.clearClusterName = function() {
+  jspb.Message.setOneofField(this, 3, proto.envoy.config.trace.v3.DatadogConfig.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.trace.v3.DatadogConfig.prototype.hasClusterName = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

@@ -35,7 +35,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service v0.7.3
-	github.com/solo-io/gloo v1.6.0-beta16
+	github.com/solo-io/gloo v1.6.0-beta17
 	github.com/solo-io/go-utils v0.20.0
 	github.com/solo-io/k8s-utils v0.0.2
 	github.com/solo-io/licensing v0.1.17

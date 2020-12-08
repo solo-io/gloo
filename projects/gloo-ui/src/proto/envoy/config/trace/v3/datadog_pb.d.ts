@@ -16,9 +16,15 @@ export class DatadogConfig extends jspb.Message {
   getCollectorUpstreamRef(): solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setCollectorUpstreamRef(value?: solo_kit_api_v1_ref_pb.ResourceRef): void;
 
+  hasClusterName(): boolean;
+  clearClusterName(): void;
+  getClusterName(): string;
+  setClusterName(value: string): void;
+
   getServiceName(): string;
   setServiceName(value: string): void;
 
+  getCollectorClusterCase(): DatadogConfig.CollectorClusterCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DatadogConfig.AsObject;
   static toObject(includeInstance: boolean, msg: DatadogConfig): DatadogConfig.AsObject;
@@ -32,6 +38,13 @@ export class DatadogConfig extends jspb.Message {
 export namespace DatadogConfig {
   export type AsObject = {
     collectorUpstreamRef?: solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    clusterName: string,
     serviceName: string,
+  }
+
+  export enum CollectorClusterCase {
+    COLLECTOR_CLUSTER_NOT_SET = 0,
+    COLLECTOR_UPSTREAM_REF = 1,
+    CLUSTER_NAME = 3,
   }
 }

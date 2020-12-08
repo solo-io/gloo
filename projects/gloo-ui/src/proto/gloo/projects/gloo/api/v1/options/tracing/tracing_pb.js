@@ -421,7 +421,8 @@ proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.toObject = fun
 proto.tracing.options.gloo.solo.io.RouteTracingSettings.toObject = function(includeInstance, msg) {
   var f, obj = {
     routeDescriptor: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f)
+    tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f),
+    propagate: (f = msg.getPropagate()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -467,6 +468,11 @@ proto.tracing.options.gloo.solo.io.RouteTracingSettings.deserializeBinaryFromRea
       reader.readMessage(value,proto.tracing.options.gloo.solo.io.TracePercentages.deserializeBinaryFromReader);
       msg.setTracePercentages(value);
       break;
+    case 3:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setPropagate(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -509,6 +515,14 @@ proto.tracing.options.gloo.solo.io.RouteTracingSettings.serializeBinaryToWriter 
       2,
       f,
       proto.tracing.options.gloo.solo.io.TracePercentages.serializeBinaryToWriter
+    );
+  }
+  f = message.getPropagate();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -556,6 +570,36 @@ proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.clearTracePerc
  */
 proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.hasTracePercentages = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue propagate = 3;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.getPropagate = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 3));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.setPropagate = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.clearPropagate = function() {
+  this.setPropagate(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.RouteTracingSettings.prototype.hasPropagate = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

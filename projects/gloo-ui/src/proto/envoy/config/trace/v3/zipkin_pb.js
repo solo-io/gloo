@@ -34,12 +34,38 @@ goog.exportSymbol('proto.envoy.config.trace.v3.ZipkinConfig.CollectorEndpointVer
  * @constructor
  */
 proto.envoy.config.trace.v3.ZipkinConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_);
 };
 goog.inherits(proto.envoy.config.trace.v3.ZipkinConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.config.trace.v3.ZipkinConfig.displayName = 'proto.envoy.config.trace.v3.ZipkinConfig';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_ = [[1,6]];
+
+/**
+ * @enum {number}
+ */
+proto.envoy.config.trace.v3.ZipkinConfig.CollectorClusterCase = {
+  COLLECTOR_CLUSTER_NOT_SET: 0,
+  COLLECTOR_UPSTREAM_REF: 1,
+  CLUSTER_NAME: 6
+};
+
+/**
+ * @return {proto.envoy.config.trace.v3.ZipkinConfig.CollectorClusterCase}
+ */
+proto.envoy.config.trace.v3.ZipkinConfig.prototype.getCollectorClusterCase = function() {
+  return /** @type {proto.envoy.config.trace.v3.ZipkinConfig.CollectorClusterCase} */(jspb.Message.computeOneofCase(this, proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -70,6 +96,7 @@ proto.envoy.config.trace.v3.ZipkinConfig.prototype.toObject = function(opt_inclu
 proto.envoy.config.trace.v3.ZipkinConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     collectorUpstreamRef: (f = msg.getCollectorUpstreamRef()) && solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    clusterName: jspb.Message.getFieldWithDefault(msg, 6, ""),
     collectorEndpoint: jspb.Message.getFieldWithDefault(msg, 2, ""),
     traceId128bit: jspb.Message.getFieldWithDefault(msg, 3, false),
     sharedSpanContext: (f = msg.getSharedSpanContext()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
@@ -114,6 +141,10 @@ proto.envoy.config.trace.v3.ZipkinConfig.deserializeBinaryFromReader = function(
       var value = new solo$kit_api_v1_ref_pb.ResourceRef;
       reader.readMessage(value,solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setCollectorUpstreamRef(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClusterName(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -169,6 +200,13 @@ proto.envoy.config.trace.v3.ZipkinConfig.serializeBinaryToWriter = function(mess
       solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
   f = message.getCollectorEndpoint();
   if (f.length > 0) {
     writer.writeString(
@@ -222,7 +260,7 @@ proto.envoy.config.trace.v3.ZipkinConfig.prototype.getCollectorUpstreamRef = fun
 
 /** @param {?proto.core.solo.io.ResourceRef|undefined} value */
 proto.envoy.config.trace.v3.ZipkinConfig.prototype.setCollectorUpstreamRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
+  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_[0], value);
 };
 
 
@@ -237,6 +275,35 @@ proto.envoy.config.trace.v3.ZipkinConfig.prototype.clearCollectorUpstreamRef = f
  */
 proto.envoy.config.trace.v3.ZipkinConfig.prototype.hasCollectorUpstreamRef = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string cluster_name = 6;
+ * @return {string}
+ */
+proto.envoy.config.trace.v3.ZipkinConfig.prototype.getClusterName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.trace.v3.ZipkinConfig.prototype.setClusterName = function(value) {
+  jspb.Message.setOneofField(this, 6, proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_[0], value);
+};
+
+
+proto.envoy.config.trace.v3.ZipkinConfig.prototype.clearClusterName = function() {
+  jspb.Message.setOneofField(this, 6, proto.envoy.config.trace.v3.ZipkinConfig.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.trace.v3.ZipkinConfig.prototype.hasClusterName = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

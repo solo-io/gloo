@@ -72,6 +72,11 @@ export class RouteTracingSettings extends jspb.Message {
   getTracePercentages(): TracePercentages | undefined;
   setTracePercentages(value?: TracePercentages): void;
 
+  hasPropagate(): boolean;
+  clearPropagate(): void;
+  getPropagate(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setPropagate(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteTracingSettings.AsObject;
   static toObject(includeInstance: boolean, msg: RouteTracingSettings): RouteTracingSettings.AsObject;
@@ -86,6 +91,7 @@ export namespace RouteTracingSettings {
   export type AsObject = {
     routeDescriptor: string,
     tracePercentages?: TracePercentages.AsObject,
+    propagate?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 

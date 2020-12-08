@@ -35,6 +35,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassword', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BufferSettings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.CustomAuth', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.DiscoveryOverride', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata', null, global);
@@ -5027,6 +5028,455 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.setIdTokenHeader = f
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.DiscoveryOverride = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.DiscoveryOverride.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.DiscoveryOverride, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.DiscoveryOverride.displayName = 'proto.enterprise.gloo.solo.io.DiscoveryOverride';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.repeatedFields_ = [4,5,6,7,8,9];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.DiscoveryOverride} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    authEndpoint: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    tokenEndpoint: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    jwksUri: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    scopesList: jspb.Message.getRepeatedField(msg, 4),
+    responseTypesList: jspb.Message.getRepeatedField(msg, 5),
+    subjectsList: jspb.Message.getRepeatedField(msg, 6),
+    idTokenAlgsList: jspb.Message.getRepeatedField(msg, 7),
+    authMethodsList: jspb.Message.getRepeatedField(msg, 8),
+    claimsList: jspb.Message.getRepeatedField(msg, 9)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.DiscoveryOverride}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.DiscoveryOverride;
+  return proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.DiscoveryOverride} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.DiscoveryOverride}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthEndpoint(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTokenEndpoint(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setJwksUri(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScopes(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addResponseTypes(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addSubjects(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addIdTokenAlgs(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAuthMethods(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addClaims(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.DiscoveryOverride} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAuthEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getTokenEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getJwksUri();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getScopesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
+    );
+  }
+  f = message.getResponseTypesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      5,
+      f
+    );
+  }
+  f = message.getSubjectsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
+    );
+  }
+  f = message.getIdTokenAlgsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
+      f
+    );
+  }
+  f = message.getAuthMethodsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      8,
+      f
+    );
+  }
+  f = message.getClaimsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      9,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string auth_endpoint = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getAuthEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setAuthEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string token_endpoint = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getTokenEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setTokenEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string jwks_uri = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getJwksUri = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setJwksUri = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated string scopes = 4;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getScopesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setScopesList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addScopes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearScopesList = function() {
+  this.setScopesList([]);
+};
+
+
+/**
+ * repeated string response_types = 5;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getResponseTypesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setResponseTypesList = function(value) {
+  jspb.Message.setField(this, 5, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addResponseTypes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearResponseTypesList = function() {
+  this.setResponseTypesList([]);
+};
+
+
+/**
+ * repeated string subjects = 6;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getSubjectsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setSubjectsList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addSubjects = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearSubjectsList = function() {
+  this.setSubjectsList([]);
+};
+
+
+/**
+ * repeated string id_token_algs = 7;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getIdTokenAlgsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setIdTokenAlgsList = function(value) {
+  jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addIdTokenAlgs = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearIdTokenAlgsList = function() {
+  this.setIdTokenAlgsList([]);
+};
+
+
+/**
+ * repeated string auth_methods = 8;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getAuthMethodsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 8));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setAuthMethodsList = function(value) {
+  jspb.Message.setField(this, 8, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addAuthMethods = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 8, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearAuthMethodsList = function() {
+  this.setAuthMethodsList([]);
+};
+
+
+/**
+ * repeated string claims = 9;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getClaimsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 9));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setClaimsList = function(value) {
+  jspb.Message.setField(this, 9, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addClaims = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 9, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearClaimsList = function() {
+  this.setClaimsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.repeatedFields_, null);
 };
@@ -5080,7 +5530,7 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
-    configurationOverride: (f = msg.getConfigurationOverride()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5163,9 +5613,9 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       msg.setHeaders(value);
       break;
     case 11:
-      var value = new google_protobuf_struct_pb.Struct;
-      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
-      msg.setConfigurationOverride(value);
+      var value = new proto.enterprise.gloo.solo.io.DiscoveryOverride;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader);
+      msg.setDiscoveryOverride(value);
       break;
     default:
       reader.skipField();
@@ -5266,12 +5716,12 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter
     );
   }
-  f = message.getConfigurationOverride();
+  f = message.getDiscoveryOverride();
   if (f != null) {
     writer.writeMessage(
       11,
       f,
-      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+      proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter
     );
   }
 };
@@ -5490,23 +5940,23 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasHeaders = funct
 
 
 /**
- * optional google.protobuf.Struct configuration_override = 11;
- * @return {?proto.google.protobuf.Struct}
+ * optional DiscoveryOverride discovery_override = 11;
+ * @return {?proto.enterprise.gloo.solo.io.DiscoveryOverride}
  */
-proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getConfigurationOverride = function() {
-  return /** @type{?proto.google.protobuf.Struct} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 11));
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getDiscoveryOverride = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.DiscoveryOverride} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.DiscoveryOverride, 11));
 };
 
 
-/** @param {?proto.google.protobuf.Struct|undefined} value */
-proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setConfigurationOverride = function(value) {
+/** @param {?proto.enterprise.gloo.solo.io.DiscoveryOverride|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setDiscoveryOverride = function(value) {
   jspb.Message.setWrapperField(this, 11, value);
 };
 
 
-proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearConfigurationOverride = function() {
-  this.setConfigurationOverride(undefined);
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearDiscoveryOverride = function() {
+  this.setDiscoveryOverride(undefined);
 };
 
 
@@ -5514,7 +5964,7 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearConfiguration
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasConfigurationOverride = function() {
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasDiscoveryOverride = function() {
   return jspb.Message.getField(this, 11) != null;
 };
 
@@ -7825,7 +8275,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
-    configurationOverride: (f = msg.getConfigurationOverride()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -7907,9 +8357,9 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       msg.setHeaders(value);
       break;
     case 11:
-      var value = new google_protobuf_struct_pb.Struct;
-      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
-      msg.setConfigurationOverride(value);
+      var value = new proto.enterprise.gloo.solo.io.DiscoveryOverride;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader);
+      msg.setDiscoveryOverride(value);
       break;
     default:
       reader.skipField();
@@ -8009,12 +8459,12 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter
     );
   }
-  f = message.getConfigurationOverride();
+  f = message.getDiscoveryOverride();
   if (f != null) {
     writer.writeMessage(
       11,
       f,
-      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+      proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter
     );
   }
 };
@@ -8218,23 +8668,23 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
 
 
 /**
- * optional google.protobuf.Struct configuration_override = 11;
- * @return {?proto.google.protobuf.Struct}
+ * optional DiscoveryOverride discovery_override = 11;
+ * @return {?proto.enterprise.gloo.solo.io.DiscoveryOverride}
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getConfigurationOverride = function() {
-  return /** @type{?proto.google.protobuf.Struct} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 11));
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getDiscoveryOverride = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.DiscoveryOverride} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.DiscoveryOverride, 11));
 };
 
 
-/** @param {?proto.google.protobuf.Struct|undefined} value */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setConfigurationOverride = function(value) {
+/** @param {?proto.enterprise.gloo.solo.io.DiscoveryOverride|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setDiscoveryOverride = function(value) {
   jspb.Message.setWrapperField(this, 11, value);
 };
 
 
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearConfigurationOverride = function() {
-  this.setConfigurationOverride(undefined);
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearDiscoveryOverride = function() {
+  this.setDiscoveryOverride(undefined);
 };
 
 
@@ -8242,7 +8692,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasConfigurationOverride = function() {
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasDiscoveryOverride = function() {
   return jspb.Message.getField(this, 11) != null;
 };
 
