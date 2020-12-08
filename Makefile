@@ -135,7 +135,7 @@ SUBDIRS:=projects install pkg test
 generated-code:
 	go mod tidy
 	rm -rf vendor_any
-	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=0 go generate ./...
+	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
