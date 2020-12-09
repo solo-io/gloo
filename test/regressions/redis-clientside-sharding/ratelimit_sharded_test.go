@@ -50,10 +50,9 @@ var _ = Describe("RateLimit tests", func() {
 	)
 
 	const (
-		response200         = "HTTP/1.1 200 OK"
-		response401         = "HTTP/1.1 401 Unauthorized"
-		response429         = "HTTP/1.1 429 Too Many Requests"
-		rateLimitDescriptor = "shard-limit-test"
+		response200 = "HTTP/1.1 200 OK"
+		response401 = "HTTP/1.1 401 Unauthorized"
+		response429 = "HTTP/1.1 429 Too Many Requests"
 	)
 
 	BeforeEach(func() {
@@ -170,13 +169,13 @@ var _ = Describe("RateLimit tests", func() {
 	Context("rate limit at specific rate, even with scaled redis", func() {
 
 		It("can rate limit to upstream", func() {
-			vs := defaults.DefaultVirtualService(testHelper.InstallNamespace, "sharding-test-vs")
+			vs := defaults.DefaultVirtualService(testHelper.InstallNamespace, "vs")
 
 			var vsRoutes []*v1.Route
 			// Matches Exact /HealthCheck with no rate limit
 			vsRoutes = append(vsRoutes, generateHealthCheckRoute())
 			// Matches Exact /test with 10 / day rate limit
-			vsRoutes = append(vsRoutes, generateRateLimitedRoute(rateLimitDescriptor))
+			vsRoutes = append(vsRoutes, generateRateLimitedRoute())
 			vs.VirtualHost.Routes = vsRoutes
 
 			vs.VirtualHost.Domains = []string{"rate-limit.example.com"}
@@ -227,7 +226,7 @@ var _ = Describe("RateLimit tests", func() {
 	})
 })
 
-func generateRateLimitedRoute(rateLimitDescriptor string) *v1.Route {
+func generateRateLimitedRoute() *v1.Route {
 	return &v1.Route{
 		Action: &v1.Route_RouteAction{
 			RouteAction: &gloov1.RouteAction{
@@ -290,36 +289,6 @@ func generateHealthCheckRoute() *v1.Route {
 			{
 				PathSpecifier: &matchers.Matcher_Exact{
 					Exact: "/HealthCheck",
-				},
-			},
-		},
-	}
-}
-
-func get10DayRateLimitSpec(rateLimitDescriptor string) rlv1alpha1.RateLimitConfigSpec {
-	return rlv1alpha1.RateLimitConfigSpec{
-		ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
-			Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
-				Descriptors: []*rlv1alpha1.Descriptor{{
-					Key:   "generic_key",
-					Value: rateLimitDescriptor,
-					RateLimit: &rlv1alpha1.RateLimit{
-						RequestsPerUnit: 10,
-						Unit:            rlv1alpha1.RateLimit_DAY,
-					},
-				}},
-				RateLimits: []*rlv1alpha1.RateLimitActions{
-					{
-						Actions: []*rlv1alpha1.Action{
-							{
-								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
-									GenericKey: &rlv1alpha1.Action_GenericKey{
-										DescriptorValue: rateLimitDescriptor,
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},

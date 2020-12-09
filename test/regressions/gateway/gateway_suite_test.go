@@ -64,7 +64,7 @@ var _ = BeforeSuite(func() {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-ee"
 		defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
-		defaults.InstallNamespace = "gateway-test-" + fmt.Sprintf("%d-%d", time.Now().Unix()%10000, GinkgoParallelNode())
+		defaults.InstallNamespace = "gloo-system"
 		return defaults
 	})
 	Expect(err).NotTo(HaveOccurred())

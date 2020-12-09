@@ -205,6 +205,11 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 			})
 
 			Context("with ext auth also configured", func() {
+
+				var (
+					authConfigClient extauthv1.AuthConfigClient
+				)
+
 				BeforeEach(func() {
 					kubeCache := kube.NewKubeCache(ctx)
 					authConfigClientFactory := &factory.KubeResourceClientFactory{
@@ -212,7 +217,8 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 						Cfg:         cfg,
 						SharedCache: kubeCache,
 					}
-					authConfigClient, err := extauthv1.NewAuthConfigClient(ctx, authConfigClientFactory)
+					var err error
+					authConfigClient, err = extauthv1.NewAuthConfigClient(ctx, authConfigClientFactory)
 					Expect(err).NotTo(HaveOccurred(), "Should create auth config client")
 					authConfig, err := authConfigClient.Write(&extauthv1.AuthConfig{
 						Metadata: core.Metadata{
@@ -296,6 +302,11 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 
 					_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
 					Expect(err).NotTo(HaveOccurred(), "Should write settings with RateLimitBeforeAuth set")
+				})
+
+				AfterEach(func() {
+					err := authConfigClient.Delete(testHelper.InstallNamespace, "basic-auth", clients.DeleteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred(), "should delete authconfigs on cleanup")
 				})
 
 				It("can rate limit before hitting the auth server when so configured", func() {

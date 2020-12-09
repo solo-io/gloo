@@ -1,11 +1,8 @@
 package gateway_test
 
 import (
-	. "github.com/solo-io/solo-projects/test/regressions/internal"
-
 	. "github.com/onsi/ginkgo"
-
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	. "github.com/solo-io/solo-projects/test/regressions/internal"
 )
 
 // Regular extAuth as run in other suites

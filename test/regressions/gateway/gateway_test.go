@@ -92,7 +92,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
 		Eventually(func() (*v2.Gateway, error) {
-			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
+			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{Ctx: ctx})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 
 		gatewayPort := 80
@@ -104,7 +104,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, helper.SimpleHttpResponse, 1, time.Minute*20)
+		}, helper.SimpleHttpResponse, 1, time.Minute*5)
 	})
 
 	Context("virtual service in configured with SSL", func() {

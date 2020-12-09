@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-os-with-ui"
-		defaults.InstallNamespace = "gateway-test-" + fmt.Sprintf("%d-%d", time.Now().Unix()%10000, GinkgoParallelNode())
+		defaults.InstallNamespace = "gloo-system"
 		return defaults
 	})
 	Expect(err).NotTo(HaveOccurred())
