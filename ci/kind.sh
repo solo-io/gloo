@@ -16,7 +16,7 @@ trap "cleanup" EXIT SIGINT
 echo ">> Temporary output file ${TEMP_FILE}"
 
 # grab the image names out of the `make docker` output
-sed -nE 's|Successfully tagged (.*$)|\1|p' ${TEMP_FILE} | while read f; do kind load docker-image --name kind $f; done
+sed -nE 's|(\\x1b\[0m)?Successfully tagged (.*$)|\2|p' ${TEMP_FILE} | while read f; do kind load docker-image --name kind $f; done
 
 # Now that the images are loaded into kind, we can delete them locally to save some disk space
 make cleanup-local-docker-images
