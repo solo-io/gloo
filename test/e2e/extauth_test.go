@@ -452,6 +452,42 @@ var _ = Describe("External auth", func() {
 					})
 				})
 
+				Context("discovery override", func() {
+
+					BeforeEach(func() {
+						oauth2.OidcAuthorizationCode.DiscoveryOverride = &extauth.DiscoveryOverride{
+							AuthEndpoint: "http://localhost:5556/alternate-auth",
+						}
+					})
+
+					It("should redirect to different auth endpoint with auth override", func() {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								// stop at the auth point
+								if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+									return http.ErrUseLastResponse
+								}
+								return nil
+							},
+						}
+						// Confirm that the response matches the one set by the /alternate-auth endpoint
+						Eventually(func() (string, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							Expect(err).NotTo(HaveOccurred())
+							resp, err := client.Do(req)
+							if err != nil {
+								return "", err
+							}
+							body, err := ioutil.ReadAll(resp.Body)
+							if err != nil {
+								return "", err
+							}
+							fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
+							return string(body), nil
+						}, "5s", "0.5s").Should(Equal("alternate-auth"))
+					})
+				})
+
 				Context("happy path with default settings (no redis)", func() {
 					It("should work", func() {
 						ExpectHappyPathToWork(func() {
@@ -1321,6 +1357,20 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			rw.WriteHeader(http.StatusFound)
 
 			_, _ = rw.Write([]byte(`auth`))
+		case "/alternate-auth":
+			// redirect back immediately. This simulates a user that's already logged in by the IDP.
+			redirect_uri := r.URL.Query().Get("redirect_uri")
+			state := r.URL.Query().Get("state")
+			u, err := url.Parse(redirect_uri)
+			Expect(err).NotTo(HaveOccurred())
+
+			u.RawQuery = "code=9876&state=" + state
+			fmt.Fprintf(GinkgoWriter, "redirecting to %s\n", u.String())
+			rw.Header().Add("Location", u.String())
+			rw.Header().Add("x-auth", "alternate-auth")
+			rw.WriteHeader(http.StatusFound)
+
+			_, _ = rw.Write([]byte(`alternate-auth`))
 		case "/.well-known/openid-configuration":
 			_, _ = rw.Write([]byte(`
 		{
@@ -1369,7 +1419,6 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			]
 		  }
 		`))
-
 		}
 	})
 

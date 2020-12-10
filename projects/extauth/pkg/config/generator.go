@@ -321,6 +321,25 @@ func ToHeaderConfig(hc *extauthv1.HeaderConfiguration) *oidc.HeaderConfig {
 	return headersConfig
 }
 
+func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oidc.DiscoveryData {
+	var discoveryDataOverride *oidc.DiscoveryData
+	if discoveryOverride != nil {
+		discoveryDataOverride = &oidc.DiscoveryData{
+			// IssuerUrl is intentionally excluded as it cannot be overridden
+			AuthEndpoint:  discoveryOverride.GetAuthEndpoint(),
+			TokenEndpoint: discoveryOverride.GetTokenEndpoint(),
+			Keys:          discoveryOverride.GetJwksUri(),
+			ResponseTypes: discoveryOverride.GetResponseTypes(),
+			Subjects:      discoveryOverride.GetSubjects(),
+			IDTokenAlgs:   discoveryOverride.GetIdTokenAlgs(),
+			Scopes:        discoveryOverride.GetScopes(),
+			AuthMethods:   discoveryOverride.GetAuthMethods(),
+			Claims:        discoveryOverride.GetClaims(),
+		}
+	}
+	return discoveryDataOverride
+}
+
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
 	session, err := sessionToStore(userSession)
@@ -353,7 +372,7 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil)
+			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil)
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -379,8 +398,10 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 
 			headersConfig := ToHeaderConfig(oidcCfg.GetHeaders())
 
+			discoveryDataOverride := ToDiscoveryDataOverride(oidcCfg.GetDiscoveryOverride())
+
 			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
-				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig)
+				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride)
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}

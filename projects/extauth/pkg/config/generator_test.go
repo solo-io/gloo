@@ -3,6 +3,7 @@ package config_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"time"
 
 	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
@@ -680,6 +681,59 @@ var _ = Describe("Config Generator", func() {
 			hc := &extauthv1.HeaderConfiguration{IdTokenHeader: "foo"}
 			expected := &oidc.HeaderConfig{IdTokenHeader: "foo"}
 			Expect(config.ToHeaderConfig(hc)).To(Equal(expected))
+		})
+	})
+
+	Context("oidc discovery override", func() {
+		It("should translate nil discovery override", func() {
+			discoveryDataOverride := config.ToDiscoveryDataOverride(nil)
+			Expect(discoveryDataOverride).To(BeNil())
+		})
+
+		It("should translate valid discovery override", func() {
+			discoveryOverride := &extauthv1.DiscoveryOverride{
+				AuthEndpoint:  "auth.url/",
+				TokenEndpoint: "token.url/",
+				JwksUri:       "keys",
+				ResponseTypes: []string{"code"},
+				Subjects:      []string{"public"},
+				IdTokenAlgs:   []string{"HS256"},
+				Scopes:        []string{"openid"},
+				AuthMethods:   []string{"client_secret_basic"},
+				Claims:        []string{"aud"},
+			}
+			overrideDiscoveryData := config.ToDiscoveryDataOverride(discoveryOverride)
+			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
+				AuthEndpoint:  "auth.url/",
+				TokenEndpoint: "token.url/",
+				Keys:          "keys",
+				ResponseTypes: []string{"code"},
+				Subjects:      []string{"public"},
+				IDTokenAlgs:   []string{"HS256"},
+				Scopes:        []string{"openid"},
+				AuthMethods:   []string{"client_secret_basic"},
+				Claims:        []string{"aud"},
+			}
+			Expect(overrideDiscoveryData).To(Equal(expectedOverrideDiscoveryData))
+		})
+
+		It("should fail if a new field is added to DiscoveryData or DiscoveryOverride", func() {
+			// We want to ensure that the ToDiscoveryDataOverride method correctly translates all fields on the
+			// DiscoveryOverride type over to the DiscoveryData type.
+
+			// If a new field is added to DiscoveryData, this test should fail,
+			// signaling that we need to modify the ToDiscoveryDataOverride implementation
+			Expect(reflect.TypeOf(oidc.DiscoveryData{}).NumField()).To(
+				Equal(10),
+				"wrong number of fields found",
+			)
+
+			// If a new field is added to DiscoveryOverride, this test should fail,
+			// signaling that we need to modify the ToDiscoveryDataOverride implementation
+			Expect(reflect.TypeOf(extauthv1.DiscoveryOverride{}).NumField()).To(
+				Equal(12),
+				"wrong number of fields found",
+			)
 		})
 	})
 
