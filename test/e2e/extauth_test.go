@@ -5,12 +5,14 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -118,6 +120,13 @@ var _ = Describe("External auth", func() {
 				SigningKey:             "hello",
 				UserIdHeader:           "X-User-Id",
 				HealthCheckFailTimeout: 2, // seconds
+				LogSettings: server.LogSettings{
+					// Note(yuval-k): Disable debug logs as they are noisy. If you are writing new
+					// tests, uncomment this while developing to increase verbosity. I couldn't find
+					// a good way to wire this to GinkgoWriter
+					// DebugMode:  "1",
+					LoggerName: "extauth-service-test",
+				},
 			},
 		}
 		glooSettings := &gloov1.Settings{Extauth: extauthSettings}
@@ -131,6 +140,7 @@ var _ = Describe("External auth", func() {
 		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, glooSettings)
 		go func(testCtx context.Context) {
 			defer GinkgoRecover()
+			os.Setenv("DEBUG_MODE", "1")
 			err := extauthrunner.RunWithSettings(testCtx, settings)
 			if testCtx.Err() == nil {
 				Expect(err).NotTo(HaveOccurred())
@@ -255,7 +265,6 @@ var _ = Describe("External auth", func() {
 				var (
 					authConfig      *extauth.AuthConfig
 					oauth2          *extauth.OAuth2_OidcAuthorizationCode
-					privateKey      *rsa.PrivateKey
 					discoveryServer fakeDiscoveryServer
 					secret          *gloov1.Secret
 					proxy           *gloov1.Proxy
@@ -265,7 +274,7 @@ var _ = Describe("External auth", func() {
 				BeforeEach(func() {
 					discoveryServer = fakeDiscoveryServer{}
 
-					privateKey = discoveryServer.Start()
+					discoveryServer.Start()
 
 					clientSecret := &extauth.OauthSecret{
 						ClientSecret: "test",
@@ -298,17 +307,8 @@ var _ = Describe("External auth", func() {
 					}
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
-
-					// create an id token
-					tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-						"foo": "bar",
-						"aud": "test-clientid",
-						"sub": "user",
-						"iss": "http://localhost:5556",
-					})
-					tokenToSign.Header["kid"] = "test-123"
-					token, err = tokenToSign.SignedString(privateKey)
-					Expect(err).NotTo(HaveOccurred())
+					//get id token
+					token = discoveryServer.token
 				})
 
 				JustBeforeEach(func() {
@@ -347,6 +347,9 @@ var _ = Describe("External auth", func() {
 						Jar: &unsecureCookieJar{CookieJar: jar},
 						CheckRedirect: func(req *http.Request, via []*http.Request) error {
 							finalurl = req.URL
+							if len(via) > 10 {
+								return errors.New("stopped after 10 redirects")
+							}
 							return nil
 						},
 					}
@@ -407,8 +410,9 @@ var _ = Describe("External auth", func() {
 									Options: &extauth.RedisOptions{
 										Host: fmt.Sprintf("%s:%d", redisaddr, redisport),
 									},
-									KeyPrefix:  "key",
-									CookieName: cookieName,
+									KeyPrefix:       "key",
+									CookieName:      cookieName,
+									AllowRefreshing: &types.BoolValue{Value: true},
 								},
 							},
 						}
@@ -430,13 +434,53 @@ var _ = Describe("External auth", func() {
 							Expect(cookies[0].Name).To(Equal(cookieName))
 						})
 					})
+
+					It("should refresh token", func() {
+						discoveryServer.createExpiredToken = true
+						discoveryServer.updateToken("")
+						ExpectHappyPathToWork(func() {
+							Expect(cookies[0].Name).To(Equal(cookieName))
+						})
+						Expect(discoveryServer.lastGrant).To(Equal("refresh_token"))
+					})
+
+					Context("no refreshing", func() {
+						BeforeEach(func() {
+							// update the config to use redis
+							oauth2.OidcAuthorizationCode.Session.Session.(*extauth.UserSession_Redis).Redis.AllowRefreshing = &types.BoolValue{Value: false}
+						})
+
+						It("should NOT refresh token", func() {
+							discoveryServer.createExpiredToken = true
+							discoveryServer.updateToken("")
+
+							jar, err := cookiejar.New(nil)
+							Expect(err).NotTo(HaveOccurred())
+							client := &http.Client{
+								Jar: &unsecureCookieJar{CookieJar: jar},
+							}
+
+							// as we will always provide an expired token, this will result in a
+							// redirect loop.
+							Eventually(func() error {
+								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
+								Expect(err).NotTo(HaveOccurred())
+								_, err = client.Do(req)
+								return err
+							}, "5s", "0.5s").Should(MatchError(ContainSubstring("stopped after 10 redirects")))
+							Expect(discoveryServer.lastGrant).To(Equal(""))
+						})
+					})
+
+					// add context with refresh; get an expired token going and make sure it was refreshed.
 				})
 				Context("forward id token", func() {
 
 					BeforeEach(func() {
 						// update the config to use redis
 						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
-							IdTokenHeader: "foo",
+							IdTokenHeader:     "foo",
+							AccessTokenHeader: "bar",
 						}
 					})
 
@@ -445,7 +489,8 @@ var _ = Describe("External auth", func() {
 
 						select {
 						case r := <-testUpstream.C:
-							Expect(r.Headers.Get("foo")).NotTo(BeEmpty())
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("bar")).To(Equal("SlAV32hkKG"))
 						case <-time.After(time.Second):
 							Fail("timedout")
 						}
@@ -1305,7 +1350,10 @@ var startDiscoveryServerOnce sync.Once
 var cachedPrivateKey *rsa.PrivateKey
 
 type fakeDiscoveryServer struct {
-	s http.Server
+	s                  http.Server
+	createExpiredToken bool
+	token              string
+	lastGrant          string
 }
 
 func (f *fakeDiscoveryServer) Stop() {
@@ -1314,25 +1362,36 @@ func (f *fakeDiscoveryServer) Stop() {
 	_ = f.s.Shutdown(ctx)
 }
 
-func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
+func (f *fakeDiscoveryServer) updateToken(grantType string) {
 	startDiscoveryServerOnce.Do(func() {
 		var err error
 		cachedPrivateKey, err = rsa.GenerateKey(rand.Reader, 512)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	n := base64.RawURLEncoding.EncodeToString(cachedPrivateKey.N.Bytes())
-	e := base64.RawURLEncoding.EncodeToString(big.NewInt(0).SetUint64(uint64(cachedPrivateKey.E)).Bytes())
-
-	tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"foo": "bar",
 		"aud": "test-clientid",
 		"sub": "user",
 		"iss": "http://localhost:5556",
-	})
+	}
+	f.lastGrant = grantType
+	if grantType == "" && f.createExpiredToken {
+		// create expired token so we can test refresh
+		claims["exp"] = time.Now().Add(-time.Minute).Unix()
+	}
+
+	tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	tokenToSign.Header["kid"] = "test-123"
 	token, err := tokenToSign.SignedString(cachedPrivateKey)
 	Expect(err).NotTo(HaveOccurred())
+	f.token = token
+}
+
+func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
+	f.updateToken("")
+	n := base64.RawURLEncoding.EncodeToString(cachedPrivateKey.N.Bytes())
+	e := base64.RawURLEncoding.EncodeToString(big.NewInt(0).SetUint64(uint64(cachedPrivateKey.E)).Bytes())
 
 	f.s = http.Server{
 		Addr: ":5556",
@@ -1395,13 +1454,18 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		  }
 		`))
 		case "/token":
+			r.ParseForm()
+			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
+			if r.URL.Query().Get("grant_type") == "refresh_token" || r.Form.Get("grant_type") == "refresh_token" {
+				f.updateToken("refresh_token")
+			}
 			_, _ = rw.Write([]byte(`
 			{
 				"access_token": "SlAV32hkKG",
 				"token_type": "Bearer",
 				"refresh_token": "8xLOxBtZp8",
 				"expires_in": 3600,
-				"id_token": "` + token + `"
+				"id_token": "` + f.token + `"
 			 }
 	`))
 		case "/keys":

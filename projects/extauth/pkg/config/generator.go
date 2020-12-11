@@ -259,18 +259,18 @@ func (c *configGenerator) getConfigs(ctx context.Context, boolLogic string, conf
 	return services, nil
 }
 
-func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, error) {
+func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, error) {
 	if us == nil {
-		return nil, nil
+		return nil, false, nil
 	}
 	usersession := us.Session
 	if usersession == nil {
-		return nil, nil
+		return nil, false, nil
 	}
 
 	switch s := usersession.(type) {
 	case *extauthv1.UserSession_Cookie:
-		return nil, nil
+		return nil, false, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
 		opts := &redis.UniversalOptions{
@@ -282,9 +282,15 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, error) {
 		client := redis.NewUniversalClient(opts)
 
 		rs := redissession.NewRedisSession(client, s.Redis.CookieName, s.Redis.KeyPrefix)
-		return rs, nil
+
+		allowRefreshing := true
+		if allowRefreshSetting := s.Redis.AllowRefreshing; allowRefreshSetting != nil {
+			allowRefreshing = allowRefreshSetting.Value
+		}
+
+		return rs, allowRefreshing, nil
 	}
-	return nil, fmt.Errorf("no matching session config")
+	return nil, false, fmt.Errorf("no matching session config")
 }
 
 func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOptions) *session.Options {
@@ -315,7 +321,8 @@ func ToHeaderConfig(hc *extauthv1.HeaderConfiguration) *oidc.HeaderConfig {
 	var headersConfig *oidc.HeaderConfig
 	if hc != nil {
 		headersConfig = &oidc.HeaderConfig{
-			IdTokenHeader: hc.GetIdTokenHeader(),
+			IdTokenHeader:     hc.GetIdTokenHeader(),
+			AccessTokenHeader: hc.GetAccessTokenHeader(),
 		}
 	}
 	return headersConfig
@@ -342,7 +349,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
-	session, err := sessionToStore(userSession)
+	session, refreshIfExpired, err := sessionToStore(userSession)
 	if err != nil {
 		return oidc.SessionParameters{}, err
 	}
@@ -350,6 +357,7 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 		ErrOnSessionFetch: userSession.GetFailOnFetchFailure(),
 		Store:             session,
 		Options:           sessionOptions,
+		RefreshIfExpired:  refreshIfExpired,
 	}, nil
 }
 

@@ -4345,7 +4345,8 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.toObject = function(inclu
   var f, obj = {
     options: (f = msg.getOptions()) && proto.enterprise.gloo.solo.io.RedisOptions.toObject(includeInstance, f),
     keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    cookieName: jspb.Message.getFieldWithDefault(msg, 3, "")
+    cookieName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4394,6 +4395,11 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.deserializeBinaryFromRead
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setCookieName(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAllowRefreshing(value);
       break;
     default:
       reader.skipField();
@@ -4444,6 +4450,14 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.serializeBinaryToWriter =
     writer.writeString(
       3,
       f
+    );
+  }
+  f = message.getAllowRefreshing();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -4506,6 +4520,36 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getCookieName =
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setCookieName = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue allow_refreshing = 4;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getAllowRefreshing = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 4));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setAllowRefreshing = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.clearAllowRefreshing = function() {
+  this.setAllowRefreshing(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.hasAllowRefreshing = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -4922,7 +4966,8 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.toObject = function(
  */
 proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject = function(includeInstance, msg) {
   var f, obj = {
-    idTokenHeader: jspb.Message.getFieldWithDefault(msg, 1, "")
+    idTokenHeader: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    accessTokenHeader: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -4963,6 +5008,10 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setIdTokenHeader(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAccessTokenHeader(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4999,6 +5048,13 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getAccessTokenHeader();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -5014,6 +5070,21 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.getIdTokenHeader = f
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.setIdTokenHeader = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string access_token_header = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.getAccessTokenHeader = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.setAccessTokenHeader = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

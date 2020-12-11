@@ -34,9 +34,9 @@ require (
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
-	github.com/solo-io/ext-auth-service v0.7.4
-	github.com/solo-io/gloo v1.6.0-beta17
-	github.com/solo-io/go-utils v0.20.0
+	github.com/solo-io/ext-auth-service v0.7.5
+	github.com/solo-io/gloo v1.6.0-beta18
+	github.com/solo-io/go-utils v0.20.1
 	github.com/solo-io/k8s-utils v0.0.2
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.9

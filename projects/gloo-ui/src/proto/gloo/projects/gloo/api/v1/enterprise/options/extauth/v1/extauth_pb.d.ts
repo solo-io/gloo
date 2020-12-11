@@ -636,6 +636,11 @@ export namespace UserSession {
     getCookieName(): string;
     setCookieName(value: string): void;
 
+    hasAllowRefreshing(): boolean;
+    clearAllowRefreshing(): void;
+    getAllowRefreshing(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setAllowRefreshing(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RedisSession.AsObject;
     static toObject(includeInstance: boolean, msg: RedisSession): RedisSession.AsObject;
@@ -651,6 +656,7 @@ export namespace UserSession {
       options?: RedisOptions.AsObject,
       keyPrefix: string,
       cookieName: string,
+      allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 
@@ -701,6 +707,9 @@ export class HeaderConfiguration extends jspb.Message {
   getIdTokenHeader(): string;
   setIdTokenHeader(value: string): void;
 
+  getAccessTokenHeader(): string;
+  setAccessTokenHeader(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HeaderConfiguration.AsObject;
   static toObject(includeInstance: boolean, msg: HeaderConfiguration): HeaderConfiguration.AsObject;
@@ -714,6 +723,7 @@ export class HeaderConfiguration extends jspb.Message {
 export namespace HeaderConfiguration {
   export type AsObject = {
     idTokenHeader: string,
+    accessTokenHeader: string,
   }
 }
 
