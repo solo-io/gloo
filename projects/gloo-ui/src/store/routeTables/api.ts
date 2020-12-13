@@ -1,6 +1,6 @@
 import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
-import { RouteTableApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb_service';
+import { RouteTableApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb_service';
 import {
   GetRouteTableRequest,
   GetRouteTableResponse,
@@ -14,36 +14,36 @@ import {
   DeleteRouteTableRequest,
   DeleteRouteTableResponse,
   RouteTableDetails
-} from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
-import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 import {
   Destination,
   RouteAction
-} from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import {
   HeaderMatcher,
   Matcher,
   QueryParameterMatcher
-} from 'proto/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
-import { Parameters } from 'proto/gloo/projects/gloo/api/v1/options/transformation/parameters_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
+import { Parameters } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/parameters_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 
-import { DestinationSpec as AwsDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/aws/aws_pb';
-import { DestinationSpec as AzureDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/azure/azure_pb';
-import { DestinationSpec as GrpcDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
-import { DestinationSpec as RestDestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options/rest/rest_pb';
+import { DestinationSpec as AwsDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/aws_pb';
+import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb';
+import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/grpc/grpc_pb';
+import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest_pb';
 import {
   Route,
   DelegateAction
-} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
-import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
-import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import {
   DestinationSpec,
   RouteOptions
-} from 'proto/gloo/projects/gloo/api/v1/options_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
 
 const client = new RouteTableApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

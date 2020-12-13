@@ -4,18 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
-
-	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/go-utils/protoutils"
-	kubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-
 	"github.com/ghodss/yaml"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	kubecrd "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"go.uber.org/zap"
 )
@@ -86,7 +82,12 @@ func (kubeYamlGetter) InitResourceFromYamlString(ctx context.Context,
 	emptyInputResource.SetMetadata(kubeutils.FromKubeMeta(resourceFromYaml.ObjectMeta))
 
 	if withStatus, ok := emptyInputResource.(resources.InputResource); ok {
+		// Need to set status to base value as it will now be nil by default.
+		withStatus.SetStatus(&core.Status{})
 		if err := resources.UpdateStatus(withStatus, func(status *core.Status) error {
+			if status == nil {
+				return nil
+			}
 			typedStatus := core.Status{}
 			if err := skprotoutils.UnmarshalMapToProto(resourceFromYaml.Status, &typedStatus); err != nil {
 				return err
@@ -98,7 +99,7 @@ func (kubeYamlGetter) InitResourceFromYamlString(ctx context.Context,
 		}
 	}
 
-	if err := protoutils.UnmarshalMap(*resourceFromYaml.Spec, emptyInputResource.(proto.Message)); err != nil {
+	if err := skprotoutils.UnmarshalMap(*resourceFromYaml.Spec, emptyInputResource); err != nil {
 		return FailedToReadCrdSpec(err, refToValidate)
 	}
 

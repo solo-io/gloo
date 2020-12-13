@@ -1,11 +1,10 @@
 package proxylatency_test
 
 import (
-	"github.com/gogo/protobuf/types"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -43,11 +42,8 @@ var _ = Describe("Plugin", func() {
 
 func getTypedConfig(f *envoyhttp.HttpFilter) *proxylatency.ProxyLatency {
 	goTypedConfig := f.GetTypedConfig()
-	gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
-
 	rcfg := new(proxylatency.ProxyLatency)
-	err := types.UnmarshalAny(gogoTypedConfig, rcfg)
+	err := ptypes.UnmarshalAny(goTypedConfig, rcfg)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
 	return rcfg
 }

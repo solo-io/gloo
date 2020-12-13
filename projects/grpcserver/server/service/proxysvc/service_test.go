@@ -74,14 +74,14 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetProxy", func() {
 		It("works when the proxy client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			proxy := &gloov1.Proxy{
 				Metadata: metadata,
-				Status: core.Status{
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
@@ -96,7 +96,7 @@ var _ = Describe("ServiceTest", func() {
 				GetApiStatusFromResource(proxy).
 				Return(getStatus(v1.Status_OK, ""))
 
-			request := &v1.GetProxyRequest{Ref: &ref}
+			request := &v1.GetProxyRequest{Ref: ref}
 			actual, err := apiserver.GetProxy(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetProxyResponse{ProxyDetails: getProxyDetails(proxy, getStatus(v1.Status_OK, ""))}
@@ -114,10 +114,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetProxyRequest{Ref: &ref}
+			request := &v1.GetProxyRequest{Ref: ref}
 			_, err := apiserver.GetProxy(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := proxysvc.FailedToGetProxyError(testErr, &ref)
+			expectedErr := proxysvc.FailedToGetProxyError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -126,14 +126,14 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the proxy client works", func() {
 			ns1, ns2 := "one", "two"
 			proxy1 := &gloov1.Proxy{
-				Metadata: core.Metadata{Namespace: ns1},
-				Status: core.Status{
+				Metadata: &core.Metadata{Namespace: ns1},
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
 			proxy2 := &gloov1.Proxy{
-				Metadata: core.Metadata{Namespace: ns2},
-				Status: core.Status{
+				Metadata: &core.Metadata{Namespace: ns2},
+				Status: &core.Status{
 					State: core.Status_Pending,
 				},
 			}

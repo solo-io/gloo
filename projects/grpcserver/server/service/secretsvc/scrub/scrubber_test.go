@@ -13,7 +13,7 @@ import (
 
 var (
 	scrubber     scrub.Scrubber
-	testMetadata = core.Metadata{
+	testMetadata = &core.Metadata{
 		Name:      "doo",
 		Namespace: "bar",
 	}

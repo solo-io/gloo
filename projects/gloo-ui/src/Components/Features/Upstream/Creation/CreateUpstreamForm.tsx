@@ -10,8 +10,8 @@ import {
 } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
-import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
-import { CreateUpstreamRequest } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { CreateUpstreamRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';

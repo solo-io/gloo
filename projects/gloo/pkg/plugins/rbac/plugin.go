@@ -9,7 +9,7 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/rbac/v3"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"

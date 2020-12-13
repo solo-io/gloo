@@ -67,7 +67,7 @@ func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.Cr
 	written, err := s.writeArtifact(request.GetArtifact(), false)
 	if err != nil {
 		ref := request.GetArtifact().GetMetadata().Ref()
-		wrapped := FailedToCreateArtifactError(err, &ref)
+		wrapped := FailedToCreateArtifactError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -82,7 +82,7 @@ func (s *artifactGrpcService) UpdateArtifact(ctx context.Context, request *v1.Up
 	written, err := s.writeArtifact(request.GetArtifact(), true)
 	if err != nil {
 		ref := request.GetArtifact().GetMetadata().Ref()
-		wrapped := FailedToUpdateArtifactError(err, &ref)
+		wrapped := FailedToUpdateArtifactError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

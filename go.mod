@@ -8,14 +8,13 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
-	github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9
+	github.com/envoyproxy/go-control-plane v0.9.8
 	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-redis/redis/v8 v8.2.3
-	github.com/gogo/protobuf v1.3.1
+	github.com/go-test/deep v1.0.4
 	github.com/golang/mock v1.4.4
-	// protobuf v1.4.x uses their v2 API, including breaking changes to reflection: causes Gloo to go into CrashLoopBackOff
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
@@ -34,16 +33,16 @@ require (
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
-	github.com/solo-io/ext-auth-service v0.7.5
-	github.com/solo-io/gloo v1.6.0-beta18
+	github.com/solo-io/ext-auth-service v0.7.6
+	github.com/solo-io/gloo v1.6.0-beta19
 	github.com/solo-io/go-utils v0.20.1
-	github.com/solo-io/k8s-utils v0.0.2
+	github.com/solo-io/k8s-utils v0.0.3
 	github.com/solo-io/licensing v0.1.17
-	github.com/solo-io/protoc-gen-ext v0.0.9
-	github.com/solo-io/rate-limiter v0.1.5
+	github.com/solo-io/protoc-gen-ext v0.0.13
+	github.com/solo-io/rate-limiter v0.1.6
 	github.com/solo-io/reporting-client v0.2.0
-	github.com/solo-io/solo-apis v0.0.0-20201103221621-bbe4f60f466d
-	github.com/solo-io/solo-kit v0.15.2
+	github.com/solo-io/solo-apis v0.0.0-20201208172621-1ef725df2bff
+	github.com/solo-io/solo-kit v0.16.2
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5
 	go.uber.org/zap v1.16.0
@@ -52,6 +51,7 @@ require (
 	golang.org/x/tools v0.0.0-20201117152513-9036a0f9af11
 	google.golang.org/genproto v0.0.0-20200916143405-f6a2fa72f0c4
 	google.golang.org/grpc v1.33.1
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	helm.sh/helm/v3 v3.2.4
 	k8s.io/api v0.18.8
@@ -64,23 +64,15 @@ require (
 )
 
 replace (
-	cloud.google.com/go => cloud.google.com/go v0.52.0 // cloud.google.com/go/iam breaks with v0.53.0+
-	cloud.google.com/go/datastore => cloud.google.com/go/datastore v1.0.0
-	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
-	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
-	github.com/solo-io/go-utils => github.com/solo-io/go-utils v0.20.0
 	// Lock sys package to fix darwin upgrade issue
 	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
-	google.golang.org/api => google.golang.org/api v0.15.0
-	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // override wasme requirement
-	google.golang.org/grpc => google.golang.org/grpc v1.28.0
 
 	// kube 0.18.6
 	k8s.io/api => k8s.io/api v0.18.6

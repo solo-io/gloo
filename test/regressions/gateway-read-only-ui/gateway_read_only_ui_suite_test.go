@@ -9,20 +9,18 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/log"
-	"go.uber.org/zap"
-
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
@@ -32,6 +30,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	"go.uber.org/zap"
 )
 
 // This file is largely copied from test/regressions/gateway/gateway_suite_test.go (May 2020)
@@ -178,7 +177,7 @@ func enableStrictValidation() {
 
 	Expect(settings.Gateway).NotTo(BeNil())
 	Expect(settings.Gateway.Validation).NotTo(BeNil())
-	settings.Gateway.Validation.AlwaysAccept = &types.BoolValue{Value: false}
+	settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: false}
 
 	_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
 	Expect(err).NotTo(HaveOccurred())
@@ -203,7 +202,7 @@ func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceCl
 		if routeOptions == nil {
 			routeOptions = &gloov1.RouteOptions{}
 		}
-		routeOptions.PrefixRewrite = &types.StringValue{
+		routeOptions.PrefixRewrite = &wrappers.StringValue{
 			Value: "/",
 		}
 	}
@@ -213,7 +212,7 @@ func writeCustomVirtualService(ctx context.Context, vsClient v1.VirtualServiceCl
 	EventuallyWithOffset(1, func() error {
 		_, err := vsClient.Write(&v1.VirtualService{
 
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "vs",
 				Namespace: testHelper.InstallNamespace,
 			},

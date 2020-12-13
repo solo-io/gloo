@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/gogo/protobuf/types"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/ext-auth-plugins/api"
 )
 
@@ -19,7 +19,7 @@ var Plugin mockPlugin
 type mockPlugin struct{}
 
 func (m *mockPlugin) NewConfigInstance(ctx context.Context) (configInstance interface{}, err error) {
-	return &types.Struct{}, nil
+	return &structpb.Struct{}, nil
 }
 
 func (m *mockPlugin) GetAuthService(ctx context.Context, configInstance interface{}) (api.AuthService, error) {

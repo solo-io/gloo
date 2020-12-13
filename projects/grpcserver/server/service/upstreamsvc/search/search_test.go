@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	gatewaymocks "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/search/mocks"
 
@@ -16,7 +17,6 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mocks"
@@ -69,7 +69,7 @@ var _ = Describe("Upstream Search Test", func() {
 		for _, rawVirtualService := range untypedVirtualServices {
 			vsMap := rawVirtualService.(map[string]interface{})
 			var virtualService gatewayv1.VirtualService
-			err := protoutils.UnmarshalMap(vsMap, &virtualService)
+			err := skprotoutils.UnmarshalMap(vsMap, &virtualService)
 			Expect(err).NotTo(HaveOccurred())
 
 			allVirtualServices = append(allVirtualServices, &virtualService)
@@ -84,7 +84,7 @@ var _ = Describe("Upstream Search Test", func() {
 		for _, rawUpstreamGroup := range untypedUpstreamGroups {
 			ugMap := rawUpstreamGroup.(map[string]interface{})
 			var upstreamGroup gloov1.UpstreamGroup
-			err := protoutils.UnmarshalMap(ugMap, &upstreamGroup)
+			err := skprotoutils.UnmarshalMap(ugMap, &upstreamGroup)
 			Expect(err).NotTo(HaveOccurred())
 
 			allUpstreamGroups = append(allUpstreamGroups, &upstreamGroup)
@@ -99,7 +99,7 @@ var _ = Describe("Upstream Search Test", func() {
 		for _, rawRouteTable := range untypedRouteTables {
 			rtMap := rawRouteTable.(map[string]interface{})
 			var routeTable gatewayv1.RouteTable
-			err := protoutils.UnmarshalMap(rtMap, &routeTable)
+			err := skprotoutils.UnmarshalMap(rtMap, &routeTable)
 			Expect(err).NotTo(HaveOccurred())
 
 			allRouteTables = append(allRouteTables, &routeTable)
@@ -261,7 +261,7 @@ var _ = Describe("Upstream Search Test", func() {
 				foundVirtualServiceRef, err := upstreamSearcher.FindContainingVirtualServices(context.TODO(), upstreamRef)
 
 				Expect(err).NotTo(HaveOccurred())
-				expectedArr := []*core.ResourceRef{&expectedVirtualServiceRef}
+				expectedArr := []*core.ResourceRef{expectedVirtualServiceRef}
 				Expect(foundVirtualServiceRef).To(Equal(expectedArr))
 			}
 		})

@@ -1,7 +1,7 @@
 package internal_test
 
 import (
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	rl_api "github.com/solo-io/rate-limiter/pkg/api/ratelimit.solo.io/v1alpha1"
@@ -9,6 +9,7 @@ import (
 	solo_apis "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	solo_apis_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims/internal"
+	. "github.com/solo-io/solo-projects/test/matchers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -153,7 +154,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resource", func() {
 			actual, err := internal.ToRateLimiterResource(soloApiResource)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(rlApiEquivalentResource))
+			Expect(actual).To(MatchesPublicFields(rlApiEquivalentResource))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -293,7 +294,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resource to rate-limiter", func() {
 			actual, err := internal.ToRateLimiterResourceSpec_Raw(soloApiResource)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(rlApiEquivalentResource))
+			Expect(actual).To(MatchesPublicFields(rlApiEquivalentResource))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -310,7 +311,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resource to solo-apis", func() {
 			actual, err := internal.ToSoloAPIsResourceSpec_Raw(rlApiEquivalentResource)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(soloApiResource))
+			Expect(actual).To(MatchesPublicFields(soloApiResource))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -350,7 +351,7 @@ var _ = Describe("Converters", func() {
 							ActionSpecifier: &rl_api_types.Action_HeaderValueMatch_{
 								HeaderValueMatch: &rl_api_types.Action_HeaderValueMatch{
 									DescriptorValue: "bar",
-									ExpectMatch:     &types.BoolValue{Value: true},
+									ExpectMatch:     &wrappers.BoolValue{Value: true},
 									Headers: []*rl_api_types.Action_HeaderValueMatch_HeaderMatcher{
 										{
 											Name: "baz",
@@ -384,7 +385,7 @@ var _ = Describe("Converters", func() {
 							ActionSpecifier: &solo_apis_types.Action_HeaderValueMatch_{
 								HeaderValueMatch: &solo_apis_types.Action_HeaderValueMatch{
 									DescriptorValue: "bar",
-									ExpectMatch:     &types.BoolValue{Value: true},
+									ExpectMatch:     &wrappers.BoolValue{Value: true},
 									Headers: []*solo_apis_types.Action_HeaderValueMatch_HeaderMatcher{
 										{
 											Name: "baz",
@@ -405,7 +406,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resources to solo-apis", func() {
 			actual, err := internal.ToSoloAPIsActionsSlice(rlApiActions)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(equivalentSoloApiActions))
+			Expect(actual).To(MatchesPublicFields(equivalentSoloApiActions))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -422,7 +423,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resources to rate-limiter", func() {
 			actual, err := internal.ToRateLimiterActionsSlice(equivalentSoloApiActions)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(rlApiActions))
+			Expect(actual).To(MatchesPublicFields(rlApiActions))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -509,7 +510,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resources", func() {
 			actual, err := internal.ToRateLimiterDescriptors(soloApiDescriptors)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(rlApiEquivalentDescriptors))
+			Expect(actual).To(MatchesPublicFields(rlApiEquivalentDescriptors))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -586,7 +587,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resources to rate-limiter", func() {
 			actual, err := internal.ToRateLimiterSetDescriptors(soloApiDescriptors)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(rlApiEquivalentDescriptors))
+			Expect(actual).To(MatchesPublicFields(rlApiEquivalentDescriptors))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {
@@ -603,7 +604,7 @@ var _ = Describe("Converters", func() {
 		It("should successfully convert the resources to rate-limiter", func() {
 			actual, err := internal.ToSoloAPIsSetDescriptors(rlApiEquivalentDescriptors)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(actual).To(Equal(soloApiDescriptors))
+			Expect(actual).To(MatchesPublicFields(soloApiDescriptors))
 		})
 
 		Measure("1000 function calls", func(b Benchmarker) {

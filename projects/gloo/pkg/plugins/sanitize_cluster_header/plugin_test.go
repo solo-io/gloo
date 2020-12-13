@@ -1,7 +1,8 @@
 package sanitize_cluster_header_test
 
 import (
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
@@ -21,7 +22,7 @@ var _ = Describe("Plugin", func() {
 
 			listener := &v1.HttpListener{
 				Options: &v1.HttpListenerOptions{
-					SanitizeClusterHeader: &types.BoolValue{Value: true},
+					SanitizeClusterHeader: &wrappers.BoolValue{Value: true},
 				},
 				VirtualHosts: []*v1.VirtualHost{
 					{
@@ -53,9 +54,8 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(1))
 			goTypedConfig := filters[0].HttpFilter.GetTypedConfig()
-			gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
 			var filter = extauth.Sanitize{}
-			err = types.UnmarshalAny(gogoTypedConfig, &filter)
+			err = ptypes.UnmarshalAny(goTypedConfig, &filter)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filter.HeadersToRemove).To(Equal([]string{"test-cluster-header"}))
 		})
@@ -63,7 +63,7 @@ var _ = Describe("Plugin", func() {
 		It("should sanitize each cluster header name available", func() {
 			listener := &v1.HttpListener{
 				Options: &v1.HttpListenerOptions{
-					SanitizeClusterHeader: &types.BoolValue{Value: true},
+					SanitizeClusterHeader: &wrappers.BoolValue{Value: true},
 				},
 				VirtualHosts: []*v1.VirtualHost{
 					{
@@ -107,9 +107,8 @@ var _ = Describe("Plugin", func() {
 			filters, err := plugin.HttpFilters(plugins.Params{}, listener)
 			Expect(err).NotTo(HaveOccurred())
 			goTypedConfig := filters[0].HttpFilter.GetTypedConfig()
-			gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
 			var filter = extauth.Sanitize{}
-			err = types.UnmarshalAny(gogoTypedConfig, &filter)
+			err = ptypes.UnmarshalAny(goTypedConfig, &filter)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filter.HeadersToRemove).To(HaveLen(3))
 			Expect(filter.HeadersToRemove).To(ConsistOf("last-cluster-header", "test-cluster-header", "another-cluster-header"))

@@ -1,4 +1,4 @@
-import { UpstreamGroupApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb_service';
+import { UpstreamGroupApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb_service';
 import { grpc } from '@improbable-eng/grpc-web';
 import { host } from 'store';
 import {
@@ -13,15 +13,15 @@ import {
   DeleteUpstreamGroupRequest,
   DeleteUpstreamGroupResponse,
   UpdateUpstreamGroupYamlRequest
-} from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
-import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   UpstreamGroup,
   WeightedDestination,
   Destination
-} from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
-import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
-import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 
 export const client = new UpstreamGroupApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

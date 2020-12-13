@@ -4,9 +4,9 @@ import (
 	"context"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
+	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
@@ -136,7 +136,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 			continue
 		}
 		transformationRules = append(transformationRules, &transformation_ee.TransformationRule{
-			Match: gogoutils.ToGlooRouteMatch(&envoyMatcher),
+			Match: api_conversion.ToGlooRouteMatch(&envoyMatcher),
 			RouteTransformations: &transformation_ee.RouteTransformations{
 				ResponseTransformation: &transformation_ee.Transformation{
 					TransformationType: &transformation_ee.Transformation_DlpTransformation{

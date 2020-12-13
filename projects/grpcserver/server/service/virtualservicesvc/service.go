@@ -172,9 +172,9 @@ func (s *virtualServiceGrpcService) CreateRoute(ctx context.Context, request *v1
 		return nil, wrapped
 	}
 	ref := vs.GetMetadata().Ref()
-	written, err := s.mutator.Update(&ref, s.mutationFactory.CreateRoute(request.GetInput()))
+	written, err := s.mutator.Update(ref, s.mutationFactory.CreateRoute(request.GetInput()))
 	if err != nil {
-		wrapped := FailedToCreateRouteError(err, &ref)
+		wrapped := FailedToCreateRouteError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

@@ -79,7 +79,7 @@ func (s *virtualServiceSelector) SelectOrCreate(ctx context.Context, ref *core.R
 
 func (s *virtualServiceSelector) create(ctx context.Context, ref *core.ResourceRef) (*gatewayv1.VirtualService, error) {
 	virtualService := &gatewayv1.VirtualService{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Namespace: ref.GetNamespace(),
 			Name:      ref.GetName(),
 		},

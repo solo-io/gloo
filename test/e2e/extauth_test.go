@@ -20,13 +20,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/ext-auth-service/pkg/server"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
@@ -47,7 +47,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fgrosse/zaptest"
-	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -89,11 +88,11 @@ var _ = Describe("External auth", func() {
 		}
 
 		extAuthServer := &gloov1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
-			UseHttp2: &types.BoolValue{Value: true},
+			UseHttp2: &wrappers.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
@@ -109,7 +108,7 @@ var _ = Describe("External auth", func() {
 
 		ref := extAuthServer.Metadata.Ref()
 		extauthSettings := &extauth.Settings{
-			ExtauthzServerRef: &ref,
+			ExtauthzServerRef: ref,
 		}
 
 		settings = extauthrunner.Settings{
@@ -185,7 +184,7 @@ var _ = Describe("External auth", func() {
 
 		var basicConfigSetup = func() {
 			_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      GetBasicAuthExtension().GetConfigRef().Name,
 					Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
 				},
@@ -207,8 +206,10 @@ var _ = Describe("External auth", func() {
 				if err != nil {
 					return core.Status{}, err
 				}
-
-				return proxy.Status, nil
+				if proxy.Status == nil {
+					return core.Status{}, nil
+				}
+				return *proxy.Status, nil
 			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 				"Reason": BeEmpty(),
 				"State":  Equal(core.Status_Accepted),
@@ -281,7 +282,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					secret = &gloov1.Secret{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "secret",
 							Namespace: "default",
 						},
@@ -293,7 +294,7 @@ var _ = Describe("External auth", func() {
 					Expect(err).NotTo(HaveOccurred())
 					oauth2 = getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
 					authConfig = &extauth.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
 						},
@@ -323,8 +324,10 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return core.Status{}, err
 						}
-
-						return proxy.Status, nil
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
 					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 						"Reason": BeEmpty(),
 						"State":  Equal(core.Status_Accepted),
@@ -412,7 +415,7 @@ var _ = Describe("External auth", func() {
 									},
 									KeyPrefix:       "key",
 									CookieName:      cookieName,
-									AllowRefreshing: &types.BoolValue{Value: true},
+									AllowRefreshing: &wrappers.BoolValue{Value: true},
 								},
 							},
 						}
@@ -447,7 +450,7 @@ var _ = Describe("External auth", func() {
 					Context("no refreshing", func() {
 						BeforeEach(func() {
 							// update the config to use redis
-							oauth2.OidcAuthorizationCode.Session.Session.(*extauth.UserSession_Redis).Redis.AllowRefreshing = &types.BoolValue{Value: false}
+							oauth2.OidcAuthorizationCode.Session.Session.(*extauth.UserSession_Redis).Redis.AllowRefreshing = &wrappers.BoolValue{Value: false}
 						})
 
 						It("should NOT refresh token", func() {
@@ -631,7 +634,7 @@ var _ = Describe("External auth", func() {
 					Context("oidc + opa sanity", func() {
 						BeforeEach(func() {
 							policy := &gloov1.Artifact{
-								Metadata: core.Metadata{
+								Metadata: &core.Metadata{
 									Name:      "jwt",
 									Namespace: "default",
 									Labels:    map[string]string{"team": "infrastructure"},
@@ -648,7 +651,7 @@ var _ = Describe("External auth", func() {
 							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
 
 							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-								Metadata: core.Metadata{
+								Metadata: &core.Metadata{
 									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
 								},
@@ -722,7 +725,7 @@ var _ = Describe("External auth", func() {
 				Context("oidc + opa sanity", func() {
 					BeforeEach(func() {
 						policy := &gloov1.Artifact{
-							Metadata: core.Metadata{
+							Metadata: &core.Metadata{
 								Name:      "jwt",
 								Namespace: "default",
 								Labels:    map[string]string{"team": "infrastructure"},
@@ -738,7 +741,7 @@ var _ = Describe("External auth", func() {
 			`}}
 						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
 						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-							Metadata: core.Metadata{
+							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 								Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
 							},
@@ -784,7 +787,7 @@ var _ = Describe("External auth", func() {
 					server.Start()
 
 					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
 						},
@@ -810,8 +813,10 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return core.Status{}, err
 						}
-
-						return proxy.Status, nil
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
 					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 						"Reason": BeEmpty(),
 						"State":  Equal(core.Status_Accepted),
@@ -881,7 +886,7 @@ var _ = Describe("External auth", func() {
 					}(*testUpstream)
 
 					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      getApiKeyExtAuthExtension().GetConfigRef().Name,
 							Namespace: getApiKeyExtAuthExtension().GetConfigRef().Namespace,
 						},
@@ -898,7 +903,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					secret1 := &gloov1.Secret{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "secret1",
 							Namespace: "default",
 						},
@@ -912,7 +917,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					secret2 := &gloov1.Secret{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "secret2",
 							Namespace: "default",
 							Labels:    map[string]string{"team": "infrastructure"},
@@ -938,8 +943,10 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return core.Status{}, err
 						}
-
-						return proxy.Status, nil
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
 					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 						"Reason": BeEmpty(),
 						"State":  Equal(core.Status_Accepted),
@@ -1017,7 +1024,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					secret = &gloov1.Secret{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "secret",
 							Namespace: "default",
 						},
@@ -1029,7 +1036,7 @@ var _ = Describe("External auth", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
 						},
@@ -1064,8 +1071,10 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return core.Status{}, err
 						}
-
-						return proxy.Status, nil
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
 					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 						"Reason": BeEmpty(),
 						"State":  Equal(core.Status_Accepted),
@@ -1160,7 +1169,7 @@ var _ = Describe("External auth", func() {
 					Context("oidc + opa sanity", func() {
 						BeforeEach(func() {
 							policy := &gloov1.Artifact{
-								Metadata: core.Metadata{
+								Metadata: &core.Metadata{
 									Name:      "jwt",
 									Namespace: "default",
 									Labels:    map[string]string{"team": "infrastructure"},
@@ -1177,7 +1186,7 @@ var _ = Describe("External auth", func() {
 							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
 
 							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-								Metadata: core.Metadata{
+								Metadata: &core.Metadata{
 									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
 								},
@@ -1249,7 +1258,7 @@ var _ = Describe("External auth", func() {
 				Context("oidc + opa sanity", func() {
 					BeforeEach(func() {
 						policy := &gloov1.Artifact{
-							Metadata: core.Metadata{
+							Metadata: &core.Metadata{
 								Name:      "jwt",
 								Namespace: "default",
 								Labels:    map[string]string{"team": "infrastructure"},
@@ -1265,7 +1274,7 @@ var _ = Describe("External auth", func() {
 			`}}
 						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
 						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-							Metadata: core.Metadata{
+							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 								Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
 							},
@@ -1520,14 +1529,14 @@ func getOauthTokenIntrospectionExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getProxyExtAuthOauthTokenIntrospection(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyExtAuthOauthTokenIntrospection(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, getOauthTokenIntrospectionExtAuthExtension())
 }
 
-func getOauthConfig(envoyPort uint32, secretRef core.ResourceRef) *extauth.OAuth {
+func getOauthConfig(envoyPort uint32, secretRef *core.ResourceRef) *extauth.OAuth {
 	return &extauth.OAuth{
 		ClientId:        "test-clientid",
-		ClientSecretRef: &secretRef,
+		ClientSecretRef: secretRef,
 		IssuerUrl:       "http://localhost:5556/",
 		AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 		CallbackPath:    "/callback",
@@ -1535,11 +1544,11 @@ func getOauthConfig(envoyPort uint32, secretRef core.ResourceRef) *extauth.OAuth
 	}
 }
 
-func getOidcAuthCodeConfig(envoyPort uint32, secretRef core.ResourceRef) *extauth.OAuth2_OidcAuthorizationCode {
+func getOidcAuthCodeConfig(envoyPort uint32, secretRef *core.ResourceRef) *extauth.OAuth2_OidcAuthorizationCode {
 	return &extauth.OAuth2_OidcAuthorizationCode{
 		OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
 			ClientId:        "test-clientid",
-			ClientSecretRef: &secretRef,
+			ClientSecretRef: secretRef,
 			IssuerUrl:       "http://localhost:5556/",
 			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 			CallbackPath:    "/callback",
@@ -1549,7 +1558,7 @@ func getOidcAuthCodeConfig(envoyPort uint32, secretRef core.ResourceRef) *extaut
 	}
 }
 
-func getProxyExtAuthOIDC(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyExtAuthOIDC(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, getOidcExtAuthExtension())
 }
 
@@ -1564,7 +1573,7 @@ func getOidcExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getProxyExtAuthOIDCAndOpa(envoyPort uint32, secretRef, upstream core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
+func getProxyExtAuthOIDCAndOpa(envoyPort uint32, secretRef, upstream *core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, getOidcAndOpaExtAuthExtension())
 }
 
@@ -1586,7 +1595,7 @@ func getOpaConfig(modules []*core.ResourceRef) *extauth.OpaAuth {
 	}
 }
 
-func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyExtAuthBasicAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, GetBasicAuthExtension())
 }
 
@@ -1616,7 +1625,7 @@ func getBasicAuthConfig() *extauth.BasicAuth {
 	}
 }
 
-func getProxyExtAuthApiKeyAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyExtAuthApiKeyAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, getApiKeyExtAuthExtension())
 }
 
@@ -1643,7 +1652,7 @@ func getApiKeyExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *extauth.ExtAuthExtension) *gloov1.Proxy {
+func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *extauth.ExtAuthExtension) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
@@ -1658,7 +1667,7 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 					Destination: &gloov1.RouteAction_Single{
 						Single: &gloov1.Destination{
 							DestinationType: &gloov1.Destination_Upstream{
-								Upstream: utils.ResourceRefPtr(upstream),
+								Upstream: upstream,
 							},
 						},
 					},
@@ -1670,7 +1679,7 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 	vhosts = append(vhosts, vhost)
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

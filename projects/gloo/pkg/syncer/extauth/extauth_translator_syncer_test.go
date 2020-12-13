@@ -3,25 +3,23 @@ package extauth_test
 import (
 	"context"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	. "github.com/solo-io/solo-projects/test/extauth/helpers"
-
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	skcore "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 var _ = Describe("ExtauthTranslatorSyncer", func() {
@@ -54,7 +52,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		params.Reporter = rep
 		translator = NewTranslatorSyncerExtension(params)
 		secret = &gloov1.Secret{
-			Metadata: skcore.Metadata{
+			Metadata: &skcore.Metadata{
 				Name:      "secret",
 				Namespace: "gloo-system",
 			},
@@ -88,7 +86,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 
 		BeforeEach(func() {
 			oauthAuthConfig = &extauth.AuthConfig{
-				Metadata: skcore.Metadata{
+				Metadata: &skcore.Metadata{
 					Name:      "auth",
 					Namespace: defaults.GlooSystem,
 				},
@@ -203,7 +201,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Expect(err).To(BeNil())
 				Expect(badAuth).NotTo(BeNil())
 				Expect(badAuth.(*extauth.AuthConfig).Status.State).To(Equal(skcore.Status_Rejected))
-				Expect(badAuth.(*extauth.AuthConfig).Status.Reason).To(ContainSubstring("Invalid configurations for basic auth config {bad-auth gloo-system}"))
+				Expect(badAuth.(*extauth.AuthConfig).Status.Reason).To(ContainSubstring("Invalid configurations for basic auth config bad-auth.gloo-system"))
 
 				// Proxy should be rejected with message from non-existent auth config bubbled up
 				proxyRes, err := proxyClient.Read(defaults.GlooSystem, "proxy", clients.ReadOpts{})
@@ -225,7 +223,7 @@ func getBasicAuthConfig(authName string) *extauth.AuthConfig {
 		HashedPassword: "8BvzLUO9IfGPGGsPnAgSu1",
 	}
 	return &extauth.AuthConfig{
-		Metadata: skcore.Metadata{
+		Metadata: &skcore.Metadata{
 			Name:      authName,
 			Namespace: defaults.GlooSystem,
 		},
@@ -271,7 +269,7 @@ func getVirtualHost(authName, domainName string) *gloov1.VirtualHost {
 			},
 			Options: &gloov1.RouteOptions{
 				HostRewriteType: &gloov1.RouteOptions_AutoHostRewrite{
-					AutoHostRewrite: &types.BoolValue{Value: true},
+					AutoHostRewrite: &wrappers.BoolValue{Value: true},
 				},
 				Extauth: &extauth.ExtAuthExtension{
 					Spec: &extauth.ExtAuthExtension_ConfigRef{
@@ -286,9 +284,9 @@ func getVirtualHost(authName, domainName string) *gloov1.VirtualHost {
 	}
 }
 
-func getProxy(configFormat ConfigFormatType, authConfigRef skcore.ResourceRef) *gloov1.Proxy {
+func getProxy(configFormat ConfigFormatType, authConfigRef *skcore.ResourceRef) *gloov1.Proxy {
 	proxy := &gloov1.Proxy{
-		Metadata: skcore.Metadata{
+		Metadata: &skcore.Metadata{
 			Name:      "proxy",
 			Namespace: "gloo-system",
 		},
@@ -310,7 +308,7 @@ func getProxy(configFormat ConfigFormatType, authConfigRef skcore.ResourceRef) *
 		plugins = &gloov1.VirtualHostOptions{
 			Extauth: &extauth.ExtAuthExtension{
 				Spec: &extauth.ExtAuthExtension_ConfigRef{
-					ConfigRef: &authConfigRef,
+					ConfigRef: authConfigRef,
 				},
 			},
 		}
@@ -340,7 +338,7 @@ func setupSettings(ctx context.Context) {
 	// create a settings object with ReplaceInvalidRoutes & write it
 	settingsClient := helpers.MustSettingsClient(ctx)
 	settings := &gloov1.Settings{
-		Metadata: skcore.Metadata{
+		Metadata: &skcore.Metadata{
 			Name:      defaults.DefaultValue,
 			Namespace: defaults.GlooSystem,
 		},

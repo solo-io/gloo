@@ -34,7 +34,7 @@ func (m *mutator) Create(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualS
 		return nil, err
 	}
 	virtualService := &gatewayv1.VirtualService{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Namespace: ref.GetNamespace(),
 			Name:      ref.GetName(),
 		},
@@ -57,7 +57,7 @@ func (m *mutator) mutateAndWrite(vs *gatewayv1.VirtualService, f Mutation, overw
 	if err := f(vs); err != nil {
 		return nil, err
 	}
-	vs.Status = core.Status{}
+	vs.Status = &core.Status{}
 	return m.clientCache.GetVirtualServiceClient().Write(vs, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: overwrite})
 }
 

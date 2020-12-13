@@ -1,20 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 
-	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
-
 	"github.com/ghodss/yaml"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/jsonpb"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	errors "github.com/rotisserie/eris"
+	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/go-utils/protoutils"
 	"go.uber.org/zap"
 )
 
@@ -70,18 +70,18 @@ func verifyPlugin(ctx context.Context, pluginDir, pluginManifestFile string) err
 }
 
 func parseManifestFile(filePath string) (*extauth.AuthPlugin, error) {
-	bytes, err := ioutil.ReadFile(filePath)
+	readFile, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	bytes, err = yaml.YAMLToJSON(bytes)
+	byt, err := yaml.YAMLToJSON(readFile)
 	if err != nil {
 		return nil, err
 	}
 
 	into := &extauth.AuthPlugin{}
-	if err = protoutils.UnmarshalBytes(bytes, into); err != nil {
+	if err = jsonpb.Unmarshal(bytes.NewBuffer(byt), into); err != nil {
 		return nil, err
 	}
 	return into, nil
@@ -96,8 +96,8 @@ func loadPlugin(ctx context.Context, pluginDir string, pluginConfig *extauth.Aut
 // Loader will fail if proto is nil
 func sanitizeConfig(pluginConfig *extauth.AuthPlugin) {
 	if pluginConfig.Config == nil {
-		pluginConfig.Config = &types.Struct{
-			Fields: map[string]*types.Value{},
+		pluginConfig.Config = &structpb.Struct{
+			Fields: map[string]*structpb.Value{},
 		}
 	}
 }

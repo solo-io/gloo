@@ -47,11 +47,11 @@ var _ = Describe("EnvoyStatusGetter Test", func() {
 
 	getProxy := func(state core.Status_State, reason string) *gloov1.Proxy {
 		return &gloov1.Proxy{
-			Status: core.Status{
+			Status: &core.Status{
 				State:  state,
 				Reason: reason,
 			},
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Namespace: namespace,
 				Name:      id,
 			},
@@ -60,11 +60,11 @@ var _ = Describe("EnvoyStatusGetter Test", func() {
 
 	getGateway := func(state core.Status_State, reason string) *gatewayv1.Gateway {
 		return &gatewayv1.Gateway{
-			Status: core.Status{
+			Status: &core.Status{
 				State:  state,
 				Reason: reason,
 			},
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Namespace: namespace,
 				Name:      id,
 			},

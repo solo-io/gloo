@@ -10,6 +10,7 @@ import (
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -26,6 +27,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	rl_api "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	test_matchers "github.com/solo-io/solo-kit/test/matchers"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -41,18 +43,18 @@ var _ = Describe("RateLimit Plugin", func() {
 		initParams plugins.InitParams
 		params     plugins.Params
 		rlPlugin   *Plugin
-		ref        core.ResourceRef
+		ref        *core.ResourceRef
 	)
 
 	BeforeEach(func() {
 		rlPlugin = NewPlugin()
-		ref = core.ResourceRef{
+		ref = &core.ResourceRef{
 			Name:      "test",
 			Namespace: "test",
 		}
 
 		rlSettings = &ratelimitpb.Settings{
-			RatelimitServerRef:  &ref,
+			RatelimitServerRef:  ref,
 			RateLimitBeforeAuth: true,
 		}
 		initParams = plugins.InitParams{
@@ -70,7 +72,7 @@ var _ = Describe("RateLimit Plugin", func() {
 	It("should get rate limit server settings first from the listener, then from the global settings", func() {
 		params.Snapshot.Upstreams = []*gloov1.Upstream{
 			{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "extauth-upstream",
 					Namespace: "ns",
 				},
@@ -117,6 +119,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				Timeout:         &hundredms,
 				RequestType:     "both",
 				RateLimitService: &rlconfig.RateLimitServiceConfig{
+					TransportApiVersion: envoycore.ApiVersion_V3,
 					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
 							ClusterName: translator.UpstreamToClusterName(ref),
@@ -131,6 +134,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				Timeout:         &hundredms,
 				RequestType:     "both",
 				RateLimitService: &rlconfig.RateLimitServiceConfig{
+					TransportApiVersion: envoycore.ApiVersion_V3,
 					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
 							ClusterName: translator.UpstreamToClusterName(ref),
@@ -140,7 +144,12 @@ var _ = Describe("RateLimit Plugin", func() {
 			},
 		}
 
-		Expect(typedConfigs).To(BeEquivalentTo(expectedConfig))
+		var typedMsgs []proto.Message
+		for _, v := range expectedConfig {
+			typedMsgs = append(typedMsgs, v)
+		}
+
+		Expect(typedConfigs).To(test_matchers.ConistOfProtos(typedMsgs...))
 
 	})
 
@@ -177,7 +186,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		var (
 			apiSnapshot = &gloov1.ApiSnapshot{
 				Upstreams: []*gloov1.Upstream{{
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "extauth-upstream",
 						Namespace: "ns",
 					},
@@ -185,7 +194,6 @@ var _ = Describe("RateLimit Plugin", func() {
 			}
 		)
 		JustBeforeEach(func() {
-			timeout := time.Second
 			params.Snapshot = apiSnapshot
 			rlSettings.RateLimitBeforeAuth = true
 			initParams.Settings = &gloov1.Settings{
@@ -195,7 +203,7 @@ var _ = Describe("RateLimit Plugin", func() {
 						Name:      "extauth-upstream",
 						Namespace: "ns",
 					},
-					RequestTimeout: &timeout,
+					RequestTimeout: ptypes.DurationProto(time.Second),
 				},
 			}
 			err := rlPlugin.Init(initParams)
@@ -250,8 +258,7 @@ var _ = Describe("RateLimit Plugin", func() {
 	Context("timeout", func() {
 
 		BeforeEach(func() {
-			s := time.Second
-			rlSettings.RequestTimeout = &s
+			rlSettings.RequestTimeout = ptypes.DurationProto(time.Second)
 		})
 
 		It("should custom timeout set", func() {

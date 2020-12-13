@@ -2,7 +2,7 @@ package waf
 
 import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
@@ -83,8 +83,7 @@ var _ = Describe("waf plugin", func() {
 					goTypedConfig := wafFilter.HttpFilter.GetTypedConfig()
 					Expect(goTypedConfig).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
-					err := types.UnmarshalAny(gogoTypedConfig, &filterWaf)
+					err := ptypes.UnmarshalAny(goTypedConfig, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(filterWaf.Disabled).To(BeTrue())
 				})
@@ -119,8 +118,7 @@ var _ = Describe("waf plugin", func() {
 					goTypedConfig := wafFilter.HttpFilter.GetTypedConfig()
 					Expect(goTypedConfig).NotTo(BeNil())
 					var filterWaf envoywaf.ModSecurity
-					gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
-					err := types.UnmarshalAny(gogoTypedConfig, &filterWaf)
+					err := ptypes.UnmarshalAny(goTypedConfig, &filterWaf)
 					Expect(err).NotTo(HaveOccurred())
 					checkRuleSets(filterWaf.RuleSets)
 					Expect(filterWaf.RequestHeadersOnly).To(BeTrue())
@@ -148,8 +146,7 @@ var _ = Describe("waf plugin", func() {
 						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-						err := types.UnmarshalAny(gogoTpfc, &perRouteWaf)
+						err := ptypes.UnmarshalAny(goTpfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeTrue())
 					})
@@ -158,8 +155,7 @@ var _ = Describe("waf plugin", func() {
 						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-						err := types.UnmarshalAny(gogoTpfc, &perVhostWaf)
+						err := ptypes.UnmarshalAny(goTpfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeTrue())
 					})
@@ -202,8 +198,7 @@ var _ = Describe("waf plugin", func() {
 						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perRouteWaf envoywaf.ModSecurityPerRoute
-						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-						err := types.UnmarshalAny(gogoTpfc, &perRouteWaf)
+						err := ptypes.UnmarshalAny(goTpfc, &perRouteWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perRouteWaf.Disabled).To(BeFalse())
 						Expect(perRouteWaf.RequestHeadersOnly).To(BeTrue())
@@ -215,8 +210,7 @@ var _ = Describe("waf plugin", func() {
 						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
 						Expect(goTpfc).NotTo(BeNil())
 						var perVhostWaf envoywaf.ModSecurityPerRoute
-						gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-						err := types.UnmarshalAny(gogoTpfc, &perVhostWaf)
+						err := ptypes.UnmarshalAny(goTpfc, &perVhostWaf)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(perVhostWaf.Disabled).To(BeFalse())
 						Expect(perVhostWaf.RequestHeadersOnly).To(BeTrue())
@@ -274,7 +268,7 @@ var _ = Describe("waf plugin", func() {
 			},
 		}
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},

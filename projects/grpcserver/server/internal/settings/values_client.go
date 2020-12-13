@@ -4,16 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	clientscache "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-	"k8s.io/kubernetes/pkg/apis/core"
-
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/go-utils/contextutils"
 	v1clients "github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	clientscache "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"go.uber.org/zap"
+	"k8s.io/kubernetes/pkg/apis/core"
 )
 
 const DefaultRefreshRate = 10 * time.Minute
@@ -39,7 +38,7 @@ func (c *client) GetRefreshRate() time.Duration {
 
 	settings := c.getSettings()
 	if settings.GetRefreshRate() != nil {
-		refreshRate, err = types.DurationFromProto(settings.GetRefreshRate())
+		refreshRate, err = ptypes.Duration(settings.GetRefreshRate())
 		if err != nil {
 			contextutils.LoggerFrom(c.ctx).Errorw("Invalid refresh rate stored in settings", zap.Error(err))
 		}

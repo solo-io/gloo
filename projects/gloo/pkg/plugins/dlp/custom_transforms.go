@@ -1,7 +1,7 @@
 package dlp
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 )

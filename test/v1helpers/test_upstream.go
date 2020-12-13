@@ -11,7 +11,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -43,7 +43,7 @@ func newTestUpstream(addr string, port uint32, responses <-chan *ReceivedRequest
 
 	id += 1
 	u := &gloov1.Upstream{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      fmt.Sprintf("local-%d", id),
 			Namespace: "default",
 		},

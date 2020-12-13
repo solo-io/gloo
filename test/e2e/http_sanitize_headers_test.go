@@ -6,20 +6,18 @@ import (
 	"net/http"
 	"time"
 
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-
 	"github.com/fgrosse/zaptest"
-	"github.com/gogo/protobuf/types"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/services"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
@@ -165,20 +163,20 @@ func getProxyWithHeaderSanitation(envoyPort uint32, headerSanitation bool) *gloo
 		if headerSanitation {
 			return &gloov1.HttpListenerOptions{
 				Extauth: &extauthv1.Settings{ClearRouteCache: true},
-				SanitizeClusterHeader: &types.BoolValue{
+				SanitizeClusterHeader: &wrappers.BoolValue{
 					Value: true,
 				},
 			}
 		}
 		return &gloov1.HttpListenerOptions{
-			SanitizeClusterHeader: &types.BoolValue{
+			SanitizeClusterHeader: &wrappers.BoolValue{
 				Value: false,
 			},
 		}
 	}
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

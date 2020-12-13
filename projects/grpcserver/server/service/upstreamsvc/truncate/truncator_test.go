@@ -41,7 +41,7 @@ var _ = Describe("UpstreamTruncator", func() {
 
 			// Define a base upstream from which we will derive input and expected output
 			baseUpstream := &gloov1.Upstream{
-				Metadata: core.Metadata{Namespace: "foo", Name: "bar"},
+				Metadata: &core.Metadata{Namespace: "foo", Name: "bar"},
 				UpstreamType: &gloov1.Upstream_Kube{
 					Kube: &kubernetes.UpstreamSpec{
 						ServiceName:      "my-service",

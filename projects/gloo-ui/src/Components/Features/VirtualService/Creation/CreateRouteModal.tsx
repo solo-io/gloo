@@ -14,18 +14,18 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
 import { uniqBy } from 'lodash';
-import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
 import {
   Route,
   VirtualService
-} from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import {
   HeaderMatcher,
   QueryParameterMatcher
-} from 'proto/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
-import { DestinationSpec } from 'proto/gloo/projects/gloo/api/v1/options_pb';
-import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
-import { VirtualServiceDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers_pb';
+import { DestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { VirtualServiceDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
@@ -41,7 +41,7 @@ import { getRouteMatcher } from 'utils/helpers';
 import * as yup from 'yup';
 import { DestinationForm } from './DestinationForm';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
-import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { UpstreamGroup } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 
 const FormContainer = styled.form`
   display: flex;

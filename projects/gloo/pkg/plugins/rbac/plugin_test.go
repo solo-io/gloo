@@ -93,7 +93,7 @@ var _ = Describe("Plugin", func() {
 		}
 
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},

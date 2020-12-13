@@ -37,7 +37,7 @@ var _ = Describe("Basic Config Collector", func() {
 		reports = make(reporter.ResourceReports)
 
 		proxy = &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "foo",
 				Namespace: "bar",
 			},

@@ -9,7 +9,7 @@ import { ReactComponent as UpstreamGroupLogo } from 'assets/upstream-group-icon.
 import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { SoloModal } from 'Components/Common/SoloModal';
 
-import { Route } from 'proto/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import * as React from 'react';
 import { shallowEqual, useDispatch } from 'react-redux';
 import { NavLink } from 'react-router-dom';
@@ -30,8 +30,8 @@ import {
 } from 'utils/helpers';
 import { CreateRouteModal } from '../Creation/CreateRouteModal';
 import { RouteParent } from '../RouteTableDetails';
-import { RouteTable } from 'proto/gloo/projects/gateway/api/v1/route_table_pb';
-import { RouteTableDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/routetable_pb';
+import { RouteTable } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/route_table_pb';
+import { RouteTableDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/routetable_pb';
 import { ErrorBoundary } from 'Components/Features/Errors/ErrorBoundary';
 
 const RouteMatch = styled.div`

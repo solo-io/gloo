@@ -51,7 +51,7 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetSecret", func() {
 		It("works when the secret client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
@@ -66,7 +66,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(&secret, nil)
 			scrubber.EXPECT().Secret(context.Background(), &secret)
 
-			request := &v1.GetSecretRequest{Ref: &ref}
+			request := &v1.GetSecretRequest{Ref: ref}
 			actual, err := apiserver.GetSecret(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetSecretResponse{Secret: &secret}
@@ -84,10 +84,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetSecretRequest{Ref: &ref}
+			request := &v1.GetSecretRequest{Ref: ref}
 			_, err := apiserver.GetSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToReadSecretError(testErr, &ref)
+			expectedErr := secretsvc.FailedToReadSecretError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -97,11 +97,11 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			secret1 := gloov1.Secret{
 				Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
-				Metadata: core.Metadata{Namespace: ns1},
+				Metadata: &core.Metadata{Namespace: ns1},
 			}
 			secret2 := gloov1.Secret{
 				Kind:     &gloov1.Secret_Azure{Azure: &gloov1.AzureSecret{}},
-				Metadata: core.Metadata{Namespace: ns2},
+				Metadata: &core.Metadata{Namespace: ns2},
 			}
 
 			settingsValues.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
@@ -138,7 +138,7 @@ var _ = Describe("ServiceTest", func() {
 	Describe("CreateSecret", func() {
 		Context("with unified input objects", func() {
 			It("works when the secret client works", func() {
-				metadata := core.Metadata{
+				metadata := &core.Metadata{
 					Namespace: "ns",
 					Name:      "name",
 				}
@@ -175,7 +175,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 
 			It("errors when the secret client errors", func() {
-				metadata := core.Metadata{
+				metadata := &core.Metadata{
 					Namespace: "ns",
 					Name:      "name",
 				}
@@ -195,7 +195,7 @@ var _ = Describe("ServiceTest", func() {
 				}
 				_, err := apiserver.CreateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
-				expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
+				expectedErr := secretsvc.FailedToCreateSecretError(testErr, ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})
@@ -204,7 +204,7 @@ var _ = Describe("ServiceTest", func() {
 	Describe("UpdateSecret", func() {
 		Context("with unified input objects", func() {
 			It("works when the secret client works", func() {
-				metadata := core.Metadata{
+				metadata := &core.Metadata{
 					Namespace: "ns",
 					Name:      "name",
 				}
@@ -241,7 +241,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 
 			It("errors when the secret client errors on write", func() {
-				metadata := core.Metadata{}
+				metadata := &core.Metadata{}
 				ref := metadata.Ref()
 				secret := gloov1.Secret{
 					Kind: &gloov1.Secret_Aws{
@@ -260,7 +260,7 @@ var _ = Describe("ServiceTest", func() {
 				}
 				_, err := apiserver.UpdateSecret(context.TODO(), request)
 				Expect(err).To(HaveOccurred())
-				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
+				expectedErr := secretsvc.FailedToUpdateSecretError(testErr, ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})

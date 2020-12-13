@@ -3,7 +3,7 @@ import * as React from 'react';
 import { colors, soloConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { HealthIndicator } from './HealthIndicator';
-import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 
 const CardBlock = styled.div`
   ${CardCSS};

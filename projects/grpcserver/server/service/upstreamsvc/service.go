@@ -95,7 +95,7 @@ func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.Cr
 	written, err := s.clientCache.GetUpstreamClient().Write(request.GetUpstreamInput(), clients.WriteOpts{Ctx: s.ctx})
 	if err != nil {
 		ref := request.GetUpstreamInput().GetMetadata().Ref()
-		wrapped := FailedToCreateUpstreamError(err, &ref)
+		wrapped := FailedToCreateUpstreamError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -110,7 +110,7 @@ func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.Up
 	written, err := s.clientCache.GetUpstreamClient().Write(request.GetUpstreamInput(), clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		ref := request.GetUpstreamInput().GetMetadata().Ref()
-		wrapped := FailedToUpdateUpstreamError(err, &ref)
+		wrapped := FailedToUpdateUpstreamError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

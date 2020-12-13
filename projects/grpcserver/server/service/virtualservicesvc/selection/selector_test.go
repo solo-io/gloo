@@ -27,7 +27,7 @@ var (
 	selector     selection.VirtualServiceSelector
 	podNamespace = "pod-ns"
 	otherNs      = "ns"
-	metadata     = core.Metadata{
+	metadata     = &core.Metadata{
 		Namespace: otherNs,
 		Name:      "name",
 	}
@@ -38,7 +38,7 @@ var (
 var _ = Describe("SelectorTest", func() {
 	getDefault := func(namespace, name string) *gatewayv1.VirtualService {
 		return &gatewayv1.VirtualService{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Namespace: namespace,
 				Name:      name,
 			},
@@ -62,7 +62,7 @@ var _ = Describe("SelectorTest", func() {
 	})
 
 	Describe("VirtualServiceSelector", func() {
-		getVirtualService := func(meta core.Metadata, domain string) *gatewayv1.VirtualService {
+		getVirtualService := func(meta *core.Metadata, domain string) *gatewayv1.VirtualService {
 			return &gatewayv1.VirtualService{
 				Metadata:    meta,
 				VirtualHost: &gatewayv1.VirtualHost{Domains: []string{domain}},
@@ -77,7 +77,7 @@ var _ = Describe("SelectorTest", func() {
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.Background()}).
 					Return(expected, nil)
 
-				actual, err := selector.SelectOrCreate(context.Background(), &ref)
+				actual, err := selector.SelectOrCreate(context.Background(), ref)
 				Expect(err).NotTo(HaveOccurred())
 				ExpectEqualProtoMessages(actual, expected)
 			})
@@ -92,7 +92,7 @@ var _ = Describe("SelectorTest", func() {
 					Write(expected, clients.WriteOpts{Ctx: context.Background()}).
 					Return(expected, nil)
 
-				actual, err := selector.SelectOrCreate(context.Background(), &ref)
+				actual, err := selector.SelectOrCreate(context.Background(), ref)
 				Expect(err).NotTo(HaveOccurred())
 				ExpectEqualProtoMessages(actual, expected)
 			})
@@ -128,7 +128,7 @@ var _ = Describe("SelectorTest", func() {
 					Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.Background()}).
 					Return(nil, testErr)
 
-				_, err := selector.SelectOrCreate(context.Background(), &ref)
+				_, err := selector.SelectOrCreate(context.Background(), ref)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(testErr))
 			})
@@ -138,7 +138,7 @@ var _ = Describe("SelectorTest", func() {
 			It("returns the first virtual service with domain * if one exists", func() {
 				expected := getVirtualService(metadata, "*")
 				list := []*gatewayv1.VirtualService{
-					getVirtualService(core.Metadata{Namespace: otherNs}, ""),
+					getVirtualService(&core.Metadata{Namespace: otherNs}, ""),
 					expected,
 				}
 

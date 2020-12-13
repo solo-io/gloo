@@ -14,14 +14,14 @@ type stubResource struct {
 	reason     string
 }
 
-func (s stubResource) GetMetadata() core.Metadata {
-	return core.Metadata{
+func (s stubResource) GetMetadata() *core.Metadata {
+	return &core.Metadata{
 		Name:      "n",
 		Namespace: "ns",
 	}
 }
 
-func (s stubResource) SetMetadata(meta core.Metadata) {
+func (s stubResource) SetMetadata(meta *core.Metadata) {
 	panic("implement me")
 }
 
@@ -29,14 +29,14 @@ func (s stubResource) Equal(that interface{}) bool {
 	panic("implement me")
 }
 
-func (s stubResource) GetStatus() core.Status {
-	return core.Status{
+func (s stubResource) GetStatus() *core.Status {
+	return &core.Status{
 		State:  s.statusCode,
 		Reason: s.reason,
 	}
 }
 
-func (s stubResource) SetStatus(status core.Status) {
+func (s stubResource) SetStatus(status *core.Status) {
 	panic("implement me")
 }
 

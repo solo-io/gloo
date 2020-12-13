@@ -1,6 +1,6 @@
 import { ConfigDisplayer } from 'Components/Common/DisplayOnly/ConfigDisplayer';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { GatewayDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/gateway_pb';
+import { GatewayDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/gateway_pb';
 import React from 'react';
 import { useParams } from 'react-router';
 import { gatewayAPI } from 'store/gateway/api';

@@ -5,7 +5,7 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik } from 'formik';
-import { Metadata } from 'proto/solo-kit/api/v1/metadata_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory, useLocation } from 'react-router';

@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
 
 	"github.com/solo-io/ext-auth-service/pkg/chain"
@@ -18,8 +20,6 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/session/redis"
 
 	configapi "github.com/solo-io/ext-auth-service/pkg/service"
-
-	pbtypes "github.com/gogo/protobuf/types"
 
 	"github.com/golang/mock/gomock"
 	"github.com/solo-io/ext-auth-plugins/api"
@@ -195,10 +195,10 @@ var _ = Describe("Config Generator", func() {
 										"cn=developers,ou=groups,dc=solo,dc=io",
 									},
 									Pool: &extauthv1.Ldap_ConnectionPool{
-										MaxSize: &pbtypes.UInt32Value{
+										MaxSize: &wrappers.UInt32Value{
 											Value: uint32(5),
 										},
-										InitialSize: &pbtypes.UInt32Value{
+										InitialSize: &wrappers.UInt32Value{
 											Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
 										},
 									},
@@ -307,8 +307,6 @@ var _ = Describe("Config Generator", func() {
 				}
 			})
 
-			oneSecond := time.Second
-
 			_, err = generator.GenerateConfig([]*extauthv1.ExtAuthConfig{{
 				AuthConfigRefName: "default.oauth2-authconfig",
 				Configs: []*extauthv1.ExtAuthConfig_Config{
@@ -321,7 +319,7 @@ var _ = Describe("Config Generator", func() {
 											IntrospectionUrl: "introspection-url",
 										},
 										UserinfoUrl:  "user-info-url",
-										CacheTimeout: &oneSecond,
+										CacheTimeout: ptypes.DurationProto(time.Second),
 									},
 								},
 							},
@@ -641,10 +639,10 @@ var _ = Describe("Config Generator", func() {
 		It("should translate CookieOptions", func() {
 			path := "/foo"
 			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
-				MaxAge:    &pbtypes.UInt32Value{Value: 1},
+				MaxAge:    &wrappers.UInt32Value{Value: 1},
 				Domain:    "foo.com",
 				NotSecure: true,
-				Path:      &pbtypes.StringValue{Value: path},
+				Path:      &wrappers.StringValue{Value: path},
 			}})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{

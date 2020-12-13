@@ -25,8 +25,8 @@ var _ = Describe("Kube Yaml RawGetter", func() {
 	Describe("GetRaw", func() {
 		It("works", func() {
 			resource := &gloov1.Proxy{
-				Status: core.Status{},
-				Metadata: core.Metadata{
+				Status: &core.Status{},
+				Metadata: &core.Metadata{
 					Namespace: "namespace",
 					Name:      "name",
 				},
@@ -60,10 +60,10 @@ var _ = Describe("Kube Yaml RawGetter", func() {
 			Expect(parseErr).NotTo(HaveOccurred())
 
 			status := emptyUpstream.GetStatus()
-			Expect((&status).GetReportedBy()).To(Equal("gloo"))
+			Expect(status.GetReportedBy()).To(Equal("gloo"))
 
 			metadata := emptyUpstream.GetMetadata()
-			Expect((&metadata).GetResourceVersion()).To(Equal("58959"))
+			Expect(metadata.GetResourceVersion()).To(Equal("58959"))
 		})
 
 		It("fails when the namespace is edited", func() {

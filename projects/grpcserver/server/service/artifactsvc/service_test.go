@@ -48,7 +48,7 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetArtifact", func() {
 		It("works when the artifact client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
@@ -62,7 +62,7 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(&artifact, nil)
 
-			request := &v1.GetArtifactRequest{Ref: &ref}
+			request := &v1.GetArtifactRequest{Ref: ref}
 			actual, err := apiserver.GetArtifact(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetArtifactResponse{Artifact: &artifact}
@@ -80,10 +80,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetArtifactRequest{Ref: &ref}
+			request := &v1.GetArtifactRequest{Ref: ref}
 			_, err := apiserver.GetArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToReadArtifactError(testErr, &ref)
+			expectedErr := artifactsvc.FailedToReadArtifactError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -93,11 +93,11 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			artifact1 := gloov1.Artifact{
 				Data:     map[string]string{"test": "asdf"},
-				Metadata: core.Metadata{Namespace: ns1},
+				Metadata: &core.Metadata{Namespace: ns1},
 			}
 			artifact2 := gloov1.Artifact{
 				Data:     map[string]string{"test": "qwerty"},
-				Metadata: core.Metadata{Namespace: ns2},
+				Metadata: &core.Metadata{Namespace: ns2},
 			}
 
 			valuesClient.EXPECT().GetWatchNamespaces().Return([]string{ns1, ns2})
@@ -135,10 +135,9 @@ var _ = Describe("ServiceTest", func() {
 				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			})
 			buildArtifact := func() *gloov1.Artifact {
-				metadata := core.Metadata{
-					Namespace:     "ns",
-					Name:          "name",
-					XXX_sizecache: -1,
+				metadata := &core.Metadata{
+					Namespace: "ns",
+					Name:      "name",
 				}
 				return &gloov1.Artifact{
 					Data:     map[string]string{"test": "asdf"},
@@ -187,7 +186,7 @@ var _ = Describe("ServiceTest", func() {
 				licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			})
 			buildArtifact := func(testValue string) *gloov1.Artifact {
-				metadata := core.Metadata{
+				metadata := &core.Metadata{
 					Namespace: "ns",
 					Name:      "name",
 				}

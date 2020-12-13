@@ -12,7 +12,7 @@ import (
 	rate_limiter_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/go-utils/hashutils"
 	"go.opencensus.io/stats"

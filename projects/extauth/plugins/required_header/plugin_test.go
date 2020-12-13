@@ -4,8 +4,7 @@ import (
 	"context"
 	"plugin"
 
-	"github.com/gogo/protobuf/types"
-
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/ext-auth-plugins/api"
@@ -30,9 +29,9 @@ var _ = Describe("Plugin", func() {
 		instance, err := extAuthPlugin.NewConfigInstance(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
 
-		typedInstance, ok := instance.(*types.Struct)
+		typedInstance, ok := instance.(*structpb.Struct)
 		Expect(ok).To(BeTrue())
 
-		Expect(typedInstance).To(Equal(&types.Struct{}))
+		Expect(typedInstance).To(Equal(&structpb.Struct{}))
 	})
 })

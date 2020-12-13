@@ -7,6 +7,7 @@ import (
 	rlPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
+	. "github.com/solo-io/solo-projects/test/matchers"
 
 	"github.com/rotisserie/eris"
 
@@ -158,7 +159,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 			}
 
 			proxy = &gloov1.Proxy{
-				Metadata: skcore.Metadata{
+				Metadata: &skcore.Metadata{
 					Name:      "proxy",
 					Namespace: "gloo-system",
 				},
@@ -178,20 +179,20 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		JustBeforeEach(func() {
 
-			basic.EXPECT().ProcessVirtualHost(vhost1Sanitized, proxy)
-			basic.EXPECT().ProcessVirtualHost(vhost2, proxy)
-			basic.EXPECT().ProcessRoute(route1, vhost2, proxy)
-			basic.EXPECT().ProcessRoute(route2, vhost2, proxy)
+			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
+			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
+			basic.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy)
+			basic.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy)
 
-			global.EXPECT().ProcessVirtualHost(vhost1Sanitized, proxy)
-			global.EXPECT().ProcessVirtualHost(vhost2, proxy)
-			global.EXPECT().ProcessRoute(route1, vhost2, proxy)
-			global.EXPECT().ProcessRoute(route2, vhost2, proxy)
+			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
+			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
+			global.EXPECT().ProcessRoute(GomockMatchProto4(route1), GomockMatchProto4(vhost2), proxy)
+			global.EXPECT().ProcessRoute(GomockMatchProto4(route2), GomockMatchProto4(vhost2), proxy)
 
-			crd.EXPECT().ProcessVirtualHost(vhost1Sanitized, proxy)
-			crd.EXPECT().ProcessVirtualHost(vhost2, proxy)
-			crd.EXPECT().ProcessRoute(route1, vhost2, proxy)
-			crd.EXPECT().ProcessRoute(route2, vhost2, proxy)
+			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
+			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
+			crd.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy)
+			crd.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy)
 
 			config1 = &enterprise.RateLimitConfig{
 				Domain: "foo",

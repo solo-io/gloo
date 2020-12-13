@@ -5,7 +5,7 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Formik, FormikErrors } from 'formik';
-import { ExtAuthPlugin } from 'proto/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { ExtAuthPlugin } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router';

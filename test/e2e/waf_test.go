@@ -15,7 +15,6 @@ import (
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
-	"github.com/solo-io/gloo/pkg/utils"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -65,7 +64,13 @@ var _ = Describe("waf", func() {
 		}
 	}
 
-	var getProxyWaf = func(envoyPort uint32, upstream core.ResourceRef, wafListenerSettings *waf.Settings, wafVhostSettings *waf.Settings, wafRouteSettings *waf.Settings) *gloov1.Proxy {
+	var getProxyWaf = func(
+		envoyPort uint32,
+		upstream *core.ResourceRef,
+		wafListenerSettings *waf.Settings,
+		wafVhostSettings *waf.Settings,
+		wafRouteSettings *waf.Settings,
+	) *gloov1.Proxy {
 		var vhosts []*gloov1.VirtualHost
 
 		vhost := &gloov1.VirtualHost{
@@ -89,7 +94,7 @@ var _ = Describe("waf", func() {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(upstream),
+										Upstream: upstream,
 									},
 								},
 							},
@@ -107,7 +112,7 @@ var _ = Describe("waf", func() {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(upstream),
+										Upstream: upstream,
 									},
 								},
 							},
@@ -120,7 +125,7 @@ var _ = Describe("waf", func() {
 		vhosts = append(vhosts, vhost)
 
 		p := &gloov1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "proxy",
 				Namespace: "default",
 			},
@@ -142,7 +147,7 @@ var _ = Describe("waf", func() {
 		return p
 	}
 
-	var getProxyWafDisruptiveListener = func(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+	var getProxyWafDisruptiveListener = func(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 		wafCfg := &waf.Settings{
 			RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
 			CustomInterventionMessage: customInterventionMessage,
@@ -150,11 +155,19 @@ var _ = Describe("waf", func() {
 		return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil)
 	}
 
-	var getProxyWafDisruptiveVhost = func(envoyPort uint32, upstream core.ResourceRef, wafVhostSettings *waf.Settings) *gloov1.Proxy {
+	var getProxyWafDisruptiveVhost = func(
+		envoyPort uint32,
+		upstream *core.ResourceRef,
+		wafVhostSettings *waf.Settings,
+	) *gloov1.Proxy {
 		return getProxyWaf(envoyPort, upstream, nil, wafVhostSettings, nil)
 	}
 
-	var getProxyWafDisruptiveRoute = func(envoyPort uint32, upstream core.ResourceRef, wafRouteSettings *waf.Settings) *gloov1.Proxy {
+	var getProxyWafDisruptiveRoute = func(
+		envoyPort uint32,
+		upstream *core.ResourceRef,
+		wafRouteSettings *waf.Settings,
+	) *gloov1.Proxy {
 		vhostSettings := &waf.Settings{
 			Disabled: true,
 		}
@@ -230,7 +243,10 @@ var _ = Describe("waf", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),
@@ -331,7 +347,10 @@ var _ = Describe("waf", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),
@@ -454,7 +473,10 @@ var _ = Describe("waf", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),
@@ -522,7 +544,10 @@ var _ = Describe("waf", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),
@@ -662,7 +687,10 @@ var _ = Describe("waf", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),

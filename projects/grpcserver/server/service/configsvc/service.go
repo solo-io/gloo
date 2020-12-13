@@ -4,13 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
-
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/duration"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -18,7 +13,10 @@ import (
 	"github.com/solo-io/solo-projects/pkg/license"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/svccodes"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 	"go.uber.org/zap"
 )
 
@@ -168,8 +166,8 @@ func (s *configGrpcService) GetPodNamespace(context.Context, *v1.GetPodNamespace
 	return &v1.GetPodNamespaceResponse{Namespace: s.podNamespace}, nil
 }
 
-func validateRefreshRate(rr *types.Duration) error {
-	duration, err := types.DurationFromProto(rr)
+func validateRefreshRate(rr *duration.Duration) error {
+	duration, err := ptypes.Duration(rr)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { Formik, useFormikContext } from 'formik';
-import { WeightedDestination } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { WeightedDestination } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import React, { useState } from 'react';
 import { useParams } from 'react-router';
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';

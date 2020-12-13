@@ -6,7 +6,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
 	errors "github.com/rotisserie/eris"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"

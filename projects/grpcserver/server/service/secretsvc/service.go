@@ -83,7 +83,7 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 	written, err := s.clientCache.GetSecretClient().Write(request.GetSecret(), clients.WriteOpts{Ctx: s.ctx})
 	if err != nil {
 		ref := request.GetSecret().GetMetadata().Ref()
-		wrapped := FailedToCreateSecretError(err, &ref)
+		wrapped := FailedToCreateSecretError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -99,7 +99,7 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 	written, err := s.clientCache.GetSecretClient().Write(request.GetSecret(), clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		ref := request.GetSecret().GetMetadata().Ref()
-		wrapped := FailedToUpdateSecretError(err, &ref)
+		wrapped := FailedToUpdateSecretError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

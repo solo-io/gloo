@@ -217,7 +217,7 @@ func getVirtualService(dest *gloov1.Destination, sslConfig *gloov1.SslConfig) *v
 
 func getVirtualServiceWithRoute(route *v1.Route, sslConfig *gloov1.SslConfig) *v1.VirtualService {
 	return &v1.VirtualService{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "vs",
 			Namespace: testHelper.InstallNamespace,
 		},

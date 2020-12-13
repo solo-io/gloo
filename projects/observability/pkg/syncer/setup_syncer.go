@@ -9,9 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes"
 	errors "github.com/rotisserie/eris"
-
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -57,7 +56,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 		return err
 	}
 
-	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
+	refreshRate, err := ptypes.Duration(settings.GetRefreshRate())
 	if err != nil {
 		return err
 	}

@@ -1,12 +1,12 @@
 /* eslint-disable */
-import { EnvoyApiClient } from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb_service';
+import { EnvoyApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb_service';
 import { host } from 'store';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   ListEnvoyDetailsResponse,
   ListEnvoyDetailsRequest,
   EnvoyDetails
-} from 'proto/solo-projects/projects/grpcserver/api/v1/envoy_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/envoy_pb';
 
 const client = new EnvoyApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),

@@ -8,7 +8,7 @@ import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { Formik } from 'formik';
-import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { UpstreamGroup } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { upstreamAPI } from 'store/upstreams/api';

@@ -3,8 +3,8 @@ package converter_test
 import (
 	"context"
 
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -21,7 +21,7 @@ var (
 )
 
 var _ = Describe("VirtualServiceDetailsConverter", func() {
-	getVirtualService := func(pluginConfigs map[string]*types.Struct) *gatewayv1.VirtualService {
+	getVirtualService := func(pluginConfigs map[string]*structpb.Struct) *gatewayv1.VirtualService {
 		return &gatewayv1.VirtualService{
 			VirtualHost: &gatewayv1.VirtualHost{
 				Options: &gloov1.VirtualHostOptions{
@@ -51,7 +51,7 @@ var _ = Describe("VirtualServiceDetailsConverter", func() {
 		It("works", func() {
 			for _, testCase := range []struct {
 				desc            string
-				configs         map[string]*types.Struct
+				configs         map[string]*structpb.Struct
 				expectedPlugins *v1.Plugins
 				expectedRaw     *v1.Raw
 			}{

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
@@ -244,7 +244,7 @@ func generateRateLimitedRoute() *v1.Route {
 		},
 		Name: "rateLimitedRoute",
 		Options: &gloov1.RouteOptions{
-			PrefixRewrite: &types.StringValue{
+			PrefixRewrite: &wrappers.StringValue{
 				Value: "/",
 			},
 			RatelimitBasic: &ratelimit.IngressRateLimit{
@@ -281,7 +281,7 @@ func generateHealthCheckRoute() *v1.Route {
 			},
 		},
 		Options: &gloov1.RouteOptions{
-			PrefixRewrite: &types.StringValue{
+			PrefixRewrite: &wrappers.StringValue{
 				Value: "/",
 			},
 		},

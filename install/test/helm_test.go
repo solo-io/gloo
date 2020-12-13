@@ -11,6 +11,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes"
+	. "github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -24,7 +25,7 @@ import (
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
@@ -2263,11 +2264,11 @@ spec:
 						}
 						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(bootstrap.Node).To(Equal(&corev3.Node{Id: "sds_client", Cluster: "sds_client"}))
+						Expect(bootstrap.Node).To(MatchProto(&corev3.Node{Id: "sds_client", Cluster: "sds_client"}))
 						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
 						tlsContext := tlsv3.DownstreamTlsContext{}
 						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
-						Expect(tlsContext).To(Equal(tlsv3.DownstreamTlsContext{
+						Expect(&tlsContext).To(MatchProto(&tlsv3.DownstreamTlsContext{
 							CommonTlsContext: &tlsv3.CommonTlsContext{
 								TlsCertificateSdsSecretConfigs: []*tlsv3.SdsSecretConfig{
 									{
@@ -2420,7 +2421,7 @@ spec:
 						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
 						tlsContext := tlsv3.DownstreamTlsContext{}
 						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
-						Expect(tlsContext).To(Equal(tlsv3.DownstreamTlsContext{
+						Expect(&tlsContext).To(MatchProto(&tlsv3.DownstreamTlsContext{
 							CommonTlsContext: &tlsv3.CommonTlsContext{
 								TlsCertificates: []*tlsv3.TlsCertificate{
 									{
@@ -2903,6 +2904,6 @@ spec:
 })
 
 func constructResourceID(resource *unstructured.Unstructured) string {
-	//technically vulnerable to resources that have commas in their names, but that's not a big concern
+	// technically vulnerable to resources that have commas in their names, but that's not a big concern
 	return fmt.Sprintf("%s,%s,%s", resource.GetNamespace(), resource.GetName(), resource.GroupVersionKind().String())
 }

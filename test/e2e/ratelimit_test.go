@@ -10,22 +10,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/solo-io/ext-auth-service/pkg/server"
-
-	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/solo-io/ext-auth-service/pkg/server"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauthpb "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -166,11 +163,11 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					extauthport := uint32(9100)
 
 					extauthserver := &gloov1.Upstream{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "extauth-server",
 							Namespace: "default",
 						},
-						UseHttp2: &types.BoolValue{Value: true},
+						UseHttp2: &wrappers.BoolValue{Value: true},
 						UpstreamType: &gloov1.Upstream_Static{
 							Static: &gloov1static.UpstreamSpec{
 								Hosts: []*gloov1static.Host{{
@@ -182,7 +179,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					}
 
 					_, err := testClients.AuthConfigClient.Write(&extauthpb.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      GetBasicAuthExtension().GetConfigRef().Name,
 							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
 						},
@@ -199,7 +196,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 					ref := extauthserver.Metadata.Ref()
 					extauthSettings := &extauthpb.Settings{
-						ExtauthzServerRef: &ref,
+						ExtauthzServerRef: ref,
 					}
 					glooSettings.Extauth = extauthSettings
 
@@ -677,11 +674,11 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	justBeforeEach := func() {
 		// add the rl service as a static upstream
 		rlserver := &gloov1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "rl-server",
 				Namespace: "default",
 			},
-			UseHttp2: &types.BoolValue{Value: true},
+			UseHttp2: &wrappers.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
@@ -697,7 +694,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 		ref := rlserver.Metadata.Ref()
 		rlSettings := &ratelimit.Settings{
-			RatelimitServerRef: &ref,
+			RatelimitServerRef: ref,
 			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
 		}
 
@@ -847,7 +844,7 @@ func get(hostname string, port uint32) (*http.Response, error) {
 	return http.DefaultClient.Do(req)
 }
 
-func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
+func getAuthEnabledProxy(envoyPort uint32, upstream *core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
 	ingressRateLimit := &ratelimit.IngressRateLimit{
 		AnonymousLimits: &rlv1alpha1.RateLimit{
 			RequestsPerUnit: 1,
@@ -865,7 +862,7 @@ func getAuthEnabledProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRat
 
 type RlProxyBuilder struct {
 	ingressRateLimit             *ratelimit.IngressRateLimit
-	upstream                     core.ResourceRef
+	upstream                     *core.ResourceRef
 	hostsToVirtualHostRateLimits map[string]bool
 	hostsToRouteRateLimits       map[string]bool
 	envoyPort                    uint32
@@ -897,7 +894,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(b.upstream),
+										Upstream: b.upstream,
 									},
 								},
 							},
@@ -915,7 +912,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(b.upstream),
+										Upstream: b.upstream,
 									},
 								},
 							},
@@ -937,7 +934,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	}
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},
@@ -956,7 +953,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 	return p
 }
 
-func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*rlv1alpha1.RateLimitActions) *gloov1.Proxy {
+func getCustomProxy(envoyPort uint32, upstream *core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*rlv1alpha1.RateLimitActions) *gloov1.Proxy {
 	rlVhostExt := &ratelimit.RateLimitVhostExtension{
 		RateLimits: rateLimits,
 	}
@@ -971,7 +968,7 @@ func getCustomProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimi
 
 type CustomRlProxyBuilder struct {
 	customRateLimit   *ratelimit.RateLimitVhostExtension
-	upstream          core.ResourceRef
+	upstream          *core.ResourceRef
 	hostsToRateLimits map[string]bool
 	envoyPort         uint32
 }
@@ -990,7 +987,7 @@ func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(b.upstream),
+										Upstream: b.upstream,
 									},
 								},
 							},
@@ -1011,7 +1008,7 @@ func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
 	}
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

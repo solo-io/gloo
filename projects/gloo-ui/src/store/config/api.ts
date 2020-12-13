@@ -17,15 +17,15 @@ import {
   UpdateSettingsResponse,
   SettingsDetails,
   UpdateSettingsYamlRequest
-} from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 import {
   ConfigApiClient,
   ConfigApi
-} from 'proto/solo-projects/projects/grpcserver/api/v1/config_pb_service';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb_service';
 import { host } from 'store';
-import { Settings } from 'proto/gloo/projects/gloo/api/v1/settings_pb';
-import { ResourceRef } from 'proto/solo-kit/api/v1/ref_pb';
-import { EditedResourceYaml } from 'proto/solo-projects/projects/grpcserver/api/v1/types_pb';
+import { Settings } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/settings_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { EditedResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types_pb';
 import { guardByLicense } from './actions';
 import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 

@@ -18,7 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
@@ -125,8 +124,10 @@ var _ = Describe("Proxy latency", func() {
 					if err != nil {
 						return core.Status{}, err
 					}
-
-					return proxy.Status, nil
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
 				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 					"Reason": BeEmpty(),
 					"State":  Equal(core.Status_Accepted),
@@ -204,7 +205,7 @@ func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
 	return nil, fmt.Errorf("config not found")
 }
 
-func getProxyLatencyProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyLatencyProxy(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
@@ -216,7 +217,7 @@ func getProxyLatencyProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.P
 					Destination: &gloov1.RouteAction_Single{
 						Single: &gloov1.Destination{
 							DestinationType: &gloov1.Destination_Upstream{
-								Upstream: utils.ResourceRefPtr(upstream),
+								Upstream: upstream,
 							},
 						},
 					},
@@ -228,7 +229,7 @@ func getProxyLatencyProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.P
 	vhosts = append(vhosts, vhost)
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

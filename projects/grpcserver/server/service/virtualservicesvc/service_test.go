@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clientmocks "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
+	. "github.com/solo-io/solo-projects/test/matchers"
 
 	"google.golang.org/grpc/codes"
 
@@ -45,7 +46,7 @@ var (
 	rawGetter             *mock_rawgetter.MockRawGetter
 	testErr               = errors.Errorf("test-err")
 	uint32Zero, uint32One = uint32(0), uint32(1)
-	metadata              = core.Metadata{
+	metadata              = &core.Metadata{
 		Namespace: "ns",
 		Name:      "name",
 	}
@@ -96,7 +97,7 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(virtualService, nil)
 
-			request := &v1.GetVirtualServiceRequest{Ref: &ref}
+			request := &v1.GetVirtualServiceRequest{Ref: ref}
 			actual, err := apiserver.GetVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
@@ -109,10 +110,10 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			request := &v1.GetVirtualServiceRequest{Ref: &ref}
+			request := &v1.GetVirtualServiceRequest{Ref: ref}
 			_, err := apiserver.GetVirtualService(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToReadVirtualServiceError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToReadVirtualServiceError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -121,12 +122,12 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the virtual service client works", func() {
 			ns1, ns2 := "one", "two"
 			virtualService1 := &gatewayv1.VirtualService{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns1},
+				Status:   &core.Status{State: core.Status_Accepted},
+				Metadata: &core.Metadata{Namespace: ns1},
 			}
 			virtualService2 := &gatewayv1.VirtualService{
-				Status:   core.Status{State: core.Status_Pending},
-				Metadata: core.Metadata{Namespace: ns2},
+				Status:   &core.Status{State: core.Status_Pending},
+				Metadata: &core.Metadata{Namespace: ns2},
 			}
 			virtualServiceDetails1 := &v1.VirtualServiceDetails{
 				VirtualService: virtualService1,
@@ -183,27 +184,27 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(ref))
 				mutator.EXPECT().
-					Create(&ref, gomock.Any()).
+					Create(ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				actual, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.CreateVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
 			It("errors when the mutator errors", func() {
-				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(ref))
 				mutator.EXPECT().
-					Create(&ref, gomock.Any()).
+					Create(ref, gomock.Any()).
 					Return(nil, testErr)
 				detailsExpectation.Times(0)
 
-				_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				_, err := apiserver.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(ref)})
 				Expect(err).To(HaveOccurred())
-				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
+				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})
@@ -343,27 +344,27 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(ref))
 				mutator.EXPECT().
-					Update(&ref, gomock.Any()).
+					Update(ref, gomock.Any()).
 					Return(virtualService, nil)
 
-				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				actual, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(ref)})
 				Expect(err).NotTo(HaveOccurred())
 				expected := &v1.UpdateVirtualServiceResponse{VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
 			It("errors when the mutator errors", func() {
-				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(ref))
 				mutator.EXPECT().
-					Update(&ref, gomock.Any()).
+					Update(ref, gomock.Any()).
 					Return(nil, testErr)
 				detailsExpectation.Times(0)
 
-				_, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				_, err := apiserver.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(ref)})
 				Expect(err).To(HaveOccurred())
-				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
+				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, ref)
 				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 			})
 		})
@@ -379,7 +380,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil)
 			detailsExpectation.Times(0)
 
-			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
+			request := &v1.DeleteVirtualServiceRequest{Ref: ref}
 			actual, err := apiserver.DeleteVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteVirtualServiceResponse{}
@@ -392,10 +393,10 @@ var _ = Describe("ServiceTest", func() {
 				Return(testErr)
 			detailsExpectation.Times(0)
 
-			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
+			request := &v1.DeleteVirtualServiceRequest{Ref: ref}
 			_, err := apiserver.DeleteVirtualService(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToDeleteVirtualServiceError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToDeleteVirtualServiceError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -409,15 +410,15 @@ var _ = Describe("ServiceTest", func() {
 
 		It("works when the mutator and selector work", func() {
 			selector.EXPECT().
-				SelectOrCreate(context.Background(), &ref).
+				SelectOrCreate(context.Background(), ref).
 				Return(virtualService, nil)
 			mutationFactory.EXPECT().
-				CreateRoute(getInput(&ref))
+				CreateRoute(getInput(ref))
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(GomockMatchProto4(ref), gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			actual, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(ref)})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.CreateRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -425,25 +426,25 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors when the selector errors", func() {
 			selector.EXPECT().
-				SelectOrCreate(context.Background(), &ref).
+				SelectOrCreate(context.Background(), ref).
 				Return(virtualService, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(ref)})
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 
 		It("errors when the mutator errors", func() {
 			selector.EXPECT().
-				SelectOrCreate(context.Background(), &ref).
+				SelectOrCreate(context.Background(), ref).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(ref)})
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -456,27 +457,27 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			mutationFactory.EXPECT().UpdateRoute(getInput(&ref))
+			mutationFactory.EXPECT().UpdateRoute(getInput(ref))
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
+			actual, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(ref)})
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.UpdateRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
 		It("errors when the mutator errors", func() {
-			mutationFactory.EXPECT().UpdateRoute(getInput(&ref))
+			mutationFactory.EXPECT().UpdateRoute(getInput(ref))
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
+			_, err := apiserver.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(ref)})
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToUpdateRouteError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToUpdateRouteError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -492,10 +493,10 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the mutator works", func() {
 			mutationFactory.EXPECT().DeleteRoute(uint32Zero)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := apiserver.DeleteRoute(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.DeleteRoute(context.TODO(), getRequest(ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteRouteResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -504,13 +505,13 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the mutator errors", func() {
 			mutationFactory.EXPECT().DeleteRoute(uint32Zero)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.DeleteRoute(context.TODO(), getRequest(&ref))
+			_, err := apiserver.DeleteRoute(context.TODO(), getRequest(ref))
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToDeleteRouteError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToDeleteRouteError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -527,10 +528,10 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the mutator works", func() {
 			mutationFactory.EXPECT().SwapRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := apiserver.SwapRoutes(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.SwapRoutes(context.TODO(), getRequest(ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.SwapRoutesResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -539,13 +540,13 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the mutator errors", func() {
 			mutationFactory.EXPECT().SwapRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.SwapRoutes(context.TODO(), getRequest(&ref))
+			_, err := apiserver.SwapRoutes(context.TODO(), getRequest(ref))
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToSwapRoutesError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToSwapRoutesError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -562,10 +563,10 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the mutator works", func() {
 			mutationFactory.EXPECT().ShiftRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(virtualService, nil)
 
-			actual, err := apiserver.ShiftRoutes(context.TODO(), getRequest(&ref))
+			actual, err := apiserver.ShiftRoutes(context.TODO(), getRequest(ref))
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.ShiftRoutesResponse{VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
@@ -574,13 +575,13 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the mutator errors", func() {
 			mutationFactory.EXPECT().ShiftRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+				Update(ref, gomock.Any()).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 
-			_, err := apiserver.ShiftRoutes(context.TODO(), getRequest(&ref))
+			_, err := apiserver.ShiftRoutes(context.TODO(), getRequest(ref))
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToShiftRoutesError(testErr, &ref)
+			expectedErr := virtualservicesvc.FailedToShiftRoutesError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

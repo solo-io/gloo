@@ -9,36 +9,30 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-
+	"github.com/dgrijalva/jwt-go"
+	"github.com/fgrosse/zaptest"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-projects/test/services"
-
-	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
-
-	"github.com/fgrosse/zaptest"
-	"github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/services"
 	"github.com/solo-io/solo-projects/test/v1helpers"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"gopkg.in/square/go-jose.v2"
-
-	"github.com/dgrijalva/jwt-go"
 )
 
 var (
@@ -107,7 +101,7 @@ var _ = Describe("JWT + RBAC", func() {
 		testClients    services.TestClients
 		jwksPort       uint32
 		privateKey     *rsa.PrivateKey
-		jwtksServerRef core.ResourceRef
+		jwtksServerRef *core.ResourceRef
 		envoyInstance  *services.EnvoyInstance
 		testUpstream   *v1helpers.TestUpstream
 		envoyPort      = uint32(8080)
@@ -131,11 +125,11 @@ var _ = Describe("JWT + RBAC", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		jwksServer := &gloov1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "jwks-server",
 				Namespace: "default",
 			},
-			UseHttp2: &types.BoolValue{Value: true},
+			UseHttp2: &wrappers.BoolValue{Value: true},
 			UpstreamType: &gloov1.Upstream_Static{
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
@@ -249,8 +243,10 @@ var _ = Describe("JWT + RBAC", func() {
 				if err != nil {
 					return core.Status{}, err
 				}
-
-				return proxy.Status, nil
+				if proxy.Status == nil {
+					return core.Status{}, nil
+				}
+				return *proxy.Status, nil
 			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 				"Reason": BeEmpty(),
 				"State":  Equal(core.Status_Accepted),
@@ -391,8 +387,10 @@ var _ = Describe("JWT + RBAC", func() {
 				if err != nil {
 					return core.Status{}, err
 				}
-
-				return proxy.Status, nil
+				if proxy.Status == nil {
+					return core.Status{}, nil
+				}
+				return *proxy.Status, nil
 			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 				"Reason": BeEmpty(),
 				"State":  Equal(core.Status_Accepted),
@@ -448,7 +446,7 @@ var _ = Describe("JWT + RBAC", func() {
 	})
 })
 
-func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef) *gloov1.Proxy {
 
 	jwtCfg := &jwtplugin.VhostExtension{
 		Providers: map[string]*jwtplugin.Provider{
@@ -457,7 +455,7 @@ func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef
 					Jwks: &jwtplugin.Jwks_Remote{
 						Remote: &jwtplugin.RemoteJwks{
 							Url:         "http://test/keys",
-							UpstreamRef: &jwtksServerRef,
+							UpstreamRef: jwtksServerRef,
 						},
 					},
 				},
@@ -513,7 +511,7 @@ func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef
 	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, rbacCfg)
 }
 
-func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef) *gloov1.Proxy {
 	jwtCfg := &jwtplugin.VhostExtension{
 		Providers: map[string]*jwtplugin.Provider{
 			"provider1": {
@@ -521,7 +519,7 @@ func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *g
 					Jwks: &jwtplugin.Jwks_Remote{
 						Remote: &jwtplugin.RemoteJwks{
 							Url:         "http://test/keys",
-							UpstreamRef: &jwtksServerRef,
+							UpstreamRef: jwtksServerRef,
 						},
 					},
 				},
@@ -550,7 +548,7 @@ func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *g
 	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, nil)
 }
 
-func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef, jwtCfg *jwtplugin.VhostExtension, rbacCfg *rbac.ExtensionSettings) *gloov1.Proxy {
+func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef, jwtCfg *jwtplugin.VhostExtension, rbacCfg *rbac.ExtensionSettings) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
@@ -576,7 +574,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -597,7 +595,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -632,7 +630,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -653,7 +651,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -670,7 +668,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -682,7 +680,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 	vhosts = append(vhosts, vhost)
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

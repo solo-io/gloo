@@ -14,7 +14,6 @@ import (
 	duration "github.com/golang/protobuf/ptypes/duration"
 	"github.com/hashicorp/go-multierror"
 	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/jwt"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
@@ -249,12 +248,12 @@ func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
 		}
 		out.JwksSourceSpecifier = &envoyauth.JwtProvider_RemoteJwks{
 			RemoteJwks: &envoyauth.RemoteJwks{
-				CacheDuration: gogoutils.DurationGogoToProto(jwks.Remote.GetCacheDuration()),
+				CacheDuration: jwks.Remote.GetCacheDuration(),
 				HttpUri: &envoycore.HttpUri{
 					Timeout: &duration.Duration{Seconds: RemoteJwksTimeoutSecs},
 					Uri:     jwks.Remote.Url,
 					HttpUpstreamType: &envoycore.HttpUri_Cluster{
-						Cluster: translator.UpstreamToClusterName(*jwks.Remote.UpstreamRef),
+						Cluster: translator.UpstreamToClusterName(jwks.Remote.UpstreamRef),
 					},
 				},
 			},

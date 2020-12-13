@@ -34,16 +34,17 @@ var _ = Describe("Mutator", func() {
 
 	getVirtualService := func() *gatewayv1.VirtualService {
 		return &gatewayv1.VirtualService{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			},
+			Status: &core.Status{},
 		}
 	}
 
 	getRef := func() *core.ResourceRef {
 		ref := getVirtualService().GetMetadata().Ref()
-		return &ref
+		return ref
 	}
 
 	BeforeEach(func() {

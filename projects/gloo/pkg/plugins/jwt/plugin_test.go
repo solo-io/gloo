@@ -7,7 +7,6 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/jwt_authn/v3"
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	. "github.com/onsi/ginkgo"
@@ -19,6 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	test_matchers "github.com/solo-io/solo-kit/test/matchers"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -89,7 +89,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					Jwks: &jwt.Jwks{
 						Jwks: &jwt.Jwks_Remote{
 							Remote: &jwt.RemoteJwks{
-								CacheDuration: &types.Duration{Seconds: 5},
+								CacheDuration: &duration.Duration{Seconds: 5},
 								Url:           "testium",
 								UpstreamRef:   &core.ResourceRef{Name: "test", Namespace: "testns"},
 							},
@@ -112,7 +112,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		}
 
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -181,10 +181,8 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		It("should process virtual host", func() {
 			goTpfc := outVhost.TypedPerFilterConfig[JwtFilterName]
 			Expect(goTpfc).NotTo(BeNil())
-
 			var routeCfg SoloJwtAuthnPerRoute
-			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err := types.UnmarshalAny(gogoTpfc, &routeCfg)
+			err := ptypes.UnmarshalAny(goTpfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(virtualHost.Name))
 		})
@@ -192,10 +190,8 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		It("should process route", func() {
 			goTpfc := outRoute.TypedPerFilterConfig[JwtFilterName]
 			Expect(goTpfc).NotTo(BeNil())
-
 			var routeCfg SoloJwtAuthnPerRoute
-			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err := types.UnmarshalAny(gogoTpfc, &routeCfg)
+			err := ptypes.UnmarshalAny(goTpfc, &routeCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(routeCfg.Requirement).To(Equal(DisableName))
 		})
@@ -203,7 +199,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		It("should process filters", func() {
 			// Expect a requirement
 			providerName := ProviderName(virtualHost.Name, "provider1")
-			expectedCfg := envoyauth.JwtAuthentication{
+			expectedCfg := &envoyauth.JwtAuthentication{
 				Providers: map[string]*envoyauth.JwtProvider{
 					providerName: {
 						Issuer:            jwtVhost.Providers["provider1"].Issuer,
@@ -216,7 +212,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 									Timeout: &duration.Duration{Seconds: RemoteJwksTimeoutSecs},
 									Uri:     jwtVhost.Providers["provider1"].GetJwks().GetRemote().Url,
 									HttpUpstreamType: &envoycore.HttpUri_Cluster{
-										Cluster: translator.UpstreamToClusterName(*jwtVhost.Providers["provider1"].GetJwks().GetRemote().UpstreamRef),
+										Cluster: translator.UpstreamToClusterName(jwtVhost.Providers["provider1"].GetJwks().GetRemote().UpstreamRef),
 									},
 								},
 							},
@@ -234,7 +230,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					},
 				},
 			}
-			Expect(expectedCfg).To(Equal(*cfg))
+			Expect(expectedCfg).To(test_matchers.MatchProto(cfg))
 		})
 
 		Context("local jwks", func() {
@@ -260,7 +256,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 				// Expect a requirement
 				providerName := ProviderName(virtualHost.Name, "default")
-				expectedCfg := envoyauth.JwtAuthentication{
+				expectedCfg := &envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
 						providerName: {
 							Issuer:            jwtVhost.Providers["default"].Issuer,
@@ -286,7 +282,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						},
 					},
 				}
-				Expect(expectedCfg).To(Equal(*cfg))
+				Expect(expectedCfg).To(test_matchers.MatchProto(cfg))
 			})
 		})
 
@@ -320,14 +316,12 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 				goTpfc := outVhost.TypedPerFilterConfig[JwtFilterName]
 				Expect(goTpfc).NotTo(BeNil())
-
 				var routeCfg SoloJwtAuthnPerRoute
-				gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-				err := types.UnmarshalAny(gogoTpfc, &routeCfg)
+				err := ptypes.UnmarshalAny(goTpfc, &routeCfg)
 				Expect(err).NotTo(HaveOccurred())
 
 				provider1Name := ProviderName(virtualHost.Name, "provider1")
-				expectedCfg := SoloJwtAuthnPerRoute{
+				expectedCfg := &SoloJwtAuthnPerRoute{
 					Requirement: virtualHost.Name,
 					ClaimsToHeaders: map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders{
 						provider1Name: {
@@ -341,7 +335,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					ClearRouteCache:   true,
 					PayloadInMetadata: PayloadInMetadata,
 				}
-				Expect(expectedCfg).To(Equal(routeCfg))
+				Expect(expectedCfg).To(test_matchers.MatchProto(&routeCfg))
 			})
 		})
 
@@ -375,7 +369,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 
 			It("should translate token source", func() {
 				provider1Name := ProviderName(virtualHost.Name, "provider1")
-				expectedCfg := envoyauth.JwtAuthentication{
+				expectedCfg := &envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
 						provider1Name: {
 							Issuer:            "testiss1",
@@ -406,7 +400,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						},
 					},
 				}
-				Expect(expectedCfg).To(Equal(*cfg))
+				Expect(expectedCfg).To(test_matchers.MatchProto(cfg))
 			})
 		})
 
@@ -439,7 +433,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				// Expect a requirement
 				provider1Name := ProviderName(virtualHost.Name, "provider1")
 				provider2Name := ProviderName(virtualHost.Name, "provider2")
-				expectedCfg := envoyauth.JwtAuthentication{
+				expectedCfg := &envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
 						provider1Name: {
 							Issuer:            "testiss1",
@@ -489,7 +483,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						},
 					},
 				}
-				Expect(expectedCfg).To(Equal(*cfg))
+				Expect(expectedCfg).To(test_matchers.MatchProto(cfg))
 			})
 
 		})

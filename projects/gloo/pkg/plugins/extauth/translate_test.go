@@ -10,7 +10,6 @@ import (
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
-	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -26,7 +25,7 @@ var _ = Describe("Translate", func() {
 		secret           *v1.Secret
 		route            *v1.Route
 		authConfig       *extauth.AuthConfig
-		authConfigRef    core.ResourceRef
+		authConfigRef    *core.ResourceRef
 		extAuthExtension *extauth.ExtAuthExtension
 		clientSecret     *extauth.OauthSecret
 		apiKeySecret     *extauth.ApiKeySecret
@@ -35,7 +34,7 @@ var _ = Describe("Translate", func() {
 	BeforeEach(func() {
 
 		upstream = &v1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "extauth",
 				Namespace: "default",
 			},
@@ -59,7 +58,7 @@ var _ = Describe("Translate", func() {
 					Destination: &v1.RouteAction_Single{
 						Single: &v1.Destination{
 							DestinationType: &v1.Destination_Upstream{
-								Upstream: utils.ResourceRefPtr(upstream.Metadata.Ref()),
+								Upstream: upstream.Metadata.Ref(),
 							},
 						},
 					},
@@ -76,7 +75,7 @@ var _ = Describe("Translate", func() {
 		}
 
 		secret = &v1.Secret{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -86,14 +85,14 @@ var _ = Describe("Translate", func() {
 		}
 		secretRef := secret.Metadata.Ref()
 		authConfig = &extauth.AuthConfig{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "oauth",
 				Namespace: "gloo-system",
 			},
 			Configs: []*extauth.AuthConfig_Config{{
 				AuthConfig: &extauth.AuthConfig_Config_Oauth{
 					Oauth: &extauth.OAuth{
-						ClientSecretRef:         &secretRef,
+						ClientSecretRef:         secretRef,
 						ClientId:                "ClientId",
 						IssuerUrl:               "IssuerUrl",
 						AuthEndpointQueryParams: map[string]string{"test": "additional_query_params"},
@@ -106,7 +105,7 @@ var _ = Describe("Translate", func() {
 		authConfigRef = authConfig.Metadata.Ref()
 		extAuthExtension = &extauth.ExtAuthExtension{
 			Spec: &extauth.ExtAuthExtension_ConfigRef{
-				ConfigRef: &authConfigRef,
+				ConfigRef: authConfigRef,
 			},
 		}
 
@@ -128,7 +127,7 @@ var _ = Describe("Translate", func() {
 		}
 
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -147,7 +146,7 @@ var _ = Describe("Translate", func() {
 	})
 
 	It("should translate oauth config for extauth server", func() {
-		translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+		translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 		Expect(translated.Configs).To(HaveLen(1))
@@ -165,7 +164,7 @@ var _ = Describe("Translate", func() {
 		BeforeEach(func() {
 
 			secret = &v1.Secret{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "secretName",
 					Namespace: "default",
 					Labels:    map[string]string{"team": "infrastructure"},
@@ -177,7 +176,7 @@ var _ = Describe("Translate", func() {
 			secretRef := secret.Metadata.Ref()
 
 			authConfig = &extauth.AuthConfig{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "apikey",
 					Namespace: "gloo-system",
 				},
@@ -185,7 +184,7 @@ var _ = Describe("Translate", func() {
 					AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
 						ApiKeyAuth: &extauth.ApiKeyAuth{
 							HeaderName:       "x-api-key",
-							ApiKeySecretRefs: []*core.ResourceRef{&secretRef},
+							ApiKeySecretRefs: []*core.ResourceRef{secretRef},
 						},
 					},
 				}},
@@ -193,7 +192,7 @@ var _ = Describe("Translate", func() {
 			authConfigRef = authConfig.Metadata.Ref()
 			extAuthExtension = &extauth.ExtAuthExtension{
 				Spec: &extauth.ExtAuthExtension_ConfigRef{
-					ConfigRef: &authConfigRef,
+					ConfigRef: authConfigRef,
 				},
 			}
 
@@ -205,14 +204,14 @@ var _ = Describe("Translate", func() {
 		Context("secret is malformed", func() {
 			It("returns expected error when secret is not of API key type", func() {
 				secret.Kind = &v1.Secret_Aws{}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(NonApiKeySecretError(secret).Error())))
 			})
 
 			It("returns expected error when the secret does not contain an API key", func() {
 				secret.GetApiKey().ApiKey = ""
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(EmptyApiKeyError(secret).Error())))
 			})
@@ -220,7 +219,7 @@ var _ = Describe("Translate", func() {
 
 		Context("with api key extauth, secret ref matching", func() {
 			It("should translate api keys config for extauth server - matching secret ref", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -237,7 +236,7 @@ var _ = Describe("Translate", func() {
 
 			It("should translate api keys config for extauth server - mismatching secret ref", func() {
 				secret.Metadata.Name = "mismatchName"
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("list did not find secret"))
 			})
@@ -247,7 +246,7 @@ var _ = Describe("Translate", func() {
 
 			BeforeEach(func() {
 				secret = &v1.Secret{
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "secretName",
 						Namespace: "default",
 						Labels:    map[string]string{"team": "infrastructure"},
@@ -263,7 +262,7 @@ var _ = Describe("Translate", func() {
 				}
 				secretRef := secret.Metadata.Ref()
 				authConfig = &extauth.AuthConfig{
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "apikey",
 						Namespace: "gloo-system",
 					},
@@ -271,7 +270,7 @@ var _ = Describe("Translate", func() {
 						AuthConfig: &extauth.AuthConfig_Config_ApiKeyAuth{
 							ApiKeyAuth: &extauth.ApiKeyAuth{
 								HeaderName:       "x-api-key",
-								ApiKeySecretRefs: []*core.ResourceRef{&secretRef},
+								ApiKeySecretRefs: []*core.ResourceRef{secretRef},
 								HeadersFromMetadata: map[string]*extauth.ApiKeyAuth_SecretKey{
 									"x-user-id": {
 										Name:     "user-id",
@@ -285,7 +284,7 @@ var _ = Describe("Translate", func() {
 				authConfigRef = authConfig.Metadata.Ref()
 				extAuthExtension = &extauth.ExtAuthExtension{
 					Spec: &extauth.ExtAuthExtension_ConfigRef{
-						ConfigRef: &authConfigRef,
+						ConfigRef: authConfigRef,
 					},
 				}
 
@@ -297,13 +296,13 @@ var _ = Describe("Translate", func() {
 			It("should fail if required metadata is missing on the secret", func() {
 				secret.GetApiKey().Metadata = nil
 
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(MissingRequiredMetadataError("user-id", secret).Error())))
 			})
 
 			It("should include secret metadata in the API key metadata", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -329,7 +328,7 @@ var _ = Describe("Translate", func() {
 					secret.GetApiKey().Metadata = nil
 					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadata()["x-user-id"].Required = false
 
-					translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+					translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 					Expect(translated.Configs).To(HaveLen(1))
@@ -352,7 +351,7 @@ var _ = Describe("Translate", func() {
 		Context("with api key ext auth, label matching", func() {
 			BeforeEach(func() {
 				authConfig = &extauth.AuthConfig{
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "apikey",
 						Namespace: "gloo-system",
 					},
@@ -367,7 +366,7 @@ var _ = Describe("Translate", func() {
 				authConfigRef = authConfig.Metadata.Ref()
 				extAuthExtension = &extauth.ExtAuthExtension{
 					Spec: &extauth.ExtAuthExtension_ConfigRef{
-						ConfigRef: &authConfigRef,
+						ConfigRef: authConfigRef,
 					},
 				}
 
@@ -377,7 +376,7 @@ var _ = Describe("Translate", func() {
 			})
 
 			It("should translate api keys config for extauth server - matching label", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -391,21 +390,21 @@ var _ = Describe("Translate", func() {
 
 			It("should translate api keys config for extauth server - mismatched labels", func() {
 				secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
 			})
 
 			It("should translate api keys config for extauth server - mismatched labels", func() {
 				secret.Metadata.Labels = map[string]string{}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
 			})
 
 			It("should translate api keys config for extauth server - mismatched labels", func() {
 				secret.Metadata.Labels = nil
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
 			})
@@ -415,7 +414,7 @@ var _ = Describe("Translate", func() {
 	Context("with OPA extauth", func() {
 		BeforeEach(func() {
 			authConfig = &extauth.AuthConfig{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "oauth",
 					Namespace: "gloo-system",
 				},
@@ -431,7 +430,7 @@ var _ = Describe("Translate", func() {
 			authConfigRef = authConfig.Metadata.Ref()
 			extAuthExtension = &extauth.ExtAuthExtension{
 				Spec: &extauth.ExtAuthExtension_ConfigRef{
-					ConfigRef: &authConfigRef,
+					ConfigRef: authConfigRef,
 				},
 			}
 
@@ -443,7 +442,7 @@ var _ = Describe("Translate", func() {
 			params.Snapshot.Artifacts = v1.ArtifactList{
 				{
 
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "name",
 						Namespace: "namespace",
 					},
@@ -453,7 +452,7 @@ var _ = Describe("Translate", func() {
 		})
 
 		It("should OPA config", func() {
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, &authConfigRef)
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 			Expect(translated.Configs).To(HaveLen(1))

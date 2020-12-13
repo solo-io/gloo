@@ -81,9 +81,8 @@ install-go-tools:
 	mkdir -p $(DEPSGOBIN)
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
 	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
-	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/protoc-gen-gogo
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
-	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/gogoproto
 	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
 	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
 
@@ -141,11 +140,11 @@ generated-code:
 
 # Flags for all UI code generation
 COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io \
 		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
-		-I$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external \
+		-I$(PROTOC_IMPORT_PATH)/ \
+		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
 		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
 
@@ -162,8 +161,6 @@ generated-ui:
 	rm -rf projects/gloo-ui/src/proto
 	mkdir -p projects/gloo-ui/src/proto
 	ci/check-protoc.sh
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/gogo/protobuf/gogoproto/gogo.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
 	protoc $(UI_TYPES_PROTOC_FLAGS) \

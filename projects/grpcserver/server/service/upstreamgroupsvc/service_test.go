@@ -68,13 +68,13 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetUpstreamGroup", func() {
 		It("works when the upstream group client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			upstreamGroup := &gloov1.UpstreamGroup{
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 				Metadata: metadata,
 			}
 			raw := getRaw(metadata.Name)
@@ -86,7 +86,7 @@ var _ = Describe("ServiceTest", func() {
 				GetRaw(context.TODO(), upstreamGroup, gloov1.UpstreamGroupCrd).
 				Return(getRaw(metadata.Name))
 
-			request := &v1.GetUpstreamGroupRequest{Ref: &ref}
+			request := &v1.GetUpstreamGroupRequest{Ref: ref}
 			actual, err := apiserver.GetUpstreamGroup(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetUpstreamGroupResponse{UpstreamGroupDetails: getDetails(upstreamGroup, raw)}
@@ -104,10 +104,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetUpstreamGroupRequest{Ref: &ref}
+			request := &v1.GetUpstreamGroupRequest{Ref: ref}
 			_, err := apiserver.GetUpstreamGroup(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamgroupsvc.FailedToReadUpstreamGroupError(testErr, &ref)
+			expectedErr := upstreamgroupsvc.FailedToReadUpstreamGroupError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -117,12 +117,12 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			n1, n2 := "n1", "n2"
 			upstream1 := &gloov1.UpstreamGroup{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns1, Name: n1},
+				Status:   &core.Status{State: core.Status_Accepted},
+				Metadata: &core.Metadata{Namespace: ns1, Name: n1},
 			}
 			upstream2 := &gloov1.UpstreamGroup{
-				Status:   core.Status{State: core.Status_Pending},
-				Metadata: core.Metadata{Namespace: ns2, Name: n2},
+				Status:   &core.Status{State: core.Status_Pending},
+				Metadata: &core.Metadata{Namespace: ns2, Name: n2},
 			}
 			raw1, raw2 := getRaw(n1), getRaw(n2)
 
@@ -169,14 +169,14 @@ var _ = Describe("ServiceTest", func() {
 		})
 		Context("with unified input objects", func() {
 			It("works when the client works", func() {
-				metadata := core.Metadata{
+				metadata := &core.Metadata{
 					Namespace: "ns",
 					Name:      "name",
 				}
 
 				upstreamGroup := &gloov1.UpstreamGroup{
 					Metadata: metadata,
-					Status:   core.Status{State: core.Status_Accepted},
+					Status:   &core.Status{State: core.Status_Accepted},
 				}
 				raw := getRaw("name")
 
@@ -196,11 +196,11 @@ var _ = Describe("ServiceTest", func() {
 			})
 
 			It("errors when the client errors", func() {
-				metadata := core.Metadata{}
+				metadata := &core.Metadata{}
 				ref := metadata.Ref()
 				upstreamGroup := &gloov1.UpstreamGroup{
 					Metadata: metadata,
-					Status:   core.Status{State: core.Status_Accepted},
+					Status:   &core.Status{State: core.Status_Accepted},
 				}
 
 				upstreamGroupClient.EXPECT().
@@ -224,13 +224,13 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("works when the upstream group client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			upstreamGroup := &gloov1.UpstreamGroup{
 				Metadata: metadata,
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 			}
 			request := &v1.UpdateUpstreamGroupRequest{UpstreamGroup: upstreamGroup}
 
@@ -254,13 +254,13 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when the upstream group client errors", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			upstreamGroup := &gloov1.UpstreamGroup{
 				Metadata: metadata,
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 			}
 			request := &v1.UpdateUpstreamGroupRequest{UpstreamGroup: upstreamGroup}
 
@@ -282,24 +282,24 @@ var _ = Describe("ServiceTest", func() {
 
 		It("works on valid input", func() {
 			yamlString := "totally-valid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			upstreamGroup := &gloov1.UpstreamGroup{
 				Metadata: metadata,
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 			}
 			request := &v1.UpdateUpstreamGroupYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			upstreamGroupClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
@@ -322,20 +322,20 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors with an invalid yaml", func() {
 			yamlString := "totally-invalid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			request := &v1.UpdateUpstreamGroupYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(testErr)
 
 			_, err := apiserver.UpdateUpstreamGroupYaml(context.TODO(), request)
@@ -346,20 +346,20 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors when the upstream group client errors", func() {
 			yamlString := "totally-valid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			request := &v1.UpdateUpstreamGroupYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			upstreamGroupClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).

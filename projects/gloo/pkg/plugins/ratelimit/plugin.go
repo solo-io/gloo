@@ -2,11 +2,11 @@ package ratelimit
 
 import (
 	"context"
-	"time"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/hashicorp/go-multierror"
 	"github.com/rotisserie/eris"
@@ -49,7 +49,7 @@ const (
 
 type Plugin struct {
 	upstreamRef         *core.ResourceRef
-	timeout             *time.Duration
+	timeout             *duration.Duration
 	denyOnFail          bool
 	rateLimitBeforeAuth bool
 
@@ -282,7 +282,7 @@ func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 // We use two separate filters to guarantee isolation between the two configuration types.
 func (p *Plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var upstreamRef *core.ResourceRef
-	var timeout *time.Duration
+	var timeout *duration.Duration
 	var denyOnFail bool
 	var rateLimitBeforeAuth bool
 
@@ -305,8 +305,8 @@ func (p *Plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plu
 	filterStage := rlplugin.DetermineFilterStage(rateLimitBeforeAuth)
 
 	configForFilters := []*envoyratelimit.RateLimit{
-		rlplugin.GenerateEnvoyConfigForFilterWith(*upstreamRef, IngressDomain, IngressRateLimitStage, timeout, denyOnFail),
-		rlplugin.GenerateEnvoyConfigForFilterWith(*upstreamRef, ConfigCrdDomain, CrdStage, timeout, denyOnFail),
+		rlplugin.GenerateEnvoyConfigForFilterWith(upstreamRef, IngressDomain, IngressRateLimitStage, timeout, denyOnFail),
+		rlplugin.GenerateEnvoyConfigForFilterWith(upstreamRef, ConfigCrdDomain, CrdStage, timeout, denyOnFail),
 	}
 
 	var stagedFilters []plugins.StagedHttpFilter

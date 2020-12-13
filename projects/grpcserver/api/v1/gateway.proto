@@ -2,12 +2,12 @@ syntax = "proto3";
 package glooeeapi.solo.io;
 option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
 
-import "gogoproto/gogo.proto";
-option (gogoproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.equal_all) = true;
 
-import "gloo/projects/gateway/api/v1/gateway.proto";
-import "solo-kit/api/v1/ref.proto";
-import "solo-projects/projects/grpcserver/api/v1/types.proto";
+import "github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/types.proto";
 
 message GatewayDetails {
     gateway.solo.io.Gateway gateway = 1;

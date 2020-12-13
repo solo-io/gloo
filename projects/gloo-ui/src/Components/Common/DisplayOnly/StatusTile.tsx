@@ -4,7 +4,7 @@ import { useHistory } from 'react-router';
 import { colors, soloConstants } from 'Styles';
 import { HealthIndicator } from '../HealthIndicator';
 import { css } from '@emotion/core';
-import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 
 const StatusTileContainer = styled.div`
   height: 100%;

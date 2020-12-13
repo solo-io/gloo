@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -221,7 +222,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					authConfigClient, err = extauthv1.NewAuthConfigClient(ctx, authConfigClientFactory)
 					Expect(err).NotTo(HaveOccurred(), "Should create auth config client")
 					authConfig, err := authConfigClient.Write(&extauthv1.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "basic-auth",
 							Namespace: testHelper.InstallNamespace,
 						},
@@ -247,7 +248,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					authConfigRef := authConfig.Metadata.Ref()
 					extAuthConfigProto := &extauthv1.ExtAuthExtension{
 						Spec: &extauthv1.ExtAuthExtension_ConfigRef{
-							ConfigRef: &authConfigRef,
+							ConfigRef: authConfigRef,
 						},
 					}
 
@@ -279,7 +280,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 							Name:      "rate-limit",
 							Namespace: testHelper.InstallNamespace,
 						},
-						RequestTimeout:      &timeout,
+						RequestTimeout:      ptypes.DurationProto(timeout),
 						RateLimitBeforeAuth: false, // start as false to make sure that we correctly get denied by authZ before rate limited
 					}
 					settings.Extauth = &extauthv1.Settings{

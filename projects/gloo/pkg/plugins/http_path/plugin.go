@@ -4,9 +4,6 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	"github.com/gogo/protobuf/types"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	envoy_core_v3_endpoint "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	pbhttp_path "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/http_path"
 	envoy_type_matcher_v3_solo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -100,7 +97,7 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 				Key:   rh.GetHeader().GetKey(),
 				Value: rh.GetHeader().GetValue(),
 			},
-			Append: gogoutils.BoolProtoToGogo(rh.Append),
+			Append: rh.GetAppend(),
 		})
 	}
 	ret.RequestHeadersToRemove = httpHealth.RequestHeadersToRemove
@@ -123,7 +120,7 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_SafeRegex{
 				SafeRegex: &envoy_type_matcher_v3_solo.RegexMatcher{
 					EngineType: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRe2{GoogleRe2: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRE2{
-						MaxProgramSize: gogoutils.UInt32ProtoToGogo(pattern.SafeRegex.GetGoogleRe2().GetMaxProgramSize()),
+						MaxProgramSize: pattern.SafeRegex.GetGoogleRe2().GetMaxProgramSize(),
 					}},
 					Regex: pattern.SafeRegex.Regex,
 				},
@@ -148,13 +145,4 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 		}
 	}
 	return ret
-}
-
-func convertBool(i *wrappers.BoolValue) *types.BoolValue {
-	if i == nil {
-		return nil
-	}
-	return &types.BoolValue{
-		Value: i.Value,
-	}
 }

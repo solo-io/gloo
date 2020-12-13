@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/fgrosse/zaptest"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
-	"github.com/solo-io/gloo/pkg/utils"
 	kubeconverters "github.com/solo-io/gloo/projects/gloo/pkg/api/converters/kube"
 	corev2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -36,7 +36,7 @@ var _ = Describe("Failover", func() {
 
 		timeout = 1 * time.Second
 
-		simpleProxy = func(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+		simpleProxy = func(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 			var vhosts []*gloov1.VirtualHost
 
 			vhost := &gloov1.VirtualHost{
@@ -48,7 +48,7 @@ var _ = Describe("Failover", func() {
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(upstream),
+										Upstream: upstream,
 									},
 								},
 							},
@@ -60,7 +60,7 @@ var _ = Describe("Failover", func() {
 			vhosts = append(vhosts, vhost)
 
 			p := &gloov1.Proxy{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "proxy",
 					Namespace: "default",
 				},
@@ -157,15 +157,15 @@ var _ = Describe("Failover", func() {
 							Path: "/health",
 						},
 					},
-					HealthyThreshold: &types.UInt32Value{
+					HealthyThreshold: &wrappers.UInt32Value{
 						Value: 1,
 					},
-					UnhealthyThreshold: &types.UInt32Value{
+					UnhealthyThreshold: &wrappers.UInt32Value{
 						Value: 1,
 					},
-					NoTrafficInterval: types.DurationProto(time.Second / 2),
-					Timeout:           &timeout,
-					Interval:          &timeout,
+					NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+					Timeout:           ptypes.DurationProto(timeout),
+					Interval:          ptypes.DurationProto(timeout),
 				},
 			}
 			testUpstream.Upstream.Failover = &gloov1.Failover{
@@ -205,8 +205,10 @@ var _ = Describe("Failover", func() {
 				if err != nil {
 					return core.Status{}, err
 				}
-
-				return proxy.Status, nil
+				if proxy.Status == nil {
+					return core.Status{}, nil
+				}
+				return *proxy.Status, nil
 			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 				"Reason": BeEmpty(),
 				"State":  Equal(core.Status_Accepted),

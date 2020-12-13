@@ -3,28 +3,21 @@ package extauth_test
 import (
 	"time"
 
-	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-
-	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-
-	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
-	"github.com/solo-io/gloo/pkg/utils"
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
 var _ = Describe("Plugin", func() {
@@ -49,7 +42,7 @@ var _ = Describe("Plugin", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		upstream = &v1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "extauth",
 				Namespace: "default",
 			},
@@ -73,7 +66,7 @@ var _ = Describe("Plugin", func() {
 					Destination: &v1.RouteAction_Single{
 						Single: &v1.Destination{
 							DestinationType: &v1.Destination_Upstream{
-								Upstream: utils.ResourceRefPtr(upstream.Metadata.Ref()),
+								Upstream: upstream.Metadata.Ref(),
 							},
 						},
 					},
@@ -86,7 +79,7 @@ var _ = Describe("Plugin", func() {
 		}
 
 		secret = &v1.Secret{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -97,14 +90,14 @@ var _ = Describe("Plugin", func() {
 		secretRef := secret.Metadata.Ref()
 
 		authConfig = &extauthv1.AuthConfig{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "oauth",
 				Namespace: "gloo-system",
 			},
 			Configs: []*extauthv1.AuthConfig_Config{{
 				AuthConfig: &extauthv1.AuthConfig_Config_Oauth{
 					Oauth: &extauthv1.OAuth{
-						ClientSecretRef: &secretRef,
+						ClientSecretRef: secretRef,
 						ClientId:        "ClientId",
 						IssuerUrl:       "IssuerUrl",
 						AppUrl:          "AppUrl",
@@ -116,7 +109,7 @@ var _ = Describe("Plugin", func() {
 		authConfigRef := authConfig.Metadata.Ref()
 		authExtension = &extauthv1.ExtAuthExtension{
 			Spec: &extauthv1.ExtAuthExtension_ConfigRef{
-				ConfigRef: &authConfigRef,
+				ConfigRef: authConfigRef,
 			},
 		}
 	})
@@ -133,7 +126,7 @@ var _ = Describe("Plugin", func() {
 		}
 
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -191,7 +184,7 @@ var _ = Describe("Plugin", func() {
 					AllowPartialMessage: true,
 					MaxRequestBytes:     54,
 				},
-				RequestTimeout: &second,
+				RequestTimeout: ptypes.DurationProto(second),
 			}
 		})
 		JustBeforeEach(func() {
@@ -210,8 +203,7 @@ var _ = Describe("Plugin", func() {
 			goTpfc := filters[0].HttpFilter.GetTypedConfig()
 			Expect(goTpfc).NotTo(BeNil())
 			var sanitizeCfg extauth.Sanitize
-			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err = types.UnmarshalAny(gogoTpfc, &sanitizeCfg)
+			err = ptypes.UnmarshalAny(goTpfc, &sanitizeCfg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{DefaultAuthHeader}))
@@ -230,8 +222,7 @@ var _ = Describe("Plugin", func() {
 
 			goTpfc = filters[0].HttpFilter.GetTypedConfig()
 			Expect(goTpfc).NotTo(BeNil())
-			gogoTpfc = &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err = types.UnmarshalAny(gogoTpfc, &sanitizeCfg)
+			err = ptypes.UnmarshalAny(goTpfc, &sanitizeCfg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{"override"}))

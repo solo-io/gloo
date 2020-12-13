@@ -14,7 +14,7 @@ import {
   CreateUpstreamGroupRequest,
   UpdateUpstreamGroupRequest,
   DeleteUpstreamGroupRequest
-} from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 
 export const listUpstreamGroups = () => {
   return async (dispatch: Dispatch) => {

@@ -4,10 +4,10 @@ import (
 	"context"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
+	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -89,7 +89,7 @@ var _ = Describe("dlp plugin", func() {
 			},
 		}
 		proxy := &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "secret",
 				Namespace: "default",
 			},
@@ -148,8 +148,7 @@ var _ = Describe("dlp plugin", func() {
 			goTpfc := outRoute.TypedPerFilterConfig[FilterName]
 			Expect(goTpfc).NotTo(BeNil())
 			var perRouteDlp transformation_ee.RouteTransformations
-			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err := types.UnmarshalAny(gogoTpfc, &perRouteDlp)
+			err := ptypes.UnmarshalAny(goTpfc, &perRouteDlp)
 			Expect(err).NotTo(HaveOccurred())
 			return &perRouteDlp
 		}
@@ -158,8 +157,7 @@ var _ = Describe("dlp plugin", func() {
 			goTpfc := outVhost.TypedPerFilterConfig[FilterName]
 			Expect(goTpfc).NotTo(BeNil())
 			var perVhostDlp transformation_ee.RouteTransformations
-			gogoTpfc := &types.Any{TypeUrl: goTpfc.TypeUrl, Value: goTpfc.Value}
-			err := types.UnmarshalAny(gogoTpfc, &perVhostDlp)
+			err := ptypes.UnmarshalAny(goTpfc, &perVhostDlp)
 			Expect(err).NotTo(HaveOccurred())
 			return &perVhostDlp
 		}
@@ -215,8 +213,7 @@ var _ = Describe("dlp plugin", func() {
 				}
 				Expect(goTypedConfig).NotTo(BeNil())
 				var filterDlp transformation_ee.FilterTransformations
-				gogoTypedConfig := &types.Any{TypeUrl: goTypedConfig.TypeUrl, Value: goTypedConfig.Value}
-				err := types.UnmarshalAny(gogoTypedConfig, &filterDlp)
+				err := ptypes.UnmarshalAny(goTypedConfig, &filterDlp)
 				Expect(err).NotTo(HaveOccurred())
 				if len(filterDlp.GetTransformations()) == 0 {
 					return nil
@@ -264,7 +261,7 @@ var _ = Describe("dlp plugin", func() {
 					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).NotTo(BeNil())
 					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
 					mAll := translator.GlooMatcherToEnvoyMatcher(params, matchAll)
-					expected := gogoutils.ToGlooRouteMatch(&mAll)
+					expected := api_conversion.ToGlooRouteMatch(&mAll)
 					Expect(*(rule.GetMatch())).To(Equal(*expected))
 				})
 			})

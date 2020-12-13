@@ -5,10 +5,10 @@ import (
 	"time"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -109,7 +109,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	ctx := context.TODO()
 
 	extAuthServerUpstream := &gloov1.Upstream{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "extauth",
 			Namespace: "default",
 		},
@@ -133,7 +133,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	authConfigRef := basicAuthConfig.Metadata.Ref()
 	enableAuthNewFormat := &extauthv1.ExtAuthExtension{
 		Spec: &extauthv1.ExtAuthExtension_ConfigRef{
-			ConfigRef: &authConfigRef,
+			ConfigRef: authConfigRef,
 		},
 	}
 
@@ -149,7 +149,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	weightedDestination := &gloov1.WeightedDestination{
 		Destination: &gloov1.Destination{
 			DestinationType: &gloov1.Destination_Upstream{
-				Upstream: utils.ResourceRefPtr(extAuthServerUpstream.Metadata.Ref()),
+				Upstream: extAuthServerUpstream.Metadata.Ref(),
 			},
 		},
 		Weight:  1,
@@ -173,7 +173,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 							{
 								Destination: &gloov1.Destination{
 									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: utils.ResourceRefPtr(extAuthServerUpstream.Metadata.Ref()),
+										Upstream: extAuthServerUpstream.Metadata.Ref(),
 									},
 								},
 								Weight: 1,
@@ -225,7 +225,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	// Proxy
 	// ----------------------------------------------------------------------------
 	proxy := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},
@@ -278,23 +278,22 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 }
 
 func buildExtAuthSettings(extAuthServerUs *gloov1.Upstream) *extauthv1.Settings {
-	second := time.Second
 	extAuthRef := extAuthServerUs.Metadata.Ref()
 
 	return &extauthv1.Settings{
-		ExtauthzServerRef: &extAuthRef,
+		ExtauthzServerRef: extAuthRef,
 		FailureModeAllow:  true,
 		RequestBody: &extauthv1.BufferSettings{
 			AllowPartialMessage: true,
 			MaxRequestBytes:     64,
 		},
-		RequestTimeout: &second,
+		RequestTimeout: ptypes.DurationProto(time.Second),
 	}
 }
 
 func getBasicAuthConfig() *extauthv1.AuthConfig {
 	return &extauthv1.AuthConfig{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "basic-auth",
 			Namespace: defaults.GlooSystem,
 		},

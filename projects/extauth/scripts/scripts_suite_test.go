@@ -5,18 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
-
-	errors "github.com/rotisserie/eris"
-	"github.com/solo-io/anyvendor/pkg/modutils"
-
-	"github.com/gogo/protobuf/types"
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	"github.com/solo-io/go-utils/contextutils"
-	"go.uber.org/zap"
-
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/anyvendor/pkg/modutils"
+	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/test/matchers"
+	"go.uber.org/zap"
 )
 
 func TestScripts(t *testing.T) {
@@ -55,13 +53,13 @@ var _ = Describe("Plugin verification script", func() {
 			pluginCfg, err := parseManifestFile(validManifest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pluginCfg).NotTo(BeNil())
-			Expect(pluginCfg).To(Equal(
+			Expect(pluginCfg).To(matchers.MatchProto(
 				&extauth.AuthPlugin{
 					Name:               "IsHeaderPresent",
 					PluginFileName:     "IsHeaderPresent.so",
 					ExportedSymbolName: "IsHeaderPresent",
-					Config: &types.Struct{
-						Fields: map[string]*types.Value{},
+					Config: &structpb.Struct{
+						Fields: map[string]*structpb.Value{},
 					},
 				},
 			))

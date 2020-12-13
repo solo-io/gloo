@@ -4,6 +4,7 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
@@ -28,8 +29,11 @@ func NewMutationFactory() MutationFactory {
 // Only sets fields that are non-nil in the input to allow for delta-style updates.
 func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV2) Mutation {
 	return func(vs *gatewayv1.VirtualService) error {
+		if vs.GetMetadata() == nil {
+			vs.Metadata = &core.Metadata{}
+		}
 		// Only set metadata if this is a new Virtual Service
-		if vs.GetMetadata().Namespace == "" {
+		if vs.GetMetadata().GetNamespace() == "" {
 			vs.Metadata.Namespace = input.GetRef().GetNamespace()
 			vs.Metadata.Name = input.GetRef().GetName()
 		}
@@ -47,7 +51,7 @@ func (*mutationFactory) ConfigureVirtualServiceV2(input *v1.VirtualServiceInputV
 				vs.VirtualHost.Options = &gloov1.VirtualHostOptions{}
 			}
 			if input.GetRateLimitConfig() != nil {
-				if vs.VirtualHost.Options.GetExtensions().GetConfigs() != nil {
+				if vs.GetVirtualHost().GetOptions().GetExtensions().GetConfigs() != nil {
 					delete(vs.VirtualHost.Options.Extensions.Configs, ratelimit.ExtensionName)
 				}
 				vs.VirtualHost.Options.RatelimitBasic = input.GetRateLimitConfig().GetValue()

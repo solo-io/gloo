@@ -38,7 +38,7 @@ var (
 	rawGetter             *mock_rawgetter.MockRawGetter
 	testErr               = errors.Errorf("test-err")
 	uint32Zero, uint32One = uint32(0), uint32(1)
-	metadata              = core.Metadata{
+	metadata              = &core.Metadata{
 		Namespace: "ns",
 		Name:      "name",
 	}
@@ -86,7 +86,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(getRaw(routeTable.Metadata.Name))
 			detailsExpectation.Times(1)
 
-			request := &v1.GetRouteTableRequest{Ref: &ref}
+			request := &v1.GetRouteTableRequest{Ref: ref}
 			actual, err := apiserver.GetRouteTable(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetRouteTableResponse{RouteTableDetails: routeTableDetails}
@@ -98,10 +98,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetRouteTableRequest{Ref: &ref}
+			request := &v1.GetRouteTableRequest{Ref: ref}
 			_, err := apiserver.GetRouteTable(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := routetablesvc.FailedToReadRouteTableError(testErr, &ref)
+			expectedErr := routetablesvc.FailedToReadRouteTableError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -111,12 +111,12 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			name1, name2 := "a", "b"
 			routeTable1 := &gatewayv1.RouteTable{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns1, Name: name1},
+				Status:   &core.Status{State: core.Status_Accepted},
+				Metadata: &core.Metadata{Namespace: ns1, Name: name1},
 			}
 			routeTable2 := &gatewayv1.RouteTable{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns2, Name: name2},
+				Status:   &core.Status{State: core.Status_Accepted},
+				Metadata: &core.Metadata{Namespace: ns2, Name: name2},
 			}
 			routeTableDetails1 := &v1.RouteTableDetails{
 				RouteTable: routeTable1,
@@ -350,7 +350,7 @@ var _ = Describe("ServiceTest", func() {
 				Return(nil)
 			detailsExpectation.Times(0)
 
-			request := &v1.DeleteRouteTableRequest{Ref: &ref}
+			request := &v1.DeleteRouteTableRequest{Ref: ref}
 			actual, err := apiserver.DeleteRouteTable(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.DeleteRouteTableResponse{}
@@ -363,10 +363,10 @@ var _ = Describe("ServiceTest", func() {
 				Return(testErr)
 			detailsExpectation.Times(0)
 
-			request := &v1.DeleteRouteTableRequest{Ref: &ref}
+			request := &v1.DeleteRouteTableRequest{Ref: ref}
 			_, err := apiserver.DeleteRouteTable(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := routetablesvc.FailedToDeleteRouteTableError(testErr, &ref)
+			expectedErr := routetablesvc.FailedToDeleteRouteTableError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

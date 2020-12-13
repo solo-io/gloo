@@ -1,5 +1,5 @@
 import { colors } from './colors';
-import { Status } from 'proto/solo-kit/api/v1/status_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 
 export const healthConstants = {
   Good: {

@@ -94,7 +94,7 @@ var _ = Describe("External http", func() {
 			startLocalHttpExtAuthServer(testCtx, extauthPort)
 		}(ctx)
 		extauthServer = &gloov1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
@@ -118,7 +118,7 @@ var _ = Describe("External http", func() {
 		// Start Gloo, pointing it to the ext auth server
 		ref := extauthServer.Metadata.Ref()
 		extauthSettings = &extauth.Settings{
-			ExtauthzServerRef: &ref,
+			ExtauthzServerRef: ref,
 			HttpService:       &extauth.HttpService{},
 		}
 	})
@@ -161,8 +161,11 @@ var _ = Describe("External http", func() {
 				if err != nil {
 					return core.Status{}, err
 				}
+				if proxyFromStorage.Status == nil {
+					return core.Status{}, nil
+				}
 
-				return proxyFromStorage.Status, nil
+				return *proxyFromStorage.Status, nil
 			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
 				"Reason": BeEmpty(),
 				"State":  Equal(core.Status_Accepted),
@@ -194,7 +197,7 @@ var _ = Describe("External http", func() {
 			BeforeEach(func() {
 				ref := extauthServer.Metadata.Ref()
 				extauthSettings = &extauth.Settings{
-					ExtauthzServerRef: &ref,
+					ExtauthzServerRef: ref,
 					HttpService: &extauth.HttpService{
 						// test that prefix with trailing slash is handled correctly
 						PathPrefix: "/prefix/",
@@ -225,7 +228,7 @@ var _ = Describe("External http", func() {
 	})
 })
 
-func getProxyCustomAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getProxyCustomAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	extauthCfg := &extauth.ExtAuthExtension{
 		Spec: &extauth.ExtAuthExtension_CustomAuth{
 			CustomAuth: &extauth.CustomAuth{},

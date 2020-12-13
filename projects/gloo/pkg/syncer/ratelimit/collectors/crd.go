@@ -4,6 +4,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -17,7 +18,7 @@ type crdConfigCollector struct {
 	reports    reporter.ResourceReports
 	translator rate_limiter_shims.RateLimitConfigTranslator
 
-	resources map[core.ResourceRef]*solo_api_rl_types.RateLimitConfigSpec_Raw
+	resources map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw
 }
 
 func NewCrdConfigCollector(
@@ -29,7 +30,7 @@ func NewCrdConfigCollector(
 		snapshot:   snapshot,
 		reports:    reports,
 		translator: translator,
-		resources:  map[core.ResourceRef]*solo_api_rl_types.RateLimitConfigSpec_Raw{},
+		resources:  map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw{},
 	}
 }
 
@@ -62,10 +63,10 @@ func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, 
 
 func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRefs, parentProxy resources.InputResource) {
 	for _, ref := range refs.GetRefs() {
-		resourceRef := core.ResourceRef{Namespace: ref.Namespace, Name: ref.Name}
-
+		resourceRef := &core.ResourceRef{Namespace: ref.Namespace, Name: ref.Name}
+		resourceKey := translator.UpstreamToClusterName(resourceRef)
 		// Skip resources we have already processed
-		if _, exists := c.resources[resourceRef]; exists {
+		if _, exists := c.resources[resourceKey]; exists {
 			continue
 		}
 
@@ -83,6 +84,6 @@ func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRef
 			continue
 		}
 
-		c.resources[resourceRef] = descriptors
+		c.resources[resourceKey] = descriptors
 	}
 }

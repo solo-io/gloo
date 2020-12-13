@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	rate_limiter "github.com/solo-io/rate-limiter/pkg/api/ratelimit.solo.io/v1alpha1"
 	rate_limiter_types "github.com/solo-io/rate-limiter/pkg/api/ratelimit.solo.io/v1alpha1/types"
 	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"

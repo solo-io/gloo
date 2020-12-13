@@ -85,16 +85,16 @@ func (s *gatewayGrpcService) UpdateGateway(ctx context.Context, request *v1.Upda
 	ref := gateway.GetMetadata().Ref()
 	read, err := s.clientCache.GetGatewayClient().Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: s.ctx})
 	if err != nil {
-		wrapped := FailedToUpdateGatewayError(err, &ref)
+		wrapped := FailedToUpdateGatewayError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
 	gateway.Metadata.ResourceVersion = read.Metadata.ResourceVersion
-	gateway.Status = core.Status{}
+	gateway.Status = &core.Status{}
 	written, err := s.clientCache.GetGatewayClient().Write(gateway, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
-		wrapped := FailedToUpdateGatewayError(err, &ref)
+		wrapped := FailedToUpdateGatewayError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

@@ -8,22 +8,20 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
-	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-
 	envoytls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	mock_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover/mocks"
@@ -60,7 +58,7 @@ var _ = Describe("Failover", func() {
 				PortValue: 9090,
 				Hostname:  "new.host.who.dis",
 			},
-			LoadBalancingWeight: &types.UInt32Value{
+			LoadBalancingWeight: &wrappers.UInt32Value{
 				Value: 9999,
 			},
 		}
@@ -80,7 +78,7 @@ var _ = Describe("Failover", func() {
 								LbEndpoints: []*gloov1.LbEndpoint{
 									sslEndpoint,
 								},
-								LoadBalancingWeight: &types.UInt32Value{
+								LoadBalancingWeight: &wrappers.UInt32Value{
 									Value: 8888,
 								},
 							},
@@ -97,7 +95,7 @@ var _ = Describe("Failover", func() {
 								LbEndpoints: []*gloov1.LbEndpoint{
 									httpEndpoint,
 								},
-								LoadBalancingWeight: &types.UInt32Value{
+								LoadBalancingWeight: &wrappers.UInt32Value{
 									Value: 7777,
 								},
 							},
@@ -290,7 +288,7 @@ var _ = Describe("Failover", func() {
 								LbEndpoints: []*gloov1.LbEndpoint{
 									{
 										Address: "dns.name",
-										LoadBalancingWeight: &types.UInt32Value{
+										LoadBalancingWeight: &wrappers.UInt32Value{
 											Value: 9999,
 										},
 									},

@@ -4,17 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
-
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
-
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes/duration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
-
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	mock_gloo "github.com/solo-io/gloo/projects/gloo/pkg/mocks"
@@ -23,8 +17,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	mock_license "github.com/solo-io/solo-projects/pkg/license/mocks"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
+	mock_rawgetter "github.com/solo-io/solo-projects/projects/grpcserver/server/helpers/rawgetter/mocks"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/client/mocks"
 	mock_namespace "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 )
 
 var (
@@ -116,11 +113,11 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetSettings", func() {
 		It("works when the settings client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
-			settings := &gloov1.Settings{RefreshRate: &types.Duration{Seconds: 1}, Metadata: metadata}
+			settings := &gloov1.Settings{RefreshRate: &duration.Duration{Seconds: 1}, Metadata: metadata}
 			raw := getRaw(metadata.Name)
 			settingsClient.EXPECT().
 				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
@@ -153,7 +150,7 @@ var _ = Describe("ServiceTest", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
 		Context("with unified input objects", func() {
-			buildSettings := func(watchNamespaces []string, refreshRate *types.Duration) *gloov1.Settings {
+			buildSettings := func(watchNamespaces []string, refreshRate *duration.Duration) *gloov1.Settings {
 				namespaces := watchNamespaces
 
 				// the server will change an empty array in the proto object to nil
@@ -161,7 +158,7 @@ var _ = Describe("ServiceTest", func() {
 					namespaces = nil
 				}
 				return &gloov1.Settings{
-					Metadata: core.Metadata{
+					Metadata: &core.Metadata{
 						Name:      "name",
 						Namespace: "ns",
 					},
@@ -175,7 +172,7 @@ var _ = Describe("ServiceTest", func() {
 					Name:      "name",
 				}
 				raw := getRaw(metadata.Name)
-				refreshRate := types.Duration{Seconds: 1}
+				refreshRate := duration.Duration{Seconds: 1}
 				watchNamespaces := []string{"a", "b"}
 				request := &v1.UpdateSettingsRequest{
 					Settings: buildSettings(watchNamespaces, &refreshRate),
@@ -197,7 +194,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 
 			It("errors when the provided refresh rate is invalid", func() {
-				refreshRate := types.Duration{Nanos: 1}
+				refreshRate := duration.Duration{Nanos: 1}
 				request := &v1.UpdateSettingsRequest{
 					Settings: buildSettings([]string{}, &refreshRate),
 				}
@@ -210,7 +207,7 @@ var _ = Describe("ServiceTest", func() {
 			})
 
 			It("errors when the settings client fails to write", func() {
-				settings := buildSettings([]string{}, &types.Duration{Seconds: 1})
+				settings := buildSettings([]string{}, &duration.Duration{Seconds: 1})
 				request := &v1.UpdateSettingsRequest{Settings: settings}
 
 				settingsClient.EXPECT().
@@ -233,7 +230,7 @@ var _ = Describe("ServiceTest", func() {
 
 		It("works on valid input", func() {
 			yamlString := "totally-valid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
@@ -243,13 +240,13 @@ var _ = Describe("ServiceTest", func() {
 			}
 			request := &v1.UpdateSettingsYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			settingsClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
@@ -280,13 +277,13 @@ var _ = Describe("ServiceTest", func() {
 			ref := metadata.Ref()
 			request := &v1.UpdateSettingsYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(testErr)
 
 			_, err := apiserver.UpdateSettingsYaml(context.TODO(), request)
@@ -304,13 +301,13 @@ var _ = Describe("ServiceTest", func() {
 			ref := metadata.Ref()
 			request := &v1.UpdateSettingsYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			settingsClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).

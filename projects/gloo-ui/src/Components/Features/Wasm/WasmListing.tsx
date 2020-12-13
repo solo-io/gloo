@@ -5,7 +5,7 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import useSWR from 'swr';
 import { gatewayAPI } from 'store/gateway/api';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { WasmFilter } from 'proto/gloo/projects/gloo/api/v1/options/wasm/wasm_pb';
+import { WasmFilter } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/wasm/wasm_pb';
 import { NavLink } from 'react-router-dom';
 import css from '@emotion/css/macro';
 import { colors } from 'Styles/colors';

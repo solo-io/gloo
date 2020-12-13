@@ -23,7 +23,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 
 		It("should verify that auth configs actually contain config", func() {
 			authConfig = &extauth.AuthConfig{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "test",
 					Namespace: "gloo-system",
 				},
@@ -38,7 +38,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 
 		It("should verify auth configs types contain sane values", func() {
 			authConfig = &extauth.AuthConfig{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Name:      "test-auth",
 					Namespace: "gloo-system",
 				},
@@ -77,17 +77,17 @@ var _ = Describe("ValidateAuthConfig", func() {
 			Expect(reports.ValidateStrict()).To(HaveOccurred())
 			errStrings := reports.ValidateStrict().Error()
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for basic auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for basic auth config test-auth.gloo-system`))
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for oauth auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for oauth auth config test-auth.gloo-system`))
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for apikey auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for apikey auth config test-auth.gloo-system`))
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for plugin auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for plugin auth config test-auth.gloo-system`))
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for opa auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for opa auth config test-auth.gloo-system`))
 			Expect(errStrings).To(
-				ContainSubstring("Invalid configurations for ldap auth config {test-auth gloo-system}"))
+				ContainSubstring(`Invalid configurations for ldap auth config test-auth.gloo-system`))
 		})
 	})
 

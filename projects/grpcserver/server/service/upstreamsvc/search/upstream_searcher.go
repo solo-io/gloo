@@ -24,7 +24,7 @@ type UpstreamSearcher interface {
 
 // We define this interface to abstract both virtual services and route tables
 type resourceWithRoutes interface {
-	GetMetadata() core.Metadata
+	GetMetadata() *core.Metadata
 	GetRoutes() []*gatewayv1.Route
 }
 
@@ -75,7 +75,7 @@ func (s *upstreamSearcher) FindContainingVirtualServices(ctx context.Context, up
 			return nil, err
 		}
 		if found {
-			results = append(results, &vsRef)
+			results = append(results, vsRef)
 		}
 	}
 

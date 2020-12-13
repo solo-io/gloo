@@ -49,7 +49,7 @@ var _ = Describe("CRD Config Collector", func() {
 		rl3 = makeRateLimitConfig("baz", "default")
 
 		proxy = &v1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "foo",
 				Namespace: "bar",
 			},
@@ -83,7 +83,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 		When("an non-existing config is referenced", func() {
 			It("reports the corresponding error on the proxy", func() {
-				invalidRef := core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
+				invalidRef := &core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
 
 				collector.ProcessVirtualHost(virtualHostWithConfigs(invalidRef), proxy)
 
@@ -117,7 +117,7 @@ var _ = Describe("CRD Config Collector", func() {
 				Expect(proxyReport.Errors).To(HaveOccurred())
 				Expect(proxyReport.Errors).To(MatchError(ContainSubstring("test error")))
 
-				_, rlReport := reports.Find(resources.Kind(rl1), core.ResourceRef{Name: rl1.Name, Namespace: rl1.Namespace})
+				_, rlReport := reports.Find(resources.Kind(rl1), &core.ResourceRef{Name: rl1.Name, Namespace: rl1.Namespace})
 				Expect(rlReport.Errors).To(HaveOccurred())
 				Expect(rlReport.Errors).To(MatchError(ContainSubstring("test error")))
 			})
@@ -164,7 +164,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 		When("an non-existing config is referenced", func() {
 			It("reports the corresponding error on the proxy", func() {
-				invalidRef := core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
+				invalidRef := &core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
 
 				collector.ProcessRoute(routeWithConfigs(invalidRef), &v1.VirtualHost{}, proxy)
 
@@ -198,7 +198,7 @@ var _ = Describe("CRD Config Collector", func() {
 				Expect(proxyReport.Errors).To(HaveOccurred())
 				Expect(proxyReport.Errors).To(MatchError(ContainSubstring("test error")))
 
-				_, rlReport := reports.Find(resources.Kind(rl1), core.ResourceRef{Name: rl1.Name, Namespace: rl1.Namespace})
+				_, rlReport := reports.Find(resources.Kind(rl1), &core.ResourceRef{Name: rl1.Name, Namespace: rl1.Namespace})
 				Expect(rlReport.Errors).To(HaveOccurred())
 				Expect(rlReport.Errors).To(MatchError(ContainSubstring("test error")))
 			})
@@ -294,7 +294,7 @@ func makeRateLimitConfig(name, ns string) *gloo_rl_api.RateLimitConfig {
 	}
 }
 
-func virtualHostWithConfigs(configs ...core.ResourceRef) *v1.VirtualHost {
+func virtualHostWithConfigs(configs ...*core.ResourceRef) *v1.VirtualHost {
 	var refs []*ratelimit.RateLimitConfigRef
 	for _, config := range configs {
 		refs = append(refs, &ratelimit.RateLimitConfigRef{
@@ -313,7 +313,7 @@ func virtualHostWithConfigs(configs ...core.ResourceRef) *v1.VirtualHost {
 	}
 }
 
-func routeWithConfigs(configs ...core.ResourceRef) *v1.Route {
+func routeWithConfigs(configs ...*core.ResourceRef) *v1.Route {
 	var refs []*ratelimit.RateLimitConfigRef
 	for _, config := range configs {
 		refs = append(refs, &ratelimit.RateLimitConfigRef{

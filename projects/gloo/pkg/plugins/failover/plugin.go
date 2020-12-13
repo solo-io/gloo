@@ -10,14 +10,14 @@ import (
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/gogo/protobuf/types"
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/pkg/utils/gogoutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -49,14 +49,14 @@ var (
 func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver) plugins.Plugin {
 	return &failoverPluginImpl{
 		sslConfigTranslator: translator,
-		endpoints:           map[core.ResourceRef][]*envoy_config_endpoint_v3.LocalityLbEndpoints{},
+		endpoints:           map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints{},
 		dnsResolver:         dnsResolver,
 	}
 }
 
 type failoverPluginImpl struct {
 	sslConfigTranslator utils.SslConfigTranslator
-	endpoints           map[core.ResourceRef][]*envoy_config_endpoint_v3.LocalityLbEndpoints
+	endpoints           map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints
 	dnsResolver         consul.DnsResolver
 }
 
@@ -86,10 +86,11 @@ func (f *failoverPluginImpl) ProcessUpstream(
 	}
 
 	if out.GetType() == envoy_config_cluster_v3.Cluster_EDS {
-		f.endpoints[core.ResourceRef{
-			Name:      in.Metadata.Name,
-			Namespace: in.Metadata.Namespace,
-		}] = endpoints
+		stringRef := translator.UpstreamToClusterName(&core.ResourceRef{
+			Name:      in.GetMetadata().GetName(),
+			Namespace: in.GetMetadata().GetNamespace(),
+		})
+		f.endpoints[stringRef] = endpoints
 		// set the cluster config to rest for this specific EDS
 		out.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
@@ -127,10 +128,11 @@ func (f *failoverPluginImpl) ProcessEndpoints(
 
 	// If this is an eds cluster save the endpoints to the EDS `ClusterLoadAssignment`
 	if len(f.endpoints) > 0 {
-		out.Endpoints = append(out.Endpoints, f.endpoints[core.ResourceRef{
-			Name:      in.Metadata.Name,
-			Namespace: in.Metadata.Namespace,
-		}]...)
+		stringRef := translator.UpstreamToClusterName(&core.ResourceRef{
+			Name:      in.GetMetadata().GetName(),
+			Namespace: in.GetMetadata().GetNamespace(),
+		})
+		out.Endpoints = append(out.Endpoints, f.endpoints[stringRef]...)
 	}
 
 	return nil
@@ -308,12 +310,12 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	return &envoy_config_endpoint_v3.LocalityLbEndpoints{
 		Locality:            GlooLocalityToEnvoyLocality(endpoints.GetLocality()),
 		LbEndpoints:         lbEndpoints,
-		LoadBalancingWeight: gogoutils.UInt32GogoToProto(endpoints.GetLoadBalancingWeight()),
+		LoadBalancingWeight: endpoints.GetLoadBalancingWeight(),
 		Priority:            priority,
 	}, transportSocketMatches, nil
 }
 
-func buildLbEndpoint(ipAddr net.IP, port uint32, weight *types.UInt32Value) *envoy_config_endpoint_v3.LbEndpoint {
+func buildLbEndpoint(ipAddr net.IP, port uint32, weight *wrappers.UInt32Value) *envoy_config_endpoint_v3.LbEndpoint {
 	return &envoy_config_endpoint_v3.LbEndpoint{
 		HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
 			Endpoint: &envoy_config_endpoint_v3.Endpoint{
@@ -329,6 +331,6 @@ func buildLbEndpoint(ipAddr net.IP, port uint32, weight *types.UInt32Value) *env
 				},
 			},
 		},
-		LoadBalancingWeight: gogoutils.UInt32GogoToProto(weight),
+		LoadBalancingWeight: weight,
 	}
 }

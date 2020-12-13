@@ -5,24 +5,22 @@ import (
 	"time"
 
 	"github.com/fgrosse/zaptest"
-
-	ptypes "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/test/services"
-
-	"github.com/solo-io/gloo/pkg/utils"
+	corev2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/v1helpers"
-
-	corev2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/services"
 )
 
 var _ = Describe("Happy path", func() {
@@ -84,23 +82,23 @@ var _ = Describe("Happy path", func() {
 		up.GetStatic().GetHosts()[0].HealthCheckConfig = &gloov1static.Host_HealthCheckConfig{
 			Path: "/foo",
 		}
-		short := time.Second / 10
+		short := ptypes.DurationProto(time.Second / 10)
 		up.HealthChecks = []*corev2.HealthCheck{
 			{
-				Timeout: &short,
+				Timeout: short,
 				HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
 					HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
 						Path: "/bar",
 					},
 				},
-				Interval: &short,
-				HealthyThreshold: &ptypes.UInt32Value{
+				Interval: short,
+				HealthyThreshold: &wrappers.UInt32Value{
 					Value: 1,
 				},
-				UnhealthyThreshold: &ptypes.UInt32Value{
+				UnhealthyThreshold: &wrappers.UInt32Value{
 					Value: 1,
 				},
-				NoTrafficInterval: &ptypes.Duration{
+				NoTrafficInterval: &duration.Duration{
 					// 1/10th of a second
 					Nanos: 1e9 / 10,
 				},
@@ -126,7 +124,7 @@ var _ = Describe("Happy path", func() {
 
 })
 
-func getSimpleProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
+func getSimpleProxy(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
@@ -144,7 +142,7 @@ func getSimpleProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
 								DestinationType: &gloov1.Destination_Upstream{
-									Upstream: utils.ResourceRefPtr(upstream),
+									Upstream: upstream,
 								},
 							},
 						},
@@ -157,7 +155,7 @@ func getSimpleProxy(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 	vhosts = append(vhosts, vhost)
 
 	p := &gloov1.Proxy{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
 		},

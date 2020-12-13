@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -69,7 +69,7 @@ func WriteCustomVirtualService(
 		if routeOptions == nil {
 			routeOptions = &gloov1.RouteOptions{}
 		}
-		routeOptions.PrefixRewrite = &types.StringValue{
+		routeOptions.PrefixRewrite = &wrappers.StringValue{
 			Value: "/",
 		}
 	}
@@ -79,7 +79,7 @@ func WriteCustomVirtualService(
 	EventuallyWithOffset(offset, func() error {
 		_, err := vsClient.Write(&v1.VirtualService{
 
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "vs",
 				Namespace: testHelper.InstallNamespace,
 			},
@@ -148,7 +148,7 @@ func EnableStrictValidation(testHelper *helper.SoloTestHelper) {
 
 	ExpectWithOffset(1, settings.Gateway).NotTo(BeNil())
 	ExpectWithOffset(1, settings.Gateway.Validation).NotTo(BeNil())
-	settings.Gateway.Validation.AlwaysAccept = &types.BoolValue{Value: false}
+	settings.Gateway.Validation.AlwaysAccept = &wrappers.BoolValue{Value: false}
 
 	_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())

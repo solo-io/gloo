@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	envoy_extensions_common_ratelimit_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
+	. "github.com/solo-io/solo-projects/test/matchers"
 
 	ratelimit2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
 
@@ -62,7 +63,7 @@ var _ = Describe("xDS Runnable Module", func() {
 
 		var err error
 		proxy = &gloov1.Proxy{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "proxy",
 				Namespace: testNamespace,
 			},
@@ -178,9 +179,9 @@ var _ = Describe("xDS Runnable Module", func() {
 		emptySpec_Raw := &solo_apis_rl.RateLimitConfigSpec_Raw{}
 
 		// Expectations for the initial sync
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, emptySpec_Raw).Return(basicDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, emptySpec_Raw).Return(customDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, emptySpec_Raw).Return(crdDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, GomockMatchProto4(emptySpec_Raw)).Return(basicDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, GomockMatchProto4(emptySpec_Raw)).Return(customDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, GomockMatchProto4(emptySpec_Raw)).Return(crdDomain{}, nil)
 
 		initBasic, initCustom, initCrd := make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1)
 		rateLimitServer.EXPECT().SetDomain(basicDomain{}).Do(func(domain config.RateLimitDomain) { initBasic <- struct{}{} })
@@ -188,9 +189,9 @@ var _ = Describe("xDS Runnable Module", func() {
 		rateLimitServer.EXPECT().SetDomain(crdDomain{}).Do(func(domain config.RateLimitDomain) { initCrd <- struct{}{} })
 
 		// Expectations for the initial sync
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, emptySpec_Raw).Return(basicDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, emptySpec_Raw).Return(customDomain{}, nil)
-		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, expectedDescriptors).Return(crdDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.IngressDomain, GomockMatchProto4(emptySpec_Raw)).Return(basicDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), gloo_rl_plugin.CustomDomain, GomockMatchProto4(emptySpec_Raw)).Return(customDomain{}, nil)
+		domainGenerator.EXPECT().NewRateLimitDomain(gomock.Any(), glooe_rl_plugin.ConfigCrdDomain, GomockMatchProto4(expectedDescriptors)).Return(crdDomain{}, nil)
 
 		basicUpdated, customUpdated, crdUpdated := make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1)
 		rateLimitServer.EXPECT().SetDomain(basicDomain{}).DoAndReturn(func(domain config.RateLimitDomain) { basicUpdated <- struct{}{} })

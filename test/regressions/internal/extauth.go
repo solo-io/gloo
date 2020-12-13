@@ -246,7 +246,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 				BeforeEach(func() {
 					authConfig, err := authConfigClient.Write(&extauthapi.AuthConfig{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "ldap",
 							Namespace: testHelper.InstallNamespace,
 						},
@@ -261,7 +261,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					authConfigRef := authConfig.Metadata.Ref()
 					extAuthConfigProto = &extauthapi.ExtAuthExtension{
 						Spec: &extauthapi.ExtAuthExtension_ConfigRef{
-							ConfigRef: &authConfigRef,
+							ConfigRef: authConfigRef,
 						},
 					}
 				})
@@ -333,7 +333,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the auth config, otherwise the webhook validation might fail
 
 				authConfigRef := ac.Metadata.Ref()
-				return &authConfigRef, func() {
+				return authConfigRef, func() {
 					err := authConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 					Expect(err).NotTo(HaveOccurred())
 				}
@@ -450,7 +450,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 				getVirtualService := func(vhPlugins *gloov1.VirtualHostOptions, pluginsForRoute1, pluginsForRoute2 *gloov1.RouteOptions) *gatewayv1.VirtualService {
 					return &gatewayv1.VirtualService{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "echo-vs",
 							Namespace: testHelper.InstallNamespace,
 						},
@@ -471,7 +471,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 												Single: &gloov1.Destination{
 													DestinationType: &gloov1.Destination_Kube{
 														Kube: &gloov1.KubernetesServiceDestination{
-															Ref: core.ResourceRef{
+															Ref: &core.ResourceRef{
 																Namespace: testHelper.InstallNamespace,
 																Name:      appName1,
 															},
@@ -496,7 +496,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 												Single: &gloov1.Destination{
 													DestinationType: &gloov1.Destination_Kube{
 														Kube: &gloov1.KubernetesServiceDestination{
-															Ref: core.ResourceRef{
+															Ref: &core.ResourceRef{
 																Namespace: testHelper.InstallNamespace,
 																Name:      appName2,
 															},
@@ -639,7 +639,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					pluginsForDest1, pluginsForDest2 *gloov1.WeightedDestinationOptions,
 				) *gatewayv1.VirtualService {
 					return &gatewayv1.VirtualService{
-						Metadata: core.Metadata{
+						Metadata: &core.Metadata{
 							Name:      "echo-vs",
 							Namespace: testHelper.InstallNamespace,
 						},
@@ -663,7 +663,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 															Destination: &gloov1.Destination{
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{
-																		Ref: core.ResourceRef{
+																		Ref: &core.ResourceRef{
 																			Namespace: testHelper.InstallNamespace,
 																			Name:      appName1,
 																		},
@@ -678,7 +678,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 															Destination: &gloov1.Destination{
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{
-																		Ref: core.ResourceRef{
+																		Ref: &core.ResourceRef{
 																			Namespace: testHelper.InstallNamespace,
 																			Name:      appName2,
 																		},
@@ -882,7 +882,7 @@ func isNotFound(err error) bool {
 
 func buildBasicAuthConfig(name, namespace string, users map[string]*extauthapi.BasicAuth_Apr_SaltedHashedPassword) *extauthapi.AuthConfig {
 	return &extauthapi.AuthConfig{
-		Metadata: core.Metadata{
+		Metadata: &core.Metadata{
 			Name:      name,
 			Namespace: namespace,
 		},

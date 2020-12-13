@@ -17,9 +17,9 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
-import { Upstream } from 'proto/gloo/projects/gloo/api/v1/upstream_pb';
-import { Status } from 'proto/solo-kit/api/v1/status_pb';
-import { UpstreamDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
+import { UpstreamDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory, useLocation, useRouteMatch } from 'react-router';
@@ -46,13 +46,13 @@ import {
 import { CreateRouteModal } from '../VirtualService/Creation/CreateRouteModal';
 import { CreateUpstreamGroupModal } from './Creation/CreateUpstreamGroupModal';
 import { SoloInput } from 'Components/Common/SoloInput';
-import { UpstreamGroupDetails } from 'proto/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
+import { UpstreamGroupDetails } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstreamgroup_pb';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon-circle.svg';
 
 import { upstreamGroupAPI } from 'store/upstreamGroups/api';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
-import { UpstreamGroup } from 'proto/gloo/projects/gloo/api/v1/proxy_pb';
+import { UpstreamGroup } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import { css } from '@emotion/core';
 import { ErrorBoundary } from '../Errors/ErrorBoundary';
 

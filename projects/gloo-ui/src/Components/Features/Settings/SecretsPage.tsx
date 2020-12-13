@@ -9,13 +9,13 @@ import { Popconfirm } from 'antd';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
 import useSWR from 'swr';
 import { secretAPI } from 'store/secrets/api';
-import { OauthSecret } from 'proto/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
+import { OauthSecret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb';
 import {
   AwsSecret,
   AzureSecret,
   Secret,
   TlsSecret
-} from 'proto/gloo/projects/gloo/api/v1/secret_pb';
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 import { useDispatch } from 'react-redux';
 import { createSecret, deleteSecret } from 'store/secrets/actions';
 import { SoloInput } from 'Components/Common/SoloInput';

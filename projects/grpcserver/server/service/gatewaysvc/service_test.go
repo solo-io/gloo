@@ -78,14 +78,14 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetGateway", func() {
 		It("works when the gateway client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			gateway := &gatewayv2.Gateway{
 				Metadata: metadata,
-				Status: core.Status{
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
@@ -100,7 +100,7 @@ var _ = Describe("ServiceTest", func() {
 				GetApiStatusFromResource(gateway).
 				Return(getStatus(v1.Status_OK, ""))
 
-			request := &v1.GetGatewayRequest{Ref: &ref}
+			request := &v1.GetGatewayRequest{Ref: ref}
 			actual, err := apiserver.GetGateway(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetGatewayResponse{
@@ -120,10 +120,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetGatewayRequest{Ref: &ref}
+			request := &v1.GetGatewayRequest{Ref: ref}
 			_, err := apiserver.GetGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := gatewaysvc.FailedToGetGatewayError(testErr, &ref)
+			expectedErr := gatewaysvc.FailedToGetGatewayError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -132,14 +132,14 @@ var _ = Describe("ServiceTest", func() {
 		It("works when the gateway client works", func() {
 			ns1, ns2 := "one", "two"
 			gateway1 := &gatewayv2.Gateway{
-				Metadata: core.Metadata{Namespace: ns1},
-				Status: core.Status{
+				Metadata: &core.Metadata{Namespace: ns1},
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
 			gateway2 := &gatewayv2.Gateway{
-				Metadata: core.Metadata{Namespace: ns2},
-				Status: core.Status{
+				Metadata: &core.Metadata{Namespace: ns2},
+				Status: &core.Status{
 					State: core.Status_Pending,
 				},
 			}
@@ -194,14 +194,14 @@ var _ = Describe("ServiceTest", func() {
 		It("works on valid input", func() {
 			yamlString := "totally-valid-yaml"
 
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			gateway := &gatewayv2.Gateway{
 				Metadata: metadata,
-				Status: core.Status{
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
@@ -218,7 +218,7 @@ var _ = Describe("ServiceTest", func() {
 
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				DoAndReturn(action)
 
 			gatewayClient.EXPECT().
@@ -233,7 +233,7 @@ var _ = Describe("ServiceTest", func() {
 
 			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			})
@@ -245,14 +245,14 @@ var _ = Describe("ServiceTest", func() {
 		It("fails when the client fails", func() {
 			yamlString := "totally-valid-yaml"
 
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			gateway := &gatewayv2.Gateway{
 				Metadata: metadata,
-				Status: core.Status{
+				Status: &core.Status{
 					State: core.Status_Accepted,
 				},
 			}
@@ -269,7 +269,7 @@ var _ = Describe("ServiceTest", func() {
 
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				DoAndReturn(action)
 			gatewayClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
@@ -277,13 +277,13 @@ var _ = Describe("ServiceTest", func() {
 
 			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			})
 
 			Expect(response).To(BeNil())
-			Expect(err.Error()).To(ContainSubstring(gatewaysvc.FailedToUpdateGatewayError(testErr, &ref).Error()))
+			Expect(err.Error()).To(ContainSubstring(gatewaysvc.FailedToUpdateGatewayError(testErr, ref).Error()))
 		})
 
 		It("fails on invalid license", func() {
@@ -299,7 +299,7 @@ var _ = Describe("ServiceTest", func() {
 
 			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			})
@@ -317,35 +317,35 @@ var _ = Describe("ServiceTest", func() {
 			ref := metadata.Ref()
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(testErr)
 
 			response, err := apiserver.UpdateGatewayYaml(context.TODO(), &v1.UpdateGatewayYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
 					EditedYaml: yamlString,
-					Ref:        &ref,
+					Ref:        ref,
 				},
 			})
 
 			Expect(response).To(BeNil())
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(gatewaysvc.FailedToParseGatewayFromYamlError(testErr, &ref)))
+			Expect(err).To(MatchError(gatewaysvc.FailedToParseGatewayFromYamlError(testErr, ref)))
 		})
 	})
 
 	Describe("UpdateGateway", func() {
-		var metadata core.Metadata
-		var ref core.ResourceRef
+		var metadata *core.Metadata
+		var ref *core.ResourceRef
 		var existing, input, toWrite *gatewayv2.Gateway
 
 		BeforeEach(func() {
-			metadata = core.Metadata{
+			metadata = &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref = metadata.Ref()
 			existing = &gatewayv2.Gateway{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Namespace:       "ns",
 					Name:            "name",
 					ResourceVersion: "10",
@@ -355,15 +355,15 @@ var _ = Describe("ServiceTest", func() {
 			input = &gatewayv2.Gateway{
 				Metadata:    metadata,
 				BindAddress: "test-new-value",
-				Status:      core.Status{State: 1},
+				Status:      &core.Status{State: 1},
 			}
 			toWrite = &gatewayv2.Gateway{
-				Metadata: core.Metadata{
+				Metadata: &core.Metadata{
 					Namespace:       "ns",
 					Name:            "name",
 					ResourceVersion: "10",
 				},
-				Status:      core.Status{State: core.Status_Pending},
+				Status:      &core.Status{State: core.Status_Pending},
 				BindAddress: "test-new-value",
 			}
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
@@ -398,7 +398,7 @@ var _ = Describe("ServiceTest", func() {
 			request := &v1.UpdateGatewayRequest{Gateway: input}
 			_, err := apiserver.UpdateGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
+			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 
@@ -413,7 +413,7 @@ var _ = Describe("ServiceTest", func() {
 			request := &v1.UpdateGatewayRequest{Gateway: input}
 			_, err := apiserver.UpdateGateway(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, &ref)
+			expectedErr := gatewaysvc.FailedToUpdateGatewayError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

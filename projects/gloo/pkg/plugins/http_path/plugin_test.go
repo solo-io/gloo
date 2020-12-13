@@ -4,7 +4,7 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_v3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
-	gogotypes "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 	wrapperspb "github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -63,7 +63,7 @@ var _ = Describe("Plugin", func() {
 			}},
 		}
 		upstream = &v1.Upstream{
-			Metadata: core.Metadata{
+			Metadata: &core.Metadata{
 				Name:      "extauth-server",
 				Namespace: "default",
 			},
@@ -79,10 +79,7 @@ var _ = Describe("Plugin", func() {
 		Expect(out.GetHealthChecks()[0].GetCustomHealthCheck().GetName()).To(Equal(HealthCheckerName))
 		typedcfg := out.GetHealthChecks()[0].GetCustomHealthCheck().GetTypedConfig()
 		var out pbhttp_path.HttpPath
-		gogotypes.UnmarshalAny(&gogotypes.Any{
-			TypeUrl: typedcfg.TypeUrl,
-			Value:   typedcfg.Value,
-		}, &out)
+		Expect(ptypes.UnmarshalAny(typedcfg, &out)).NotTo(HaveOccurred())
 
 		Expect(out.HttpHealthCheck.Path).To(Equal(baseHealthCheck.Path))
 		Expect(out.HttpHealthCheck.Host).To(Equal(baseHealthCheck.Host))

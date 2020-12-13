@@ -91,7 +91,7 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 		},
 	)
 
-	protoRedactor := syncutil.NewProtoRedactor(syncutil.LogRedactorTag, syncutil.LogRedactorTagValue)
+	protoRedactor := syncutil.NewProtoRedactor()
 
 	xdsClientLoopFunc := func(ctx context.Context) error {
 

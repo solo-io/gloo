@@ -71,13 +71,13 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetUpstream", func() {
 		It("works when the upstream client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			upstream := &gloov1.Upstream{
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 				Metadata: metadata,
 			}
 			raw := getRaw(metadata.Name)
@@ -89,7 +89,7 @@ var _ = Describe("ServiceTest", func() {
 				GetRaw(context.Background(), upstream, gloov1.UpstreamCrd).
 				Return(raw)
 
-			request := &v1.GetUpstreamRequest{Ref: &ref}
+			request := &v1.GetUpstreamRequest{Ref: ref}
 			actual, err := apiserver.GetUpstream(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
 			expected := &v1.GetUpstreamResponse{UpstreamDetails: getDetails(upstream, raw)}
@@ -107,10 +107,10 @@ var _ = Describe("ServiceTest", func() {
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.GetUpstreamRequest{Ref: &ref}
+			request := &v1.GetUpstreamRequest{Ref: ref}
 			_, err := apiserver.GetUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToReadUpstreamError(testErr, &ref)
+			expectedErr := upstreamsvc.FailedToReadUpstreamError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -120,12 +120,12 @@ var _ = Describe("ServiceTest", func() {
 			ns1, ns2 := "one", "two"
 			n1, n2 := "n1", "n2"
 			upstream1 := &gloov1.Upstream{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: core.Metadata{Namespace: ns1, Name: n1},
+				Status:   &core.Status{State: core.Status_Accepted},
+				Metadata: &core.Metadata{Namespace: ns1, Name: n1},
 			}
 			upstream2 := &gloov1.Upstream{
-				Status:   core.Status{State: core.Status_Pending},
-				Metadata: core.Metadata{Namespace: ns2, Name: n2},
+				Status:   &core.Status{State: core.Status_Pending},
+				Metadata: &core.Metadata{Namespace: ns2, Name: n2},
 			}
 			raw1, raw2 := getRaw(n1), getRaw(n2)
 
@@ -173,7 +173,7 @@ var _ = Describe("ServiceTest", func() {
 			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 		})
 		It("works when the upstreams client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
@@ -202,7 +202,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when the upstream client errors", func() {
-			metadata := core.Metadata{}
+			metadata := &core.Metadata{}
 			ref := metadata.Ref()
 			upstream := &gloov1.Upstream{
 				Metadata: metadata,
@@ -220,7 +220,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			_, err := apiserver.CreateUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, &ref)
+			expectedErr := upstreamsvc.FailedToCreateUpstreamError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -231,7 +231,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("works when the upstreams client works", func() {
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
@@ -260,7 +260,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when the upstream client errors", func() {
-			metadata := core.Metadata{}
+			metadata := &core.Metadata{}
 			ref := metadata.Ref()
 			upstream := &gloov1.Upstream{
 				Metadata: metadata,
@@ -278,7 +278,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 			_, err := apiserver.UpdateUpstream(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
+			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -290,24 +290,24 @@ var _ = Describe("ServiceTest", func() {
 
 		It("works on valid input", func() {
 			yamlString := "totally-valid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			upstream := &gloov1.Upstream{
 				Metadata: metadata,
-				Status:   core.Status{State: core.Status_Accepted},
+				Status:   &core.Status{State: core.Status_Accepted},
 			}
 			request := &v1.UpdateUpstreamYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			upstreamClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
@@ -330,44 +330,44 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors with an invalid yaml", func() {
 			yamlString := "totally-invalid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			request := &v1.UpdateUpstreamYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(testErr)
 
 			_, err := apiserver.UpdateUpstreamYaml(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToParseUpstreamFromYamlError(testErr, &ref)
+			expectedErr := upstreamsvc.FailedToParseUpstreamFromYamlError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 
 		It("errors when the upstream group client errors", func() {
 			yamlString := "totally-valid-yaml"
-			metadata := core.Metadata{
+			metadata := &core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 			request := &v1.UpdateUpstreamYamlRequest{
 				EditedYamlData: &v1.EditedResourceYaml{
-					Ref:        &ref,
+					Ref:        ref,
 					EditedYaml: yamlString,
 				},
 			}
 
 			rawGetter.EXPECT().
-				InitResourceFromYamlString(context.TODO(), yamlString, &ref, gomock.Any()).
+				InitResourceFromYamlString(context.TODO(), yamlString, ref, gomock.Any()).
 				Return(nil)
 			upstreamClient.EXPECT().
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
@@ -375,7 +375,7 @@ var _ = Describe("ServiceTest", func() {
 
 			_, err := apiserver.UpdateUpstreamYaml(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
+			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

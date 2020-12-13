@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/gomega"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -275,22 +276,22 @@ func FailoverSpec(
 			},
 		},
 	}
-	timeout := 1 * time.Second
+	timeout := ptypes.DurationProto(time.Second)
 	redUpstream.HealthChecks = []*core.HealthCheck{{
 		HealthChecker: &core.HealthCheck_HttpHealthCheck_{
 			HttpHealthCheck: &core.HealthCheck_HttpHealthCheck{
 				Path: "/health",
 			},
 		},
-		HealthyThreshold: &types.UInt32Value{
+		HealthyThreshold: &wrappers.UInt32Value{
 			Value: 1,
 		},
-		UnhealthyThreshold: &types.UInt32Value{
+		UnhealthyThreshold: &wrappers.UInt32Value{
 			Value: 1,
 		},
-		NoTrafficInterval: types.DurationProto(time.Second / 2),
-		Timeout:           &timeout,
-		Interval:          &timeout,
+		NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+		Timeout:           timeout,
+		Interval:          timeout,
 	}}
 
 	Eventually(func() error {

@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/ext-auth-service/pkg/chain"
 	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
 
@@ -67,7 +68,10 @@ type OAuthIntrospectionClients struct {
 // values for `cacheTtl` eventually get piped through to github.com/patrickmn/go-cache
 // that library exports reasonable defaults that may be of interest here
 // the one exception to piping through the cacheTtl is that `DefaultExpiration` (0) is special-cased in extauth to mean disable caching
-type OAuthIntrospectionClientsBuilder func(cacheTtl time.Duration, oauthEndpoints OAuthIntrospectionEndpoints) *OAuthIntrospectionClients
+type OAuthIntrospectionClientsBuilder func(
+	cacheTtl time.Duration,
+	oauthEndpoints OAuthIntrospectionEndpoints,
+) *OAuthIntrospectionClients
 
 func NewGenerator(
 	ctx context.Context,
@@ -236,7 +240,11 @@ func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassw
 	return ret
 }
 
-func (c *configGenerator) getConfigs(ctx context.Context, boolLogic string, configs []*extauthv1.ExtAuthConfig_Config) (svc api.AuthService, err error) {
+func (c *configGenerator) getConfigs(
+	ctx context.Context,
+	boolLogic string,
+	configs []*extauthv1.ExtAuthConfig_Config,
+) (svc api.AuthService, err error) {
 
 	services := chain.NewAuthServiceChain()
 	for i, config := range configs {
@@ -361,7 +369,10 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 	}, nil
 }
 
-func (c *configGenerator) authConfigToService(ctx context.Context, config *extauthv1.ExtAuthConfig_Config) (svc api.AuthService, name string, err error) {
+func (c *configGenerator) authConfigToService(
+	ctx context.Context,
+	config *extauthv1.ExtAuthConfig_Config,
+) (svc api.AuthService, name string, err error) {
 	switch cfg := config.AuthConfig.(type) {
 	case *extauthv1.ExtAuthConfig_Config_BasicAuth:
 		aprCfg := apr.Config{
@@ -422,11 +433,14 @@ func (c *configGenerator) authConfigToService(ctx context.Context, config *extau
 				introspectionUrl := oauthCfg.AccessTokenValidation.GetIntrospectionUrl()
 				cacheTtl := oauthCfg.AccessTokenValidation.CacheTimeout
 				if cacheTtl == nil {
-					ttl := DefaultOAuthCacheTtl
-					cacheTtl = &ttl
+					cacheTtl = ptypes.DurationProto(DefaultOAuthCacheTtl)
 				}
 
-				introspectionClients := c.oauthIntrospectionClientsBuilder(*cacheTtl, OAuthIntrospectionEndpoints{
+				cacheTtlDur, err := ptypes.Duration(cacheTtl)
+				if err != nil {
+					return nil, "", err
+				}
+				introspectionClients := c.oauthIntrospectionClientsBuilder(cacheTtlDur, OAuthIntrospectionEndpoints{
 					IntrospectionUrl: introspectionUrl,
 					UserInfoUrl:      userInfoUrl,
 				})
