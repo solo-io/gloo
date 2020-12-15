@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-	errors "github.com/rotisserie/eris"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
@@ -23,11 +22,11 @@ import (
 )
 
 type TranslatorSyncerExtension struct {
-	reporter reporter.Reporter
+	reports reporter.ResourceReports
 }
 
 func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *TranslatorSyncerExtension {
-	return &TranslatorSyncerExtension{reporter: params.Reporter}
+	return &TranslatorSyncerExtension{reports: params.Reports}
 }
 
 func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
@@ -47,7 +46,7 @@ type SnapshotSetter interface {
 
 func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
 	helper := newHelper()
-	reports := make(reporter.ResourceReports)
+	reports := s.reports
 	reports.Accept(snap.AuthConfigs.AsInputResources()...)
 	reports.Accept(snap.Proxies.AsInputResources()...)
 
@@ -100,10 +99,6 @@ func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1
 	}
 	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	_ = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
-	if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
-		contextutils.LoggerFrom(ctx).Warnf("Failed writing report for auth configs: %v", err)
-		return errors.Wrapf(err, "writing reports")
-	}
 	return nil
 }
 

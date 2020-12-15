@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fixed a bug where syncers were writing competing statuses to the proxy resource.
+    issueLink: https://github.com/solo-io/gloo/issues/3815

@@ -50,11 +50,10 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		basic, global, crd *mock_collectors.MockConfigCollector
 		cache              *mock_cache.MockSnapshotCache
 		domainGenerator    *mock_shims.MockRateLimitDomainGenerator
-		reporter           *mock_cache.MockReporter
 
+		reports skreporter.ResourceReports
 		testErr error
-
-		syncer syncer.TranslatorSyncerExtension
+		syncer  syncer.TranslatorSyncerExtension
 
 		config1, config2, config3 *enterprise.RateLimitConfig
 	)
@@ -69,9 +68,9 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		crd = mock_collectors.NewMockConfigCollector(ctrl)
 		cache = mock_cache.NewMockSnapshotCache(ctrl)
 		domainGenerator = mock_shims.NewMockRateLimitDomainGenerator(ctrl)
-		reporter = mock_cache.NewMockReporter(ctrl)
+		reports = make(skreporter.ResourceReports)
 
-		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reporter)
+		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reports)
 
 		apiSnapshot = &gloov1.ApiSnapshot{
 			Proxies: []*gloov1.Proxy{proxy},
@@ -284,16 +283,18 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				cache.EXPECT().SetSnapshot(rlsyncer.RateLimitServerRole, gomock.Any()).Return(nil)
 
-				reporter.EXPECT().WriteReports(ctxWithLogger, gomock.Any(), nil).DoAndReturn(
-					func(_ context.Context, errs skreporter.ResourceReports, _ map[string]*skcore.Status) error {
-						Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
-						return nil
-					},
-				)
+				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, cache)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+
+				// Check that we have added the report, and that there are no errors or warnings
+				Expect(reports).To(HaveLen(1), "should pick up the listener")
+				for _, report := range reports {
+					Expect(report.Errors).To(BeNil(), "should have no errors")
+					Expect(report.Warnings).To(HaveLen(0), "should have no warnings")
+				}
 			})
 		})
 
@@ -316,17 +317,20 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
-				reporter.EXPECT().WriteReports(ctxWithLogger, gomock.Any(), nil).DoAndReturn(
-					func(_ context.Context, errs skreporter.ResourceReports, _ map[string]*skcore.Status) error {
-						Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
-						return nil
-					},
-				)
+				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, cache)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+
+				// Check that we have added the report, and that there are no errors or warnings
+				Expect(reports).To(HaveLen(1), "should pick up the listener")
+				for _, report := range reports {
+					Expect(report.Errors).To(BeNil(), "should have no errors")
+					Expect(report.Warnings).To(HaveLen(0), "should have no warnings")
+				}
+
 			})
 		})
 
@@ -352,17 +356,19 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
-				reporter.EXPECT().WriteReports(ctxWithLogger, gomock.Any(), nil).DoAndReturn(
-					func(_ context.Context, errs skreporter.ResourceReports, _ map[string]*skcore.Status) error {
-						Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
-						return nil
-					},
-				)
+				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, cache)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+
+				// Check that we have added the report, and that there are no errors or warnings
+				Expect(reports).To(HaveLen(1), "should pick up the listener")
+				for _, report := range reports {
+					Expect(report.Errors).To(BeNil(), "should have no errors")
+					Expect(report.Warnings).To(HaveLen(0), "should have no warnings")
+				}
 			})
 		})
 
@@ -390,17 +396,19 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				cache.EXPECT().SetSnapshot(rlsyncer.RateLimitServerRole, gomock.Any()).Return(testErr)
 
-				reporter.EXPECT().WriteReports(ctxWithLogger, gomock.Any(), nil).DoAndReturn(
-					func(_ context.Context, errs skreporter.ResourceReports, _ map[string]*skcore.Status) error {
-						Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
-						return nil
-					},
-				)
+				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, cache)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+
+				// Check that we have added the report, and that there are no errors or warnings
+				Expect(reports).To(HaveLen(1), "should pick up the listener")
+				for _, report := range reports {
+					Expect(report.Errors).To(BeNil(), "should have no errors")
+					Expect(report.Warnings).To(HaveLen(0), "should have no warnings")
+				}
 			})
 		})
 	})
@@ -414,7 +422,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 
 		cache           *mock_cache.MockSnapshotCache
 		domainGenerator *mock_shims.MockRateLimitDomainGenerator
-		reporter        *mock_cache.MockReporter
+		reports         skreporter.ResourceReports
 
 		collectorFactory collectors.ConfigCollectorFactory
 		syncer           syncer.TranslatorSyncerExtension
@@ -426,7 +434,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 
 		cache = mock_cache.NewMockSnapshotCache(ctrl)
 		domainGenerator = mock_shims.NewMockRateLimitDomainGenerator(ctrl)
-		reporter = mock_cache.NewMockReporter(ctrl)
+		reports = make(skreporter.ResourceReports)
 	})
 
 	AfterEach(func() {
@@ -453,7 +461,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 				shims.NewRateLimitConfigTranslator(),
 				translation.NewBasicRateLimitTranslator())
 
-			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reporter)
+			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reports)
 		})
 
 		It("returns the expected error", func() {
@@ -464,17 +472,14 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.ConfigCrdDomain,
 				&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
 
-			reporter.EXPECT().WriteReports(ctxWithLogger, gomock.Any(), nil).DoAndReturn(
-				func(_ context.Context, errs skreporter.ResourceReports, _ map[string]*skcore.Status) error {
-					Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
-					return nil
-				},
-			)
+			Expect(reports).To(HaveLen(0))
 
 			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, cache)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
 			Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+
+			Expect(reports).To(HaveLen(0), "should have nothing in the APISnapshot to write a report for")
 		})
 	})
 })

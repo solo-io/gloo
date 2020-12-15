@@ -54,7 +54,7 @@ func init() {
 type translatorSyncerExtension struct {
 	collectorFactory collectors.ConfigCollectorFactory
 	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
-	reporter         reporter.Reporter
+	reports          reporter.ResourceReports
 }
 
 // The rate limit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
@@ -80,19 +80,19 @@ func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyn
 			translation.NewBasicRateLimitTranslator(),
 		),
 		rate_limiter_shims.NewRateLimitDomainGenerator(),
-		params.Reporter,
+		params.Reports,
 	), nil
 }
 
 func NewTranslatorSyncer(
 	collectorFactory collectors.ConfigCollectorFactory,
 	domainGenerator rate_limiter_shims.RateLimitDomainGenerator,
-	reporter reporter.Reporter,
+	reports reporter.ResourceReports,
 ) syncer.TranslatorSyncerExtension {
 	return &translatorSyncerExtension{
 		collectorFactory: collectorFactory,
 		domainGenerator:  domainGenerator,
-		reporter:         reporter,
+		reports:          reports,
 	}
 }
 
@@ -103,16 +103,9 @@ func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSn
 	logger.Infof("begin rate limit sync %v (%v proxies, %v rate limit configs)", snapHash, len(snap.Proxies), len(snap.Ratelimitconfigs))
 	defer logger.Infof("end sync %v", snapHash)
 
-	reports := make(reporter.ResourceReports)
+	reports := s.reports
 	reports.Accept(snap.Proxies.AsInputResources()...)
 	reports.Accept(snap.Ratelimitconfigs.AsInputResources()...)
-
-	// Make sure we always write reports
-	defer func() {
-		if err := s.reporter.WriteReports(ctx, reports, nil); err != nil {
-			contextutils.LoggerFrom(ctx).Warnf("Failed writing report for rate limit configs: %v", err)
-		}
-	}()
 
 	configCollectors, err := newCollectorSet(s.collectorFactory, snap, reports, logger)
 	if err != nil {

@@ -2,8 +2,10 @@ package extauth_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -48,8 +50,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		proxyClient, err = resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &gloov1.Proxy{}})
 		Expect(err).NotTo(HaveOccurred())
 
-		rep := reporter.NewReporter("test-reporter", authConfigClient, proxyClient)
-		params.Reporter = rep
+		params.Reports = make(reporter.ResourceReports)
 		translator = NewTranslatorSyncerExtension(params)
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
@@ -181,6 +182,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 
 				proxyClient.Write(proxy, clients.WriteOpts{})
 
+				Expect(params.Reports).To(HaveLen(0), "should have no reports yet")
 				snap := translate()
 
 				extAuthRes := snap.GetResources(extauth.ExtAuthConfigType)
@@ -190,26 +192,55 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Expect(extAuthRes.Items["gloo-system.bad-auth"]).NotTo(BeNil())
 				Expect(extAuthRes.Items["gloo-system.good-auth"]).NotTo(BeNil())
 
-				// Well configured auth should be ok
+				Expect(params.Reports).To(HaveLen(4), "should have auth, bad-auth, good-auth and proxy")
+				for k, v := range params.Reports {
+					switch k.GetMetadata().Name {
+					case "good-auth":
+						Expect(v.Errors).NotTo(HaveOccurred())
+						Expect(v.Warnings).To(BeNil())
+					case "auth":
+						Expect(v.Errors).NotTo(HaveOccurred())
+						Expect(v.Warnings).To(BeNil())
+					case "bad-auth":
+						Expect(v.Errors).To(HaveOccurred())
+						multiErr, ok := v.Errors.(*multierror.Error)
+						Expect(ok).To(BeTrue(), "expected a multi-err")
+						Expect(multiErr.Errors).To(HaveLen(1))
+						Expect(multiErr.Error()).To(ContainSubstring("Invalid configurations for basic auth config bad-auth.gloo-system"))
+						Expect(v.Warnings).To(BeNil())
+					case "proxy":
+						Expect(v.Errors).To(HaveOccurred())
+						Expect(v.Errors.Error()).To(ContainSubstring("list did not find authConfig gloo-system.nonexistent-auth"))
+						Expect(v.Warnings).To(BeNil())
+
+					default:
+						Expect(fmt.Errorf("unexpected resource %v \n %v", k.GetMetadata().Name, k)).NotTo(HaveOccurred())
+					}
+				}
+
+				// All 3 resources should still have a nil status, as the reports they have added
+				// to params.Reports will be written by Gloo, which has not yet run.
+				// The in-memory kube client will have a status of 'nil', but in
+				// a real kube client this would be a "Pending" status
 				goodAuth, err := authConfigClient.Read(defaults.GlooSystem, "good-auth", clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(goodAuth).NotTo(BeNil())
-				Expect(goodAuth.(*extauth.AuthConfig).Status.State).To(Equal(skcore.Status_Accepted))
+				goodAuthConfig, ok := goodAuth.(*extauth.AuthConfig)
+				Expect(ok).To(BeTrue())
+				Expect(goodAuthConfig.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 
-				// Misconfigured auth should be rejected with a reasonable message
 				badAuth, err := authConfigClient.Read(defaults.GlooSystem, "bad-auth", clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(badAuth).NotTo(BeNil())
-				Expect(badAuth.(*extauth.AuthConfig).Status.State).To(Equal(skcore.Status_Rejected))
-				Expect(badAuth.(*extauth.AuthConfig).Status.Reason).To(ContainSubstring("Invalid configurations for basic auth config bad-auth.gloo-system"))
+				badAuthConfig, ok := badAuth.(*extauth.AuthConfig)
+				Expect(badAuthConfig.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 
-				// Proxy should be rejected with message from non-existent auth config bubbled up
 				proxyRes, err := proxyClient.Read(defaults.GlooSystem, "proxy", clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(proxyRes).NotTo(BeNil())
-				Expect(proxyRes.(*gloov1.Proxy).Status.State).To(Equal(skcore.Status_Rejected))
-				Expect(proxyRes.(*gloov1.Proxy).Status.Reason).To(ContainSubstring("list did not find authConfig gloo-system.nonexistent-auth"))
-
+				pr, ok := proxyRes.(*gloov1.Proxy)
+				Expect(ok).To(BeTrue())
+				Expect(pr.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 			})
 		})
 	})
