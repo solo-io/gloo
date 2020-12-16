@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3993
+    description: >-
+      Close connections grpc connections from rate-limit and extauth to the gloo pod if either fail to connect in the
+      client backoff loop.

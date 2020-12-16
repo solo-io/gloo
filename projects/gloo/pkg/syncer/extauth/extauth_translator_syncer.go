@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
@@ -20,6 +23,23 @@ import (
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"go.uber.org/zap"
 )
+
+var (
+	extauthConnectedStateDescription = "zero indicates gloo detected an error with the auth config and did not update its XDS snapshot, check the gloo logs for errors"
+	extauthConnectedState            = stats.Int64("glooe.extauth/connected_state", extauthConnectedStateDescription, "1")
+
+	extauthConnectedStateView = &view.View{
+		Name:        "glooe.extauth/connected_state",
+		Measure:     extauthConnectedState,
+		Description: extauthConnectedStateDescription,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	_ = view.Register(extauthConnectedStateView)
+}
 
 type TranslatorSyncerExtension struct {
 	reports reporter.ResourceReports
@@ -95,11 +115,22 @@ func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1
 	h, err := hashstructure.Hash(resources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
-		return err
+		return syncerError(ctx, err)
 	}
 	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-	_ = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
+	err = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
+	if err != nil {
+		return syncerError(ctx, err)
+	}
+
+	stats.Record(ctx, extauthConnectedState.M(int64(1)))
+
 	return nil
+}
+
+func syncerError(ctx context.Context, err error) error {
+	stats.Record(ctx, extauthConnectedState.M(int64(0)))
+	return err
 }
 
 // This translation helper contains a map where each key is the unique identifier of an AuthConfig and the corresponding

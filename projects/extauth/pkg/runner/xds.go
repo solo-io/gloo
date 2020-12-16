@@ -6,6 +6,10 @@ import (
 	"os"
 	"time"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/opaque"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
@@ -21,6 +25,34 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+var (
+	extauthConnectedStateDescription = "zero indicates extauth is unable to connect to connect to gloo to get its configuration"
+	mExtauthConnectedState           = stats.Int64("glooe.extauth/xds_client_connected_state", extauthConnectedStateDescription, "1")
+
+	extauthConnectedStateView = &view.View{
+		Name:        "glooe.extauth/connected_state",
+		Measure:     mExtauthConnectedState,
+		Description: extauthConnectedStateDescription,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{},
+	}
+
+	extauthConnectedStateCounterDescription = "number of client connections extauth has made to gloo to get its configuration"
+	mExtauthConnectedStateCounter           = stats.Int64("glooe.extauth/xds_client_connect_counter", extauthConnectedStateCounterDescription, "1")
+
+	extauthConnectedStateCounterView = &view.View{
+		Name:        "glooe.extauth/connected_state_counter",
+		Measure:     mExtauthConnectedStateCounter,
+		Description: extauthConnectedStateCounterDescription,
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	_ = view.Register(extauthConnectedStateView, extauthConnectedStateCounterView)
+}
 
 const (
 	// The extauth server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
@@ -95,6 +127,8 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 
 	xdsClientLoopFunc := func(ctx context.Context) error {
 
+		stats.Record(ctx, mExtauthConnectedStateCounter.M(int64(1)))
+
 		client := xdsproto.NewExtAuthConfigClient(
 			&nodeInfo,
 			func(version string, resources []*xdsproto.ExtAuthConfig) error {
@@ -127,8 +161,18 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 			contextutils.LoggerFrom(ctx).Errorw("failed to create gRPC client connection to Gloo", zap.Any("error", err))
 			return err
 		}
-		// TODO(yuval-k): a stat that indicates we are connected, with the reverse one deferred.
-		// TODO(yuval-k): write a warning log
+
+		stats.Record(ctx, mExtauthConnectedState.M(int64(1)))
+		defer func() {
+			err = conn.Close()
+			if err != nil {
+				contextutils.LoggerFrom(ctx).Errorw("failed to close grpc connection", zap.Any("error", err))
+			} else {
+				contextutils.LoggerFrom(ctx).Infow("closed grpc connection", zap.Any("address", settings.GlooAddress))
+			}
+			stats.Record(ctx, mExtauthConnectedState.M(int64(0)))
+		}()
+
 		err = client.Start(ctx, conn)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Errorw("failed to start xDS client", zap.Any("error", err))

@@ -4,6 +4,10 @@ import (
 	"context"
 	"os"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -17,6 +21,34 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+var (
+	rlConnectedStateDescription = "zero indicates ratelimit is unable to connect to connect to gloo to get its configuration"
+	mRlConnectedState           = stats.Int64("glooe.ratelimit/xds_client_connected_state", rlConnectedStateDescription, "1")
+
+	rlConnectedStateView = &view.View{
+		Name:        "glooe.ratelimit/connected_state",
+		Measure:     mRlConnectedState,
+		Description: rlConnectedStateDescription,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{},
+	}
+
+	rlConnectedStateCounterDescription = "number of client connections ratelimit has made to gloo to get its configuration"
+	mRlConnectedStateCounter           = stats.Int64("glooe.ratelimit/xds_client_connect_counter", rlConnectedStateCounterDescription, "1")
+
+	rlConnectedStateCounterView = &view.View{
+		Name:        "glooe.ratelimit/connected_state_counter",
+		Measure:     mRlConnectedStateCounter,
+		Description: rlConnectedStateCounterDescription,
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	_ = view.Register(rlConnectedStateView, rlConnectedStateCounterView)
+}
 
 const ModuleName = "xDS"
 
@@ -62,6 +94,8 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 	}
 
 	xDSClientLoopFunc := func(ctx context.Context) error {
+		stats.Record(ctx, mRlConnectedStateCounter.M(int64(1)))
+
 		logger := contextutils.LoggerFrom(ctx)
 
 		client := v1.NewRateLimitConfigClient(&nodeinfo, func(version string, resources []*v1.RateLimitConfig) error {
@@ -87,8 +121,17 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 			return err
 		}
 
-		// TODO(yuval-k): a stat that indicates we are connected, with the reverse one deferred.
-		// TODO(yuval-k): write a warning log
+		stats.Record(ctx, mRlConnectedState.M(int64(1)))
+		defer func() {
+			err = conn.Close()
+			if err != nil {
+				contextutils.LoggerFrom(ctx).Errorw("failed to close grpc connection", zap.Any("error", err))
+			} else {
+				contextutils.LoggerFrom(ctx).Infow("closed grpc connection", zap.Any("address", x.glooAddress))
+			}
+			stats.Record(ctx, mRlConnectedState.M(int64(0)))
+		}()
+
 		return client.Start(ctx, conn)
 	}
 
