@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/4011
+  description: >-
+    Fix inconsistency in helm chart regarding aws service account behavior. Before this change, the settings
+    had to be modified in the OS and enterprise chart, this changes it to be only the OS chart for consistency.

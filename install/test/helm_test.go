@@ -1389,8 +1389,8 @@ spec:
 			It("enable sts discovery", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"settings.aws.enableServiceAccountCredentials=true",
-						"settings.aws.stsCredentialsRegion=us-east-2",
+						"gloo.settings.aws.enableServiceAccountCredentials=true",
+						"gloo.settings.aws.stsCredentialsRegion=us-east-2",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
