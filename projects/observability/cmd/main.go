@@ -21,7 +21,7 @@ func main() {
 
 	err := license.LicenseStatus(ctx)
 	if err != nil {
-		logger.Fatalf("License is invalid, crashing - " + err.Error())
+		logger.Fatalf("License is invalid or expired, crashing - " + err.Error())
 	}
 
 	if err := syncer.Main(); err != nil {
