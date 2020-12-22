@@ -68,6 +68,15 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 			if cfg.Ldap.GetAddress() == "" {
 				reports.AddError(ac, NewInvalidAuthConfigError("ldap", ac.GetMetadata().Ref()))
 			}
+		case *extauth.AuthConfig_Config_PassThroughAuth:
+			switch protocolCfg := cfg.PassThroughAuth.GetProtocol().(type) {
+			case *extauth.PassThroughAuth_Grpc:
+				if protocolCfg.Grpc.GetAddress() == "" {
+					reports.AddError(ac, NewInvalidAuthConfigError("passthrough grpc", ac.GetMetadata().Ref()))
+				}
+			default:
+				reports.AddError(ac, errors.Errorf("Unknown passthrough protocol type for %v", ac.Metadata.Ref()))
+			}
 		default:
 			reports.AddError(ac, errors.Errorf("Unknown Auth Config type for %v", ac.Metadata.Ref()))
 		}

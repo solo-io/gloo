@@ -22,6 +22,7 @@ var google_api_annotations_pb = require('../../../../../../../../../../../github
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey', null, global);
@@ -55,6 +56,8 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth2', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OauthSecret', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OidcAuthorizationCode', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OpaAuth', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughAuth', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughGrpc', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession', null, global);
@@ -266,7 +269,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.AuthConfig.Config.oneofGroups_ = [[1,2,8,4,5,6,7]];
+proto.enterprise.gloo.solo.io.AuthConfig.Config.oneofGroups_ = [[1,2,8,4,5,6,7,11,12]];
 
 /**
  * @enum {number}
@@ -279,7 +282,9 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.AuthConfigCase = {
   API_KEY_AUTH: 4,
   PLUGIN_AUTH: 5,
   OPA_AUTH: 6,
-  LDAP: 7
+  LDAP: 7,
+  JWT: 11,
+  PASS_THROUGH_AUTH: 12
 };
 
 /**
@@ -325,7 +330,9 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.toObject = function(includeInsta
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.enterprise.gloo.solo.io.ApiKeyAuth.toObject(includeInstance, f),
     pluginAuth: (f = msg.getPluginAuth()) && proto.enterprise.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
     opaAuth: (f = msg.getOpaAuth()) && proto.enterprise.gloo.solo.io.OpaAuth.toObject(includeInstance, f),
-    ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f)
+    ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
+    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -401,6 +408,16 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.deserializeBinaryFromReader = fu
       var value = new proto.enterprise.gloo.solo.io.Ldap;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.Ldap.deserializeBinaryFromReader);
       msg.setLdap(value);
+      break;
+    case 11:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setJwt(value);
+      break;
+    case 12:
+      var value = new proto.enterprise.gloo.solo.io.PassThroughAuth;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader);
+      msg.setPassThroughAuth(value);
       break;
     default:
       reader.skipField();
@@ -493,6 +510,22 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.serializeBinaryToWriter = functi
       7,
       f,
       proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
+    );
+  }
+  f = message.getPassThroughAuth();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter
     );
   }
 };
@@ -735,6 +768,66 @@ proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.clearLdap = function()
  */
 proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.hasLdap = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional google.protobuf.Empty jwt = 11;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.getJwt = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 11));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.setJwt = function(value) {
+  jspb.Message.setOneofWrapperField(this, 11, proto.enterprise.gloo.solo.io.AuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.clearJwt = function() {
+  this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional PassThroughAuth pass_through_auth = 12;
+ * @return {?proto.enterprise.gloo.solo.io.PassThroughAuth}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.getPassThroughAuth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.PassThroughAuth} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.PassThroughAuth, 12));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.PassThroughAuth|undefined} value */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.setPassThroughAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.enterprise.gloo.solo.io.AuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.clearPassThroughAuth = function() {
+  this.setPassThroughAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfig.Config.prototype.hasPassThroughAuth = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 
@@ -7802,6 +7895,376 @@ proto.enterprise.gloo.solo.io.Ldap.prototype.hasPool = function() {
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.PassThroughAuth = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.PassThroughAuth.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.PassThroughAuth, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.PassThroughAuth.displayName = 'proto.enterprise.gloo.solo.io.PassThroughAuth';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.oneofGroups_ = [[1]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.ProtocolCase = {
+  PROTOCOL_NOT_SET: 0,
+  GRPC: 1
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.PassThroughAuth.ProtocolCase}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.getProtocolCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.PassThroughAuth.ProtocolCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.PassThroughAuth.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughAuth} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    grpc: (f = msg.getGrpc()) && proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.PassThroughAuth}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.PassThroughAuth;
+  return proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughAuth} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.PassThroughAuth}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.PassThroughGrpc;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinaryFromReader);
+      msg.setGrpc(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughAuth} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getGrpc();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.PassThroughGrpc.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional PassThroughGrpc grpc = 1;
+ * @return {?proto.enterprise.gloo.solo.io.PassThroughGrpc}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.getGrpc = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.PassThroughGrpc} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.PassThroughGrpc, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.PassThroughGrpc|undefined} value */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.setGrpc = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.PassThroughAuth.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.clearGrpc = function() {
+  this.setGrpc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.hasGrpc = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.PassThroughGrpc, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.PassThroughGrpc.displayName = 'proto.enterprise.gloo.solo.io.PassThroughGrpc';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughGrpc} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    address: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    connectionTimeout: (f = msg.getConnectionTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.PassThroughGrpc}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.PassThroughGrpc;
+  return proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughGrpc} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.PassThroughGrpc}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAddress(value);
+      break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setConnectionTimeout(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.PassThroughGrpc.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.PassThroughGrpc} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getConnectionTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string address = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.getAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.setAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration connection_timeout = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.getConnectionTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.setConnectionTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.clearConnectionTimeout = function() {
+  this.setConnectionTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PassThroughGrpc.prototype.hasConnectionTimeout = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.ExtAuthConfig = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ExtAuthConfig.repeatedFields_, null);
 };
@@ -9564,7 +10027,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,5,6,7,8]];
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_ = [[3,9,4,5,6,7,8,12,13]];
 
 /**
  * @enum {number}
@@ -9577,7 +10040,9 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.AuthConfigCase = {
   API_KEY_AUTH: 5,
   PLUGIN_AUTH: 6,
   OPA_AUTH: 7,
-  LDAP: 8
+  LDAP: 8,
+  JWT: 12,
+  PASS_THROUGH_AUTH: 13
 };
 
 /**
@@ -9623,7 +10088,9 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject = function(includeIn
     apiKeyAuth: (f = msg.getApiKeyAuth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject(includeInstance, f),
     pluginAuth: (f = msg.getPluginAuth()) && proto.enterprise.gloo.solo.io.AuthPlugin.toObject(includeInstance, f),
     opaAuth: (f = msg.getOpaAuth()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig.toObject(includeInstance, f),
-    ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f)
+    ldap: (f = msg.getLdap()) && proto.enterprise.gloo.solo.io.Ldap.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
+    passThroughAuth: (f = msg.getPassThroughAuth()) && proto.enterprise.gloo.solo.io.PassThroughAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -9699,6 +10166,16 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.deserializeBinaryFromReader =
       var value = new proto.enterprise.gloo.solo.io.Ldap;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.Ldap.deserializeBinaryFromReader);
       msg.setLdap(value);
+      break;
+    case 12:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setJwt(value);
+      break;
+    case 13:
+      var value = new proto.enterprise.gloo.solo.io.PassThroughAuth;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader);
+      msg.setPassThroughAuth(value);
       break;
     default:
       reader.skipField();
@@ -9791,6 +10268,22 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.serializeBinaryToWriter = fun
       8,
       f,
       proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
+    );
+  }
+  f = message.getPassThroughAuth();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter
     );
   }
 };
@@ -10033,6 +10526,66 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearLdap = functio
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasLdap = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.Empty jwt = 12;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.getJwt = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 12));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.setJwt = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearJwt = function() {
+  this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional PassThroughAuth pass_through_auth = 13;
+ * @return {?proto.enterprise.gloo.solo.io.PassThroughAuth}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.getPassThroughAuth = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.PassThroughAuth} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.PassThroughAuth, 13));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.PassThroughAuth|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.setPassThroughAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 13, proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.clearPassThroughAuth = function() {
+  this.setPassThroughAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.prototype.hasPassThroughAuth = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

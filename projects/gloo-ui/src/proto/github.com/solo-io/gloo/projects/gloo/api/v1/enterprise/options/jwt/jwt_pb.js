@@ -71,7 +71,8 @@ proto.jwt.options.gloo.solo.io.VhostExtension.prototype.toObject = function(opt_
  */
 proto.jwt.options.gloo.solo.io.VhostExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
-    providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.jwt.options.gloo.solo.io.Provider.toObject) : []
+    providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.jwt.options.gloo.solo.io.Provider.toObject) : [],
+    allowMissingOrFailedJwt: jspb.Message.getFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -114,6 +115,10 @@ proto.jwt.options.gloo.solo.io.VhostExtension.deserializeBinaryFromReader = func
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader, "");
          });
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAllowMissingOrFailedJwt(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -147,6 +152,13 @@ proto.jwt.options.gloo.solo.io.VhostExtension.serializeBinaryToWriter = function
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter);
   }
+  f = message.getAllowMissingOrFailedJwt();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -165,6 +177,23 @@ proto.jwt.options.gloo.solo.io.VhostExtension.prototype.getProvidersMap = functi
 
 proto.jwt.options.gloo.solo.io.VhostExtension.prototype.clearProvidersMap = function() {
   this.getProvidersMap().clear();
+};
+
+
+/**
+ * optional bool allow_missing_or_failed_jwt = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.getAllowMissingOrFailedJwt = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.jwt.options.gloo.solo.io.VhostExtension.prototype.setAllowMissingOrFailedJwt = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 
@@ -215,7 +244,8 @@ proto.jwt.options.gloo.solo.io.RouteExtension.prototype.toObject = function(opt_
  */
 proto.jwt.options.gloo.solo.io.RouteExtension.toObject = function(includeInstance, msg) {
   var f, obj = {
-    disable: jspb.Message.getFieldWithDefault(msg, 1, false)
+    disable: jspb.Message.getFieldWithDefault(msg, 1, false),
+    allowMissingOrFailedJwt: jspb.Message.getFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -256,6 +286,10 @@ proto.jwt.options.gloo.solo.io.RouteExtension.deserializeBinaryFromReader = func
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setDisable(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAllowMissingOrFailedJwt(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -292,6 +326,13 @@ proto.jwt.options.gloo.solo.io.RouteExtension.serializeBinaryToWriter = function
       f
     );
   }
+  f = message.getAllowMissingOrFailedJwt();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -309,6 +350,23 @@ proto.jwt.options.gloo.solo.io.RouteExtension.prototype.getDisable = function() 
 /** @param {boolean} value */
 proto.jwt.options.gloo.solo.io.RouteExtension.prototype.setDisable = function(value) {
   jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional bool allow_missing_or_failed_jwt = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.getAllowMissingOrFailedJwt = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.jwt.options.gloo.solo.io.RouteExtension.prototype.setAllowMissingOrFailedJwt = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
 };
 
 

@@ -149,7 +149,7 @@ var _ = Describe("RateLimit Plugin", func() {
 			typedMsgs = append(typedMsgs, v)
 		}
 
-		Expect(typedConfigs).To(test_matchers.ConistOfProtos(typedMsgs...))
+		Expect(typedConfigs).To(test_matchers.ConsistOfProtos(typedMsgs...))
 
 	})
 

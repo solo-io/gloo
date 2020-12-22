@@ -103,6 +103,11 @@ export class Route extends jspb.Message {
   getInheritableMatchers(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setInheritableMatchers(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasInheritablePathMatchers(): boolean;
+  clearInheritablePathMatchers(): void;
+  getInheritablePathMatchers(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setInheritablePathMatchers(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   hasRouteAction(): boolean;
   clearRouteAction(): void;
   getRouteAction(): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction | undefined;
@@ -146,6 +151,7 @@ export namespace Route {
   export type AsObject = {
     matchersList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.AsObject>,
     inheritableMatchers?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    inheritablePathMatchers?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     routeAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.AsObject,
     redirectAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.AsObject,

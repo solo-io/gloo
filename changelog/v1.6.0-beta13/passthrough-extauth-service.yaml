@@ -1,0 +1,26 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/3645
+    description: >
+      Support a passthrough GRPC ext auth service. This service delegates to a configured external service
+      which implements the envoy external auth API (https://github.com/envoyproxy/go-control-plane/blob/master/envoy/service/auth/v3/external_auth.pb.go)
+
+      This enables users to use custom external auth services in addition to GlooE out of the box features.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.6.0-beta23
+    description: >-
+      Update gloo to v1.6.0-beta23
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.7.8
+    description: >-
+      Update ext-auth-service to v0.7.8
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.17.0
+    description: >-
+      Update solo-kit to v0.17.0

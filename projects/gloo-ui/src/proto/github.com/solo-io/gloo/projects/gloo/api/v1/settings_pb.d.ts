@@ -152,6 +152,11 @@ export class Settings extends jspb.Message {
   getStatus(): github_com_solo_io_solo_kit_api_v1_status_pb.Status | undefined;
   setStatus(value?: github_com_solo_io_solo_kit_api_v1_status_pb.Status): void;
 
+  hasObservabilityoptions(): boolean;
+  clearObservabilityoptions(): void;
+  getObservabilityoptions(): Settings.ObservabilityOptions | undefined;
+  setObservabilityoptions(value?: Settings.ObservabilityOptions): void;
+
   getConfigSourceCase(): Settings.ConfigSourceCase;
   getSecretSourceCase(): Settings.SecretSourceCase;
   getArtifactSourceCase(): Settings.ArtifactSourceCase;
@@ -195,6 +200,7 @@ export namespace Settings {
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
+    observabilityoptions?: Settings.ObservabilityOptions.AsObject,
   }
 
   export class KubernetesCrds extends jspb.Message {
@@ -577,6 +583,50 @@ export namespace Settings {
       export type AsObject = {
         qps: number,
         burst: number,
+      }
+    }
+  }
+
+  export class ObservabilityOptions extends jspb.Message {
+    hasGrafanaintegration(): boolean;
+    clearGrafanaintegration(): void;
+    getGrafanaintegration(): Settings.ObservabilityOptions.GrafanaIntegration | undefined;
+    setGrafanaintegration(value?: Settings.ObservabilityOptions.GrafanaIntegration): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ObservabilityOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: ObservabilityOptions): ObservabilityOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ObservabilityOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ObservabilityOptions;
+    static deserializeBinaryFromReader(message: ObservabilityOptions, reader: jspb.BinaryReader): ObservabilityOptions;
+  }
+
+  export namespace ObservabilityOptions {
+    export type AsObject = {
+      grafanaintegration?: Settings.ObservabilityOptions.GrafanaIntegration.AsObject,
+    }
+
+    export class GrafanaIntegration extends jspb.Message {
+      hasDefaultDashboardFolderId(): boolean;
+      clearDefaultDashboardFolderId(): void;
+      getDefaultDashboardFolderId(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+      setDefaultDashboardFolderId(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): GrafanaIntegration.AsObject;
+      static toObject(includeInstance: boolean, msg: GrafanaIntegration): GrafanaIntegration.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: GrafanaIntegration, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): GrafanaIntegration;
+      static deserializeBinaryFromReader(message: GrafanaIntegration, reader: jspb.BinaryReader): GrafanaIntegration;
+    }
+
+    export namespace GrafanaIntegration {
+      export type AsObject = {
+        defaultDashboardFolderId?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
       }
     }
   }

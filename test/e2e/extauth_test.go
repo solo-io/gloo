@@ -27,6 +27,8 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
@@ -878,13 +880,6 @@ var _ = Describe("External auth", func() {
 
 			Context("api key sanity tests", func() {
 				BeforeEach(func() {
-
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
-
 					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      getApiKeyExtAuthExtension().GetConfigRef().Name,
@@ -1002,6 +997,145 @@ var _ = Describe("External auth", func() {
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
 			})
+
+			Context("passthrough sanity", func() {
+				var (
+					proxy          *gloov1.Proxy
+					authServer     *passthrough_test_utils.GrpcAuthServer
+					authServerPort = 5556
+				)
+
+				BeforeEach(func() {
+					// drain channel as we dont care about it
+					go func(testUpstream v1helpers.TestUpstream) {
+						for range testUpstream.C {
+						}
+					}(*testUpstream)
+				})
+
+				JustBeforeEach(func() {
+					// start auth server
+					err := authServer.Start(authServerPort)
+					Expect(err).NotTo(HaveOccurred())
+
+					// write auth configuration
+					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
+							Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+								PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress()),
+							},
+						}},
+					}, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					// get proxy with pass through auth extension
+					proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+					// write proxy
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// ensure proxy is accepted
+					Eventually(func() (core.Status, error) {
+						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+						if err != nil {
+							return core.Status{}, err
+						}
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
+					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+						"Reason": BeEmpty(),
+						"State":  Equal(core.Status_Accepted),
+					}))
+				})
+
+				AfterEach(func() {
+					authServer.Stop()
+				})
+
+				Context("when auth server returns ok response", func() {
+
+					BeforeEach(func() {
+						authServerResponse := passthrough_test_utils.OkResponse()
+						authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+					})
+
+					It("should accept extauth passthrough", func() {
+						Eventually(func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, nil
+							}
+
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(http.StatusOK))
+					})
+
+				})
+
+				Context("when auth server returns denied response", func() {
+
+					BeforeEach(func() {
+						authServerResponse := passthrough_test_utils.DeniedResponse()
+						authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+					})
+
+					It("should deny extauth passthrough", func() {
+						Eventually(func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, nil
+							}
+
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+					})
+
+				})
+
+				Context("when auth server errors", func() {
+
+					BeforeEach(func() {
+						authServerError := errors.New("auth server internal server error")
+						authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(nil, authServerError)
+					})
+
+					It("should deny extauth passthrough", func() {
+						Eventually(func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, nil
+							}
+
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+					})
+
+				})
+
+			})
+
 		})
 
 		Context("using old config format", func() {
@@ -1647,6 +1781,32 @@ func getApiKeyExtAuthExtension() *extauth.ExtAuthExtension {
 			ConfigRef: &core.ResourceRef{
 				Name:      "apikey-auth",
 				Namespace: defaults.GlooSystem,
+			},
+		},
+	}
+}
+
+func getProxyExtAuthPassThroughAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, GetPassThroughExtAuthExtension())
+}
+
+func GetPassThroughExtAuthExtension() *extauth.ExtAuthExtension {
+	return &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_ConfigRef{
+			ConfigRef: &core.ResourceRef{
+				Name:      "passthrough-auth",
+				Namespace: defaults.GlooSystem,
+			},
+		},
+	}
+}
+
+func getPassThroughAuthConfig(address string) *extauth.PassThroughAuth {
+	return &extauth.PassThroughAuth{
+		Protocol: &extauth.PassThroughAuth_Grpc{
+			Grpc: &extauth.PassThroughGrpc{
+				Address: address,
+				// use default connection timeout
 			},
 		},
 	}

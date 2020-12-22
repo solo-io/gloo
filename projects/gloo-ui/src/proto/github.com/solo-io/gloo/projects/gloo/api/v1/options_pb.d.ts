@@ -29,6 +29,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrad
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb";
@@ -135,6 +136,11 @@ export class HttpListenerOptions extends jspb.Message {
   getBuffer(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer | undefined;
   setBuffer(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer): void;
 
+  hasCsrf(): boolean;
+  clearCsrf(): void;
+  getCsrf(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy | undefined;
+  setCsrf(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy): void;
+
   hasGrpcJsonTranscoder(): boolean;
   clearGrpcJsonTranscoder(): void;
   getGrpcJsonTranscoder(): github_com_solo_io_gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder | undefined;
@@ -169,6 +175,7 @@ export namespace HttpListenerOptions {
     gzip?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
     proxyLatency?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
     buffer?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.AsObject,
+    csrf?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     grpcJsonTranscoder?: github_com_solo_io_gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
     sanitizeClusterHeader?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
@@ -272,6 +279,11 @@ export class VirtualHostOptions extends jspb.Message {
   getBufferPerRoute(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasCsrf(): boolean;
+  clearCsrf(): void;
+  getCsrf(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy | undefined;
+  setCsrf(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy): void;
+
   hasIncludeRequestAttemptCount(): boolean;
   clearIncludeRequestAttemptCount(): void;
   getIncludeRequestAttemptCount(): google_protobuf_wrappers_pb.BoolValue | undefined;
@@ -315,6 +327,7 @@ export namespace VirtualHostOptions {
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
     bufferPerRoute?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    csrf?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     includeRequestAttemptCount?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     includeAttemptCountInResponse?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     stagedTransformations?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
@@ -443,6 +456,11 @@ export class RouteOptions extends jspb.Message {
   getBufferPerRoute(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasCsrf(): boolean;
+  clearCsrf(): void;
+  getCsrf(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy | undefined;
+  setCsrf(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy): void;
+
   hasStagedTransformations(): boolean;
   clearStagedTransformations(): void;
   getStagedTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
@@ -485,6 +503,7 @@ export namespace RouteOptions {
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
     bufferPerRoute?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    csrf?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     stagedTransformations?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
   }
 
@@ -576,6 +595,11 @@ export class WeightedDestinationOptions extends jspb.Message {
   getBufferPerRoute(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute | undefined;
   setBufferPerRoute(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute): void;
 
+  hasCsrf(): boolean;
+  clearCsrf(): void;
+  getCsrf(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy | undefined;
+  setCsrf(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy): void;
+
   hasStagedTransformations(): boolean;
   clearStagedTransformations(): void;
   getStagedTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
@@ -598,6 +622,7 @@ export namespace WeightedDestinationOptions {
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     bufferPerRoute?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
+    csrf?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     stagedTransformations?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
   }
 }

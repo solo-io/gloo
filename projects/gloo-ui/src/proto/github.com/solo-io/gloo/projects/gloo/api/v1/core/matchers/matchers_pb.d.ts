@@ -3,6 +3,7 @@
 // file: github.com/solo-io/gloo/projects/gloo/api/v1/core/matchers/matchers.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as extproto_ext_pb from "../../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class Matcher extends jspb.Message {
@@ -20,6 +21,11 @@ export class Matcher extends jspb.Message {
   clearRegex(): void;
   getRegex(): string;
   setRegex(value: string): void;
+
+  hasCaseSensitive(): boolean;
+  clearCaseSensitive(): void;
+  getCaseSensitive(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setCaseSensitive(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   clearHeadersList(): void;
   getHeadersList(): Array<HeaderMatcher>;
@@ -52,6 +58,7 @@ export namespace Matcher {
     prefix: string,
     exact: string,
     regex: string,
+    caseSensitive?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     headersList: Array<HeaderMatcher.AsObject>,
     queryParametersList: Array<QueryParameterMatcher.AsObject>,
     methodsList: Array<string>,

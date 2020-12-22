@@ -38,6 +38,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protoc
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/transformation/transformation_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/proxylatency/proxylatency_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb.js');
@@ -361,6 +362,7 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     gzip: (f = msg.getGzip()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f),
     buffer: (f = msg.getBuffer()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f),
+    csrf: (f = msg.getCsrf()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f),
     sanitizeClusterHeader: (f = msg.getSanitizeClusterHeader()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
@@ -458,6 +460,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.deserializeBinaryFromReader);
       msg.setBuffer(value);
+      break;
+    case 15:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.deserializeBinaryFromReader);
+      msg.setCsrf(value);
       break;
     case 13:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder;
@@ -592,6 +599,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       12,
       f,
       github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.serializeBinaryToWriter
+    );
+  }
+  f = message.getCsrf();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.serializeBinaryToWriter
     );
   }
   f = message.getGrpcJsonTranscoder();
@@ -974,6 +989,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.hasBuffer = function() {
 
 
 /**
+ * optional solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy csrf = 15;
+ * @return {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getCsrf = function() {
+  return /** @type{?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy, 15));
+};
+
+
+/** @param {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setCsrf = function(value) {
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearCsrf = function() {
+  this.setCsrf(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasCsrf = function() {
+  return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
  * optional grpc_json.options.gloo.solo.io.GrpcJsonTranscoder grpc_json_transcoder = 13;
  * @return {?proto.grpc_json.options.gloo.solo.io.GrpcJsonTranscoder}
  */
@@ -1280,6 +1325,7 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
     bufferPerRoute: (f = msg.getBufferPerRoute()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    csrf: (f = msg.getCsrf()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     includeRequestAttemptCount: (f = msg.getIncludeRequestAttemptCount()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     includeAttemptCountInResponse: (f = msg.getIncludeAttemptCountInResponse()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
@@ -1393,6 +1439,11 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
+      break;
+    case 18:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.deserializeBinaryFromReader);
+      msg.setCsrf(value);
       break;
     case 15:
       var value = new google_protobuf_wrappers_pb.BoolValue;
@@ -1556,6 +1607,14 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
       14,
       f,
       github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
+    );
+  }
+  f = message.getCsrf();
+  if (f != null) {
+    writer.writeMessage(
+      18,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.serializeBinaryToWriter
     );
   }
   f = message.getIncludeRequestAttemptCount();
@@ -2036,6 +2095,36 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasBufferPerRoute = function() {
 
 
 /**
+ * optional solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy csrf = 18;
+ * @return {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getCsrf = function() {
+  return /** @type{?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy, 18));
+};
+
+
+/** @param {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setCsrf = function(value) {
+  jspb.Message.setWrapperField(this, 18, value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearCsrf = function() {
+  this.setCsrf(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasCsrf = function() {
+  return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
  * optional google.protobuf.BoolValue include_request_attempt_count = 15;
  * @return {?proto.google.protobuf.BoolValue}
  */
@@ -2245,6 +2334,7 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
     dlp: (f = msg.getDlp()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
     bufferPerRoute: (f = msg.getBufferPerRoute()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    csrf: (f = msg.getCsrf()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
   };
 
@@ -2395,6 +2485,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
+      break;
+    case 24:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.deserializeBinaryFromReader);
+      msg.setCsrf(value);
       break;
     case 23:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
@@ -2611,6 +2706,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       22,
       f,
       github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
+    );
+  }
+  f = message.getCsrf();
+  if (f != null) {
+    writer.writeMessage(
+      24,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.serializeBinaryToWriter
     );
   }
   f = message.getStagedTransformations();
@@ -3315,6 +3418,36 @@ proto.gloo.solo.io.RouteOptions.prototype.hasBufferPerRoute = function() {
 
 
 /**
+ * optional solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy csrf = 24;
+ * @return {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getCsrf = function() {
+  return /** @type{?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy, 24));
+};
+
+
+/** @param {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setCsrf = function(value) {
+  jspb.Message.setWrapperField(this, 24, value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearCsrf = function() {
+  this.setCsrf(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasCsrf = function() {
+  return jspb.Message.getField(this, 24) != null;
+};
+
+
+/**
  * optional transformation.options.gloo.solo.io.TransformationStages staged_transformations = 23;
  * @return {?proto.transformation.options.gloo.solo.io.TransformationStages}
  */
@@ -3715,6 +3848,7 @@ proto.gloo.solo.io.WeightedDestinationOptions.toObject = function(includeInstanc
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.toObject(includeInstance, f),
     bufferPerRoute: (f = msg.getBufferPerRoute()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
+    csrf: (f = msg.getCsrf()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
   };
 
@@ -3776,6 +3910,11 @@ proto.gloo.solo.io.WeightedDestinationOptions.deserializeBinaryFromReader = func
       var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.deserializeBinaryFromReader);
       msg.setBufferPerRoute(value);
+      break;
+    case 7:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.deserializeBinaryFromReader);
+      msg.setCsrf(value);
       break;
     case 6:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
@@ -3849,6 +3988,14 @@ proto.gloo.solo.io.WeightedDestinationOptions.serializeBinaryToWriter = function
       5,
       f,
       github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.serializeBinaryToWriter
+    );
+  }
+  f = message.getCsrf();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.serializeBinaryToWriter
     );
   }
   f = message.getStagedTransformations();
@@ -4009,6 +4156,36 @@ proto.gloo.solo.io.WeightedDestinationOptions.prototype.clearBufferPerRoute = fu
  */
 proto.gloo.solo.io.WeightedDestinationOptions.prototype.hasBufferPerRoute = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy csrf = 7;
+ * @return {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy}
+ */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.getCsrf = function() {
+  return /** @type{?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy, 7));
+};
+
+
+/** @param {?proto.solo.io.envoy.extensions.filters.http.csrf.v3.CsrfPolicy|undefined} value */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.setCsrf = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.clearCsrf = function() {
+  this.setCsrf(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.WeightedDestinationOptions.prototype.hasCsrf = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

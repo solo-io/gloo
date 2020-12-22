@@ -13,6 +13,7 @@ import * as google_api_annotations_pb from "../../../../../../../../../../../goo
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 
 export class AuthConfig extends jspb.Message {
   hasStatus(): boolean;
@@ -94,6 +95,16 @@ export namespace AuthConfig {
     getLdap(): Ldap | undefined;
     setLdap(value?: Ldap): void;
 
+    hasJwt(): boolean;
+    clearJwt(): void;
+    getJwt(): google_protobuf_empty_pb.Empty | undefined;
+    setJwt(value?: google_protobuf_empty_pb.Empty): void;
+
+    hasPassThroughAuth(): boolean;
+    clearPassThroughAuth(): void;
+    getPassThroughAuth(): PassThroughAuth | undefined;
+    setPassThroughAuth(value?: PassThroughAuth): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -115,6 +126,8 @@ export namespace AuthConfig {
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: OpaAuth.AsObject,
       ldap?: Ldap.AsObject,
+      jwt?: google_protobuf_empty_pb.Empty.AsObject,
+      passThroughAuth?: PassThroughAuth.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -126,6 +139,8 @@ export namespace AuthConfig {
       PLUGIN_AUTH = 5,
       OPA_AUTH = 6,
       LDAP = 7,
+      JWT = 11,
+      PASS_THROUGH_AUTH = 12,
     }
   }
 }
@@ -1100,6 +1115,60 @@ export namespace Ldap {
   }
 }
 
+export class PassThroughAuth extends jspb.Message {
+  hasGrpc(): boolean;
+  clearGrpc(): void;
+  getGrpc(): PassThroughGrpc | undefined;
+  setGrpc(value?: PassThroughGrpc): void;
+
+  getProtocolCase(): PassThroughAuth.ProtocolCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PassThroughAuth.AsObject;
+  static toObject(includeInstance: boolean, msg: PassThroughAuth): PassThroughAuth.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PassThroughAuth, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PassThroughAuth;
+  static deserializeBinaryFromReader(message: PassThroughAuth, reader: jspb.BinaryReader): PassThroughAuth;
+}
+
+export namespace PassThroughAuth {
+  export type AsObject = {
+    grpc?: PassThroughGrpc.AsObject,
+  }
+
+  export enum ProtocolCase {
+    PROTOCOL_NOT_SET = 0,
+    GRPC = 1,
+  }
+}
+
+export class PassThroughGrpc extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  hasConnectionTimeout(): boolean;
+  clearConnectionTimeout(): void;
+  getConnectionTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setConnectionTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PassThroughGrpc.AsObject;
+  static toObject(includeInstance: boolean, msg: PassThroughGrpc): PassThroughGrpc.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PassThroughGrpc, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PassThroughGrpc;
+  static deserializeBinaryFromReader(message: PassThroughGrpc, reader: jspb.BinaryReader): PassThroughGrpc;
+}
+
+export namespace PassThroughGrpc {
+  export type AsObject = {
+    address: string,
+    connectionTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
 export class ExtAuthConfig extends jspb.Message {
   getAuthConfigRefName(): string;
   setAuthConfigRefName(value: string): void;
@@ -1391,6 +1460,16 @@ export namespace ExtAuthConfig {
     getLdap(): Ldap | undefined;
     setLdap(value?: Ldap): void;
 
+    hasJwt(): boolean;
+    clearJwt(): void;
+    getJwt(): google_protobuf_empty_pb.Empty | undefined;
+    setJwt(value?: google_protobuf_empty_pb.Empty): void;
+
+    hasPassThroughAuth(): boolean;
+    clearPassThroughAuth(): void;
+    getPassThroughAuth(): PassThroughAuth | undefined;
+    setPassThroughAuth(value?: PassThroughAuth): void;
+
     getAuthConfigCase(): Config.AuthConfigCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Config.AsObject;
@@ -1412,6 +1491,8 @@ export namespace ExtAuthConfig {
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: ExtAuthConfig.OpaAuthConfig.AsObject,
       ldap?: Ldap.AsObject,
+      jwt?: google_protobuf_empty_pb.Empty.AsObject,
+      passThroughAuth?: PassThroughAuth.AsObject,
     }
 
     export enum AuthConfigCase {
@@ -1423,6 +1504,8 @@ export namespace ExtAuthConfig {
       PLUGIN_AUTH = 6,
       OPA_AUTH = 7,
       LDAP = 8,
+      JWT = 12,
+      PASS_THROUGH_AUTH = 13,
     }
   }
 }

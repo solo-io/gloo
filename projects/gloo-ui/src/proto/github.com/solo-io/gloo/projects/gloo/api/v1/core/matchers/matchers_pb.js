@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.matchers.core.gloo.solo.io.HeaderMatcher', null, global);
 goog.exportSymbol('proto.matchers.core.gloo.solo.io.Matcher', null, global);
@@ -100,6 +101,7 @@ proto.matchers.core.gloo.solo.io.Matcher.toObject = function(includeInstance, ms
     prefix: jspb.Message.getFieldWithDefault(msg, 1, ""),
     exact: jspb.Message.getFieldWithDefault(msg, 2, ""),
     regex: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    caseSensitive: (f = msg.getCaseSensitive()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     headersList: jspb.Message.toObjectList(msg.getHeadersList(),
     proto.matchers.core.gloo.solo.io.HeaderMatcher.toObject, includeInstance),
     queryParametersList: jspb.Message.toObjectList(msg.getQueryParametersList(),
@@ -152,6 +154,11 @@ proto.matchers.core.gloo.solo.io.Matcher.deserializeBinaryFromReader = function(
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setRegex(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setCaseSensitive(value);
       break;
     case 6:
       var value = new proto.matchers.core.gloo.solo.io.HeaderMatcher;
@@ -215,6 +222,14 @@ proto.matchers.core.gloo.solo.io.Matcher.serializeBinaryToWriter = function(mess
     writer.writeString(
       3,
       f
+    );
+  }
+  f = message.getCaseSensitive();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getHeadersList();
@@ -327,6 +342,36 @@ proto.matchers.core.gloo.solo.io.Matcher.prototype.clearRegex = function() {
  */
 proto.matchers.core.gloo.solo.io.Matcher.prototype.hasRegex = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue case_sensitive = 4;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.matchers.core.gloo.solo.io.Matcher.prototype.getCaseSensitive = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 4));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.matchers.core.gloo.solo.io.Matcher.prototype.setCaseSensitive = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.matchers.core.gloo.solo.io.Matcher.prototype.clearCaseSensitive = function() {
+  this.setCaseSensitive(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.matchers.core.gloo.solo.io.Matcher.prototype.hasCaseSensitive = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

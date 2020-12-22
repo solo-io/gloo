@@ -10,6 +10,9 @@ import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/du
 export class VhostExtension extends jspb.Message {
   getProvidersMap(): jspb.Map<string, Provider>;
   clearProvidersMap(): void;
+  getAllowMissingOrFailedJwt(): boolean;
+  setAllowMissingOrFailedJwt(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VhostExtension.AsObject;
   static toObject(includeInstance: boolean, msg: VhostExtension): VhostExtension.AsObject;
@@ -23,12 +26,16 @@ export class VhostExtension extends jspb.Message {
 export namespace VhostExtension {
   export type AsObject = {
     providersMap: Array<[string, Provider.AsObject]>,
+    allowMissingOrFailedJwt: boolean,
   }
 }
 
 export class RouteExtension extends jspb.Message {
   getDisable(): boolean;
   setDisable(value: boolean): void;
+
+  getAllowMissingOrFailedJwt(): boolean;
+  setAllowMissingOrFailedJwt(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteExtension.AsObject;
@@ -43,6 +50,7 @@ export class RouteExtension extends jspb.Message {
 export namespace RouteExtension {
   export type AsObject = {
     disable: boolean,
+    allowMissingOrFailedJwt: boolean,
   }
 }
 

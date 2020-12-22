@@ -685,6 +685,7 @@ proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
     matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_core_matchers_matchers_pb.Matcher.toObject, includeInstance),
     inheritableMatchers: (f = msg.getInheritableMatchers()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    inheritablePathMatchers: (f = msg.getInheritablePathMatchers()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     routeAction: (f = msg.getRouteAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
@@ -736,6 +737,11 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setInheritableMatchers(value);
+      break;
+    case 9:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setInheritablePathMatchers(value);
       break;
     case 2:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.RouteAction;
@@ -807,6 +813,14 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
   if (f != null) {
     writer.writeMessage(
       8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getInheritablePathMatchers();
+  if (f != null) {
+    writer.writeMessage(
+      9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -919,6 +933,36 @@ proto.gateway.solo.io.Route.prototype.clearInheritableMatchers = function() {
  */
 proto.gateway.solo.io.Route.prototype.hasInheritableMatchers = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue inheritable_path_matchers = 9;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gateway.solo.io.Route.prototype.getInheritablePathMatchers = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gateway.solo.io.Route.prototype.setInheritablePathMatchers = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gateway.solo.io.Route.prototype.clearInheritablePathMatchers = function() {
+  this.setInheritablePathMatchers(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.Route.prototype.hasInheritablePathMatchers = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

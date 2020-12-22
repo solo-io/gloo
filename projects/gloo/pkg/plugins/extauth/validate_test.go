@@ -91,4 +91,74 @@ var _ = Describe("ValidateAuthConfig", func() {
 		})
 	})
 
+	Context("validate passthrough authconfig", func() {
+		var (
+			authConfig *extauth.AuthConfig
+			reports    reporter.ResourceReports
+		)
+
+		BeforeEach(func() {
+			// rebuild reports
+			reports = make(reporter.ResourceReports)
+		})
+
+		It("grpc should report error if address missing", func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-auth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{
+					&extauth.AuthConfig_Config{
+						AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+							PassThroughAuth: &extauth.PassThroughAuth{
+								Protocol: &extauth.PassThroughAuth_Grpc{
+									Grpc: &extauth.PassThroughGrpc{
+										// missing address
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).To(HaveOccurred())
+			Expect(reports.ValidateStrict().Error()).To(
+				ContainSubstring(`Invalid configurations for passthrough grpc auth config test-auth.gloo-system`))
+		})
+
+		It("grpc should succeed if address present", func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-auth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{
+					&extauth.AuthConfig_Config{
+						AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+							PassThroughAuth: &extauth.PassThroughAuth{
+								Protocol: &extauth.PassThroughAuth_Grpc{
+									Grpc: &extauth.PassThroughGrpc{
+										Address: "address",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
+		})
+	})
+
 })

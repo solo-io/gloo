@@ -6,6 +6,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/solo-io/ext-auth-service/pkg/chain"
 	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
@@ -481,6 +483,18 @@ func (c *configGenerator) authConfigToService(
 			return nil, "", err
 		}
 		return ldapSvc, config.GetName().GetValue(), nil
+	case *extauthv1.ExtAuthConfig_Config_PassThroughAuth:
+		switch protocolConfig := cfg.PassThroughAuth.GetProtocol().(type) {
+		case *extauthv1.PassThroughAuth_Grpc:
+			grpcSvc, err := getPassThroughGrpcAuthService(ctx, protocolConfig.Grpc)
+			if err != nil {
+				return nil, "", err
+			}
+			return grpcSvc, config.GetName().GetValue(), nil
+		default:
+			return nil, config.GetName().GetValue(), errors.Errorf("Unhandled pass through auth protocol: %+v", cfg.PassThroughAuth.Protocol)
+		}
+
 	}
 	return nil, "", errors.New("unknown auth configuration")
 }
@@ -529,4 +543,29 @@ func getLdapConnectionPoolParams(config *extauthv1.Ldap) (initCap int, maxCap in
 	}
 
 	return
+}
+
+func getPassThroughGrpcAuthService(ctx context.Context, grpcConfig *extauthv1.PassThroughGrpc) (api.AuthService, error) {
+
+	connectionTimeout := 5 * time.Second
+
+	if timeout := grpcConfig.GetConnectionTimeout(); timeout != nil {
+		timeout, err := ptypes.Duration(timeout)
+		if err != nil {
+			return nil, err
+		}
+		connectionTimeout = timeout
+	}
+
+	clientManagerConfig := &passthrough.ClientManagerConfig{
+		Address:           grpcConfig.GetAddress(),
+		ConnectionTimeout: connectionTimeout,
+	}
+
+	grpcClientManager, err := passthrough.NewGrpcClientManager(ctx, clientManagerConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create grpc client manager")
+	}
+
+	return passthrough.NewGrpcService(grpcClientManager), nil
 }

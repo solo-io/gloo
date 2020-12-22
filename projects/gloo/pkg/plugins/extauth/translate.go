@@ -29,7 +29,10 @@ var (
 	MissingRequiredMetadataError = func(requiredKey string, secret *v1.Secret) error {
 		return errors.Errorf("API key secret [%s] does not contain the required [%s] metadata entry", secret.Metadata.Ref().Key(), requiredKey)
 	}
-	duplicateModuleError = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
+	duplicateModuleError           = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
+	unknownPassThroughProtocolType = func(protocol interface{}) error {
+		return errors.Errorf("unknown passthrough protocol type [%v]", protocol)
+	}
 )
 
 // Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
@@ -122,6 +125,19 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 	case *extauth.AuthConfig_Config_Ldap:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Ldap{
 			Ldap: config.Ldap,
+		}
+	case *extauth.AuthConfig_Config_PassThroughAuth:
+		switch protocolConfig := config.PassThroughAuth.GetProtocol().(type) {
+		case *extauth.PassThroughAuth_Grpc:
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_PassThroughAuth{
+				PassThroughAuth: &extauth.PassThroughAuth{
+					Protocol: &extauth.PassThroughAuth_Grpc{
+						Grpc: protocolConfig.Grpc,
+					},
+				},
+			}
+		default:
+			return nil, unknownPassThroughProtocolType(config.PassThroughAuth.Protocol)
 		}
 	default:
 		return nil, unknownConfigTypeError
