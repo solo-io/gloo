@@ -16,6 +16,7 @@ type DashboardClient interface {
 	SetRawDashboard(raw []byte) error
 	DeleteDashboard(uid string) (StatusMessage, error)
 	SearchDashboards(query string, starred bool, tags ...string) ([]FoundBoard, error)
+	GetAllFolderIds() ([]FolderProperties, error)
 }
 
 type dashboardClient struct {
@@ -55,6 +56,23 @@ type FoundBoard struct {
 	Type      string   `json:"type"`
 	Tags      []string `json:"tags"`
 	IsStarred bool     `json:"isStarred"`
+}
+
+// Keeps metadata of a grafana folder.
+type FolderProperties struct {
+	ID        uint      `json:"id,omitempty"`
+	UID       string    `json:"uid,omitempty"`
+	Title     string    `json:"title,omitempty"`
+	URL       string    `json:"uri,omitempty"`
+	HasAcl    bool      `json:"hasAcl,omitempty"`
+	CanSave   bool      `json:"canSave,omitempty"`
+	CanEdit   bool      `json:"canEdit,omitempty"`
+	CanAdmin  bool      `json:"canAdmin,omitempty"`
+	Created   time.Time `json:"created,omitempty"`
+	Updated   time.Time `json:"updated,omitempty"`
+	UpdatedBy string    `json:"updatedBy,omitempty"`
+	CreatedBy string    `json:"createdBy,omitempty"`
+	Version   int       `json:"version,omitempty"`
 }
 
 func NewDashboardClient(restClient RestClient) DashboardClient {
@@ -185,4 +203,30 @@ func (d *dashboardClient) SearchDashboards(query string, starred bool, tags ...s
 	}
 	err = json.Unmarshal(raw, &boards)
 	return boards, err
+}
+
+// This would technically not return every folder if over 1000 folders have been created due to the
+// Grafana API call's default return limit, although I don't see users making over 1000 folders
+// for our grafana dashboards on a regular basis.
+// If necessary, we can input a higher limit value here.
+func (d *dashboardClient) GetAllFolderIds() ([]FolderProperties, error) {
+	var (
+		raw     []byte
+		folders []FolderProperties
+		code    int
+		err     error
+	)
+
+	u := url.URL{}
+	q := u.Query()
+	if raw, code, err = d.restClient.Get("api/folders", q); err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("HTTP error %d: returns %s", code, raw)
+	}
+	if err = json.Unmarshal(raw, &folders); err != nil {
+		return nil, err
+	}
+	return folders, err
 }

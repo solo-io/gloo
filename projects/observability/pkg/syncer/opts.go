@@ -6,9 +6,10 @@ import (
 )
 
 type Opts struct {
-	WriteNamespace  string
-	WatchNamespaces []string
-	Upstreams       factory.ResourceClientFactory
-	WatchOpts       clients.WatchOpts
-	DevMode         bool
+	WriteNamespace           string
+	WatchNamespaces          []string
+	Upstreams                factory.ResourceClientFactory
+	WatchOpts                clients.WatchOpts
+	DevMode                  bool
+	DefaultDashboardFolderId uint
 }

@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink:  https://github.com/solo-io/gloo/issues/3920
+    description: Observability deployment uses upstreams' dashboardFolderId values to place corresponding grafana dashboards in specified folders.

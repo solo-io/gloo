@@ -66,6 +66,20 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 		writeNamespace = gloodefaults.GlooSystem
 	}
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.WatchNamespaces, writeNamespace)
+
+	defaultDashboardFolderId := generalFolderId
+	// check if the user inputted a default dashboard id.
+	if obsOpts := settings.GetObservabilityOptions(); obsOpts != nil {
+		if grafInt := obsOpts.GetGrafanaIntegration(); grafInt != nil {
+			if rawFolderId := grafInt.DefaultDashboardFolderId; rawFolderId != nil {
+				logger := contextutils.LoggerFrom(ctx)
+				logger.Infof("Using inputted default folder id: %d", rawFolderId.GetValue())
+				// just accept it if it exists. Validation happens later.
+				defaultDashboardFolderId = uint(rawFolderId.GetValue())
+			}
+		}
+	}
+
 	opts := Opts{
 		WriteNamespace:  writeNamespace,
 		WatchNamespaces: watchNamespaces,
@@ -74,7 +88,8 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
 		},
-		DevMode: true,
+		DevMode:                  true,
+		DefaultDashboardFolderId: defaultDashboardFolderId,
 	}
 
 	return RunObservability(opts)
@@ -110,7 +125,7 @@ func RunObservability(opts Opts) error {
 		return err
 	}
 
-	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate)
+	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, opts.DefaultDashboardFolderId)
 
 	emitter := v1.NewDashboardsEmitter(upstreamClient)
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)

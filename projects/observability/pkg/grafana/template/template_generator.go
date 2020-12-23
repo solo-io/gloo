@@ -15,7 +15,7 @@ import (
 // Render a template based on the given upstream
 type TemplateGenerator interface {
 	GenerateSnapshot() ([]byte, error)
-	GenerateDashboard() ([]byte, error)
+	GenerateDashboard(dashboardFolderId uint) ([]byte, error)
 	GenerateUid() string
 }
 
@@ -46,7 +46,7 @@ func (t *templateGenerator) GenerateUid() string {
 	return strings.Replace(name, "-", "_", -1)
 }
 
-func (t *templateGenerator) GenerateDashboard() ([]byte, error) {
+func (t *templateGenerator) GenerateDashboard(dashboardFolderId uint) ([]byte, error) {
 	stats := upstreamStats{
 		Uid:              t.GenerateUid(),
 		EnvoyClusterName: t.buildEnvoyClusterName(),
@@ -54,7 +54,7 @@ func (t *templateGenerator) GenerateDashboard() ([]byte, error) {
 		Overwrite:        true,
 	}
 
-	dashboardPayload := buildDashboardPayloadTemplate(t.dashboardJsonTemplate)
+	dashboardPayload := buildDashboardPayloadTemplate(t.dashboardJsonTemplate, dashboardFolderId)
 	return tmplExec(dashboardPayload, stats)
 }
 
@@ -94,15 +94,16 @@ type upstreamStats struct {
 	Overwrite        bool
 }
 
-func buildDashboardPayloadTemplate(dashboardTemplate string) string {
+func buildDashboardPayloadTemplate(dashboardTemplate string, folderId uint) string {
 	return fmt.Sprintf(`
 {
   "dashboard": 
 	%s,
   "overwrite": {{.Overwrite}},
-  "message": "%s"
+  "message": "%s",
+  "folderId": %d
 }
-`, dashboardTemplate, DefaultCommitMessage)
+`, dashboardTemplate, DefaultCommitMessage, folderId)
 }
 
 func buildSnapshotPayloadTemplate(dashboardTemplate string) string {

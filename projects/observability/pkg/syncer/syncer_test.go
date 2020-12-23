@@ -63,7 +63,7 @@ var _ = Describe("Grafana Syncer", func() {
 			snapshots: nil,
 		}
 		dashboardJsonTemplate = "{\"test-content\": \"content\"}"
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId)
 		logger = contextutils.LoggerFrom(context.TODO())
 		upstreamOne = &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Aws{
@@ -114,7 +114,7 @@ var _ = Describe("Grafana Syncer", func() {
 					GetRawDashboard(uid).
 					Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
 
-				dashBytes, err := templateGenerator.GenerateDashboard() // should just return "test-json"
+				dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // should just return "test-json"
 				Expect(err).NotTo(HaveOccurred())
 				snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
 				Expect(err).NotTo(HaveOccurred())
@@ -143,7 +143,7 @@ var _ = Describe("Grafana Syncer", func() {
 		It("rebuilds dashboards when they exist already", func() {
 			for index, upstream := range upstreamList {
 				templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
-				renderedDashboard, err := templateGenerator.GenerateDashboard()
+				renderedDashboard, err := templateGenerator.GenerateDashboard(generalFolderId)
 				Expect(err).NotTo(HaveOccurred())
 
 				uid := templateGenerator.GenerateUid()
@@ -190,7 +190,7 @@ var _ = Describe("Grafana Syncer", func() {
 		It("does not regenerate the dashboard when it has been edited by a human", func() {
 			for index, upstream := range upstreamList {
 				templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
-				renderedDashboard, err := templateGenerator.GenerateDashboard()
+				renderedDashboard, err := templateGenerator.GenerateDashboard(generalFolderId)
 				Expect(err).NotTo(HaveOccurred())
 
 				uid := templateGenerator.GenerateUid()
@@ -257,6 +257,96 @@ var _ = Describe("Grafana Syncer", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
+	})
+
+	It("Ignores invalid default folder ids to use the general id", func() {
+
+		invalidFolderId := uint(1)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, invalidFolderId)
+		for _, upstream := range upstreamList {
+			templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+			uid := templateGenerator.GenerateUid()
+
+			dashboardClient.EXPECT().
+				GetRawDashboard(uid).
+				Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
+
+			dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
+			Expect(err).NotTo(HaveOccurred())
+			snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
+			Expect(err).NotTo(HaveOccurred())
+
+			dashboardClient.EXPECT().
+				SetRawDashboard(dashBytes).
+				Return(nil)
+			snapshotClient.EXPECT().
+				SetRawSnapshot(snapshotBytes).
+				Return(nil, nil) // we don't consume the snapshot response apart from checking the error
+		}
+		snapshotClient.EXPECT().
+			GetSnapshots().
+			Return([]grafana.SnapshotListResponse{}, nil)
+
+		// unlike other functions, this is only called once because the default id gets corrected after the first loop
+		// which prompts the second loop to not bother retrieving a valid id list until it encounters an annotated folder
+		// id, which isn't present in this test
+		dashboardClient.EXPECT().
+			GetAllFolderIds().
+			Return(nil, nil)
+
+		dashboardClient.EXPECT().
+			SearchDashboards("", false, tags[0], tags[1]).
+			Return([]grafana.FoundBoard{}, nil)
+
+		err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
+			Upstreams: upstreamList, // we just init'd two new upstreams
+		})
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("Ignores invalid annotated folder ids and places dashboards in the general folder", func() {
+		// Although errors aren't propagated out of the sync loop, we can still tell that it noticed the invalid id error
+		// by the fact that it loops twice and calls most functions twice as a result.
+		upstreamOne.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "1"}
+		upstreamTwo.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "test"}
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId)
+
+		for _, upstream := range upstreamList {
+			templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+			uid := templateGenerator.GenerateUid()
+
+			dashboardClient.EXPECT().
+				GetRawDashboard(uid).
+				Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
+
+			dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
+			Expect(err).NotTo(HaveOccurred())
+			snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
+			Expect(err).NotTo(HaveOccurred())
+
+			dashboardClient.EXPECT().
+				SetRawDashboard(dashBytes).
+				Return(nil)
+			snapshotClient.EXPECT().
+				SetRawSnapshot(snapshotBytes).
+				Return(nil, nil) // we don't consume the snapshot response apart from checking the error
+		}
+		snapshotClient.EXPECT().
+			GetSnapshots().
+			Return([]grafana.SnapshotListResponse{}, nil)
+
+		dashboardClient.EXPECT().
+			GetAllFolderIds().
+			Return(nil, nil)
+
+		dashboardClient.EXPECT().
+			SearchDashboards("", false, tags[0], tags[1]).
+			Return([]grafana.FoundBoard{}, nil)
+
+		err := dashboardSyncer.Sync(context.TODO(), &v1.DashboardsSnapshot{
+			Upstreams: upstreamList, // we just init'd two new upstreams
+		})
+		Expect(err).NotTo(HaveOccurred())
 	})
 })
 

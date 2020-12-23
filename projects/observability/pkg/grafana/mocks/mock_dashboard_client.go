@@ -49,6 +49,21 @@ func (mr *MockDashboardClientMockRecorder) DeleteDashboard(arg0 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDashboard", reflect.TypeOf((*MockDashboardClient)(nil).DeleteDashboard), arg0)
 }
 
+// GetAllFolderIds mocks base method
+func (m *MockDashboardClient) GetAllFolderIds() ([]grafana.FolderProperties, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFolderIds")
+	ret0, _ := ret[0].([]grafana.FolderProperties)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllFolderIds indicates an expected call of GetAllFolderIds
+func (mr *MockDashboardClientMockRecorder) GetAllFolderIds() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFolderIds", reflect.TypeOf((*MockDashboardClient)(nil).GetAllFolderIds))
+}
+
 // GetDashboardVersions mocks base method
 func (m *MockDashboardClient) GetDashboardVersions(arg0 float64) ([]*grafana.Version, error) {
 	m.ctrl.T.Helper()

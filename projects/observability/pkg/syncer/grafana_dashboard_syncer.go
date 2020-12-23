@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -34,6 +35,15 @@ func (gs *grafanaState) containsBoard(upstreamUid string) bool {
 const (
 	glooTag    = "gloo"
 	dynamicTag = "dynamic"
+	// this needs to remain in sync with what's listed in the documentation of
+	// the default id variable located in settings.grafanaConfiguration.defaultDashboardFolderId
+	upstreamFolderIdAnnotationKey = "observability.solo.io/dashboard_folder_id"
+	// this is the default folder ID used by Grafana, which they refer to as the general folder.
+	// It is always a valid folder to create dashboards in. We defer to this the moment it we determine
+	// that we can't determine if a non-general folder id is valid or not, since behavior for
+	// creating/moving dashboards towards invalid folder ids is inconsistent and riddled with silent
+	// errors that Grafana doesn't propagate.
+	generalFolderId = uint(0)
 )
 
 var (
@@ -45,18 +55,20 @@ var (
 )
 
 type GrafanaDashboardsSyncer struct {
-	synced                bool
-	mutex                 sync.Mutex
-	dashboardClient       grafana.DashboardClient
-	snapshotClient        grafana.SnapshotClient
-	dashboardJsonTemplate string
+	synced                   bool
+	mutex                    sync.Mutex
+	dashboardClient          grafana.DashboardClient
+	snapshotClient           grafana.SnapshotClient
+	dashboardJsonTemplate    string
+	defaultDashboardFolderId uint
 }
 
-func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, dashboardJsonTemplate string) *GrafanaDashboardsSyncer {
+func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, dashboardJsonTemplate string, defaultDashboardFolderId uint) *GrafanaDashboardsSyncer {
 	return &GrafanaDashboardsSyncer{
-		dashboardClient:       dashboardClient,
-		snapshotClient:        snapshotClient,
-		dashboardJsonTemplate: dashboardJsonTemplate,
+		dashboardClient:          dashboardClient,
+		snapshotClient:           snapshotClient,
+		dashboardJsonTemplate:    dashboardJsonTemplate,
+		defaultDashboardFolderId: defaultDashboardFolderId,
 	}
 }
 
@@ -129,9 +141,75 @@ func (s *GrafanaDashboardsSyncer) shouldRegenDashboard(logger *zap.SugaredLogger
 // returns a list of errors encountered while communicating over the network with Grafana
 func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) *multierror.Error {
 	errs := &multierror.Error{}
+	// This map shouldn't be persisted across syncs, but it should also only be
+	// populated once per sync to minimize API calls, and only if needed to validate custom folder ids.
+	folderIds := make(map[uint]bool)
+
+	// validate the default id, and set it to the always-safe generalFolderId if something goes wrong
+	isValid, err := s.validateFolderId(logger, folderIds, s.defaultDashboardFolderId)
+	if !isValid {
+		// whatever the reason, we can't use the configured folder id, so use the safe default, then log a reason.
+		s.defaultDashboardFolderId = generalFolderId
+		err = errors.Errorf("Default dashboard folder ID of \"%d\" is invalid. All upstreams without "+
+			"their own annotated dashboard folder IDs will have their dashboards sent to the general folder (id: %d) "+
+			"The list of valid folderIds returned by Grafana includes the following values: [%s]",
+			s.defaultDashboardFolderId,
+			generalFolderId,
+			folderIdsToString(folderIds))
+		if err != nil { // replace more-common invalid id error with data retrieval error the first time it occurs.
+			err = errors.Wrapf(err, "Due to an error in data retrieval, the configured default dashboard id %d "+
+				"can't be validated. All upstreams dashboards will be generated in the general folder (id: %d).",
+				s.defaultDashboardFolderId,
+				generalFolderId)
+		}
+		// log, but don't propagate/return folder id-related errors, as this could cause endless re-sync loops.
+		logger.Warn(err.Error())
+	}
 
 	for _, upstream := range snap.Upstreams {
+		folderIdToUse := s.defaultDashboardFolderId
 		upstreamName := upstream.Metadata.GetName()
+
+		// If this upstream is annotated with a custom Grafana folder id, we need to validate it in the same
+		// manner that we checked the default id.
+		if annotatedFolderId, annotationFound := upstream.Metadata.Annotations[upstreamFolderIdAnnotationKey]; annotationFound {
+			// start by making sure the annotation value is actually an int
+			intFolderId, err := strconv.Atoi(annotatedFolderId)
+
+			if err != nil {
+				err = errors.Wrapf(err, "Annotated folder id %s for the upstream %s could not be converted to an "+
+					"integer. This upstream's dashboard will be created in the general folder (id %d) instead.",
+					annotatedFolderId,
+					upstreamName,
+					generalFolderId)
+				logger.Warn(err.Error())
+			} else { // it's an int, make sure that it's valid next.
+				uintFolderId := uint(intFolderId)
+				isValid, err := s.validateFolderId(logger, folderIds, uintFolderId)
+
+				if !isValid {
+					err = errors.Errorf("Annotated dashboard folder ID \"%d\" for upstream %s is invalid."+
+						"This upstream's dashboard will be created in the general folder (id %d) instead. "+
+						"The list of valid folderIds returned by Grafana includes the following values: [%s]",
+						uintFolderId,
+						upstreamName,
+						generalFolderId,
+						folderIdsToString(folderIds))
+					if err != nil { // replace more-common invalid id error with data retrieval error the first time it occurs.
+						err = errors.Wrapf(err, "Due to an error in data retrieval, we cannot determine if the given dashboard "+
+							"folder id %d for the upstream %s is valid. This upstream's dashboard will be created in the general folder (id %d) instead.",
+							uintFolderId,
+							upstreamName,
+							generalFolderId)
+					}
+
+					logger.Warn(err.Error())
+				} else { // annotated folder id has been validated, use it instead of s.defaultDashboardFolderId
+					folderIdToUse = uintFolderId
+				}
+			}
+		}
+
 		templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
 		upstreamUid := templateGenerator.GenerateUid()
 
@@ -140,7 +218,6 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 			err := errors.Wrapf(err, "Skipping dashboard for upstream %s", upstreamUid)
 			logger.Warn(err.Error())
 			errs = multierror.Append(errs, err)
-
 			continue
 		}
 		if !shouldRegenDashboard {
@@ -149,7 +226,7 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 
 		logger.Infof("generating dashboard for upstream: %s", upstreamName)
 
-		dash, err := templateGenerator.GenerateDashboard()
+		dash, err := templateGenerator.GenerateDashboard(folderIdToUse)
 
 		if err != nil {
 			logger.Warnf("failed to generate dashboard for upstream: %s. %s", upstreamName, err)
@@ -288,4 +365,55 @@ func (s *GrafanaDashboardsSyncer) getCurrentGrafanaState() (*grafanaState, error
 		return gs, err
 	}
 	return gs, nil
+}
+
+func folderIdsToString(folderIds map[uint]bool) string {
+	res := ""
+	for key, _ := range folderIds {
+		res += fmt.Sprintf("%d, ", key)
+	}
+	return res
+}
+
+// call the grafana API to get a list of all folder IDs
+func (s *GrafanaDashboardsSyncer) populateValidFolderIds(folderIds map[uint]bool) error {
+	folderIds[generalFolderId] = true // Default of 0 is always valid, but isn't returned by the folder API.
+	folders, err := s.dashboardClient.GetAllFolderIds()
+	if err != nil {
+		return errors.Wrapf(err, "folder info retrieval failed, cannot generate dashboards with "+
+			"non-zero folderIds")
+	} else {
+		for _, folder := range folders {
+			folderIds[folder.ID] = true
+		}
+		return nil
+	}
+}
+
+// Grafana silently ignores invalid folderId values on dashboard API calls, and either sends the
+// resulting dashboard to the general folder (on dashboard creation), or does nothing (on modification).
+// Rather than let that slide, we cross check any inputted folder ID against
+// a list of all known folder IDs.
+// Returns true if the inputted ID is valid, and propagates an error if grafana folder id retrieval failed.
+// As a side effect, this populates the folderIds map if it is empty and folderId != generalFolderId.
+func (s *GrafanaDashboardsSyncer) validateFolderId(logger *zap.SugaredLogger, folderIds map[uint]bool, folderId uint) (bool, error) {
+	if folderId != generalFolderId {
+		// This is only true if the map hasn't been populated, since even if the API call to gradana fails,
+		// we still populate this map with [generalFolderId] = true at a minimum.
+		if len(folderIds) == 0 {
+			logger.Infof("Detected first non-nil folder id (%d), "+
+				"retrieving folderId list for verification.", folderId)
+			err := s.populateValidFolderIds(folderIds)
+			if err != nil { // something went wrong
+				return false, err
+			}
+		}
+		// now that we actually have folder ids, validate the inputted id
+		if _, ok := folderIds[folderId]; !ok {
+			// If the current upstream's folderId is not in the folderIds set, then it's invalid and can't be
+			// used.
+			return false, nil
+		}
+	}
+	return true, nil // folder id either equals generalFolderId or is valid.
 }

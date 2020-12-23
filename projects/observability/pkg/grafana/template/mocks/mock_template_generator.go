@@ -34,18 +34,18 @@ func (m *MockTemplateGenerator) EXPECT() *MockTemplateGeneratorMockRecorder {
 }
 
 // GenerateDashboard mocks base method
-func (m *MockTemplateGenerator) GenerateDashboard() ([]byte, error) {
+func (m *MockTemplateGenerator) GenerateDashboard(arg0 uint) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateDashboard")
+	ret := m.ctrl.Call(m, "GenerateDashboard", arg0)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateDashboard indicates an expected call of GenerateDashboard
-func (mr *MockTemplateGeneratorMockRecorder) GenerateDashboard() *gomock.Call {
+func (mr *MockTemplateGeneratorMockRecorder) GenerateDashboard(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDashboard", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateDashboard))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDashboard", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateDashboard), arg0)
 }
 
 // GenerateSnapshot mocks base method

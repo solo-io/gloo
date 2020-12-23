@@ -642,7 +642,7 @@ endif
 
 .PHONY: docker docker-push
  docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
- 	gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
+       gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -719,6 +719,22 @@ build-test-chart:
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
+	helm repo index $(TEST_ASSET_DIR)
+
+# Exclusively useful for testing with locally modified gloo-edge-OS builds.
+# Assumes that a gloo-edge-OS chart is located at ../gloo/_test/gloo-dev.tgz, which
+# points towards whatever modified build is being tested.
+.PHONY: build-chart-with-local-gloo-dev
+build-chart-with-local-gloo-dev:
+	mkdir -p $(TEST_ASSET_DIR)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
+	helm repo add helm-hub https://charts.helm.sh/stable
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-ee
+	echo replacing gloo chart $(ls install/helm/gloo-ee/charts/gloo*) with ../gloo/_test/gloo-dev.tgz
+	rm install/helm/gloo-ee/charts/gloo*
+	cp ../gloo/_test/gloo-dev.tgz install/helm/gloo-ee/charts/
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
 
