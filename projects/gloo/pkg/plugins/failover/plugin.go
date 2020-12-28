@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rotisserie/eris"
@@ -95,14 +93,8 @@ func (f *failoverPluginImpl) ProcessUpstream(
 		out.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
 				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
-						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
-						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
-						ClusterNames:        []string{RestXdsCluster},
-						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
-						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
-					},
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
+					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
 				},
 			},
 		}

@@ -3,7 +3,6 @@ package failover_test
 import (
 	"context"
 	"net"
-	"time"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -11,7 +10,6 @@ import (
 	envoytls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
@@ -347,16 +345,8 @@ var _ = Describe("Failover", func() {
 		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
 				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
-						TransportApiVersion:       envoy_config_core_v3.ApiVersion_V3,
-						ApiType:                   envoy_config_core_v3.ApiConfigSource_REST,
-						ClusterNames:              []string{failover.RestXdsCluster},
-						RefreshDelay:              ptypes.DurationProto(time.Second * 5),
-						RequestTimeout:            ptypes.DurationProto(time.Second * 5),
-						RateLimitSettings:         nil,
-						SetNodeOnFirstMessageOnly: false,
-					},
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
+					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
 				},
 			},
 		}

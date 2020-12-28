@@ -380,6 +380,11 @@ export class TransformationTemplate extends jspb.Message {
   clearExtractorsMap(): void;
   getHeadersMap(): jspb.Map<string, InjaTemplate>;
   clearHeadersMap(): void;
+  clearHeadersToAppendList(): void;
+  getHeadersToAppendList(): Array<TransformationTemplate.HeaderToAppend>;
+  setHeadersToAppendList(value: Array<TransformationTemplate.HeaderToAppend>): void;
+  addHeadersToAppend(value?: TransformationTemplate.HeaderToAppend, index?: number): TransformationTemplate.HeaderToAppend;
+
   hasBody(): boolean;
   clearBody(): void;
   getBody(): InjaTemplate | undefined;
@@ -422,12 +427,39 @@ export namespace TransformationTemplate {
     advancedTemplates: boolean,
     extractorsMap: Array<[string, Extraction.AsObject]>,
     headersMap: Array<[string, InjaTemplate.AsObject]>,
+    headersToAppendList: Array<TransformationTemplate.HeaderToAppend.AsObject>,
     body?: InjaTemplate.AsObject,
     passthrough?: Passthrough.AsObject,
     mergeExtractorsToBody?: MergeExtractorsToBody.AsObject,
     parseBodyBehavior: TransformationTemplate.RequestBodyParseMap[keyof TransformationTemplate.RequestBodyParseMap],
     ignoreErrorOnParse: boolean,
     dynamicMetadataValuesList: Array<TransformationTemplate.DynamicMetadataValue.AsObject>,
+  }
+
+  export class HeaderToAppend extends jspb.Message {
+    getKey(): string;
+    setKey(value: string): void;
+
+    hasValue(): boolean;
+    clearValue(): void;
+    getValue(): InjaTemplate | undefined;
+    setValue(value?: InjaTemplate): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HeaderToAppend.AsObject;
+    static toObject(includeInstance: boolean, msg: HeaderToAppend): HeaderToAppend.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HeaderToAppend, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HeaderToAppend;
+    static deserializeBinaryFromReader(message: HeaderToAppend, reader: jspb.BinaryReader): HeaderToAppend;
+  }
+
+  export namespace HeaderToAppend {
+    export type AsObject = {
+      key: string,
+      value?: InjaTemplate.AsObject,
+    }
   }
 
   export class DynamicMetadataValue extends jspb.Message {
