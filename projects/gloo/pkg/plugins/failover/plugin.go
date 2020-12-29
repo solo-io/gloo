@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -24,9 +26,6 @@ import (
 
 const (
 	TransportSocketMatchKey = "envoy.transport_socket_match"
-
-	// TODO: Move this constant into OS Gloo repo
-	RestXdsCluster = "rest_xds_cluster"
 )
 
 var (
@@ -56,9 +55,11 @@ type failoverPluginImpl struct {
 	sslConfigTranslator utils.SslConfigTranslator
 	endpoints           map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints
 	dnsResolver         consul.DnsResolver
+	settings            *gloov1.Settings
 }
 
-func (f *failoverPluginImpl) Init(_ plugins.InitParams) error {
+func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
+	f.settings = params.Settings
 	return nil
 }
 
@@ -89,15 +90,8 @@ func (f *failoverPluginImpl) ProcessUpstream(
 			Namespace: in.GetMetadata().GetNamespace(),
 		})
 		f.endpoints[stringRef] = endpoints
-		// set the cluster config to rest for this specific EDS
-		out.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
-			EdsConfig: &envoy_config_core_v3.ConfigSource{
-				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
-					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
-				},
-			},
-		}
+		// set cluster to EDS; locality weighted load-balancing only works via EDS https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/locality_weight
+		xds.SetEdsOnCluster(out, f.settings)
 	} else {
 		// Otherwise add the endpoints directly to the LoadAssignment of the Cluster
 		out.LoadAssignment.Endpoints = append(out.LoadAssignment.Endpoints, endpoints...)
