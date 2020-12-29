@@ -26,6 +26,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
+	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
@@ -34,7 +35,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service v0.7.8
-	github.com/solo-io/gloo v1.6.0-beta24
+	github.com/solo-io/gloo v1.6.0-beta25
 	github.com/solo-io/go-utils v0.20.1
 	github.com/solo-io/k8s-utils v0.0.3
 	github.com/solo-io/licensing v0.1.17
@@ -44,6 +45,7 @@ require (
 	// Corresponds to the `gloo-v1.6.0-beta21` tag
 	github.com/solo-io/solo-apis v0.0.0-20201217203626-64c05e4a6c41
 	github.com/solo-io/solo-kit v0.17.0
+	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5
 	go.uber.org/zap v1.16.0

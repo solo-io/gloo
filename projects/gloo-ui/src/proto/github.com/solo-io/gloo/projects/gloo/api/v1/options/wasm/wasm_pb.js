@@ -200,12 +200,38 @@ proto.wasm.options.gloo.solo.io.PluginSource.prototype.clearFiltersList = functi
  * @constructor
  */
 proto.wasm.options.gloo.solo.io.WasmFilter = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_);
 };
 goog.inherits(proto.wasm.options.gloo.solo.io.WasmFilter, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.wasm.options.gloo.solo.io.WasmFilter.displayName = 'proto.wasm.options.gloo.solo.io.WasmFilter';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_ = [[2,8]];
+
+/**
+ * @enum {number}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.SrcCase = {
+  SRC_NOT_SET: 0,
+  IMAGE: 2,
+  FILE_PATH: 8
+};
+
+/**
+ * @return {proto.wasm.options.gloo.solo.io.WasmFilter.SrcCase}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getSrcCase = function() {
+  return /** @type {proto.wasm.options.gloo.solo.io.WasmFilter.SrcCase} */(jspb.Message.computeOneofCase(this, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -236,6 +262,7 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.toObject = function(opt_inc
 proto.wasm.options.gloo.solo.io.WasmFilter.toObject = function(includeInstance, msg) {
   var f, obj = {
     image: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    filePath: jspb.Message.getFieldWithDefault(msg, 8, ""),
     config: (f = msg.getConfig()) && google_protobuf_any_pb.Any.toObject(includeInstance, f),
     filterStage: (f = msg.getFilterStage()) && proto.wasm.options.gloo.solo.io.FilterStage.toObject(includeInstance, f),
     name: jspb.Message.getFieldWithDefault(msg, 5, ""),
@@ -280,6 +307,10 @@ proto.wasm.options.gloo.solo.io.WasmFilter.deserializeBinaryFromReader = functio
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setImage(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setFilePath(value);
       break;
     case 3:
       var value = new google_protobuf_any_pb.Any;
@@ -332,10 +363,17 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.serializeBinary = function(
  */
 proto.wasm.options.gloo.solo.io.WasmFilter.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getImage();
-  if (f.length > 0) {
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 8));
+  if (f != null) {
+    writer.writeString(
+      8,
       f
     );
   }
@@ -398,7 +436,50 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getImage = function() {
 
 /** @param {string} value */
 proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setImage = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+  jspb.Message.setOneofField(this, 2, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_[0], value);
+};
+
+
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.clearImage = function() {
+  jspb.Message.setOneofField(this, 2, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.hasImage = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string file_path = 8;
+ * @return {string}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getFilePath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setFilePath = function(value) {
+  jspb.Message.setOneofField(this, 8, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_[0], value);
+};
+
+
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.clearFilePath = function() {
+  jspb.Message.setOneofField(this, 8, proto.wasm.options.gloo.solo.io.WasmFilter.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.hasFilePath = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

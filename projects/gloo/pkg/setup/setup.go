@@ -26,6 +26,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/sanitize_cluster_header"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/wasm"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
 )
@@ -87,6 +88,7 @@ func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
 				)
 			},
 			func() plugins.Plugin { return http_path.NewPlugin() },
+			func() plugins.Plugin { return wasm.NewPlugin() },
 		},
 	}
 }

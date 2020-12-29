@@ -29,8 +29,15 @@ export namespace PluginSource {
 }
 
 export class WasmFilter extends jspb.Message {
+  hasImage(): boolean;
+  clearImage(): void;
   getImage(): string;
   setImage(value: string): void;
+
+  hasFilePath(): boolean;
+  clearFilePath(): void;
+  getFilePath(): string;
+  setFilePath(value: string): void;
 
   hasConfig(): boolean;
   clearConfig(): void;
@@ -51,6 +58,7 @@ export class WasmFilter extends jspb.Message {
   getVmType(): WasmFilter.VmTypeMap[keyof WasmFilter.VmTypeMap];
   setVmType(value: WasmFilter.VmTypeMap[keyof WasmFilter.VmTypeMap]): void;
 
+  getSrcCase(): WasmFilter.SrcCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WasmFilter.AsObject;
   static toObject(includeInstance: boolean, msg: WasmFilter): WasmFilter.AsObject;
@@ -64,6 +72,7 @@ export class WasmFilter extends jspb.Message {
 export namespace WasmFilter {
   export type AsObject = {
     image: string,
+    filePath: string,
     config?: google_protobuf_any_pb.Any.AsObject,
     filterStage?: FilterStage.AsObject,
     name: string,
@@ -77,6 +86,12 @@ export namespace WasmFilter {
   }
 
   export const VmType: VmTypeMap;
+
+  export enum SrcCase {
+    SRC_NOT_SET = 0,
+    IMAGE = 2,
+    FILE_PATH = 8,
+  }
 }
 
 export class FilterStage extends jspb.Message {
