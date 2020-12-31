@@ -127,7 +127,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 			PathSpecifier: &envoy_config_route_v3.RouteMatch_Prefix{Prefix: "/"},
 		}
 		if rule.GetMatcher() != nil {
-			envoyMatcher = translator.GlooMatcherToEnvoyMatcher(params, rule.GetMatcher())
+			envoyMatcher = translator.GlooMatcherToEnvoyMatcher(params.Ctx, rule.GetMatcher())
 		}
 		actions := getRelevantActions(params.Ctx, rule.GetActions())
 		if len(actions) == 0 {

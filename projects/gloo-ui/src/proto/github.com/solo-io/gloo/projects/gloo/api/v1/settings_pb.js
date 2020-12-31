@@ -5683,7 +5683,8 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject = function(includeI
     validationWebhookTlsKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
     ignoreGlooValidationFailure: jspb.Message.getFieldWithDefault(msg, 5, false),
     alwaysAccept: (f = msg.getAlwaysAccept()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    warnRouteShortCircuiting: (f = msg.getWarnRouteShortCircuiting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5745,6 +5746,11 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader 
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAllowWarnings(value);
+      break;
+    case 8:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setWarnRouteShortCircuiting(value);
       break;
     default:
       reader.skipField();
@@ -5815,6 +5821,14 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter = fu
   if (f != null) {
     writer.writeMessage(
       7,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getWarnRouteShortCircuiting();
+  if (f != null) {
+    writer.writeMessage(
+      8,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -5941,6 +5955,36 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearAllowWarnings
  */
 proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasAllowWarnings = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue warn_route_short_circuiting = 8;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getWarnRouteShortCircuiting = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 8));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setWarnRouteShortCircuiting = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearWarnRouteShortCircuiting = function() {
+  this.setWarnRouteShortCircuiting(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasWarnRouteShortCircuiting = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

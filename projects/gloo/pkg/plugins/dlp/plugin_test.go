@@ -260,7 +260,7 @@ var _ = Describe("dlp plugin", func() {
 					filterDlp := rule.GetRouteTransformations()
 					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).NotTo(BeNil())
 					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
-					mAll := translator.GlooMatcherToEnvoyMatcher(params, matchAll)
+					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
 					expected := api_conversion.ToGlooRouteMatch(&mAll)
 					Expect(*(rule.GetMatch())).To(Equal(*expected))
 				})

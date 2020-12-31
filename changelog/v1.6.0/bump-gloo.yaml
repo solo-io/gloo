@@ -4,9 +4,9 @@ changelog:
     resolvesIssue: true
     dependencyOwner: gloo
     dependencyRepo: solo-io
-    dependencyTag: v1.6.0-beta24
+    dependencyTag: v1.6.0
     description: >-
-      Update gloo to v1.6.0-beta24
+      Update gloo to v1.6.0
   - type: FIX
     issueLink: https://github.com/solo-io/gloo/issues/3805
     description: >

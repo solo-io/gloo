@@ -25,7 +25,7 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.17.0-rc2
+ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.17.0-rc3
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'

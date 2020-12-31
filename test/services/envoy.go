@@ -57,6 +57,13 @@ static_resources:
 
 layered_runtime:
   layers:
+  - name: static_layer
+    static_layer:
+      envoy.reloadable_features.enable_deprecated_v2_api: true
+      envoy.reloadable_features.disable_tls_inspector_injection: false
+      upstream:
+        healthy_panic_threshold:
+          value: 0
   - name: admin_layer
     admin_layer: {}
 
