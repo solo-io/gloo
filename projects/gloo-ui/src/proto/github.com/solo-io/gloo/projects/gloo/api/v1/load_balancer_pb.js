@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.LoadBalancerConfig', null, global);
 goog.exportSymbol('proto.gloo.solo.io.LoadBalancerConfig.LeastRequest', null, global);
@@ -48,7 +49,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.LoadBalancerConfig.oneofGroups_ = [[3,4,5,6,7]];
+proto.gloo.solo.io.LoadBalancerConfig.oneofGroups_ = [[3,4,5,6,7],[8]];
 
 /**
  * @enum {number}
@@ -67,6 +68,21 @@ proto.gloo.solo.io.LoadBalancerConfig.TypeCase = {
  */
 proto.gloo.solo.io.LoadBalancerConfig.prototype.getTypeCase = function() {
   return /** @type {proto.gloo.solo.io.LoadBalancerConfig.TypeCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.LoadBalancerConfig.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.LoadBalancerConfig.LocalityConfigCase = {
+  LOCALITY_CONFIG_NOT_SET: 0,
+  LOCALITY_WEIGHTED_LB_CONFIG: 8
+};
+
+/**
+ * @return {proto.gloo.solo.io.LoadBalancerConfig.LocalityConfigCase}
+ */
+proto.gloo.solo.io.LoadBalancerConfig.prototype.getLocalityConfigCase = function() {
+  return /** @type {proto.gloo.solo.io.LoadBalancerConfig.LocalityConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.LoadBalancerConfig.oneofGroups_[1]));
 };
 
 
@@ -104,7 +120,8 @@ proto.gloo.solo.io.LoadBalancerConfig.toObject = function(includeInstance, msg) 
     leastRequest: (f = msg.getLeastRequest()) && proto.gloo.solo.io.LoadBalancerConfig.LeastRequest.toObject(includeInstance, f),
     random: (f = msg.getRandom()) && proto.gloo.solo.io.LoadBalancerConfig.Random.toObject(includeInstance, f),
     ringHash: (f = msg.getRingHash()) && proto.gloo.solo.io.LoadBalancerConfig.RingHash.toObject(includeInstance, f),
-    maglev: (f = msg.getMaglev()) && proto.gloo.solo.io.LoadBalancerConfig.Maglev.toObject(includeInstance, f)
+    maglev: (f = msg.getMaglev()) && proto.gloo.solo.io.LoadBalancerConfig.Maglev.toObject(includeInstance, f),
+    localityWeightedLbConfig: (f = msg.getLocalityWeightedLbConfig()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -175,6 +192,11 @@ proto.gloo.solo.io.LoadBalancerConfig.deserializeBinaryFromReader = function(msg
       var value = new proto.gloo.solo.io.LoadBalancerConfig.Maglev;
       reader.readMessage(value,proto.gloo.solo.io.LoadBalancerConfig.Maglev.deserializeBinaryFromReader);
       msg.setMaglev(value);
+      break;
+    case 8:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setLocalityWeightedLbConfig(value);
       break;
     default:
       reader.skipField();
@@ -259,6 +281,14 @@ proto.gloo.solo.io.LoadBalancerConfig.serializeBinaryToWriter = function(message
       7,
       f,
       proto.gloo.solo.io.LoadBalancerConfig.Maglev.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocalityWeightedLbConfig();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
     );
   }
 };
@@ -1289,6 +1319,36 @@ proto.gloo.solo.io.LoadBalancerConfig.prototype.clearMaglev = function() {
  */
 proto.gloo.solo.io.LoadBalancerConfig.prototype.hasMaglev = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional google.protobuf.Empty locality_weighted_lb_config = 8;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.gloo.solo.io.LoadBalancerConfig.prototype.getLocalityWeightedLbConfig = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 8));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.gloo.solo.io.LoadBalancerConfig.prototype.setLocalityWeightedLbConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.gloo.solo.io.LoadBalancerConfig.oneofGroups_[1], value);
+};
+
+
+proto.gloo.solo.io.LoadBalancerConfig.prototype.clearLocalityWeightedLbConfig = function() {
+  this.setLocalityWeightedLbConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.LoadBalancerConfig.prototype.hasLocalityWeightedLbConfig = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

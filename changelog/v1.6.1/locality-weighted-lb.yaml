@@ -1,0 +1,13 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.6.1
+    description: >-
+      Update gloo to v1.6.1
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/3038
+    resolvesIssue: true
+    description: >
+      Introduce failover e2e tests to verify the effectiveness of the
+      locality weighted lb config

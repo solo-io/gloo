@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 
 export class LoadBalancerConfig extends jspb.Message {
@@ -43,7 +44,13 @@ export class LoadBalancerConfig extends jspb.Message {
   getMaglev(): LoadBalancerConfig.Maglev | undefined;
   setMaglev(value?: LoadBalancerConfig.Maglev): void;
 
+  hasLocalityWeightedLbConfig(): boolean;
+  clearLocalityWeightedLbConfig(): void;
+  getLocalityWeightedLbConfig(): google_protobuf_empty_pb.Empty | undefined;
+  setLocalityWeightedLbConfig(value?: google_protobuf_empty_pb.Empty): void;
+
   getTypeCase(): LoadBalancerConfig.TypeCase;
+  getLocalityConfigCase(): LoadBalancerConfig.LocalityConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): LoadBalancerConfig.AsObject;
   static toObject(includeInstance: boolean, msg: LoadBalancerConfig): LoadBalancerConfig.AsObject;
@@ -63,6 +70,7 @@ export namespace LoadBalancerConfig {
     random?: LoadBalancerConfig.Random.AsObject,
     ringHash?: LoadBalancerConfig.RingHash.AsObject,
     maglev?: LoadBalancerConfig.Maglev.AsObject,
+    localityWeightedLbConfig?: google_protobuf_empty_pb.Empty.AsObject,
   }
 
   export class RoundRobin extends jspb.Message {
@@ -186,5 +194,10 @@ export namespace LoadBalancerConfig {
     RANDOM = 5,
     RING_HASH = 6,
     MAGLEV = 7,
+  }
+
+  export enum LocalityConfigCase {
+    LOCALITY_CONFIG_NOT_SET = 0,
+    LOCALITY_WEIGHTED_LB_CONFIG = 8,
   }
 }
