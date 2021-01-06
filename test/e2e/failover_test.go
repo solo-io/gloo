@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
+
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -120,9 +122,9 @@ var _ = Describe("Failover", func() {
 			envoyPort     = uint32(8080)
 		)
 
-		var testRequest = func(result string) {
+		var testRequest = func() (string, error) {
 			var resp *http.Response
-			EventuallyWithOffset(2, func() (int, error) {
+			EventuallyWithOffset(3, func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 				Expect(err).NotTo(HaveOccurred())
@@ -136,52 +138,60 @@ var _ = Describe("Failover", func() {
 				return resp.StatusCode, nil
 			}, "20s", "1s").Should(Equal(http.StatusOK))
 			bodyStr, err := ioutil.ReadAll(resp.Body)
+			return string(bodyStr), err
+		}
+
+		var testRequestReturns = func(result string) {
+			bodyStr, err := testRequest()
 			ExpectWithOffset(2, err).NotTo(HaveOccurred())
 			ExpectWithOffset(2, bodyStr).To(ContainSubstring(result))
 		}
 
-		var testFailover = func(address string) {
-			unhealthyCtx, unhealthyCancel := context.WithCancel(context.Background())
+		Context("Failover", func() {
 
-			secret := helpers.GetKubeSecret("tls", "gloo-system")
-			glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
-			_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			var testFailover = func(address string) {
+				unhealthyCtx, unhealthyCancel := context.WithCancel(context.Background())
 
-			testUpstream = v1helpers.NewTestHttpUpstreamWithReply(unhealthyCtx, envoyInstance.LocalAddr(), "hello")
-			testUpstream2 := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "world")
-			testUpstream.Upstream.HealthChecks = []*corev2.HealthCheck{
-				{
-					HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
-						HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
-							Path: "/health",
-						},
-					},
-					HealthyThreshold: &wrappers.UInt32Value{
-						Value: 1,
-					},
-					UnhealthyThreshold: &wrappers.UInt32Value{
-						Value: 1,
-					},
-					NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
-					Timeout:           ptypes.DurationProto(timeout),
-					Interval:          ptypes.DurationProto(timeout),
-				},
-			}
-			testUpstream.Upstream.Failover = &gloov1.Failover{
-				PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+				secret := helpers.GetKubeSecret("tls", "gloo-system")
+				glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
+				_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				testUpstream = v1helpers.NewTestHttpUpstreamWithReply(unhealthyCtx, envoyInstance.LocalAddr(), "hello")
+				testUpstream2 := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "world")
+				testUpstream.Upstream.HealthChecks = []*corev2.HealthCheck{
 					{
-						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
-							{
-								LbEndpoints: []*gloov1.LbEndpoint{
-									{
-										Address: address,
-										Port:    testUpstream2.Port,
-										UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-											SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
-												SecretRef: &core.ResourceRef{
-													Name:      "tls",
-													Namespace: "gloo-system",
+						HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
+							HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
+								Path: "/health",
+							},
+						},
+						HealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						UnhealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+						Timeout:           ptypes.DurationProto(timeout),
+						Interval:          ptypes.DurationProto(timeout),
+					},
+				}
+				testUpstream.Upstream.Failover = &gloov1.Failover{
+					PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+						{
+							LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*gloov1.LbEndpoint{
+										{
+											Address: address,
+											Port:    testUpstream2.Port,
+											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+													SecretRef: &core.ResourceRef{
+														Name:      "tls",
+														Namespace: "gloo-system",
+													},
 												},
 											},
 										},
@@ -190,62 +200,274 @@ var _ = Describe("Failover", func() {
 							},
 						},
 					},
-				},
-			}
-			_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
-
-			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			EventuallyWithOffset(1, func() (core.Status, error) {
-				proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
 				}
-				if proxy.Status == nil {
-					return core.Status{}, nil
+				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				EventuallyWithOffset(1, func() (core.Status, error) {
+					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+
+				testRequestReturns("hello")
+				unhealthyCancel()
+				testRequestReturns("world")
+			}
+
+			BeforeEach(func() {
+				var err error
+				envoyInstance, err = envoyFactory.NewEnvoyInstance()
+				Expect(err).NotTo(HaveOccurred())
+
+				err = envoyInstance.Run(testClients.GlooPort)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				if envoyInstance != nil {
+					envoyInstance.Clean()
 				}
-				return *proxy.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			})
 
-			testRequest("hello")
-			unhealthyCancel()
-			testRequest("world")
-		}
+			It("Will failover to testUpstream2 when the first is unhealthy", func() {
+				testFailover(envoyInstance.LocalAddr())
+			})
 
-		BeforeEach(func() {
-			var err error
-			envoyInstance, err = envoyFactory.NewEnvoyInstance()
-			Expect(err).NotTo(HaveOccurred())
+			It("Will failover to testUpstream2 when the first is unhealthy with DNS resolution", func() {
+				if envoyInstance.LocalAddr() == "127.0.0.1" {
+					// Domain which resolves to "127.0.0.1"
+					testFailover("thing.solo.io")
+				} else {
+					testFailover(fmt.Sprintf("%s.xip.io", envoyInstance.LocalAddr()))
+				}
+			})
 
-			err = envoyInstance.Run(testClients.GlooPort)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
-		AfterEach(func() {
-			if envoyInstance != nil {
-				envoyInstance.Clean()
+		Context("Failover Locality Load Balancing", func() {
+
+			var (
+				// represents the context that will be cancelled, triggering an unhealthy upstream
+				unhealthyCtx    context.Context
+				unhealthyCancel context.CancelFunc
+			)
+
+			var prepareTestUpstreamWithFailover = func() {
+				secret := helpers.GetKubeSecret("tls", "gloo-system")
+				glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
+				_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				// configure upstreams
+				testUpstream = v1helpers.NewTestHttpUpstreamWithReply(unhealthyCtx, envoyInstance.LocalAddr(), "hello")
+				testUpstreamEast := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "east")
+				testUpstreamWest := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "west")
+
+				// configure failover
+				testUpstream.Upstream.HealthChecks = []*corev2.HealthCheck{
+					{
+						HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
+							HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
+								Path: "/health",
+							},
+						},
+						HealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						UnhealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+						Timeout:           ptypes.DurationProto(timeout),
+						Interval:          ptypes.DurationProto(timeout),
+					},
+				}
+				testUpstream.Upstream.Failover = &gloov1.Failover{
+					PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+						{
+							LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*gloov1.LbEndpoint{
+										{
+											Address: envoyInstance.LocalAddr(),
+											Port:    testUpstreamEast.Port,
+											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+													SecretRef: &core.ResourceRef{
+														Name:      "tls",
+														Namespace: "gloo-system",
+													},
+												},
+											},
+										},
+									},
+									Locality: &gloov1.Locality{
+										Region:  "east_region",
+										Zone:    "east_zone",
+										SubZone: "east_sub_zone",
+									},
+									LoadBalancingWeight: &wrappers.UInt32Value{
+										Value: 75,
+									},
+								},
+								{
+									LbEndpoints: []*gloov1.LbEndpoint{
+										{
+											Address: envoyInstance.LocalAddr(),
+											Port:    testUpstreamWest.Port,
+											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+													SecretRef: &core.ResourceRef{
+														Name:      "tls",
+														Namespace: "gloo-system",
+													},
+												},
+											},
+										},
+									},
+									Locality: &gloov1.Locality{
+										Region:  "west_region",
+										Zone:    "west_zone",
+										SubZone: "west_sub_zone",
+									},
+									LoadBalancingWeight: &wrappers.UInt32Value{
+										Value: 25,
+									},
+								},
+							},
+						},
+					},
+				}
 			}
-		})
 
-		It("Will failover to testUpstream2 when the first is unhealthy", func() {
-			testFailover(envoyInstance.LocalAddr())
-		})
+			var persistTestUpstream = func() {
+				var err error
 
-		It("Will failover to testUpstream2 when the first is unhealthy with DNS resolution", func() {
-			if envoyInstance.LocalAddr() == "127.0.0.1" {
-				// Domain which resolves to "127.0.0.1"
-				testFailover("thing.solo.io")
-			} else {
-				testFailover(fmt.Sprintf("%s.xip.io", envoyInstance.LocalAddr()))
+				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				EventuallyWithOffset(1, func() (core.Status, error) {
+					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
 			}
+
+			var testRequestReturnsPercentOfTime = func(expectedResponsePercentages map[string]int) {
+				var requestCount = 100       // for simplicity, assume everything out of 100
+				var percentMarginOfError = 5 // allow a margin of error
+				var responseCounter = make(map[string]int)
+
+				// execute requests, and track count of each response
+				for i := 0; i < requestCount; i++ {
+					response, _ := testRequest()
+					responseCounter[response]++
+				}
+
+				for response, actualResponsePercentage := range responseCounter {
+					expectedResponsePercentage := expectedResponsePercentages[response]
+
+					// validate that the actual percentage falls within a margin of error
+					ExpectWithOffset(1, actualResponsePercentage).Should(BeNumerically(">=", expectedResponsePercentage-percentMarginOfError))
+					ExpectWithOffset(1, actualResponsePercentage).Should(BeNumerically("<=", expectedResponsePercentage+percentMarginOfError))
+				}
+			}
+
+			BeforeEach(func() {
+				var err error
+				envoyInstance, err = envoyFactory.NewEnvoyInstance()
+				Expect(err).NotTo(HaveOccurred())
+
+				err = envoyInstance.Run(testClients.GlooPort)
+				Expect(err).NotTo(HaveOccurred())
+
+				unhealthyCtx, unhealthyCancel = context.WithCancel(context.Background())
+			})
+
+			AfterEach(func() {
+				if envoyInstance != nil {
+					envoyInstance.Clean()
+				}
+			})
+
+			It("Will distribute load equally across localities when locality_weighted_lb_config is not set", func() {
+				// Prepare the upstream with failover
+				prepareTestUpstreamWithFailover()
+
+				// Persist it, ensuring we have an up to date proxy
+				persistTestUpstream()
+
+				// Routes are handled by the upstream
+				testRequestReturns("hello")
+
+				// Cause the upstream to become unhealthy
+				unhealthyCancel()
+
+				// we have not set the locality_weighted_lb_config on the testUpstream, so we expect
+				// requests to be equally distributed
+				testRequestReturnsPercentOfTime(map[string]int{
+					"east": 50,
+					"west": 50,
+				})
+			})
+
+			It("Will distribute load according to load balancing weight when locality_weighted_lb_config is set", func() {
+				// Prepare the upstream with failover
+				prepareTestUpstreamWithFailover()
+
+				// Set locality_weighted_lb_config
+				testUpstream.Upstream.LoadBalancerConfig = &gloov1.LoadBalancerConfig{
+					LocalityConfig: &gloov1.LoadBalancerConfig_LocalityWeightedLbConfig{
+						LocalityWeightedLbConfig: &empty.Empty{},
+					},
+				}
+
+				// Persist it, ensuring we have an up to date proxy
+				persistTestUpstream()
+
+				// Routes are handled by the upstream
+				testRequestReturns("hello")
+
+				// Cause the upstream to become unhealthy
+				unhealthyCancel()
+
+				// we have set the locality_weighted_lb_config on the testUpstream, so we expect
+				// requests to be distributed per the load balancing weight
+				testRequestReturnsPercentOfTime(map[string]int{
+					"east": 75,
+					"west": 25,
+				})
+			})
+
 		})
+
 	})
 
 })
