@@ -1,0 +1,29 @@
+syntax = "proto3";
+package fed.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/types";
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+import "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster.proto";
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement.proto";
+import "github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream.proto";
+
+
+message FederatedUpstreamSpec {
+    message Template {
+        .gloo.solo.io.UpstreamSpec spec = 1;
+
+        core.fed.solo.io.TemplateMetadata metadata = 2;
+    }
+
+    Template template = 1;
+
+    multicluster.solo.io.Placement placement = 2;
+}
+
+message FederatedUpstreamStatus {
+    core.fed.solo.io.PlacementStatus placement_status = 1;
+}

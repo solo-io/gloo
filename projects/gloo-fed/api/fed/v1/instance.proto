@@ -1,0 +1,153 @@
+syntax = "proto3";
+package fed.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types";
+
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+message GlooInstanceSpec {
+
+    // The cluster on which this Gloo instance is located
+    string cluster = 1;
+
+    bool is_enterprise = 2;
+
+    ControlPlane control_plane = 3;
+
+    message ControlPlane {
+        // The version
+        string version = 1;
+        // Namespace in which the control-plane (Gloo) is located
+        string namespace = 2;
+        // An optional list of watched namespaces for Gloo resources.
+        // By default, if this list is empty, we look in all namespaces.
+        repeated string watched_namespaces = 3;
+    }
+
+    repeated Proxy proxies = 4;
+
+    message Proxy {
+        // The number of requested proxy replicas.
+        int32 replicas = 1;
+        // The number of available proxy replicas.
+        int32 available_replicas = 2;
+        // The number of ready proxy replicas.
+        int32 ready_replicas = 3;
+        // Whether or not this proxy supports wasm plugins
+        bool wasm_enabled = 4;
+        // The version
+        string version = 5;
+        // Name of the proxy instance, this is important to distinguish it from other proxy instances,
+        // which may be in the same namespace.
+        string name = 6;
+        // Namespace in which the proxy is located
+        string namespace = 7;
+        // Workload controller type indicates the type of workload controller managing the Proxy's pods (i.e. Deployment, DaemonSet)
+        WorkloadController workload_controller_type = 10;
+        // Zones in which the replicas of a given proxy deployment are running.
+        // Kubernetes supports multi zone deployments, so 1 proxy may potentially live in multiple zones
+        repeated string zones = 8;
+
+        repeated IngressEndpoint ingress_endpoints = 9;
+
+        message IngressEndpoint {
+
+            string address = 1;
+
+            repeated Port ports = 2;
+
+            message Port {
+
+                uint32 port = 1;
+
+                string name = 2;
+            }
+
+            // Kubernetes service name, will be populated only if applicable
+            string service_name = 3;
+
+        }
+
+        enum WorkloadController {
+            UNDEFINED = 0;
+            DEPLOYMENT = 1;
+            DAEMON_SET = 2;
+        }
+    }
+
+    // Geographical region in which this gloo instance is located.
+    // Each proxy may potentially live in 1 or more zones, so zonal information is stored on the proxy
+    string region = 5;
+
+    Admin admin = 6;
+
+    message Admin {
+
+        // Namespace which gloo-fed will write all of its admin resources to.
+        string write_namespace = 1;
+
+        // name of proxy which will be used for gloo-fed by default for this instance
+        core.skv2.solo.io.ObjectRef proxy_id = 2;
+    }
+
+    Check check = 7;
+
+    // Check describes the status of the objects powering the GlooInstance.
+    message Check {
+        // Gateways describes the Gateways configuring the GlooInstance.
+        Summary gateways = 1;
+
+        // VirtualServices describes the VirtualServices configuring the GlooInstance.
+        Summary virtual_services = 2;
+
+        // Route Tables describes the RouteTables available the GlooInstance.
+        Summary route_tables = 3;
+
+        // Auth Configs describes the AuthConfigs available to the GlooInstance.
+        Summary auth_configs = 4;
+
+        // Settings describes the Settings configuring the GlooInstance.
+        Summary settings = 5;
+
+        // Upstreams describes the Upstreams available to the GlooInstance.
+        Summary upstreams = 6;
+
+        // UpstreamGroups describes the UpstreamGroups available to the GlooInstance.
+        Summary upstream_groups = 7;
+
+        // Proxies describes the Proxies configuring the GlooInstance.
+        Summary proxies = 8;
+
+        // Deployments describes the Deployments in the GlooInstance's install namespace.
+        Summary deployments = 20;
+
+        // Pods describes the pods in the GlooInstance's install namespace.
+        Summary pods = 22;
+
+        // Summary provides aggregate information for a given resource type.
+        message Summary {
+            // The total number of resources in any state.
+            int32 total = 1;
+
+            // Errors is a list of resource refs and their associated error messages.
+            repeated ResourceReport errors = 2;
+
+            // Warnings is a list of resource refs and their associated warning messages.
+            repeated ResourceReport warnings = 3;
+
+            // A ResourceReport references an object and provides a status message.
+            message ResourceReport {
+                core.skv2.solo.io.ObjectRef ref = 1;
+                string message = 2;
+            }
+        }
+    }
+
+
+}
+
+message GlooInstanceStatus {}

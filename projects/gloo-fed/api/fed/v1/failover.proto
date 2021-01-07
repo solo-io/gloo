@@ -1,0 +1,112 @@
+syntax = "proto3";
+package fed.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types";
+
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+
+/*
+    FailoverSpec is the core portion of the API for enabling failover between Gloo Upstreams in gloo-fed.
+    This API is heavily inspired by the Failover API present in the Gloo Upstream which can be found in
+    `api/gloo/v1/upstream`.
+
+    The source Upstream below is the initial primary target of traffic. The type of endpoints vary by the type
+    of Upstream specified. Each target specified is then configured as a failover endpoint in the case that
+    the prmiary Upstream becomes unhealthy. The priority of the failover endpoints is inferred from the
+    order in which the Upstreams are specified. source = [0], targets = [1-n].
+
+    Example:
+
+        primary:
+          cluster: primary
+          name: primary
+          namespace: primary
+        failover_groups:
+        - priority_group:
+          - cluster: A
+            upstreams:
+            - name: one
+              namespace: one
+          - cluster: B
+            upstreams:
+            - name: two
+              namespace: two
+        - priority_group:
+          - cluster: C
+            upstreams:
+            - name: one
+              namespace: one
+          - cluster: D
+            upstreams:
+            - name: two
+              namespace: two
+*/
+message FailoverSchemeSpec {
+
+    // The upstream which will be configured for failover.
+    core.skv2.solo.io.ClusterObjectRef primary = 1;
+
+    repeated FailoverEndpoints failover_groups = 2;
+
+    message FailoverEndpoints {
+
+        repeated LocalityLbTargets priority_group = 2;
+
+        message LocalityLbTargets {
+
+            // (REQUIRED) Cluster on which the endpoints for this Group can be found
+            string cluster = 1;
+
+            // A list of Upstream targets, each of these targets must exist on the cluster specified in this message
+            repeated core.skv2.solo.io.ObjectRef upstreams = 2;
+
+            // (optional) locality load balancing weight assigned to the specified upstreams.
+            // Locality load balancing will add a special load balancing weight among all
+            // targets within a given priority, who are located in the zame zone.
+            // See envoy Locality Weighted Load Balancing for more information:
+            // https://www.envoyproxy.io/docs/envoy/v1.14.1/intro/arch_overview/upstream/load_balancing/locality_weight#arch-overview-load-balancing-locality-weighted-lb
+            google.protobuf.UInt32Value locality_weight = 3;
+        }
+    }
+}
+
+message FailoverSchemeStatus {
+
+    // The State of a reconciled object
+    enum State {
+        // Waiting to be processed.
+        PENDING = 0;
+
+        // Currently processing.
+        PROCESSING = 1;
+
+        // Invalid parameters supplied, will not continue.
+        INVALID = 2;
+
+        // Failed during processing.
+        FAILED = 3;
+
+        // Finished processing successfully.
+        ACCEPTED = 4;
+    }
+
+    // The current state of the resource
+    State state = 1;
+
+    // A human readable message about the current state of the object
+    string message = 2;
+
+    // The most recently observed generation of the resource. This value corresponds to the `metadata.generation` of
+    // a kubernetes resource
+    int64 observed_generation = 3;
+
+    // The time at which this status was recorded
+    google.protobuf.Timestamp processing_time  = 4;
+}

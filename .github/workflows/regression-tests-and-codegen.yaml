@@ -43,6 +43,45 @@ jobs:
       - name: Generate Code
         run: |
           ./ci/check-code-gen.sh
+  gloo_fed_e2e_tests:
+    name: Gloo Fed E2E Tests
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Private Repo Permissions
+        env:
+          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          git config --global url."https://${TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.18.8'
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          skipClusterCreation: "true"
+      - name: Setup Kind
+        run: |
+          LICENSE_KEY=${{ secrets.LICENSE_KEY }} ./projects/gloo-fed/ci/setup-kind.sh local remote
+      - name: Run tests
+        run: |
+          GOPATH=$HOME go install github.com/onsi/ginkgo/ginkgo
+          PATH=$HOME/bin:$PATH REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local ginkgo -r ./projects/gloo-fed/...
   regression_tests:
     name: k8s regression tests
     runs-on: ubuntu-18.04

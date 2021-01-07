@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	cloud.google.com/go/datastore v1.3.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -12,11 +13,14 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-logr/zapr v0.1.1
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.4
+	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
+	github.com/gophercloud/gophercloud v0.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
@@ -30,18 +34,23 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
+	github.com/prometheus/tsdb v0.10.0 // indirect
+	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rotisserie/eris v0.4.0
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service v0.7.8
+	github.com/solo-io/external-apis v0.1.1
 	github.com/solo-io/gloo v1.7.0-beta1
 	github.com/solo-io/go-utils v0.20.1
 	github.com/solo-io/k8s-utils v0.0.3
-	github.com/solo-io/licensing v0.1.17
+	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.13
 	github.com/solo-io/rate-limiter v0.1.6
 	github.com/solo-io/reporting-client v0.2.0
+	github.com/solo-io/skv2 v0.15.2
+	github.com/solo-io/skv2-enterprise v0.0.7
 	// Corresponds to the `gloo-v1.6.0-beta21` tag
 	github.com/solo-io/solo-apis v0.0.0-20201217203626-64c05e4a6c41
 	github.com/solo-io/solo-kit v0.17.0
@@ -63,6 +72,8 @@ require (
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.18.8
 	k8s.io/kubernetes v1.18.6
+	k8s.io/utils v0.17.1 // indirect
+	sigs.k8s.io/controller-runtime v0.6.2
 	sigs.k8s.io/yaml v1.2.0
 )
 

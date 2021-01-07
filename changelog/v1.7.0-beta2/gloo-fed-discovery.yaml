@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Import the gloo-fed discovery component. This will not be installed until
+      the relevant makefile code has been put in place.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2017

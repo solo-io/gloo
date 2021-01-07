@@ -1,0 +1,65 @@
+syntax = "proto3";
+package core.fed.solo.io;
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1";
+
+import "google/protobuf/wrappers.proto";
+
+// Object Metadata to be written with the resource into the remote cluster
+message TemplateMetadata {
+
+    map<string, string> annotations = 1;
+
+    map<string, string> labels = 2;
+
+    string name = 3;
+}
+
+message PlacementStatus {
+
+    enum State {
+        // UNKNOWN indicates that the system does not know the placement status of the resource.
+        UNKNOWN = 0;
+        // PLACED indicates that the resource has been placed as specified.
+        PLACED = 1;
+        // FAILED indicates that the resource could not be placed in a specified destination.
+        FAILED = 2;
+        // STALE indicates that the resource continues to be present in a destination that is no longer specified.
+        STALE = 3;
+        // INVALID indicates that the resource cannot be placed as specified because one or more destinations do not exist.
+        INVALID = 4;
+        // PENDING indicates that the resource is waiting to be processed.
+        PENDING = 5;
+    }
+
+    message Namespace {
+
+        State state = 2;
+
+        string message = 3;
+    }
+
+    message Cluster {
+        // map containing the name of the namespace, with the associated status.
+        map<string, Namespace> namespaces = 1;
+    }
+
+    // map containing the name of the cluster, with the associated Cluster namespaces.
+    map<string, Cluster> clusters = 1;
+
+    State state = 2;
+
+    string message = 3;
+    // metadata.Generation of the resource which has been processed
+    int64 observed_generation = 4;
+    /*
+        A field indicating the entity responsible for writing this status.
+        This is useful for determining if the pod has been restarted since the resource was processed.
+        Typically this value will be set to metadata.name of the pod
+    */
+    string written_by = 5;
+}
