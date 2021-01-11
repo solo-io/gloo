@@ -1375,8 +1375,8 @@ github.com/solo-io/ext-auth-service v0.7.8 h1:jcJXmCiS3GKo4RbHMDHXE2330uU1Jh/LkZ
 github.com/solo-io/ext-auth-service v0.7.8/go.mod h1:SuIJVQd2Jjfd/4jRt4S4sgIuEedY9Z/ZiVaaO7+MnU0=
 github.com/solo-io/external-apis v0.1.1 h1:QEq7OWR6KEwECXyakgX3skWl3YCg1ZcpviCQXPSY7t4=
 github.com/solo-io/external-apis v0.1.1/go.mod h1:1rwOxotZzR94AtuSA1MTTDG8gaY4ms+KhlH4/+XeLhM=
-github.com/solo-io/gloo v1.7.0-beta3 h1:vyXopP+855atRQC3a/erKO0WK/iWVtXs+PGq5BYZmrw=
-github.com/solo-io/gloo v1.7.0-beta3/go.mod h1:7P2g+J52zWIlB07oZgYx0JQCxt2HXkOPL6DCGP6ywkI=
+github.com/solo-io/gloo v1.7.0-beta4 h1:rp27kzntJ6MznuieOSCplDgJX6fczdRKCQ/4qF4foD4=
+github.com/solo-io/gloo v1.7.0-beta4/go.mod h1:8gjuDenzWNDHa1QSHINuo+licBYJ7U4p1P32B36X7eE=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
 github.com/solo-io/go-utils v0.16.4/go.mod h1:uIPAgEuwiEwpBaFv1uI7j4CUVaFYR5iHmTYuIUlLY2Q=
@@ -1416,9 +1416,8 @@ github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx
 github.com/solo-io/solo-kit v0.14.0/go.mod h1:arV9Cw3lQHmW2XqXR6yHcp9CHVCUQdwTEFAnMMKbHyQ=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.16.2/go.mod h1:gMYmqGOt+VViItk0nCYbSZ1kRV/2/gH1xcLN9R15CHE=
-github.com/solo-io/solo-kit v0.16.3/go.mod h1:gMYmqGOt+VViItk0nCYbSZ1kRV/2/gH1xcLN9R15CHE=
-github.com/solo-io/solo-kit v0.17.0 h1:yN38tUtAejhRdu6M2xQ/H0H/VnAKicMQKAsJjv/LWVY=
-github.com/solo-io/solo-kit v0.17.0/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=
+github.com/solo-io/solo-kit v0.17.1 h1:GX+2IR0K5xIBGSqGXQsi9R6uIEVRVB5RGeqkfw4Xl/k=
+github.com/solo-io/solo-kit v0.17.1/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3 h1:Am1RMaWH7jOug0ys4gUeBCgwR/94NSfZqu90j9u8eTA=
 github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3/go.mod h1:3lckq1wF8I6I2a1Jx5IsEG+PQArE57Jp3wBE2rQnKmw=
 github.com/sony/gobreaker v0.4.1/go.mod h1:ZKptC7FHNvhBz7dN2LGjPVBz2sZJmc0/PkyDJOjmxWY=
