@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Have Gloo-EE's helm config make use of Gloo-OS's new Istio integration config and blacklist pods from Istio discovery.
+    issueLink: https://github.com/solo-io/gloo/issues/3924

@@ -335,6 +335,9 @@ export class BufferSettings extends jspb.Message {
   getAllowPartialMessage(): boolean;
   setAllowPartialMessage(value: boolean): void;
 
+  getPackAsBytes(): boolean;
+  setPackAsBytes(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BufferSettings.AsObject;
   static toObject(includeInstance: boolean, msg: BufferSettings): BufferSettings.AsObject;
@@ -349,6 +352,7 @@ export namespace BufferSettings {
   export type AsObject = {
     maxRequestBytes: number,
     allowPartialMessage: boolean,
+    packAsBytes: boolean,
   }
 }
 

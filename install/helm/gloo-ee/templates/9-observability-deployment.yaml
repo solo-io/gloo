@@ -31,12 +31,17 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
-      {{- if $statsConfig.enabled }}
+      {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
+        {{- if $statsConfig.enabled}}
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
-      {{- end}}
+        {{- end}}
+        {{- if .Values.global.istioIntegration.disableAutoinjection }}
+        sidecar.istio.io/inject: "false"
+        {{- end }}
+      {{- end }}
     spec:
       serviceAccountName: observability
       volumes:

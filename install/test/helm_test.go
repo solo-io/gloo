@@ -670,6 +670,52 @@ var _ = Describe("Helm Test", func() {
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("should add an anti-injection annotation to all pods when disableAutoinjection is enabled", func() {
+				istioAnnotation := "sidecar.istio.io/inject"
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.istioIntegration.disableAutoinjection=true",
+						"rateLimit.enabled=true", // check as many as possible
+						"apiServer.enable=true",
+						"global.extensions.extAuth.enabled=true",
+						"observability.enabled=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// don't check stuff from gloo-OS or outside our purview.
+				deploymentBlacklist := []string{
+					"gloo",
+					"discovery",
+					"gateway",
+					"gateway-proxy",
+					"glooe-grafana",
+					"glooe-prometheus-kube-state-metrics",
+					"glooe-prometheus-server",
+				}
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					deploymentName := deployment.GetName()
+					for _, blacklistedDeployment := range deploymentBlacklist {
+						if deploymentName == blacklistedDeployment {
+							return
+						}
+					}
+
+					// ensure every deployment has a istio annotation set to false
+					val, ok := structuredDeployment.Spec.Template.ObjectMeta.Annotations[istioAnnotation]
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %s should contain an istio injection annotation", deploymentName))
+					Expect(val).To(Equal("false"), fmt.Sprintf("Deployment %s should have an istio annotation with value of 'false'", deploymentName))
+				})
+			})
+
 			Context("dataplane per proxy", func() {
 
 				helmOverrideFileContents := func(dataplanePerProxy bool) string {

@@ -31,6 +31,10 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
+      {{- if $.Values.global.istioIntegration.disableAutoinjection }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+      {{- end }}
     spec:
       containers:
         - image: {{template "glooe.imagenonextended" $image}}
