@@ -1375,8 +1375,8 @@ github.com/solo-io/ext-auth-service v0.7.8 h1:jcJXmCiS3GKo4RbHMDHXE2330uU1Jh/LkZ
 github.com/solo-io/ext-auth-service v0.7.8/go.mod h1:SuIJVQd2Jjfd/4jRt4S4sgIuEedY9Z/ZiVaaO7+MnU0=
 github.com/solo-io/external-apis v0.1.1 h1:QEq7OWR6KEwECXyakgX3skWl3YCg1ZcpviCQXPSY7t4=
 github.com/solo-io/external-apis v0.1.1/go.mod h1:1rwOxotZzR94AtuSA1MTTDG8gaY4ms+KhlH4/+XeLhM=
-github.com/solo-io/gloo v1.7.0-beta4 h1:rp27kzntJ6MznuieOSCplDgJX6fczdRKCQ/4qF4foD4=
-github.com/solo-io/gloo v1.7.0-beta4/go.mod h1:8gjuDenzWNDHa1QSHINuo+licBYJ7U4p1P32B36X7eE=
+github.com/solo-io/gloo v1.7.0-beta5 h1:eyYzI3X0inw4LaCyDPtjUZhl4zegAEcR/EP4GZsT0ec=
+github.com/solo-io/gloo v1.7.0-beta5/go.mod h1:8gjuDenzWNDHa1QSHINuo+licBYJ7U4p1P32B36X7eE=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
 github.com/solo-io/go-utils v0.16.4/go.mod h1:uIPAgEuwiEwpBaFv1uI7j4CUVaFYR5iHmTYuIUlLY2Q=
