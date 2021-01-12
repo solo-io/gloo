@@ -81,7 +81,7 @@ jobs:
       - name: Run tests
         run: |
           GOPATH=$HOME go install github.com/onsi/ginkgo/ginkgo
-          PATH=$HOME/bin:$PATH REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local ginkgo -r ./projects/gloo-fed/...
+          PATH=$HOME/bin:$PATH REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local ginkgo -r ./projects/gloo-fed/test/...
   regression_tests:
     name: k8s regression tests
     runs-on: ubuntu-18.04

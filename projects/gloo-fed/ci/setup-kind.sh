@@ -34,10 +34,6 @@ glooctl upgrade --release="$GLOO_VERSION"
 
 glooctl demo federation --license-key=${LICENSE_KEY}
 
-# Remove apiserver
-helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
-helm upgrade -n gloo-fed gloo-fed gloo-fed/gloo-fed --set glooFedApiserver.enable=false --set license.key=${LICENSE_KEY}
-
 # Use solo-projects gloo-fed
 kubectl set image -n gloo-fed deployment/gloo-fed gloo-fed=quay.io/solo-io/gloo-fed:kind
 
@@ -48,8 +44,12 @@ sed -nE 's|(\\x1b\[0m)?Successfully tagged (.*$)|\2|p' ${TEMP_FILE} | while read
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=2m
 kubectl rollout status deployment echo-blue-deployment --timeout=2m
 
+# debug information
 glooctl get us
 glooctl get vs
 kubectl get pods -A
 kubectl get kubernetesclusters -A
 kubectl get glooinstance -A
+kubectl get failoverscheme -Aoyaml
+kubectl describe pod echo-blue-deployment
+kubectl describe pod echo-green-deployment --context kind-remote
