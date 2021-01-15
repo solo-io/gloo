@@ -9,14 +9,17 @@ import (
 	enterprisev1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	ratelimitv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/internal/settings"
 	fedenterprisev1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	enterprisefed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1/federation"
-	hubgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
+	fedgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	gatewayfed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/federation"
-	hubgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
+	fedgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	gloofed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/federation"
+	fedratelimitv1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
+	ratelimitfed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
@@ -50,14 +53,17 @@ func main() {
 	clusterSet := multicluster.NewClusterSet()
 	clusterWatcher.RegisterClusterHandler(clusterSet)
 
-	hubGlooClusterHandler := gloofed.NewClusterHandler(rootCtx, hubgloov1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
-	clusterWatcher.RegisterClusterHandler(hubGlooClusterHandler)
+	fedGlooClusterHandler := gloofed.NewClusterHandler(rootCtx, fedgloov1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
+	clusterWatcher.RegisterClusterHandler(fedGlooClusterHandler)
 
-	hubGatewayClusterHandler := gatewayfed.NewClusterHandler(rootCtx, hubgatewayv1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
-	clusterWatcher.RegisterClusterHandler(hubGatewayClusterHandler)
+	fedGatewayClusterHandler := gatewayfed.NewClusterHandler(rootCtx, fedgatewayv1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
+	clusterWatcher.RegisterClusterHandler(fedGatewayClusterHandler)
 
-	hubEnterpriseGlooClusterHandler := enterprisefed.NewClusterHandler(rootCtx, fedenterprisev1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
-	clusterWatcher.RegisterClusterHandler(hubEnterpriseGlooClusterHandler)
+	fedEnterpriseGlooClusterHandler := enterprisefed.NewClusterHandler(rootCtx, fedenterprisev1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
+	clusterWatcher.RegisterClusterHandler(fedEnterpriseGlooClusterHandler)
+
+	fedRatelimitClusterHandler := ratelimitfed.NewClusterHandler(rootCtx, fedratelimitv1alpha1.NewClientset(mgr.GetClient()), placement.NewFactory(cfg.PodName))
+	clusterWatcher.RegisterClusterHandler(fedRatelimitClusterHandler)
 
 	mcClient := client.NewClient(clusterWatcher)
 	discovery.InitializeDiscovery(rootCtx, cfg, mgr, mcClient, clusterWatcher)
@@ -76,6 +82,10 @@ func main() {
 
 	if err := enterprisefed.Initialize(rootCtx, cfg.PodName, mgr, enterprisev1.NewMulticlusterClientset(mcClient), clusterSet); err != nil {
 		logger.Fatalw("A fatal error occurred while setting up gloo enterprise resource federation", zap.Error(err))
+	}
+
+	if err := ratelimitfed.Initialize(rootCtx, cfg.PodName, mgr, ratelimitv1alpha1.NewMulticlusterClientset(mcClient), clusterSet); err != nil {
+		logger.Fatalw("A fatal error occurred while setting up ratelimit resource federation", zap.Error(err))
 	}
 
 	if err := clusterWatcher.Run(mgr); err != nil {

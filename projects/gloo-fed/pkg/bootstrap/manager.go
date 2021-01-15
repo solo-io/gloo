@@ -7,9 +7,11 @@ import (
 	enterprisev1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	hubenterprisev1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
-	hubgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
-	hubgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
+	ratelimitv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	fedenterprisev1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
+	fedgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
+	fedgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
+	fedratelimitv1alpha1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -20,9 +22,10 @@ import (
 
 var schemes = runtime.SchemeBuilder{
 	v1.AddToScheme,
-	hubgloov1.AddToScheme,
-	hubgatewayv1.AddToScheme,
-	hubenterprisev1.AddToScheme,
+	fedgloov1.AddToScheme,
+	fedgatewayv1.AddToScheme,
+	fedenterprisev1.AddToScheme,
+	fedratelimitv1alpha1alpha1.AddToScheme,
 }
 
 func MustLocalManager(ctx context.Context) manager.Manager {
@@ -57,6 +60,10 @@ func MustRemoteScheme(ctx context.Context) *runtime.Scheme {
 		die(err)
 	}
 	err = gatewayv1.AddToScheme(newScheme)
+	if err != nil {
+		die(err)
+	}
+	err = ratelimitv1alpha1.AddToScheme(newScheme)
 	if err != nil {
 		die(err)
 	}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+package fed.ratelimit.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/types";
+
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+import "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster.proto";
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement.proto";
+import "github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/ratelimit.proto";
+
+message FederatedRateLimitConfigSpec {
+    message Template {
+        .ratelimit.api.solo.io.RateLimitConfigSpec spec = 1;
+
+        core.fed.solo.io.TemplateMetadata metadata = 2;
+    }
+
+    Template template = 1;
+
+    multicluster.solo.io.Placement placement = 2;
+}
+
+message FederatedRateLimitConfigStatus {
+    core.fed.solo.io.PlacementStatus placement_status = 1;
+}

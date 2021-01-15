@@ -40,6 +40,31 @@ kubectl set image -n gloo-fed deployment/gloo-fed gloo-fed=quay.io/solo-io/gloo-
 # grab the image names out of the `make docker` output, load them into kind node
 sed -nE 's|(\\x1b\[0m)?Successfully tagged (.*$)|\2|p' ${TEMP_FILE} | while read f; do kind load docker-image --name "$1" $f; done
 
+# Apply the FederatedRateLimitConfigs until issue https://github.com/solo-io/solo-projects/issues/2027 is resolved
+kubectl apply -f - <<EOF
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    app: gloo-fed
+    app.kubernetes.io/name: gloo-fed
+  name: federatedratelimitconfigs.fed.ratelimit.solo.io
+spec:
+  group: fed.ratelimit.solo.io
+  names:
+    kind: FederatedRateLimitConfig
+    listKind: FederatedRateLimitConfigList
+    plural: federatedratelimitconfigs
+    singular: federatedratelimitconfig
+  scope: Namespaced
+  subresources:
+    status: {}
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+EOF
+
 # wait for setup to be complete
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=2m
 kubectl rollout status deployment echo-blue-deployment --timeout=2m
