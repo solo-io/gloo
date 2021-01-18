@@ -79,7 +79,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				},
 			},
 			Options: &v1.RouteOptions{
-				Jwt: jwtRoute,
+				JwtConfig: &v1.RouteOptions_Jwt{
+					Jwt: jwtRoute,
+				},
 			},
 		}
 
@@ -106,7 +108,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			Name:    "virt1",
 			Domains: []string{"*"},
 			Options: &v1.VirtualHostOptions{
-				Jwt: jwtVhost,
+				JwtConfig: &v1.VirtualHostOptions_Jwt{
+					Jwt: jwtVhost,
+				},
 			},
 			Routes: []*v1.Route{route},
 		}

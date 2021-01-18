@@ -23,14 +23,14 @@ goog.exportSymbol('proto.solo.io.envoy.annotations.disallowedByDefaultEnum', nul
  * @type {!jspb.ExtensionFieldInfo<boolean>}
  */
 proto.solo.io.envoy.annotations.disallowedByDefault = new jspb.ExtensionFieldInfo(
-    189503208,
+    246172783,
     {disallowedByDefault: 0},
     null,
      /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
          null),
     0);
 
-google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[189503208] = new jspb.ExtensionFieldBinaryInfo(
+google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[246172783] = new jspb.ExtensionFieldBinaryInfo(
     proto.solo.io.envoy.annotations.disallowedByDefault,
     jspb.BinaryReader.prototype.readBool,
     jspb.BinaryWriter.prototype.writeBool,
@@ -39,7 +39,7 @@ google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[189503208] = new jsp
     false);
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
-google_protobuf_descriptor_pb.FieldOptions.extensions[189503208] = proto.solo.io.envoy.annotations.disallowedByDefault;
+google_protobuf_descriptor_pb.FieldOptions.extensions[246172783] = proto.solo.io.envoy.annotations.disallowedByDefault;
 
 
 /**
@@ -48,14 +48,14 @@ google_protobuf_descriptor_pb.FieldOptions.extensions[189503208] = proto.solo.io
  * @type {!jspb.ExtensionFieldInfo<boolean>}
  */
 proto.solo.io.envoy.annotations.disallowedByDefaultEnum = new jspb.ExtensionFieldInfo(
-    70100854,
+    178329844,
     {disallowedByDefaultEnum: 0},
     null,
      /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
          null),
     0);
 
-google_protobuf_descriptor_pb.EnumValueOptions.extensionsBinary[70100854] = new jspb.ExtensionFieldBinaryInfo(
+google_protobuf_descriptor_pb.EnumValueOptions.extensionsBinary[178329844] = new jspb.ExtensionFieldBinaryInfo(
     proto.solo.io.envoy.annotations.disallowedByDefaultEnum,
     jspb.BinaryReader.prototype.readBool,
     jspb.BinaryWriter.prototype.writeBool,
@@ -64,6 +64,6 @@ google_protobuf_descriptor_pb.EnumValueOptions.extensionsBinary[70100854] = new 
     false);
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
-google_protobuf_descriptor_pb.EnumValueOptions.extensions[70100854] = proto.solo.io.envoy.annotations.disallowedByDefaultEnum;
+google_protobuf_descriptor_pb.EnumValueOptions.extensions[178329844] = proto.solo.io.envoy.annotations.disallowedByDefaultEnum;
 
 goog.object.extend(exports, proto.solo.io.envoy.annotations);

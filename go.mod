@@ -42,7 +42,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service v0.7.8
 	github.com/solo-io/external-apis v0.1.1
-	github.com/solo-io/gloo v1.7.0-beta5
+	github.com/solo-io/gloo v1.7.0-beta8
 	github.com/solo-io/go-utils v0.20.1
 	github.com/solo-io/k8s-utils v0.0.3
 	github.com/solo-io/licensing v0.1.20

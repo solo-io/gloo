@@ -39,27 +39,27 @@ func (m *MockConfigCollector) EXPECT() *MockConfigCollectorMockRecorder {
 }
 
 // ProcessVirtualHost mocks base method
-func (m *MockConfigCollector) ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy) {
+func (m *MockConfigCollector) ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ProcessVirtualHost", virtualHost, proxy)
+	m.ctrl.Call(m, "ProcessVirtualHost", virtualHost, proxy, reports)
 }
 
 // ProcessVirtualHost indicates an expected call of ProcessVirtualHost
-func (mr *MockConfigCollectorMockRecorder) ProcessVirtualHost(virtualHost, proxy interface{}) *gomock.Call {
+func (mr *MockConfigCollectorMockRecorder) ProcessVirtualHost(virtualHost, proxy, reports interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessVirtualHost", reflect.TypeOf((*MockConfigCollector)(nil).ProcessVirtualHost), virtualHost, proxy)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessVirtualHost", reflect.TypeOf((*MockConfigCollector)(nil).ProcessVirtualHost), virtualHost, proxy, reports)
 }
 
 // ProcessRoute mocks base method
-func (m *MockConfigCollector) ProcessRoute(route *v1.Route, virtualHost *v1.VirtualHost, proxy *v1.Proxy) {
+func (m *MockConfigCollector) ProcessRoute(route *v1.Route, virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ProcessRoute", route, virtualHost, proxy)
+	m.ctrl.Call(m, "ProcessRoute", route, virtualHost, proxy, reports)
 }
 
 // ProcessRoute indicates an expected call of ProcessRoute
-func (mr *MockConfigCollectorMockRecorder) ProcessRoute(route, virtualHost, proxy interface{}) *gomock.Call {
+func (mr *MockConfigCollectorMockRecorder) ProcessRoute(route, virtualHost, proxy, reports interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRoute", reflect.TypeOf((*MockConfigCollector)(nil).ProcessRoute), route, virtualHost, proxy)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRoute", reflect.TypeOf((*MockConfigCollector)(nil).ProcessRoute), route, virtualHost, proxy, reports)
 }
 
 // ToXdsConfiguration mocks base method
@@ -101,16 +101,16 @@ func (m *MockConfigCollectorFactory) EXPECT() *MockConfigCollectorFactoryMockRec
 }
 
 // MakeInstance mocks base method
-func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, reports reporter.ResourceReports, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
+func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, reports, logger)
+	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, logger)
 	ret0, _ := ret[0].(collectors.ConfigCollector)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // MakeInstance indicates an expected call of MakeInstance
-func (mr *MockConfigCollectorFactoryMockRecorder) MakeInstance(typ, snapshot, reports, logger interface{}) *gomock.Call {
+func (mr *MockConfigCollectorFactoryMockRecorder) MakeInstance(typ, snapshot, logger interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeInstance", reflect.TypeOf((*MockConfigCollectorFactory)(nil).MakeInstance), typ, snapshot, reports, logger)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeInstance", reflect.TypeOf((*MockConfigCollectorFactory)(nil).MakeInstance), typ, snapshot, logger)
 }

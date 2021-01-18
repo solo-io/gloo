@@ -42,14 +42,18 @@ func init() {
 }
 
 type TranslatorSyncerExtension struct {
-	reports reporter.ResourceReports
 }
 
 func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *TranslatorSyncerExtension {
-	return &TranslatorSyncerExtension{reports: params.Reports}
+	return &TranslatorSyncerExtension{}
 }
 
-func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
+func (s *TranslatorSyncerExtension) Sync(
+	ctx context.Context,
+	snap *gloov1.ApiSnapshot,
+	xdsCache envoycache.SnapshotCache,
+	reports reporter.ResourceReports,
+) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -57,16 +61,20 @@ func (s *TranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSn
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end auth sync %v", snapHash)
 
-	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, xdsCache)
+	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, xdsCache, reports)
 }
 
 type SnapshotSetter interface {
 	SetSnapshot(node string, snapshot envoycache.Snapshot) error
 }
 
-func (s *TranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
+func (s *TranslatorSyncerExtension) SyncAndSet(
+	ctx context.Context,
+	snap *gloov1.ApiSnapshot,
+	xdsCache SnapshotSetter,
+	reports reporter.ResourceReports,
+) error {
 	helper := newHelper()
-	reports := s.reports
 	reports.Accept(snap.AuthConfigs.AsInputResources()...)
 	reports.Accept(snap.Proxies.AsInputResources()...)
 

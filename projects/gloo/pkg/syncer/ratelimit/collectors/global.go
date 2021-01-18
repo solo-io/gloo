@@ -1,6 +1,7 @@
 package collectors
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.uber.org/zap"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -28,11 +29,11 @@ func NewGlobalConfigCollector(
 	}
 }
 
-func (g *globalConfigCollector) ProcessVirtualHost(_ *gloov1.VirtualHost, _ *gloov1.Proxy) {
+func (g *globalConfigCollector) ProcessVirtualHost(_ *gloov1.VirtualHost, _ *gloov1.Proxy, _ reporter.ResourceReports) {
 	// nothing to do here
 }
 
-func (g *globalConfigCollector) ProcessRoute(_ *gloov1.Route, _ *gloov1.VirtualHost, _ *gloov1.Proxy) {
+func (g *globalConfigCollector) ProcessRoute(_ *gloov1.Route, _ *gloov1.VirtualHost, _ *gloov1.Proxy, _ reporter.ResourceReports) {
 	// nothing to do here
 }
 

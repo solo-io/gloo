@@ -37,6 +37,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		snapCache        *mockSetSnapshot
 		authConfigClient clients.ResourceClient
 		proxyClient      clients.ResourceClient
+		reports          reporter.ResourceReports
 	)
 	JustBeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
@@ -50,7 +51,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		proxyClient, err = resourceClientFactory.NewResourceClient(ctx, factory.NewResourceClientParams{ResourceType: &gloov1.Proxy{}})
 		Expect(err).NotTo(HaveOccurred())
 
-		params.Reports = make(reporter.ResourceReports)
+		reports = make(reporter.ResourceReports)
 		translator = NewTranslatorSyncerExtension(params)
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
@@ -76,7 +77,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	})
 
 	translate := func() envoycache.Snapshot {
-		err := translator.SyncAndSet(context.Background(), apiSnapshot, snapCache)
+		err := translator.SyncAndSet(context.Background(), apiSnapshot, snapCache, reports)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(snapCache.Snapshots).To(HaveKey("extauth"))
 		return snapCache.Snapshots["extauth"]
@@ -182,7 +183,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 
 				proxyClient.Write(proxy, clients.WriteOpts{})
 
-				Expect(params.Reports).To(HaveLen(0), "should have no reports yet")
+				Expect(reports).To(HaveLen(0), "should have no reports yet")
 				snap := translate()
 
 				extAuthRes := snap.GetResources(extauth.ExtAuthConfigType)
@@ -192,8 +193,8 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Expect(extAuthRes.Items["gloo-system.bad-auth"]).NotTo(BeNil())
 				Expect(extAuthRes.Items["gloo-system.good-auth"]).NotTo(BeNil())
 
-				Expect(params.Reports).To(HaveLen(4), "should have auth, bad-auth, good-auth and proxy")
-				for k, v := range params.Reports {
+				Expect(reports).To(HaveLen(4), "should have auth, bad-auth, good-auth and proxy")
+				for k, v := range reports {
 					switch k.GetMetadata().Name {
 					case "good-auth":
 						Expect(v.Errors).NotTo(HaveOccurred())
@@ -219,7 +220,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				}
 
 				// All 3 resources should still have a nil status, as the reports they have added
-				// to params.Reports will be written by Gloo, which has not yet run.
+				// to reports will be written by Gloo, which has not yet run.
 				// The in-memory kube client will have a status of 'nil', but in
 				// a real kube client this would be a "Pending" status
 				goodAuth, err := authConfigClient.Read(defaults.GlooSystem, "good-auth", clients.ReadOpts{})

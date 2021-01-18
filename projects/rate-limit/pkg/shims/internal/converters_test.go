@@ -165,7 +165,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 	})
 
@@ -305,7 +305,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 
 		It("should successfully convert the resource to solo-apis", func() {
@@ -322,7 +322,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 	})
 
@@ -417,7 +417,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 
 		It("should successfully convert the resources to rate-limiter", func() {
@@ -434,7 +434,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 	})
 
@@ -521,7 +521,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 	})
 
@@ -598,7 +598,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 
 		It("should successfully convert the resources to rate-limiter", func() {
@@ -615,7 +615,7 @@ var _ = Describe("Converters", func() {
 				}
 			})
 
-			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 50))
+			Expect(runtime.Milliseconds()).Should(BeNumerically("<", 75))
 		}, 10)
 	})
 })

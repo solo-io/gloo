@@ -1,5 +1,5 @@
 /* eslint-disable */
-// package: udpa.annotations
+// package: solo.io.udpa.annotations
 // file: github.com/solo-io/gloo/projects/gloo/api/external/udpa/annotations/status.proto
 
 import * as jspb from "google-protobuf";

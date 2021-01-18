@@ -259,6 +259,11 @@ export class VirtualHostOptions extends jspb.Message {
   getJwt(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.VhostExtension | undefined;
   setJwt(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.VhostExtension): void;
 
+  hasJwtStaged(): boolean;
+  clearJwtStaged(): void;
+  getJwtStaged(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedVhostExtension | undefined;
+  setJwtStaged(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedVhostExtension): void;
+
   hasRbac(): boolean;
   clearRbac(): void;
   getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings | undefined;
@@ -300,6 +305,7 @@ export class VirtualHostOptions extends jspb.Message {
   setStagedTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages): void;
 
   getRateLimitConfigTypeCase(): VirtualHostOptions.RateLimitConfigTypeCase;
+  getJwtConfigCase(): VirtualHostOptions.JwtConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostOptions.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostOptions): VirtualHostOptions.AsObject;
@@ -323,6 +329,7 @@ export namespace VirtualHostOptions {
     rateLimitConfigs?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.VhostExtension.AsObject,
+    jwtStaged?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedVhostExtension.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
@@ -337,6 +344,12 @@ export namespace VirtualHostOptions {
     RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
     RATELIMIT = 70,
     RATE_LIMIT_CONFIGS = 71,
+  }
+
+  export enum JwtConfigCase {
+    JWT_CONFIG_NOT_SET = 0,
+    JWT = 9,
+    JWT_STAGED = 19,
   }
 }
 
@@ -436,6 +449,11 @@ export class RouteOptions extends jspb.Message {
   getJwt(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.RouteExtension | undefined;
   setJwt(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.RouteExtension): void;
 
+  hasJwtStaged(): boolean;
+  clearJwtStaged(): void;
+  getJwtStaged(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedRouteExtension | undefined;
+  setJwtStaged(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedRouteExtension): void;
+
   hasRbac(): boolean;
   clearRbac(): void;
   getRbac(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings | undefined;
@@ -468,6 +486,7 @@ export class RouteOptions extends jspb.Message {
 
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
+  getJwtConfigCase(): RouteOptions.JwtConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteOptions.AsObject;
   static toObject(includeInstance: boolean, msg: RouteOptions): RouteOptions.AsObject;
@@ -499,6 +518,7 @@ export namespace RouteOptions {
     rateLimitConfigs?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.RouteExtension.AsObject,
+    jwtStaged?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb.JwtStagedRouteExtension.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.ExtensionSettings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.ExtAuthExtension.AsObject,
     dlp?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.AsObject,
@@ -517,6 +537,12 @@ export namespace RouteOptions {
     RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
     RATELIMIT = 140,
     RATE_LIMIT_CONFIGS = 141,
+  }
+
+  export enum JwtConfigCase {
+    JWT_CONFIG_NOT_SET = 0,
+    JWT = 16,
+    JWT_STAGED = 25,
   }
 }
 
