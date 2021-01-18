@@ -586,6 +586,7 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 				},
 			}, {
 				Options: &gloov1.RouteOptions{
+					// Disable JWT and not RBAC, so that no one can get here
 					JwtConfig: &gloov1.RouteOptions_Jwt{
 						Jwt: getDisabledJwt(),
 					},

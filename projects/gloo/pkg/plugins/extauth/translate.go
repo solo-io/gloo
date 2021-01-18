@@ -126,6 +126,8 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Ldap{
 			Ldap: config.Ldap,
 		}
+	case *extauth.AuthConfig_Config_Jwt:
+		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Jwt{}
 	case *extauth.AuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := config.PassThroughAuth.GetProtocol().(type) {
 		case *extauth.PassThroughAuth_Grpc:

@@ -77,6 +77,8 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 			default:
 				reports.AddError(ac, errors.Errorf("Unknown passthrough protocol type for %v", ac.Metadata.Ref()))
 			}
+		case *extauth.AuthConfig_Config_Jwt:
+			// no validation needed yet for dummy jwt service
 		default:
 			reports.AddError(ac, errors.Errorf("Unknown Auth Config type for %v", ac.Metadata.Ref()))
 		}
