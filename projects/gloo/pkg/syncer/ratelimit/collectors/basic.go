@@ -10,22 +10,23 @@ import (
 )
 
 type basicConfigCollector struct {
-	reports     reporter.ResourceReports
 	descriptors []*solo_api_rl_types.Descriptor
 	translator  translation.BasicRateLimitTranslator
 }
 
 func NewBasicConfigCollector(
-	reports reporter.ResourceReports,
 	translator translation.BasicRateLimitTranslator,
 ) ConfigCollector {
 	return &basicConfigCollector{
-		reports:    reports,
 		translator: translator,
 	}
 }
 
-func (i *basicConfigCollector) ProcessVirtualHost(virtualHost *gloov1.VirtualHost, parentProxy *gloov1.Proxy) {
+func (i *basicConfigCollector) ProcessVirtualHost(
+	virtualHost *gloov1.VirtualHost,
+	parentProxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	rateLimit := virtualHost.GetOptions().GetRatelimitBasic()
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
@@ -34,14 +35,19 @@ func (i *basicConfigCollector) ProcessVirtualHost(virtualHost *gloov1.VirtualHos
 
 	descriptor, err := i.translator.GenerateServerConfig(virtualHost.Name, *rateLimit)
 	if err != nil {
-		i.reports.AddError(parentProxy, err)
+		reports.AddError(parentProxy, err)
 		return
 	}
 
 	i.descriptors = append(i.descriptors, descriptor)
 }
 
-func (i *basicConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.VirtualHost, parentProxy *gloov1.Proxy) {
+func (i *basicConfigCollector) ProcessRoute(
+	route *gloov1.Route,
+	_ *gloov1.VirtualHost,
+	parentProxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	rateLimit := route.GetOptions().GetRatelimitBasic()
 	if rateLimit == nil {
 		return
@@ -49,7 +55,7 @@ func (i *basicConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.Virtu
 
 	descriptor, err := i.translator.GenerateServerConfig(route.Name, *rateLimit)
 	if err != nil {
-		i.reports.AddError(parentProxy, err)
+		reports.AddError(parentProxy, err)
 		return
 	}
 

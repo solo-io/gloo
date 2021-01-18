@@ -2302,7 +2302,8 @@ proto.enterprise.gloo.solo.io.BufferSettings.prototype.toObject = function(opt_i
 proto.enterprise.gloo.solo.io.BufferSettings.toObject = function(includeInstance, msg) {
   var f, obj = {
     maxRequestBytes: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    allowPartialMessage: jspb.Message.getFieldWithDefault(msg, 2, false)
+    allowPartialMessage: jspb.Message.getFieldWithDefault(msg, 2, false),
+    packAsBytes: jspb.Message.getFieldWithDefault(msg, 3, false)
   };
 
   if (includeInstance) {
@@ -2347,6 +2348,10 @@ proto.enterprise.gloo.solo.io.BufferSettings.deserializeBinaryFromReader = funct
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setAllowPartialMessage(value);
       break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPackAsBytes(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2390,6 +2395,13 @@ proto.enterprise.gloo.solo.io.BufferSettings.serializeBinaryToWriter = function(
       f
     );
   }
+  f = message.getPackAsBytes();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -2422,6 +2434,23 @@ proto.enterprise.gloo.solo.io.BufferSettings.prototype.getAllowPartialMessage = 
 /** @param {boolean} value */
 proto.enterprise.gloo.solo.io.BufferSettings.prototype.setAllowPartialMessage = function(value) {
   jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+/**
+ * optional bool pack_as_bytes = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.BufferSettings.prototype.getPackAsBytes = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.BufferSettings.prototype.setPackAsBytes = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
 };
 
 

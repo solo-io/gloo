@@ -19,15 +19,15 @@ const (
 
 type ConfigCollector interface {
 	// Processes rate limit config on the given virtual host.
-	ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy)
+	ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports)
 
 	// Processes rate limit config on the given route.
-	ProcessRoute(route *v1.Route, virtualHost *v1.VirtualHost, proxy *v1.Proxy)
+	ProcessRoute(route *v1.Route, virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports)
 
 	// Returns the current state of the collector as an xDS rate limit config.
 	ToXdsConfiguration() (*enterprise.RateLimitConfig, error)
 }
 
 type ConfigCollectorFactory interface {
-	MakeInstance(typ CollectorType, snapshot *v1.ApiSnapshot, reports reporter.ResourceReports, logger *zap.SugaredLogger) (ConfigCollector, error)
+	MakeInstance(typ CollectorType, snapshot *v1.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error)
 }

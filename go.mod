@@ -35,16 +35,16 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service v0.7.8
-	github.com/solo-io/gloo v1.6.1
+	github.com/solo-io/gloo v1.6.3
 	github.com/solo-io/go-utils v0.20.1
 	github.com/solo-io/k8s-utils v0.0.3
 	github.com/solo-io/licensing v0.1.17
-	github.com/solo-io/protoc-gen-ext v0.0.13
+	github.com/solo-io/protoc-gen-ext v0.0.14
 	github.com/solo-io/rate-limiter v0.1.6
 	github.com/solo-io/reporting-client v0.2.0
 	// Corresponds to the `gloo-v1.6.0-beta21` tag
 	github.com/solo-io/solo-apis v0.0.0-20201217203626-64c05e4a6c41
-	github.com/solo-io/solo-kit v0.17.0
+	github.com/solo-io/solo-kit v0.17.1
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5

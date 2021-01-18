@@ -15,7 +15,6 @@ import (
 
 type crdConfigCollector struct {
 	snapshot   *gloov1.ApiSnapshot
-	reports    reporter.ResourceReports
 	translator rate_limiter_shims.RateLimitConfigTranslator
 
 	resources map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw
@@ -23,31 +22,38 @@ type crdConfigCollector struct {
 
 func NewCrdConfigCollector(
 	snapshot *gloov1.ApiSnapshot,
-	reports reporter.ResourceReports,
 	translator rate_limiter_shims.RateLimitConfigTranslator,
 ) ConfigCollector {
 	return &crdConfigCollector{
 		snapshot:   snapshot,
-		reports:    reports,
 		translator: translator,
 		resources:  map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw{},
 	}
 }
 
-func (c *crdConfigCollector) ProcessVirtualHost(virtualHost *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+func (c *crdConfigCollector) ProcessVirtualHost(
+	virtualHost *gloov1.VirtualHost,
+	proxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	configRef := virtualHost.GetOptions().GetRateLimitConfigs()
 	if configRef == nil {
 		return
 	}
-	c.processConfigRef(configRef, proxy)
+	c.processConfigRef(configRef, proxy, reports)
 }
 
-func (c *crdConfigCollector) ProcessRoute(route *gloov1.Route, _ *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+func (c *crdConfigCollector) ProcessRoute(
+	route *gloov1.Route,
+	_ *gloov1.VirtualHost,
+	proxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	configRef := route.GetOptions().GetRateLimitConfigs()
 	if configRef == nil {
 		return
 	}
-	c.processConfigRef(configRef, proxy)
+	c.processConfigRef(configRef, proxy, reports)
 }
 
 func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
@@ -61,7 +67,11 @@ func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, 
 	return rlCrdConfig, nil
 }
 
-func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRefs, parentProxy resources.InputResource) {
+func (c *crdConfigCollector) processConfigRef(
+	refs *ratelimit.RateLimitConfigRefs,
+	parentProxy resources.InputResource,
+	reports reporter.ResourceReports,
+) {
 	for _, ref := range refs.GetRefs() {
 		resourceRef := &core.ResourceRef{Namespace: ref.Namespace, Name: ref.Name}
 		resourceKey := translator.UpstreamToClusterName(resourceRef)
@@ -72,15 +82,15 @@ func (c *crdConfigCollector) processConfigRef(refs *ratelimit.RateLimitConfigRef
 
 		glooApiResource, err := c.snapshot.Ratelimitconfigs.Find(resourceRef.Strings())
 		if err != nil {
-			c.reports.AddError(parentProxy, err)
+			reports.AddError(parentProxy, err)
 			continue
 		}
 
 		soloApiResource := solo_api_rl_types.RateLimitConfig(glooApiResource.RateLimitConfig)
 		descriptors, err := c.translator.ToDescriptors(&soloApiResource)
 		if err != nil {
-			c.reports.AddError(parentProxy, err)
-			c.reports.AddError(glooApiResource, err)
+			reports.AddError(parentProxy, err)
+			reports.AddError(glooApiResource, err)
 			continue
 		}
 

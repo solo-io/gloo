@@ -4,15 +4,13 @@ import (
 	"context"
 	"os"
 
-	"github.com/solo-io/go-utils/contextutils"
-	"go.uber.org/zap"
-
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/utils/usage"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
@@ -29,6 +27,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/wasm"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
+	"go.uber.org/zap"
 )
 
 const (

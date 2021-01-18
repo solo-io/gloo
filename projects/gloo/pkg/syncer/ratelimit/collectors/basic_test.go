@@ -61,7 +61,7 @@ var _ = Describe("Basic Config Collector", func() {
 			},
 		}
 
-		collector = collectors.NewBasicConfigCollector(reports, translator)
+		collector = collectors.NewBasicConfigCollector(translator)
 	})
 
 	AfterEach(func() {
@@ -74,7 +74,7 @@ var _ = Describe("Basic Config Collector", func() {
 
 			translator.EXPECT().GenerateServerConfig(virtualHost1.Name, basicConfig).Return(nil, testErr)
 
-			collector.ProcessVirtualHost(virtualHost1, proxy)
+			collector.ProcessVirtualHost(virtualHost1, proxy, reports)
 
 			actual, err := collector.ToXdsConfiguration()
 			Expect(err).To(BeNil())
@@ -95,8 +95,8 @@ var _ = Describe("Basic Config Collector", func() {
 			translator.EXPECT().GenerateServerConfig(virtualHost1.Name, basicConfig).Return(descriptor1, nil)
 			translator.EXPECT().GenerateServerConfig(virtualHost2.Name, basicConfig).Return(descriptor2, nil)
 
-			collector.ProcessVirtualHost(virtualHost1, proxy)
-			collector.ProcessVirtualHost(virtualHost2, proxy)
+			collector.ProcessVirtualHost(virtualHost1, proxy, reports)
+			collector.ProcessVirtualHost(virtualHost2, proxy, reports)
 
 			expected := &enterprise.RateLimitConfig{
 				Domain:      rl_plugin.IngressDomain,

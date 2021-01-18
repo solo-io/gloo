@@ -61,7 +61,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 		snap := &v1.ApiSnapshot{Ratelimitconfigs: []*gloo_rl_api.RateLimitConfig{rl1, rl2, rl3}}
 
-		collector = collectors.NewCrdConfigCollector(snap, reports, translator)
+		collector = collectors.NewCrdConfigCollector(snap, translator)
 	})
 
 	AfterEach(func() {
@@ -72,7 +72,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 		When("no config is referenced", func() {
 			It("generated no descriptors", func() {
-				collector.ProcessVirtualHost(&v1.VirtualHost{Options: &v1.VirtualHostOptions{}}, proxy)
+				collector.ProcessVirtualHost(&v1.VirtualHost{Options: &v1.VirtualHostOptions{}}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -85,7 +85,7 @@ var _ = Describe("CRD Config Collector", func() {
 			It("reports the corresponding error on the proxy", func() {
 				invalidRef := &core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
 
-				collector.ProcessVirtualHost(virtualHostWithConfigs(invalidRef), proxy)
+				collector.ProcessVirtualHost(virtualHostWithConfigs(invalidRef), proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -106,7 +106,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(nil, testErr)
 
-				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
+				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -139,7 +139,7 @@ var _ = Describe("CRD Config Collector", func() {
 						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
 					}, nil)
 
-				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
+				collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -153,7 +153,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 		When("no config is referenced", func() {
 			It("generated no descriptors", func() {
-				collector.ProcessRoute(&v1.Route{}, &v1.VirtualHost{}, proxy)
+				collector.ProcessRoute(&v1.Route{}, &v1.VirtualHost{}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -166,7 +166,7 @@ var _ = Describe("CRD Config Collector", func() {
 			It("reports the corresponding error on the proxy", func() {
 				invalidRef := &core.ResourceRef{Name: "invalid", Namespace: rl1.Namespace}
 
-				collector.ProcessRoute(routeWithConfigs(invalidRef), &v1.VirtualHost{}, proxy)
+				collector.ProcessRoute(routeWithConfigs(invalidRef), &v1.VirtualHost{}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -187,7 +187,7 @@ var _ = Describe("CRD Config Collector", func() {
 
 				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(nil, testErr)
 
-				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
+				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -220,7 +220,7 @@ var _ = Describe("CRD Config Collector", func() {
 						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
 					}, nil)
 
-				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
+				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -256,13 +256,13 @@ var _ = Describe("CRD Config Collector", func() {
 					Descriptors:    []*v1alpha1.Descriptor{descriptor3},
 					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor3a, setDescriptor3b}}, nil)
 
-			collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy)
-			collector.ProcessRoute(routeWithConfigs(rl2.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
-			collector.ProcessRoute(routeWithConfigs(rl3.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
+			collector.ProcessVirtualHost(virtualHostWithConfigs(rl1.GetMetadata().Ref()), proxy, reports)
+			collector.ProcessRoute(routeWithConfigs(rl2.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
+			collector.ProcessRoute(routeWithConfigs(rl3.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
 
 			// Simulate multiple references to the same resources
-			collector.ProcessVirtualHost(virtualHostWithConfigs(rl2.GetMetadata().Ref()), proxy)
-			collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref(), rl3.GetMetadata().Ref()), &v1.VirtualHost{}, proxy)
+			collector.ProcessVirtualHost(virtualHostWithConfigs(rl2.GetMetadata().Ref()), proxy, reports)
+			collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref(), rl3.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
 
 			actual, err := collector.ToXdsConfiguration()
 			Expect(err).To(BeNil())

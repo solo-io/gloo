@@ -70,7 +70,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		domainGenerator = mock_shims.NewMockRateLimitDomainGenerator(ctrl)
 		reports = make(skreporter.ResourceReports)
 
-		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reports)
+		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator)
 
 		apiSnapshot = &gloov1.ApiSnapshot{
 			Proxies: []*gloov1.Proxy{proxy},
@@ -78,10 +78,9 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		testErr = eris.New("test error")
 
-		reportsMatcher := gomock.AssignableToTypeOf(skreporter.ResourceReports{})
-		collectorFactory.EXPECT().MakeInstance(collectors.Global, apiSnapshot, reportsMatcher, gomock.Any()).Return(global, nil)
-		collectorFactory.EXPECT().MakeInstance(collectors.Basic, apiSnapshot, reportsMatcher, gomock.Any()).Return(basic, nil)
-		collectorFactory.EXPECT().MakeInstance(collectors.Crd, apiSnapshot, reportsMatcher, gomock.Any()).Return(crd, nil)
+		collectorFactory.EXPECT().MakeInstance(collectors.Global, apiSnapshot, gomock.Any()).Return(global, nil)
+		collectorFactory.EXPECT().MakeInstance(collectors.Basic, apiSnapshot, gomock.Any()).Return(basic, nil)
+		collectorFactory.EXPECT().MakeInstance(collectors.Crd, apiSnapshot, gomock.Any()).Return(crd, nil)
 	})
 
 	AfterEach(func() {
@@ -178,20 +177,21 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		JustBeforeEach(func() {
 
-			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
-			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
-			basic.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy)
-			basic.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy)
+			reportsMatcher := gomock.AssignableToTypeOf(skreporter.ResourceReports{})
+			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy, reportsMatcher)
+			basic.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			basic.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			basic.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy, reportsMatcher)
 
-			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
-			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
-			global.EXPECT().ProcessRoute(GomockMatchProto4(route1), GomockMatchProto4(vhost2), proxy)
-			global.EXPECT().ProcessRoute(GomockMatchProto4(route2), GomockMatchProto4(vhost2), proxy)
+			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy, reportsMatcher)
+			global.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			global.EXPECT().ProcessRoute(GomockMatchProto4(route1), GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			global.EXPECT().ProcessRoute(GomockMatchProto4(route2), GomockMatchProto4(vhost2), proxy, reportsMatcher)
 
-			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy)
-			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy)
-			crd.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy)
-			crd.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy)
+			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost1Sanitized), proxy, reportsMatcher)
+			crd.EXPECT().ProcessVirtualHost(GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			crd.EXPECT().ProcessRoute(route1, GomockMatchProto4(vhost2), proxy, reportsMatcher)
+			crd.EXPECT().ProcessRoute(GomockMatchProto4(route2), vhost2, proxy, reportsMatcher)
 
 			config1 = &enterprise.RateLimitConfig{
 				Domain: "foo",
@@ -285,7 +285,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache)
+				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
 
@@ -319,7 +319,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache)
+				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -358,7 +358,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache)
+				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -398,7 +398,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache)
+				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -461,7 +461,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 				shims.NewRateLimitConfigTranslator(),
 				translation.NewBasicRateLimitTranslator())
 
-			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, reports)
+			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator)
 		})
 
 		It("returns the expected error", func() {
@@ -474,7 +474,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 
 			Expect(reports).To(HaveLen(0))
 
-			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, cache)
+			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, cache, make(skreporter.ResourceReports))
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
 			Expect(role).To(Equal(rlsyncer.RateLimitServerRole))

@@ -4,30 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-
+	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
+	"github.com/mitchellh/hashstructure"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/hashutils"
+	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/collectors"
 	rate_limiter_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
-	"github.com/solo-io/go-utils/hashutils"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
-
-	"github.com/mitchellh/hashstructure"
-
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
-	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/go-utils/contextutils"
-	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )
 
 // TODO(marco): generate these in solo-kit
@@ -54,7 +50,6 @@ func init() {
 type translatorSyncerExtension struct {
 	collectorFactory collectors.ConfigCollectorFactory
 	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
-	reports          reporter.ResourceReports
 }
 
 // The rate limit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
@@ -80,30 +75,31 @@ func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyn
 			translation.NewBasicRateLimitTranslator(),
 		),
 		rate_limiter_shims.NewRateLimitDomainGenerator(),
-		params.Reports,
 	), nil
 }
 
 func NewTranslatorSyncer(
 	collectorFactory collectors.ConfigCollectorFactory,
 	domainGenerator rate_limiter_shims.RateLimitDomainGenerator,
-	reports reporter.ResourceReports,
 ) syncer.TranslatorSyncerExtension {
 	return &translatorSyncerExtension{
 		collectorFactory: collectorFactory,
 		domainGenerator:  domainGenerator,
-		reports:          reports,
 	}
 }
 
-func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) (string, error) {
+func (s *translatorSyncerExtension) Sync(
+	ctx context.Context,
+	snap *gloov1.ApiSnapshot,
+	xdsCache envoycache.SnapshotCache,
+	reports reporter.ResourceReports,
+) (string, error) {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
 	logger.Infof("begin rate limit sync %v (%v proxies, %v rate limit configs)", snapHash, len(snap.Proxies), len(snap.Ratelimitconfigs))
 	defer logger.Infof("end sync %v", snapHash)
 
-	reports := s.reports
 	reports.Accept(snap.Proxies.AsInputResources()...)
 	reports.Accept(snap.Ratelimitconfigs.AsInputResources()...)
 
@@ -127,11 +123,11 @@ func (s *translatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSn
 				virtualHostClone.Name = glooutils.SanitizeForEnvoy(ctx, virtualHostClone.Name, "virtual host")
 
 				// Process rate limit configuration on this virtual host
-				configCollectors.processVirtualHost(virtualHostClone, proxy)
+				configCollectors.processVirtualHost(virtualHostClone, proxy, reports)
 
 				// Process rate limit configuration on routes
 				for _, route := range virtualHost.GetRoutes() {
-					configCollectors.processRoute(route, virtualHostClone, proxy)
+					configCollectors.processRoute(route, virtualHostClone, proxy, reports)
 				}
 			}
 		}
@@ -199,7 +195,7 @@ func newCollectorSet(
 		collectors.Basic,
 		collectors.Crd,
 	} {
-		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, reports, logger)
+		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, logger)
 		if err != nil {
 			return configCollectorSet{}, err
 		}
@@ -208,15 +204,24 @@ func newCollectorSet(
 	return set, nil
 }
 
-func (c configCollectorSet) processVirtualHost(virtualHost *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+func (c configCollectorSet) processVirtualHost(
+	virtualHost *gloov1.VirtualHost,
+	proxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	for _, collector := range c.collectors {
-		collector.ProcessVirtualHost(virtualHost, proxy)
+		collector.ProcessVirtualHost(virtualHost, proxy, reports)
 	}
 }
 
-func (c configCollectorSet) processRoute(route *gloov1.Route, virtualHost *gloov1.VirtualHost, proxy *gloov1.Proxy) {
+func (c configCollectorSet) processRoute(
+	route *gloov1.Route,
+	virtualHost *gloov1.VirtualHost,
+	proxy *gloov1.Proxy,
+	reports reporter.ResourceReports,
+) {
 	for _, collector := range c.collectors {
-		collector.ProcessRoute(route, virtualHost, proxy)
+		collector.ProcessRoute(route, virtualHost, proxy, reports)
 	}
 }
 
