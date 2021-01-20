@@ -7,6 +7,62 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 import * as extproto_ext_pb from "../../../../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
+export class JwtStagedVhostExtension extends jspb.Message {
+  hasBeforeExtAuth(): boolean;
+  clearBeforeExtAuth(): void;
+  getBeforeExtAuth(): VhostExtension | undefined;
+  setBeforeExtAuth(value?: VhostExtension): void;
+
+  hasAfterExtAuth(): boolean;
+  clearAfterExtAuth(): void;
+  getAfterExtAuth(): VhostExtension | undefined;
+  setAfterExtAuth(value?: VhostExtension): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JwtStagedVhostExtension.AsObject;
+  static toObject(includeInstance: boolean, msg: JwtStagedVhostExtension): JwtStagedVhostExtension.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JwtStagedVhostExtension, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JwtStagedVhostExtension;
+  static deserializeBinaryFromReader(message: JwtStagedVhostExtension, reader: jspb.BinaryReader): JwtStagedVhostExtension;
+}
+
+export namespace JwtStagedVhostExtension {
+  export type AsObject = {
+    beforeExtAuth?: VhostExtension.AsObject,
+    afterExtAuth?: VhostExtension.AsObject,
+  }
+}
+
+export class JwtStagedRouteExtension extends jspb.Message {
+  hasBeforeExtAuth(): boolean;
+  clearBeforeExtAuth(): void;
+  getBeforeExtAuth(): RouteExtension | undefined;
+  setBeforeExtAuth(value?: RouteExtension): void;
+
+  hasAfterExtAuth(): boolean;
+  clearAfterExtAuth(): void;
+  getAfterExtAuth(): RouteExtension | undefined;
+  setAfterExtAuth(value?: RouteExtension): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JwtStagedRouteExtension.AsObject;
+  static toObject(includeInstance: boolean, msg: JwtStagedRouteExtension): JwtStagedRouteExtension.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JwtStagedRouteExtension, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JwtStagedRouteExtension;
+  static deserializeBinaryFromReader(message: JwtStagedRouteExtension, reader: jspb.BinaryReader): JwtStagedRouteExtension;
+}
+
+export namespace JwtStagedRouteExtension {
+  export type AsObject = {
+    beforeExtAuth?: RouteExtension.AsObject,
+    afterExtAuth?: RouteExtension.AsObject,
+  }
+}
+
 export class VhostExtension extends jspb.Message {
   getProvidersMap(): jspb.Map<string, Provider>;
   clearProvidersMap(): void;
@@ -34,9 +90,6 @@ export class RouteExtension extends jspb.Message {
   getDisable(): boolean;
   setDisable(value: boolean): void;
 
-  getAllowMissingOrFailedJwt(): boolean;
-  setAllowMissingOrFailedJwt(value: boolean): void;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteExtension.AsObject;
   static toObject(includeInstance: boolean, msg: RouteExtension): RouteExtension.AsObject;
@@ -50,7 +103,6 @@ export class RouteExtension extends jspb.Message {
 export namespace RouteExtension {
   export type AsObject = {
     disable: boolean,
-    allowMissingOrFailedJwt: boolean,
   }
 }
 

@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/3207
+    description: >
+      Allows users to use JWT with the [boolean expression extauth API](https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#authconfig) to create authentication logic between JWT and other ext-auth services.
+      Previously, JWT authentication only ran before extauth. This adds stages to the JWT authentication, which can now be configured to run before extauth and after extauth.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.6.4

@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"time"
+
+	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
 
@@ -261,7 +264,9 @@ func (c *configGenerator) getConfigs(
 			return nil, err
 		}
 	}
-
+	if strings.ContainsAny(boolLogic, "-+/*^%") {
+		return nil, errors.New("auth config boolean logic contains an invalid character, do not use any of (-+/*^%) ")
+	}
 	if err = services.SetAuthorizer(boolLogic); err != nil {
 		return nil, err
 	}
@@ -376,6 +381,8 @@ func (c *configGenerator) authConfigToService(
 	config *extauthv1.ExtAuthConfig_Config,
 ) (svc api.AuthService, name string, err error) {
 	switch cfg := config.AuthConfig.(type) {
+	case *extauthv1.ExtAuthConfig_Config_Jwt:
+		return &jwtextauth.JwtAuthService{}, config.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_BasicAuth:
 		aprCfg := apr.Config{
 			Realm:                            cfg.BasicAuth.Realm,

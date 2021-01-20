@@ -556,12 +556,16 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 		Domains: []string{"*"},
 		Options: &gloov1.VirtualHostOptions{
 			Rbac: rbacCfg,
-			Jwt:  jwtCfg,
+			JwtConfig: &gloov1.VirtualHostOptions_Jwt{
+				Jwt: jwtCfg,
+			},
 		},
 		Routes: []*gloov1.Route{
 			{
 				Options: &gloov1.RouteOptions{
-					Jwt:  getDisabledJwt(),
+					JwtConfig: &gloov1.RouteOptions_Jwt{
+						Jwt: getDisabledJwt(),
+					},
 					Rbac: getDisabledRbac(),
 				},
 				Matchers: []*matchers.Matcher{{
@@ -583,7 +587,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 			}, {
 				Options: &gloov1.RouteOptions{
 					// Disable JWT and not RBAC, so that no one can get here
-					Jwt: getDisabledJwt(),
+					JwtConfig: &gloov1.RouteOptions_Jwt{
+						Jwt: getDisabledJwt(),
+					},
 				},
 				Matchers: []*matchers.Matcher{{
 					PathSpecifier: &matchers.Matcher_Prefix{
