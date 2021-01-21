@@ -11,6 +11,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	dlp_gloo "github.com/solo-io/gloo/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
@@ -18,8 +19,7 @@ import (
 )
 
 const (
-	FilterName    = "io.solo.filters.http.transformation_ee"
-	ExtensionName = "dlp"
+	FilterName = "io.solo.filters.http.transformation_ee"
 )
 
 type Plugin struct {
@@ -31,6 +31,7 @@ var (
 	_ plugins.VirtualHostPlugin = new(Plugin)
 	_ plugins.RoutePlugin       = new(Plugin)
 	_ plugins.HttpFilterPlugin  = new(Plugin)
+	_ plugins.Upgradable        = new(Plugin)
 
 	// Dlp should happen before any code is run.
 	// And before waf to sanitize for logs.
@@ -45,6 +46,14 @@ func NewPlugin() *Plugin {
 
 func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
+}
+
+func (p *Plugin) PluginName() string {
+	return dlp_gloo.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
 }
 
 func (p *Plugin) addListener(listener *v1.HttpListener) {

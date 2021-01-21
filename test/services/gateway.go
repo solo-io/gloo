@@ -5,7 +5,6 @@ import (
 	"time"
 
 	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
-	setup2 "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 
@@ -39,6 +38,7 @@ import (
 	fds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer"
 	uds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	syncer_setup "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -152,7 +152,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
-	go setup2.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx))
+	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx))
 	if !what.DisableFds {
 		go fds_syncer.RunFDS(glooOpts)
 	}
@@ -224,11 +224,11 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
 		},
-		ControlPlane: setup2.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
+		ControlPlane: syncer_setup.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, nil, true),
-		ValidationServer: setup2.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
+		ValidationServer: syncer_setup.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, true),

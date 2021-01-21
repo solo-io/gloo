@@ -17,6 +17,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -41,6 +42,7 @@ var (
 	_ plugins.Plugin         = new(failoverPluginImpl)
 	_ plugins.UpstreamPlugin = new(failoverPluginImpl)
 	_ plugins.EndpointPlugin = new(failoverPluginImpl)
+	_ plugins.Upgradable     = new(failoverPluginImpl)
 )
 
 func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver) plugins.Plugin {
@@ -61,6 +63,14 @@ type failoverPluginImpl struct {
 func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
 	f.settings = params.Settings
 	return nil
+}
+
+func (p *failoverPluginImpl) PluginName() string {
+	return failover.ExtensionName
+}
+
+func (p *failoverPluginImpl) IsUpgrade() bool {
+	return true
 }
 
 func (f *failoverPluginImpl) ProcessUpstream(

@@ -44,6 +44,7 @@ var _ = Describe("Discovery e2e", func() {
 		Expect(instance.Spec.GetProxies()[0].GetReplicas()).To(BeEquivalentTo(1))
 		Expect(instance.Spec.GetProxies()[0].GetWasmEnabled()).To(BeFalse())
 		Expect(instance.Spec.GetProxies()[0].GetIngressEndpoints()).To(HaveLen(1))
+		// check gateway-proxy, gateway-proxy-ssl and gateway-proxy-failover gateways are created
 		Expect(instance.Spec.GetCheck().GetGateways().GetTotal()).To(BeEquivalentTo(3))
 
 		remoteRestCfg, err := config.GetConfigWithContext(remoteClusterContext)

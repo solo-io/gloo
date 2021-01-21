@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Add translator syncer config for generating warnings when users try to use
+      enterprise-only Gloo Edge features when running the Open Source edition of Gloo Edge
+    issueLink: https://github.com/solo-io/gloo/issues/4020

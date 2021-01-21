@@ -24,6 +24,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// Compile-time assertion
+var (
+	_ syncer.TranslatorSyncerExtension            = new(TranslatorSyncerExtension)
+	_ syncer.UpgradeableTranslatorSyncerExtension = new(TranslatorSyncerExtension)
+)
+
 var (
 	extauthConnectedStateDescription = "zero indicates gloo detected an error with the auth config and did not update its XDS snapshot, check the gloo logs for errors"
 	extauthConnectedState            = stats.Int64("glooe.extauth/connected_state", extauthConnectedStateDescription, "1")
@@ -35,6 +41,10 @@ var (
 		Aggregation: view.LastValue(),
 		TagKeys:     []tag.Key{},
 	}
+)
+
+const (
+	Name = "extauth"
 )
 
 func init() {
@@ -62,6 +72,14 @@ func (s *TranslatorSyncerExtension) Sync(
 	defer logger.Infof("end auth sync %v", snapHash)
 
 	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, xdsCache, reports)
+}
+
+func (s *TranslatorSyncerExtension) ExtensionName() string {
+	return Name
+}
+
+func (s *TranslatorSyncerExtension) IsUpgrade() bool {
+	return true
 }
 
 type SnapshotSetter interface {

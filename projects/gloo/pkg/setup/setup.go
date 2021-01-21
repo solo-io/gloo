@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/reporting-client/pkg/client"
 	"github.com/solo-io/solo-projects/pkg/version"

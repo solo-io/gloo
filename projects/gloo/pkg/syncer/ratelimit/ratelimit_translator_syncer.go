@@ -30,6 +30,12 @@ import (
 //go:generate mockgen -package mocks -destination mocks/cache.go github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache SnapshotCache
 //go:generate mockgen -package mocks -destination mocks/reporter.go github.com/solo-io/solo-kit/pkg/api/v2/reporter Reporter
 
+// Compile-time assertion
+var (
+	_ syncer.TranslatorSyncerExtension            = new(translatorSyncerExtension)
+	_ syncer.UpgradeableTranslatorSyncerExtension = new(translatorSyncerExtension)
+)
+
 var (
 	rlConnectedStateDescription = "zero indicates gloo detected an error with the rate limit config and did not update its XDS snapshot, check the gloo logs for errors"
 	rlConnectedState            = stats.Int64("glooe.ratelimit/connected_state", rlConnectedStateDescription, "1")
@@ -41,6 +47,10 @@ var (
 		Aggregation: view.LastValue(),
 		TagKeys:     []tag.Key{},
 	}
+)
+
+const (
+	Name = "rate-limit"
 )
 
 func init() {
@@ -170,6 +180,14 @@ func (s *translatorSyncerExtension) Sync(
 	stats.Record(ctx, rlConnectedState.M(int64(1)))
 
 	return RateLimitServerRole, nil
+}
+
+func (s *translatorSyncerExtension) ExtensionName() string {
+	return Name
+}
+
+func (s *translatorSyncerExtension) IsUpgrade() bool {
+	return true
 }
 
 func syncerError(ctx context.Context, err error) (string, error) {
