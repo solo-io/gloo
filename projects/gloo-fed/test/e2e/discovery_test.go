@@ -16,7 +16,7 @@ import (
 
 var _ = Describe("Discovery e2e", func() {
 
-	It("works for discovering the gloo instance installed by the test harness", func() {
+	It("works for discovering the remote gloo instance installed by the test harness", func() {
 		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
 		Expect(err).NotTo(HaveOccurred())
 
@@ -44,7 +44,7 @@ var _ = Describe("Discovery e2e", func() {
 		Expect(instance.Spec.GetProxies()[0].GetReplicas()).To(BeEquivalentTo(1))
 		Expect(instance.Spec.GetProxies()[0].GetWasmEnabled()).To(BeFalse())
 		Expect(instance.Spec.GetProxies()[0].GetIngressEndpoints()).To(HaveLen(1))
-		Expect(instance.Spec.GetCheck().GetGateways().GetTotal()).To(BeEquivalentTo(2))
+		Expect(instance.Spec.GetCheck().GetGateways().GetTotal()).To(BeEquivalentTo(3))
 
 		remoteRestCfg, err := config.GetConfigWithContext(remoteClusterContext)
 		Expect(err).NotTo(HaveOccurred())

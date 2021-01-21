@@ -57,18 +57,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		return len(instances.Items)
 	}, time.Second*10, time.Millisecond*500).Should(Equal(2))
 
-	// Wait for FailoverScheme to be Accepted
-	Eventually(func() (fed_types.FailoverSchemeStatus_State, error) {
-		failover, err := clientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
-			Name:      "failover-test-scheme",
-			Namespace: "gloo-fed",
-		})
-		if err != nil {
-			return 0, err
-		}
-		return failover.Status.GetState(), err
-	}, time.Second*10, time.Millisecond*500).Should(Equal(fed_types.FailoverSchemeStatus_ACCEPTED))
-
 	// Wait for Upstream to be Accepted
 	glooClient, err := gloov1.NewClientsetFromConfig(restCfg)
 	Eventually(func() (gloov1.UpstreamStatus_State, error) {
@@ -108,6 +96,30 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 		return vs.Status.GetState(), nil
 	}, time.Second*10, time.Millisecond*500).Should(Equal(gatewayv1.VirtualServiceStatus_Accepted))
+
+	// Wait for FailoverScheme to be Accepted, and stay Accepted
+	Eventually(func() bool {
+		concurrentSuccesses := 0
+		for i := 0; i < 60; i++ {
+			failover, err := clientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
+				Name:      "failover-test-scheme",
+				Namespace: "gloo-fed",
+			})
+			if err != nil {
+				continue
+			}
+			if failover.Status.GetState() == fed_types.FailoverSchemeStatus_ACCEPTED {
+				concurrentSuccesses++
+			} else {
+				concurrentSuccesses = 0
+			}
+			if concurrentSuccesses == 10 {
+				break
+			}
+			time.Sleep(time.Second * 1)
+		}
+		return concurrentSuccesses >= 10
+	}, time.Minute*2, time.Second*1).Should(BeTrue())
 
 	rbacClientset, err := v1alpha1.NewClientsetFromConfig(restCfg)
 	Expect(err).NotTo(HaveOccurred())

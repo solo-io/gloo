@@ -26,16 +26,30 @@ if [ "$LICENSE_KEY" == "" ]; then
   exit 0
 fi
 
+# Ensure that dependencies are consistent with what's in go.mod.
+go mod tidy
+
 # Install glooctl
-GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
-GLOO_VERSION="$GLOO_VERSION" curl -sL https://run.solo.io/gloo/install | sh
-export PATH=$HOME/.gloo/bin:$PATH
-glooctl upgrade --release="$GLOO_VERSION"
+if which glooctl;
+then
+    echo "Found glooctl installed already"
+    GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
+    glooctl upgrade --release="$GLOO_VERSION"
+else
+    echo "Installing glooctl"
+    GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
+    GLOO_VERSION="$GLOO_VERSION" curl -sL https://run.solo.io/gloo/install | sh
+    export PATH=$HOME/.gloo/bin:$PATH
+    glooctl upgrade --release="$GLOO_VERSION"
+fi
 
 glooctl demo federation --license-key=${LICENSE_KEY}
 
 # Use solo-projects gloo-fed
 kubectl set image -n gloo-fed deployment/gloo-fed gloo-fed=quay.io/solo-io/gloo-fed:kind
+
+# Patch settings to enable restEds such that clusters start up with endpoints
+kubectl patch settings -n gloo-system default --type=merge -p '{"spec":{"gloo":{"enableRestEds": true}}}'
 
 # grab the image names out of the `make docker` output, load them into kind node
 sed -nE 's|(\\x1b\[0m)?Successfully tagged (.*$)|\2|p' ${TEMP_FILE} | while read f; do kind load docker-image --name "$1" $f; done
@@ -68,13 +82,3 @@ EOF
 # wait for setup to be complete
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=2m
 kubectl rollout status deployment echo-blue-deployment --timeout=2m
-
-# debug information
-glooctl get us
-glooctl get vs
-kubectl get pods -A
-kubectl get kubernetesclusters -A
-kubectl get glooinstance -A
-kubectl get failoverscheme -Aoyaml
-kubectl describe pod echo-blue-deployment
-kubectl describe pod echo-green-deployment --context kind-remote

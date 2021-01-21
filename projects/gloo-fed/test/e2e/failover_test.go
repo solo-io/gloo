@@ -17,13 +17,15 @@ import (
 var _ = Describe("Failover e2e", func() {
 	var (
 		portFwd          *exec.Cmd
-		gatewayProxyPort = 8080
+		gatewayProxyPort int
 
 		toggleHealthCheck = func(pass bool) {
+			healthcheckPort, err := cliutil.GetFreePort()
+			Expect(err).NotTo(HaveOccurred())
 			adminPortFwd, err := cliutil.PortForward(
 				"default",
 				"deployment/echo-blue-deployment",
-				strconv.Itoa(19000),
+				strconv.Itoa(healthcheckPort),
 				"19000",
 				false,
 			)
@@ -39,13 +41,17 @@ var _ = Describe("Failover e2e", func() {
 			test.CurlEventuallyShouldRespond(test.CurlOpts{
 				Path:    fmt.Sprintf("/healthcheck/%s", status),
 				Service: "localhost",
-				Port:    19000,
+				Port:    healthcheckPort,
 				Method:  "POST",
 			}, "OK", 1)
 		}
 	)
 
 	BeforeEach(func() {
+		// Ensure that the upstream is set as healthy
+		toggleHealthCheck(true)
+		gatewayProxyPort, err = cliutil.GetFreePort()
+		Expect(err).NotTo(HaveOccurred())
 		portFwd, err = cliutil.PortForward(defaults.GlooSystem, "svc/gateway-proxy", strconv.Itoa(gatewayProxyPort), "80", false)
 		Expect(err).NotTo(HaveOccurred())
 	})

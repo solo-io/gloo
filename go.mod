@@ -49,7 +49,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.14
 	github.com/solo-io/rate-limiter v0.1.6
 	github.com/solo-io/reporting-client v0.2.0
-	github.com/solo-io/skv2 v0.15.2
+	github.com/solo-io/skv2 v0.16.1
 	github.com/solo-io/skv2-enterprise v0.0.7
 	// Corresponds to the `gloo-v1.6.0-beta21` tag
 	github.com/solo-io/solo-apis v0.0.0-20201217203626-64c05e4a6c41
