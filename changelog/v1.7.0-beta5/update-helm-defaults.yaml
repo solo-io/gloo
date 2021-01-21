@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4130
+    description: Copy over helm defaults from the Gloo helm chart to Gloo Enterprise helm chart.

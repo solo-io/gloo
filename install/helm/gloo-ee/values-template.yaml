@@ -28,7 +28,7 @@ license_secret_name: license
 gloo:
   settings:
     # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
-    # which is hard. We will provide out own settings template as part of the GlooE chart.
+    # which is hard. We will provide our own settings template as part of the GlooE chart.
     create: false
     integrations:
       knative:
@@ -40,6 +40,7 @@ gloo:
   gloo:
     deployment:
       xdsPort: 9977
+      restXdsPort: 9976
       validationPort: 9988
       runAsUser: 10101
       serviceAccount: {}
@@ -49,10 +50,18 @@ gloo:
   gatewayProxies:
     gatewayProxy:
       envoyApiVersion: V3
+      gatewaySettings: {}
+      failover:
+        enabled: false
+        port: 15443
+        secretName: failover-downstream
       kind:
         deployment:
           replicas: 1
       podTemplate:
+        probes: false
+        image:
+          repository: gloo-ee-envoy-wrapper
         httpPort: 8080
         httpsPort: 8443
         runAsUser: 10101
@@ -63,8 +72,6 @@ gloo:
           enabled: false
           sleepTimeSeconds: 25
         customReadinessProbe: {}
-        image:
-          repository: gloo-ee-envoy-wrapper
       service:
         customPorts: []
         type: LoadBalancer
@@ -89,14 +96,10 @@ gloo:
       image:
         repository: discovery
         registry: quay.io/solo-io
+      replicas: 1
   gateway:
-    deployment:
-      runAsUser: 10101
-      image:
-        repository: gateway
-        registry: quay.io/solo-io
     enabled: true
-    updateValues: true
+    readGatewaysFromAllNamespaces: false
     validation:
       enabled: true
       failurePolicy: "Ignore"
@@ -105,6 +108,13 @@ gloo:
       allowWarnings: true
       webhook:
         enabled: true
+    deployment:
+      runAsUser: 10101
+      image:
+        repository: gateway
+        registry: quay.io/solo-io
+      replicas: 1
+    updateValues: true
     certGenJob:
       enabled: true
       image:
