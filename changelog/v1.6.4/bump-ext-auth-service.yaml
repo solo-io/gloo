@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.7.9
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4177
+    resolvesIssue: true
+    description: >
+      Set the extauth default LOG_LEVEL to INFO
