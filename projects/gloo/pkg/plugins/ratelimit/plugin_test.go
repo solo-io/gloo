@@ -98,7 +98,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		}
 	})
 
-	It("should fave fail mode deny off by default", func() {
+	It("should have FailureModeDeny false by default", func() {
 
 		filters, err := rlPlugin.HttpFilters(params, nil)
 		Expect(err).NotTo(HaveOccurred())
@@ -164,13 +164,13 @@ var _ = Describe("RateLimit Plugin", func() {
 		}
 	})
 
-	Context("fail mode deny", func() {
+	Context("fail mode deny: DenyOnFail = true", func() {
 
 		BeforeEach(func() {
 			rlSettings.DenyOnFail = true
 		})
 
-		It("should fave fail mode deny on", func() {
+		It("should turn FailureModeDeny on", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 
