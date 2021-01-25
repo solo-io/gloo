@@ -37,6 +37,7 @@ import (
 	"github.com/solo-io/skv2/pkg/controllerutils"
 	"github.com/solo-io/skv2/pkg/multicluster"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
@@ -88,6 +89,9 @@ type Snapshot interface {
 	// update the status of all input objects which support
 	// the Status subresource (across multiple clusters)
 	SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error
+	// update the status of all input objects which support
+	// the Status subresource (in the local cluster)
+	SyncStatuses(ctx context.Context, c client.Client, opts SyncStatusOptions) error
 	// serialize the entire snapshot as JSON
 	MarshalJSON() ([]byte, error)
 }
@@ -330,6 +334,70 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				continue
 			}
 			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	return errs
+}
+
+func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncStatusOptions) error {
+	var errs error
+
+	if opts.Gateway {
+		for _, obj := range s.Gateways().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.VirtualService {
+		for _, obj := range s.VirtualServices().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.RouteTable {
+		for _, obj := range s.RouteTables().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+
+	if opts.Upstream {
+		for _, obj := range s.Upstreams().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.UpstreamGroup {
+		for _, obj := range s.UpstreamGroups().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.Settings {
+		for _, obj := range s.Settings().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.Proxy {
+		for _, obj := range s.Proxies().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+
+	if opts.AuthConfig {
+		for _, obj := range s.AuthConfigs().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -1005,6 +1073,510 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 	for _, item := range authConfigList.Items {
 		item := item               // pike
 		item.ClusterName = cluster // set cluster for in-memory processing
+		authConfigs.Insert(&item)
+	}
+
+	return nil
+}
+
+// build a snapshot from resources in a single cluster
+type singleClusterBuilder struct {
+	mgr         manager.Manager
+	clusterName string
+}
+
+// Produces snapshots of resources read from the manager for the given cluster
+func NewSingleClusterBuilder(
+	mgr manager.Manager,
+) Builder {
+	return NewSingleClusterBuilderWithClusterName(mgr, "")
+}
+
+// Produces snapshots of resources read from the manager for the given cluster.
+// Snapshot resources will be marked with the given ClusterName.
+func NewSingleClusterBuilderWithClusterName(
+	mgr manager.Manager,
+	clusterName string,
+) Builder {
+	return &singleClusterBuilder{
+		mgr:         mgr,
+		clusterName: clusterName,
+	}
+}
+
+func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, opts BuildOptions) (Snapshot, error) {
+
+	services := v1_sets.NewServiceSet()
+	pods := v1_sets.NewPodSet()
+
+	deployments := apps_v1_sets.NewDeploymentSet()
+	daemonSets := apps_v1_sets.NewDaemonSetSet()
+
+	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
+	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
+	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
+
+	upstreams := gloo_solo_io_v1_sets.NewUpstreamSet()
+	upstreamGroups := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
+	settings := gloo_solo_io_v1_sets.NewSettingsSet()
+	proxies := gloo_solo_io_v1_sets.NewProxySet()
+
+	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+
+	var errs error
+
+	if err := b.insertServices(ctx, services, opts.Services); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertPods(ctx, pods, opts.Pods); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertDeployments(ctx, deployments, opts.Deployments); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertDaemonSets(ctx, daemonSets, opts.DaemonSets); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertGateways(ctx, gateways, opts.Gateways); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertVirtualServices(ctx, virtualServices, opts.VirtualServices); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertRouteTables(ctx, routeTables, opts.RouteTables); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertUpstreams(ctx, upstreams, opts.Upstreams); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertUpstreamGroups(ctx, upstreamGroups, opts.UpstreamGroups); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertSettings(ctx, settings, opts.Settings); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertProxies(ctx, proxies, opts.Proxies); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertAuthConfigs(ctx, authConfigs, opts.AuthConfigs); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+
+	outputSnap := NewSnapshot(
+		name,
+
+		services,
+		pods,
+		deployments,
+		daemonSets,
+		gateways,
+		virtualServices,
+		routeTables,
+		upstreams,
+		upstreamGroups,
+		settings,
+		proxies,
+		authConfigs,
+	)
+
+	return outputSnap, errs
+}
+
+func (b *singleClusterBuilder) insertServices(ctx context.Context, services v1_sets.ServiceSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Service",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	serviceList, err := v1.NewServiceClient(b.mgr.GetClient()).ListService(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range serviceList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		services.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertPods(ctx context.Context, pods v1_sets.PodSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	podList, err := v1.NewPodClient(b.mgr.GetClient()).ListPod(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range podList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		pods.Insert(&item)
+	}
+
+	return nil
+}
+
+func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployments apps_v1_sets.DeploymentSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "Deployment",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	deploymentList, err := apps_v1.NewDeploymentClient(b.mgr.GetClient()).ListDeployment(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range deploymentList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		deployments.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets apps_v1_sets.DaemonSetSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "DaemonSet",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	daemonSetList, err := apps_v1.NewDaemonSetClient(b.mgr.GetClient()).ListDaemonSet(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range daemonSetList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		daemonSets.Insert(&item)
+	}
+
+	return nil
+}
+
+func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gateway_solo_io_v1_sets.GatewaySet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "Gateway",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	gatewayList, err := gateway_solo_io_v1.NewGatewayClient(b.mgr.GetClient()).ListGateway(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range gatewayList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		gateways.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtualServices gateway_solo_io_v1_sets.VirtualServiceSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "VirtualService",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	virtualServiceList, err := gateway_solo_io_v1.NewVirtualServiceClient(b.mgr.GetClient()).ListVirtualService(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range virtualServiceList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		virtualServices.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTables gateway_solo_io_v1_sets.RouteTableSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "RouteTable",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	routeTableList, err := gateway_solo_io_v1.NewRouteTableClient(b.mgr.GetClient()).ListRouteTable(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range routeTableList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		routeTables.Insert(&item)
+	}
+
+	return nil
+}
+
+func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams gloo_solo_io_v1_sets.UpstreamSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Upstream",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	upstreamList, err := gloo_solo_io_v1.NewUpstreamClient(b.mgr.GetClient()).ListUpstream(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range upstreamList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		upstreams.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "UpstreamGroup",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	upstreamGroupList, err := gloo_solo_io_v1.NewUpstreamGroupClient(b.mgr.GetClient()).ListUpstreamGroup(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range upstreamGroupList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		upstreamGroups.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings gloo_solo_io_v1_sets.SettingsSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Settings",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	settingsList, err := gloo_solo_io_v1.NewSettingsClient(b.mgr.GetClient()).ListSettings(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range settingsList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		settings.Insert(&item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies gloo_solo_io_v1_sets.ProxySet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Proxy",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	proxyList, err := gloo_solo_io_v1.NewProxyClient(b.mgr.GetClient()).ListProxy(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range proxyList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		proxies.Insert(&item)
+	}
+
+	return nil
+}
+
+func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "enterprise.gloo.solo.io",
+			Version: "v1",
+			Kind:    "AuthConfig",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	authConfigList, err := enterprise_gloo_solo_io_v1.NewAuthConfigClient(b.mgr.GetClient()).ListAuthConfig(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range authConfigList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
 		authConfigs.Insert(&item)
 	}
 

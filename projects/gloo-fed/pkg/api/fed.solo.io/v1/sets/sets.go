@@ -38,6 +38,10 @@ type GlooInstanceSet interface {
 	Find(id ezkube.ResourceId) (*fed_solo_io_v1.GlooInstance, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another GlooInstanceSet
+	Delta(newSet GlooInstanceSet) sksets.ResourceDelta
 }
 
 func makeGenericGlooInstanceSet(glooInstanceList []*fed_solo_io_v1.GlooInstance) sksets.ResourceSet {
@@ -68,7 +72,7 @@ func (s *glooInstanceSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *glooInstanceSet) List(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance {
@@ -83,7 +87,7 @@ func (s *glooInstanceSet) List(filterResource ...func(*fed_solo_io_v1.GlooInstan
 	}
 
 	var glooInstanceList []*fed_solo_io_v1.GlooInstance
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		glooInstanceList = append(glooInstanceList, obj.(*fed_solo_io_v1.GlooInstance))
 	}
 	return glooInstanceList
@@ -95,7 +99,7 @@ func (s *glooInstanceSet) Map() map[string]*fed_solo_io_v1.GlooInstance {
 	}
 
 	newMap := map[string]*fed_solo_io_v1.GlooInstance{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_solo_io_v1.GlooInstance)
 	}
 	return newMap
@@ -109,7 +113,7 @@ func (s *glooInstanceSet) Insert(
 	}
 
 	for _, obj := range glooInstanceList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -117,7 +121,7 @@ func (s *glooInstanceSet) Has(glooInstance ezkube.ResourceId) bool {
 	if s == nil {
 		return false
 	}
-	return s.set.Has(glooInstance)
+	return s.Generic().Has(glooInstance)
 }
 
 func (s *glooInstanceSet) Equal(
@@ -126,14 +130,14 @@ func (s *glooInstanceSet) Equal(
 	if s == nil {
 		return glooInstanceSet == nil
 	}
-	return s.set.Equal(makeGenericGlooInstanceSet(glooInstanceSet.List()))
+	return s.Generic().Equal(glooInstanceSet.Generic())
 }
 
 func (s *glooInstanceSet) Delete(GlooInstance ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(GlooInstance)
+	s.Generic().Delete(GlooInstance)
 }
 
 func (s *glooInstanceSet) Union(set GlooInstanceSet) GlooInstanceSet {
@@ -147,7 +151,7 @@ func (s *glooInstanceSet) Difference(set GlooInstanceSet) GlooInstanceSet {
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericGlooInstanceSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &glooInstanceSet{set: newSet}
 }
 
@@ -155,7 +159,7 @@ func (s *glooInstanceSet) Intersection(set GlooInstanceSet) GlooInstanceSet {
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericGlooInstanceSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var glooInstanceList []*fed_solo_io_v1.GlooInstance
 	for _, obj := range newSet.List() {
 		glooInstanceList = append(glooInstanceList, obj.(*fed_solo_io_v1.GlooInstance))
@@ -167,7 +171,7 @@ func (s *glooInstanceSet) Find(id ezkube.ResourceId) (*fed_solo_io_v1.GlooInstan
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find GlooInstance %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_solo_io_v1.GlooInstance{}, id)
+	obj, err := s.Generic().Find(&fed_solo_io_v1.GlooInstance{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +183,23 @@ func (s *glooInstanceSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *glooInstanceSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *glooInstanceSet) Delta(newSet GlooInstanceSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
 
 type FailoverSchemeSet interface {
@@ -207,6 +227,10 @@ type FailoverSchemeSet interface {
 	Find(id ezkube.ResourceId) (*fed_solo_io_v1.FailoverScheme, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FailoverSchemeSet
+	Delta(newSet FailoverSchemeSet) sksets.ResourceDelta
 }
 
 func makeGenericFailoverSchemeSet(failoverSchemeList []*fed_solo_io_v1.FailoverScheme) sksets.ResourceSet {
@@ -237,7 +261,7 @@ func (s *failoverSchemeSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *failoverSchemeSet) List(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme {
@@ -252,7 +276,7 @@ func (s *failoverSchemeSet) List(filterResource ...func(*fed_solo_io_v1.Failover
 	}
 
 	var failoverSchemeList []*fed_solo_io_v1.FailoverScheme
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		failoverSchemeList = append(failoverSchemeList, obj.(*fed_solo_io_v1.FailoverScheme))
 	}
 	return failoverSchemeList
@@ -264,7 +288,7 @@ func (s *failoverSchemeSet) Map() map[string]*fed_solo_io_v1.FailoverScheme {
 	}
 
 	newMap := map[string]*fed_solo_io_v1.FailoverScheme{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_solo_io_v1.FailoverScheme)
 	}
 	return newMap
@@ -278,7 +302,7 @@ func (s *failoverSchemeSet) Insert(
 	}
 
 	for _, obj := range failoverSchemeList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -286,7 +310,7 @@ func (s *failoverSchemeSet) Has(failoverScheme ezkube.ResourceId) bool {
 	if s == nil {
 		return false
 	}
-	return s.set.Has(failoverScheme)
+	return s.Generic().Has(failoverScheme)
 }
 
 func (s *failoverSchemeSet) Equal(
@@ -295,14 +319,14 @@ func (s *failoverSchemeSet) Equal(
 	if s == nil {
 		return failoverSchemeSet == nil
 	}
-	return s.set.Equal(makeGenericFailoverSchemeSet(failoverSchemeSet.List()))
+	return s.Generic().Equal(failoverSchemeSet.Generic())
 }
 
 func (s *failoverSchemeSet) Delete(FailoverScheme ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FailoverScheme)
+	s.Generic().Delete(FailoverScheme)
 }
 
 func (s *failoverSchemeSet) Union(set FailoverSchemeSet) FailoverSchemeSet {
@@ -316,7 +340,7 @@ func (s *failoverSchemeSet) Difference(set FailoverSchemeSet) FailoverSchemeSet 
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFailoverSchemeSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &failoverSchemeSet{set: newSet}
 }
 
@@ -324,7 +348,7 @@ func (s *failoverSchemeSet) Intersection(set FailoverSchemeSet) FailoverSchemeSe
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFailoverSchemeSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var failoverSchemeList []*fed_solo_io_v1.FailoverScheme
 	for _, obj := range newSet.List() {
 		failoverSchemeList = append(failoverSchemeList, obj.(*fed_solo_io_v1.FailoverScheme))
@@ -336,7 +360,7 @@ func (s *failoverSchemeSet) Find(id ezkube.ResourceId) (*fed_solo_io_v1.Failover
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FailoverScheme %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_solo_io_v1.FailoverScheme{}, id)
+	obj, err := s.Generic().Find(&fed_solo_io_v1.FailoverScheme{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -348,5 +372,21 @@ func (s *failoverSchemeSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *failoverSchemeSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *failoverSchemeSet) Delta(newSet FailoverSchemeSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }

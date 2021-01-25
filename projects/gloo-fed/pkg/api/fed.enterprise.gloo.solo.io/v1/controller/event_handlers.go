@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/skv2/pkg/events"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -88,7 +88,7 @@ type genericFederatedAuthConfigHandler struct {
 	handler FederatedAuthConfigEventHandler
 }
 
-func (h genericFederatedAuthConfigHandler) Create(object runtime.Object) error {
+func (h genericFederatedAuthConfigHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedAuthConfig handler received event for %T", object)
@@ -96,7 +96,7 @@ func (h genericFederatedAuthConfigHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFederatedAuthConfig(obj)
 }
 
-func (h genericFederatedAuthConfigHandler) Delete(object runtime.Object) error {
+func (h genericFederatedAuthConfigHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedAuthConfig handler received event for %T", object)
@@ -104,7 +104,7 @@ func (h genericFederatedAuthConfigHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFederatedAuthConfig(obj)
 }
 
-func (h genericFederatedAuthConfigHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedAuthConfigHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedAuthConfig handler received event for %T", old)
@@ -116,7 +116,7 @@ func (h genericFederatedAuthConfigHandler) Update(old, new runtime.Object) error
 	return h.handler.UpdateFederatedAuthConfig(objOld, objNew)
 }
 
-func (h genericFederatedAuthConfigHandler) Generic(object runtime.Object) error {
+func (h genericFederatedAuthConfigHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedAuthConfig handler received event for %T", object)

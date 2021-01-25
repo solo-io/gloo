@@ -38,6 +38,10 @@ type FederatedGatewaySet interface {
 	Find(id ezkube.ResourceId) (*fed_gateway_solo_io_v1.FederatedGateway, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedGatewaySet
+	Delta(newSet FederatedGatewaySet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedGatewaySet(federatedGatewayList []*fed_gateway_solo_io_v1.FederatedGateway) sksets.ResourceSet {
@@ -68,7 +72,7 @@ func (s *federatedGatewaySet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedGatewaySet) List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedGateway) bool) []*fed_gateway_solo_io_v1.FederatedGateway {
@@ -83,7 +87,7 @@ func (s *federatedGatewaySet) List(filterResource ...func(*fed_gateway_solo_io_v
 	}
 
 	var federatedGatewayList []*fed_gateway_solo_io_v1.FederatedGateway
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedGatewayList = append(federatedGatewayList, obj.(*fed_gateway_solo_io_v1.FederatedGateway))
 	}
 	return federatedGatewayList
@@ -95,7 +99,7 @@ func (s *federatedGatewaySet) Map() map[string]*fed_gateway_solo_io_v1.Federated
 	}
 
 	newMap := map[string]*fed_gateway_solo_io_v1.FederatedGateway{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gateway_solo_io_v1.FederatedGateway)
 	}
 	return newMap
@@ -109,7 +113,7 @@ func (s *federatedGatewaySet) Insert(
 	}
 
 	for _, obj := range federatedGatewayList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -117,7 +121,7 @@ func (s *federatedGatewaySet) Has(federatedGateway ezkube.ResourceId) bool {
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedGateway)
+	return s.Generic().Has(federatedGateway)
 }
 
 func (s *federatedGatewaySet) Equal(
@@ -126,14 +130,14 @@ func (s *federatedGatewaySet) Equal(
 	if s == nil {
 		return federatedGatewaySet == nil
 	}
-	return s.set.Equal(makeGenericFederatedGatewaySet(federatedGatewaySet.List()))
+	return s.Generic().Equal(federatedGatewaySet.Generic())
 }
 
 func (s *federatedGatewaySet) Delete(FederatedGateway ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedGateway)
+	s.Generic().Delete(FederatedGateway)
 }
 
 func (s *federatedGatewaySet) Union(set FederatedGatewaySet) FederatedGatewaySet {
@@ -147,7 +151,7 @@ func (s *federatedGatewaySet) Difference(set FederatedGatewaySet) FederatedGatew
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedGatewaySet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedGatewaySet{set: newSet}
 }
 
@@ -155,7 +159,7 @@ func (s *federatedGatewaySet) Intersection(set FederatedGatewaySet) FederatedGat
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedGatewaySet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedGatewayList []*fed_gateway_solo_io_v1.FederatedGateway
 	for _, obj := range newSet.List() {
 		federatedGatewayList = append(federatedGatewayList, obj.(*fed_gateway_solo_io_v1.FederatedGateway))
@@ -167,7 +171,7 @@ func (s *federatedGatewaySet) Find(id ezkube.ResourceId) (*fed_gateway_solo_io_v
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedGateway %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gateway_solo_io_v1.FederatedGateway{}, id)
+	obj, err := s.Generic().Find(&fed_gateway_solo_io_v1.FederatedGateway{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +183,23 @@ func (s *federatedGatewaySet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedGatewaySet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedGatewaySet) Delta(newSet FederatedGatewaySet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
 
 type FederatedVirtualServiceSet interface {
@@ -207,6 +227,10 @@ type FederatedVirtualServiceSet interface {
 	Find(id ezkube.ResourceId) (*fed_gateway_solo_io_v1.FederatedVirtualService, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedVirtualServiceSet
+	Delta(newSet FederatedVirtualServiceSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedVirtualServiceSet(federatedVirtualServiceList []*fed_gateway_solo_io_v1.FederatedVirtualService) sksets.ResourceSet {
@@ -237,7 +261,7 @@ func (s *federatedVirtualServiceSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedVirtualServiceSet) List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedVirtualService) bool) []*fed_gateway_solo_io_v1.FederatedVirtualService {
@@ -252,7 +276,7 @@ func (s *federatedVirtualServiceSet) List(filterResource ...func(*fed_gateway_so
 	}
 
 	var federatedVirtualServiceList []*fed_gateway_solo_io_v1.FederatedVirtualService
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedVirtualServiceList = append(federatedVirtualServiceList, obj.(*fed_gateway_solo_io_v1.FederatedVirtualService))
 	}
 	return federatedVirtualServiceList
@@ -264,7 +288,7 @@ func (s *federatedVirtualServiceSet) Map() map[string]*fed_gateway_solo_io_v1.Fe
 	}
 
 	newMap := map[string]*fed_gateway_solo_io_v1.FederatedVirtualService{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gateway_solo_io_v1.FederatedVirtualService)
 	}
 	return newMap
@@ -278,7 +302,7 @@ func (s *federatedVirtualServiceSet) Insert(
 	}
 
 	for _, obj := range federatedVirtualServiceList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -286,7 +310,7 @@ func (s *federatedVirtualServiceSet) Has(federatedVirtualService ezkube.Resource
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedVirtualService)
+	return s.Generic().Has(federatedVirtualService)
 }
 
 func (s *federatedVirtualServiceSet) Equal(
@@ -295,14 +319,14 @@ func (s *federatedVirtualServiceSet) Equal(
 	if s == nil {
 		return federatedVirtualServiceSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedVirtualServiceSet(federatedVirtualServiceSet.List()))
+	return s.Generic().Equal(federatedVirtualServiceSet.Generic())
 }
 
 func (s *federatedVirtualServiceSet) Delete(FederatedVirtualService ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedVirtualService)
+	s.Generic().Delete(FederatedVirtualService)
 }
 
 func (s *federatedVirtualServiceSet) Union(set FederatedVirtualServiceSet) FederatedVirtualServiceSet {
@@ -316,7 +340,7 @@ func (s *federatedVirtualServiceSet) Difference(set FederatedVirtualServiceSet) 
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedVirtualServiceSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedVirtualServiceSet{set: newSet}
 }
 
@@ -324,7 +348,7 @@ func (s *federatedVirtualServiceSet) Intersection(set FederatedVirtualServiceSet
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedVirtualServiceSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedVirtualServiceList []*fed_gateway_solo_io_v1.FederatedVirtualService
 	for _, obj := range newSet.List() {
 		federatedVirtualServiceList = append(federatedVirtualServiceList, obj.(*fed_gateway_solo_io_v1.FederatedVirtualService))
@@ -336,7 +360,7 @@ func (s *federatedVirtualServiceSet) Find(id ezkube.ResourceId) (*fed_gateway_so
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedVirtualService %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gateway_solo_io_v1.FederatedVirtualService{}, id)
+	obj, err := s.Generic().Find(&fed_gateway_solo_io_v1.FederatedVirtualService{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +372,23 @@ func (s *federatedVirtualServiceSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedVirtualServiceSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedVirtualServiceSet) Delta(newSet FederatedVirtualServiceSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
 
 type FederatedRouteTableSet interface {
@@ -376,6 +416,10 @@ type FederatedRouteTableSet interface {
 	Find(id ezkube.ResourceId) (*fed_gateway_solo_io_v1.FederatedRouteTable, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedRouteTableSet
+	Delta(newSet FederatedRouteTableSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedRouteTableSet(federatedRouteTableList []*fed_gateway_solo_io_v1.FederatedRouteTable) sksets.ResourceSet {
@@ -406,7 +450,7 @@ func (s *federatedRouteTableSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedRouteTableSet) List(filterResource ...func(*fed_gateway_solo_io_v1.FederatedRouteTable) bool) []*fed_gateway_solo_io_v1.FederatedRouteTable {
@@ -421,7 +465,7 @@ func (s *federatedRouteTableSet) List(filterResource ...func(*fed_gateway_solo_i
 	}
 
 	var federatedRouteTableList []*fed_gateway_solo_io_v1.FederatedRouteTable
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedRouteTableList = append(federatedRouteTableList, obj.(*fed_gateway_solo_io_v1.FederatedRouteTable))
 	}
 	return federatedRouteTableList
@@ -433,7 +477,7 @@ func (s *federatedRouteTableSet) Map() map[string]*fed_gateway_solo_io_v1.Federa
 	}
 
 	newMap := map[string]*fed_gateway_solo_io_v1.FederatedRouteTable{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gateway_solo_io_v1.FederatedRouteTable)
 	}
 	return newMap
@@ -447,7 +491,7 @@ func (s *federatedRouteTableSet) Insert(
 	}
 
 	for _, obj := range federatedRouteTableList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -455,7 +499,7 @@ func (s *federatedRouteTableSet) Has(federatedRouteTable ezkube.ResourceId) bool
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedRouteTable)
+	return s.Generic().Has(federatedRouteTable)
 }
 
 func (s *federatedRouteTableSet) Equal(
@@ -464,14 +508,14 @@ func (s *federatedRouteTableSet) Equal(
 	if s == nil {
 		return federatedRouteTableSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedRouteTableSet(federatedRouteTableSet.List()))
+	return s.Generic().Equal(federatedRouteTableSet.Generic())
 }
 
 func (s *federatedRouteTableSet) Delete(FederatedRouteTable ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedRouteTable)
+	s.Generic().Delete(FederatedRouteTable)
 }
 
 func (s *federatedRouteTableSet) Union(set FederatedRouteTableSet) FederatedRouteTableSet {
@@ -485,7 +529,7 @@ func (s *federatedRouteTableSet) Difference(set FederatedRouteTableSet) Federate
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedRouteTableSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedRouteTableSet{set: newSet}
 }
 
@@ -493,7 +537,7 @@ func (s *federatedRouteTableSet) Intersection(set FederatedRouteTableSet) Federa
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedRouteTableSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedRouteTableList []*fed_gateway_solo_io_v1.FederatedRouteTable
 	for _, obj := range newSet.List() {
 		federatedRouteTableList = append(federatedRouteTableList, obj.(*fed_gateway_solo_io_v1.FederatedRouteTable))
@@ -505,7 +549,7 @@ func (s *federatedRouteTableSet) Find(id ezkube.ResourceId) (*fed_gateway_solo_i
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedRouteTable %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gateway_solo_io_v1.FederatedRouteTable{}, id)
+	obj, err := s.Generic().Find(&fed_gateway_solo_io_v1.FederatedRouteTable{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -517,5 +561,21 @@ func (s *federatedRouteTableSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedRouteTableSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedRouteTableSet) Delta(newSet FederatedRouteTableSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }

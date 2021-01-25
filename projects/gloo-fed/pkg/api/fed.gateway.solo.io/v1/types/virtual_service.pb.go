@@ -30,6 +30,9 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+// The Federated[Resource] CRDs are a gloo-fed wrapper around Gloo Edge CRDs, with a Placement field indicating which
+// clusters and namespaces to federate the object to.
+// For more, see: https://docs.solo.io/gloo-edge/latest/guides/gloo_federation/federated_configuration/
 type FederatedVirtualServiceSpec struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

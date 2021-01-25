@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/skv2/pkg/events"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -88,7 +88,7 @@ type genericFederatedGatewayHandler struct {
 	handler FederatedGatewayEventHandler
 }
 
-func (h genericFederatedGatewayHandler) Create(object runtime.Object) error {
+func (h genericFederatedGatewayHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedGateway)
 	if !ok {
 		return errors.Errorf("internal error: FederatedGateway handler received event for %T", object)
@@ -96,7 +96,7 @@ func (h genericFederatedGatewayHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFederatedGateway(obj)
 }
 
-func (h genericFederatedGatewayHandler) Delete(object runtime.Object) error {
+func (h genericFederatedGatewayHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedGateway)
 	if !ok {
 		return errors.Errorf("internal error: FederatedGateway handler received event for %T", object)
@@ -104,7 +104,7 @@ func (h genericFederatedGatewayHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFederatedGateway(obj)
 }
 
-func (h genericFederatedGatewayHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedGatewayHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gateway_solo_io_v1.FederatedGateway)
 	if !ok {
 		return errors.Errorf("internal error: FederatedGateway handler received event for %T", old)
@@ -116,7 +116,7 @@ func (h genericFederatedGatewayHandler) Update(old, new runtime.Object) error {
 	return h.handler.UpdateFederatedGateway(objOld, objNew)
 }
 
-func (h genericFederatedGatewayHandler) Generic(object runtime.Object) error {
+func (h genericFederatedGatewayHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedGateway)
 	if !ok {
 		return errors.Errorf("internal error: FederatedGateway handler received event for %T", object)
@@ -195,7 +195,7 @@ type genericFederatedVirtualServiceHandler struct {
 	handler FederatedVirtualServiceEventHandler
 }
 
-func (h genericFederatedVirtualServiceHandler) Create(object runtime.Object) error {
+func (h genericFederatedVirtualServiceHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedVirtualService)
 	if !ok {
 		return errors.Errorf("internal error: FederatedVirtualService handler received event for %T", object)
@@ -203,7 +203,7 @@ func (h genericFederatedVirtualServiceHandler) Create(object runtime.Object) err
 	return h.handler.CreateFederatedVirtualService(obj)
 }
 
-func (h genericFederatedVirtualServiceHandler) Delete(object runtime.Object) error {
+func (h genericFederatedVirtualServiceHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedVirtualService)
 	if !ok {
 		return errors.Errorf("internal error: FederatedVirtualService handler received event for %T", object)
@@ -211,7 +211,7 @@ func (h genericFederatedVirtualServiceHandler) Delete(object runtime.Object) err
 	return h.handler.DeleteFederatedVirtualService(obj)
 }
 
-func (h genericFederatedVirtualServiceHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedVirtualServiceHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gateway_solo_io_v1.FederatedVirtualService)
 	if !ok {
 		return errors.Errorf("internal error: FederatedVirtualService handler received event for %T", old)
@@ -223,7 +223,7 @@ func (h genericFederatedVirtualServiceHandler) Update(old, new runtime.Object) e
 	return h.handler.UpdateFederatedVirtualService(objOld, objNew)
 }
 
-func (h genericFederatedVirtualServiceHandler) Generic(object runtime.Object) error {
+func (h genericFederatedVirtualServiceHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedVirtualService)
 	if !ok {
 		return errors.Errorf("internal error: FederatedVirtualService handler received event for %T", object)
@@ -302,7 +302,7 @@ type genericFederatedRouteTableHandler struct {
 	handler FederatedRouteTableEventHandler
 }
 
-func (h genericFederatedRouteTableHandler) Create(object runtime.Object) error {
+func (h genericFederatedRouteTableHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedRouteTable)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRouteTable handler received event for %T", object)
@@ -310,7 +310,7 @@ func (h genericFederatedRouteTableHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFederatedRouteTable(obj)
 }
 
-func (h genericFederatedRouteTableHandler) Delete(object runtime.Object) error {
+func (h genericFederatedRouteTableHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedRouteTable)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRouteTable handler received event for %T", object)
@@ -318,7 +318,7 @@ func (h genericFederatedRouteTableHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFederatedRouteTable(obj)
 }
 
-func (h genericFederatedRouteTableHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedRouteTableHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gateway_solo_io_v1.FederatedRouteTable)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRouteTable handler received event for %T", old)
@@ -330,7 +330,7 @@ func (h genericFederatedRouteTableHandler) Update(old, new runtime.Object) error
 	return h.handler.UpdateFederatedRouteTable(objOld, objNew)
 }
 
-func (h genericFederatedRouteTableHandler) Generic(object runtime.Object) error {
+func (h genericFederatedRouteTableHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedRouteTable)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRouteTable handler received event for %T", object)

@@ -82,5 +82,3 @@ func NewGlooResourceReconciler(
 		translator:         translator,
 	}
 }
-
-type SnapshotBuilderFactory func() (input.Builder, error)

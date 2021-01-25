@@ -8,10 +8,11 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sets "github.com/solo-io/skv2/contrib/pkg/sets"
 	ezkube "github.com/solo-io/skv2/pkg/ezkube"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	v1sets "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/sets"
-	sets "k8s.io/apimachinery/pkg/util/sets"
+	sets0 "k8s.io/apimachinery/pkg/util/sets"
 )
 
 // MockGlooInstanceSet is a mock of GlooInstanceSet interface
@@ -38,10 +39,10 @@ func (m *MockGlooInstanceSet) EXPECT() *MockGlooInstanceSetMockRecorder {
 }
 
 // Keys mocks base method
-func (m *MockGlooInstanceSet) Keys() sets.String {
+func (m *MockGlooInstanceSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
-	ret0, _ := ret[0].(sets.String)
+	ret0, _ := ret[0].(sets0.String)
 	return ret0
 }
 
@@ -210,6 +211,34 @@ func (mr *MockGlooInstanceSetMockRecorder) Length() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockGlooInstanceSet)(nil).Length))
 }
 
+// Generic mocks base method
+func (m *MockGlooInstanceSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic
+func (mr *MockGlooInstanceSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockGlooInstanceSet)(nil).Generic))
+}
+
+// Delta mocks base method
+func (m *MockGlooInstanceSet) Delta(newSet v1sets.GlooInstanceSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta
+func (mr *MockGlooInstanceSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockGlooInstanceSet)(nil).Delta), newSet)
+}
+
 // MockFailoverSchemeSet is a mock of FailoverSchemeSet interface
 type MockFailoverSchemeSet struct {
 	ctrl     *gomock.Controller
@@ -234,10 +263,10 @@ func (m *MockFailoverSchemeSet) EXPECT() *MockFailoverSchemeSetMockRecorder {
 }
 
 // Keys mocks base method
-func (m *MockFailoverSchemeSet) Keys() sets.String {
+func (m *MockFailoverSchemeSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
-	ret0, _ := ret[0].(sets.String)
+	ret0, _ := ret[0].(sets0.String)
 	return ret0
 }
 
@@ -404,4 +433,32 @@ func (m *MockFailoverSchemeSet) Length() int {
 func (mr *MockFailoverSchemeSetMockRecorder) Length() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFailoverSchemeSet)(nil).Length))
+}
+
+// Generic mocks base method
+func (m *MockFailoverSchemeSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic
+func (mr *MockFailoverSchemeSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFailoverSchemeSet)(nil).Generic))
+}
+
+// Delta mocks base method
+func (m *MockFailoverSchemeSet) Delta(newSet v1sets.FailoverSchemeSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta
+func (mr *MockFailoverSchemeSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFailoverSchemeSet)(nil).Delta), newSet)
 }

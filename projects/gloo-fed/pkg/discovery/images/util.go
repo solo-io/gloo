@@ -9,33 +9,40 @@ import (
 )
 
 const (
-	OpenSourceGatewayProxyImageName = "gloo-envoy-wrapper"
-	EnterpriseGatewayProxyImageName = "gloo-ee-envoy-wrapper"
+	OpenSourceGatewayProxyImageName     = "gloo-envoy-wrapper"
+	EnterpriseGatewayProxyImageName     = "gloo-ee-envoy-wrapper"
+	OpenSourceGatewayProxyWasmImageName = "gloo-envoy-wasm-wrapper"
 
 	OpenSourceControlPlaneImageName = "gloo"
 	EnterpriseControlPlaneImageName = "gloo-ee"
 )
 
 func GetGatewayProxyImage(podTemplate *core_v1.PodTemplateSpec) (image string, wasmEnabled, isProxy bool) {
-	return getImageInfo(podTemplate.Spec.Containers,
-		OpenSourceGatewayProxyImageName, EnterpriseGatewayProxyImageName)
-}
-
-func GetControlPlaneImage(deployment *v1.Deployment) (image string, isEnterprise, isControlPlane bool) {
-	return getImageInfo(deployment.Spec.Template.Spec.Containers,
-		OpenSourceControlPlaneImageName, EnterpriseControlPlaneImageName)
-}
-
-func getImageInfo(containers []core_v1.Container, ossImageName, enterpriseImageName string) (image string, enterprise, ok bool) {
-	for _, container := range containers {
+	for _, container := range podTemplate.Spec.Containers {
 		repo, _, _, err := parsers.ParseImageName(container.Image)
 		if err != nil {
 			continue
 		}
 
-		if strings.HasSuffix(repo, ossImageName) ||
-			strings.HasSuffix(repo, enterpriseImageName) {
-			return container.Image, strings.HasSuffix(repo, enterpriseImageName), true
+		if strings.HasSuffix(repo, OpenSourceGatewayProxyImageName) ||
+			strings.HasSuffix(repo, OpenSourceGatewayProxyWasmImageName) ||
+			strings.HasSuffix(repo, EnterpriseGatewayProxyImageName) {
+			return container.Image, strings.HasSuffix(repo, OpenSourceGatewayProxyWasmImageName), true
+		}
+	}
+	return "", false, false
+}
+
+func GetControlPlaneImage(deployment *v1.Deployment) (image string, isEnterprise, isControlPlane bool) {
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		repo, _, _, err := parsers.ParseImageName(container.Image)
+		if err != nil {
+			continue
+		}
+
+		if strings.HasSuffix(repo, OpenSourceControlPlaneImageName) ||
+			strings.HasSuffix(repo, EnterpriseControlPlaneImageName) {
+			return container.Image, strings.HasSuffix(repo, EnterpriseControlPlaneImageName), true
 		}
 	}
 	return "", false, false

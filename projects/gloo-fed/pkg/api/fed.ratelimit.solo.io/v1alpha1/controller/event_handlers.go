@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/skv2/pkg/events"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -88,7 +88,7 @@ type genericFederatedRateLimitConfigHandler struct {
 	handler FederatedRateLimitConfigEventHandler
 }
 
-func (h genericFederatedRateLimitConfigHandler) Create(object runtime.Object) error {
+func (h genericFederatedRateLimitConfigHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRateLimitConfig handler received event for %T", object)
@@ -96,7 +96,7 @@ func (h genericFederatedRateLimitConfigHandler) Create(object runtime.Object) er
 	return h.handler.CreateFederatedRateLimitConfig(obj)
 }
 
-func (h genericFederatedRateLimitConfigHandler) Delete(object runtime.Object) error {
+func (h genericFederatedRateLimitConfigHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRateLimitConfig handler received event for %T", object)
@@ -104,7 +104,7 @@ func (h genericFederatedRateLimitConfigHandler) Delete(object runtime.Object) er
 	return h.handler.DeleteFederatedRateLimitConfig(obj)
 }
 
-func (h genericFederatedRateLimitConfigHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedRateLimitConfigHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRateLimitConfig handler received event for %T", old)
@@ -116,7 +116,7 @@ func (h genericFederatedRateLimitConfigHandler) Update(old, new runtime.Object) 
 	return h.handler.UpdateFederatedRateLimitConfig(objOld, objNew)
 }
 
-func (h genericFederatedRateLimitConfigHandler) Generic(object runtime.Object) error {
+func (h genericFederatedRateLimitConfigHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig)
 	if !ok {
 		return errors.Errorf("internal error: FederatedRateLimitConfig handler received event for %T", object)

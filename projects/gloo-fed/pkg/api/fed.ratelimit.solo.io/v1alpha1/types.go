@@ -14,6 +14,13 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedRateLimitConfig
+var FederatedRateLimitConfigGVK = schema.GroupVersionKind{
+	Group:   "fed.ratelimit.solo.io",
+	Version: "v1alpha1",
+	Kind:    "FederatedRateLimitConfig",
+}
+
 // FederatedRateLimitConfig is the Schema for the federatedRateLimitConfig API
 type FederatedRateLimitConfig struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -25,11 +32,7 @@ type FederatedRateLimitConfig struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedRateLimitConfig) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.ratelimit.solo.io",
-		Version: "v1alpha1",
-		Kind:    "FederatedRateLimitConfig",
-	}
+	return FederatedRateLimitConfigGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

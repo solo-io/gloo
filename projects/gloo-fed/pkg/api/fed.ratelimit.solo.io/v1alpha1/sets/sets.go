@@ -38,6 +38,10 @@ type FederatedRateLimitConfigSet interface {
 	Find(id ezkube.ResourceId) (*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedRateLimitConfigSet
+	Delta(newSet FederatedRateLimitConfigSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedRateLimitConfigSet(federatedRateLimitConfigList []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) sksets.ResourceSet {
@@ -68,7 +72,7 @@ func (s *federatedRateLimitConfigSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedRateLimitConfigSet) List(filterResource ...func(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) bool) []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig {
@@ -83,7 +87,7 @@ func (s *federatedRateLimitConfigSet) List(filterResource ...func(*fed_ratelimit
 	}
 
 	var federatedRateLimitConfigList []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedRateLimitConfigList = append(federatedRateLimitConfigList, obj.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig))
 	}
 	return federatedRateLimitConfigList
@@ -95,7 +99,7 @@ func (s *federatedRateLimitConfigSet) Map() map[string]*fed_ratelimit_solo_io_v1
 	}
 
 	newMap := map[string]*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig)
 	}
 	return newMap
@@ -109,7 +113,7 @@ func (s *federatedRateLimitConfigSet) Insert(
 	}
 
 	for _, obj := range federatedRateLimitConfigList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -117,7 +121,7 @@ func (s *federatedRateLimitConfigSet) Has(federatedRateLimitConfig ezkube.Resour
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedRateLimitConfig)
+	return s.Generic().Has(federatedRateLimitConfig)
 }
 
 func (s *federatedRateLimitConfigSet) Equal(
@@ -126,14 +130,14 @@ func (s *federatedRateLimitConfigSet) Equal(
 	if s == nil {
 		return federatedRateLimitConfigSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedRateLimitConfigSet(federatedRateLimitConfigSet.List()))
+	return s.Generic().Equal(federatedRateLimitConfigSet.Generic())
 }
 
 func (s *federatedRateLimitConfigSet) Delete(FederatedRateLimitConfig ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedRateLimitConfig)
+	s.Generic().Delete(FederatedRateLimitConfig)
 }
 
 func (s *federatedRateLimitConfigSet) Union(set FederatedRateLimitConfigSet) FederatedRateLimitConfigSet {
@@ -147,7 +151,7 @@ func (s *federatedRateLimitConfigSet) Difference(set FederatedRateLimitConfigSet
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedRateLimitConfigSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedRateLimitConfigSet{set: newSet}
 }
 
@@ -155,7 +159,7 @@ func (s *federatedRateLimitConfigSet) Intersection(set FederatedRateLimitConfigS
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedRateLimitConfigSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedRateLimitConfigList []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig
 	for _, obj := range newSet.List() {
 		federatedRateLimitConfigList = append(federatedRateLimitConfigList, obj.(*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig))
@@ -167,7 +171,7 @@ func (s *federatedRateLimitConfigSet) Find(id ezkube.ResourceId) (*fed_ratelimit
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedRateLimitConfig %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig{}, id)
+	obj, err := s.Generic().Find(&fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -179,5 +183,21 @@ func (s *federatedRateLimitConfigSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedRateLimitConfigSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedRateLimitConfigSet) Delta(newSet FederatedRateLimitConfigSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }

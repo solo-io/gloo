@@ -14,6 +14,13 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedAuthConfig
+var FederatedAuthConfigGVK = schema.GroupVersionKind{
+	Group:   "fed.enterprise.gloo.solo.io",
+	Version: "v1",
+	Kind:    "FederatedAuthConfig",
+}
+
 // FederatedAuthConfig is the Schema for the federatedAuthConfig API
 type FederatedAuthConfig struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -25,11 +32,7 @@ type FederatedAuthConfig struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedAuthConfig) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.enterprise.gloo.solo.io",
-		Version: "v1",
-		Kind:    "FederatedAuthConfig",
-	}
+	return FederatedAuthConfigGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

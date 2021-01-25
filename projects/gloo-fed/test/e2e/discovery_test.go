@@ -75,7 +75,6 @@ var _ = Describe("Discovery e2e", func() {
 	It("works for discovering the gloo-ee instance installed on the local cluster by the test harness", func() {
 		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
 		Expect(err).NotTo(HaveOccurred())
-
 		var instance *v1.GlooInstance
 		Eventually(func() *v1.GlooInstance {
 			instance, _ = clientset.GlooInstances().
@@ -87,7 +86,6 @@ var _ = Describe("Discovery e2e", func() {
 					})
 			return instance
 		}, 5*time.Second).ShouldNot(BeNil())
-
 		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(localClusterContext))
 		Expect(instance.Spec.GetControlPlane().GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetControlPlane().GetWatchedNamespaces()).To(HaveLen(0))
@@ -97,7 +95,7 @@ var _ = Describe("Discovery e2e", func() {
 		Expect(instance.Spec.GetProxies()[0].GetReadyReplicas()).To(BeEquivalentTo(1))
 		Expect(instance.Spec.GetProxies()[0].GetAvailableReplicas()).To(BeEquivalentTo(1))
 		Expect(instance.Spec.GetProxies()[0].GetReplicas()).To(BeEquivalentTo(1))
-		Expect(instance.Spec.GetProxies()[0].GetWasmEnabled()).To(BeTrue())
+		Expect(instance.Spec.GetProxies()[0].GetWasmEnabled()).To(BeFalse())
 		Expect(instance.Spec.GetProxies()[0].GetIngressEndpoints()).To(HaveLen(1))
 		Expect(instance.Spec.GetCheck().GetGateways().GetTotal()).To(BeEquivalentTo(2))
 	})

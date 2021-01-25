@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/skv2/pkg/events"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -88,7 +88,7 @@ type genericGlooInstanceHandler struct {
 	handler GlooInstanceEventHandler
 }
 
-func (h genericGlooInstanceHandler) Create(object runtime.Object) error {
+func (h genericGlooInstanceHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.GlooInstance)
 	if !ok {
 		return errors.Errorf("internal error: GlooInstance handler received event for %T", object)
@@ -96,7 +96,7 @@ func (h genericGlooInstanceHandler) Create(object runtime.Object) error {
 	return h.handler.CreateGlooInstance(obj)
 }
 
-func (h genericGlooInstanceHandler) Delete(object runtime.Object) error {
+func (h genericGlooInstanceHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.GlooInstance)
 	if !ok {
 		return errors.Errorf("internal error: GlooInstance handler received event for %T", object)
@@ -104,7 +104,7 @@ func (h genericGlooInstanceHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteGlooInstance(obj)
 }
 
-func (h genericGlooInstanceHandler) Update(old, new runtime.Object) error {
+func (h genericGlooInstanceHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_solo_io_v1.GlooInstance)
 	if !ok {
 		return errors.Errorf("internal error: GlooInstance handler received event for %T", old)
@@ -116,7 +116,7 @@ func (h genericGlooInstanceHandler) Update(old, new runtime.Object) error {
 	return h.handler.UpdateGlooInstance(objOld, objNew)
 }
 
-func (h genericGlooInstanceHandler) Generic(object runtime.Object) error {
+func (h genericGlooInstanceHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.GlooInstance)
 	if !ok {
 		return errors.Errorf("internal error: GlooInstance handler received event for %T", object)
@@ -195,7 +195,7 @@ type genericFailoverSchemeHandler struct {
 	handler FailoverSchemeEventHandler
 }
 
-func (h genericFailoverSchemeHandler) Create(object runtime.Object) error {
+func (h genericFailoverSchemeHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.FailoverScheme)
 	if !ok {
 		return errors.Errorf("internal error: FailoverScheme handler received event for %T", object)
@@ -203,7 +203,7 @@ func (h genericFailoverSchemeHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFailoverScheme(obj)
 }
 
-func (h genericFailoverSchemeHandler) Delete(object runtime.Object) error {
+func (h genericFailoverSchemeHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.FailoverScheme)
 	if !ok {
 		return errors.Errorf("internal error: FailoverScheme handler received event for %T", object)
@@ -211,7 +211,7 @@ func (h genericFailoverSchemeHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFailoverScheme(obj)
 }
 
-func (h genericFailoverSchemeHandler) Update(old, new runtime.Object) error {
+func (h genericFailoverSchemeHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_solo_io_v1.FailoverScheme)
 	if !ok {
 		return errors.Errorf("internal error: FailoverScheme handler received event for %T", old)
@@ -223,7 +223,7 @@ func (h genericFailoverSchemeHandler) Update(old, new runtime.Object) error {
 	return h.handler.UpdateFailoverScheme(objOld, objNew)
 }
 
-func (h genericFailoverSchemeHandler) Generic(object runtime.Object) error {
+func (h genericFailoverSchemeHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_solo_io_v1.FailoverScheme)
 	if !ok {
 		return errors.Errorf("internal error: FailoverScheme handler received event for %T", object)

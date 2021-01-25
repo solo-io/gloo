@@ -92,7 +92,7 @@ func main() {
 		logger.Fatalw("A fatal error occurred while starting the cluster watcher", zap.Error(err))
 	}
 
-	if err := mgr.Start(rootCtx.Done()); err != nil {
+	if err := mgr.Start(rootCtx); err != nil {
 		logger.Errorw("An error occurred", zap.Error(err))
 	}
 	logger.Infow("Shutting down, root context cancelled.")

@@ -38,6 +38,10 @@ type FederatedAuthConfigSet interface {
 	Find(id ezkube.ResourceId) (*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedAuthConfigSet
+	Delta(newSet FederatedAuthConfigSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedAuthConfigSet(federatedAuthConfigList []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) sksets.ResourceSet {
@@ -68,7 +72,7 @@ func (s *federatedAuthConfigSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedAuthConfigSet) List(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig {
@@ -83,7 +87,7 @@ func (s *federatedAuthConfigSet) List(filterResource ...func(*fed_enterprise_glo
 	}
 
 	var federatedAuthConfigList []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedAuthConfigList = append(federatedAuthConfigList, obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
 	}
 	return federatedAuthConfigList
@@ -95,7 +99,7 @@ func (s *federatedAuthConfigSet) Map() map[string]*fed_enterprise_gloo_solo_io_v
 	}
 
 	newMap := map[string]*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig)
 	}
 	return newMap
@@ -109,7 +113,7 @@ func (s *federatedAuthConfigSet) Insert(
 	}
 
 	for _, obj := range federatedAuthConfigList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -117,7 +121,7 @@ func (s *federatedAuthConfigSet) Has(federatedAuthConfig ezkube.ResourceId) bool
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedAuthConfig)
+	return s.Generic().Has(federatedAuthConfig)
 }
 
 func (s *federatedAuthConfigSet) Equal(
@@ -126,14 +130,14 @@ func (s *federatedAuthConfigSet) Equal(
 	if s == nil {
 		return federatedAuthConfigSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedAuthConfigSet(federatedAuthConfigSet.List()))
+	return s.Generic().Equal(federatedAuthConfigSet.Generic())
 }
 
 func (s *federatedAuthConfigSet) Delete(FederatedAuthConfig ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedAuthConfig)
+	s.Generic().Delete(FederatedAuthConfig)
 }
 
 func (s *federatedAuthConfigSet) Union(set FederatedAuthConfigSet) FederatedAuthConfigSet {
@@ -147,7 +151,7 @@ func (s *federatedAuthConfigSet) Difference(set FederatedAuthConfigSet) Federate
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedAuthConfigSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedAuthConfigSet{set: newSet}
 }
 
@@ -155,7 +159,7 @@ func (s *federatedAuthConfigSet) Intersection(set FederatedAuthConfigSet) Federa
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedAuthConfigSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedAuthConfigList []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
 	for _, obj := range newSet.List() {
 		federatedAuthConfigList = append(federatedAuthConfigList, obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
@@ -167,7 +171,7 @@ func (s *federatedAuthConfigSet) Find(id ezkube.ResourceId) (*fed_enterprise_glo
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedAuthConfig %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig{}, id)
+	obj, err := s.Generic().Find(&fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -179,5 +183,21 @@ func (s *federatedAuthConfigSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedAuthConfigSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedAuthConfigSet) Delta(newSet FederatedAuthConfigSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }

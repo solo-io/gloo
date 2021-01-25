@@ -14,6 +14,13 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedGateway
+var FederatedGatewayGVK = schema.GroupVersionKind{
+	Group:   "fed.gateway.solo.io",
+	Version: "v1",
+	Kind:    "FederatedGateway",
+}
+
 // FederatedGateway is the Schema for the federatedGateway API
 type FederatedGateway struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -25,11 +32,7 @@ type FederatedGateway struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedGateway) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gateway.solo.io",
-		Version: "v1",
-		Kind:    "FederatedGateway",
-	}
+	return FederatedGatewayGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -46,6 +49,13 @@ type FederatedGatewayList struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedVirtualService
+var FederatedVirtualServiceGVK = schema.GroupVersionKind{
+	Group:   "fed.gateway.solo.io",
+	Version: "v1",
+	Kind:    "FederatedVirtualService",
+}
+
 // FederatedVirtualService is the Schema for the federatedVirtualService API
 type FederatedVirtualService struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -57,11 +67,7 @@ type FederatedVirtualService struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedVirtualService) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gateway.solo.io",
-		Version: "v1",
-		Kind:    "FederatedVirtualService",
-	}
+	return FederatedVirtualServiceGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -78,6 +84,13 @@ type FederatedVirtualServiceList struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedRouteTable
+var FederatedRouteTableGVK = schema.GroupVersionKind{
+	Group:   "fed.gateway.solo.io",
+	Version: "v1",
+	Kind:    "FederatedRouteTable",
+}
+
 // FederatedRouteTable is the Schema for the federatedRouteTable API
 type FederatedRouteTable struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -89,11 +102,7 @@ type FederatedRouteTable struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedRouteTable) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gateway.solo.io",
-		Version: "v1",
-		Kind:    "FederatedRouteTable",
-	}
+	return FederatedRouteTableGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

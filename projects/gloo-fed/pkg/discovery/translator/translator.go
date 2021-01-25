@@ -5,8 +5,8 @@ import (
 	"sort"
 
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
-
 	k8s_core_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
+	v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/stringutils"
@@ -218,15 +218,16 @@ func getProxiesFromSnapshot(
 			}
 
 			proxy := &types.GlooInstanceSpec_Proxy{
-				Replicas:               deployment.Status.Replicas,
-				AvailableReplicas:      deployment.Status.AvailableReplicas,
-				ReadyReplicas:          deployment.Status.ReadyReplicas,
-				WasmEnabled:            wasmEnabled,
-				Version:                images.GetVersion(image),
-				Name:                   deployment.GetName(),
-				Namespace:              deployment.GetNamespace(),
-				WorkloadControllerType: types.GlooInstanceSpec_Proxy_DEPLOYMENT,
-				Zones:                  zones,
+				Replicas:                      deployment.Status.Replicas,
+				AvailableReplicas:             deployment.Status.AvailableReplicas,
+				ReadyReplicas:                 deployment.Status.ReadyReplicas,
+				WasmEnabled:                   wasmEnabled,
+				ReadConfigMulticlusterEnabled: findProxyConfigDumpService(snapshot.Services(), deployment.GetName(), deployment.GetNamespace()),
+				Version:                       images.GetVersion(image),
+				Name:                          deployment.GetName(),
+				Namespace:                     deployment.GetNamespace(),
+				WorkloadControllerType:        types.GlooInstanceSpec_Proxy_DEPLOYMENT,
+				Zones:                         zones,
 			}
 
 			ingressEndpoints, err := ipFinder.GetExternalIps(
@@ -281,6 +282,15 @@ func getProxiesFromSnapshot(
 
 	return proxies
 
+}
+
+func findProxyConfigDumpService(services v1_sets.ServiceSet, name, namespace string) bool {
+	for _, svc := range services.List() {
+		if svc.Name == name+"-config-dump-service" && svc.Namespace == namespace {
+			return true
+		}
+	}
+	return false
 }
 
 func filterServices(svcs k8s_core_sets.ServiceSet, obj metav1.Object, matchLabels map[string]string) []*k8s_core_types.Service {

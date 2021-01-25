@@ -8,10 +8,11 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sets "github.com/solo-io/skv2/contrib/pkg/sets"
 	ezkube "github.com/solo-io/skv2/pkg/ezkube"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	v1sets "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/sets"
-	sets "k8s.io/apimachinery/pkg/util/sets"
+	sets0 "k8s.io/apimachinery/pkg/util/sets"
 )
 
 // MockFederatedGatewaySet is a mock of FederatedGatewaySet interface
@@ -38,10 +39,10 @@ func (m *MockFederatedGatewaySet) EXPECT() *MockFederatedGatewaySetMockRecorder 
 }
 
 // Keys mocks base method
-func (m *MockFederatedGatewaySet) Keys() sets.String {
+func (m *MockFederatedGatewaySet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
-	ret0, _ := ret[0].(sets.String)
+	ret0, _ := ret[0].(sets0.String)
 	return ret0
 }
 
@@ -210,6 +211,34 @@ func (mr *MockFederatedGatewaySetMockRecorder) Length() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedGatewaySet)(nil).Length))
 }
 
+// Generic mocks base method
+func (m *MockFederatedGatewaySet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic
+func (mr *MockFederatedGatewaySetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedGatewaySet)(nil).Generic))
+}
+
+// Delta mocks base method
+func (m *MockFederatedGatewaySet) Delta(newSet v1sets.FederatedGatewaySet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta
+func (mr *MockFederatedGatewaySetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedGatewaySet)(nil).Delta), newSet)
+}
+
 // MockFederatedVirtualServiceSet is a mock of FederatedVirtualServiceSet interface
 type MockFederatedVirtualServiceSet struct {
 	ctrl     *gomock.Controller
@@ -234,10 +263,10 @@ func (m *MockFederatedVirtualServiceSet) EXPECT() *MockFederatedVirtualServiceSe
 }
 
 // Keys mocks base method
-func (m *MockFederatedVirtualServiceSet) Keys() sets.String {
+func (m *MockFederatedVirtualServiceSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
-	ret0, _ := ret[0].(sets.String)
+	ret0, _ := ret[0].(sets0.String)
 	return ret0
 }
 
@@ -406,6 +435,34 @@ func (mr *MockFederatedVirtualServiceSetMockRecorder) Length() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).Length))
 }
 
+// Generic mocks base method
+func (m *MockFederatedVirtualServiceSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic
+func (mr *MockFederatedVirtualServiceSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).Generic))
+}
+
+// Delta mocks base method
+func (m *MockFederatedVirtualServiceSet) Delta(newSet v1sets.FederatedVirtualServiceSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta
+func (mr *MockFederatedVirtualServiceSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).Delta), newSet)
+}
+
 // MockFederatedRouteTableSet is a mock of FederatedRouteTableSet interface
 type MockFederatedRouteTableSet struct {
 	ctrl     *gomock.Controller
@@ -430,10 +487,10 @@ func (m *MockFederatedRouteTableSet) EXPECT() *MockFederatedRouteTableSetMockRec
 }
 
 // Keys mocks base method
-func (m *MockFederatedRouteTableSet) Keys() sets.String {
+func (m *MockFederatedRouteTableSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
-	ret0, _ := ret[0].(sets.String)
+	ret0, _ := ret[0].(sets0.String)
 	return ret0
 }
 
@@ -600,4 +657,32 @@ func (m *MockFederatedRouteTableSet) Length() int {
 func (mr *MockFederatedRouteTableSetMockRecorder) Length() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).Length))
+}
+
+// Generic mocks base method
+func (m *MockFederatedRouteTableSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic
+func (mr *MockFederatedRouteTableSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).Generic))
+}
+
+// Delta mocks base method
+func (m *MockFederatedRouteTableSet) Delta(newSet v1sets.FederatedRouteTableSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta
+func (mr *MockFederatedRouteTableSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).Delta), newSet)
 }

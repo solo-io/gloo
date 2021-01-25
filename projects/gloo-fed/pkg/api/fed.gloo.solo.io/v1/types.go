@@ -14,6 +14,13 @@ import (
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedUpstream
+var FederatedUpstreamGVK = schema.GroupVersionKind{
+	Group:   "fed.gloo.solo.io",
+	Version: "v1",
+	Kind:    "FederatedUpstream",
+}
+
 // FederatedUpstream is the Schema for the federatedUpstream API
 type FederatedUpstream struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -25,11 +32,7 @@ type FederatedUpstream struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedUpstream) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gloo.solo.io",
-		Version: "v1",
-		Kind:    "FederatedUpstream",
-	}
+	return FederatedUpstreamGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -46,6 +49,13 @@ type FederatedUpstreamList struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedUpstreamGroup
+var FederatedUpstreamGroupGVK = schema.GroupVersionKind{
+	Group:   "fed.gloo.solo.io",
+	Version: "v1",
+	Kind:    "FederatedUpstreamGroup",
+}
+
 // FederatedUpstreamGroup is the Schema for the federatedUpstreamGroup API
 type FederatedUpstreamGroup struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -57,11 +67,7 @@ type FederatedUpstreamGroup struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedUpstreamGroup) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gloo.solo.io",
-		Version: "v1",
-		Kind:    "FederatedUpstreamGroup",
-	}
+	return FederatedUpstreamGroupGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -78,6 +84,13 @@ type FederatedUpstreamGroupList struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 
+// GroupVersionKind for FederatedSettings
+var FederatedSettingsGVK = schema.GroupVersionKind{
+	Group:   "fed.gloo.solo.io",
+	Version: "v1",
+	Kind:    "FederatedSettings",
+}
+
 // FederatedSettings is the Schema for the federatedSettings API
 type FederatedSettings struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -89,11 +102,7 @@ type FederatedSettings struct {
 
 // GVK returns the GroupVersionKind associated with the resource type.
 func (FederatedSettings) GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   "fed.gloo.solo.io",
-		Version: "v1",
-		Kind:    "FederatedSettings",
-	}
+	return FederatedSettingsGVK
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

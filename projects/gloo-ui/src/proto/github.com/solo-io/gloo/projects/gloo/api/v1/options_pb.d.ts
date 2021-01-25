@@ -31,6 +31,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_core_v3_base_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb";
@@ -484,6 +485,8 @@ export class RouteOptions extends jspb.Message {
   getStagedTransformations(): github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages | undefined;
   setStagedTransformations(value?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages): void;
 
+  getEnvoyMetadataMap(): jspb.Map<string, google_protobuf_struct_pb.Struct>;
+  clearEnvoyMetadataMap(): void;
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
   getJwtConfigCase(): RouteOptions.JwtConfigCase;
@@ -525,6 +528,7 @@ export namespace RouteOptions {
     bufferPerRoute?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.AsObject,
     csrf?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     stagedTransformations?: github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
+    envoyMetadataMap: Array<[string, google_protobuf_struct_pb.Struct.AsObject]>,
   }
 
   export enum HostRewriteTypeCase {

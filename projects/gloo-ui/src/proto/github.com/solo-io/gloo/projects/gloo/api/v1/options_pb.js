@@ -40,6 +40,7 @@ var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_proxylat
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/buffer/v3/buffer_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/filters/http/csrf/v3/csrf_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_external_envoy_config_filter_http_gzip_v2_gzip_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/filter/http/gzip/v2/gzip_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_external_envoy_config_core_v3_base_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/jwt/jwt_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit_pb.js');
@@ -2412,7 +2413,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     dlp: (f = msg.getDlp()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb.Config.toObject(includeInstance, f),
     bufferPerRoute: (f = msg.getBufferPerRoute()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.BufferPerRoute.toObject(includeInstance, f),
     csrf: (f = msg.getCsrf()) && github_com_solo$io_gloo_projects_gloo_api_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
-    stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f)
+    stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f),
+    envoyMetadataMap: (f = msg.getEnvoyMetadataMap()) ? f.toObject(includeInstance, proto.google.protobuf.Struct.toObject) : []
   };
 
   if (includeInstance) {
@@ -2577,6 +2579,12 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.deserializeBinaryFromReader);
       msg.setStagedTransformations(value);
+      break;
+    case 26:
+      var value = msg.getEnvoyMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Struct.deserializeBinaryFromReader, "");
+         });
       break;
     default:
       reader.skipField();
@@ -2813,6 +2821,10 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb.TransformationStages.serializeBinaryToWriter
     );
+  }
+  f = message.getEnvoyMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(26, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Struct.serializeBinaryToWriter);
   }
 };
 
@@ -3594,6 +3606,24 @@ proto.gloo.solo.io.RouteOptions.prototype.clearStagedTransformations = function(
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasStagedTransformations = function() {
   return jspb.Message.getField(this, 23) != null;
+};
+
+
+/**
+ * map<string, google.protobuf.Struct> envoy_metadata = 26;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.google.protobuf.Struct>}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getEnvoyMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.google.protobuf.Struct>} */ (
+      jspb.Message.getMapField(this, 26, opt_noLazyCreate,
+      proto.google.protobuf.Struct));
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearEnvoyMetadataMap = function() {
+  this.getEnvoyMetadataMap().clear();
 };
 
 

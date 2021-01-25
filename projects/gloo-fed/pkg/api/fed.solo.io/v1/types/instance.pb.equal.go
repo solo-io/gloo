@@ -212,6 +212,10 @@ func (m *GlooInstanceSpec_Proxy) Equal(that interface{}) bool {
 		return false
 	}
 
+	if m.GetReadConfigMulticlusterEnabled() != target.GetReadConfigMulticlusterEnabled() {
+		return false
+	}
+
 	if strings.Compare(m.GetVersion(), target.GetVersion()) != 0 {
 		return false
 	}

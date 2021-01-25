@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/skv2/pkg/events"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -88,7 +88,7 @@ type genericFederatedUpstreamHandler struct {
 	handler FederatedUpstreamEventHandler
 }
 
-func (h genericFederatedUpstreamHandler) Create(object runtime.Object) error {
+func (h genericFederatedUpstreamHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstream)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstream handler received event for %T", object)
@@ -96,7 +96,7 @@ func (h genericFederatedUpstreamHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFederatedUpstream(obj)
 }
 
-func (h genericFederatedUpstreamHandler) Delete(object runtime.Object) error {
+func (h genericFederatedUpstreamHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstream)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstream handler received event for %T", object)
@@ -104,7 +104,7 @@ func (h genericFederatedUpstreamHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFederatedUpstream(obj)
 }
 
-func (h genericFederatedUpstreamHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedUpstreamHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gloo_solo_io_v1.FederatedUpstream)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstream handler received event for %T", old)
@@ -116,7 +116,7 @@ func (h genericFederatedUpstreamHandler) Update(old, new runtime.Object) error {
 	return h.handler.UpdateFederatedUpstream(objOld, objNew)
 }
 
-func (h genericFederatedUpstreamHandler) Generic(object runtime.Object) error {
+func (h genericFederatedUpstreamHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstream)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstream handler received event for %T", object)
@@ -195,7 +195,7 @@ type genericFederatedUpstreamGroupHandler struct {
 	handler FederatedUpstreamGroupEventHandler
 }
 
-func (h genericFederatedUpstreamGroupHandler) Create(object runtime.Object) error {
+func (h genericFederatedUpstreamGroupHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstreamGroup handler received event for %T", object)
@@ -203,7 +203,7 @@ func (h genericFederatedUpstreamGroupHandler) Create(object runtime.Object) erro
 	return h.handler.CreateFederatedUpstreamGroup(obj)
 }
 
-func (h genericFederatedUpstreamGroupHandler) Delete(object runtime.Object) error {
+func (h genericFederatedUpstreamGroupHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstreamGroup handler received event for %T", object)
@@ -211,7 +211,7 @@ func (h genericFederatedUpstreamGroupHandler) Delete(object runtime.Object) erro
 	return h.handler.DeleteFederatedUpstreamGroup(obj)
 }
 
-func (h genericFederatedUpstreamGroupHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedUpstreamGroupHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstreamGroup handler received event for %T", old)
@@ -223,7 +223,7 @@ func (h genericFederatedUpstreamGroupHandler) Update(old, new runtime.Object) er
 	return h.handler.UpdateFederatedUpstreamGroup(objOld, objNew)
 }
 
-func (h genericFederatedUpstreamGroupHandler) Generic(object runtime.Object) error {
+func (h genericFederatedUpstreamGroupHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup)
 	if !ok {
 		return errors.Errorf("internal error: FederatedUpstreamGroup handler received event for %T", object)
@@ -302,7 +302,7 @@ type genericFederatedSettingsHandler struct {
 	handler FederatedSettingsEventHandler
 }
 
-func (h genericFederatedSettingsHandler) Create(object runtime.Object) error {
+func (h genericFederatedSettingsHandler) Create(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedSettings)
 	if !ok {
 		return errors.Errorf("internal error: FederatedSettings handler received event for %T", object)
@@ -310,7 +310,7 @@ func (h genericFederatedSettingsHandler) Create(object runtime.Object) error {
 	return h.handler.CreateFederatedSettings(obj)
 }
 
-func (h genericFederatedSettingsHandler) Delete(object runtime.Object) error {
+func (h genericFederatedSettingsHandler) Delete(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedSettings)
 	if !ok {
 		return errors.Errorf("internal error: FederatedSettings handler received event for %T", object)
@@ -318,7 +318,7 @@ func (h genericFederatedSettingsHandler) Delete(object runtime.Object) error {
 	return h.handler.DeleteFederatedSettings(obj)
 }
 
-func (h genericFederatedSettingsHandler) Update(old, new runtime.Object) error {
+func (h genericFederatedSettingsHandler) Update(old, new client.Object) error {
 	objOld, ok := old.(*fed_gloo_solo_io_v1.FederatedSettings)
 	if !ok {
 		return errors.Errorf("internal error: FederatedSettings handler received event for %T", old)
@@ -330,7 +330,7 @@ func (h genericFederatedSettingsHandler) Update(old, new runtime.Object) error {
 	return h.handler.UpdateFederatedSettings(objOld, objNew)
 }
 
-func (h genericFederatedSettingsHandler) Generic(object runtime.Object) error {
+func (h genericFederatedSettingsHandler) Generic(object client.Object) error {
 	obj, ok := object.(*fed_gloo_solo_io_v1.FederatedSettings)
 	if !ok {
 		return errors.Errorf("internal error: FederatedSettings handler received event for %T", object)

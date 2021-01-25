@@ -38,6 +38,10 @@ type FederatedUpstreamSet interface {
 	Find(id ezkube.ResourceId) (*fed_gloo_solo_io_v1.FederatedUpstream, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedUpstreamSet
+	Delta(newSet FederatedUpstreamSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedUpstreamSet(federatedUpstreamList []*fed_gloo_solo_io_v1.FederatedUpstream) sksets.ResourceSet {
@@ -68,7 +72,7 @@ func (s *federatedUpstreamSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedUpstreamSet) List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream {
@@ -83,7 +87,7 @@ func (s *federatedUpstreamSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 	}
 
 	var federatedUpstreamList []*fed_gloo_solo_io_v1.FederatedUpstream
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedUpstreamList = append(federatedUpstreamList, obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
 	}
 	return federatedUpstreamList
@@ -95,7 +99,7 @@ func (s *federatedUpstreamSet) Map() map[string]*fed_gloo_solo_io_v1.FederatedUp
 	}
 
 	newMap := map[string]*fed_gloo_solo_io_v1.FederatedUpstream{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gloo_solo_io_v1.FederatedUpstream)
 	}
 	return newMap
@@ -109,7 +113,7 @@ func (s *federatedUpstreamSet) Insert(
 	}
 
 	for _, obj := range federatedUpstreamList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -117,7 +121,7 @@ func (s *federatedUpstreamSet) Has(federatedUpstream ezkube.ResourceId) bool {
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedUpstream)
+	return s.Generic().Has(federatedUpstream)
 }
 
 func (s *federatedUpstreamSet) Equal(
@@ -126,14 +130,14 @@ func (s *federatedUpstreamSet) Equal(
 	if s == nil {
 		return federatedUpstreamSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedUpstreamSet(federatedUpstreamSet.List()))
+	return s.Generic().Equal(federatedUpstreamSet.Generic())
 }
 
 func (s *federatedUpstreamSet) Delete(FederatedUpstream ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedUpstream)
+	s.Generic().Delete(FederatedUpstream)
 }
 
 func (s *federatedUpstreamSet) Union(set FederatedUpstreamSet) FederatedUpstreamSet {
@@ -147,7 +151,7 @@ func (s *federatedUpstreamSet) Difference(set FederatedUpstreamSet) FederatedUps
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedUpstreamSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedUpstreamSet{set: newSet}
 }
 
@@ -155,7 +159,7 @@ func (s *federatedUpstreamSet) Intersection(set FederatedUpstreamSet) FederatedU
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedUpstreamSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedUpstreamList []*fed_gloo_solo_io_v1.FederatedUpstream
 	for _, obj := range newSet.List() {
 		federatedUpstreamList = append(federatedUpstreamList, obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
@@ -167,7 +171,7 @@ func (s *federatedUpstreamSet) Find(id ezkube.ResourceId) (*fed_gloo_solo_io_v1.
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedUpstream %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gloo_solo_io_v1.FederatedUpstream{}, id)
+	obj, err := s.Generic().Find(&fed_gloo_solo_io_v1.FederatedUpstream{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +183,23 @@ func (s *federatedUpstreamSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedUpstreamSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedUpstreamSet) Delta(newSet FederatedUpstreamSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
 
 type FederatedUpstreamGroupSet interface {
@@ -207,6 +227,10 @@ type FederatedUpstreamGroupSet interface {
 	Find(id ezkube.ResourceId) (*fed_gloo_solo_io_v1.FederatedUpstreamGroup, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedUpstreamGroupSet
+	Delta(newSet FederatedUpstreamGroupSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedUpstreamGroupSet(federatedUpstreamGroupList []*fed_gloo_solo_io_v1.FederatedUpstreamGroup) sksets.ResourceSet {
@@ -237,7 +261,7 @@ func (s *federatedUpstreamGroupSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedUpstreamGroupSet) List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup {
@@ -252,7 +276,7 @@ func (s *federatedUpstreamGroupSet) List(filterResource ...func(*fed_gloo_solo_i
 	}
 
 	var federatedUpstreamGroupList []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedUpstreamGroupList = append(federatedUpstreamGroupList, obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
 	}
 	return federatedUpstreamGroupList
@@ -264,7 +288,7 @@ func (s *federatedUpstreamGroupSet) Map() map[string]*fed_gloo_solo_io_v1.Federa
 	}
 
 	newMap := map[string]*fed_gloo_solo_io_v1.FederatedUpstreamGroup{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup)
 	}
 	return newMap
@@ -278,7 +302,7 @@ func (s *federatedUpstreamGroupSet) Insert(
 	}
 
 	for _, obj := range federatedUpstreamGroupList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -286,7 +310,7 @@ func (s *federatedUpstreamGroupSet) Has(federatedUpstreamGroup ezkube.ResourceId
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedUpstreamGroup)
+	return s.Generic().Has(federatedUpstreamGroup)
 }
 
 func (s *federatedUpstreamGroupSet) Equal(
@@ -295,14 +319,14 @@ func (s *federatedUpstreamGroupSet) Equal(
 	if s == nil {
 		return federatedUpstreamGroupSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedUpstreamGroupSet(federatedUpstreamGroupSet.List()))
+	return s.Generic().Equal(federatedUpstreamGroupSet.Generic())
 }
 
 func (s *federatedUpstreamGroupSet) Delete(FederatedUpstreamGroup ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedUpstreamGroup)
+	s.Generic().Delete(FederatedUpstreamGroup)
 }
 
 func (s *federatedUpstreamGroupSet) Union(set FederatedUpstreamGroupSet) FederatedUpstreamGroupSet {
@@ -316,7 +340,7 @@ func (s *federatedUpstreamGroupSet) Difference(set FederatedUpstreamGroupSet) Fe
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedUpstreamGroupSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedUpstreamGroupSet{set: newSet}
 }
 
@@ -324,7 +348,7 @@ func (s *federatedUpstreamGroupSet) Intersection(set FederatedUpstreamGroupSet) 
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedUpstreamGroupSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedUpstreamGroupList []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
 	for _, obj := range newSet.List() {
 		federatedUpstreamGroupList = append(federatedUpstreamGroupList, obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
@@ -336,7 +360,7 @@ func (s *federatedUpstreamGroupSet) Find(id ezkube.ResourceId) (*fed_gloo_solo_i
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedUpstreamGroup %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gloo_solo_io_v1.FederatedUpstreamGroup{}, id)
+	obj, err := s.Generic().Find(&fed_gloo_solo_io_v1.FederatedUpstreamGroup{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +372,23 @@ func (s *federatedUpstreamGroupSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedUpstreamGroupSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedUpstreamGroupSet) Delta(newSet FederatedUpstreamGroupSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
 
 type FederatedSettingsSet interface {
@@ -376,6 +416,10 @@ type FederatedSettingsSet interface {
 	Find(id ezkube.ResourceId) (*fed_gloo_solo_io_v1.FederatedSettings, error)
 	// Get the length of the set
 	Length() int
+	// returns the generic implementation of the set
+	Generic() sksets.ResourceSet
+	// returns the delta between this and and another FederatedSettingsSet
+	Delta(newSet FederatedSettingsSet) sksets.ResourceDelta
 }
 
 func makeGenericFederatedSettingsSet(federatedSettingsList []*fed_gloo_solo_io_v1.FederatedSettings) sksets.ResourceSet {
@@ -406,7 +450,7 @@ func (s *federatedSettingsSet) Keys() sets.String {
 	if s == nil {
 		return sets.String{}
 	}
-	return s.set.Keys()
+	return s.Generic().Keys()
 }
 
 func (s *federatedSettingsSet) List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings {
@@ -421,7 +465,7 @@ func (s *federatedSettingsSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 	}
 
 	var federatedSettingsList []*fed_gloo_solo_io_v1.FederatedSettings
-	for _, obj := range s.set.List(genericFilters...) {
+	for _, obj := range s.Generic().List(genericFilters...) {
 		federatedSettingsList = append(federatedSettingsList, obj.(*fed_gloo_solo_io_v1.FederatedSettings))
 	}
 	return federatedSettingsList
@@ -433,7 +477,7 @@ func (s *federatedSettingsSet) Map() map[string]*fed_gloo_solo_io_v1.FederatedSe
 	}
 
 	newMap := map[string]*fed_gloo_solo_io_v1.FederatedSettings{}
-	for k, v := range s.set.Map() {
+	for k, v := range s.Generic().Map() {
 		newMap[k] = v.(*fed_gloo_solo_io_v1.FederatedSettings)
 	}
 	return newMap
@@ -447,7 +491,7 @@ func (s *federatedSettingsSet) Insert(
 	}
 
 	for _, obj := range federatedSettingsList {
-		s.set.Insert(obj)
+		s.Generic().Insert(obj)
 	}
 }
 
@@ -455,7 +499,7 @@ func (s *federatedSettingsSet) Has(federatedSettings ezkube.ResourceId) bool {
 	if s == nil {
 		return false
 	}
-	return s.set.Has(federatedSettings)
+	return s.Generic().Has(federatedSettings)
 }
 
 func (s *federatedSettingsSet) Equal(
@@ -464,14 +508,14 @@ func (s *federatedSettingsSet) Equal(
 	if s == nil {
 		return federatedSettingsSet == nil
 	}
-	return s.set.Equal(makeGenericFederatedSettingsSet(federatedSettingsSet.List()))
+	return s.Generic().Equal(federatedSettingsSet.Generic())
 }
 
 func (s *federatedSettingsSet) Delete(FederatedSettings ezkube.ResourceId) {
 	if s == nil {
 		return
 	}
-	s.set.Delete(FederatedSettings)
+	s.Generic().Delete(FederatedSettings)
 }
 
 func (s *federatedSettingsSet) Union(set FederatedSettingsSet) FederatedSettingsSet {
@@ -485,7 +529,7 @@ func (s *federatedSettingsSet) Difference(set FederatedSettingsSet) FederatedSet
 	if s == nil {
 		return set
 	}
-	newSet := s.set.Difference(makeGenericFederatedSettingsSet(set.List()))
+	newSet := s.Generic().Difference(set.Generic())
 	return &federatedSettingsSet{set: newSet}
 }
 
@@ -493,7 +537,7 @@ func (s *federatedSettingsSet) Intersection(set FederatedSettingsSet) FederatedS
 	if s == nil {
 		return nil
 	}
-	newSet := s.set.Intersection(makeGenericFederatedSettingsSet(set.List()))
+	newSet := s.Generic().Intersection(set.Generic())
 	var federatedSettingsList []*fed_gloo_solo_io_v1.FederatedSettings
 	for _, obj := range newSet.List() {
 		federatedSettingsList = append(federatedSettingsList, obj.(*fed_gloo_solo_io_v1.FederatedSettings))
@@ -505,7 +549,7 @@ func (s *federatedSettingsSet) Find(id ezkube.ResourceId) (*fed_gloo_solo_io_v1.
 	if s == nil {
 		return nil, eris.Errorf("empty set, cannot find FederatedSettings %v", sksets.Key(id))
 	}
-	obj, err := s.set.Find(&fed_gloo_solo_io_v1.FederatedSettings{}, id)
+	obj, err := s.Generic().Find(&fed_gloo_solo_io_v1.FederatedSettings{}, id)
 	if err != nil {
 		return nil, err
 	}
@@ -517,5 +561,21 @@ func (s *federatedSettingsSet) Length() int {
 	if s == nil {
 		return 0
 	}
-	return s.set.Length()
+	return s.Generic().Length()
+}
+
+func (s *federatedSettingsSet) Generic() sksets.ResourceSet {
+	if s == nil {
+		return nil
+	}
+	return s.set
+}
+
+func (s *federatedSettingsSet) Delta(newSet FederatedSettingsSet) sksets.ResourceDelta {
+	if s == nil {
+		return sksets.ResourceDelta{
+			Inserted: newSet.Generic(),
+		}
+	}
+	return s.Generic().Delta(newSet.Generic())
 }
