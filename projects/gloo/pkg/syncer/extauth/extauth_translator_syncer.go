@@ -3,11 +3,7 @@ package extauth
 import (
 	"context"
 	"fmt"
-
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/tag"
+	"sort"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
@@ -20,7 +16,11 @@ import (
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 )
 
@@ -134,15 +134,17 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 	}
 
 	var resources []envoycache.Resource
-	for _, cfg := range helper.translatedConfigs {
+	for _, cfg := range ConvertConfigMapToSortedList(helper.translatedConfigs) {
 		resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
 		resources = append(resources, resource)
 	}
+
 	h, err := hashstructure.Hash(resources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
 		return syncerError(ctx, err)
 	}
+
 	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	err = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
 	if err != nil {
@@ -206,4 +208,24 @@ func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnaps
 
 	h.translatedConfigs[configRef.Key()] = translatedConfig
 	return nil
+}
+
+// We need a stable ordering of configs. It doesn't really matter what order as long as it's consistent.
+// If we don't do this, different orders of configs will produce different
+// hashes, which will trick the system into unnecessarily thinking that we need to update the extauth service.
+// Visible for testing
+func ConvertConfigMapToSortedList(configMap map[string]*extauth.ExtAuthConfig) []*extauth.ExtAuthConfig {
+	// extract values for sorting
+	var configs []*extauth.ExtAuthConfig
+	var configKeys []string
+	for key, cfg := range configMap {
+		configs = append(configs, cfg)
+		configKeys = append(configKeys, key)
+	}
+
+	sort.SliceStable(configs, func(i, j int) bool {
+		return configKeys[i] < configKeys[j]
+	})
+
+	return configs
 }

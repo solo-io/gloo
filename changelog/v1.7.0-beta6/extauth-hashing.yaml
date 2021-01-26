@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/3631
+    resolvesIssue: true
+    description: >
+      Fixes an issue where gloo would repeatedly send unchanged configs to the extauth service, triggering excessive logging
+      and user confusion. This was caused by an inconsistent ordering of configurations when hashing them to determine
+      if anything had changed.

@@ -139,6 +139,25 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Expect(res.Items).To(HaveLen(1))
 			})
 
+			It("properly sorts configs", func() {
+				name1 := "cfg1"
+				name2 := "cfg2"
+				cfg1 := &extauth.ExtAuthConfig{AuthConfigRefName: name1}
+				cfg2 := &extauth.ExtAuthConfig{AuthConfigRefName: name2}
+				configmap := map[string]*extauth.ExtAuthConfig{}
+				key1 := "test1"
+				key2 := "test2"
+				configmap[key1] = cfg1
+				configmap[key2] = cfg2
+				// test several times, since this is checking against inconsistent map ranging
+				for i := 1; i < 20; i++ {
+					configArray := ConvertConfigMapToSortedList(configmap)
+					Expect(len(configArray)).To(Equal(2))
+					Expect(configArray[0].AuthConfigRefName).To(Equal(name1))
+					Expect(configArray[1].AuthConfigRefName).To(Equal(name2))
+				}
+			})
+
 			It("generates a single snapshot resource if two listeners use the same auth config", func() {
 				newListener := *proxy.Listeners[0]
 				newListener.Name = "listener2"
