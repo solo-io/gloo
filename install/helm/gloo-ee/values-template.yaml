@@ -238,6 +238,7 @@ global:
     extAuth:
       enabled: true
       standaloneDeployment: true
+      transportApiVersion: V3
       envoySidecar: false
       serviceName: ext-auth
       userIdHeader: x-user-id

@@ -60,6 +60,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughAuth', null, global)
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughGrpc', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings.ApiVersion', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.CookieOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.InternalSession', null, global);
@@ -1279,7 +1280,8 @@ proto.enterprise.gloo.solo.io.Settings.toObject = function(includeInstance, msg)
     failureModeAllow: jspb.Message.getFieldWithDefault(msg, 5, false),
     requestBody: (f = msg.getRequestBody()) && proto.enterprise.gloo.solo.io.BufferSettings.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 7, false),
-    statusOnError: jspb.Message.getFieldWithDefault(msg, 8, 0)
+    statusOnError: jspb.Message.getFieldWithDefault(msg, 8, 0),
+    transportApiVersion: jspb.Message.getFieldWithDefault(msg, 9, 0)
   };
 
   if (includeInstance) {
@@ -1351,6 +1353,10 @@ proto.enterprise.gloo.solo.io.Settings.deserializeBinaryFromReader = function(ms
     case 8:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setStatusOnError(value);
+      break;
+    case 9:
+      var value = /** @type {!proto.enterprise.gloo.solo.io.Settings.ApiVersion} */ (reader.readEnum());
+      msg.setTransportApiVersion(value);
       break;
     default:
       reader.skipField();
@@ -1441,8 +1447,23 @@ proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter = function(messag
       f
     );
   }
+  f = message.getTransportApiVersion();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      9,
+      f
+    );
+  }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.Settings.ApiVersion = {
+  V2: 0,
+  V3: 1
+};
 
 /**
  * optional core.solo.io.ResourceRef extauthz_server_ref = 1;
@@ -1625,6 +1646,21 @@ proto.enterprise.gloo.solo.io.Settings.prototype.getStatusOnError = function() {
 /** @param {number} value */
 proto.enterprise.gloo.solo.io.Settings.prototype.setStatusOnError = function(value) {
   jspb.Message.setProto3IntField(this, 8, value);
+};
+
+
+/**
+ * optional ApiVersion transport_api_version = 9;
+ * @return {!proto.enterprise.gloo.solo.io.Settings.ApiVersion}
+ */
+proto.enterprise.gloo.solo.io.Settings.prototype.getTransportApiVersion = function() {
+  return /** @type {!proto.enterprise.gloo.solo.io.Settings.ApiVersion} */ (jspb.Message.getFieldWithDefault(this, 9, 0));
+};
+
+
+/** @param {!proto.enterprise.gloo.solo.io.Settings.ApiVersion} value */
+proto.enterprise.gloo.solo.io.Settings.prototype.setTransportApiVersion = function(value) {
+  jspb.Message.setProto3EnumField(this, 9, value);
 };
 
 

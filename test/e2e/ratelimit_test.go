@@ -12,6 +12,12 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
+	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/solo-io/ext-auth-service/pkg/service"
+	ratelimit2 "github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
+	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -46,12 +52,14 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		cache           memory.InMemoryResourceCache
 		rlAddr          string
 	)
+
 	const (
-		redisaddr = "127.0.0.1"
-		redisport = uint32(6379)
-		rladdr    = "127.0.0.1"
-		rlport    = uint32(18081)
+		redisAddr     = "127.0.0.1"
+		redisPort     = uint32(6379)
+		rateLimitAddr = "127.0.0.1"
+		rateLimitPort = uint32(18081)
 	)
+
 	BeforeEach(func() {
 		glooSettings = &gloov1.Settings{}
 	})
@@ -64,6 +72,8 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				envoyInstance *services.EnvoyInstance
 				testUpstream  *v1helpers.TestUpstream
 				envoyPort     = uint32(8080)
+
+				anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
 			)
 
 			BeforeEach(func() {
@@ -71,8 +81,8 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				envoyInstance, err = envoyFactory.NewEnvoyInstance()
 				Expect(err).NotTo(HaveOccurred())
 
-				envoyInstance.RatelimitAddr = rladdr
-				envoyInstance.RatelimitPort = rlport
+				envoyInstance.RatelimitAddr = rateLimitAddr
+				envoyInstance.RatelimitPort = rateLimitPort
 				rlAddr = envoyInstance.LocalAddr()
 
 				err = envoyInstance.Run(testClients.GlooPort)
@@ -88,6 +98,19 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				up := testUpstream.Upstream
 				_, err = testClients.UpstreamClient.Write(up, opts)
 				Expect(err).NotTo(HaveOccurred())
+
+				anonymousLimits = &ratelimit.IngressRateLimit{
+					AnonymousLimits: &rlv1alpha1.RateLimit{
+						RequestsPerUnit: 1,
+						Unit:            rlv1alpha1.RateLimit_SECOND,
+					},
+				}
+				authorizedLimits = &ratelimit.IngressRateLimit{
+					AuthorizedLimits: &rlv1alpha1.RateLimit{
+						RequestsPerUnit: 1,
+						Unit:            rlv1alpha1.RateLimit_SECOND,
+					},
+				}
 			})
 
 			AfterEach(func() {
@@ -97,9 +120,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			})
 
 			It("should rate limit envoy", func() {
-
-				hosts := map[string]bool{"host1": true}
-				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+					withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+					build()
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
@@ -109,9 +132,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			})
 
 			It("should rate limit two vhosts", func() {
-
-				hosts := map[string]bool{"host1": true, "host2": true}
-				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+					withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+					withVirtualHost("host2", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+					build()
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
@@ -123,50 +147,46 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			})
 
 			It("should rate limit one of two vhosts", func() {
-
-				hosts := map[string]bool{"host1": false, "host2": true}
-				proxy := getAuthEnabledProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+					withVirtualHost("host1", virtualHostConfig{}).
+					withVirtualHost("host2", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+					build()
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Eventually(isServerHealthy, "5s").Should(BeTrue())
-
 				ConsistentlyNotRateLimited("host1", envoyPort)
 				EventuallyRateLimited("host2", envoyPort)
 			})
 
-			It("should ratelimit on route", func() {
-				ingressRateLimit := &ratelimit.IngressRateLimit{
-					AnonymousLimits: &rlv1alpha1.RateLimit{
-						RequestsPerUnit: 1,
-						Unit:            rlv1alpha1.RateLimit_SECOND,
-					},
-				}
-				rlb := RlProxyBuilder{
-					envoyPort:                    envoyPort,
-					upstream:                     testUpstream.Upstream.Metadata.Ref(),
-					hostsToVirtualHostRateLimits: map[string]bool{"host1": false},
-					hostsToRouteRateLimits:       map[string]bool{"host1": true},
-					ingressRateLimit:             ingressRateLimit,
-				}
-				proxy := rlb.getProxy()
+			It("should rate limit on route", func() {
+				proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+					withVirtualHost("host1", virtualHostConfig{
+						routes: []routeConfig{{
+							prefix:           "/foo",
+							ingressRateLimit: anonymousLimits,
+						}},
+					}).build()
+
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Eventually(isServerHealthy, "5s").Should(BeTrue())
-				EventuallyRateLimited("host1/noauth", envoyPort)
+				EventuallyRateLimited("host1/foo", envoyPort)
 			})
 
 			Context("with auth", func() {
 
+				const extAuthUserIdMetadataKey = "authUserId"
+
 				BeforeEach(func() {
 					// start the ext auth server
-					extauthport := uint32(9100)
+					extAuthPort := uint32(9100)
 
-					extauthserver := &gloov1.Upstream{
+					extAuthUpstream := &gloov1.Upstream{
 						Metadata: &core.Metadata{
-							Name:      "extauth-server",
+							Name:      "ext-auth-server",
 							Namespace: "default",
 						},
 						UseHttp2: &wrappers.BoolValue{Value: true},
@@ -174,7 +194,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 							Static: &gloov1static.UpstreamSpec{
 								Hosts: []*gloov1static.Host{{
 									Addr: envoyInstance.LocalAddr(),
-									Port: extauthport,
+									Port: extAuthPort,
 								}},
 							},
 						},
@@ -193,49 +213,56 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					}, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
+					_, err = testClients.UpstreamClient.Write(extAuthUpstream, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					ref := extauthserver.Metadata.Ref()
-					extauthSettings := &extauthpb.Settings{
+					ref := extAuthUpstream.Metadata.Ref()
+					extAuthSettings := &extauthpb.Settings{
 						ExtauthzServerRef: ref,
+						// Required for dynamic metadata emission to work
+						TransportApiVersion: extauthpb.Settings_V3,
 					}
-					glooSettings.Extauth = extauthSettings
+					glooSettings.Extauth = extAuthSettings
 
 					settings := extauthrunner.Settings{
 						GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),
 						ExtAuthSettings: server.Settings{
 							DebugPort:    0,
-							ServerPort:   int(extauthport),
+							ServerPort:   int(extAuthPort),
 							SigningKey:   "hello",
 							UserIdHeader: "X-User-Id",
+							// These settings are required for the server to add the userID to the dynamic metadata
+							MetadataSettings: service.DynamicMetadataSettings{
+								Enabled:   true,
+								UserIdKey: extAuthUserIdMetadataKey,
+							},
 						},
 					}
-					go func(testctx context.Context) {
+					go func(testCtx context.Context) {
 						defer GinkgoRecover()
-						err := extauthrunner.RunWithSettings(testctx, settings)
-						if testctx.Err() == nil {
+						err := extauthrunner.RunWithSettings(testCtx, settings)
+						if testCtx.Err() == nil {
 							Expect(err).NotTo(HaveOccurred())
 						}
 					}(ctx)
 				})
 
-				It("should ratelimit authorized users", func() {
-					ingressRateLimit := &ratelimit.IngressRateLimit{
-						AuthorizedLimits: &rlv1alpha1.RateLimit{
-							RequestsPerUnit: 1,
-							Unit:            rlv1alpha1.RateLimit_SECOND,
-						},
-					}
-					rlb := RlProxyBuilder{
-						envoyPort:                    envoyPort,
-						upstream:                     testUpstream.Upstream.Metadata.Ref(),
-						hostsToVirtualHostRateLimits: map[string]bool{"host1": true},
-						ingressRateLimit:             ingressRateLimit,
-					}
-					proxy := rlb.getProxy()
-					vhost := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener.VirtualHosts[0]
-					vhost.Options.Extauth = GetBasicAuthExtension()
+				It("should rate limit authorized users using the `RatelimitBasic` API", func() {
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{
+							rateLimitConfig: authorizedLimits,
+							extAuth:         GetBasicAuthExtension(),
+							routes: []routeConfig{
+								{
+									prefix:  "/noauth",
+									extAuth: &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
+								},
+								{
+									prefix: "/",
+								},
+							},
+						}).build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -243,6 +270,27 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					// do the eventually first to give envoy a chance to start
 					EventuallyRateLimited("user:password@host1", envoyPort)
 					ConsistentlyNotRateLimited("host1/noauth", envoyPort)
+				})
+
+				It("should rate limit based on metadata emitted by the ext auth server", func() {
+					// The basic auth (APR) AuthService produces UserIDs in the form <realm>;<username>, hence "gloo;user"
+					rlc := getMetadataRateLimitConfig(extAuthUserIdMetadataKey, "gloo;user")
+
+					_, err := testClients.RateLimitConfigClient.Write(rlc, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{
+							rateLimitConfig: rlc,
+							extAuth:         GetBasicAuthExtension(),
+						}).build()
+
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+
+					EventuallyRateLimited("user:password@host1", envoyPort)
 				})
 			})
 
@@ -281,7 +329,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor weighted rate limit rules", func() {
-					hosts := map[string]bool{"host1": true}
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						Actions: []*rlv1alpha1.Action{{
 							ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
@@ -289,7 +336,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 							}},
 						}}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -308,7 +358,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						}}
 					rateLimits = append(rateLimits, weightedAction)
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -318,7 +371,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor alwaysApply rate limit rules", func() {
-					hosts := map[string]bool{"host1": true}
 					// add a prioritized rule to match against (has largest weight)
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						Actions: []*rlv1alpha1.Action{{
@@ -327,7 +379,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 							}},
 						}}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -346,7 +401,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						}}
 					rateLimits = append(rateLimits, weightedAction)
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -382,7 +440,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor rate limit rules with a subset of the SetActions", func() {
-					hosts := map[string]bool{"host1": true}
 					// add rate limit setActions such that the rule requires only a subset of the actions
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -398,7 +455,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -420,7 +480,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -476,7 +538,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor rate limit rules with a subset of the SetActions", func() {
-					hosts := map[string]bool{"host1": true}
 					// add rate limit setActions such that the rule requires only a subset of the actions
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -501,7 +562,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -516,7 +579,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor rate limit rules with a subset of the SetActions", func() {
-					hosts := map[string]bool{"host1": true}
 					// add rate limit setActions such that the rule requires only a subset of the actions
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -541,7 +603,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -596,7 +660,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor alwaysApply rate limit rules", func() {
-					hosts := map[string]bool{"host1": true}
 					// add a rate limit setAction that points to a rule with generous limit
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -606,7 +669,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -634,7 +699,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -645,7 +713,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor rate limit rule with no simpleDescriptors", func() {
-					hosts := map[string]bool{"host1": true}
 					// add a rate limit with any SetActions to match the rule with no simpleDescriptors
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -655,7 +722,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						}},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -715,7 +784,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor set rules when tree rules also apply", func() {
-					hosts := map[string]bool{"host1": true}
 					// add a rate limit action that points to a rule with generous limit
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						Actions: []*rlv1alpha1.Action{{
@@ -725,7 +793,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -745,7 +816,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						}}
 					rateLimits = append(rateLimits, weightedAction)
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -756,7 +830,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 				It("should honor tree rules when set rules also apply", func() {
-					hosts := map[string]bool{"host1": true}
 					// add a rate limit setAction that points to a rule with generous limit
 					rateLimits := []*rlv1alpha1.RateLimitActions{{
 						SetActions: []*rlv1alpha1.Action{{
@@ -766,7 +839,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						},
 					}}
 
-					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -786,7 +862,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 						}}
 					rateLimits = append(rateLimits, weightedAction)
 
-					proxy = getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+						withVirtualHost("host1", virtualHostConfig{rateLimitConfig: rateLimits}).
+						build()
+
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -799,6 +878,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 		})
 	}
+
 	justBeforeEach := func() {
 		// add the rl service as a static upstream
 		rlserver := &gloov1.Upstream{
@@ -811,7 +891,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
 						Addr: rlAddr,
-						Port: rlport,
+						Port: rateLimitPort,
 					}},
 				},
 			},
@@ -826,7 +906,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
 		}
 
-		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rladdr, testClients.GlooPort)
+		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rateLimitAddr, testClients.GlooPort)
 
 		glooSettings.RatelimitServer = rlSettings
 
@@ -843,8 +923,10 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 		BeforeEach(func() {
 			var err error
-			os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
-			os.Setenv("REDIS_SOCKET_TYPE", "tcp")
+			err = os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisAddr, redisPort))
+			Expect(err).NotTo(HaveOccurred())
+			err = os.Setenv("REDIS_SOCKET_TYPE", "tcp")
+			Expect(err).NotTo(HaveOccurred())
 
 			command := exec.Command(getRedisPath(), "--port", "6379")
 			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -858,8 +940,8 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 			testClients = services.GetTestClients(ctx, cache)
 			testClients.GlooPort = int(services.AllocateGlooPort())
-
 		})
+
 		JustBeforeEach(justBeforeEach)
 
 		AfterEach(func() {
@@ -875,14 +957,18 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		BeforeEach(func() {
 			// By setting these environment variables to non-empty values we signal we want to use DynamoDb
 			// instead of Redis as our rate limiting backend. Local DynamoDB requires any non-empty creds to work
-			os.Setenv("AWS_ACCESS_KEY_ID", "fakeMyKeyId")
-			os.Setenv("AWS_SECRET_ACCESS_KEY", "fakeSecretAccessKey")
+			err := os.Setenv("AWS_ACCESS_KEY_ID", "fakeMyKeyId")
+			Expect(err).NotTo(HaveOccurred())
+			err = os.Setenv("AWS_SECRET_ACCESS_KEY", "fakeSecretAccessKey")
+			Expect(err).NotTo(HaveOccurred())
 
 			awsEndpoint := "http://" + services.GetDynamoDbHost() + ":" + services.DynamoDbPort
 			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
-			os.Setenv("AWS_ENDPOINT", awsEndpoint)
+			err = os.Setenv("AWS_ENDPOINT", awsEndpoint)
+			Expect(err).NotTo(HaveOccurred())
 
-			services.RunDynamoDbContainer()
+			err = services.RunDynamoDbContainer()
+			Expect(err).NotTo(HaveOccurred())
 			Eventually(services.DynamoDbHealthCheck(awsEndpoint), "5s", "100ms").Should(BeEquivalentTo(services.HealthCheck{IsHealthy: true}))
 
 			ctx, cancel = context.WithCancel(context.Background())
@@ -988,192 +1074,221 @@ func get(hostname string, port uint32, headers http.Header) (*http.Response, err
 	return http.DefaultClient.Do(req)
 }
 
-func getAuthEnabledProxy(envoyPort uint32, upstream *core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
-	ingressRateLimit := &ratelimit.IngressRateLimit{
-		AnonymousLimits: &rlv1alpha1.RateLimit{
-			RequestsPerUnit: 1,
-			Unit:            rlv1alpha1.RateLimit_SECOND,
-		},
-	}
-	rlb := RlProxyBuilder{
-		envoyPort:                    envoyPort,
-		upstream:                     upstream,
-		hostsToVirtualHostRateLimits: hostsToRateLimits,
-		ingressRateLimit:             ingressRateLimit,
-	}
-	return rlb.getProxy()
-}
-
-type RlProxyBuilder struct {
-	ingressRateLimit             *ratelimit.IngressRateLimit
-	upstream                     *core.ResourceRef
-	hostsToVirtualHostRateLimits map[string]bool
-	hostsToRouteRateLimits       map[string]bool
-	envoyPort                    uint32
-}
-
-func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
-
-	var vhosts []*gloov1.VirtualHost
-
-	for hostname, enableRateLimits := range b.hostsToVirtualHostRateLimits {
-		routeRateLimit := b.ingressRateLimit
-		if !b.hostsToRouteRateLimits[hostname] {
-			routeRateLimit = nil
-		}
-
-		vhost := &gloov1.VirtualHost{
-			Name:    "gloo-system_virt" + hostname,
-			Domains: []string{hostname},
-			Routes: []*gloov1.Route{
-				{
-					Name: "gloo-system_route-noauth-" + hostname,
-					Matchers: []*matchers.Matcher{{
-						PathSpecifier: &matchers.Matcher_Prefix{
-							Prefix: "/noauth",
-						},
-					}},
-					Action: &gloov1.Route_RouteAction{
-						RouteAction: &gloov1.RouteAction{
-							Destination: &gloov1.RouteAction_Single{
-								Single: &gloov1.Destination{
-									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: b.upstream,
-									},
-								},
-							},
-						},
-					},
-					Options: &gloov1.RouteOptions{
-						Extauth:        &extauthpb.ExtAuthExtension{Spec: &extauthpb.ExtAuthExtension_Disable{Disable: true}},
-						RatelimitBasic: routeRateLimit,
-					},
-				},
-				{
-					Name: "gloo-system_route-auth-" + hostname,
-					Action: &gloov1.Route_RouteAction{
-						RouteAction: &gloov1.RouteAction{
-							Destination: &gloov1.RouteAction_Single{
-								Single: &gloov1.Destination{
-									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: b.upstream,
-									},
-								},
-							},
-						},
-					},
-					Options: &gloov1.RouteOptions{
-						RatelimitBasic: routeRateLimit,
-					},
-				},
-			},
-		}
-
-		if enableRateLimits {
-			vhost.Options = &gloov1.VirtualHostOptions{
-				RatelimitBasic: b.ingressRateLimit,
-			}
-		}
-		vhosts = append(vhosts, vhost)
-	}
-
-	p := &gloov1.Proxy{
-		Metadata: &core.Metadata{
-			Name:      "proxy",
-			Namespace: "default",
-		},
-		Listeners: []*gloov1.Listener{{
-			Name:        "listener",
-			BindAddress: "0.0.0.0",
-			BindPort:    b.envoyPort,
-			ListenerType: &gloov1.Listener_HttpListener{
-				HttpListener: &gloov1.HttpListener{
-					VirtualHosts: vhosts,
-				},
-			},
-		}},
-	}
-
-	return p
-}
-
-func getCustomProxy(envoyPort uint32, upstream *core.ResourceRef, hostsToRateLimits map[string]bool, rateLimits []*rlv1alpha1.RateLimitActions) *gloov1.Proxy {
-	rlVhostExt := &ratelimit.RateLimitVhostExtension{
-		RateLimits: rateLimits,
-	}
-	rlb := CustomRlProxyBuilder{
-		envoyPort:         envoyPort,
-		upstream:          upstream,
-		hostsToRateLimits: hostsToRateLimits,
-		customRateLimit:   rlVhostExt,
-	}
-	return rlb.getCustomProxy()
-}
-
-type CustomRlProxyBuilder struct {
-	customRateLimit   *ratelimit.RateLimitVhostExtension
-	upstream          *core.ResourceRef
-	hostsToRateLimits map[string]bool
-	envoyPort         uint32
-}
-
-func (b *CustomRlProxyBuilder) getCustomProxy() *gloov1.Proxy {
-	var vhosts []*gloov1.VirtualHost
-
-	for hostname, enableRateLimits := range b.hostsToRateLimits {
-		vhost := &gloov1.VirtualHost{
-			Name:    "gloo-system_virt" + hostname,
-			Domains: []string{hostname},
-			Routes: []*gloov1.Route{
-				{
-					Action: &gloov1.Route_RouteAction{
-						RouteAction: &gloov1.RouteAction{
-							Destination: &gloov1.RouteAction_Single{
-								Single: &gloov1.Destination{
-									DestinationType: &gloov1.Destination_Upstream{
-										Upstream: b.upstream,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-
-		if enableRateLimits {
-			vhost.Options = &gloov1.VirtualHostOptions{
-				RateLimitConfigType: &gloov1.VirtualHostOptions_Ratelimit{
-					Ratelimit: b.customRateLimit,
-				},
-			}
-		}
-		vhosts = append(vhosts, vhost)
-	}
-
-	p := &gloov1.Proxy{
-		Metadata: &core.Metadata{
-			Name:      "proxy",
-			Namespace: "default",
-		},
-		Listeners: []*gloov1.Listener{{
-			Name:        "listener",
-			BindAddress: "0.0.0.0",
-			BindPort:    b.envoyPort,
-			ListenerType: &gloov1.Listener_HttpListener{
-				HttpListener: &gloov1.HttpListener{
-					VirtualHosts: vhosts,
-				},
-			},
-		}},
-	}
-
-	return p
-}
 func getRedisPath() string {
 	binaryPath := os.Getenv("REDIS_BINARY")
 	if binaryPath != "" {
 		return binaryPath
 	}
 	return "redis-server"
+}
+
+type rateLimitingProxyBuilder struct {
+	port              uint32
+	virtualHostConfig map[string]virtualHostConfig
+	// Will be used for all routes
+	routeAction *gloov1.Route_RouteAction
+}
+
+type routeConfig struct {
+	prefix             string
+	extAuth            *extauthpb.ExtAuthExtension
+	ingressRateLimit   *ratelimit.IngressRateLimit
+	rateLimitConfigRef *core.ResourceRef
+}
+
+type virtualHostConfig struct {
+	// A simple catch-all route to the target upstream will always be appended to this slice
+	routes  []routeConfig
+	extAuth *extauthpb.ExtAuthExtension
+	// Check the builder implementation to see the supported config types
+	rateLimitConfig interface{}
+}
+
+func newRateLimitingProxyBuilder(port uint32, targetUpstream *core.ResourceRef) *rateLimitingProxyBuilder {
+	return &rateLimitingProxyBuilder{
+		port: port,
+		routeAction: &gloov1.Route_RouteAction{
+			RouteAction: &gloov1.RouteAction{
+				Destination: &gloov1.RouteAction_Single{
+					Single: &gloov1.Destination{
+						DestinationType: &gloov1.Destination_Upstream{
+							Upstream: targetUpstream,
+						},
+					},
+				},
+			},
+		},
+		virtualHostConfig: make(map[string]virtualHostConfig),
+	}
+}
+
+func (b *rateLimitingProxyBuilder) withVirtualHost(domain string, config virtualHostConfig) *rateLimitingProxyBuilder {
+	if _, ok := b.virtualHostConfig[domain]; ok {
+		panic("already have a virtual host with domain: " + domain)
+	}
+
+	b.virtualHostConfig[domain] = config
+	return b
+}
+
+func (b *rateLimitingProxyBuilder) build() *gloov1.Proxy {
+	var virtualHosts []*gloov1.VirtualHost
+	for domain, vhostConfig := range b.virtualHostConfig {
+
+		vhost := &gloov1.VirtualHost{
+			Name:    "gloo-system_" + domain,
+			Domains: []string{domain},
+			Options: &gloov1.VirtualHostOptions{},
+			Routes:  []*gloov1.Route{},
+		}
+
+		if vhostConfig.extAuth != nil {
+			vhost.Options.Extauth = vhostConfig.extAuth
+		}
+
+		switch rateLimitConfig := vhostConfig.rateLimitConfig.(type) {
+		case *v1alpha1.RateLimitConfig:
+			vhost.Options.RateLimitConfigType = &gloov1.VirtualHostOptions_RateLimitConfigs{
+				RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+					Refs: []*ratelimit.RateLimitConfigRef{
+						{
+							Namespace: rateLimitConfig.GetNamespace(),
+							Name:      rateLimitConfig.GetName(),
+						},
+					},
+				},
+			}
+		case []*rlv1alpha1.RateLimitActions:
+			vhost.Options.RateLimitConfigType = &gloov1.VirtualHostOptions_Ratelimit{
+				Ratelimit: &ratelimit.RateLimitVhostExtension{
+					RateLimits: rateLimitConfig,
+				},
+			}
+		case *ratelimit.IngressRateLimit:
+			vhost.Options.RatelimitBasic = rateLimitConfig
+		case nil:
+			break
+		default:
+			panic("unexpected rate limit config type")
+		}
+
+		for i, routeCfg := range vhostConfig.routes {
+
+			var match []*matchers.Matcher
+			if routeCfg.prefix != "" {
+				match = []*matchers.Matcher{{
+					PathSpecifier: &matchers.Matcher_Prefix{
+						Prefix: routeCfg.prefix,
+					},
+				}}
+			}
+
+			routeOptions := &gloov1.RouteOptions{}
+			if routeCfg.ingressRateLimit != nil {
+				routeOptions.RatelimitBasic = routeCfg.ingressRateLimit
+			}
+			if routeCfg.rateLimitConfigRef != nil {
+				routeOptions.RateLimitConfigType = &gloov1.RouteOptions_RateLimitConfigs{
+					RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+						Refs: []*ratelimit.RateLimitConfigRef{
+							{
+								Name:      routeCfg.rateLimitConfigRef.Name,
+								Namespace: routeCfg.rateLimitConfigRef.Namespace,
+							},
+						},
+					},
+				}
+			}
+			if routeCfg.extAuth != nil {
+				routeOptions.Extauth = routeCfg.extAuth
+			}
+
+			vhost.Routes = append(vhost.Routes, &gloov1.Route{
+				// Name is required for `RateLimitBasic` config to work
+				Name:     fmt.Sprintf("gloo-system_route-%s-%d", domain, i),
+				Matchers: match,
+				Action:   b.routeAction,
+				Options:  routeOptions,
+			})
+		}
+
+		// Add a fallback route to the target upstream
+		vhost.Routes = append(vhost.Routes, &gloov1.Route{
+			Action: b.routeAction,
+		})
+
+		virtualHosts = append(virtualHosts, vhost)
+	}
+
+	return &gloov1.Proxy{
+		Metadata: &core.Metadata{
+			Name:      "proxy",
+			Namespace: "default",
+		},
+		Listeners: []*gloov1.Listener{
+			{
+				Name:        "e2e-test-listener",
+				BindAddress: "0.0.0.0",
+				BindPort:    b.port,
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: virtualHosts,
+					},
+				},
+			},
+		},
+	}
+}
+
+func getMetadataRateLimitConfig(extAuthUserIdMetadataKey, userId string) *v1alpha1.RateLimitConfig {
+	descriptorKey := "user-id"
+	return &v1alpha1.RateLimitConfig{
+		RateLimitConfig: ratelimit2.RateLimitConfig{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "md-rl-config",
+				Namespace: "default",
+			},
+			Spec: rlv1alpha1.RateLimitConfigSpec{
+				ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
+					Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors: []*rlv1alpha1.Descriptor{
+							{
+								Key:   descriptorKey,
+								Value: userId,
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 1,
+								},
+							},
+						},
+						RateLimits: []*rlv1alpha1.RateLimitActions{
+							{
+								Actions: []*rlv1alpha1.Action{
+									{
+										ActionSpecifier: &rlv1alpha1.Action_Metadata{
+											Metadata: &rlv1alpha1.Action_MetaData{
+												DescriptorKey: descriptorKey,
+												MetadataKey: &rlv1alpha1.Action_MetaData_MetadataKey{
+													// Ext auth emits metadata in a namespace specified by
+													// the canonical name of extension filter we are using.
+													Key: wellknown.HTTPExternalAuthorization,
+													Path: []*rlv1alpha1.Action_MetaData_MetadataKey_PathSegment{
+														{
+															Segment: &rlv1alpha1.Action_MetaData_MetadataKey_PathSegment_Key{
+																Key: extAuthUserIdMetadataKey,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

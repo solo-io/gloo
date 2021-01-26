@@ -110,12 +110,12 @@ type ObservabilityDeployment struct {
 }
 
 type CustomGrafana struct {
-	Enabled  bool   `json:"enabled",omitempty,desc:"Set to true to indicate that the observability pod should talk to a custom grafana instance"`
-	Username string `json:"username",omitempty,desc:"Set this and the 'password' field to authenticate to the custom grafana instance using basic auth"`
-	Password string `json:"password",omitempty,desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
-	ApiKey   string `json:"apiKey",omitempty,desc:"Authenticate to the custom grafana instance using this api key"`
-	Url      string `json:"url",omitempty,desc:"The URL for the custom grafana instance"`
-	CaBundle string `json:"caBundle",omitempty,desc:"The Certificate Authority used to verify the server certificates.'"`
+	Enabled  bool   `json:"enabled,omitempty" desc:"Set to true to indicate that the observability pod should talk to a custom grafana instance"`
+	Username string `json:"username,omitempty" desc:"Set this and the 'password' field to authenticate to the custom grafana instance using basic auth"`
+	Password string `json:"password,omitempty" desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
+	ApiKey   string `json:"apiKey,omitempty" desc:"Authenticate to the custom grafana instance using this api key"`
+	Url      string `json:"url,omitempty" desc:"The URL for the custom grafana instance"`
+	CaBundle string `json:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
 }
 
 type ExtAuth struct {
@@ -130,9 +130,10 @@ type ExtAuth struct {
 	Plugins              map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
 	EnvoySidecar         bool                      `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
 	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
+	TransportApiVersion  string                    `json:"transportApiVersion" desc:"Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''"`
 	ServiceName          string                    `json:"serviceName,omitempty"`
 	RequestTimeout       string                    `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
-	HeadersToRedact      string                    `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify "-" as the value`
+	HeadersToRedact      string                    `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
 }
 
 type ExtAuthDeployment struct {
@@ -181,7 +182,7 @@ type ApiServerDeployment struct {
 	RunAsUser            float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the 3 api-server containers to run as. Default is 10101"`
 	FloatingUserId       bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraApiServerLabels map[string]string          `json:"extraApiServerLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ApiServer deployment."`
-	SslSecretName        string                     `json:"sslSecretName`
+	SslSecretName        string                     `json:"sslSecretName"`
 	*glooGen.DeploymentSpec
 }
 

@@ -220,6 +220,9 @@ export class Settings extends jspb.Message {
   getStatusOnError(): number;
   setStatusOnError(value: number): void;
 
+  getTransportApiVersion(): Settings.ApiVersionMap[keyof Settings.ApiVersionMap];
+  setTransportApiVersion(value: Settings.ApiVersionMap[keyof Settings.ApiVersionMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -240,7 +243,15 @@ export namespace Settings {
     requestBody?: BufferSettings.AsObject,
     clearRouteCache: boolean,
     statusOnError: number,
+    transportApiVersion: Settings.ApiVersionMap[keyof Settings.ApiVersionMap],
   }
+
+  export interface ApiVersionMap {
+    V2: 0;
+    V3: 1;
+  }
+
+  export const ApiVersion: ApiVersionMap;
 }
 
 export class HttpService extends jspb.Message {
