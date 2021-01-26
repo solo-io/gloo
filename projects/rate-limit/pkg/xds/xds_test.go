@@ -252,11 +252,11 @@ func (rateLimitDomain) Dump() string {
 	panic("implement me")
 }
 
-func (rateLimitDomain) GetLimit(_ context.Context, _ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) *config.RateLimit {
+func (rateLimitDomain) GetLimit(_ context.Context, _ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) *config.KeyedRateLimits {
 	panic("implement me")
 }
 
-func (rateLimitDomain) GetSetLimits(_ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) []*config.RateLimit {
+func (rateLimitDomain) GetSetLimits(_ *envoy_extensions_common_ratelimit_v3.RateLimitDescriptor) []*config.KeyedRateLimits {
 	panic("implement me")
 }
 

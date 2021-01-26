@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    description: >
+      Set-style ratelimit API only: set the skip if empty on request headers in rate limiting so that descriptors are
+      still sent to the rate limit server even if some headers are missing on the request.
+    issueLink: https://github.com/solo-io/gloo/issues/4095
+  - type: FIX
+    description: >
+      Set-style ratelimit API only: fix the cache key used in the rate limit API in cases where more descriptors were
+      provided in the tuple than necessary to match the set rule.
+    issueLink: https://github.com/solo-io/gloo/issues/4095

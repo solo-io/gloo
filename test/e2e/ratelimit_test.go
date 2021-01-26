@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/rand"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -355,7 +357,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 			})
 
-			Context("set limits- set functionality", func() {
+			Context("set limits: basic set functionality with generic keys", func() {
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
 						SetDescriptors: []*rlv1alpha1.SetDescriptor{
@@ -427,7 +429,133 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 			})
 
-			Context("set limits- alwaysApply rules and rules with no simpleDescriptors", func() {
+			Context("set limits: set functionality with request headers", func() {
+				BeforeEach(func() {
+					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+						SetDescriptors: []*rlv1alpha1.SetDescriptor{
+							{
+								AlwaysApply: true,
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "api",
+										Value: "voice",
+									},
+									{
+										Key:   "accountid",
+										Value: "test_account",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 5,
+								},
+							},
+							{
+								AlwaysApply: true,
+								SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+									{
+										Key:   "api",
+										Value: "voice",
+									},
+									{
+										Key:   "accountid",
+										Value: "test_account",
+									},
+									{
+										Key:   "fromnumber",
+										Value: "1234567890",
+									},
+								},
+								RateLimit: &rlv1alpha1.RateLimit{
+									Unit:            rlv1alpha1.RateLimit_MINUTE,
+									RequestsPerUnit: 2,
+								},
+							},
+						},
+					}
+				})
+
+				It("should honor rate limit rules with a subset of the SetActions", func() {
+					hosts := map[string]bool{"host1": true}
+					// add rate limit setActions such that the rule requires only a subset of the actions
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "api",
+									HeaderName:    "x-api",
+								},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "accountid",
+									HeaderName:    "x-account-id",
+								},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "fromnumber",
+									HeaderName:    "x-from-number",
+								},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					headers := http.Header{}
+					headers.Add("x-api", "voice")
+					headers.Add("x-account-id", "test_account")
+					// only sending two of the three headers provided in the actions
+					// this test ensures envoy doesn't try to be fancy and short circuit the request
+					// we want envoy to carry on and send which headers it did find
+					EventuallyRateLimitedWithHeaders("host1", envoyPort, headers)
+				})
+
+				It("should honor rate limit rules with a subset of the SetActions", func() {
+					hosts := map[string]bool{"host1": true}
+					// add rate limit setActions such that the rule requires only a subset of the actions
+					rateLimits := []*rlv1alpha1.RateLimitActions{{
+						SetActions: []*rlv1alpha1.Action{{
+							ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "api",
+									HeaderName:    "x-api",
+								},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "accountid",
+									HeaderName:    "x-account-id",
+								},
+							}},
+							{ActionSpecifier: &rlv1alpha1.Action_RequestHeaders_{
+								RequestHeaders: &rlv1alpha1.Action_RequestHeaders{
+									DescriptorKey: "fromnumber",
+									HeaderName:    "x-from-number",
+								},
+							}},
+						},
+					}}
+
+					proxy := getCustomProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts, rateLimits)
+					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(isServerHealthy, "5s").Should(BeTrue())
+					headers := http.Header{}
+					headers.Add("x-api", "voice")
+					headers.Add("x-account-id", "test_account")
+					// random to ensure the set key is being used not the cache key - should match first rule
+					headers.Add("x-from-number", fmt.Sprintf("%v", rand.Int63nRange(0, 9999999999)))
+					EventuallyRateLimitedWithHeaders("host1", envoyPort, headers)
+				})
+			})
+
+			Context("set limits: alwaysApply rules and rules with no simpleDescriptors", func() {
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
 						SetDescriptors: []*rlv1alpha1.SetDescriptor{
@@ -781,7 +909,7 @@ func EventuallyOk(hostname string, port uint32) {
 	// (gloo resyncs once per second)
 	time.Sleep(3 * time.Second)
 	EventuallyWithOffset(1, func() error {
-		res, err := get(hostname, port)
+		res, err := get(hostname, port, nil)
 		if err != nil {
 			return err
 		}
@@ -797,7 +925,7 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 	EventuallyOk(hostname, port)
 
 	ConsistentlyWithOffset(2, func() error {
-		res, err := get(hostname, port)
+		res, err := get(hostname, port, nil)
 		if err != nil {
 			return err
 		}
@@ -810,7 +938,7 @@ func ConsistentlyNotRateLimited(hostname string, port uint32) {
 
 func EventuallyRateLimited(hostname string, port uint32) {
 	EventuallyWithOffset(1, func() error {
-		res, err := get(hostname, port)
+		res, err := get(hostname, port, nil)
 		if err != nil {
 			return err
 		}
@@ -821,7 +949,20 @@ func EventuallyRateLimited(hostname string, port uint32) {
 	}, "5s", ".1s").Should(BeNil())
 }
 
-func get(hostname string, port uint32) (*http.Response, error) {
+func EventuallyRateLimitedWithHeaders(hostname string, port uint32, headers http.Header) {
+	EventuallyWithOffset(1, func() error {
+		res, err := get(hostname, port, headers)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusTooManyRequests {
+			return errors.New(fmt.Sprintf("%v is not TooManyRequests", res.StatusCode))
+		}
+		return nil
+	}, "5s", ".1s").Should(BeNil())
+}
+
+func get(hostname string, port uint32, headers http.Header) (*http.Response, error) {
 	parts := strings.SplitN(hostname, "/", 2)
 	hostname = parts[0]
 	path := "1"
@@ -831,6 +972,9 @@ func get(hostname string, port uint32) (*http.Response, error) {
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/"+path, "localhost", port), nil)
 	Expect(err).NotTo(HaveOccurred())
+	if len(headers) > 0 {
+		req.Header = headers
+	}
 
 	// remove password part if exists
 	parts = strings.SplitN(hostname, "@", 2)
