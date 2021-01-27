@@ -38,6 +38,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation_pb";
+import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb from "../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -57,6 +58,11 @@ export class ListenerOptions extends jspb.Message {
   getPerConnectionBufferLimitBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setPerConnectionBufferLimitBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  clearSocketOptionsList(): void;
+  getSocketOptionsList(): Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.SocketOption>;
+  setSocketOptionsList(value: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.SocketOption>): void;
+  addSocketOptions(value?: github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.SocketOption, index?: number): github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.SocketOption;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerOptions): ListenerOptions.AsObject;
@@ -72,6 +78,7 @@ export namespace ListenerOptions {
     accessLoggingService?: github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_pb.AccessLoggingService.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    socketOptionsList: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb.SocketOption.AsObject>,
   }
 }
 
