@@ -1,0 +1,67 @@
+{{- if $.Values.enableMultiClusterRbac }}
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: rbac-validating-webhook-{{ .Release.Name }}
+  labels:
+    app: gloo-fed
+    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+webhooks:
+- name: rbac-validating-webhook-{{ .Release.Name }}.{{ .Release.Namespace }}.svc  # must be a domain with at least three segments separated by dots
+  admissionReviewVersions:
+  - v1beta1
+  sideEffects: None
+  clientConfig:
+    service:
+      name:  rbac-validating-webhook-{{ .Release.Name }}
+      namespace: {{ .Release.Namespace }}
+      path: /admission
+      port: 8443
+  rules:
+  - apiGroups:
+    - fed.enterprise.gloo.solo.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - federatedauthconfigs
+  - apiGroups:
+    - fed.gloo.solo.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - federatedupstreams
+    - federatedupstreamgroups
+    - federatedsettings
+  - apiGroups:
+    - fed.gateway.solo.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - federatedgateways
+    - federatedvirtualservices
+    - federatedroutetables
+  - apiGroups:
+    - fed.solo.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - failoverschemes
+
+{{ end }} # if enableMultiClusterRbac

@@ -1,0 +1,202 @@
+---
+# Source: gloo-fed/templates/gloo-fed-deployment.yaml
+# Service account for gloo-fed
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: gloo-fed
+  name: gloo-fed
+  namespace: gloo-fed
+---
+# Source: gloo-fed/templates/gloo-fed-rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  labels:
+    app: gloo-fed
+rules:
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances
+  - failoverschemes
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances/status
+  - failoverschemes/status
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - fed.gloo.solo.io
+  resources:
+  - federatedauthconfigs
+  - federatedauthconfigs/status
+  - federatedsettings
+  - federatedsettings/status
+  - federatedupstreams
+  - federatedupstreams/status
+  - federatedupstreamgroups
+  - federatedupstreamgroups/status
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.gateway.solo.io
+  resources:
+  - federatedvirtualservices
+  - federatedvirtualservices/status
+  - federatedgateways
+  - federatedgateways/status
+  - federatedroutetables
+  - federatedroutetables/status
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.enterprise.gloo.solo.io
+  resources:
+  - federatedauthconfigs
+  - federatedauthconfigs/status
+  verbs:
+  - '*'
+- apiGroups:
+    - fed.ratelimit.solo.io
+  resources:
+    - federatedratelimitconfigs
+    - federatedratelimitconfigs/status
+  verbs:
+    - '*'
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances/status
+  - failoverschemes/status
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+---
+# Source: gloo-fed/templates/gloo-fed-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  labels:
+    app: gloo-fed
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed
+  namespace: gloo-fed
+roleRef:
+  kind: ClusterRole
+  name: gloo-fed
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: gloo-fed/templates/gloo-fed-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed-console
+  labels:
+    app: gloo-fed
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed-console
+  namespace: gloo-fed
+roleRef:
+  kind: ClusterRole
+  name: gloo-fed
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: gloo-fed/templates/gloo-fed-deployment.yaml
+# Deployment manifest for gloo-fed
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo-fed
+  name: gloo-fed
+  namespace: gloo-fed
+spec:
+  selector:
+    matchLabels:
+      app: gloo-fed
+  template:
+    metadata:
+      labels:
+        app: gloo-fed
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+    spec:
+      serviceAccountName: gloo-fed
+      containers:
+      - image: quay.io/solo-io/gloo-fed:1.7.0-beta3-2-g37079311f-dirty
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: WRITE_NAMESPACE
+          value: gloo-fed
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gloo-fed-license
+              key: license-key
+        imagePullPolicy: IfNotPresent
+        name: gloo-fed
+        resources:
+          requests:
+            cpu: 125m
+            memory: 256Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+---
+# Source: gloo-fed/templates/apiserver-deployment.yaml
+# .Values.glooFedApiserver.enable
+---
+# Source: gloo-fed/templates/apiserver-service.yaml
+# .Values.glooFedApiserver.enable
+---
+# Source: gloo-fed/templates/multicluster-rbac.yaml
+# if enableMultiClusterRbac
+---
+# Source: gloo-fed/templates/validating-webhook-configuration.yaml
+# if enableMultiClusterRbac
+---
+# Source: gloo-fed/templates/validating-webhook-deployment-service.yaml
+# if enableMultiClusterRbac
+---
+# Source: gloo-fed/templates/validating-webhook-rbac.yaml
+# if enableMultiClusterRbac

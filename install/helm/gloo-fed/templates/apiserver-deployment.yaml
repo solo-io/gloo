@@ -1,0 +1,122 @@
+{{- if .Values.glooFedApiserver.enable }}
+# Deployment manifest for gloo-fed-apiserver
+{{- $glooFedApiserver := $.Values.glooFedApiserver}}
+{{- $glooFedApiserverImage := $glooFedApiserver.image }}
+{{- $envoy := $glooFedApiserver.envoy }}
+{{- $envoyImage := $envoy.image }}
+{{- $console := $glooFedApiserver.console }}
+{{- $consoleImage := $console.image }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo-fed
+    gloo-fed: console
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: gloo-fed
+      gloo-fed: console
+  template:
+    metadata:
+      labels:
+        app: gloo-fed
+        gloo-fed: console
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+    spec:
+      serviceAccountName: gloo-fed-console
+      containers:
+      - image: {{ $glooFedApiserverImage.registry }}/{{ $glooFedApiserverImage.repository }}:{{ $glooFedApiserverImage.tag }}
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: WRITE_NAMESPACE
+          value: {{ .Release.Namespace }}
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gloo-fed-license
+              key: license-key
+        imagePullPolicy: {{ $glooFedApiserverImage.pullPolicy }}
+        name: apiserver
+        ports:
+          - name: grpc
+            containerPort: {{ $glooFedApiserver.port}}
+            protocol: TCP
+          - name: healthcheck
+            containerPort: {{ $glooFedApiserver.healthCheckPort}}
+            protocol: TCP
+{{- if $glooFedApiserver.resources }}
+        resources:
+{{ toYaml $glooFedApiserver.resources | indent 10}}
+{{- else}}
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+{{- end}}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      - name: console
+        image: {{ $consoleImage.registry }}/{{ $consoleImage.repository }}:{{ $consoleImage.tag }}
+        imagePullPolicy: {{ $consoleImage.pullPolicy }}
+        ports:
+          - name: static
+            containerPort: {{ $console.port }}
+            protocol: TCP
+{{- if $console.resources }}
+        resources:
+{{ toYaml $console.resources | indent 10}}
+{{- else}}
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+{{- end}}
+      - name: envoy
+        image: {{ $envoyImage.registry }}/{{ $envoyImage.repository }}:{{ $envoyImage.tag }}
+        imagePullPolicy: {{ $envoyImage.pullPolicy }}
+{{- if $envoy.resources }}
+        resources:
+{{ toYaml $envoy.resources | indent 10}}
+{{- else}}
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+{{- end}}
+{{- if $glooFedApiserverImage.pullSecret }}
+      imagePullSecrets:
+        - name: {{ $glooFedApiserverImage.pullSecret }}
+{{- end}}
+
+---
+
+# Service account for gloo-fed-console
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: gloo-fed
+    gloo-fed: console
+  name: gloo-fed-console
+  namespace: {{ $.Release.Namespace }}
+
+{{- end }} # .Values.glooFedApiserver.enable

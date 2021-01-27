@@ -1,0 +1,28 @@
+{{- if .Values.glooFedApiserver.enable }}
+{{- $glooFedApiserver := $.Values.glooFedApiserver}}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    gloo.solo.io/h2_service: "true"
+  labels:
+    app: gloo-fed
+    gloo-fed: console
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: grpc
+      port: {{ $glooFedApiserver.port }}
+      protocol: TCP
+    - name: static
+      port: {{ $glooFedApiserver.console.port }}
+      protocol: TCP
+    - name: healthcheck
+      port: {{ $glooFedApiserver.healthCheckPort }}
+      protocol: TCP
+  selector:
+    app: gloo-fed
+    gloo-fed: console
+  type: ClusterIP
+{{- end }} # .Values.glooFedApiserver.enable

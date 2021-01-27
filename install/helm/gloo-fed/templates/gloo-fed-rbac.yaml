@@ -1,0 +1,118 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  labels:
+    app: gloo-fed
+rules:
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances
+  - failoverschemes
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances/status
+  - failoverschemes/status
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - fed.gloo.solo.io
+  resources:
+  - federatedauthconfigs
+  - federatedauthconfigs/status
+  - federatedsettings
+  - federatedsettings/status
+  - federatedupstreams
+  - federatedupstreams/status
+  - federatedupstreamgroups
+  - federatedupstreamgroups/status
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.gateway.solo.io
+  resources:
+  - federatedvirtualservices
+  - federatedvirtualservices/status
+  - federatedgateways
+  - federatedgateways/status
+  - federatedroutetables
+  - federatedroutetables/status
+  verbs:
+  - '*'
+- apiGroups:
+  - fed.enterprise.gloo.solo.io
+  resources:
+  - federatedauthconfigs
+  - federatedauthconfigs/status
+  verbs:
+  - '*'
+- apiGroups:
+    - fed.ratelimit.solo.io
+  resources:
+    - federatedratelimitconfigs
+    - federatedratelimitconfigs/status
+  verbs:
+    - '*'
+- apiGroups:
+  - fed.solo.io
+  resources:
+  - glooinstances/status
+  - failoverschemes/status
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed
+  labels:
+    app: gloo-fed
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: gloo-fed
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-fed-console
+  labels:
+    app: gloo-fed
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: gloo-fed
+  apiGroup: rbac.authorization.k8s.io

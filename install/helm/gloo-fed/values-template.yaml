@@ -1,0 +1,60 @@
+glooFed:
+  image:
+    pullPolicy: IfNotPresent
+    registry: quay.io/solo-io
+    repository: gloo-fed
+    tag: %version%
+  resources:
+    requests:
+      cpu: 125m
+      memory: 256Mi
+glooFedApiserver:
+  enable: false
+  port: 10101
+  healthCheckPort: 8081
+  image:
+    pullPolicy: IfNotPresent
+    registry: quay.io/solo-io
+    repository: gloo-fed-apiserver
+    tag: %version%
+  resources:
+    requests:
+      cpu: 125m
+      memory: 256Mi
+  envoy:
+    image:
+      pullPolicy: IfNotPresent
+      registry: quay.io/solo-io
+      repository: gloo-fed-apiserver-envoy
+      tag: %version%
+    resources:
+      requests:
+        cpu: 125m
+        memory: 256Mi
+  console:
+    port: 8090
+    image:
+      pullPolicy: IfNotPresent
+      registry: quay.io/solo-io
+      repository: gloo-federation-console
+      tag: %version%
+    resources:
+      requests:
+        cpu: 125m
+        memory: 256Mi
+# We will only create a license secret if a value is set, in order, for: licenseKey, license_key, license.key
+licenseKey: ""
+license_key: ""
+license:
+  key: ""
+enableMultiClusterRbac: false
+rbacWebhook:
+  image:
+    pullPolicy: IfNotPresent
+    registry: quay.io/solo-io
+    repository: gloo-fed-rbac-validating-webhook
+    tag: %version%
+  resources:
+    requests:
+      cpu: 125m
+      memory: 256Mi

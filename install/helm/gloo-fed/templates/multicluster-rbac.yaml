@@ -1,0 +1,110 @@
+{{- if $.Values.enableMultiClusterRbac }}
+# give gloo-fed pods access to all resources
+
+
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRole
+metadata:
+  labels:
+    app: gloo-fed
+  name: gloo-fed
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  - apiGroup: fed.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gateway.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.enterprise.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+
+---
+
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRoleBinding
+metadata:
+  labels:
+    app: gloo-fed
+  name: gloo-fed
+  namespace: {{ .Release.Namespace }}
+spec:
+  roleRef:
+    name: gloo-fed
+    namespace: gloo-fed
+  subjects:
+  - kind: User
+    name: system:serviceaccount:{{ .Release.Namespace }}:gloo-fed
+
+---
+
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRole
+metadata:
+  labels:
+    app: gloo-fed
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  - apiGroup: fed.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gateway.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.enterprise.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+
+---
+
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRoleBinding
+metadata:
+  labels:
+    app: gloo-fed
+    gloo-fed: console
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+spec:
+  roleRef:
+    name: gloo-fed-console
+    namespace: gloo-fed
+  subjects:
+  - kind: User
+    name: system:serviceaccount:{{ .Release.Namespace }}:gloo-fed-console
+
+{{ end }} # if enableMultiClusterRbac

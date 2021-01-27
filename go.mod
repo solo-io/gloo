@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.0
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210122162349-0e170e74af10
+	github.com/solo-io/solo-apis v0.0.0-20210126142406-19188dc1c355
 	github.com/solo-io/solo-kit v0.17.1
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect

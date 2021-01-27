@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Add Gloo Federation helm chart to Makefile.
+    issueLink: https://github.com/solo-io/gloo/issues/4133
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.7.0-beta10

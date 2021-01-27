@@ -1,0 +1,56 @@
+{{- if $.Values.enableMultiClusterRbac }}
+
+# Rbac manifests for gloo-fed-rbac-validating-webhook
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbac-validating-webhook-{{ .Release.Name }}
+  labels:
+    app: gloo-fed
+    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+rules:
+- apiGroups:
+  - multicluster.solo.io
+  resources:
+  - multiclusterroles
+  - multiclusterrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - '*'
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbac-validating-webhook-{{ .Release.Name }}
+  labels:
+    app: gloo-fed
+    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+subjects:
+- kind: ServiceAccount
+  name: rbac-validating-webhook-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: rbac-validating-webhook-{{ .Release.Name }}
+  apiGroup: rbac.authorization.k8s.io
+
+{{ end }} # if enableMultiClusterRbac
