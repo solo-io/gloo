@@ -48,6 +48,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_waf_waf_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/waf/waf_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_dlp_dlp_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/dlp/dlp_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_options_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/transformation/transformation_pb.js');
+var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DestinationSpec', null, global);
@@ -69,12 +70,19 @@ goog.exportSymbol('proto.gloo.solo.io.WeightedDestinationOptions', null, global)
  * @constructor
  */
 proto.gloo.solo.io.ListenerOptions = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.ListenerOptions.repeatedFields_, null);
 };
 goog.inherits(proto.gloo.solo.io.ListenerOptions, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.ListenerOptions.displayName = 'proto.gloo.solo.io.ListenerOptions';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.ListenerOptions.repeatedFields_ = [4];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -106,7 +114,9 @@ proto.gloo.solo.io.ListenerOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     accessLoggingService: (f = msg.getAccessLoggingService()) && github_com_solo$io_gloo_projects_gloo_api_v1_options_als_als_pb.AccessLoggingService.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
-    perConnectionBufferLimitBytes: (f = msg.getPerConnectionBufferLimitBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+    perConnectionBufferLimitBytes: (f = msg.getPerConnectionBufferLimitBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    socketOptionsList: jspb.Message.toObjectList(msg.getSocketOptionsList(),
+    github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.SocketOption.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -157,6 +167,11 @@ proto.gloo.solo.io.ListenerOptions.deserializeBinaryFromReader = function(msg, r
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setPerConnectionBufferLimitBytes(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.SocketOption;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.SocketOption.deserializeBinaryFromReader);
+      msg.addSocketOptions(value);
       break;
     default:
       reader.skipField();
@@ -209,6 +224,14 @@ proto.gloo.solo.io.ListenerOptions.serializeBinaryToWriter = function(message, w
       3,
       f,
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getSocketOptionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      4,
+      f,
+      github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.SocketOption.serializeBinaryToWriter
     );
   }
 };
@@ -301,6 +324,37 @@ proto.gloo.solo.io.ListenerOptions.prototype.clearPerConnectionBufferLimitBytes 
  */
 proto.gloo.solo.io.ListenerOptions.prototype.hasPerConnectionBufferLimitBytes = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * repeated solo.io.envoy.api.v2.core.SocketOption socket_options = 4;
+ * @return {!Array<!proto.solo.io.envoy.api.v2.core.SocketOption>}
+ */
+proto.gloo.solo.io.ListenerOptions.prototype.getSocketOptionsList = function() {
+  return /** @type{!Array<!proto.solo.io.envoy.api.v2.core.SocketOption>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb.SocketOption, 4));
+};
+
+
+/** @param {!Array<!proto.solo.io.envoy.api.v2.core.SocketOption>} value */
+proto.gloo.solo.io.ListenerOptions.prototype.setSocketOptionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
+};
+
+
+/**
+ * @param {!proto.solo.io.envoy.api.v2.core.SocketOption=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.solo.io.envoy.api.v2.core.SocketOption}
+ */
+proto.gloo.solo.io.ListenerOptions.prototype.addSocketOptions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.solo.io.envoy.api.v2.core.SocketOption, opt_index);
+};
+
+
+proto.gloo.solo.io.ListenerOptions.prototype.clearSocketOptionsList = function() {
+  this.setSocketOptionsList([]);
 };
 
 
