@@ -24,6 +24,7 @@ _gloo-ee-source/
 doc/site/
 projects/gloo/doc/site/
 install/helm/*.tgz
+install/manifest/*.yaml
 
 # Spurious files
 .DS_Store

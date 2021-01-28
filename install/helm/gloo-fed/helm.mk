@@ -10,8 +10,8 @@ allgloofed: gloo-fed gloo-fed-rbac-validating-webhook
 .PHONY: gloofed-docker
 gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker
 
-.PHONY: upgrade-kindly
-gloofed-push-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook
+.PHONY: gloofed-load-kind-images
+gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook
 
 #----------------------------------------------------------------------------------
 # Gloo Fed

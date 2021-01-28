@@ -25,6 +25,12 @@ Before setting up Gloo Fed, make sure you have performed the following steps:
 
 * Install protoc version 3.6.1:
 
+On a mac:
+
+      brew install protoc@3.6
+
+On a linux:
+
       curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-osx-x86_64.zip
       unzip protoc-3.6.1-osx-x86_64.zip -d protoc3
       mv protoc3/bin/* /usr/local/bin/
