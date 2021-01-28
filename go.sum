@@ -2144,6 +2144,7 @@ knative.dev/hack v0.0.0-20201103151104-3d5abc3a0075/go.mod h1:PHt8x8yX5Z9pPquBEf
 knative.dev/networking v0.0.0-20201103163404-b9f80f4537af/go.mod h1:0OaR4FLbs3Xn6UjeX1zYql9RWO8sLTO/ZMJS4jDbfFE=
 knative.dev/pkg v0.0.0-20200207155214-fef852970f43/go.mod h1:pgODObA1dTyhNoFxPZTTjNWfx6F0aKsKzn+vaT9XO/Q=
 knative.dev/pkg v0.0.0-20201103150904-7f1970af5b6f/go.mod h1:2hMxAUviPH2nl3BuODx5L6shYCdzA+7SPzQpdkcg9wc=
+knative.dev/pkg v0.0.0-20201104085304-8224d1a794f2 h1:JjUfSHVz5MqVRuZ0pnUhNsU9WjJwAoyShoLNy/6AsJI=
 knative.dev/pkg v0.0.0-20201104085304-8224d1a794f2/go.mod h1:cuKOgUvJvnWHIps/apCXX8wZuMlT0dyMZLqRQfsENbQ=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=

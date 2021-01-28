@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Add the gloo fed rbac validating webhook.
+    issueLink: https://github.com/solo-io/gloo/issues/4127

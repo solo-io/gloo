@@ -1,0 +1,16 @@
+apiVersion: fed.solo.io/v1
+kind: FailoverScheme
+metadata:
+  name: failover
+  namespace: gloo-fed
+spec:
+  primary:
+    cluster_name: kind-master
+    name: default-service-blue-test
+    namespace: gloo-system
+  failover_groups:
+    - priority_group:
+        - cluster: kind-remote
+          upstreams:
+            - name: default-service-green-test
+              namespace: gloo-system

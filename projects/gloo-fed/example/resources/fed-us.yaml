@@ -1,0 +1,19 @@
+apiVersion: fed.gloo.solo.io/v1
+kind: FederatedUpstream
+metadata:
+  name: my-federated-upstream
+  namespace: gloo-fed
+spec:
+  placement:
+    clusters:
+      - kind-remote
+    namespaces:
+      - gloo-system
+  template:
+    spec:
+      static:
+        hosts:
+          - addr: solo.io
+            port: 80
+    metadata:
+      name: i-was-federated

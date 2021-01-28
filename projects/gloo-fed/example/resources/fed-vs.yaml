@@ -1,0 +1,28 @@
+apiVersion: fed.gateway.solo.io/v1
+kind: FederatedVirtualService
+metadata:
+  name: my-federated-vs
+  namespace: gloo-fed
+spec:
+  placement:
+    clusters:
+      - kind-remote
+    namespaces:
+      - gloo-system
+  template:
+    spec:
+      virtualHost:
+        domains:
+          - "*"
+        routes:
+          - matchers:
+              - exact: /solo
+            options:
+              prefixRewrite: /
+            routeAction:
+              single:
+                upstream:
+                  name: i-was-federated
+                  namespace: gloo-system
+    metadata:
+      name: i-was-federated

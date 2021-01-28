@@ -1,0 +1,47 @@
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRoleBinding
+metadata:
+  name: kind-admin
+  namespace: gloo-fed
+spec:
+  roleRef:
+    name: kind-admin
+    namespace: gloo-fed
+  subjects:
+  - kind: User
+    name: kubernetes-admin
+
+---
+
+
+apiVersion: multicluster.solo.io/v1alpha1
+kind: MultiClusterRole
+metadata:
+  name: kind-admin
+  namespace: gloo-fed
+spec:
+  rules:
+  - apiGroup: fed.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.enterprise.gloo.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
+  - apiGroup: fed.gateway.solo.io
+    placements:
+    - clusters:
+      - '*'
+      namespaces:
+      - '*'
