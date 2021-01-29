@@ -41,11 +41,11 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.7.10
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.7.0-beta11
-	github.com/solo-io/go-utils v0.20.1
-	github.com/solo-io/k8s-utils v0.0.3
+	github.com/solo-io/gloo v1.7.0-beta12
+	github.com/solo-io/go-utils v0.20.2
+	github.com/solo-io/k8s-utils v0.0.5
 	github.com/solo-io/licensing v0.1.20
-	github.com/solo-io/protoc-gen-ext v0.0.14
+	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.1.9
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.0
