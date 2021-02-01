@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
+	github.com/deislabs/oras v0.8.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.8
@@ -36,6 +37,7 @@ require (
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rotisserie/eris v0.4.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
@@ -52,7 +54,10 @@ require (
 	github.com/solo-io/skv2-enterprise v0.0.8
 	github.com/solo-io/solo-apis v0.0.0-20210126142406-19188dc1c355
 	github.com/solo-io/solo-kit v0.17.1
+	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/pflag v1.0.5
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5
 	go.uber.org/zap v1.16.0
@@ -68,7 +73,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.19.7
 	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
-	k8s.io/code-generator v0.19.6
+	k8s.io/code-generator v0.19.7
 	k8s.io/kubernetes v1.19.6
 	k8s.io/utils v0.19.6 // indirect
 	sigs.k8s.io/controller-runtime v0.7.0

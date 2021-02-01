@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added glooctl wasm CLI extension to make it easier to manage
+      wasm filters deployed on Gloo Edge Gateway Proxies.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2051

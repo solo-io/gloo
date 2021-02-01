@@ -11,6 +11,9 @@ z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 RELEASE := "true"
 
+GCS_BUCKET := glooctl-plugins
+GCS_PATH := glooctl-wasm
+
 # If you just put your username, then that refers to your account at hub.docker.com
 # To use quay images, set the IMAGE_REPO to "quay.io/solo-io"
 # To use dockerhub images, set the IMAGE_REPO to "soloio"
@@ -26,6 +29,20 @@ endif
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
 ENVOY_GLOO_IMAGE ?= $(IMAGE_REPO)/envoy-gloo-ee:1.17.0-rc4
+
+# The full SHA of the currently checked out commit
+CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
+# Returns the name of the default branch in the remote `origin` repository, e.g. `master`
+DEFAULT_BRANCH_NAME := $(shell git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+# Print the branches that contain the current commit and keep only the one that
+# EXACTLY matches the name of the default branch (avoid matching e.g. `master-2`).
+# If we get back a result, it mean we are on the default branch.
+EMPTY_IF_NOT_DEFAULT := $(shell git branch --contains $(CHECKED_OUT_SHA) | grep -ow $(DEFAULT_BRANCH_NAME))
+
+ON_DEFAULT_BRANCH := false
+ifneq ($(EMPTY_IF_NOT_DEFAULT),)
+    ON_DEFAULT_BRANCH = true
+endif
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
@@ -501,6 +518,63 @@ glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
 
 .PHONY: build-cli
 build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
+
+
+#----------------------------------------------------------------------------------
+# glooctl wasm extension
+#----------------------------------------------------------------------------------
+CLI_EXTENSIONS_DIR=projects/glooctl-extensions
+WASM_CLI_EXTENSION_DIR=$(CLI_EXTENSIONS_DIR)/wasm
+
+.PHONY: glooctl-wasm-linux-amd64
+glooctl-wasm-linux-amd64: $(OUTPUT_DIR)/glooctl-wasm-linux-amd64
+$(OUTPUT_DIR)/glooctl-wasm-linux-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_EXTENSION_DIR)/cmd/main.go
+
+.PHONY: glooctl-wasm-darwin-amd64
+glooctl-wasm-darwin-amd64: $(OUTPUT_DIR)/glooctl-wasm-darwin-amd64
+$(OUTPUT_DIR)/glooctl-wasm-darwin-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_EXTENSION_DIR)/cmd/main.go
+
+.PHONY: glooctl-wasm-windows-amd64
+glooctl-wasm-windows-amd64: $(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe
+$(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_EXTENSION_DIR)/cmd/main.go
+
+.PHONY: build-wasm-cli
+build-wasm-cli: install-go-tools glooctl-wasm-linux-amd64 glooctl-wasm-darwin-amd64 glooctl-wasm-windows-amd64
+
+.PHONY: install-wasm-cli
+install-wasm-cli:
+	go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o ${GOPATH}/bin/glooctl-wasm $(WASM_CLI_EXTENSION_DIR)/cmd/main.go
+
+
+##----------------------------------------------------------------------------------
+## Release glooctl wasm extension
+##----------------------------------------------------------------------------------
+
+.PHONY: check-gsutil
+check-gsutil:
+ifeq (, $(shell which gsutil))
+	$(error "No gsutil in $(PATH), follow the instructions at https://cloud.google.com/sdk/docs/install to install")
+endif
+
+build-and-upload-gcs-release-assets: check-gsutil build-wasm-cli
+# Only push assets if RELEASE is set to true
+ifeq ($(RELEASE), "true")
+	gsutil -m cp \
+	$(OUTPUT_DIR)/glooctl-wasm-linux-amd64 \
+	$(OUTPUT_DIR)/glooctl-wasm-darwin-amd64 \
+	$(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe \
+	gs://$(GCS_BUCKET)/$(GCS_PATH)/$(VERSION)/
+
+	ifeq ($(ON_DEFAULT_BRANCH), "true")
+		# We're on latest default git branch, so push /latest and updated install script
+		gsutil -m cp -r gs://$(GCS_BUCKET)/$(GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(GCS_PATH)/latest/
+
+		gsutil cp projects/glooctl-extensions/wasm/install/install.sh gs://$(GCS_BUCKET)/$(GCS_PATH)/install.sh
+	endif
+endif
 
 #----------------------------------------------------------------------------------
 # Envoy init (BASE/SIDECAR)
