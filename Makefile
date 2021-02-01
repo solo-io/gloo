@@ -311,7 +311,7 @@ cleanup-node-modules:
 .PHONY: cleanup-local-docker-images
 cleanup-local-docker-images:
 	# Remove all of the kind images
-	docker images | grep solo-io | xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
+	docker images | grep solo-io | grep -v envoy-gloo-ee |xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
 	# Remove the downloaded envoy-gloo-ee image
 	docker image rm $(ENVOY_GLOO_IMAGE)
 
