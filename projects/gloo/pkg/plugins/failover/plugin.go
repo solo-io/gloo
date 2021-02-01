@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
-
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -20,6 +18,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -89,7 +88,12 @@ func (f *failoverPluginImpl) ProcessUpstream(
 		return NoHealthCheckError
 	}
 
-	endpoints, matches, err := f.buildLocalityLBEndpoints(params, failoverCfg)
+	// If the cluster type is static, then we should not resolve DNS
+	endpoints, matches, err := f.buildLocalityLBEndpoints(
+		params,
+		failoverCfg,
+		out.GetType() == envoy_config_cluster_v3.Cluster_STRICT_DNS,
+	)
 	if err != nil {
 		return err
 	}
@@ -137,6 +141,7 @@ func (f *failoverPluginImpl) ProcessEndpoints(
 func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 	params plugins.Params,
 	failoverCfg *gloov1.Failover,
+	strictDns bool,
 ) ([]*envoy_config_endpoint_v3.LocalityLbEndpoints, []*envoy_config_cluster_v3.Cluster_TransportSocketMatch, error) {
 	var transportSocketMatches []*envoy_config_cluster_v3.Cluster_TransportSocketMatch
 	var localityLbEndpoints []*envoy_config_endpoint_v3.LocalityLbEndpoints
@@ -154,6 +159,7 @@ func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 				f.sslConfigTranslator,
 				params.Snapshot.Secrets,
 				f.dnsResolver,
+				strictDns,
 			)
 			if err != nil {
 				return nil, nil, err
@@ -217,6 +223,7 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	translator utils.SslConfigTranslator,
 	secrets []*gloov1.Secret,
 	dnsResolver consul.DnsResolver,
+	strictDns bool,
 ) (*envoy_config_endpoint_v3.LocalityLbEndpoints, []*envoy_config_cluster_v3.Cluster_TransportSocketMatch, error) {
 	var lbEndpoints []*envoy_config_endpoint_v3.LbEndpoint
 	var transportSocketMatches []*envoy_config_cluster_v3.Cluster_TransportSocketMatch
@@ -225,29 +232,43 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 
 		var resolvedIPLBEndpoints []*envoy_config_endpoint_v3.LbEndpoint
 		addr := net.ParseIP(v.GetAddress())
-		if addr == nil {
-			// the address is not an IP, need to do a DnsLookup
-			ips, err := dnsResolver.Resolve(ctx, v.GetAddress())
-			if err != nil {
-				return nil, nil, err
-			}
-			if len(ips) == 0 {
-				return nil, nil, NoIpAddrError(v.GetAddress())
-			}
-			for i := range ips {
-				resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
-					ips[i].IP,
-					v.GetPort(),
-					nil),
-				)
-			}
 
-		} else {
+		if addr != nil {
 			resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
-				addr,
+				addr.String(),
 				v.GetPort(),
-				v.GetLoadBalancingWeight()),
+				v.GetLoadBalancingWeight(),
+				addr.String(),
+				v.GetHealthCheckConfig()),
 			)
+		} else {
+			if strictDns {
+				resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
+					v.GetAddress(),
+					v.GetPort(),
+					v.GetLoadBalancingWeight(),
+					v.GetAddress(),
+					v.GetHealthCheckConfig()),
+				)
+			} else {
+				// the address is not an IP, need to do a DnsLookup
+				ips, err := dnsResolver.Resolve(ctx, v.GetAddress())
+				if err != nil {
+					return nil, nil, err
+				}
+				if len(ips) == 0 {
+					return nil, nil, NoIpAddrError(v.GetAddress())
+				}
+				for i := range ips {
+					resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
+						ips[i].String(),
+						v.GetPort(),
+						nil,
+						v.GetAddress(),
+						v.GetHealthCheckConfig()),
+					)
+				}
+			}
 		}
 
 		uniqueName := PrioritizedEndpointName(v.GetAddress(), v.GetPort(), priority, idx)
@@ -311,14 +332,30 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	}, transportSocketMatches, nil
 }
 
-func buildLbEndpoint(ipAddr net.IP, port uint32, weight *wrappers.UInt32Value) *envoy_config_endpoint_v3.LbEndpoint {
+func buildLbEndpoint(
+	address string,
+	port uint32,
+	weight *wrappers.UInt32Value,
+	hostname string,
+	hcConfig *gloov1.LbEndpoint_HealthCheckConfig,
+) *envoy_config_endpoint_v3.LbEndpoint {
+	envoyHc := &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+		Hostname: hostname,
+	}
+	if hcConfig != nil {
+		envoyHc.Hostname = hcConfig.GetHostname()
+		envoyHc.PortValue = hcConfig.GetPortValue()
+	}
+
 	return &envoy_config_endpoint_v3.LbEndpoint{
 		HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
 			Endpoint: &envoy_config_endpoint_v3.Endpoint{
+				Hostname:          hostname,
+				HealthCheckConfig: envoyHc,
 				Address: &envoy_config_core_v3.Address{
 					Address: &envoy_config_core_v3.Address_SocketAddress{
 						SocketAddress: &envoy_config_core_v3.SocketAddress{
-							Address: ipAddr.String(),
+							Address: address,
 							PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 								PortValue: port,
 							},
