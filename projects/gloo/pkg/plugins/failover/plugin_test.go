@@ -19,8 +19,10 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/testutils"
+	"github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	mock_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover/mocks"
 )
@@ -44,10 +46,10 @@ var _ = Describe("Failover", func() {
 			Sni: "test",
 		}
 		ipAddr1 = net.IPAddr{
-			IP: []byte("10.0.0.1"),
+			IP: net.IPv4(10, 0, 0, 1),
 		}
 		ipAddr2 = net.IPAddr{
-			IP: []byte("10.0.0.2"),
+			IP: net.IPv4(10, 0, 0, 2),
 		}
 		httpEndpoint = &gloov1.LbEndpoint{
 			Address: "127.0.0.1",
@@ -110,102 +112,6 @@ var _ = Describe("Failover", func() {
 					Kind: &structpb.Value_BoolValue{
 						BoolValue: true,
 					},
-				},
-			},
-		}
-
-		expected = &envoy_config_endpoint_v3.ClusterLoadAssignment{
-			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
-				{
-					Locality: &envoy_config_core_v3.Locality{
-						Region:  "p1_region",
-						Zone:    "p1_zone",
-						SubZone: "p1_sub_zone",
-					},
-					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
-						{
-							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
-								Endpoint: &envoy_config_endpoint_v3.Endpoint{
-									Address: &envoy_config_core_v3.Address{
-										Address: &envoy_config_core_v3.Address_SocketAddress{
-											SocketAddress: &envoy_config_core_v3.SocketAddress{
-												Address: ipAddr1.IP.String(),
-												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
-													PortValue: sslEndpoint.GetPort(),
-												},
-											},
-										},
-									},
-								},
-							},
-							Metadata: &envoy_config_core_v3.Metadata{
-								FilterMetadata: map[string]*structpb.Struct{
-									failover.TransportSocketMatchKey: metadataMatch,
-								},
-							},
-						},
-						{
-							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
-								Endpoint: &envoy_config_endpoint_v3.Endpoint{
-									Address: &envoy_config_core_v3.Address{
-										Address: &envoy_config_core_v3.Address_SocketAddress{
-											SocketAddress: &envoy_config_core_v3.SocketAddress{
-												Address: ipAddr2.IP.String(),
-												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
-													PortValue: sslEndpoint.GetPort(),
-												},
-											},
-										},
-									},
-								},
-							},
-							Metadata: &envoy_config_core_v3.Metadata{
-								FilterMetadata: map[string]*structpb.Struct{
-									failover.TransportSocketMatchKey: metadataMatch,
-								},
-							},
-						},
-					},
-					LoadBalancingWeight: &wrappers.UInt32Value{
-						Value: 8888,
-					},
-					Priority: 1,
-				},
-				{
-					Locality: &envoy_config_core_v3.Locality{
-						Region:  "p2_region",
-						Zone:    "p2_zone",
-						SubZone: "p2_sub_zone",
-					},
-					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
-						{
-							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
-								Endpoint: &envoy_config_endpoint_v3.Endpoint{
-									Address: &envoy_config_core_v3.Address{
-										Address: &envoy_config_core_v3.Address_SocketAddress{
-											SocketAddress: &envoy_config_core_v3.SocketAddress{
-												Address: httpEndpoint.GetAddress(),
-												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
-													PortValue: httpEndpoint.GetPort(),
-												},
-											},
-										},
-									},
-									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
-										PortValue: httpEndpoint.GetHealthCheckConfig().GetPortValue(),
-										Hostname:  httpEndpoint.GetHealthCheckConfig().GetHostname(),
-									},
-								},
-							},
-							LoadBalancingWeight: &wrappers.UInt32Value{
-								Value: httpEndpoint.GetLoadBalancingWeight().GetValue(),
-							},
-						},
-					},
-					LoadBalancingWeight: &wrappers.UInt32Value{
-						Value: 7777,
-					},
-					Priority: 2,
 				},
 			},
 		}
@@ -301,17 +207,103 @@ var _ = Describe("Failover", func() {
 	})
 
 	It("will successfully return failover endpoints in the Cluster.ClusterLoadAssignment", func() {
+
+		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p1_region",
+						Zone:    "p1_zone",
+						SubZone: "p1_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Hostname: sslEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										Hostname: sslEndpoint.GetAddress(),
+									},
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: sslEndpoint.GetAddress(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_config_core_v3.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									static.TransportSocketMatchKey: metadataMatch,
+								},
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 8888,
+					},
+					Priority: 1,
+				},
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p2_region",
+						Zone:    "p2_zone",
+						SubZone: "p2_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: httpEndpoint.GetAddress(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: httpEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										PortValue: httpEndpoint.GetHealthCheckConfig().GetPortValue(),
+										Hostname:  httpEndpoint.GetHealthCheckConfig().GetHostname(),
+									},
+									Hostname: httpEndpoint.GetAddress(),
+								},
+							},
+							LoadBalancingWeight: &wrappers.UInt32Value{
+								Value: httpEndpoint.GetLoadBalancingWeight().GetValue(),
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 7777,
+					},
+					Priority: 2,
+				},
+			},
+		}
+
 		secretList := gloov1.SecretList{{}}
 		sslTranslator.EXPECT().
 			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
 			Return(tlsContext, nil)
 
-		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
-
-		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster := &envoy_config_cluster_v3.Cluster{
+			ClusterDiscoveryType: &envoy_config_cluster_v3.Cluster_Type{
+				Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
+			},
+		}
 		cluster.LoadAssignment = &envoy_config_endpoint_v3.ClusterLoadAssignment{}
 		expectedCluster := buildExpectedCluster()
 		expectedCluster.LoadAssignment = expected
+		expectedCluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
+		}
 
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
 		params := plugins.Params{
@@ -322,10 +314,115 @@ var _ = Describe("Failover", func() {
 		}
 		err := runPlugin(plugin, params, upstream, cluster, nil)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(cluster).To(Equal(expectedCluster))
+		Expect(cluster).To(matchers.MatchProto(expectedCluster))
 	})
 
 	It("will successfully return failover endpoints in the EDS ClusterLoadAssignment", func() {
+
+		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p1_region",
+						Zone:    "p1_zone",
+						SubZone: "p1_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Hostname: sslEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										Hostname: sslEndpoint.GetAddress(),
+									},
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: ipAddr1.String(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_config_core_v3.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									static.TransportSocketMatchKey: metadataMatch,
+								},
+							},
+						},
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Hostname: sslEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										Hostname: sslEndpoint.GetAddress(),
+									},
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: ipAddr2.String(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_config_core_v3.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									static.TransportSocketMatchKey: metadataMatch,
+								},
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 8888,
+					},
+					Priority: 1,
+				},
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p2_region",
+						Zone:    "p2_zone",
+						SubZone: "p2_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: httpEndpoint.GetAddress(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: httpEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+									Hostname: httpEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										PortValue: httpEndpoint.GetHealthCheckConfig().GetPortValue(),
+										Hostname:  httpEndpoint.GetHealthCheckConfig().GetHostname(),
+									},
+								},
+							},
+							LoadBalancingWeight: &wrappers.UInt32Value{
+								Value: httpEndpoint.GetLoadBalancingWeight().GetValue(),
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 7777,
+					},
+					Priority: 2,
+				},
+			},
+		}
 
 		secretList := gloov1.SecretList{{}}
 		sslTranslator.EXPECT().
@@ -361,8 +458,8 @@ var _ = Describe("Failover", func() {
 		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
 		err := runPlugin(plugin, params, upstream, cluster, endpoints)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(cluster).To(Equal(expectedCluster))
-		Expect(endpoints).To(Equal(expected))
+		Expect(cluster).To(matchers.MatchProto(expectedCluster))
+		Expect(endpoints).To(matchers.MatchProto(expected))
 	})
 
 })

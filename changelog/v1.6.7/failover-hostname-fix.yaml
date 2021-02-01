@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  description: >
+    Fix the host header behavior of failover endpoints. Failover endpoints will now use the hostname of the upstream
+    address, rather than the envoy default.
+  issueLink: https://github.com/solo-io/gloo/issues/4227
+
