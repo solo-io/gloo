@@ -1264,6 +1264,9 @@ func (m *ExtAuthInput_Config) Equal(that interface{}) bool {
 	switch m.Value.(type) {
 
 	case *ExtAuthInput_Config_Oauth:
+		if _, ok := target.Value.(*ExtAuthInput_Config_Oauth); !ok {
+			return false
+		}
 
 		if h, ok := interface{}(m.GetOauth()).(equality.Equalizer); ok {
 			if !h.Equal(target.GetOauth()) {
@@ -1276,6 +1279,9 @@ func (m *ExtAuthInput_Config) Equal(that interface{}) bool {
 		}
 
 	case *ExtAuthInput_Config_CustomAuth:
+		if _, ok := target.Value.(*ExtAuthInput_Config_CustomAuth); !ok {
+			return false
+		}
 
 		if h, ok := interface{}(m.GetCustomAuth()).(equality.Equalizer); ok {
 			if !h.Equal(target.GetCustomAuth()) {
@@ -1287,6 +1293,11 @@ func (m *ExtAuthInput_Config) Equal(that interface{}) bool {
 			}
 		}
 
+	default:
+		// m is nil but target is not nil
+		if m.Value != target.Value {
+			return false
+		}
 	}
 
 	return true

@@ -3,6 +3,10 @@ package failover_test
 import (
 	"context"
 	"net"
+	"time"
+
+	"github.com/golang/protobuf/ptypes"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -442,8 +446,14 @@ var _ = Describe("Failover", func() {
 		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
 				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
-					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
+						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
+						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
+						ClusterNames:        []string{defaults.GlooRestXdsName},
+						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
+						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
+					},
 				},
 			},
 		}
