@@ -29,6 +29,8 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
+// NOTE: To run waf e2e tests locally, specify the
+// env var ENVOY_IMAGE_TAG=v1.x.x (your gloo ee version)
 var _ = Describe("waf", func() {
 
 	var (
@@ -742,7 +744,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Expect(getAccessDMLog()).To(Equal("-\n"))
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
 			})
 
 			It("auditlog listener dynamic meta", func() {
@@ -757,7 +759,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessDMLog, "5s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Expect(getAccessFSLog()).To(Equal("-\n"))
+				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
 			})
 			It("auditlog listener fs - logs relevant", func() {
 				startProxy(&waf.Settings{
@@ -771,7 +773,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Expect(getAccessDMLog()).To(Equal("-\n"))
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
 			})
 			It("auditlog listener fs - not log not relevant", func() {
 				startProxy(&waf.Settings{
@@ -785,7 +787,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
 				// nothing written to dm log
-				Expect(getAccessDMLog()).To(Equal("-\n"))
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
 			})
 			It("auditlog listener dm - not log not relevant", func() {
 				startProxy(&waf.Settings{
@@ -798,7 +800,7 @@ var _ = Describe("waf", func() {
 				makeGoodRequest()
 				// nothing written to dm log
 				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
-				Expect(getAccessFSLog()).To(Equal("-\n"))
+				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
 			})
 			It("auditlog listener dm - not log relevant if disabled", func() {
 				startProxy(&waf.Settings{
@@ -807,7 +809,7 @@ var _ = Describe("waf", func() {
 				makeBadRequest()
 				// nothing written to any logs
 				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
-				Expect(getAccessFSLog()).To(Equal("-\n"))
+				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
 			})
 
 			It("auditlog vhost filter state", func() {
@@ -822,7 +824,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Expect(getAccessDMLog()).To(Equal("-\n"))
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
 			})
 
 			It("auditlog route filter state", func() {
@@ -837,7 +839,7 @@ var _ = Describe("waf", func() {
 				// check the logs
 				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Expect(getAccessDMLog()).To(Equal("-\n"))
+				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
 			})
 
 		})

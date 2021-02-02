@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2042
+    description: >
+      Fix flaking e2e waf test by wrapping log check in an Eventually()
+      to give it time to flush to disk fully before checking.
