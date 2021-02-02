@@ -1,0 +1,55 @@
+syntax = "proto3";
+package fed.rpc.solo.io;
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
+
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+
+message GlooInstance {
+    fed.rpc.solo.io.ObjectMeta metadata = 1;
+    fed.solo.io.GlooInstanceSpec spec = 2;
+    fed.solo.io.GlooInstanceStatus status = 3;
+}
+
+message ListGlooInstancesRequest {}
+
+message ListGlooInstancesResponse {
+    repeated GlooInstance gloo_instances = 1;
+}
+
+message ClusterDetails {
+    string cluster = 1;
+    repeated GlooInstance gloo_instances = 2;
+}
+
+message ListClusterDetailsRequest {}
+
+message ListClusterDetailsResponse {
+    repeated ClusterDetails cluster_details = 1;
+}
+
+message ConfigDump {
+    string name = 1;
+    string raw = 2;
+    string error = 3;
+}
+
+message GetConfigDumpsRequest {
+    core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+}
+
+message GetConfigDumpsResponse {
+    repeated ConfigDump config_dumps = 1;
+}
+
+service GlooInstanceApi {
+    rpc ListGlooInstances (ListGlooInstancesRequest) returns (ListGlooInstancesResponse) {}
+    rpc ListClusterDetails (ListClusterDetailsRequest) returns (ListClusterDetailsResponse) {}
+    rpc GetConfigDumps (GetConfigDumpsRequest) returns (GetConfigDumpsResponse) {}
+}

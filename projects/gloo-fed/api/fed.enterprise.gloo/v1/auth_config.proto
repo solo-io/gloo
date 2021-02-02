@@ -12,7 +12,9 @@ import "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/mu
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement.proto";
 import "github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config.proto";
 
-
+// The Federated[Resource] CRDs are a gloo-fed wrapper around Gloo Edge CRDs, with a Placement field indicating which
+// clusters and namespaces to federate the object to.
+// For more, see: https://docs.solo.io/gloo-edge/latest/guides/gloo_federation/federated_configuration/
 message FederatedAuthConfigSpec {
     message Template {
         .enterprise.gloo.solo.io.AuthConfigSpec spec = 1;

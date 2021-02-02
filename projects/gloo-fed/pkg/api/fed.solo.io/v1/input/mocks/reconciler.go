@@ -12,6 +12,7 @@ import (
 	v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	v10 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	v11 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	v12 "k8s.io/api/apps/v1"
 	v13 "k8s.io/api/core/v1"
 )
@@ -219,6 +220,21 @@ func (mr *MockmultiClusterReconcilerMockRecorder) ReconcileAuthConfig(clusterNam
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileAuthConfig", reflect.TypeOf((*MockmultiClusterReconciler)(nil).ReconcileAuthConfig), clusterName, obj)
 }
 
+// ReconcileRateLimitConfig mocks base method
+func (m *MockmultiClusterReconciler) ReconcileRateLimitConfig(clusterName string, obj *v1alpha1.RateLimitConfig) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileRateLimitConfig", clusterName, obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileRateLimitConfig indicates an expected call of ReconcileRateLimitConfig
+func (mr *MockmultiClusterReconcilerMockRecorder) ReconcileRateLimitConfig(clusterName, obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileRateLimitConfig", reflect.TypeOf((*MockmultiClusterReconciler)(nil).ReconcileRateLimitConfig), clusterName, obj)
+}
+
 // MocksingleClusterReconciler is a mock of singleClusterReconciler interface
 type MocksingleClusterReconciler struct {
 	ctrl     *gomock.Controller
@@ -420,4 +436,19 @@ func (m *MocksingleClusterReconciler) ReconcileAuthConfig(obj *v1.AuthConfig) (r
 func (mr *MocksingleClusterReconcilerMockRecorder) ReconcileAuthConfig(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileAuthConfig", reflect.TypeOf((*MocksingleClusterReconciler)(nil).ReconcileAuthConfig), obj)
+}
+
+// ReconcileRateLimitConfig mocks base method
+func (m *MocksingleClusterReconciler) ReconcileRateLimitConfig(obj *v1alpha1.RateLimitConfig) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileRateLimitConfig", obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileRateLimitConfig indicates an expected call of ReconcileRateLimitConfig
+func (mr *MocksingleClusterReconcilerMockRecorder) ReconcileRateLimitConfig(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileRateLimitConfig", reflect.TypeOf((*MocksingleClusterReconciler)(nil).ReconcileRateLimitConfig), obj)
 }

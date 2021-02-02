@@ -10,12 +10,6 @@ type Settings struct {
 	PodName        string `envconfig:"POD_NAME" default:"gloo-fed"`
 	WriteNamespace string `envconfig:"WRITE_NAMESPACE" default:"gloo-fed"`
 	LicenseKey     string `envconfig:"LICENSE_KEY" default:""`
-	ApiServerSettings
-}
-
-type ApiServerSettings struct {
-	GrpcPort        int `envconfig:"APISERVER_GRPC_PORT" default:"10101"`
-	HealthCheckPort int `envconfig:"APISERVER_HEALTH_CHECK_PORT" default:"8081"`
 }
 
 func New() *Settings {

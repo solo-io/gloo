@@ -50,9 +50,9 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.1.9
 	github.com/solo-io/reporting-client v0.2.0
-	github.com/solo-io/skv2 v0.17.0
+	github.com/solo-io/skv2 v0.17.2
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210126142406-19188dc1c355
+	github.com/solo-io/solo-apis v0.0.0-20210127154138-9c958996715b
 	github.com/solo-io/solo-kit v0.17.1
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -63,11 +63,13 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.3.0
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/tools v0.0.0-20210106214847-113979e3529a
 	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
 	google.golang.org/grpc v1.33.1
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1
+	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	helm.sh/helm/v3 v3.4.2
 	k8s.io/api v0.19.7
 	k8s.io/apiextensions-apiserver v0.19.7

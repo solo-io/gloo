@@ -635,8 +635,6 @@ helm-template:
 	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
 	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
 	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
-	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/Chart-template.yaml > $(GLOO_FED_CHART_DIR)/Chart.yaml
-	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
 
 .PHONY: init-helm
 init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
@@ -644,7 +642,6 @@ init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
-	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
@@ -660,16 +657,11 @@ $(OUTPUT_DIR)/.helm-initialized:
 produce-manifests: init-helm
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 	helm template gloo install/helm/gloo-os-with-ui --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
-	helm template gloo-fed install/helm/gloo-fed --namespace gloo-fed > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
 
 .PHONY: package-gloo-edge-chart
 package-gloo-edge-charts: init-helm
 	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE) $(GLOOE_CHART_DIR)
 	helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO) $(GLOO_OS_UI_CHART_DIR)
-
-.PHONY: package-gloo-fed-charts
-package-gloo-fed-charts: init-helm
-	helm package --destination $(HELM_SYNC_DIR_GLOO_FED) $(GLOO_FED_CHART_DIR)
 
 .PHONY: fetch-package-and-save-helm
 fetch-package-and-save-helm: init-helm

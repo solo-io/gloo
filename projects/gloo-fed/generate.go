@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/solo-io/skv2/codegen"
 	"github.com/solo-io/skv2/codegen/model"
@@ -20,12 +21,14 @@ func main() {
 		"api/**/*.proto",
 		"crds/*multicluster.solo.io_v1alpha1_crds.yaml",
 	}
-	anyvendorImports.External["github.com/solo-io/skv2-enterprise"] = []string{
-		"**/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto",
-	}
 	anyvendorImports.External["github.com/solo-io/solo-apis"] = []string{
 		"api/rate-limiter/**/*.proto",
 		"api/gloo/**/*.proto",
+	}
+	// Pull protos from private repositories
+	os.Setenv("GOPRIVATE", "github.com/solo-io")
+	anyvendorImports.External["github.com/solo-io/skv2-enterprise"] = []string{
+		"**/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto",
 	}
 
 	skv2Cmd := codegen.Command{

@@ -1,0 +1,73 @@
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 8090 }
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              config:
+                codec_type: auto
+                stat_prefix: ingress_http
+                route_config:
+                  name: gloo-fed-grpc
+                  virtual_hosts:
+                    - name: gloo-fed-grpc
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: content-type
+                                prefix_match: application/grpc
+                          route: { cluster: gloo-fed-grpcserver }
+                        - match: { prefix: "/" }
+                          route: { cluster: gloo-fed-ui }
+                      cors:
+                        allow_origin_string_match:
+                          - safe_regex:
+                              google_re2: {}
+                              regex: \*
+                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web
+                        max_age: "1728000"
+                        expose_headers: grpc-status,grpc-message
+                        filter_enabled: # the values 100/HUNDRED are the default. Still, we want to explicitly define them until we know that the envoy we are using conforms to the new api
+                          default_value:
+                            numerator: 100
+                            denominator: HUNDRED
+                http_filters:
+                  - name: envoy.grpc_web
+                  - name: envoy.cors
+                  - name: envoy.router
+  clusters:
+    - name: gloo-fed-grpcserver
+      connect_timeout: 15.00s
+      type: logical_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: 127.0.0.1, port_value: 10101 } }]
+    - name: gloo-fed-ui
+      connect_timeout: 15.00s
+      type: static
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: 127.0.0.1, port_value: 20202 } }]
+    - name: admin_port_cluster
+      connect_timeout: 5.000s
+      type: STATIC
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: admin_port_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 19000
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 19000

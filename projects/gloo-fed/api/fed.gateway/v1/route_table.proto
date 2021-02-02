@@ -14,6 +14,9 @@ import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table.proto";
 
 import "google/protobuf/wrappers.proto";
 
+// The Federated[Resource] CRDs are a gloo-fed wrapper around Gloo Edge CRDs, with a Placement field indicating which
+// clusters and namespaces to federate the object to.
+// For more, see: https://docs.solo.io/gloo-edge/latest/guides/gloo_federation/federated_configuration/
 message FederatedRouteTableSpec {
 
     message Template {

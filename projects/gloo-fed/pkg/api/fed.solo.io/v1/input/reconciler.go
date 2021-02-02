@@ -16,6 +16,7 @@
 // * Settings
 // * Proxies
 // * AuthConfigs
+// * RateLimitConfigs
 // for a given cluster or set of clusters.
 //
 // Input Reconcilers can be be constructed from either a single Manager (watch events in a single cluster)
@@ -48,6 +49,9 @@ import (
 
 	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	enterprise_gloo_solo_io_v1_controllers "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/controller"
+
+	ratelimit_api_solo_io_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	ratelimit_api_solo_io_v1alpha1_controllers "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/controller"
 )
 
 // the multiClusterReconciler reconciles events for input resources across clusters
@@ -69,6 +73,8 @@ type multiClusterReconciler interface {
 	gloo_solo_io_v1_controllers.MulticlusterProxyReconciler
 
 	enterprise_gloo_solo_io_v1_controllers.MulticlusterAuthConfigReconciler
+
+	ratelimit_api_solo_io_v1alpha1_controllers.MulticlusterRateLimitConfigReconciler
 }
 
 var _ multiClusterReconciler = &multiClusterReconcilerImpl{}
@@ -108,6 +114,9 @@ type ReconcileOptions struct {
 
 	// Options for reconciling AuthConfigs
 	AuthConfigs reconcile.Options
+
+	// Options for reconciling RateLimitConfigs
+	RateLimitConfigs reconcile.Options
 }
 
 // register the reconcile func with the cluster watcher
@@ -158,6 +167,8 @@ func RegisterMultiClusterReconciler(
 	gloo_solo_io_v1_controllers.NewMulticlusterProxyReconcileLoop("Proxy", clusters, options.Proxies).AddMulticlusterProxyReconciler(ctx, r, predicates...)
 
 	enterprise_gloo_solo_io_v1_controllers.NewMulticlusterAuthConfigReconcileLoop("AuthConfig", clusters, options.AuthConfigs).AddMulticlusterAuthConfigReconciler(ctx, r, predicates...)
+
+	ratelimit_api_solo_io_v1alpha1_controllers.NewMulticlusterRateLimitConfigReconcileLoop("RateLimitConfig", clusters, options.RateLimitConfigs).AddMulticlusterRateLimitConfigReconciler(ctx, r, predicates...)
 	return r.base
 }
 
@@ -341,6 +352,21 @@ func (r *multiClusterReconcilerImpl) ReconcileAuthConfigDeletion(clusterName str
 	return err
 }
 
+func (r *multiClusterReconcilerImpl) ReconcileRateLimitConfig(clusterName string, obj *ratelimit_api_solo_io_v1alpha1.RateLimitConfig) (reconcile.Result, error) {
+	obj.ClusterName = clusterName
+	return r.base.ReconcileRemoteGeneric(obj)
+}
+
+func (r *multiClusterReconcilerImpl) ReconcileRateLimitConfigDeletion(clusterName string, obj reconcile.Request) error {
+	ref := &sk_core_v1.ClusterObjectRef{
+		Name:        obj.Name,
+		Namespace:   obj.Namespace,
+		ClusterName: clusterName,
+	}
+	_, err := r.base.ReconcileRemoteGeneric(ref)
+	return err
+}
+
 // the singleClusterReconciler reconciles events for input resources across clusters
 // this private interface is used to ensure that the generated struct implements the intended functions
 type singleClusterReconciler interface {
@@ -360,6 +386,8 @@ type singleClusterReconciler interface {
 	gloo_solo_io_v1_controllers.ProxyReconciler
 
 	enterprise_gloo_solo_io_v1_controllers.AuthConfigReconciler
+
+	ratelimit_api_solo_io_v1alpha1_controllers.RateLimitConfigReconciler
 }
 
 var _ singleClusterReconciler = &singleClusterReconcilerImpl{}
@@ -431,6 +459,10 @@ func RegisterSingleClusterReconciler(
 	}
 
 	if err := enterprise_gloo_solo_io_v1_controllers.NewAuthConfigReconcileLoop("AuthConfig", mgr, options).RunAuthConfigReconciler(ctx, r, predicates...); err != nil {
+		return nil, err
+	}
+
+	if err := ratelimit_api_solo_io_v1alpha1_controllers.NewRateLimitConfigReconcileLoop("RateLimitConfig", mgr, options).RunRateLimitConfigReconciler(ctx, r, predicates...); err != nil {
 		return nil, err
 	}
 
@@ -585,6 +617,19 @@ func (r *singleClusterReconcilerImpl) ReconcileAuthConfig(obj *enterprise_gloo_s
 }
 
 func (r *singleClusterReconcilerImpl) ReconcileAuthConfigDeletion(obj reconcile.Request) error {
+	ref := &sk_core_v1.ObjectRef{
+		Name:      obj.Name,
+		Namespace: obj.Namespace,
+	}
+	_, err := r.base.ReconcileLocalGeneric(ref)
+	return err
+}
+
+func (r *singleClusterReconcilerImpl) ReconcileRateLimitConfig(obj *ratelimit_api_solo_io_v1alpha1.RateLimitConfig) (reconcile.Result, error) {
+	return r.base.ReconcileLocalGeneric(obj)
+}
+
+func (r *singleClusterReconcilerImpl) ReconcileRateLimitConfigDeletion(obj reconcile.Request) error {
 	ref := &sk_core_v1.ObjectRef{
 		Name:      obj.Name,
 		Namespace: obj.Namespace,

@@ -39,6 +39,8 @@ message GlooInstanceSpec {
         int32 ready_replicas = 3;
         // Whether or not this proxy supports wasm plugins
         bool wasm_enabled = 4;
+        // Whether or not this proxy allows its config dumps to be read
+        bool read_config_multicluster_enabled = 11;
         // The version
         string version = 5;
         // Name of the proxy instance, this is important to distinguish it from other proxy instances,
@@ -90,7 +92,7 @@ message GlooInstanceSpec {
         // Namespace which gloo-fed will write all of its admin resources to.
         string write_namespace = 1;
 
-        // name of proxy which will be used for gloo-fed by default for this instance
+        // name of proxy which will be used for gloo-fed by default for this instance, unless specified via: TODO
         core.skv2.solo.io.ObjectRef proxy_id = 2;
     }
 

@@ -11,7 +11,7 @@ import (
 	fedenterprisev1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	fedgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	fedgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
-	fedratelimitv1alpha1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
+	fedratelimitv1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,7 +25,7 @@ var schemes = runtime.SchemeBuilder{
 	fedgloov1.AddToScheme,
 	fedgatewayv1.AddToScheme,
 	fedenterprisev1.AddToScheme,
-	fedratelimitv1alpha1alpha1.AddToScheme,
+	fedratelimitv1alpha1.AddToScheme,
 }
 
 func MustLocalManager(ctx context.Context) manager.Manager {

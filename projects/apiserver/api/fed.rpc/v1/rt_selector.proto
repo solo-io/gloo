@@ -1,0 +1,43 @@
+syntax = "proto3";
+package fed.rpc.solo.io;
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
+
+import "github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers.proto";
+import "github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy.proto";
+import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service.proto";
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+
+message SubRouteTableRow {
+
+    oneof action {
+        gloo.solo.io.RouteAction route_action = 1;
+        gloo.solo.io.RedirectAction redirect_action = 2;
+        gloo.solo.io.DirectResponseAction direct_response_action = 3;
+        gateway.solo.io.DelegateAction delegate_action = 4;
+    }
+
+    string matcher = 5;
+    string match_type = 6;
+    repeated string methods = 7;
+    repeated .matchers.core.gloo.solo.io.HeaderMatcher headers = 8;
+    repeated .matchers.core.gloo.solo.io.QueryParameterMatcher query_parameters = 9;
+
+    repeated SubRouteTableRow rt_routes = 10;
+}
+
+message GetVirtualServiceRoutesRequest {
+    core.skv2.solo.io.ClusterObjectRef virtual_service_ref = 1;
+}
+
+message GetVirtualServiceRoutesResponse {
+    repeated SubRouteTableRow vs_routes = 1;
+}
+
+service VirtualServiceRoutesApi {
+    rpc GetVirtualServiceRoutes (GetVirtualServiceRoutesRequest) returns (GetVirtualServiceRoutesResponse) {}
+}

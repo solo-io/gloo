@@ -15,6 +15,7 @@ import (
 	v1sets1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 	v1sets2 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 	v1sets3 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
+	v1alpha1sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
 	input "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -208,6 +209,20 @@ func (m *MockSnapshot) AuthConfigs() v1sets1.AuthConfigSet {
 func (mr *MockSnapshotMockRecorder) AuthConfigs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthConfigs", reflect.TypeOf((*MockSnapshot)(nil).AuthConfigs))
+}
+
+// RateLimitConfigs mocks base method
+func (m *MockSnapshot) RateLimitConfigs() v1alpha1sets.RateLimitConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RateLimitConfigs")
+	ret0, _ := ret[0].(v1alpha1sets.RateLimitConfigSet)
+	return ret0
+}
+
+// RateLimitConfigs indicates an expected call of RateLimitConfigs
+func (mr *MockSnapshotMockRecorder) RateLimitConfigs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RateLimitConfigs", reflect.TypeOf((*MockSnapshot)(nil).RateLimitConfigs))
 }
 
 // SyncStatusesMultiCluster mocks base method

@@ -15,6 +15,7 @@
 // * Settings
 // * Proxies
 // * AuthConfigs
+// * RateLimitConfigs
 // read from a given cluster or set of clusters, across all namespaces.
 //
 // A snapshot can be constructed from either a single Manager (for a single cluster)
@@ -53,6 +54,9 @@ import (
 
 	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	enterprise_gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
+
+	ratelimit_api_solo_io_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	ratelimit_api_solo_io_v1alpha1_sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
 )
 
 // the snapshot of input resources consumed by translation
@@ -86,6 +90,9 @@ type Snapshot interface {
 
 	// return the set of input AuthConfigs
 	AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet
+
+	// return the set of input RateLimitConfigs
+	RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet
 	// update the status of all input objects which support
 	// the Status subresource (across multiple clusters)
 	SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error
@@ -127,6 +134,9 @@ type SyncStatusOptions struct {
 
 	// sync status of AuthConfig objects
 	AuthConfig bool
+
+	// sync status of RateLimitConfig objects
+	RateLimitConfig bool
 }
 
 type snapshot struct {
@@ -148,6 +158,8 @@ type snapshot struct {
 	proxies        gloo_solo_io_v1_sets.ProxySet
 
 	authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet
+
+	rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet
 }
 
 func NewSnapshot(
@@ -170,22 +182,25 @@ func NewSnapshot(
 
 	authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet,
 
+	rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet,
+
 ) Snapshot {
 	return &snapshot{
 		name: name,
 
-		services:        services,
-		pods:            pods,
-		deployments:     deployments,
-		daemonSets:      daemonSets,
-		gateways:        gateways,
-		virtualServices: virtualServices,
-		routeTables:     routeTables,
-		upstreams:       upstreams,
-		upstreamGroups:  upstreamGroups,
-		settings:        settings,
-		proxies:         proxies,
-		authConfigs:     authConfigs,
+		services:         services,
+		pods:             pods,
+		deployments:      deployments,
+		daemonSets:       daemonSets,
+		gateways:         gateways,
+		virtualServices:  virtualServices,
+		routeTables:      routeTables,
+		upstreams:        upstreams,
+		upstreamGroups:   upstreamGroups,
+		settings:         settings,
+		proxies:          proxies,
+		authConfigs:      authConfigs,
+		rateLimitConfigs: rateLimitConfigs,
 	}
 }
 
@@ -235,6 +250,10 @@ func (s snapshot) Proxies() gloo_solo_io_v1_sets.ProxySet {
 
 func (s snapshot) AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet {
 	return s.authConfigs
+}
+
+func (s snapshot) RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet {
+	return s.rateLimitConfigs
 }
 
 func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error {
@@ -338,6 +357,19 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 			}
 		}
 	}
+
+	if opts.RateLimitConfig {
+		for _, obj := range s.RateLimitConfigs().List() {
+			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			if err != nil {
+				errs = multierror.Append(errs, err)
+				continue
+			}
+			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
 	return errs
 }
 
@@ -402,6 +434,14 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 			}
 		}
 	}
+
+	if opts.RateLimitConfig {
+		for _, obj := range s.RateLimitConfigs().List() {
+			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
 	return errs
 }
 
@@ -420,6 +460,7 @@ func (s snapshot) MarshalJSON() ([]byte, error) {
 	snapshotMap["settings"] = s.settings.List()
 	snapshotMap["proxies"] = s.proxies.List()
 	snapshotMap["authConfigs"] = s.authConfigs.List()
+	snapshotMap["rateLimitConfigs"] = s.rateLimitConfigs.List()
 	return json.Marshal(snapshotMap)
 }
 
@@ -459,6 +500,9 @@ type BuildOptions struct {
 
 	// List options for composing a snapshot from AuthConfigs
 	AuthConfigs ResourceBuildOptions
+
+	// List options for composing a snapshot from RateLimitConfigs
+	RateLimitConfigs ResourceBuildOptions
 }
 
 // Options for reading resources of a given type
@@ -507,6 +551,8 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 
 	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
 
+	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+
 	var errs error
 
 	for _, cluster := range b.clusters.ListClusters() {
@@ -547,6 +593,9 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 		if err := b.insertAuthConfigsFromCluster(ctx, cluster, authConfigs, opts.AuthConfigs); err != nil {
 			errs = multierror.Append(errs, err)
 		}
+		if err := b.insertRateLimitConfigsFromCluster(ctx, cluster, rateLimitConfigs, opts.RateLimitConfigs); err != nil {
+			errs = multierror.Append(errs, err)
+		}
 
 	}
 
@@ -565,6 +614,7 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 		settings,
 		proxies,
 		authConfigs,
+		rateLimitConfigs,
 	)
 
 	return outputSnap, errs
@@ -1079,6 +1129,49 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 	return nil
 }
 
+func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Context, cluster string, rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet, opts ResourceBuildOptions) error {
+	rateLimitConfigClient, err := ratelimit_api_solo_io_v1alpha1.NewMulticlusterRateLimitConfigClient(b.client).Cluster(cluster)
+	if err != nil {
+		return err
+	}
+
+	if opts.Verifier != nil {
+		mgr, err := b.clusters.Cluster(cluster)
+		if err != nil {
+			return err
+		}
+
+		gvk := schema.GroupVersionKind{
+			Group:   "ratelimit.api.solo.io",
+			Version: "v1alpha1",
+			Kind:    "RateLimitConfig",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			cluster,
+			mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	rateLimitConfigList, err := rateLimitConfigClient.ListRateLimitConfig(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range rateLimitConfigList.Items {
+		item := item               // pike
+		item.ClusterName = cluster // set cluster for in-memory processing
+		rateLimitConfigs.Insert(&item)
+	}
+
+	return nil
+}
+
 // build a snapshot from resources in a single cluster
 type singleClusterBuilder struct {
 	mgr         manager.Manager
@@ -1123,6 +1216,8 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 
 	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
 
+	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+
 	var errs error
 
 	if err := b.insertServices(ctx, services, opts.Services); err != nil {
@@ -1161,6 +1256,9 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 	if err := b.insertAuthConfigs(ctx, authConfigs, opts.AuthConfigs); err != nil {
 		errs = multierror.Append(errs, err)
 	}
+	if err := b.insertRateLimitConfigs(ctx, rateLimitConfigs, opts.RateLimitConfigs); err != nil {
+		errs = multierror.Append(errs, err)
+	}
 
 	outputSnap := NewSnapshot(
 		name,
@@ -1177,6 +1275,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 		settings,
 		proxies,
 		authConfigs,
+		rateLimitConfigs,
 	)
 
 	return outputSnap, errs
@@ -1578,6 +1677,40 @@ func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfig
 		item := item // pike
 		item.ClusterName = b.clusterName
 		authConfigs.Insert(&item)
+	}
+
+	return nil
+}
+
+func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "ratelimit.api.solo.io",
+			Version: "v1alpha1",
+			Kind:    "RateLimitConfig",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	rateLimitConfigList, err := ratelimit_api_solo_io_v1alpha1.NewRateLimitConfigClient(b.mgr.GetClient()).ListRateLimitConfig(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range rateLimitConfigList.Items {
+		item := item // pike
+		item.ClusterName = b.clusterName
+		rateLimitConfigs.Insert(&item)
 	}
 
 	return nil

@@ -9,7 +9,7 @@ glooFed:
       cpu: 125m
       memory: 256Mi
 glooFedApiserver:
-  enable: false
+  enable: true
   port: 10101
   healthCheckPort: 8081
   image:
@@ -37,7 +37,7 @@ glooFedApiserver:
       pullPolicy: IfNotPresent
       registry: quay.io/solo-io
       repository: gloo-federation-console
-      tag: %version%
+      tag: 0.0.25 # TODO(ashwang) : %version%
     resources:
       requests:
         cpu: 125m

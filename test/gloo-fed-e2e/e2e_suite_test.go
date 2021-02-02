@@ -1,4 +1,4 @@
-package e2e_test_test
+package gloo_fed_e2e_test
 
 import (
 	"context"
