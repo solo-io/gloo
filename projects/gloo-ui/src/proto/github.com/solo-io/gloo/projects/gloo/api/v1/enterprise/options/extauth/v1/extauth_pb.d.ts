@@ -903,7 +903,13 @@ export class AccessTokenValidation extends jspb.Message {
   getCacheTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setCacheTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasRequiredScopes(): boolean;
+  clearRequiredScopes(): void;
+  getRequiredScopes(): AccessTokenValidation.ScopeList | undefined;
+  setRequiredScopes(value?: AccessTokenValidation.ScopeList): void;
+
   getValidationTypeCase(): AccessTokenValidation.ValidationTypeCase;
+  getScopeValidationCase(): AccessTokenValidation.ScopeValidationCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AccessTokenValidation.AsObject;
   static toObject(includeInstance: boolean, msg: AccessTokenValidation): AccessTokenValidation.AsObject;
@@ -919,11 +925,39 @@ export namespace AccessTokenValidation {
     introspectionUrl: string,
     userinfoUrl: string,
     cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    requiredScopes?: AccessTokenValidation.ScopeList.AsObject,
+  }
+
+  export class ScopeList extends jspb.Message {
+    clearScopeList(): void;
+    getScopeList(): Array<string>;
+    setScopeList(value: Array<string>): void;
+    addScope(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ScopeList.AsObject;
+    static toObject(includeInstance: boolean, msg: ScopeList): ScopeList.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ScopeList, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ScopeList;
+    static deserializeBinaryFromReader(message: ScopeList, reader: jspb.BinaryReader): ScopeList;
+  }
+
+  export namespace ScopeList {
+    export type AsObject = {
+      scopeList: Array<string>,
+    }
   }
 
   export enum ValidationTypeCase {
     VALIDATION_TYPE_NOT_SET = 0,
     INTROSPECTION_URL = 1,
+  }
+
+  export enum ScopeValidationCase {
+    SCOPE_VALIDATION_NOT_SET = 0,
+    REQUIRED_SCOPES = 6,
   }
 }
 

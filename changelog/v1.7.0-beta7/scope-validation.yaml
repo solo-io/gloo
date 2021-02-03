@@ -1,0 +1,19 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4224
+    resolvesIssue: false
+    description: >-
+       Add ability for the Gloo Edge Enterprise external auth server to validate OAuth 2.0 access tokens based on access token scopes. 
+       The new match_all field of AccessTokenValidation can be used to specify a list of required scopes for a token.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.7.0-beta13
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.7.0-beta13
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-server
+    dependencyTag: v0.7.11

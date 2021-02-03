@@ -29,6 +29,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/apikeys"
 	"github.com/solo-io/ext-auth-service/pkg/config/apr"
 	"github.com/solo-io/ext-auth-service/pkg/config/ldap"
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/opaque"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	"github.com/solo-io/ext-auth-service/pkg/session"
@@ -454,7 +455,9 @@ func (c *configGenerator) authConfigToService(
 					UserInfoUrl:      userInfoUrl,
 				})
 
-				return token_validation.NewTokenIntrospectionAuth(introspectionClients.TokenValidator, introspectionClients.UserInfoClient), config.GetName().GetValue(), nil
+				scopeValidator := NewScopeValidator(oauthCfg.AccessTokenValidation)
+
+				return token_validation.NewTokenIntrospectionAuth(introspectionClients.TokenValidator, introspectionClients.UserInfoClient, scopeValidator), config.GetName().GetValue(), nil
 			default:
 				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidation.ValidationType)
 			}
@@ -575,4 +578,13 @@ func getPassThroughGrpcAuthService(ctx context.Context, grpcConfig *extauthv1.Pa
 	}
 
 	return passthrough.NewGrpcService(grpcClientManager), nil
+}
+
+func NewScopeValidator(config *extauthv1.AccessTokenValidation) token_validation.ScopeValidator {
+	if config.GetRequiredScopes() != nil {
+		return opaque.NewMatchAllValidator(config.GetRequiredScopes().GetScope())
+	}
+
+	// a match-all validator with no scopes is a no-op validator
+	return opaque.NewMatchAllValidator([]string{})
 }
