@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    description: >
+      If userIdHeader is set in helm, ensure it gets set on the Gloo `Settings` resource generated in helm.
+    issueLink: https://github.com/solo-io/gloo/issues/4162

@@ -72,6 +72,9 @@ spec:
     {{- if $extauth.requestTimeout }}
     requestTimeout: {{ quote $extauth.requestTimeout }}
     {{- end }}
+    {{- if $extauth.userIdHeader }}
+    userIdHeader: {{ quote $extauth.userIdHeader }}
+    {{- end }}
   {{- end }}
 {{- end}}
 {{- if .Values.rateLimit.enabled }}

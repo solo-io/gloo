@@ -1262,6 +1262,7 @@ spec:
       name: extauth
       namespace: ` + namespace + `
     requestTimeout: "1s"
+    userIdHeader: "x-user-id"
   gateway:
     validation:
       alwaysAccept: true
@@ -1308,6 +1309,7 @@ spec:
     extauthzServerRef:
       name: extauth
       namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
   gateway:
     validation:
       alwaysAccept: true
@@ -1359,6 +1361,7 @@ spec:
     extauthzServerRef:
       name: extauth
       namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
   gateway:
     validation:
       alwaysAccept: true
@@ -1413,6 +1416,7 @@ spec:
     extauthzServerRef:
       name: extauth
       namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
   gateway:
     validation:
       alwaysAccept: true
