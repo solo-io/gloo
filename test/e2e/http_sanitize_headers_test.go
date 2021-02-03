@@ -162,7 +162,9 @@ func getProxyWithHeaderSanitation(envoyPort uint32, headerSanitation bool) *gloo
 	getHttpListenerOptions := func() *gloov1.HttpListenerOptions {
 		if headerSanitation {
 			return &gloov1.HttpListenerOptions{
-				Extauth: &extauthv1.Settings{ClearRouteCache: true},
+				Extauth: &extauthv1.Settings{ClearRouteCache: true,
+					TransportApiVersion: extauthv1.Settings_V3,
+				},
 				SanitizeClusterHeader: &wrappers.BoolValue{
 					Value: true,
 				},

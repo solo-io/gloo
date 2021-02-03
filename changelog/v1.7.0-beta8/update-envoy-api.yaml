@@ -1,0 +1,5 @@
+changelog:
+  - type: UPGRADE
+    issueLink: https://github.com/solo-io/gloo/issues/4042
+    description: >
+      Remove envoy v2 references from glooE. This marks the complete transition from v2 to v3. 

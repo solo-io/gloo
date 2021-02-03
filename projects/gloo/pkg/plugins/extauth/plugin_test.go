@@ -178,8 +178,9 @@ var _ = Describe("Plugin", func() {
 				Namespace: "default",
 			}
 			extAuthSettings = &extauthv1.Settings{
-				ExtauthzServerRef: extAuthRef,
-				FailureModeAllow:  true,
+				TransportApiVersion: extauthv1.Settings_V3,
+				ExtauthzServerRef:   extAuthRef,
+				FailureModeAllow:    true,
 				RequestBody: &extauthv1.BufferSettings{
 					AllowPartialMessage: true,
 					MaxRequestBytes:     54,

@@ -247,8 +247,7 @@ export namespace Settings {
   }
 
   export interface ApiVersionMap {
-    V2: 0;
-    V3: 1;
+    V3: 0;
   }
 
   export const ApiVersion: ApiVersionMap;

@@ -1462,8 +1462,7 @@ proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter = function(messag
  * @enum {number}
  */
 proto.enterprise.gloo.solo.io.Settings.ApiVersion = {
-  V2: 0,
-  V3: 1
+  V3: 0
 };
 
 /**

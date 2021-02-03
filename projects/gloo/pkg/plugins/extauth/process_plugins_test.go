@@ -281,8 +281,9 @@ func buildExtAuthSettings(extAuthServerUs *gloov1.Upstream) *extauthv1.Settings 
 	extAuthRef := extAuthServerUs.Metadata.Ref()
 
 	return &extauthv1.Settings{
-		ExtauthzServerRef: extAuthRef,
-		FailureModeAllow:  true,
+		TransportApiVersion: extauthv1.Settings_V3,
+		ExtauthzServerRef:   extAuthRef,
+		FailureModeAllow:    true,
 		RequestBody: &extauthv1.BufferSettings{
 			AllowPartialMessage: true,
 			MaxRequestBytes:     64,

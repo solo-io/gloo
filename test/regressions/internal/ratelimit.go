@@ -284,6 +284,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 						RateLimitBeforeAuth: false, // start as false to make sure that we correctly get denied by authZ before rate limited
 					}
 					settings.Extauth = &extauthv1.Settings{
+						TransportApiVersion: extauthv1.Settings_V3,
 						ExtauthzServerRef: &core.ResourceRef{
 							Name:      "extauth",
 							Namespace: testHelper.InstallNamespace,
