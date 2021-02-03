@@ -33,10 +33,10 @@ require (
 	github.com/rotisserie/eris v0.4.0
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
-	github.com/solo-io/ext-auth-plugins v0.2.0
-	github.com/solo-io/ext-auth-service v0.7.9
+	github.com/solo-io/ext-auth-plugins v0.2.1
+	github.com/solo-io/ext-auth-service v0.7.13
 	github.com/solo-io/gloo v1.6.7
-	github.com/solo-io/go-utils v0.20.1
+	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.5
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.15

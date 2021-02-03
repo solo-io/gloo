@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4211
+    description: >
+      In OIDC, ensure validating JWT ID token audiences work when the JWT has an array of valid audiences
+      rather than a single audience.
