@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Remove runtime TLS Inspector flags and use Gloo OS tls inspector filter.
+    issueLink: https://github.com/solo-io/gloo/issues/4044
