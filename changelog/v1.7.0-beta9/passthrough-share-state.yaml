@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/4255
+    description: >
+      Add e2e tests to verify that PassThrough ExtAuthService can share state with other services

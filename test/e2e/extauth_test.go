@@ -20,6 +20,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/ext-auth-service/pkg/server"
 
@@ -1013,6 +1014,22 @@ var _ = Describe("External auth", func() {
 					}(*testUpstream)
 				})
 
+				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
+					EventuallyWithOffset(1, func() (int, error) {
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+						if err != nil {
+							return 0, nil
+						}
+
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(responseCode))
+				}
+
 				JustBeforeEach(func() {
 					// start auth server
 					err := authServer.Start(authServerPort)
@@ -1067,19 +1084,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should accept extauth passthrough", func() {
-						Eventually(func() (int, error) {
-							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-							if err != nil {
-								return 0, nil
-							}
-
-							resp, err := http.DefaultClient.Do(req)
-							if err != nil {
-								return 0, err
-							}
-
-							return resp.StatusCode, nil
-						}, "5s", "0.5s").Should(Equal(http.StatusOK))
+						expectRequestEventuallyReturnsResponseCode(http.StatusOK)
 					})
 
 				})
@@ -1092,19 +1097,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should deny extauth passthrough", func() {
-						Eventually(func() (int, error) {
-							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-							if err != nil {
-								return 0, nil
-							}
-
-							resp, err := http.DefaultClient.Do(req)
-							if err != nil {
-								return 0, err
-							}
-
-							return resp.StatusCode, nil
-						}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+						expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
 					})
 
 				})
@@ -1117,19 +1110,198 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should deny extauth passthrough", func() {
-						Eventually(func() (int, error) {
-							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-							if err != nil {
-								return 0, nil
-							}
+						expectRequestEventuallyReturnsResponseCode(http.StatusForbidden)
+					})
 
-							resp, err := http.DefaultClient.Do(req)
-							if err != nil {
-								return 0, err
-							}
+				})
 
-							return resp.StatusCode, nil
-						}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+				Context("when auth server returns ok response with valid dynamic metadata properties", func() {
+
+					BeforeEach(func() {
+						authServerResponse := passthrough_test_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"current-state-key": {
+									Kind: &structpb.Value_StringValue{
+										StringValue: "new-state-value",
+									},
+								},
+								"new-state-key": {
+									Kind: &structpb.Value_StringValue{
+										StringValue: "new-state-value",
+									},
+								},
+							},
+						})
+						authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+					})
+
+					It("should accept extauth passthrough", func() {
+						expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+					})
+
+				})
+
+			})
+
+			Context("passthrough chaining sanity", func() {
+				// These tests are used to validate that state is passed properly to and from the passthrough service
+
+				var (
+					proxy           *gloov1.Proxy
+					authServerA     *passthrough_test_utils.GrpcAuthServer
+					authServerAPort = 5556
+
+					authServerB     *passthrough_test_utils.GrpcAuthServer
+					authServerBPort = 5557
+				)
+
+				BeforeEach(func() {
+					// drain channel as we dont care about it
+					go func(testUpstream v1helpers.TestUpstream) {
+						for range testUpstream.C {
+						}
+					}(*testUpstream)
+				})
+
+				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
+					EventuallyWithOffset(1, func() (int, error) {
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+						if err != nil {
+							return 0, nil
+						}
+
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(responseCode))
+				}
+
+				JustBeforeEach(func() {
+					// start auth servers
+					err := authServerA.Start(authServerAPort)
+					Expect(err).NotTo(HaveOccurred())
+
+					err = authServerB.Start(authServerBPort)
+					Expect(err).NotTo(HaveOccurred())
+
+					// write auth configuration
+					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
+							Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*extauth.AuthConfig_Config{
+							{
+								// Ordering is important here, AuthServerA is listed first so it is earlier in the chain
+								AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+									PassThroughAuth: getPassThroughAuthConfig(authServerA.GetAddress()),
+								},
+							},
+							{
+								AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+									PassThroughAuth: getPassThroughAuthConfig(authServerB.GetAddress()),
+								},
+							},
+						},
+					}, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					// get proxy with pass through auth extension
+					proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+					// write proxy
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// ensure proxy is accepted
+					Eventually(func() (core.Status, error) {
+						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+						if err != nil {
+							return core.Status{}, err
+						}
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
+					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+						"Reason": BeEmpty(),
+						"State":  Equal(core.Status_Accepted),
+					}))
+				})
+
+				AfterEach(func() {
+					authServerA.Stop()
+					authServerB.Stop()
+				})
+
+				Context("first auth server writes metadata, second requires it", func() {
+
+					BeforeEach(func() {
+						// Configure AuthServerA (first in chain) to return DynamicMetadata.
+						authServerAResponse := passthrough_test_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"key": {
+									Kind: &structpb.Value_StringValue{
+										StringValue: "value",
+									},
+								},
+								"non-string-value": {
+									Kind: &structpb.Value_StructValue{
+										StructValue: &structpb.Struct{
+											Fields: map[string]*structpb.Value{
+												"nested-key": {
+													Kind: &structpb.Value_StringValue{
+														StringValue: "nested-value",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						})
+						authServerA = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+
+						// Configure AuthServerB (second in chain) to expect those dynamic metadata keys
+						authServerB = passthrough_test_utils.NewGrpcAuthServerWithRequiredMetadata([]string{
+							"key",
+							"non-string-value",
+						})
+					})
+
+					It("should accept extauth passthrough", func() {
+						// This will pass only if the following events occur:
+						//		1. AuthServerA returns DynamicMetadata under PassThrough Key and that data is stored on AuthorizationRequest
+						//		2. State on AuthorizationRequest is parsed and sent on subsequent request to AuthServerB
+						//		3. AuthServerB receives the Metadata and returns ok if all keys are present.
+						expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+					})
+
+				})
+
+				Context("first auth server does not write metadata, second requires it", func() {
+
+					BeforeEach(func() {
+						// Configure AuthServerA (first in chain) to NOT return DynamicMetadata.
+						authServerAResponse := passthrough_test_utils.OkResponse()
+						authServerA = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+
+						// Configure AuthServerB (second in chain) to expect dynamic metadata keys
+						authServerB = passthrough_test_utils.NewGrpcAuthServerWithRequiredMetadata([]string{
+							"key",
+							"non-string-value",
+						})
+					})
+
+					It("should deny extauth passthrough", func() {
+						// This will deny the request because:
+						//		1. AuthServerA does not return DynamicMetadata under PassThrough Key. So there is not AuthorizationRequest.State
+						//		2. Since there is no AuthorizationRequest.State, no Metadata is sent in request to AuthServerB
+						//		3. AuthServerB receives no Metadata, but requires certain fields and returns 401 since there are missing properties
+						expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
 					})
 
 				})
