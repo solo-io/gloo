@@ -894,6 +894,11 @@ export class AccessTokenValidation extends jspb.Message {
   getIntrospectionUrl(): string;
   setIntrospectionUrl(value: string): void;
 
+  hasJwt(): boolean;
+  clearJwt(): void;
+  getJwt(): AccessTokenValidation.JwtValidation | undefined;
+  setJwt(value?: AccessTokenValidation.JwtValidation): void;
+
   getUserinfoUrl(): string;
   setUserinfoUrl(value: string): void;
 
@@ -922,9 +927,95 @@ export class AccessTokenValidation extends jspb.Message {
 export namespace AccessTokenValidation {
   export type AsObject = {
     introspectionUrl: string,
+    jwt?: AccessTokenValidation.JwtValidation.AsObject,
     userinfoUrl: string,
     cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     requiredScopes?: AccessTokenValidation.ScopeList.AsObject,
+  }
+
+  export class JwtValidation extends jspb.Message {
+    hasRemoteJwks(): boolean;
+    clearRemoteJwks(): void;
+    getRemoteJwks(): AccessTokenValidation.JwtValidation.RemoteJwks | undefined;
+    setRemoteJwks(value?: AccessTokenValidation.JwtValidation.RemoteJwks): void;
+
+    hasLocalJwks(): boolean;
+    clearLocalJwks(): void;
+    getLocalJwks(): AccessTokenValidation.JwtValidation.LocalJwks | undefined;
+    setLocalJwks(value?: AccessTokenValidation.JwtValidation.LocalJwks): void;
+
+    getIssuer(): string;
+    setIssuer(value: string): void;
+
+    getJwksSourceSpecifierCase(): JwtValidation.JwksSourceSpecifierCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): JwtValidation.AsObject;
+    static toObject(includeInstance: boolean, msg: JwtValidation): JwtValidation.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: JwtValidation, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): JwtValidation;
+    static deserializeBinaryFromReader(message: JwtValidation, reader: jspb.BinaryReader): JwtValidation;
+  }
+
+  export namespace JwtValidation {
+    export type AsObject = {
+      remoteJwks?: AccessTokenValidation.JwtValidation.RemoteJwks.AsObject,
+      localJwks?: AccessTokenValidation.JwtValidation.LocalJwks.AsObject,
+      issuer: string,
+    }
+
+    export class RemoteJwks extends jspb.Message {
+      getUrl(): string;
+      setUrl(value: string): void;
+
+      hasRefreshInterval(): boolean;
+      clearRefreshInterval(): void;
+      getRefreshInterval(): google_protobuf_duration_pb.Duration | undefined;
+      setRefreshInterval(value?: google_protobuf_duration_pb.Duration): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): RemoteJwks.AsObject;
+      static toObject(includeInstance: boolean, msg: RemoteJwks): RemoteJwks.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: RemoteJwks, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): RemoteJwks;
+      static deserializeBinaryFromReader(message: RemoteJwks, reader: jspb.BinaryReader): RemoteJwks;
+    }
+
+    export namespace RemoteJwks {
+      export type AsObject = {
+        url: string,
+        refreshInterval?: google_protobuf_duration_pb.Duration.AsObject,
+      }
+    }
+
+    export class LocalJwks extends jspb.Message {
+      getInlineString(): string;
+      setInlineString(value: string): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): LocalJwks.AsObject;
+      static toObject(includeInstance: boolean, msg: LocalJwks): LocalJwks.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: LocalJwks, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): LocalJwks;
+      static deserializeBinaryFromReader(message: LocalJwks, reader: jspb.BinaryReader): LocalJwks;
+    }
+
+    export namespace LocalJwks {
+      export type AsObject = {
+        inlineString: string,
+      }
+    }
+
+    export enum JwksSourceSpecifierCase {
+      JWKS_SOURCE_SPECIFIER_NOT_SET = 0,
+      REMOTE_JWKS = 1,
+      LOCAL_JWKS = 2,
+    }
   }
 
   export class ScopeList extends jspb.Message {
@@ -952,6 +1043,7 @@ export namespace AccessTokenValidation {
   export enum ValidationTypeCase {
     VALIDATION_TYPE_NOT_SET = 0,
     INTROSPECTION_URL = 1,
+    JWT = 2,
   }
 
   export enum ScopeValidationCase {

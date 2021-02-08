@@ -2,17 +2,13 @@ package runner
 
 import (
 	"context"
-	"net/http"
 	"os"
-	"time"
 
+	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/opaque"
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
-	plugins "github.com/solo-io/ext-auth-service/pkg/config/plugin"
 	"github.com/solo-io/ext-auth-service/pkg/server"
 	"github.com/solo-io/ext-auth-service/pkg/service"
 	"github.com/solo-io/gloo/pkg/utils/syncutil"
@@ -101,26 +97,14 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 
 	generator := config.NewGenerator(
 		ctx,
-		[]byte(settings.ExtAuthSettings.SigningKey),
 		settings.ExtAuthSettings.UserIdHeader,
-		plugins.NewPluginLoader(settings.ExtAuthSettings.PluginDirectory),
-		func(cacheTtl time.Duration, oauthEndpoints config.OAuthIntrospectionEndpoints) *config.OAuthIntrospectionClients {
-			httpClient := &http.Client{
-				Timeout: time.Second * 10,
-			}
-
-			introspectionClient := opaque.NewIntrospectionClient(httpClient, oauthEndpoints.IntrospectionUrl)
-			userInfoClient := user_info.Client(nil)
-			if oauthEndpoints.UserInfoUrl != "" {
-				userInfoClient = user_info.NewClient(httpClient, oauthEndpoints.UserInfoUrl, cacheTtl)
-			}
-
-			opaqueTokenValidator := opaque.NewOpaqueTokenValidator(cacheTtl, introspectionClient)
-			return &config.OAuthIntrospectionClients{
-				TokenValidator: opaqueTokenValidator,
-				UserInfoClient: userInfoClient,
-			}
-		},
+		config.NewTranslator(
+			[]byte(settings.ExtAuthSettings.SigningKey),
+			extauthconfig.NewAuthServiceFactory(
+				settings.ExtAuthSettings.PluginDirectory,
+				settings.ExtAuthSettings.SigningKey,
+			),
+		),
 	)
 
 	protoRedactor := syncutil.NewProtoRedactor()

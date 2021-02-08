@@ -1,0 +1,22 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+    The Gloo Enterprise external auth server can now easily be configured to validate OAuth2.0 access tokens that
+    conform to the [JSON Web Token (JWT) specification](https://tools.ietf.org/html/rfc7519) via the `AccessTokenValidation` API.
+    Tokens are validated using a JSON Web Key Set (as defined in [Section 5 of RFC7517](https://tools.ietf.org/html/rfc7517#section-5)),
+    which can be either inlined in the configuration or fetched from a remote location via HTTP.
+    The server will validate both the JWT signature and the standard claims it contains.
+    If the JWT has been successfully validated, its set of claims will be added to the `AuthorizationRequest`
+    state under the "jwtAccessToken" key. Additionally, if the server has been configured accordingly, the identifier
+    of the authenticated user will be added to the request streams as dynamic metadata and/or a header.
+    For more information see the external auth
+    [API reference](https://docs.solo.io/gloo-edge/master/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/).
+  issueLink: https://github.com/solo-io/gloo/issues/4224
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.7.0-beta16
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.10.0

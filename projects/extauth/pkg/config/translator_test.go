@@ -1,0 +1,427 @@
+package config_test
+
+import (
+	"context"
+	"reflect"
+	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/ext-auth-plugins/api"
+	"github.com/solo-io/ext-auth-service/pkg/chain"
+	"github.com/solo-io/ext-auth-service/pkg/config/apr"
+	mock_config "github.com/solo-io/ext-auth-service/pkg/config/mocks"
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
+	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	"github.com/solo-io/ext-auth-service/pkg/session"
+	"github.com/solo-io/ext-auth-service/pkg/session/redis"
+	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
+	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
+)
+
+var _ = Describe("Ext Auth Config Translator", func() {
+
+	var (
+		ctx             context.Context
+		ctrl            *gomock.Controller
+		serviceFactory  *mock_config.MockAuthServiceFactory
+		authServiceMock *mocks_auth_service.MockAuthService
+
+		translator config.ExtAuthConfigTranslator
+	)
+
+	BeforeEach(func() {
+		ctrl, ctx = gomock.WithContext(context.Background(), GinkgoT())
+		serviceFactory = mock_config.NewMockAuthServiceFactory(ctrl)
+		authServiceMock = mocks_auth_service.NewMockAuthService(ctrl)
+
+		translator = config.NewTranslator([]byte("super secret"), serviceFactory)
+	})
+
+	AfterEach(func() {
+		ctrl.Finish()
+	})
+
+	Describe("translating plugin config", func() {
+
+		When("plugin loading panics", func() {
+			It("recovers from panic", func() {
+				panicPlugin := &extauthv1.AuthPlugin{Name: "Panic"}
+
+				serviceFactory.EXPECT().LoadAuthPlugin(gomock.Any(), panicPlugin).DoAndReturn(
+					func(argCtx context.Context, _ *extauthv1.AuthPlugin) (api.AuthService, error) {
+						ctx = argCtx
+						panic("test load panic")
+					},
+				)
+
+				_, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+					AuthConfigRefName: "default.test-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_PluginAuth{PluginAuth: panicPlugin},
+						},
+					},
+				})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		It("returns without errors when plugin is loaded successfully", func() {
+			okPlugin := &extauthv1.AuthPlugin{Name: "ThisOneWorks"}
+
+			serviceFactory.EXPECT().LoadAuthPlugin(gomock.Any(), okPlugin).Return(authServiceMock, nil)
+
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.plugin-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_PluginAuth{
+							PluginAuth: okPlugin,
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+	})
+
+	Describe("translating basic auth config", func() {
+		It("works as expected", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.basic-auth-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_BasicAuth{
+							BasicAuth: &extauthv1.BasicAuth{
+								Realm: "my-realm",
+								Apr: &extauthv1.BasicAuth_Apr{
+									Users: map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword{
+										"user": {
+											Salt:           "salt",
+											HashedPassword: "pwd",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+			service := services[0]
+
+			aprConfig, ok := service.(*apr.Config)
+			Expect(ok).To(BeTrue())
+			Expect(aprConfig.Realm).To(Equal("my-realm"))
+			Expect(aprConfig.SaltAndHashedPasswordPerUsername).To(BeEquivalentTo(
+				map[string]apr.SaltAndHashedPassword{
+					"user": {Salt: "salt", HashedPassword: "pwd"},
+				}),
+			)
+		})
+	})
+
+	Describe("translating API keys config", func() {
+		It("works as expected", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.api-keys-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+							ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+								ValidApiKeys: map[string]*extauthv1.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata{
+									"key-1": {
+										Username: "foo",
+									},
+									"key-2": {
+										Username: "bar",
+										Metadata: map[string]string{
+											"user-id": "123",
+										},
+									},
+								},
+								HeaderName: "x-api-key",
+								HeadersFromKeyMetadata: map[string]string{
+									"x-user-id": "user-id",
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+	})
+
+	Describe("translating deprecated OAuth OIDC config", func() {
+		It("works as expected", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.oauth-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth{
+							Oauth: &extauthv1.ExtAuthConfig_OAuthConfig{
+								IssuerUrl: "test",
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+			service := services[0]
+
+			// Test that the Issuer Url always appends a trailing slash
+			oidcConfig, ok := service.(*oidc.IssuerImpl)
+			Expect(ok).To(BeTrue())
+			Expect(oidcConfig.IssuerUrl).To(Equal("test/"))
+		})
+	})
+
+	Describe("translating LDAP config", func() {
+		It("works as expected", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.ldap-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Ldap{
+							Ldap: &extauthv1.Ldap{
+								Address:                 "my.server.com:389",
+								UserDnTemplate:          "uid=%s,ou=people,dc=solo,dc=io",
+								MembershipAttributeName: "someName",
+								AllowedGroups: []string{
+									"cn=managers,ou=groups,dc=solo,dc=io",
+									"cn=developers,ou=groups,dc=solo,dc=io",
+								},
+								Pool: &extauthv1.Ldap_ConnectionPool{
+									MaxSize: &wrappers.UInt32Value{
+										Value: uint32(5),
+									},
+									InitialSize: &wrappers.UInt32Value{
+										Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+	})
+
+	Describe("translating OAuth2.0 access token validation config", func() {
+
+		var oAuthConfig *extauthv1.ExtAuthConfig
+
+		BeforeEach(func() {
+			oAuthConfig = &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.oauth2-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation{
+									AccessTokenValidation: &extauthv1.AccessTokenValidation{
+										ValidationType: &extauthv1.AccessTokenValidation_IntrospectionUrl{
+											IntrospectionUrl: "introspection-url",
+										},
+										UserinfoUrl:  "user-info-url",
+										CacheTimeout: nil, // not user-configured
+										ScopeValidation: &extauthv1.AccessTokenValidation_RequiredScopes{
+											RequiredScopes: &extauthv1.AccessTokenValidation_ScopeList{
+												Scope: []string{"foo", "bar"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		When("no cache expiration timeout has been configured", func() {
+			It("correctly defaults the timeout", func() {
+				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
+
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"introspection-url",
+					expectedScopeValidator,
+					"user-info-url",
+					config.DefaultOAuthCacheTtl,
+				).Return(authServiceMock)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+
+		When("the cache expiration timeout has been configured", func() {
+			It("works as expected", func() {
+				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidation().CacheTimeout = ptypes.DurationProto(time.Second)
+				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
+
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"introspection-url",
+					expectedScopeValidator,
+					"user-info-url",
+					time.Second,
+				).Return(authServiceMock)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+	})
+
+	Context("OIDC session", func() {
+		It("should translate nil session", func() {
+			params, err := config.ToSessionParameters(nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{}))
+		})
+		It("should translate FailOnFetchFailure", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{FailOnFetchFailure: true})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true}))
+		})
+		It("should translate CookieOptions", func() {
+			path := "/foo"
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
+				MaxAge:    &wrappers.UInt32Value{Value: 1},
+				Domain:    "foo.com",
+				NotSecure: true,
+				Path:      &wrappers.StringValue{Value: path},
+			}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+				Path:     &path,
+				Domain:   "foo.com",
+				HttpOnly: true,
+				MaxAge:   1,
+				Secure:   false,
+			}}))
+		})
+		It("should translate CookieSessionStore", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Cookie{},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.Store).To(BeNil())
+		})
+		It("should translate RedisSessionStore", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Redis{
+					Redis: &extauthv1.UserSession_RedisSession{},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
+		})
+	})
+
+	Context("headers", func() {
+		It("nil headers go to nil", func() {
+			Expect(config.ToHeaderConfig(nil)).To(BeNil())
+		})
+		It("translates id token header", func() {
+			hc := &extauthv1.HeaderConfiguration{IdTokenHeader: "foo"}
+			expected := &oidc.HeaderConfig{IdTokenHeader: "foo"}
+			Expect(config.ToHeaderConfig(hc)).To(Equal(expected))
+		})
+	})
+
+	Context("oidc discovery override", func() {
+		It("should translate nil discovery override", func() {
+			discoveryDataOverride := config.ToDiscoveryDataOverride(nil)
+			Expect(discoveryDataOverride).To(BeNil())
+		})
+
+		It("should translate valid discovery override", func() {
+			discoveryOverride := &extauthv1.DiscoveryOverride{
+				AuthEndpoint:  "auth.url/",
+				TokenEndpoint: "token.url/",
+				JwksUri:       "keys",
+				ResponseTypes: []string{"code"},
+				Subjects:      []string{"public"},
+				IdTokenAlgs:   []string{"HS256"},
+				Scopes:        []string{"openid"},
+				AuthMethods:   []string{"client_secret_basic"},
+				Claims:        []string{"aud"},
+			}
+			overrideDiscoveryData := config.ToDiscoveryDataOverride(discoveryOverride)
+			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
+				AuthEndpoint:  "auth.url/",
+				TokenEndpoint: "token.url/",
+				Keys:          "keys",
+				ResponseTypes: []string{"code"},
+				Subjects:      []string{"public"},
+				IDTokenAlgs:   []string{"HS256"},
+				Scopes:        []string{"openid"},
+				AuthMethods:   []string{"client_secret_basic"},
+				Claims:        []string{"aud"},
+			}
+			Expect(overrideDiscoveryData).To(Equal(expectedOverrideDiscoveryData))
+		})
+
+		It("should fail if a new field is added to DiscoveryData or DiscoveryOverride", func() {
+			// We want to ensure that the ToDiscoveryDataOverride method correctly translates all fields on the
+			// DiscoveryOverride type over to the DiscoveryData type.
+
+			// If a new field is added to DiscoveryData, this test should fail,
+			// signaling that we need to modify the ToDiscoveryDataOverride implementation
+			Expect(reflect.TypeOf(oidc.DiscoveryData{}).NumField()).To(
+				Equal(10),
+				"wrong number of fields found",
+			)
+
+			// If a new field is added to DiscoveryOverride, this test should fail,
+			// signaling that we need to modify the ToDiscoveryDataOverride implementation
+			Expect(reflect.TypeOf(extauthv1.DiscoveryOverride{}).NumField()).To(
+				Equal(12),
+				"wrong number of fields found",
+			)
+		})
+	})
+})
