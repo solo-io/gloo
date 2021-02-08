@@ -37,10 +37,10 @@ require (
 	github.com/solo-io/ext-auth-service v0.7.13
 	github.com/solo-io/gloo v1.6.7
 	github.com/solo-io/go-utils v0.20.3
-	github.com/solo-io/k8s-utils v0.0.5
+	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.15
-	github.com/solo-io/rate-limiter v0.1.10
+	github.com/solo-io/rate-limiter v0.1.11
 	github.com/solo-io/reporting-client v0.2.0
 	// Corresponds to the `gloo-v1.6.0-beta21` tag
 	github.com/solo-io/solo-apis v0.0.0-20201217203626-64c05e4a6c41
