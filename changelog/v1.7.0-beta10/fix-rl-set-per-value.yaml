@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >-
+      Fix per value rate-limits in the set-style API. (i.e., when omitting the optional value from a simple descriptor,
+      create a rate limit for each unique value instead of having the unique values share the same limit).
+    issueLink: https://github.com/solo-io/gloo/issues/4257
+    resolvesIssue: false
