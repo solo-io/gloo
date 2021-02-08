@@ -1,0 +1,6 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: skv2
+  dependencyTag: v0.17.3
+  description: Update skv2 to pick up codegen flake fix.
+  type: DEPENDENCY_BUMP

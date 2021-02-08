@@ -11,7 +11,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.8
-	github.com/envoyproxy/protoc-gen-validate v0.4.0
+	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/zapr v0.2.0
@@ -39,7 +39,7 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rotisserie/eris v0.4.0
 	github.com/sirupsen/logrus v1.7.0
-	github.com/solo-io/anyvendor v0.0.1
+	github.com/solo-io/anyvendor v0.0.3
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.8.0
@@ -51,7 +51,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.1.9
 	github.com/solo-io/reporting-client v0.2.0
-	github.com/solo-io/skv2 v0.17.2
+	github.com/solo-io/skv2 v0.17.3
 	github.com/solo-io/skv2-enterprise v0.0.8
 	github.com/solo-io/solo-apis v0.0.0-20210202205633-9c2af5aa9df1
 	github.com/solo-io/solo-kit v0.17.1
@@ -62,10 +62,10 @@ require (
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5
 	go.uber.org/zap v1.16.0
-	golang.org/x/mod v0.3.0
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	golang.org/x/mod v0.4.1
+	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/tools v0.0.0-20210106214847-113979e3529a
+	golang.org/x/tools v0.1.0
 	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
 	google.golang.org/grpc v1.33.1
 	google.golang.org/protobuf v1.25.0
@@ -95,6 +95,7 @@ replace (
 	// Lock sys package to fix darwin upgrade issue
 	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
+	golang.org/x/tools => golang.org/x/tools v0.0.0-20210106214847-113979e3529a
 	k8s.io/api => k8s.io/api v0.19.6
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.6
 	k8s.io/apimachinery => k8s.io/apimachinery v0.19.6
