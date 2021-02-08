@@ -28,6 +28,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/olekukonko/tablewriter v0.0.4
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/opencontainers/go-digest v1.0.0

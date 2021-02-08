@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added glooctl fed CLI extension to make it easier to interact with
+      federated Gloo Edge resources (e.g. federated upstreams, virtualservices, gateways).
+    issueLink: https://github.com/solo-io/gloo/issues/4209
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: k8s-utils
+    dependencyTag: v0.0.6

@@ -1,4 +1,4 @@
-#!/usr/bine/vnv sh
+#!/usr/bin/env sh
 
 set -eu
 
