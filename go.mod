@@ -34,7 +34,7 @@ require (
 	github.com/solo-io/anyvendor v0.0.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.7.13
+	github.com/solo-io/ext-auth-service v0.7.14
 	github.com/solo-io/gloo v1.6.7
 	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.6
@@ -73,6 +73,7 @@ replace (
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
+
 	// Lock sys package to fix darwin upgrade issue
 	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
