@@ -149,7 +149,7 @@ generate-all: generated-code generated-ui
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
-generated-code:
+generated-code: update-licenses
 	go mod tidy
 	rm -rf vendor_any
 	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
@@ -818,6 +818,17 @@ tar-repo:
 generate-escrow-pdf: tar-repo
 	$(eval DEPOSIT_BYTES=$(shell wc -c < _gloo-ee-source/gloo-ee-$(VERSION).tar))
 	deno run --allow-read --allow-write --allow-net ci/escrow/modify-pdf.ts $(VERSION) $(DEPOSIT_BYTES) $(DEPOSITOR_NAME) $(DEPOSIT_DATE) $(DEPOSITOR_EMAIL) $(DEPOSITOR_PHONE)
+
+#----------------------------------------------------------------------------------
+# Third Party License Management
+#----------------------------------------------------------------------------------
+.PHONY: update-licenses
+update-licenses:
+	# check for GPL licenses, if there are any, this will fail
+	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -c "GNU General Public License v2.0,GNU General Public License v3.0,GNU Affero General Public License v3.0"
+
+	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -s "Mozilla Public License 2.0,GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0" > ci/licenses/osa_provided.md
+	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -i "Mozilla Public License 2.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0"> ci/licenses/osa_included.md
 
 #----------------------------------------------------------------------------------
 # Printing makefile variables utility

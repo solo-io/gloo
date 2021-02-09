@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Adds license scanning for solo-projects dependencies. This license scanning will fail CI if any GPL licenses are detected.
