@@ -77,7 +77,9 @@ var _ = Describe("failover scheme handler", func() {
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).To(Equal(&rpc_v1.GetFailoverSchemeResponse{}))
+		Expect(resp).To(Equal(&rpc_v1.GetFailoverSchemeResponse{
+			FailoverScheme: &rpc_v1.FailoverScheme{},
+		}))
 	})
 
 	It("returns a failover if there is a failover scheme that matches an upstream", func() {

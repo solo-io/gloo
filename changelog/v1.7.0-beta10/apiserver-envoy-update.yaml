@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Update the apiserver-envoy bootstrap config from envoy v2 to v3.
+  - type: NON_USER_FACING
+    description: Hook up federated rate limit configs to apiserver.

@@ -6,13 +6,11 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
+	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
+	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"go.uber.org/zap"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
-
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
-	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 )
 
 func NewFailoverSchemeHandler(
@@ -39,7 +37,9 @@ func (k *failoverSchemeHandler) GetFailoverScheme(ctx context.Context, request *
 			}, nil
 		}
 	}
-	return &rpc_v1.GetFailoverSchemeResponse{}, nil
+	return &rpc_v1.GetFailoverSchemeResponse{
+		FailoverScheme: &rpc_v1.FailoverScheme{},
+	}, nil
 }
 
 func (k *failoverSchemeHandler) GetFailoverSchemeYaml(ctx context.Context, request *rpc_v1.GetFailoverSchemeYamlRequest) (*rpc_v1.GetFailoverSchemeYamlResponse, error) {

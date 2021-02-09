@@ -1,4 +1,4 @@
-FROM envoyproxy/envoy:v1.13.0
+FROM envoyproxy/envoy:v1.16.0
 RUN apt-get update
 COPY ./cfg.yaml /etc/envoy.yaml
 USER 10101
