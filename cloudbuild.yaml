@@ -172,6 +172,7 @@ steps:
     [
       "manifest",
       "upload-github-release-assets",
+      "build-and-upload-gcs-release-assets",
       "fetch-package-and-save-helm",
       "publish-dependencies",
     ]
