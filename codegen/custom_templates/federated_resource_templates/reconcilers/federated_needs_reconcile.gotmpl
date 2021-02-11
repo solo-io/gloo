@@ -1,0 +1,16 @@
+package {{ .Version }}
+
+import (
+    mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+)
+
+{{- range $resource := $.Resources }}
+
+func (obj *{{ $resource.Kind }}) NeedsReconcile() bool {
+	// If the {{ $resource.Kind }} has not been observed or is in some state where a retry is needed, it needs reconcile
+    return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
+            obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+    	    obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_INVALID
+}
+
+{{- end }}

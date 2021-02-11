@@ -1,0 +1,248 @@
+// Definition for federated resource reconciler templates.
+package federation
+
+{{ $import_prefix := group_import_name $ }}
+{{ $base_import_prefix := base_group_import_name $ }}
+
+import (
+    "context"
+
+    "github.com/hashicorp/go-multierror"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/internal/settings"
+    {{ $base_import_prefix }} "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
+    {{ $base_import_prefix }}_sets "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}/sets"
+    {{ $import_prefix }} "{{ group_import_path $ }}"
+    "{{ group_import_path $ }}/controller"
+    {{ $import_prefix }}_types "{{ group_import_path $ }}/types"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
+    mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+    "github.com/solo-io/go-utils/contextutils"
+    "github.com/solo-io/go-utils/stringutils"
+    "github.com/solo-io/skv2/pkg/reconcile"
+    "go.uber.org/zap"
+    "k8s.io/apimachinery/pkg/api/errors"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+{{- range $resource := $.Resources }}
+
+{{- $kindLowerCamel := lower_camel $resource.Kind }}
+{{- $baseKind := base_kind $resource.Kind }}
+{{- $baseKindLowerCamel := lower_camel $baseKind }}
+
+type {{ $kindLowerCamel }}Reconciler struct {
+    ctx                    context.Context
+    {{ pluralize $kindLowerCamel }} {{ $import_prefix }}.{{ $resource.Kind }}Client
+    baseClients          {{ $base_import_prefix }}.MulticlusterClientset
+    statusBuilderFactory placement.StatusBuilderFactory
+    clusterSet           multicluster.ClusterSet
+}
+
+func New{{ $resource.Kind }}Reconciler(
+    ctx context.Context,
+    {{ pluralize $kindLowerCamel }} {{ $import_prefix }}.{{ $resource.Kind }}Client,
+    baseClients {{ $base_import_prefix }}.MulticlusterClientset,
+    statusBuilderFactory placement.StatusBuilderFactory,
+    clusterSet multicluster.ClusterSet,
+) controller.{{ $resource.Kind }}Finalizer {
+    return &{{ $kindLowerCamel }}Reconciler{
+        ctx:                  ctx,
+        {{ pluralize $kindLowerCamel }}:   {{ pluralize $kindLowerCamel }},
+        baseClients:          baseClients,
+        statusBuilderFactory: statusBuilderFactory,
+        clusterSet:           clusterSet,
+    }
+}
+
+func (f *{{ $kindLowerCamel }}Reconciler) Reconcile{{ $resource.Kind }}(obj *{{ $import_prefix }}.{{ $resource.Kind }}) (reconcile.Result, error) {
+    if !obj.NeedsReconcile() {
+        return reconcile.Result{}, nil
+    }
+
+    contextutils.LoggerFrom(f.ctx).Debugw("processing federated {{ $baseKindLowerCamel }}", zap.Any("{{ $resource.Kind }}", obj))
+    statusBuilder := f.statusBuilderFactory.GetBuilder()
+
+    allClusters := f.clusterSet.ListClusters()
+
+    // Validate resource
+    for _, cluster := range obj.Spec.Placement.GetClusters() {
+        if !stringutils.ContainsString(cluster, allClusters) {
+            obj.Status.PlacementStatus = statusBuilder.
+                UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+                Eject(obj.GetGeneration())
+            return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
+        }
+    }
+    if obj.Spec.Template.GetSpec() == nil {
+        obj.Status.PlacementStatus = statusBuilder.
+            UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+            Eject(obj.GetGeneration())
+        return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
+    }
+    if obj.Spec.Template.GetMetadata() == nil {
+        obj.Status.PlacementStatus = statusBuilder.
+            UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+            Eject(obj.GetGeneration())
+        return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
+    }
+
+    // ownerLabel is used to reference Federated resources via their children.
+    ownerLabel := federation.GetOwnerLabel(obj)
+
+    spec := obj.Spec.Template.GetSpec()
+    meta := obj.Spec.Template.GetMetadata()
+    labels := federation.Merge(meta.GetLabels(), ownerLabel)
+
+    multiErr := &multierror.Error{}
+    for _, cluster := range allClusters {
+        cluster{{ $baseKind }}s := {{ $base_import_prefix }}_sets.New{{ $baseKind }}Set()
+        if stringutils.ContainsString(cluster, obj.Spec.Placement.GetClusters()) {
+            for _, namespace := range obj.Spec.Placement.GetNamespaces() {
+
+                cluster{{ $baseKind }}s.Insert(&{{ $base_import_prefix }}.{{ $baseKind }}{
+                    ObjectMeta: metav1.ObjectMeta{
+                        Namespace:   namespace,
+                        Name:        meta.GetName(),
+                        Labels:      labels,
+                        Annotations: meta.GetAnnotations(),
+                    },
+                    Spec: *spec,
+                })
+            }
+        }
+
+        if err := f.ensureCluster(cluster, statusBuilder, cluster{{ $baseKind }}s, ownerLabel); err != nil {
+            multiErr.Errors = append(multiErr.Errors, err)
+        }
+    }
+
+    obj.Status = {{ $import_prefix }}_types.{{ $resource.Kind }}Status{
+        PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
+    }
+    err := f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
+    if err != nil {
+        multiErr.Errors = append(multiErr.Errors, err)
+        contextutils.LoggerFrom(f.ctx).Errorw("Failed to update status on federated {{ $baseKindLowerCamel }}", zap.Error(err))
+    }
+
+    return reconcile.Result{}, multiErr.ErrorOrNil()
+}
+
+func (f *{{ $kindLowerCamel }}Reconciler) {{ $resource.Kind }}FinalizerName() string {
+    return federation.HubFinalizer
+}
+
+func (f *{{ $kindLowerCamel }}Reconciler) Finalize{{ $resource.Kind }}(obj *{{ $import_prefix }}.{{ $resource.Kind }}) error {
+    return f.deleteAll(federation.GetOwnerLabel(obj))
+}
+
+// ensureCluster upserts all desired resources on the given cluster.
+// An error is returned only if a retry is expected to resolve the issue.
+func (f *{{ $kindLowerCamel }}Reconciler) ensureCluster(cluster string, statusBuilder placement.StatusBuilder, desired {{ $base_import_prefix }}_sets.{{ $baseKind }}Set, ownerLabel map[string]string) error {
+    clientset, err := f.baseClients.Cluster(cluster)
+    if err != nil {
+        var namespaces []string
+        for _, obj := range desired.List() {
+            namespaces = append(namespaces, obj.GetNamespace())
+        }
+
+        statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
+            State:   mc_types.PlacementStatus_FAILED,
+            Message: placement.FailedToCreateClientForCluster(cluster),
+        })
+        return nil
+    }
+
+    {{ $baseKindLowerCamel }}Client := clientset.{{ pluralize $baseKind }}()
+
+    existingList, err := {{ $baseKindLowerCamel }}Client.List{{ $baseKind }}(f.ctx, client.MatchingLabels(ownerLabel))
+    if err != nil {
+        var namespaces []string
+        for _, obj := range desired.List() {
+            namespaces = append(namespaces, obj.GetNamespace())
+        }
+
+        statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
+            State:   mc_types.PlacementStatus_FAILED,
+            Message: placement.FailedToListResource("{{ $baseKindLowerCamel }}", cluster),
+        })
+        return nil
+    }
+
+    existing := {{ $base_import_prefix }}_sets.New{{ $baseKind }}Set()
+    for _, {{ $baseKindLowerCamel }} := range existingList.Items {
+        {{ $baseKindLowerCamel }}Pointer := {{ $baseKindLowerCamel }}
+        existing.Insert(&{{ $baseKindLowerCamel }}Pointer)
+    }
+
+    multiErr := &multierror.Error{}
+    for _, desired{{ $baseKind }} := range desired.List() {
+        err := {{ $baseKindLowerCamel }}Client.Upsert{{ $baseKind }}(f.ctx, desired{{ $baseKind }})
+        if err != nil && errors.IsConflict(err) {
+            multiErr.Errors = append(multiErr.Errors, err)
+            contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert {{ $baseKindLowerCamel }} due to resource conflict", zap.Error(err))
+            statusBuilder.AddDestination(cluster, desired{{ $baseKind }}.Namespace, mc_types.PlacementStatus_Namespace{
+                State:   mc_types.PlacementStatus_FAILED,
+                Message: placement.FailedToUpsertResourceDueToConflict("{{ $baseKindLowerCamel }}"),
+            })
+        } else if err != nil {
+            contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert {{ $baseKindLowerCamel }}", zap.Error(err))
+            statusBuilder.AddDestination(cluster, desired{{ $baseKind }}.Namespace, mc_types.PlacementStatus_Namespace{
+                State:   mc_types.PlacementStatus_FAILED,
+                Message: placement.FailedToUpsertResource("{{ $baseKindLowerCamel }}"),
+            })
+        } else {
+            statusBuilder.AddDestination(cluster, desired{{ $baseKind }}.Namespace, mc_types.PlacementStatus_Namespace{
+                State: mc_types.PlacementStatus_PLACED,
+            })
+        }
+    }
+
+    for _, stale{{ $baseKind }} := range existing.Difference(desired).List() {
+        err := {{ $baseKindLowerCamel }}Client.Delete{{ $baseKind }}(f.ctx, client.ObjectKey{
+            Namespace: stale{{ $baseKind }}.Namespace,
+            Name:      stale{{ $baseKind }}.Name,
+        })
+        if client.IgnoreNotFound(err) != nil {
+            contextutils.LoggerFrom(f.ctx).Errorw("Failed to delete {{ $baseKindLowerCamel }}", zap.Error(err))
+            statusBuilder.AddDestination(cluster, stale{{ $baseKind }}.Namespace, mc_types.PlacementStatus_Namespace{
+                State:   mc_types.PlacementStatus_STALE,
+                Message: placement.FailedToDeleteResource("{{ $baseKindLowerCamel }}"),
+            })
+        }
+    }
+
+    return multiErr.ErrorOrNil()
+}
+
+// Delete all {{ $baseKindLowerCamel }}s in the matching the ownerLabel on all clusters.
+// Used to ensure that {{ $baseKindLowerCamel }}s generated by a {{ $resource.Kind }} are cleaned up on delete.
+func (f *{{ $kindLowerCamel }}Reconciler) deleteAll(ownerLabel map[string]string) error {
+    for _, cluster := range f.clusterSet.ListClusters() {
+        clusterClient, err := f.baseClients.Cluster(cluster)
+        if err != nil {
+            return err
+        }
+        // TODO this requires permissions in all namespaces, we could restrict to to namespaces referenced by gloo instances
+        list, err := clusterClient.{{ pluralize $baseKind }}().List{{ $baseKind }}(f.ctx, client.MatchingLabels(ownerLabel))
+        if err != nil {
+            return err
+        }
+
+        for _, {{ $baseKindLowerCamel }} := range list.Items {
+            err = clusterClient.{{ pluralize $baseKind }}().Delete{{ $baseKind }}(f.ctx, client.ObjectKey{
+                Namespace: {{ $baseKindLowerCamel }}.Namespace,
+                Name:      {{ $baseKindLowerCamel }}.Name,
+            })
+            if client.IgnoreNotFound(err) != nil {
+                return err
+            }
+        }
+    }
+    return nil
+}
+
+{{- end }}

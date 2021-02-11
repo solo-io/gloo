@@ -1,0 +1,87 @@
+{{- $base_import_prefix := base_group_import_name $ }}
+{{- $base_group := base_group $ }}
+{{- $base_Group := base_Group $ }}
+{{- $base_proto_group_shorthand := base_proto_group_shorthand $ }}
+
+package federated_{{ $base_group }}_resource_handler
+
+import (
+	"context"
+	"math"
+
+	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v1"
+
+	{{ $base_import_prefix }} "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.{{ $base_proto_group_shorthand }}.solo.io/{{ base_group_version $ }}"
+	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
+	"github.com/solo-io/go-utils/contextutils"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+func NewFederated{{ $base_Group }}ResourceHandler(
+	{{ $base_group }}FedClient {{ $base_import_prefix }}.Clientset,
+
+) rpc_v1.Federated{{ $base_Group }}ResourceApiServer {
+	return &{{ $base_group }}FedResourceHandler{
+		{{ $base_group }}FedClient: {{ $base_group }}FedClient,
+	}
+}
+
+type {{ $base_group }}FedResourceHandler struct {
+	{{ $base_group }}FedClient {{ $base_import_prefix }}.Clientset
+}
+
+{{- range $resource := $.Resources }}
+
+{{- $kindLowerCamel := lower_camel $resource.Kind }}
+{{- $kind := $resource.Kind }}
+
+func (k *{{ $base_group }}FedResourceHandler) List{{ pluralize $kind }}(ctx context.Context, request *rpc_v1.List{{ pluralize $kind }}Request) (*rpc_v1.List{{ pluralize $kind }}Response, error) {
+	var rpc{{ pluralize $kind }} []*rpc_v1.{{ $kind }}
+	list, err := k.{{ $base_group }}FedClient.{{ pluralize $kind }}().List{{ $kind }}(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list {{ $kindLowerCamel }}")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err))
+		return nil, wrapped
+	}
+	for i, _ := range list.Items {
+		rpc{{ pluralize $kind }} = append(rpc{{ pluralize $kind }}, BuildRpc{{ $kind }}(&list.Items[i]))
+	}
+	return &rpc_v1.List{{ pluralize $kind }}Response{
+		{{ pluralize $kind }}: rpc{{ pluralize $kind }},
+	}, nil
+}
+
+func BuildRpc{{ $kind }}({{ $kindLowerCamel }} *{{ $base_import_prefix }}.{{ $kind }}) *rpc_v1.{{ $kind }} {
+	return &rpc_v1.{{ $kind }}{
+        Metadata: apiserverutils.ToMetadata({{ $kindLowerCamel }}.ObjectMeta),
+        Spec:     &{{ $kindLowerCamel }}.Spec,
+        Status:   &{{ $kindLowerCamel }}.Status,
+    }
+}
+
+func (k *{{ $base_group}}FedResourceHandler) Get{{ $kind }}Yaml(ctx context.Context, request *rpc_v1.Get{{ $kind }}YamlRequest) (*rpc_v1.Get{{ $kind }}YamlResponse, error) {
+	{{ $kindLowerCamel }}, err := k.{{ $base_group}}FedClient.{{ pluralize $kind }}().Get{{ $kind }}(ctx, client.ObjectKey{
+		Namespace: request.Get{{ $kind }}Ref().GetNamespace(),
+		Name:      request.Get{{ $kind }}Ref().GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get {{ $kind }}")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	content, err := yaml.Marshal({{ $kindLowerCamel }})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to marshal kube resource into yaml")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	return &rpc_v1.Get{{ $kind }}YamlResponse{
+		YamlData: &rpc_v1.ResourceYaml{
+			Yaml: string(content),
+		},
+	}, nil
+}
+{{- end }}

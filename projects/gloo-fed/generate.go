@@ -1,22 +1,70 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
+	"strings"
 
+	codegen_placement "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/codegen/placement"
 	"github.com/solo-io/skv2/codegen"
 	"github.com/solo-io/skv2/codegen/model"
 	"github.com/solo-io/skv2/codegen/skv2_anyvendor"
+	"github.com/solo-io/skv2/contrib"
 	"github.com/solo-io/solo-kit/pkg/code-generator/sk_anyvendor"
+	"github.com/solo-io/solo-projects/codegen/groups"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+var (
+	rbacEnabledKinds = map[schema.GroupVersion][]string{
+		schema.GroupVersion{
+			Group:   "fed.gloo.solo.io",
+			Version: "v1",
+		}: {
+			"FederatedUpstream",
+			"FederatedSettings",
+			"FederatedUpstreamGroup",
+		},
+		schema.GroupVersion{
+			Group:   "fed.gateway.solo.io",
+			Version: "v1",
+		}: {
+			"FederatedGateway",
+			"FederatedRouteTable",
+			"FederatedVirtualService",
+		},
+		schema.GroupVersion{
+			Group:   "fed.enterprise.gloo.solo.io",
+			Version: "v1",
+		}: {
+			"FederatedAuthConfig",
+		},
+		schema.GroupVersion{
+			Group:   "fed.ratelimit.solo.io",
+			Version: "v1alpha1",
+		}: {
+			"FederatedRateLimitConfig",
+		},
+		schema.GroupVersion{
+			Group:   "fed.solo.io",
+			Version: "v1",
+		}: {
+			"FailoverScheme",
+		},
+	}
+)
+
 func main() {
+	os.RemoveAll("vendor_any")
 	log.Println("starting generate")
 
-	anyvendorImports := sk_anyvendor.CreateDefaultMatchOptions([]string{
-		"api/**/*.proto",
-	})
+	anyvendorImports := sk_anyvendor.CreateDefaultMatchOptions(
+		[]string{
+			"projects/apiserver/**/*.proto",
+			"projects/gloo-fed/**/*.proto",
+		},
+	)
 	anyvendorImports.External["github.com/solo-io/skv2"] = []string{
 		"api/**/*.proto",
 		"crds/*multicluster.solo.io_v1alpha1_crds.yaml",
@@ -30,122 +78,69 @@ func main() {
 	anyvendorImports.External["github.com/solo-io/skv2-enterprise"] = []string{
 		"**/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto",
 	}
+	// Need to create copy of fed group to pass just failover schemes into chart
+	fedGroup := groups.FedGroup
+	fedGroup.Resources = nil
+	for _, resource := range groups.FedGroup.Resources {
+		if strings.Contains(resource.Spec.Type.Name, "Failover") {
+			fedGroup.Resources = append(fedGroup.Resources, resource)
+		}
+	}
+	apiserverProtosOnly := flag.Bool("apiserver", false, "only generate the apiserver protos")
+	flag.Parse()
 
 	skv2Cmd := codegen.Command{
 		AppName:      "gloo-fed",
 		RenderProtos: true,
-		Groups:       AllGroups,
 		AnyVendorConfig: &skv2_anyvendor.Imports{
 			Local:    anyvendorImports.Local,
 			External: anyvendorImports.External,
 		},
-		ManifestRoot: "install/helm/charts/gloo-fed",
+		ManifestRoot: "install/helm/gloo-fed",
+	}
+
+	if *apiserverProtosOnly {
+		skv2Cmd.Groups = groups.ApiserverGroups
+	} else {
+		skv2Cmd.Groups = append(groups.AllGroups,
+			model.Group{
+				CustomTemplates: []model.CustomTemplates{
+					codegen_placement.TypedParser(contrib.SnapshotTemplateParameters{
+						OutputFilename: "placement/generated_parser.go",
+						SelectFromGroups: map[string][]model.Group{
+							"": {
+								groups.FedEnterpriseGroup,
+								groups.FedRateLimitGroup,
+								groups.FedGlooGroup,
+								groups.FedGatewayGroup,
+								groups.FedGroup,
+							},
+						},
+						SnapshotResources: contrib.HomogenousSnapshotResources{
+							ResourcesToSelect: rbacEnabledKinds,
+						},
+					}),
+				},
+				ApiRoot: "projects/rbac-validating-webhook/pkg",
+			},
+		)
 	}
 	if err := skv2Cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 
+	if !*apiserverProtosOnly {
+		// TODO(ilackarms): fix this hack - we copy some skv2 CRDs out of vendor_any into our helm chart.
+		copySkv2MulticlusterCRDs()
+	}
+
 	log.Println("Finished generating code")
 }
 
-var (
-	module    = "github.com/solo-io/solo-projects/projects/gloo-fed"
-	apiRoot   = "pkg/api"
-	AllGroups []model.Group
-)
-
-type resourceToGenerate struct {
-	kind     string
-	noStatus bool // don't put a status on this resource
-}
-
-func init() {
-	AllGroups = []model.Group{
-		FedGroup,
-		FedGatewayGroup,
-		FedGlooGroup,
-		FedEnterpriseGroup,
-	}
-}
-
-var FedGroup = makeGroup(
-	"fed",
-	"v1",
-	true,
-	nil,
-	[]resourceToGenerate{
-		{kind: "GlooInstance"},
-		{kind: "FailoverScheme"},
-	})
-
-var FedGlooGroup = makeGroup(
-	"fed.gloo",
-	"v1",
-	true,
-	nil,
-	[]resourceToGenerate{
-		{kind: "FederatedUpstream"},
-		{kind: "FederatedUpstreamGroup"},
-		{kind: "FederatedSettings"},
-	})
-
-var FedGatewayGroup = makeGroup(
-	"fed.gateway",
-	"v1",
-	true,
-	nil,
-	[]resourceToGenerate{
-		{kind: "FederatedGateway"},
-		{kind: "FederatedVirtualService"},
-		{kind: "FederatedRouteTable"},
-	})
-
-var FedEnterpriseGroup = makeGroup(
-	"fed.enterprise.gloo",
-	"v1",
-	true,
-	nil,
-	[]resourceToGenerate{
-		{kind: "FederatedAuthConfig"},
-	})
-
-func makeGroup(
-	groupPrefix, version string,
-	render bool,
-	customTemplates []model.CustomTemplates,
-	resourcesToGenerate []resourceToGenerate,
-) model.Group {
-	var resources []model.Resource
-	for _, resource := range resourcesToGenerate {
-		res := model.Resource{
-			Kind: resource.kind,
-			Spec: model.Field{
-				Type: model.Type{
-					Name: resource.kind + "Spec",
-				},
-			},
-		}
-		if !resource.noStatus {
-			res.Status = &model.Field{Type: model.Type{
-				Name: resource.kind + "Status",
-			}}
-		}
-		resources = append(resources, res)
-	}
-
-	return model.Group{
-		GroupVersion: schema.GroupVersion{
-			Group:   groupPrefix + "." + "solo.io",
-			Version: version,
-		},
-		Module:           module,
-		Resources:        resources,
-		RenderManifests:  render,
-		RenderTypes:      render,
-		RenderClients:    render,
-		RenderController: render,
-		MockgenDirective: render,
-		CustomTemplates:  customTemplates,
-		ApiRoot:          apiRoot,
+func copySkv2MulticlusterCRDs() {
+	vendoredMultiClusterCRDs := "vendor_any/github.com/solo-io/skv2/crds/multicluster.solo.io_v1alpha1_crds.yaml"
+	importedMultiClusterCRDs := "install/helm/gloo-fed/crds/multicluster.solo.io_v1alpha1_imported_crds.yaml"
+	if err := os.Rename(vendoredMultiClusterCRDs, importedMultiClusterCRDs); err != nil {
+		log.Fatal(err)
 	}
 }

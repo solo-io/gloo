@@ -3,6 +3,7 @@ module github.com/solo-io/solo-projects
 go 1.14
 
 require (
+	cloud.google.com/go v0.76.0 // indirect
 	cloud.google.com/go/datastore v1.3.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
@@ -10,7 +11,7 @@ require (
 	github.com/deislabs/oras v0.8.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
-	github.com/envoyproxy/go-control-plane v0.9.8
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
 	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -18,6 +19,7 @@ require (
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.4
 	github.com/gobuffalo/logger v1.0.3 // indirect
+	github.com/gobuffalo/packr v1.30.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
@@ -25,6 +27,7 @@ require (
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
+	github.com/iancoleman/strcase v0.1.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/mitchellh/hashstructure v1.0.0
@@ -61,14 +64,15 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
-	go.opencensus.io v0.22.5
+	go.opencensus.io v0.22.6
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.1
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/tools v0.1.0
-	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
-	google.golang.org/grpc v1.33.1
+	google.golang.org/genproto v0.0.0-20210203152818-3206188e46ba
+	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
@@ -78,6 +82,7 @@ require (
 	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.19.7
+	k8s.io/klog/v2 v2.4.0 // indirect
 	k8s.io/kubernetes v1.19.6
 	k8s.io/utils v0.19.6 // indirect
 	sigs.k8s.io/controller-runtime v0.7.0

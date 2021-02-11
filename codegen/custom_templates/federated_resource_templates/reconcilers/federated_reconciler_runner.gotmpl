@@ -1,0 +1,51 @@
+// Definition for a template that provides an entrypoint for all a federated groups's reconcilers
+package federation
+
+{{ $import_prefix := group_import_name $ }}
+{{ $base_import_prefix := base_group_import_name $ }}
+
+import (
+    "context"
+
+    {{ $base_import_prefix }} "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
+    {{ $import_prefix }} "{{ group_import_path $ }}"
+    {{ $import_prefix }}_controller "{{ group_import_path $ }}/controller"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
+    "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
+    "github.com/solo-io/go-utils/contextutils"
+    "github.com/solo-io/skv2/pkg/reconcile"
+    "go.uber.org/zap"
+    "istio.io/pkg/version"
+    "sigs.k8s.io/controller-runtime/pkg/manager"
+)
+
+func Initialize(
+    ctx context.Context,
+    podName string,
+    localManager manager.Manager,
+    baseMCClientset {{ $base_import_prefix }}.MulticlusterClientset,
+    clusterSet multicluster.ClusterSet,
+) error {
+    {{- range $resource := $.Resources }}
+
+    {{- $kindLowerCamel := lower_camel $resource.Kind }}
+    {{- $baseKind := base_kind $resource.Kind }}
+    {{- $baseKindLowerCamel := lower_camel $baseKind }}
+
+    {{ pluralize $kindLowerCamel }} := New{{ $resource.Kind }}Reconciler(
+        ctx,
+        {{ $import_prefix }}.NewClientset(localManager.GetClient()).{{ pluralize $resource.Kind }}(),
+        baseMCClientset,
+        placement.NewFactory(podName),
+        clusterSet,
+    )
+    {{ $kindLowerCamel }}Reconciler := {{ $import_prefix }}_controller.New{{ $resource.Kind }}ReconcileLoop("{{ $kindLowerCamel }}", localManager, reconcile.Options{})
+    if err := {{ $kindLowerCamel }}Reconciler.Run{{ $resource.Kind }}Reconciler(ctx, {{ pluralize $kindLowerCamel }}); err != nil {
+        contextutils.LoggerFrom(ctx).Errorw("Error running {{ $resource.Kind }} reconciler", zap.Error(err))
+        return err
+    }
+
+    {{- end }}
+
+    return nil
+}

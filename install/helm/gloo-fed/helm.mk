@@ -7,6 +7,59 @@ VERSION ?= dev
 CLUSTER_NAME ?= local
 
 #----------------------------------------------------------------------------------
+# Generated Code
+#----------------------------------------------------------------------------------
+PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
+
+.PHONY: generate-gloo-fed
+generate-gloo-fed: generate-gloo-fed-code
+
+DEPSGOBIN=$(ROOTDIR)/.bin
+
+.PHONY: mod-download
+mod-download:
+	go mod download
+
+.PHONY: update-deps
+update-deps: mod-download
+	mkdir -p $(DEPSGOBIN)
+	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
+	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
+	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
+	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/gomock
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
+	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
+
+.PHONY: clean-artifacts
+clean-artifacts:
+	rm -rf _output
+
+.PHONY: clean-generated-protos
+clean-generated-protos:
+	rm -rf $(ROOTDIR)/projects/apiserver/api/fed.rpc/v1/*resources.proto
+
+# Clean
+.PHONY: clean-fed
+clean-fed: clean-artifacts clean-generated-protos
+	rm -rf $(ROOTDIR)/vendor_any
+	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
+	rm -rf $(ROOTDIR)/projects/apiserver/pkg/api
+	rm -rf $(ROOTDIR)/projects/glooctl-extensions/fed/pkg/api
+
+# Generated Code - Required to update Codgen Templates
+.PHONY: generate-gloo-fed-code
+generate-gloo-fed-code: clean-fed
+	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/projects/gloo-fed/generate.go # Generates clients, controllers, etc
+	PATH=$(DEPSGOBIN):$$PATH $(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
+	PATH=$(DEPSGOBIN):$$PATH go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
+	PATH=$(DEPSGOBIN):$$PATH go generate $(ROOTDIR)/projects/... # Generates mocks
+	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
+	PATH=$(DEPSGOBIN):$$PATH go mod tidy
+	#PATH=$(DEPSGOBIN):$$PATH make generated-ui
+
+#----------------------------------------------------------------------------------
 # Gloo Federation Projects
 #----------------------------------------------------------------------------------
 

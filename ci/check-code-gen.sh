@@ -18,8 +18,8 @@ make install-go-tools
 
 set +e
 
-make generated-code -B  > /dev/null
-make generated-ui
+make generate-all -B  > /dev/null
+
 if [[ $? -ne 0 ]]; then
   echo "Code generation failed"
   exit 1;

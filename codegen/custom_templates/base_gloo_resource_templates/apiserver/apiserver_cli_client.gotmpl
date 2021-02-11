@@ -1,0 +1,80 @@
+{{- $base_group := base_group $ }}
+{{- $base_Group := base_Group $ }}
+
+package {{ $base_group }}_cli_client
+
+import (
+	"context"
+	"flag"
+	"os"
+	"time"
+	"fmt"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/solo-io/solo-projects/projects/glooctl-extensions/fed/pkg/cmd/options"
+	"github.com/solo-io/solo-projects/projects/glooctl-extensions/fed/pkg/constants"
+	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+)
+
+{{- range $resource := $.Resources }}
+
+{{- $kindLowerCamel := lower_camel $resource.Kind }}
+{{- $baseKind := base_kind $resource.Kind }}
+{{- $kind_snake_case := snake $baseKind }}
+
+func {{ $baseKind }}(opts *options.Options) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     constants.{{ uppercase $kind_snake_case }}_COMMAND.Use,
+		Aliases: constants.{{ uppercase $kind_snake_case }}_COMMAND.Aliases,
+		Short:   "list {{ pluralize $resource.Kind }} across all clusters",
+		Long:    "usage: glooctl fed get {{ lowercase $resource.Kind }} [NAME] [--namespace=namespace] [-o FORMAT]",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			flag.Parse()
+			portFwd, err := cliutil.PortForward(opts.Namespace, "deploy/gloo-fed-console", opts.ApiserverPort, opts.ApiserverPort, false)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if portFwd.Process != nil {
+					portFwd.Process.Kill()
+					portFwd.Process.Release()
+				}
+			}()
+			grpcOpts := []grpc.DialOption{
+				grpc.WithInsecure(),
+				grpc.WithBlock(),
+			}
+			serverAddr := "localhost:" + opts.ApiserverPort
+			ctx, _ := context.WithTimeout(opts.Ctx, 10*time.Second)
+			conn, err := grpc.DialContext(ctx, serverAddr, grpcOpts...)
+			if err != nil {
+				return err
+			}
+			defer conn.Close()
+			client := rpc_v1.New{{ $base_Group }}ResourceApiClient(conn)
+			{{ pluralize $kindLowerCamel }}, err := client.List{{ pluralize $baseKind }}(opts.Ctx, &rpc_v1.List{{ pluralize $baseKind }}Request{})
+			if err != nil {
+				return err
+			}
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
+			for _, v := range {{ pluralize $kindLowerCamel }}.Get{{ pluralize $baseKind }}() {
+				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+			}
+			if table.NumLines() == 0 {
+                fmt.Printf("No resources found.\n")
+            } else {
+                table.Render()
+            }
+			return nil
+		},
+	}
+	return cmd
+}
+
+
+{{- end }}

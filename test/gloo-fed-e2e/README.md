@@ -2,12 +2,7 @@
 Gloo Fed E2E Tests
 
 ## Prerequisites
-Before running any of these tests, either run:
-```
-glooctl demo federation --license-key=$LICENSE_KEY
-```
-
-or run:
+Before running any of these tests, run:
 ```
 LICENSE_KEY=$LICENSE_KEY ./projects/gloo-fed/ci/setup-kind.sh local remote
 ```

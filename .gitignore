@@ -26,6 +26,10 @@ projects/gloo/doc/site/
 install/helm/*.tgz
 install/manifest/*.yaml
 
+# codegen
+.bin
+.github.com
+
 # Spurious files
 .DS_Store
 .vendor-new/

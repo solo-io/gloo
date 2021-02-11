@@ -1,0 +1,62 @@
+syntax = "proto3";
+package fed.rpc.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
+
+import "extproto/ext.proto";
+option (extproto.equal_all) = true;
+option (extproto.hash_all) = true;
+
+{{- $base_group := base_group $ }}
+{{- $base_Group := base_Group $ }}
+{{- $base_proto_group := base_proto_group $ }}
+{{- $base_proto_group_shorthand := base_proto_group_shorthand $ }}
+
+{{- range $resource := $.Resources }}
+{{- $kind_snake_case := snake $resource.Kind }}
+import "github.com/solo-io/solo-apis/api/gloo/{{ $base_proto_group_shorthand }}/{{ base_group_version $ }}/{{ $kind_snake_case }}.proto";
+{{- end }}
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+
+{{- range $resource := $.Resources }}
+{{- $base_kind := base_kind $resource.Kind }}
+
+message {{ $base_kind }} {
+    fed.rpc.solo.io.ObjectMeta metadata = 1;
+    {{ $base_proto_group }}.{{ $base_kind }}Spec spec = 2;
+    {{ $base_proto_group }}.{{ $base_kind }}Status status = 3;
+    core.skv2.solo.io.ObjectRef gloo_instance = 4;
+}
+
+{{- end }}
+
+{{- range $resource := $.Resources }}
+{{- $base_kind := base_kind $resource.Kind }}
+{{- $kind_snake_case := snake $resource.Kind }}
+
+message List{{ pluralize $base_kind }}Request {
+    core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+}
+
+message List{{ pluralize $base_kind }}Response {
+    repeated {{ $base_kind }} {{ pluralize $kind_snake_case }} = 1;
+}
+
+message Get{{ $base_kind }}YamlRequest {
+    core.skv2.solo.io.ClusterObjectRef {{ $kind_snake_case }}_ref = 1;
+}
+
+message Get{{ $base_kind }}YamlResponse {
+    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+}
+
+{{- end }}
+
+service {{ $base_Group }}ResourceApi {
+    {{- range $resource := $.Resources }}
+    {{- $base_kind := base_kind $resource.Kind }}
+
+    rpc List{{ pluralize $base_kind }} (List{{ pluralize $base_kind }}Request) returns (List{{ pluralize $base_kind }}Response) {}
+    rpc Get{{ $base_kind }}Yaml (Get{{ $base_kind }}YamlRequest) returns (Get{{ $base_kind }}YamlResponse) {}
+    {{- end }}
+}

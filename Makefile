@@ -144,14 +144,13 @@ clean:
 PROTOC_IMPORT_PATH:=vendor_any
 
 .PHONY: generate-all
-generate-all: generated-code generated-ui
-
+generate-all: generated-code generated-ui generate-gloo-fed
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code: update-licenses
-	go mod tidy
 	rm -rf vendor_any
+	go mod tidy
 	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy

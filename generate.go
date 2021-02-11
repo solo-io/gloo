@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
 	"github.com/solo-io/solo-kit/pkg/code-generator/sk_anyvendor"
@@ -16,7 +18,7 @@ const (
 
 func main() {
 	log.Printf("Starting generate...")
-
+	os.RemoveAll("vendor_any")
 	imports := sk_anyvendor.CreateDefaultMatchOptions(
 		[]string{
 			"projects/observability/**/*.proto",
