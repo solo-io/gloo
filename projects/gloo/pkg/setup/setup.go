@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/http_path"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
@@ -90,6 +91,7 @@ func GetGlooEeExtensions(ctx context.Context) setup.Extensions {
 			},
 			func() plugins.Plugin { return http_path.NewPlugin() },
 			func() plugins.Plugin { return wasm.NewPlugin() },
+			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
 		},
 	}
 }

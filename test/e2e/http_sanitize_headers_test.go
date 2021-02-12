@@ -88,14 +88,6 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 		if envoyInstance != nil {
 			_ = envoyInstance.Clean()
 		}
-		// Wait till envoy is completely cleaned up
-		request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", envoyInstance.AdminPort), nil)
-		Expect(err).NotTo(HaveOccurred())
-		client := &http.Client{}
-		Eventually(func() error {
-			_, err := client.Do(request)
-			return err
-		}, 5*time.Second, 1*time.Second).Should(HaveOccurred())
 	})
 
 	Context("With envoy", func() {

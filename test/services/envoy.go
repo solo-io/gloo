@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"text/template"
+	"time"
 
 	"bytes"
 	"io"
@@ -206,6 +207,8 @@ type EnvoyInstance struct {
 	Port          uint32
 	AdminPort     int32
 	ApiVersion    string
+	// Path to access logs for binary run
+	AccessLogs string
 }
 
 func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
@@ -319,6 +322,26 @@ func (ei *EnvoyInstance) Clean() error {
 		if err := KillAndRemoveContainer(containerName); err != nil {
 			return err
 		}
+	}
+
+	// Wait till envoy is completely cleaned up
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d", ei.AdminPort), nil)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	timeout := 5 // seconds
+	timer := timeout
+	for timer > 0 {
+		_, err = client.Do(request)
+		if err != nil {
+			break
+		}
+		if timer == 0 {
+			return errors.Errorf("did not shut down envoy succesfully in %d seconds", timeout)
+		}
+		time.Sleep(1 * time.Second)
+		timer -= 1
 	}
 	return nil
 }

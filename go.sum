@@ -950,6 +950,7 @@ github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a h1:FaWFmfWdAUKbSCtOU
 github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a/go.mod h1:UJSiEoRfvx3hP73CvoARgeLjaIOjybY9vj8PUPPFGeU=
 github.com/juju/ratelimit v1.0.1/go.mod h1:qapgC/Gy+xNh9UxzV13HGGl/6UXNN+ct+vwSgWNm/qk=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
+github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E/uU8ce6rXgefFLlgrJj/GYY22cpxn+r32jIOes=
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 h1:uC1QfSlInpQF+M0ao65imhwqKnz3Q2z/d8PWZRMQvDM=
@@ -1414,9 +1415,8 @@ github.com/solo-io/ext-auth-service v0.10.0 h1:Z+9hosTg8WAV1TecZ7Mv/dN+LWBmKFHno
 github.com/solo-io/ext-auth-service v0.10.0/go.mod h1:F6P/dMUvXX41wGHV1Gee036flgqQQ2+vSewJKpFDlJw=
 github.com/solo-io/external-apis v0.1.4 h1:OEZ8+3puweHeS0ltDlcbCgL89LLaIEraw+x4e9mQPuM=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
-github.com/solo-io/gloo v1.7.0-beta16 h1:9PeRvMbjWGRn2ndbN5Hatp6ULLAxzZrIcsmwG0WEE+Q=
-github.com/solo-io/gloo v1.7.0-beta16/go.mod h1:NekqO/oG9ZTrnV1RmSixbf0QGWtc0OAgq07/ZRfXdnY=
-github.com/solo-io/go-list-licenses v0.0.4-0.20210127191650-c1072fce4ee2/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
+github.com/solo-io/gloo v1.7.0-beta17 h1:TzOCfTf9iaZb8xKa68XrCOj4RPgxHARVPz+zWdXSDys=
+github.com/solo-io/gloo v1.7.0-beta17/go.mod h1:BW/LxotpUg2WC4dCrmlo0usMx9n53jw5p8e7MAyhLlc=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.0 h1:8FkdOtyiX8ga305U60tQbihXVpsZCWkWQH2uz4rqIMM=
 github.com/solo-io/go-list-licenses v0.1.0/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
@@ -1430,7 +1430,6 @@ github.com/solo-io/go-utils v0.20.3 h1:PXSb8YVmOyZdfDn6oseebElEwZvHLXcQMIyBsjRBx
 github.com/solo-io/go-utils v0.20.3/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
 github.com/solo-io/k8s-utils v0.0.1/go.mod h1:53N9+9Gl2MwqIZJ7/ocA9gKvWt+6z7MPD2qKQix7oFE=
 github.com/solo-io/k8s-utils v0.0.3/go.mod h1:JiVV6v+Y9sN1TgVyTU/SL2lfKTnSj/12VMeBDtK/5jE=
-github.com/solo-io/k8s-utils v0.0.5/go.mod h1:NJFXCtSXXBErviEl7J+fIg4DU8xEvxFCQ2nEjxy2NdI=
 github.com/solo-io/k8s-utils v0.0.6 h1:jJ7ARv7HBvmkGH1AXCE2KOGgcMCo8PhlWL+6tSlTxlM=
 github.com/solo-io/k8s-utils v0.0.6/go.mod h1:NJFXCtSXXBErviEl7J+fIg4DU8xEvxFCQ2nEjxy2NdI=
 github.com/solo-io/licensing v0.1.20 h1:fyu/3FBcjdIjdT99Sru6xxN+F7qk+tzdWPF1QzyBvbw=
