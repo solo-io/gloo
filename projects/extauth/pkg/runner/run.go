@@ -8,6 +8,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/solo-io/solo-projects/pkg/version"
+
 	"go.uber.org/zap"
 
 	"github.com/rotisserie/eris"
@@ -24,7 +26,9 @@ func init() {
 func Run() {
 	settings := NewSettings()
 
-	if err := RunWithSettings(context.Background(), settings); err != nil {
+	loggingContext := []interface{}{"version", version.Version}
+	ctx := contextutils.WithLoggerValues(context.Background(), loggingContext...)
+	if err := RunWithSettings(ctx, settings); err != nil {
 		log.Fatalf("server stopped with unexpected error: %s", err.Error())
 	}
 }

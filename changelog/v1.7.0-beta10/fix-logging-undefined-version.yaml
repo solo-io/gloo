@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >-
+      Fix ratelimit and extauth logs to include correct gloo version
+    issueLink: https://github.com/solo-io/solo-projects/issues/2091
