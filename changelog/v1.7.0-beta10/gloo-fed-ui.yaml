@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Add gloo fed ui.
+    issueLink: https://github.com/solo-io/gloo/issues/4209
+    resolvesIssue: false

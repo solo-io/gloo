@@ -12,7 +12,7 @@ CLUSTER_NAME ?= local
 PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 
 .PHONY: generate-gloo-fed
-generate-gloo-fed: generate-gloo-fed-code
+generate-gloo-fed: generate-gloo-fed-code generated-gloo-fed-ui
 
 DEPSGOBIN=$(ROOTDIR)/.bin
 
@@ -171,3 +171,221 @@ gloo-fed-apiserver-envoy-docker:
 .PHONY: kind-load-gloo-fed-apiserver-envoy
 kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
 	kind load docker-image --name $(CLUSTER_NAME) quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)
+
+
+#----------------------------------------------------------------------------------
+# ApiServer gRPC Code Generation
+#----------------------------------------------------------------------------------
+
+# proto sources
+APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/fed.rpc/v1
+
+# imports
+PROTOC_IMPORT_PATH:=vendor_any
+
+COMMON_PROTOC_FLAGS=-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external \
+	-I$(PROTOC_IMPORT_PATH)/ \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
+
+GENERATED_TS_DIR=projects/ui/src/proto
+
+TS_OUT=--plugin=protoc-gen-ts=projects/ui/node_modules/.bin/protoc-gen-ts \
+			--ts_out=service=grpc-web:$(GENERATED_TS_DIR) \
+			--js_out=import_style=commonjs,binary:$(GENERATED_TS_DIR)
+
+# Flags for UI code generation when we need to generate GRPC Web service code
+# TODO find a programmatic way to clean up (or skip generating) _service.(d.ts|js) files
+UI_PROTOC_FLAGS=$(COMMON_PROTOC_FLAGS) $(TS_OUT)
+
+PROTOC=protoc $(COMMON_PROTOC_FLAGS)
+
+JS_PROTOC_COMMAND=$(PROTOC) -I$(APISERVER_DIR) $(UI_PROTOC_FLAGS) $(APISERVER_DIR)
+
+.PHONY: generated-gloo-fed-ui
+generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps
+	mkdir -p projects/ui/pkg/api/fed.rpc/v1
+	./ci/fix-ui-gen.sh
+
+.PHONY: generated-gloo-fed-ui-deps
+generated-gloo-fed-ui-deps:
+	rm -rf $(GENERATED_TS_DIR)
+	mkdir -p $(GENERATED_TS_DIR)
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/http.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate/validate/validate.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/ext.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2/api/core/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2/api/multicluster/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo//gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.ratelimit/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/*/*.proto
+
+#----------------------------------------------------------------------------------
+# UI
+#----------------------------------------------------------------------------------
+
+.PHONY: update-gloo-fed-ui-deps
+update-gloo-fed-ui-deps:
+	yarn --cwd projects/ui install
+
+.PHONY: build-ui
+build-ui: update-gloo-fed-ui-deps
+	yarn --cwd projects/ui build
+
+.PHONY: ui-docker
+ui-docker: build-ui
+	docker build -t quay.io/solo-io/gloo-federation-console:$(VERSION) projects/ui -f projects/ui/Dockerfile
+
+.PHONY: kind-load-ui
+kind-load-ui: ui-docker
+	kind load docker-image --name $(CLUSTER_NAME) quay.io/solo-io/gloo-federation-console:$(VERSION)

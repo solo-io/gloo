@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33">
+  <g id="gateway-icon-small-black" transform="translate(-329.217 -148)">
+    <rect id="Rectangle_8538" data-name="Rectangle 8538" width="33" height="33" rx="16.5" transform="translate(329.217 148)" opacity="0"/>
+    <g id="Group_24755" data-name="Group 24755" transform="translate(-593.035 -270.694)">
+      <path id="Path_38726" data-name="Path 38726" d="M929.128,436.007h1.146v-1.363h-8c0,.084-.012.168-.013.253,0,.06-.009.118-.009.178,0,.026,0,.051,0,.077,0,.116.014.229.017.345,0,.085.009.17.013.254s.008.17.012.254h6.83Z" transform="translate(0 0.347)"/>
+      <path id="Path_38727" data-name="Path 38727" d="M938.93,426.234v3.677H923.144c-.029.087-.065.172-.093.259s-.055.174-.081.261c-.036.12-.059.244-.093.366-.023.086-.043.174-.065.26s-.045.173-.065.26H940.3v-2.394l9.53,6.753-9.53,6.85V440.14H922.9c.023.086.04.175.065.26s.054.174.08.26c.04.125.09.244.132.368.03.087.062.173.093.259s.061.175.094.261h15.559v3.686l13.015-9.35.3-.213Z" transform="translate(0.009 0)"/>
+      <rect id="Rectangle_8536" data-name="Rectangle 8536" width="2.49" height="1.364" transform="translate(935.82 434.991)"/>
+      <rect id="Rectangle_8537" data-name="Rectangle 8537" width="2.49" height="1.364" transform="translate(931.857 434.991)"/>
+    </g>
+  </g>
+</svg>
