@@ -75,19 +75,16 @@ ifeq ($(RELEASE), "true")
 	$(OUTPUT_DIR)/glooctl-wasm-darwin-amd64 \
 	$(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe \
 	gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/$(VERSION)/
-
 	gsutil -m cp \
-		$(OUTPUT_DIR)/glooctl-fed-linux-amd64 \
-		$(OUTPUT_DIR)/glooctl-fed-darwin-amd64 \
-		$(OUTPUT_DIR)/glooctl-fed-windows-amd64.exe \
-		gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
-
-	ifeq ($(ON_DEFAULT_BRANCH), "true")
-		# We're on latest default git branch, so push /latest and updated install script
-		gsutil -m cp -r gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/latest/
-		gsutil -m cp -r gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/latest/
-
-		gsutil cp projects/glooctl-extensions/wasm/install/install.sh gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/install.sh
-		gsutil cp projects/glooctl-extensions/fed/install/install.sh gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/install.sh
-	endif
+	$(OUTPUT_DIR)/glooctl-fed-linux-amd64 \
+	$(OUTPUT_DIR)/glooctl-fed-darwin-amd64 \
+	$(OUTPUT_DIR)/glooctl-fed-windows-amd64.exe \
+	gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
+ifeq ($(ON_DEFAULT_BRANCH), "true")
+	# We're on latest default git branch, so push /latest and updated install script
+	gsutil -m cp -r gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/latest/
+	gsutil -m cp -r gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/* gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/latest/
+	gsutil cp projects/glooctl-extensions/wasm/install/install.sh gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/install.sh
+	gsutil cp projects/glooctl-extensions/fed/install/install.sh gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/install.sh
+endif
 endif
