@@ -12,6 +12,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rat
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/aws/filter_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -146,6 +147,11 @@ export class SettingsSpec extends jspb.Message {
   getObservabilityoptions(): SettingsSpec.ObservabilityOptions | undefined;
   setObservabilityoptions(value?: SettingsSpec.ObservabilityOptions): void;
 
+  hasUpstreamoptions(): boolean;
+  clearUpstreamoptions(): void;
+  getUpstreamoptions(): UpstreamOptions | undefined;
+  setUpstreamoptions(value?: UpstreamOptions): void;
+
   getConfigSourceCase(): SettingsSpec.ConfigSourceCase;
   getSecretSourceCase(): SettingsSpec.SecretSourceCase;
   getArtifactSourceCase(): SettingsSpec.ArtifactSourceCase;
@@ -188,6 +194,7 @@ export namespace SettingsSpec {
     rbac?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb.Settings.AsObject,
     extauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject,
     observabilityoptions?: SettingsSpec.ObservabilityOptions.AsObject,
+    upstreamoptions?: UpstreamOptions.AsObject,
   }
 
   export class KubernetesCrds extends jspb.Message {
@@ -637,6 +644,28 @@ export namespace SettingsSpec {
     KUBERNETES_ARTIFACT_SOURCE = 9,
     DIRECTORY_ARTIFACT_SOURCE = 10,
     CONSUL_KV_ARTIFACT_SOURCE = 23,
+  }
+}
+
+export class UpstreamOptions extends jspb.Message {
+  hasSslParameters(): boolean;
+  clearSslParameters(): void;
+  getSslParameters(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters | undefined;
+  setSslParameters(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpstreamOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: UpstreamOptions): UpstreamOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpstreamOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpstreamOptions;
+  static deserializeBinaryFromReader(message: UpstreamOptions, reader: jspb.BinaryReader): UpstreamOptions;
+}
+
+export namespace UpstreamOptions {
+  export type AsObject = {
+    sslParameters?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters.AsObject,
   }
 }
 

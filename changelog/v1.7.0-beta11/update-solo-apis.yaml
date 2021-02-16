@@ -1,0 +1,5 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.7.0-beta18
+  type: DEPENDENCY_BUMP

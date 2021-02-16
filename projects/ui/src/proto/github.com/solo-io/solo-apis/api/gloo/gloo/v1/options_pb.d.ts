@@ -32,6 +32,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/csrf/v3/csrf_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/filter/http/gzip/v2/gzip_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/base_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/jwt/jwt_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb";
@@ -159,6 +160,11 @@ export class HttpListenerOptions extends jspb.Message {
   getSanitizeClusterHeader(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setSanitizeClusterHeader(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasLeftmostXffAddress(): boolean;
+  clearLeftmostXffAddress(): void;
+  getLeftmostXffAddress(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setLeftmostXffAddress(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -186,6 +192,7 @@ export namespace HttpListenerOptions {
     csrf?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     grpcJsonTranscoder?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
     sanitizeClusterHeader?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    leftmostXffAddress?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
@@ -494,6 +501,11 @@ export class RouteOptions extends jspb.Message {
 
   getEnvoyMetadataMap(): jspb.Map<string, google_protobuf_struct_pb.Struct>;
   clearEnvoyMetadataMap(): void;
+  hasRegexRewrite(): boolean;
+  clearRegexRewrite(): void;
+  getRegexRewrite(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute | undefined;
+  setRegexRewrite(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute): void;
+
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
   getJwtConfigCase(): RouteOptions.JwtConfigCase;
@@ -536,6 +548,7 @@ export namespace RouteOptions {
     csrf?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.AsObject,
     stagedTransformations?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
     envoyMetadataMap: Array<[string, google_protobuf_struct_pb.Struct.AsObject]>,
+    regexRewrite?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
   }
 
   export enum HostRewriteTypeCase {
