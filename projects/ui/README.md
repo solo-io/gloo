@@ -1,5 +1,19 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Running Gloo-Fed UI
+
+Gloo Fed has two modes - single cluster and multicluster.
+
+1. `make run-ui-gloo-fed`
+
+2. `make run-apiserver-gloo-fed`
+
+3. `run-envoy-gloo-fed`
+
+If you are testing a local cluster, you can register the cluster with `glooctl cluster register`: 
+
+`glooctl cluster register --cluster-name gloo-fed-remote --remote-context gke_gloo-ee_us-central1-c_gloo-fed-remote --federation-namespace gloo-fed`
+
 ## Available Scripts
 
 In the project directory, you can run:

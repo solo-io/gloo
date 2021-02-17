@@ -90,6 +90,12 @@ spec:
             memory: 256Mi
 {{- end}}
       - name: envoy
+        securityContext:
+          runAsUser: 101
+        env:
+          {{/* Prevents Envoy from trying to chown things away from default user 101 */}}
+          - name: ENVOY_UID
+            value: "0"
         image: {{ $envoyImage.registry }}/{{ $envoyImage.repository }}:{{ $envoyImage.tag }}
         imagePullPolicy: {{ $envoyImage.pullPolicy }}
 {{- if $envoy.resources }}

@@ -172,6 +172,20 @@ gloo-fed-apiserver-envoy-docker:
 kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
 	kind load docker-image --name $(CLUSTER_NAME) quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)
 
+# Helpers for local testing
+
+.PHONY: run-apiserver-gloo-fed
+run-apiserver-gloo-fed:
+	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-fed $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
+
+.PHONY: run-envoy-gloo-fed
+run-envoy-gloo-fed:
+	envoy -c projects/apiserver/apiserver-envoy/$(CONFIG_YAML) -l debug
+
+.PHONY: run-ui-gloo-fed
+run-ui-gloo-fed: update-gloo-fed-ui-deps
+	yarn --cwd projects/ui install && \
+	yarn --cwd projects/ui start
 
 #----------------------------------------------------------------------------------
 # ApiServer gRPC Code Generation

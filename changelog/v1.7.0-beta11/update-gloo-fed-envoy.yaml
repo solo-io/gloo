@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Fix USER 10101 permissions in gloo-fed apiserver-envoy. Add make targets for gloo-fed UI.
+    resolvesIssue: false
