@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Begin publishing gloo-fed helm charts on solo-projects releases.
+    issueLink: https://github.com/solo-io/gloo/issues/4133
+  - type: NON_USER_FACING
+    description: >
+      Begin publishing gloo-fed docker images on solo-projects releases.
+    issueLink: https://github.com/solo-io/gloo/issues/4209

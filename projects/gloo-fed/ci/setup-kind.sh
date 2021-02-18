@@ -103,7 +103,7 @@ kubectl config use-context kind-"$1"
 
 make CLUSTER_NAME=$1 VERSION=${VERSION} package-gloo-fed-charts package-gloo-edge-charts gloofed-load-kind-images
 # Only build and load in the gloo-ee images used in this test
-make VERSION=${VERSION} gloo-docker gloo-ee-envoy-wrapper-docker rate-limit-docker
+make VERSION=${VERSION} gloo-docker gloo-ee-envoy-wrapper-docker rate-limit-docker -B
 kind load docker-image quay.io/solo-io/gloo-ee:${VERSION} --name $1
 kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:${VERSION} --name $1
 kind load docker-image quay.io/solo-io/rate-limit-ee:${VERSION} --name $1

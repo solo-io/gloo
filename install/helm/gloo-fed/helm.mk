@@ -57,20 +57,16 @@ generate-gloo-fed-code: clean-fed
 	PATH=$(DEPSGOBIN):$$PATH go generate $(ROOTDIR)/projects/... # Generates mocks
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
-	#PATH=$(DEPSGOBIN):$$PATH make generated-ui
 
 #----------------------------------------------------------------------------------
 # Gloo Federation Projects
 #----------------------------------------------------------------------------------
 
-.PHONY: allgloofed
-allgloofed: gloo-fed gloo-fed-rbac-validating-webhook gloo-fed-apiserver gloo-fed-apiserver-envoy
-
 .PHONY: gloofed-docker
-gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker
+gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker ui-docker
 
 .PHONY: gloofed-load-kind-images
-gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy
+gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy kind-load-ui
 
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
@@ -83,9 +79,8 @@ gloofed-helm-template:
 	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/Chart-template.yaml > $(GLOO_FED_CHART_DIR)/Chart.yaml
 	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
 
-.PHONY: gloofedproduce-manifests
-gloofedproduce-manifests:
-	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
+.PHONY: gloofed-produce-manifests
+gloofed-produce-manifests: gloofed-helm-template
 	helm template gloo-fed install/helm/gloo-fed --namespace gloo-fed > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
 
 .PHONY: package-gloo-fed-charts

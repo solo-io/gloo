@@ -138,7 +138,9 @@ jobs:
         run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Setup test env
         run: |
-          ./ci/kind.sh
+          make VERSION=kind LOCAL_BUILD=true CLUSTER_NAME=kind push-kind-images
+          make cleanup-local-docker-images
+          make VERSION=kind build-test-chart build-os-with-ui-test-chart glooctl-linux-amd64
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}

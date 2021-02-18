@@ -37,7 +37,7 @@ glooFedApiserver:
       pullPolicy: IfNotPresent
       registry: quay.io/solo-io
       repository: gloo-federation-console
-      tag: 0.0.25 # TODO(ashwang) : %version%
+      tag: %version%
     resources:
       requests:
         cpu: 125m

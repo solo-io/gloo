@@ -250,6 +250,11 @@ allprojects: grpcserver gloo extauth rate-limit observability
 # Include helm makefile so its targets can be ran from the root of this repo
 include $(ROOTDIR)/install/helm/gloo-fed/helm.mk
 
+# helper for testing
+.PHONY: allgloofedprojects
+allgloofedprojects: gloo-fed gloo-fed-rbac-validating-webhook gloo-fed-apiserver
+
+
 #----------------------------------------------------------------------------------
 # grpcserver
 #----------------------------------------------------------------------------------
@@ -587,11 +592,12 @@ helm-template:
 	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 
 .PHONY: init-helm
-init-helm: helm-template $(OUTPUT_DIR)/.helm-initialized
+init-helm: helm-template gloofed-helm-template $(OUTPUT_DIR)/.helm-initialized
 
 $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
 	helm dependency update install/helm/gloo-ee
 	# see install/helm/gloo-os-with-ui/README.md
 	mkdir -p install/helm/gloo-os-with-ui/templates
@@ -604,7 +610,7 @@ $(OUTPUT_DIR)/.helm-initialized:
 	touch $@
 
 .PHONY: produce-manifests
-produce-manifests: init-helm
+produce-manifests: init-helm gloofed-produce-manifests
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 	helm template gloo install/helm/gloo-os-with-ui --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
 
@@ -614,7 +620,7 @@ package-gloo-edge-charts: init-helm
 	helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO) $(GLOO_OS_UI_CHART_DIR)
 
 .PHONY: fetch-package-and-save-helm
-fetch-package-and-save-helm: init-helm
+fetch-package-and-save-helm: init-helm package-gloo-fed-charts
 ifeq ($(RELEASE),"true")
 	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
 					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
@@ -633,6 +639,15 @@ ifeq ($(RELEASE),"true")
 					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml $(GLOO_OS_UI_HELM_BUCKET)/index.yaml); do \
 		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 		sleep 2; \
+	done
+	until $$(GENERATION=$$(gsutil ls -a $(GLOO_FED_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
+		  gsutil cp -v $(GLOO_FED_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
+		  helm package --destination $(HELM_SYNC_DIR_GLOO_FED)/charts $(HELM_DIR)/gloo-fed >> /dev/null && \
+		  helm repo index $(HELM_SYNC_DIR_GLOO_FED) --merge $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
+		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET)/charts && \
+		  gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_GLOO_FED)/index.yaml $(GLOO_FED_HELM_BUCKET)/index.yaml); do \
+	echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
+	sleep 2; \
 	done
 endif
 
@@ -688,24 +703,24 @@ endif
 
 .PHONY: docker docker-push
  docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
-       gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
+       gloo-ee-envoy-wrapper-docker observability-docker auth-plugins \
+       gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker ui-docker gloo-fed-rbac-validating-webhook-docker
+
+# $(1) name of component
+define docker_push
+docker push $(IMAGE_REPO)/$(1):$(VERSION);
+endef
+
+COMPONENTS := rate-limit-ee grpcserver-ee grpcserver-envoy grpcserver-ui gloo-ee gloo-ee-envoy-wrapper \
+             observability-ee extauth-ee ext-auth-plugins \
+             gloo-fed gloo-fed-apiserver gloo-fed-apiserver-envoy gloo-federation-console gloo-fed-rbac-validating-webhook
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
 # to be used for local testing.
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
-ifeq ($(RELEASE),"true")
-	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-ui:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)
-	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
-endif
+	$(foreach component,$(COMPONENTS),$(call docker_push,$(component)))
 
 .PHONY: docker-push-extended
 docker-push-extended:
@@ -713,8 +728,13 @@ ifeq ($(RELEASE),"true")
 	ci/extended-docker/extended-docker.sh
 endif
 
+# Helper targets for CI
+.PHONY: kind-test-docker-images
+ kind-test-docker-images: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
+       gloo-ee-envoy-wrapper-docker observability-docker auth-plugins \
+
 CLUSTER_NAME?=kind
-push-kind-images: docker
+push-kind-images: kind-test-docker-images
 	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
