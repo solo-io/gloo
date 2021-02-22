@@ -20,14 +20,14 @@ Name|Version|License
 [mitchellh/hashstructure](https://github.com/mitchellh/hashstructure)|v1.0.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.4|MIT License
 [onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.14.1|MIT License
-[onsi/gomega](https://github.com/onsi/gomega)|v1.10.2|MIT License
+[onsi/gomega](https://github.com/onsi/gomega)|v1.10.5|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
-[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.8.0|Apache License 2.0
+[prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.9.0|Apache License 2.0
 [prometheus/prometheus](https://github.com/prometheus/prometheus)|v2.5.0+incompatible|Apache License 2.0
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.4.0|MIT License
 [sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.7.0|MIT License
-[spf13/cobra](https://github.com/spf13/cobra)|v1.1.1|Apache License 2.0
+[spf13/cobra](https://github.com/spf13/cobra)|v1.1.3|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [go.opencensus.io](https://go.opencensus.io)|v0.22.6|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.16.0|MIT License
@@ -35,7 +35,7 @@ Name|Version|License
 [x/net](https://golang.org/x/net)|v0.0.0-20210119194325-5f4716e94777|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20201207232520-09787c993a3a|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20210203152818-3206188e46ba|Apache License 2.0
+[google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20210218151259-fe80b386bf06|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.35.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.25.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0

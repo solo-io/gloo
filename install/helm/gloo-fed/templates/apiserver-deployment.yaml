@@ -6,6 +6,7 @@
 {{- $envoyImage := $envoy.image }}
 {{- $console := $glooFedApiserver.console }}
 {{- $consoleImage := $console.image }}
+{{- $statsConfig := $.Values.glooFedApiserver.stats }}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -25,10 +26,17 @@ spec:
       labels:
         app: gloo-fed
         gloo-fed: console
+      {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
+        {{- if $statsConfig.enabled}}
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
+        {{- end}}
+        {{- if .Values.global.istioIntegration.disableAutoinjection }}
+        sidecar.istio.io/inject: "false"
+        {{- end }}
+      {{- end }}
     spec:
       serviceAccountName: gloo-fed-console
       containers:
@@ -51,6 +59,11 @@ spec:
               key: license-key
         imagePullPolicy: {{ $glooFedApiserverImage.pullPolicy }}
         name: apiserver
+        volumeMounts:
+        - name: empty-cache
+          mountPath: /var/cache/nginx
+        - name: empty-run
+          mountPath: /var/run
         ports:
           - name: grpc
             containerPort: {{ $glooFedApiserver.port}}
@@ -68,6 +81,7 @@ spec:
             memory: 256Mi
 {{- end}}
         securityContext:
+          runAsUser: 101
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
@@ -76,6 +90,11 @@ spec:
       - name: console
         image: {{ $consoleImage.registry }}/{{ $consoleImage.repository }}:{{ $consoleImage.tag }}
         imagePullPolicy: {{ $consoleImage.pullPolicy }}
+        volumeMounts:
+          - name: empty-cache
+            mountPath: /var/cache/nginx
+          - name: empty-run
+            mountPath: /var/run
         ports:
           - name: static
             containerPort: {{ $console.port }}
@@ -107,10 +126,67 @@ spec:
             cpu: 500m
             memory: 256Mi
 {{- end}}
+        readinessProbe:
+          httpGet:
+            path: /
+          {{- if .Values.glooFedApiserver.sslSecretName }}
+            port: 8443
+            scheme: HTTPS
+          {{- else }}
+            port: 8090
+          {{- end }} {{/* .Values.glooFedApiserver.sslSecretName */}}
+          periodSeconds: 10
+          initialDelaySeconds: 5
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy
+            readOnly: true
+        {{- if $.Values.glooFedApiserver.sslSecretName }}
+          - mountPath: /etc/apiserver/ssl
+            name: apiserver-ssl-certs
+            readOnly: true
+        {{- end }}
+      volumes:
+        - name: empty-cache
+          emptyDir: {}
+        - name: empty-run
+          emptyDir: {}
+        - name: envoy-config
+          configMap:
+            name: {{ $envoy.bootstrapConfig.configMapName }}
+        {{- if $.Values.glooFedApiserver.sslSecretName }}
+        - name: apiserver-ssl-certs
+          secret:
+            defaultMode: 420
+            secretName: {{ $.Values.glooFedApiserver.sslSecretName }}
+        {{- end }}
 {{- if $glooFedApiserverImage.pullSecret }}
       imagePullSecrets:
         - name: {{ $glooFedApiserverImage.pullSecret }}
 {{- end}}
+
+---
+
+# ConfigMap for gloo-fed apiserver
+
+{{- if eq .Values.glooFedApiserver.envoy.bootstrapConfig.configMapName "gloo-fed-default-apiserver-envoy-config" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gloo-fed-default-apiserver-envoy-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: gloo-fed
+    gloo: apiserver
+data:
+{{- if .Values.glooFedApiserver.sslSecretName }}
+  config.yaml: |-
+{{ .Files.Get "files/gloo-fed-ssl-apiserver-envoy-config.yaml" | indent 4 }}
+{{- else }}
+  config.yaml: |-
+{{ .Files.Get "files/gloo-fed-default-apiserver-envoy-config.yaml" | indent 4 }}
+{{- end }}
+{{- end }}
 
 ---
 

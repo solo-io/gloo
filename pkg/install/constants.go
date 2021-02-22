@@ -4,4 +4,5 @@ const (
 	GlooEnterpriseReleaseName = "glooe"
 	GlooEnterpriseChartName   = "gloo-ee"
 	GlooOsWithUiChartName     = "gloo-os-with-ui"
+	GlooFed                   = "gloo-fed"
 )

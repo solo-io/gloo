@@ -12,6 +12,8 @@ glooFedApiserver:
   enable: true
   port: 10101
   healthCheckPort: 8081
+  sslSecretName: ""
+  stats: null
   image:
     pullPolicy: IfNotPresent
     registry: quay.io/solo-io
@@ -22,6 +24,8 @@ glooFedApiserver:
       cpu: 125m
       memory: 256Mi
   envoy:
+    bootstrapConfig:
+      configMapName: gloo-fed-default-apiserver-envoy-config
     image:
       pullPolicy: IfNotPresent
       registry: quay.io/solo-io
@@ -42,6 +46,15 @@ glooFedApiserver:
       requests:
         cpu: 125m
         memory: 256Mi
+global:
+  glooStats:
+    enabled: true
+  image:
+    extended: false
+    pullPolicy: IfNotPresent
+    registry: quay.io/solo-io
+  istioIntegration: {}
+  istioSDS: {}
 # We will only create a license secret if a value is set, in order, for: licenseKey, license_key, license.key
 licenseKey: ""
 license_key: ""

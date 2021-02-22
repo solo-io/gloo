@@ -54,5 +54,6 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(resp.GetConfigDumps())).To(Equal(1))
+		Expect(resp.GetConfigDumps()[0].Error).To(BeEmpty())
 	})
 })

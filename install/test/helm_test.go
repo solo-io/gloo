@@ -716,6 +716,35 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
+			It("should add an anti-injection annotation to all pods when disableAutoinjection is enabled", func() {
+				istioAnnotation := "sidecar.istio.io/inject"
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{
+						"global.istioIntegration.disableAutoinjection=true",
+						"glooFedApiserver.enable=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					deploymentName := deployment.GetName()
+					if deploymentName == "gloo-fed-console" {
+						// ensure gloo-fed-console deployment has a istio annotation set to false
+						val, ok := structuredDeployment.Spec.Template.ObjectMeta.Annotations[istioAnnotation]
+						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %s should contain an istio injection annotation", deploymentName))
+						Expect(val).To(Equal("false"), fmt.Sprintf("Deployment %s should have an istio annotation with value of 'false'", deploymentName))
+
+					}
+				})
+			})
+
 			Context("dataplane per proxy", func() {
 
 				helmOverrideFileContents := func(dataplanePerProxy bool) string {
@@ -2549,6 +2578,80 @@ spec:
 				})
 
 			})
+
+			It("should allow gloo-fed apiserver service to handle TLS itself using a kubernetes secret", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{"glooFedApiserver.sslSecretName=ssl-secret"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					if structuredDeployment.GetName() == "gloo-fed-console" {
+						mode := int32(420)
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].Name).To(Equal("apiserver-ssl-certs"))
+						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].VolumeSource.Secret).To(Equal(&corev1.SecretVolumeSource{
+							SecretName:  "ssl-secret",
+							DefaultMode: &mode,
+						}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].VolumeMounts[1]).To(Equal(corev1.VolumeMount{
+							MountPath: "/etc/apiserver/ssl",
+							ReadOnly:  true,
+							Name:      "apiserver-ssl-certs",
+						}))
+						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Scheme).To(Equal(corev1.URISchemeHTTPS))
+					}
+				})
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "ConfigMap"
+				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
+					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
+					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
+					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
+
+					if structuredConfigMap.GetName() == "default-apiserver-envoy-config" {
+						bootstrap := bootstrapv3.Bootstrap{}
+						Expect(structuredConfigMap.Data["config.yaml"]).NotTo(BeEmpty())
+						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["config.yaml"]))
+						if err != nil {
+							Expect(err).NotTo(HaveOccurred())
+						}
+						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
+						tlsContext := tlsv3.DownstreamTlsContext{}
+						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
+						Expect(&tlsContext).To(MatchProto(&tlsv3.DownstreamTlsContext{
+							CommonTlsContext: &tlsv3.CommonTlsContext{
+								TlsCertificates: []*tlsv3.TlsCertificate{
+									{
+										CertificateChain: &corev3.DataSource{
+											Specifier: &corev3.DataSource_Filename{
+												Filename: "/etc/apiserver/ssl/tls.crt",
+											},
+										},
+										PrivateKey: &corev3.DataSource{
+											Specifier: &corev3.DataSource_Filename{
+												Filename: "/etc/apiserver/ssl/tls.key",
+											},
+										},
+									},
+								},
+							},
+						}))
+					}
+				})
+
+			})
 		})
 
 		Context("redis scaled with client-side sharding", func() {
@@ -2836,6 +2939,208 @@ spec:
 					includeStatConfig()
 					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					testManifest.ExpectCustomResource("Settings", namespace, "default")
+				})
+
+				Context("gloo-fed apiserver deployment", func() {
+					const defaultBootstrapConfigMapName = "gloo-fed-default-apiserver-envoy-config"
+
+					var deploy *appsv1.Deployment
+
+					BeforeEach(func() {
+						labels = map[string]string{
+							"app":      "gloo-fed",
+							"gloo-fed": "console",
+						}
+						selector = map[string]string{
+							"app":      "gloo-fed",
+							"gloo-fed": "console",
+						}
+
+						console := v1.Container{
+							Name:            "console",
+							Image:           "quay.io/solo-io/gloo-federation-console:" + version,
+							ImagePullPolicy: v1.PullIfNotPresent,
+							Ports:           []v1.ContainerPort{{Name: "static", ContainerPort: 8090, Protocol: v1.ProtocolTCP}},
+							Resources: v1.ResourceRequirements{
+								Requests: v1.ResourceList{
+									"cpu":    resource.MustParse("125m"),
+									"memory": resource.MustParse("256Mi"),
+								},
+							},
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+								{Name: "empty-run", MountPath: "/var/run"},
+							},
+						}
+
+						readOnlyRootFilesystem := true
+						allowPrivilegeEscalation := false
+
+						uiContainer := v1.Container{
+							Name:            "apiserver",
+							Image:           "quay.io/solo-io/gloo-fed-apiserver:" + version,
+							ImagePullPolicy: v1.PullIfNotPresent,
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+								{Name: "empty-run", MountPath: "/var/run"},
+							},
+							Ports: []v1.ContainerPort{
+								{Name: "grpc", ContainerPort: 10101, Protocol: v1.ProtocolTCP},
+								{Name: "healthcheck", ContainerPort: 8081, Protocol: v1.ProtocolTCP},
+							},
+							Env: []v1.EnvVar{
+								{
+									Name: "POD_NAMESPACE",
+									ValueFrom: &v1.EnvVarSource{
+										FieldRef: &v1.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
+								},
+								{
+									Name: "POD_NAME",
+									ValueFrom: &v1.EnvVarSource{
+										FieldRef: &v1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
+									Name:  "WRITE_NAMESPACE",
+									Value: "gloo-system",
+								},
+								{
+									Name: "LICENSE_KEY",
+									ValueFrom: &v1.EnvVarSource{
+										SecretKeyRef: &v1.SecretKeySelector{
+											LocalObjectReference: v1.LocalObjectReference{
+												Name: "gloo-fed-license",
+											},
+											Key: "license-key",
+										},
+									},
+								},
+							},
+							Resources: v1.ResourceRequirements{
+								Requests: v1.ResourceList{
+									"cpu":    resource.MustParse("125m"),
+									"memory": resource.MustParse("256Mi"),
+								},
+							},
+							SecurityContext: &v1.SecurityContext{
+								RunAsUser: aws.Int64(101),
+								Capabilities: &v1.Capabilities{
+									Drop: []v1.Capability{"ALL"},
+								},
+								ReadOnlyRootFilesystem:   &readOnlyRootFilesystem,
+								AllowPrivilegeEscalation: &allowPrivilegeEscalation,
+							},
+						}
+
+						envoyContainer := v1.Container{
+							Name:            "envoy",
+							Image:           "quay.io/solo-io/gloo-fed-apiserver-envoy:" + version,
+							ImagePullPolicy: v1.PullIfNotPresent,
+							VolumeMounts: []v1.VolumeMount{
+								{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
+							},
+							ReadinessProbe: &v1.Probe{
+								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
+									Path: "/",
+									Port: intstr.IntOrString{IntVal: 8090},
+								}},
+								InitialDelaySeconds: 5,
+								PeriodSeconds:       10,
+							},
+							Env: []v1.EnvVar{
+								{
+									Name:  "ENVOY_UID",
+									Value: "0",
+								},
+							},
+							SecurityContext: &v1.SecurityContext{
+								RunAsUser: aws.Int64(101),
+							},
+							Resources: v1.ResourceRequirements{
+								Requests: v1.ResourceList{
+									"cpu":    resource.MustParse("125m"),
+									"memory": resource.MustParse("256Mi"),
+								},
+							},
+							StdinOnce: false,
+						}
+
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gloo-fed-console",
+							Labels:    labels,
+						}
+						deploy = rb.GetDeploymentAppsv1()
+						deploy.Spec.Selector.MatchLabels = selector
+						deploy.Spec.Template.ObjectMeta.Labels = selector
+						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+							{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+								LocalObjectReference: v1.LocalObjectReference{
+									Name: defaultBootstrapConfigMapName,
+								},
+							}}},
+						}
+						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, console, envoyContainer}
+						deploy.Spec.Template.Spec.ServiceAccountName = "gloo-fed-console"
+						deploy.Spec.Replicas = nil
+					})
+
+					It("is there by default", func() {
+						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+						Expect(err).NotTo(HaveOccurred())
+						testManifest.ExpectDeploymentAppsV1(deploy)
+					})
+
+					It("does render the default bootstrap config map for the envoy sidecar", func() {
+						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+						Expect(err).NotTo(HaveOccurred())
+
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "ConfigMap"
+						}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
+							Expect(cfgmap).NotTo(BeNil())
+							Expect(cfgmap.GetName()).To(Equal(defaultBootstrapConfigMapName))
+						})
+					})
+
+					When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
+						const customConfigMapName = "custom-bootstrap-config"
+						var actualManifest TestManifest
+
+						BeforeEach(func() {
+							var err error
+							actualManifest, err = BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+								valuesArgs: []string{
+									"glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
+								},
+							})
+							Expect(err).NotTo(HaveOccurred())
+						})
+
+						It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
+							deploy.Spec.Template.Spec.Volumes = []v1.Volume{
+								{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+								{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+								{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: customConfigMapName,
+									},
+								}}},
+							}
+							actualManifest.ExpectDeploymentAppsV1(deploy)
+						})
+
+						It("does not render the default config map", func() {
+							actualManifest.Expect("ConfigMap", "gloo-fed", defaultBootstrapConfigMapName).To(BeNil())
+						})
+					})
 				})
 
 				Context("apiserver deployment", func() {

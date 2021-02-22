@@ -22,7 +22,9 @@ require (
 	github.com/gobuffalo/packr v1.30.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/google/wire v0.4.0
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
@@ -33,10 +35,10 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
+	github.com/onsi/gomega v1.10.5
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.8.0
+	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
@@ -61,8 +63,11 @@ require (
 	github.com/solo-io/solo-kit v0.17.1
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
-	github.com/spf13/cobra v1.1.1
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.7.1 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.6
 	go.uber.org/zap v1.16.0
@@ -71,7 +76,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/tools v0.1.0
-	google.golang.org/genproto v0.0.0-20210203152818-3206188e46ba
+	google.golang.org/genproto v0.0.0-20210218151259-fe80b386bf06
 	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1
@@ -82,7 +87,7 @@ require (
 	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.19.7
-	k8s.io/klog/v2 v2.4.0 // indirect
+	k8s.io/klog/v2 v2.5.0 // indirect
 	k8s.io/kubernetes v1.19.6
 	k8s.io/utils v0.19.6 // indirect
 	sigs.k8s.io/controller-runtime v0.7.0

@@ -111,6 +111,7 @@ kind load docker-image quay.io/solo-io/rate-limit-ee:${VERSION} --name $1
 # Install gloo-fed to cluster $1
 glooctl install federation --license-key=$LICENSE_KEY --file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=1m || true
+kubectl -n gloo-fed rollout status deployment gloo-fed-console --timeout=1m || true
 
 # Install gloo to cluster $2
 kubectl config use-context kind-"$2"
