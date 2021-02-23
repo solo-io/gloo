@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >-
+      Fix grpc healthchecks to hit the right grpc service name in extauth service.
+    issueLink: https://github.com/solo-io/gloo/issues/4324
