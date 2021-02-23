@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Use LOCAL_BUILD=true when running the `build-ui` target locally. Run `yarn install`
+      in cloudbuild and github actions instead.

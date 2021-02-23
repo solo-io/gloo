@@ -78,6 +78,23 @@ steps:
   waitFor: ["yarn-install"]
   id: "yarn-build"
 
+- name: node:12.13.1
+  env:
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  secretEnv: ["NPM_TOKEN"]
+  dir: "/workspace/solo-projects/projects/ui"
+  entrypoint: yarn
+  args: ["install"]
+  waitFor: ["prepare-workspace"]
+  id: "yarn-install-gloo-fed"
+
+- name: "gcr.io/cloud-builders/yarn"
+  secretEnv: ["NPM_TOKEN"]
+  args: ["build"]
+  dir: "/workspace/solo-projects/projects/ui"
+  waitFor: ["yarn-install-gloo-fed"]
+  id: "yarn-build-gloo-fed"
+
 # Setup and run e2es
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.4.5'
   entrypoint: "bash"
@@ -140,6 +157,7 @@ steps:
       "prepare-workspace",
       "get-envoy",
       "yarn-build",
+      "yarn-build-gloo-fed",
       "setup-aws-creds",
       "get-test-credentials",
     ]
@@ -163,7 +181,7 @@ steps:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
-  waitFor: ["docker-login", "yarn-build"]
+  waitFor: ["docker-login", "yarn-build", "yarn-build-gloo-fed"]
   id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make

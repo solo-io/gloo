@@ -114,6 +114,7 @@ run-ci-regression-tests: install-go-tools
 .PHONY: update-ui-deps
 update-ui-deps:
 	yarn --cwd=projects/gloo-ui install
+	yarn --cwd=projects/ui install
 
 .PHONY: fmt-changed
 fmt-changed:
@@ -644,7 +645,7 @@ ifeq ($(RELEASE),"true")
 		  gsutil cp -v $(GLOO_FED_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
 		  helm package --destination $(HELM_SYNC_DIR_GLOO_FED)/charts $(HELM_DIR)/gloo-fed >> /dev/null && \
 		  helm repo index $(HELM_SYNC_DIR_GLOO_FED) --merge $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
-		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET)/charts && \
+		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET) && \
 		  gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_GLOO_FED)/index.yaml $(GLOO_FED_HELM_BUCKET)/index.yaml); do \
 	echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 	sleep 2; \
@@ -706,21 +707,27 @@ endif
        gloo-ee-envoy-wrapper-docker observability-docker auth-plugins \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker ui-docker gloo-fed-rbac-validating-webhook-docker
 
-# $(1) name of component
-define docker_push
-docker push $(IMAGE_REPO)/$(1):$(VERSION);
-endef
-
-COMPONENTS := rate-limit-ee grpcserver-ee grpcserver-envoy grpcserver-ui gloo-ee gloo-ee-envoy-wrapper \
-             observability-ee extauth-ee ext-auth-plugins \
-             gloo-fed gloo-fed-apiserver gloo-fed-apiserver-envoy gloo-federation-console gloo-fed-rbac-validating-webhook
-
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
 # to be used for local testing.
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
-	$(foreach component,$(COMPONENTS),$(call docker_push,$(component)))
+ifeq ($(RELEASE),"true")
+	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) && \
+	docker push $(IMAGE_REPO)/grpcserver-ui:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
+endif
 
 .PHONY: docker-push-extended
 docker-push-extended:

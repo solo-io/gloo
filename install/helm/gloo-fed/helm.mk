@@ -385,11 +385,15 @@ generated-gloo-fed-ui-deps:
 
 .PHONY: update-gloo-fed-ui-deps
 update-gloo-fed-ui-deps:
+ifneq ($(LOCAL_BUILD),)
 	yarn --cwd projects/ui install
+endif
 
 .PHONY: build-ui
 build-ui: update-gloo-fed-ui-deps
+ifneq ($(LOCAL_BUILD),)
 	yarn --cwd projects/ui build
+endif
 
 .PHONY: ui-docker
 ui-docker: build-ui
