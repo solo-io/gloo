@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/test/helpers"
+	apiext "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -40,6 +41,7 @@ var _ = Describe("V1Emitter", func() {
 		namespace2     string
 		name1, name2   = "angela" + helpers.RandString(3), "bob" + helpers.RandString(3)
 		cfg            *rest.Config
+		clientset      *apiext.Clientset
 		kube           kubernetes.Interface
 		emitter        DashboardsEmitter
 		upstreamClient gloo_solo_io.UpstreamClient
@@ -54,12 +56,18 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 		cfg, err = kubeutils.GetConfig("", "")
 		Expect(err).NotTo(HaveOccurred())
+
+		clientset, err = apiext.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         gloo_solo_io.UpstreamCrd,
 			Cfg:         cfg,
 			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
+
+		err = helpers.AddAndRegisterCrd(ctx, gloo_solo_io.UpstreamCrd, clientset)
+		Expect(err).NotTo(HaveOccurred())
 
 		upstreamClient, err = gloo_solo_io.NewUpstreamClient(ctx, upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())

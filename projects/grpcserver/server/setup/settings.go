@@ -3,7 +3,6 @@ package setup
 import (
 	"context"
 
-	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -31,10 +30,9 @@ func kubeSettingsClient(ctx context.Context, podNamespace string) (gloov1.Settin
 	}
 
 	return gloov1.NewSettingsClient(ctx, &factory.KubeResourceClientFactory{
-		Crd:             gloov1.SettingsCrd,
-		Cfg:             cfg,
-		SharedCache:     kube2.NewKubeCache(ctx),
-		SkipCrdCreation: settingsutil.GetSkipCrdCreation(),
+		Crd:         gloov1.SettingsCrd,
+		Cfg:         cfg,
+		SharedCache: kube2.NewKubeCache(ctx),
 		// Restrict this client to the pod namespace in case we're running single-namespace Gloo.
 		NamespaceWhitelist: []string{podNamespace},
 	})

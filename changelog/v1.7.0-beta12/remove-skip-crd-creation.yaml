@@ -1,0 +1,18 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/2108
+    resolvesIssue: false
+    description: >
+      Stop relying on skipCrdCreation which allowed resource factories to register CRDs
+  - dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.7.0-beta23
+    type: DEPENDENCY_BUMP
+  - dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.7.0-beta23
+    type: DEPENDENCY_BUMP
+  - dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.18.0
+    type: DEPENDENCY_BUMP
