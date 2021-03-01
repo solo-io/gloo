@@ -280,7 +280,7 @@ prometheus:
     enabled: false
   nodeExporter:
     enabled: false
-  kubeStateMetrics:
+  kube-state-metrics:
     fullnameOverride: glooe-prometheus-kube-state-metrics
   server:
     fullnameOverride: glooe-prometheus-server
@@ -289,7 +289,6 @@ prometheus:
     global:
       scrape_interval: 10s
       evaluation_interval: 10s
-
 ########################################################################
 ###                                                                  ###
 ###                        Grafana                                   ###

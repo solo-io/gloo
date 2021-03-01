@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Bump Helm's Prometheus dependency up to version 11.16.9
+    issueLink: https://github.com/solo-io/gloo/issues/4289

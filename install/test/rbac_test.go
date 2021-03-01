@@ -38,6 +38,7 @@ var _ = Describe("RBAC Test", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"prometheus.rbac.create=false",
+						"prometheus.kube-state-metrics.rbac.create=false",
 						"grafana.testFramework.enabled=false",
 						"global.glooRbac.create=false",
 					},
