@@ -7,7 +7,7 @@ if [ "$1" == "" ] || [ "$2" == "" ]; then
   exit 0
 fi
 
-if [ "$LICENSE_KEY" == "" ]; then
+if [ "$GLOO_LICENSE_KEY" == "" ]; then
   echo "please provide a license key"
   exit 0
 fi
@@ -101,7 +101,8 @@ EOF
 
 kubectl config use-context kind-"$1"
 
-make CLUSTER_NAME=$1 VERSION=${VERSION} LOCAL_BUILD=true package-gloo-fed-charts package-gloo-edge-charts gloofed-load-kind-images
+yarn --cwd projects/ui build
+make CLUSTER_NAME=$1 VERSION=${VERSION} package-gloo-fed-charts package-gloo-edge-charts gloofed-load-kind-images
 # Only build and load in the gloo-ee images used in this test
 make VERSION=${VERSION} gloo-docker gloo-ee-envoy-wrapper-docker rate-limit-docker -B
 kind load docker-image quay.io/solo-io/gloo-ee:${VERSION} --name $1
@@ -109,9 +110,8 @@ kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:${VERSION} --name $
 kind load docker-image quay.io/solo-io/rate-limit-ee:${VERSION} --name $1
 
 # Install gloo-fed to cluster $1
-glooctl install federation --license-key=$LICENSE_KEY --file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz
+glooctl install federation --license-key=$GLOO_LICENSE_KEY --file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=1m || true
-kubectl -n gloo-fed rollout status deployment gloo-fed-console --timeout=1m || true
 
 # Install gloo to cluster $2
 kubectl config use-context kind-"$2"
@@ -168,7 +168,7 @@ gloo:
       service:
         type: NodePort
 EOF
-glooctl install gateway enterprise --file _output/helm/gloo-ee-${VERSION}.tgz --values basic-enterprise.yaml --license-key=$LICENSE_KEY
+glooctl install gateway enterprise --file _output/helm/gloo-ee-${VERSION}.tgz --values basic-enterprise.yaml --license-key=$GLOO_LICENSE_KEY
 rm basic-enterprise.yaml
 kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
 kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true

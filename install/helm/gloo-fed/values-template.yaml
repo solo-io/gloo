@@ -55,11 +55,9 @@ global:
     registry: quay.io/solo-io
   istioIntegration: {}
   istioSDS: {}
-# We will only create a license secret if a value is set, in order, for: licenseKey, license_key, license.key
-licenseKey: ""
 license_key: ""
-license:
-  key: ""
+license_secret_name: license
+create_license_secret: true
 enableMultiClusterRbac: false
 rbacWebhook:
   image:

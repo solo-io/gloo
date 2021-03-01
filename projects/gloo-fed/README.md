@@ -51,7 +51,7 @@ Note that since this is an Enterprise feature, you will need a Gloo License Key 
 # This will create two clusters, "local" and "remote".
 # "local" will run the gloo-fed control plane, and "remote" will run gloo.
 
-LICENSE_KEY=<your license key here> ./projects/gloo-fed/ci/setup-kind.sh local remote
+GLOO_LICENSE_KEY=<your license key here> ./projects/gloo-fed/ci/setup-kind.sh local remote
 
 # Register the clusters using glooctl.
 glooctl cluster register --cluster-name kind-local --remote-context kind-local --local-cluster-domain-override host.docker.internal --federation-namespace gloo-fed

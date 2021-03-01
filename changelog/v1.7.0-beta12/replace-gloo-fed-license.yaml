@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Gloo-fed now uses same license as gloo-ee. Two separate Secret objects are still created for gloo-fed and gloo but they
+      will contain the same secret.

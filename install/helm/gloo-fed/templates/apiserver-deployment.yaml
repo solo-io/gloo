@@ -52,10 +52,10 @@ spec:
               fieldPath: metadata.name
         - name: WRITE_NAMESPACE
           value: {{ .Release.Namespace }}
-        - name: LICENSE_KEY
+        - name: GLOO_LICENSE_KEY
           valueFrom:
             secretKeyRef:
-              name: gloo-fed-license
+              name: {{ .Values.license_secret_name }}
               key: license-key
         imagePullPolicy: {{ $glooFedApiserverImage.pullPolicy }}
         name: apiserver

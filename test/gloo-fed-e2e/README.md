@@ -4,7 +4,7 @@ Gloo Fed E2E Tests
 ## Prerequisites
 Before running any of these tests, run:
 ```
-LICENSE_KEY=$LICENSE_KEY ./projects/gloo-fed/ci/setup-kind.sh local remote
+GLOO_LICENSE_KEY=$LICENSE_KEY ./projects/gloo-fed/ci/setup-kind.sh local remote
 ```
 
 Ensure that your glooctl version is >= v1.6.0.

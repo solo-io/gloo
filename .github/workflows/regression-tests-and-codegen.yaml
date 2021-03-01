@@ -81,9 +81,15 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           skipClusterCreation: "true"
+      - name: Yarn Install
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: --cwd projects/ui install
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Setup Kind
         run: |
-          LICENSE_KEY=${{ secrets.LICENSE_KEY }} ./projects/gloo-fed/ci/setup-kind.sh local remote
+          GLOO_LICENSE_KEY=${{ secrets.LICENSE_KEY }} ./projects/gloo-fed/ci/setup-kind.sh local remote
       - name: Run tests
         run: |
           GOPATH=$HOME go install github.com/onsi/ginkgo/ginkgo

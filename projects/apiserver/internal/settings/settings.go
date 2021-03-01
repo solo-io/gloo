@@ -5,7 +5,7 @@ import (
 )
 
 type ApiServerSettings struct {
-	LicenseKey      string `envconfig:"LICENSE_KEY" default:""`
+	LicenseKey      string `envconfig:"GLOO_LICENSE_KEY" default:""`
 	GrpcPort        int    `envconfig:"APISERVER_GRPC_PORT" default:"10101"`
 	HealthCheckPort int    `envconfig:"APISERVER_HEALTH_CHECK_PORT" default:"8081"`
 }

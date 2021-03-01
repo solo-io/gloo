@@ -3010,11 +3010,11 @@ spec:
 									Value: "gloo-system",
 								},
 								{
-									Name: "LICENSE_KEY",
+									Name: "GLOO_LICENSE_KEY",
 									ValueFrom: &v1.EnvVarSource{
 										SecretKeyRef: &v1.SecretKeySelector{
 											LocalObjectReference: v1.LocalObjectReference{
-												Name: "gloo-fed-license",
+												Name: "license",
 											},
 											Key: "license-key",
 										},
@@ -3108,6 +3108,29 @@ spec:
 							Expect(cfgmap).NotTo(BeNil())
 							Expect(cfgmap.GetName()).To(Equal(defaultBootstrapConfigMapName))
 						})
+					})
+
+					It("correctly sets the GLOO_LICENSE_KEY env for gloo-fed", func() {
+						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+							valuesArgs: []string{"license_secret_name=custom-license-secret"},
+						})
+						Expect(err).NotTo(HaveOccurred())
+
+						licenseKeyEnvVarSource := v1.EnvVarSource{
+							SecretKeyRef: &v1.SecretKeySelector{
+								LocalObjectReference: v1.LocalObjectReference{
+									Name: "custom-license-secret",
+								},
+								Key: "license-key",
+							},
+						}
+						envs := deploy.Spec.Template.Spec.Containers[0].Env
+						for i, env := range envs {
+							if env.Name == "GLOO_LICENSE_KEY" {
+								envs[i].ValueFrom = &licenseKeyEnvVarSource
+							}
+						}
+						testManifest.ExpectDeploymentAppsV1(deploy)
 					})
 
 					When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
