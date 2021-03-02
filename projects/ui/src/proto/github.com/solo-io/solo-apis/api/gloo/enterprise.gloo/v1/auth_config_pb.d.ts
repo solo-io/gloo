@@ -1247,6 +1247,11 @@ export class PassThroughAuth extends jspb.Message {
   getGrpc(): PassThroughGrpc | undefined;
   setGrpc(value?: PassThroughGrpc): void;
 
+  hasConfig(): boolean;
+  clearConfig(): void;
+  getConfig(): google_protobuf_struct_pb.Struct | undefined;
+  setConfig(value?: google_protobuf_struct_pb.Struct): void;
+
   getProtocolCase(): PassThroughAuth.ProtocolCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PassThroughAuth.AsObject;
@@ -1261,6 +1266,7 @@ export class PassThroughAuth extends jspb.Message {
 export namespace PassThroughAuth {
   export type AsObject = {
     grpc?: PassThroughGrpc.AsObject,
+    config?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
   export enum ProtocolCase {

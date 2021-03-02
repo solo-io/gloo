@@ -8787,7 +8787,8 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.toObject = function(opt_
  */
 proto.enterprise.gloo.solo.io.PassThroughAuth.toObject = function(includeInstance, msg) {
   var f, obj = {
-    grpc: (f = msg.getGrpc()) && proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject(includeInstance, f)
+    grpc: (f = msg.getGrpc()) && proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject(includeInstance, f),
+    config: (f = msg.getConfig()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -8829,6 +8830,11 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader = func
       reader.readMessage(value,proto.enterprise.gloo.solo.io.PassThroughGrpc.deserializeBinaryFromReader);
       msg.setGrpc(value);
       break;
+    case 4:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setConfig(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -8866,6 +8872,14 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter = function
       proto.enterprise.gloo.solo.io.PassThroughGrpc.serializeBinaryToWriter
     );
   }
+  f = message.getConfig();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -8896,6 +8910,36 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.clearGrpc = function() {
  */
 proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.hasGrpc = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct config = 4;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.getConfig = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 4));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.setConfig = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.clearConfig = function() {
+  this.setConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.hasConfig = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
