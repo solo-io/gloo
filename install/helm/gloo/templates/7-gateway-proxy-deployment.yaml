@@ -119,6 +119,9 @@ spec:
       containers:
       - args:
           - --disable-hot-restart
+        {{- if $spec.envoyLogLevel }}
+          - --log-level {{ $spec.envoyLogLevel }}
+        {{- end}}
           {{- with $spec.extraEnvoyArgs}}
             {{- range . }}
           - {{ . | quote }}
@@ -138,6 +141,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+      {{- if $spec.logLevel }}
+        - name: LOG_LEVEL
+          value: {{ $spec.logLevel }}
+      {{- end}}
         image: {{ template "gloo.image" $image }}
         imagePullPolicy: {{ $image.pullPolicy }}
         {{- if $spec.podTemplate.gracefulShutdown }}
