@@ -399,8 +399,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/ekzhu/minhash-lsh v0.0.0-20171225071031-5c06ee8586a1/go.mod h1:yEtCVi+QamvzjEH4U/m6ZGkALIkF2xfQnFp0BcKmIOk=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
-github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2 h1:aZtFdDNWY/yH86JPR2WX/PN63635VsE/f/nXNPAbYxY=
-github.com/elazarl/goproxy v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
+github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e h1:/cwV7t2xezilMljIftb7WlFtzGANRCnoOhPjtl2ifcs=
+github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 h1:aBgSK7SOjFeL1wfzfbIb/pkPpfRr6EP7b1Af4o/xkpU=
 github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
@@ -1357,8 +1357,8 @@ github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0as
 github.com/solo-io/ext-auth-service v0.7.15 h1:RJRCtIPAHX1t96O/ASYQJvO8ur2da4+C6uHlabh1GTA=
 github.com/solo-io/ext-auth-service v0.7.15/go.mod h1:f03Q0Xzcl2rKRUozPTffnDgr9reEpSd2ESN4njghPJw=
 github.com/solo-io/external-apis v0.1.1/go.mod h1:1rwOxotZzR94AtuSA1MTTDG8gaY4ms+KhlH4/+XeLhM=
-github.com/solo-io/gloo v1.6.8 h1:ZKxBIWb2xhlVMbuW4o1K8L/ShNKlo8biIi8q5D87CM0=
-github.com/solo-io/gloo v1.6.8/go.mod h1:xddnCBkGhrzjvPMnygiAoKTiG3vteYHh1O2F29q8+cg=
+github.com/solo-io/gloo v1.6.10 h1:kGeJDInVsuO7YpWrwmDIO/VU/sie1E0VnXATLIc6muE=
+github.com/solo-io/gloo v1.6.10/go.mod h1:AjCHt9+OrTV5yBcHJWeEDc9lUQNxT/TiUBoQuTU/Hok=
 github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f/go.mod h1:lojsKFoQQH0O/ElLmagtWINB9zAaq04E8z0xIVS/gLU=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
 github.com/solo-io/go-utils v0.16.4/go.mod h1:uIPAgEuwiEwpBaFv1uI7j4CUVaFYR5iHmTYuIUlLY2Q=
