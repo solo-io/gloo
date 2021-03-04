@@ -136,6 +136,7 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 					Protocol: &extauth.PassThroughAuth_Grpc{
 						Grpc: protocolConfig.Grpc,
 					},
+					Config: config.PassThroughAuth.Config,
 				},
 			}
 		default:

@@ -1,0 +1,15 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: gloo
+    dependencyOwner: solo-io
+    dependencyTag: v1.6.13
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: ext-auth-service
+    dependencyOwner: solo-io
+    dependencyTag: v0.7.17
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4293
+    description: >
+      Config can be passed in to Passthrough External Authentication through the `config` block in AuthConfig.
+      This config data is now available under [FilterMetadata](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/base.proto#config-core-v3-metadata)
+      under the key `solo.auth.passthrough.config`.

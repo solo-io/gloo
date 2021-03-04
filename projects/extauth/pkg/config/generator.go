@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
+
 	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
@@ -493,7 +495,7 @@ func (c *configGenerator) authConfigToService(
 	case *extauthv1.ExtAuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := cfg.PassThroughAuth.GetProtocol().(type) {
 		case *extauthv1.PassThroughAuth_Grpc:
-			grpcSvc, err := getPassThroughGrpcAuthService(ctx, protocolConfig.Grpc)
+			grpcSvc, err := getPassThroughGrpcAuthService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Grpc)
 			if err != nil {
 				return nil, "", err
 			}
@@ -552,7 +554,7 @@ func getLdapConnectionPoolParams(config *extauthv1.Ldap) (initCap int, maxCap in
 	return
 }
 
-func getPassThroughGrpcAuthService(ctx context.Context, grpcConfig *extauthv1.PassThroughGrpc) (api.AuthService, error) {
+func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc) (api.AuthService, error) {
 
 	connectionTimeout := 5 * time.Second
 
@@ -574,5 +576,5 @@ func getPassThroughGrpcAuthService(ctx context.Context, grpcConfig *extauthv1.Pa
 		return nil, errors.Wrap(err, "failed to create grpc client manager")
 	}
 
-	return passthrough.NewGrpcService(grpcClientManager), nil
+	return passthrough.NewGrpcService(grpcClientManager, passthroughAuthCfg), nil
 }

@@ -20,43 +20,39 @@ import (
 	"sync/atomic"
 	"time"
 
+	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/fgrosse/zaptest"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/solo-io/ext-auth-service/pkg/server"
-
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
-	"k8s.io/apimachinery/pkg/util/sets"
-
-	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/metadata"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/gstruct"
-
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
-	"github.com/solo-io/solo-projects/test/services"
-
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/fgrosse/zaptest"
+	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
+	"github.com/solo-io/ext-auth-service/pkg/server"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
+	"github.com/solo-io/solo-projects/test/services"
 	"github.com/solo-io/solo-projects/test/v1helpers"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var (
@@ -1308,6 +1304,116 @@ var _ = Describe("External auth", func() {
 
 			})
 
+			Context("passthrough auth config sanity", func() {
+				// These tests are used to validate that custom config is passed properly to the passthrough service
+
+				var (
+					proxy           *gloov1.Proxy
+					authServerA     *passthrough_test_utils.GrpcAuthServer
+					authServerAPort = 5556
+				)
+
+				BeforeEach(func() {
+					// drain channel as we dont care about it
+					go func(testUpstream v1helpers.TestUpstream) {
+						for range testUpstream.C {
+						}
+					}(*testUpstream)
+				})
+
+				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
+					EventuallyWithOffset(1, func() (int, error) {
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+						if err != nil {
+							return 0, nil
+						}
+
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(responseCode))
+				}
+
+				newGrpcAuthServerwithRequiredConfig := func() *passthrough_test_utils.GrpcAuthServer {
+					return &passthrough_test_utils.GrpcAuthServer{
+						AuthChecker: func(ctx context.Context, req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
+							// Check if config exists in the FilterMetadata under the MetadataConfigKey.
+							if passThroughFilterMetadata, ok := req.GetAttributes().GetMetadataContext().GetFilterMetadata()[passthrough.MetadataConfigKey]; ok {
+								passThroughFields := passThroughFilterMetadata.GetFields()
+								if value, ok := passThroughFields["customConfig1"]; ok && value.GetBoolValue() == true {
+									// Required key was in FilterMetadata, succeed request
+									return passthrough_test_utils.OkResponse(), nil
+								}
+								// Required key was not in FilterMetadata, deny fail request
+								return passthrough_test_utils.DeniedResponse(), nil
+							}
+							// No passthrough properties were sent in FilterMetadata, fail request
+							return passthrough_test_utils.DeniedResponse(), nil
+						},
+					}
+				}
+
+				JustBeforeEach(func() {
+					// start auth server
+					err := authServerA.Start(authServerAPort)
+					Expect(err).NotTo(HaveOccurred())
+
+					authConfig := &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
+							Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+								PassThroughAuth: getPassThroughAuthWithCustomConfig(authServerA.GetAddress()),
+							},
+						}},
+					}
+					// write auth configuration
+					_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					// get proxy with pass through auth extension
+					proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+					// write proxy
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					// ensure proxy is accepted
+					Eventually(func() (core.Status, error) {
+						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+						if err != nil {
+							return core.Status{}, err
+						}
+						if proxy.Status == nil {
+							return core.Status{}, nil
+						}
+						return *proxy.Status, nil
+					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+						"Reason": BeEmpty(),
+						"State":  Equal(core.Status_Accepted),
+					}))
+				})
+
+				AfterEach(func() {
+					authServerA.Stop()
+				})
+
+				Context("passes config block to passthrough auth service", func() {
+					BeforeEach(func() {
+						authServerA = newGrpcAuthServerwithRequiredConfig()
+					})
+
+					It("correctly", func() {
+						expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+					})
+				})
+			})
+
 		})
 
 		Context("using old config format", func() {
@@ -1971,6 +2077,21 @@ func GetPassThroughExtAuthExtension() *extauth.ExtAuthExtension {
 			},
 		},
 	}
+}
+
+// This provides PassThroughAuth AuthConfig with Custom Config
+func getPassThroughAuthWithCustomConfig(address string) *extauth.PassThroughAuth {
+	passThroughAuth := getPassThroughAuthConfig(address)
+	passThroughAuth.Config = &structpb.Struct{
+		Fields: map[string]*structpb.Value{
+			"customConfig1": {
+				Kind: &structpb.Value_BoolValue{
+					BoolValue: true,
+				},
+			},
+		},
+	}
+	return passThroughAuth
 }
 
 func getPassThroughAuthConfig(address string) *extauth.PassThroughAuth {
