@@ -109,9 +109,44 @@ kind load docker-image quay.io/solo-io/gloo-ee:${VERSION} --name $1
 kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:${VERSION} --name $1
 kind load docker-image quay.io/solo-io/rate-limit-ee:${VERSION} --name $1
 
-# Install gloo-fed to cluster $1
-glooctl install federation --license-key=$GLOO_LICENSE_KEY --file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz
+# Install gloo-fed and gloo-ee to cluster $1
+
+cat > basic-enterprise.yaml << EOF
+rateLimit:
+  enable: false
+global:
+  extensions:
+    extAuth:
+      enabled: false
+observability:
+  enabled: false
+apiServer:
+  enable: false
+prometheus:
+  enabled: false
+grafana:
+  defaultInstallationEnabled: false
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      readConfig: true
+      readConfigMulticluster: true
+      service:
+        type: NodePort
+EOF
+
+glooctl install gateway enterprise --license-key=$GLOO_LICENSE_KEY --file _output/helm/gloo-ee-${VERSION}.tgz --gloo-fed-file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz --values basic-enterprise.yaml
+
+rm basic-enterprise.yaml
+
+# gloo-fed rollout
 kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=1m || true
+# gloo-system rollout
+kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
+kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
+kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
+kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
+
 
 # Install gloo to cluster $2
 kubectl config use-context kind-"$2"
@@ -143,37 +178,6 @@ glooctl create secret tls --name failover-downstream --certchain tls.crt --priva
 
 # Revert back to cluster context $1
 kubectl config use-context kind-"$1"
-
-# Install gloo-ee to cluster $1
-cat > basic-enterprise.yaml << EOF
-rateLimit:
-  enable: false
-global:
-  extensions:
-    extAuth:
-      enabled: false
-observability:
-  enabled: false
-apiServer:
-  enable: false
-prometheus:
-  enabled: false
-grafana:
-  defaultInstallationEnabled: false
-gloo:
-  gatewayProxies:
-    gatewayProxy:
-      readConfig: true
-      readConfigMulticluster: true
-      service:
-        type: NodePort
-EOF
-glooctl install gateway enterprise --file _output/helm/gloo-ee-${VERSION}.tgz --values basic-enterprise.yaml --license-key=$GLOO_LICENSE_KEY
-rm basic-enterprise.yaml
-kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
-kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
-kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
-kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 
 glooctl create secret tls --name failover-upstream --certchain mtls.crt --privatekey mtls.key
 rm mtls.key mtls.crt tls.crt tls.key

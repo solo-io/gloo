@@ -1,0 +1,16 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Modify the Gloo Fed e2e tests to run with glooctl command for installing both enterprise and gloo-federation.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.7.0-beta25
+    description: >-
+      Update gloo to v1.7.0-beta25
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: v0.0.0-20210301203230-7f9c5f2a7536
+    description: >-
+      Update solo-apis to vgloo-v1.7.0-beta25
