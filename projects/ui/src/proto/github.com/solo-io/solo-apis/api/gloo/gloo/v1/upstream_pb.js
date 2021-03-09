@@ -28,7 +28,6 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_aws_aws_pb = require('
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_azure_azure_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/azure/azure_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_consul_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/consul_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/aws/ec2/aws_ec2_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/failover_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DiscoveryMetadata', null, global);
@@ -138,7 +137,8 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     awsEc2: (f = msg.getAwsEc2()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f),
     failover: (f = msg.getFailover()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.toObject(includeInstance, f),
     initialStreamWindowSize: (f = msg.getInitialStreamWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
-    initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+    initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -264,6 +264,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setInitialConnectionWindowSize(value);
+      break;
+    case 21:
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
+      msg.setHttpProxyHostname(value);
       break;
     default:
       reader.skipField();
@@ -436,6 +441,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       20,
       f,
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpProxyHostname();
+  if (f != null) {
+    writer.writeMessage(
+      21,
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -979,6 +992,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearInitialConnectionWindowSize = fun
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasInitialConnectionWindowSize = function() {
   return jspb.Message.getField(this, 20) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue http_proxy_hostname = 21;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getHttpProxyHostname = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 21));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setHttpProxyHostname = function(value) {
+  jspb.Message.setWrapperField(this, 21, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearHttpProxyHostname = function() {
+  this.setHttpProxyHostname(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasHttpProxyHostname = function() {
+  return jspb.Message.getField(this, 21) != null;
 };
 
 

@@ -19,7 +19,6 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_aws_aws_pb fro
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/azure/azure_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_consul_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/consul_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/aws/ec2/aws_ec2_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/failover_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -114,6 +113,11 @@ export class UpstreamSpec extends jspb.Message {
   getInitialConnectionWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setInitialConnectionWindowSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  hasHttpProxyHostname(): boolean;
+  clearHttpProxyHostname(): void;
+  getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setHttpProxyHostname(value?: google_protobuf_wrappers_pb.StringValue): void;
+
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
@@ -145,6 +149,7 @@ export namespace UpstreamSpec {
     failover?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb.Failover.AsObject,
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export enum UpstreamTypeCase {

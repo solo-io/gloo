@@ -15,6 +15,7 @@ settings:
   # Set this value to a an array of ratelimit descriptors to have rate limits on the gloo instance's installation namespace.
   # For more info, see https://docs.solo.io/gloo/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto.sk/#servicesettings
   rateLimit: {}
+  enableRestEds: true
 
 ########################################################################
 ###                                                                  ###

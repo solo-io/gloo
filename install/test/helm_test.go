@@ -1344,7 +1344,7 @@ spec:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
   gloo:
-    enableRestEds: false
+    enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1392,7 +1392,7 @@ spec:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
   gloo:
-    enableRestEds: false
+    enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1440,7 +1440,7 @@ spec:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
   gloo:
-    enableRestEds: false
+    enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1493,7 +1493,7 @@ spec:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
   gloo:
-    enableRestEds: false
+    enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1549,7 +1549,7 @@ spec:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
   gloo:
-    enableRestEds: false
+    enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false

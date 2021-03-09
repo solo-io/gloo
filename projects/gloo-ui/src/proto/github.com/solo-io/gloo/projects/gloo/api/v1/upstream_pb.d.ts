@@ -20,7 +20,6 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_aws_pb from
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/azure/azure_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/consul/consul_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options/aws/ec2/aws_ec2_pb";
-import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/options_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_failover_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/failover_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -125,6 +124,11 @@ export class Upstream extends jspb.Message {
   getInitialConnectionWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setInitialConnectionWindowSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  hasHttpProxyHostname(): boolean;
+  clearHttpProxyHostname(): void;
+  getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setHttpProxyHostname(value?: google_protobuf_wrappers_pb.StringValue): void;
+
   getUpstreamTypeCase(): Upstream.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Upstream.AsObject;
@@ -158,6 +162,7 @@ export namespace Upstream {
     failover?: github_com_solo_io_gloo_projects_gloo_api_v1_failover_pb.Failover.AsObject,
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export enum UpstreamTypeCase {
