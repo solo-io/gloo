@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: ext-auth-service
+    dependencyOwner: solo-io
+    dependencyTag: v0.11.3
+  - type: FIX
+    description: Redirect to the default app url upon OIDC logouts
+    issueLink: https://github.com/solo-io/gloo/issues/4271
