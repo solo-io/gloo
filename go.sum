@@ -1354,8 +1354,8 @@ github.com/solo-io/envoy-operator v0.1.4 h1:haffsWSfiDtQrOHVaAuTL48LUVBvSYsv9nqJ
 github.com/solo-io/envoy-operator v0.1.4/go.mod h1:RX7+5zmyZs0SM4K9q9bkaqPMx4XzoQJVi/zBl3NNsG0=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.7.18 h1:h8Ep7L9hzC2aj+V+42sZDif515YFB9jnU36wIs7dI1g=
-github.com/solo-io/ext-auth-service v0.7.18/go.mod h1:+J9ymZAmM2l9fAf+8r+HgCw2D8NwpJF/sP1BpNJUC+s=
+github.com/solo-io/ext-auth-service v0.7.19 h1:wwcJ9RFryeBp4vY1pZj9BkVnnpSJNg54ABke0Pv0hSk=
+github.com/solo-io/ext-auth-service v0.7.19/go.mod h1:+J9ymZAmM2l9fAf+8r+HgCw2D8NwpJF/sP1BpNJUC+s=
 github.com/solo-io/external-apis v0.1.1/go.mod h1:1rwOxotZzR94AtuSA1MTTDG8gaY4ms+KhlH4/+XeLhM=
 github.com/solo-io/gloo v1.6.14 h1:VCf9K1J1qMyJe3VGAd3g2bGR/zx7gB0Krij/o9ZlXHE=
 github.com/solo-io/gloo v1.6.14/go.mod h1:fMGxWPUdqo4JFiI61qvF0zl8mXsDeVcV20PTW1mAmms=
@@ -1417,7 +1417,6 @@ github.com/spf13/cobra v0.0.2-0.20171109065643-2da4a54c5cee/go.mod h1:1l0Ry5zgKv
 github.com/spf13/cobra v0.0.3/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3XqQ=
 github.com/spf13/cobra v0.0.4/go.mod h1:3K3wKZymM7VvHMDS9+Akkh4K60UwM26emMESw8tLCHU=
 github.com/spf13/cobra v0.0.5/go.mod h1:3K3wKZymM7VvHMDS9+Akkh4K60UwM26emMESw8tLCHU=
-github.com/spf13/cobra v1.0.0 h1:6m/oheQuQ13N9ks4hubMG6BnvwOeaJrqSPLahSnczz8=
 github.com/spf13/cobra v1.0.0/go.mod h1:/6GTrnGXV9HjY+aR4k0oJ5tcvakLuG6EuKReYlHNrgE=
 github.com/spf13/cobra v1.1.1 h1:KfztREH0tPxJJ+geloSLaAkaPkr4ki2Er5quFV1TDo4=
 github.com/spf13/cobra v1.1.1/go.mod h1:WnodtKOvamDL/PwE2M4iKs8aMDBZ5Q5klgD3qfVJQMI=

@@ -388,9 +388,9 @@ var _ = Describe("External auth", func() {
 					resp, err := client.Do(req)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-					cookies = jar.Cookies(appPage)
-					Expect(cookies).To(BeEmpty())
+					// Verify that the logout resulted in a redirect to the defaul url
+					Expect(finalurl).NotTo(BeNil())
+					Expect(finalurl.Path).To(Equal("/"))
 				}
 
 				Context("redis for session store", func() {
