@@ -9,6 +9,13 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
+var (
+	OAuth2EmtpyIntrospectionUrlErr = errors.New("oauth2: introspection URL cannot be empty")
+	OAuth2EmtpyRemoteJwksUrlErr    = errors.New("oauth2: remote JWKS URL cannot be empty")
+	OAuth2EmtpyLocalJwksErr        = errors.New("oauth2: must provide inline JWKS string")
+	OAuth2IncompleteOIDCInfoErr    = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
+)
+
 type invalidAuthConfigError struct {
 	cfgType string
 	ref     *core.ResourceRef
@@ -43,13 +50,32 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 		case *extauth.AuthConfig_Config_Oauth2:
 			switch oauthCfg := cfg.Oauth2.OauthType.(type) {
 			case *extauth.OAuth2_OidcAuthorizationCode:
-				if oauthCfg.OidcAuthorizationCode.GetAppUrl() == "" {
-					reports.AddError(ac, NewInvalidAuthConfigError("oidc", ac.GetMetadata().Ref()))
+				oidcCfg := oauthCfg.OidcAuthorizationCode
+				if oidcCfg.GetAppUrl() == "" ||
+					oidcCfg.GetClientId() == "" ||
+					oidcCfg.GetClientSecretRef() == nil ||
+					oidcCfg.GetAppUrl() == "" ||
+					oidcCfg.GetIssuerUrl() == "" ||
+					oidcCfg.GetCallbackPath() == "" {
+					reports.AddError(ac, OAuth2IncompleteOIDCInfoErr)
 				}
 			case *extauth.OAuth2_AccessTokenValidation:
-				// currently we only support introspection for access token validation
-				if oauthCfg.AccessTokenValidation.GetIntrospectionUrl() == "" {
-					reports.AddError(ac, NewInvalidAuthConfigError("oauth2", ac.GetMetadata().Ref()))
+				switch validation := oauthCfg.AccessTokenValidation.ValidationType.(type) {
+				case *extauth.AccessTokenValidation_IntrospectionUrl:
+					if validation.IntrospectionUrl == "" {
+						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+					}
+				case *extauth.AccessTokenValidation_Jwt:
+					switch jwksSource := validation.Jwt.JwksSourceSpecifier.(type) {
+					case *extauth.AccessTokenValidation_JwtValidation_RemoteJwks_:
+						if jwksSource.RemoteJwks.GetUrl() == "" {
+							reports.AddError(ac, OAuth2EmtpyRemoteJwksUrlErr)
+						}
+					case *extauth.AccessTokenValidation_JwtValidation_LocalJwks_:
+						if jwksSource.LocalJwks.GetInlineString() == "" {
+							reports.AddError(ac, OAuth2EmtpyLocalJwksErr)
+						}
+					}
 				}
 			}
 		case *extauth.AuthConfig_Config_ApiKeyAuth:

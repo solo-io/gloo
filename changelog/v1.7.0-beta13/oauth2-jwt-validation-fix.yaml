@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: Update `AuthConfig` validation logic to account for JWT `AccessTokenValidation` configurations.
+  issueLink: https://github.com/solo-io/solo-projects/issues/2130
