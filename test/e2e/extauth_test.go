@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -20,6 +21,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
+
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
 
@@ -34,7 +40,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
-	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/server"
@@ -52,7 +57,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var (
@@ -773,40 +777,44 @@ var _ = Describe("External auth", func() {
 			})
 
 			Context("oauth2 token introspection sanity", func() {
+
 				var (
-					proxy  *gloov1.Proxy
-					server *test_utils.AuthServer
+					proxy      *gloov1.Proxy
+					authServer *test_utils.AuthServer
+					authConfig *extauth.AuthConfig
 				)
-				BeforeEach(func() {
 
-					server = test_utils.NewAuthServer(fmt.Sprintf(":%d", 5556), &test_utils.AuthEndpoints{
-						TokenIntrospectionEndpoint: "/introspection",
-						UserInfoEndpoint:           "/userinfo",
-					}, sets.NewString("valid-access-token"), map[string]user_info.UserInfo{})
-					server.Start()
+				// Execute a request with an access token, against an endpoint that requires token authentication
+				// and return the status code of the response
+				requestWithAccessToken := func(token string) (int, error) {
+					getReq, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+					Expect(err).ToNot(HaveOccurred())
+					getReq.Header.Set("authorization", fmt.Sprintf("Bearer %s", token))
 
-					_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
-						Metadata: &core.Metadata{
-							Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
-							Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+					client := &http.Client{
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							return http.ErrUseLastResponse
 						},
-						Configs: []*extauth.AuthConfig_Config{{
-							AuthConfig: &extauth.AuthConfig_Config_Oauth2{
-								Oauth2: &extauth.OAuth2{
-									OauthType: getOauthTokenIntrospectionConfig(),
-								},
-							},
-						}},
-					}, clients.WriteOpts{Ctx: ctx})
-					Expect(err).NotTo(HaveOccurred())
-
-					proxy = getProxyExtAuthOauthTokenIntrospection(envoyPort, testUpstream.Upstream.Metadata.Ref())
-				})
+					}
+					var resp *http.Response
+					resp, err = client.Do(getReq)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}
 
 				JustBeforeEach(func() {
-					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					// Start the auth server
+					authServer.Start()
+
+					// Write the auth configuration
+					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
+					// Write the proxy and ensure it is accepted
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
 					Eventually(func() (core.Status, error) {
 						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						if err != nil {
@@ -823,7 +831,7 @@ var _ = Describe("External auth", func() {
 				})
 
 				AfterEach(func() {
-					server.Stop()
+					authServer.Stop()
 				})
 
 				BeforeEach(func() {
@@ -834,45 +842,261 @@ var _ = Describe("External auth", func() {
 					}(*testUpstream)
 				})
 
-				It("should accept extauth oauth2 introspection with valid access token", func() {
-					Eventually(func() (int, error) {
-						getReq, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-						Expect(err).ToNot(HaveOccurred())
-						getReq.Header.Set("authorization", "Bearer valid-access-token")
+				Context("using IntrospectionUrl", func() {
 
-						client := &http.Client{
-							CheckRedirect: func(req *http.Request, via []*http.Request) error {
-								return http.ErrUseLastResponse
+					BeforeEach(func() {
+						authServer = test_utils.NewAuthServer(
+							fmt.Sprintf(":%d", 5556),
+							&test_utils.AuthEndpoints{
+								TokenIntrospectionEndpoint: "/introspection",
+								UserInfoEndpoint:           "/userinfo",
 							},
+							&test_utils.AuthHandlers{
+								// Use default auth handlers
+							},
+							sets.NewString("valid-access-token"),
+							map[string]user_info.UserInfo{})
+
+						authConfig = &extauth.AuthConfig{
+							Metadata: &core.Metadata{
+								Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
+								Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+							},
+							Configs: []*extauth.AuthConfig_Config{{
+								AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+									Oauth2: &extauth.OAuth2{
+										OauthType: getOauthTokenIntrospectionUrlConfig(),
+									},
+								},
+							}},
 						}
-						var resp *http.Response
-						resp, err = client.Do(getReq)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+						proxy = getProxyExtAuthOauthTokenIntrospection(envoyPort, testUpstream.Upstream.Metadata.Ref())
+					})
+
+					It("should accept introspection url with valid access token", func() {
+						Eventually(func() (int, error) {
+							return requestWithAccessToken("valid-access-token")
+						}, "5s", "0.5s").Should(Equal(http.StatusOK))
+						Consistently(func() (int, error) {
+							return requestWithAccessToken("valid-access-token")
+						}, "3s", "0.5s").Should(Equal(http.StatusOK))
+					})
+
+					It("should deny introspection url with invalid access token", func() {
+						Eventually(func() (int, error) {
+							return requestWithAccessToken("invalid-access-token")
+						}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+						Consistently(func() (int, error) {
+							return requestWithAccessToken("invalid-access-token")
+						}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+					})
+
 				})
 
-				It("should deny extauth oauth2 introspection with invalid access token", func() {
-					Eventually(func() (int, error) {
-						getReq, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-						Expect(err).ToNot(HaveOccurred())
-						getReq.Header.Set("authorization", "Bearer invalid-access-token")
+				Context("using Introspection", func() {
 
-						client := &http.Client{
-							CheckRedirect: func(req *http.Request, via []*http.Request) error {
-								return http.ErrUseLastResponse
+					var (
+						secret *gloov1.Secret
+					)
+
+					createBasicAuthHandler := func(validToken, clientId, clientSecret string) func(http.ResponseWriter, *http.Request) {
+
+						return func(writer http.ResponseWriter, request *http.Request) {
+							err := request.ParseForm()
+							if err != nil {
+								panic(err)
+							}
+
+							requestedToken := request.Form.Get("token")
+							requestedClientId := request.Form.Get("client_id")
+							requestedClientSecret := request.Form.Get("client_secret")
+
+							response := &token_validation.IntrospectionResponse{}
+
+							// Request is only validated if all criteria match
+							if validToken == requestedToken && requestedClientId == clientId && requestedClientSecret == clientSecret {
+								response.Active = true
+							}
+
+							bytes, err := json.Marshal(response)
+							if err != nil {
+								panic(err)
+							}
+							writer.Write(bytes)
+						}
+					}
+
+					getOauthSecret := func(name, value string) *gloov1.Secret {
+						clientSecret := &extauth.OauthSecret{
+							ClientSecret: value,
+						}
+						return &gloov1.Secret{
+							Metadata: &core.Metadata{
+								Name:      name,
+								Namespace: "default",
+							},
+							Kind: &gloov1.Secret_Oauth{
+								Oauth: clientSecret,
 							},
 						}
-						var resp *http.Response
-						resp, err = client.Do(getReq)
-						if err != nil {
-							return 0, err
+					}
+
+					BeforeEach(func() {
+						// Create the client secret
+						secret = getOauthSecret("secret", "client-secret")
+						_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						// Create an auth server that requires clients to provide credentials (client-id and client-secret)
+						authServer = test_utils.NewAuthServer(
+							fmt.Sprintf(":%d", 5556),
+							&test_utils.AuthEndpoints{
+								TokenIntrospectionEndpoint: "/introspection",
+								UserInfoEndpoint:           "/userinfo",
+							},
+							&test_utils.AuthHandlers{
+								TokenIntrospectionHandler: createBasicAuthHandler("valid-access-token", "client-id", "client-secret"),
+							},
+							sets.NewString("valid-access-token"),
+							map[string]user_info.UserInfo{})
+
+						// Create an auth config, with proper references to the client credentials
+						authConfig = &extauth.AuthConfig{
+							Metadata: &core.Metadata{
+								Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
+								Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+							},
+							Configs: []*extauth.AuthConfig_Config{{
+								AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+									Oauth2: &extauth.OAuth2{
+										OauthType: getOauthTokenIntrospectionConfig("client-id", secret.Metadata.Ref()),
+									},
+								},
+							}},
 						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+
+						proxy = getProxyExtAuthOauthTokenIntrospection(envoyPort, testUpstream.Upstream.Metadata.Ref())
+					})
+
+					When("auth config includes valid credentials", func() {
+						// The default auth config that we initialize is valid
+
+						It("should accept introspection with valid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusOK))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusOK))
+						})
+
+						It("should deny introspection with invalid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+						})
+					})
+
+					When("auth config includes invalid credentials", func() {
+
+						var invalidSecret *gloov1.Secret
+
+						BeforeEach(func() {
+							// Create a client secret with the wrong value
+							invalidSecret = getOauthSecret("invalid-secret", "invalid-client-secret")
+							_, err := testClients.SecretClient.Write(invalidSecret, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							// Set the auth config to reference that invalid secret
+							authConfig = &extauth.AuthConfig{
+								Metadata: &core.Metadata{
+									Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
+									Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+								},
+								Configs: []*extauth.AuthConfig_Config{{
+									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+										Oauth2: &extauth.OAuth2{
+											OauthType: getOauthTokenIntrospectionConfig("client-id", invalidSecret.Metadata.Ref()),
+										},
+									},
+								}},
+							}
+						})
+
+						It("should deny introspection with valid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+						})
+
+						It("should deny introspection with invalid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+						})
+					})
+
+					When("auth config is missing credentials and auth server doesn't require credentials", func() {
+
+						BeforeEach(func() {
+							authServer = test_utils.NewAuthServer(
+								fmt.Sprintf(":%d", 5556),
+								&test_utils.AuthEndpoints{
+									TokenIntrospectionEndpoint: "/introspection",
+									UserInfoEndpoint:           "/userinfo",
+								},
+								&test_utils.AuthHandlers{
+									// Use the default handlers, which do not require client credentials in the introspection request
+								},
+								sets.NewString("valid-access-token"),
+								map[string]user_info.UserInfo{})
+
+							authConfig = &extauth.AuthConfig{
+								Metadata: &core.Metadata{
+									Name:      getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Name,
+									Namespace: getOauthTokenIntrospectionExtAuthExtension().GetConfigRef().Namespace,
+								},
+								Configs: []*extauth.AuthConfig_Config{{
+									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+										Oauth2: &extauth.OAuth2{
+											OauthType: getOauthTokenIntrospectionConfig("", nil),
+										},
+									},
+								}},
+							}
+						})
+
+						It("should accept introspection with valid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusOK))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("valid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusOK))
+						})
+
+						It("should deny introspection with invalid access token", func() {
+							Eventually(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+							Consistently(func() (int, error) {
+								return requestWithAccessToken("invalid-access-token")
+							}, "3s", "0.5s").Should(Equal(http.StatusForbidden))
+						})
+					})
+
 				})
+
 			})
 
 			Context("api key sanity tests", func() {
@@ -1918,11 +2142,27 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 	return cachedPrivateKey
 }
 
-func getOauthTokenIntrospectionConfig() *extauth.OAuth2_AccessTokenValidation {
+func getOauthTokenIntrospectionUrlConfig() *extauth.OAuth2_AccessTokenValidation {
 	return &extauth.OAuth2_AccessTokenValidation{
 		AccessTokenValidation: &extauth.AccessTokenValidation{
 			ValidationType: &extauth.AccessTokenValidation_IntrospectionUrl{
 				IntrospectionUrl: "http://localhost:5556/introspection",
+			},
+			UserinfoUrl:  "http://localhost:5556/userinfo",
+			CacheTimeout: nil,
+		},
+	}
+}
+
+func getOauthTokenIntrospectionConfig(clientId string, clientSecretRef *core.ResourceRef) *extauth.OAuth2_AccessTokenValidation {
+	return &extauth.OAuth2_AccessTokenValidation{
+		AccessTokenValidation: &extauth.AccessTokenValidation{
+			ValidationType: &extauth.AccessTokenValidation_Introspection{
+				Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+					IntrospectionUrl: "http://localhost:5556/introspection",
+					ClientId:         clientId,
+					ClientSecretRef:  clientSecretRef,
+				},
 			},
 			UserinfoUrl:  "http://localhost:5556/userinfo",
 			CacheTimeout: nil,

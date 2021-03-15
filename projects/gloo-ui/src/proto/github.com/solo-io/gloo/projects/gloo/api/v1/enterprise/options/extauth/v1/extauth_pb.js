@@ -24,6 +24,7 @@ var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks', null, global);
@@ -41,6 +42,12 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.BufferSettings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.CustomAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.DiscoveryOverride', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.Config', null, global);
@@ -6226,7 +6233,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_ = [[1,2],[6]];
+proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_ = [[1,2,3],[6]];
 
 /**
  * @enum {number}
@@ -6234,7 +6241,8 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_ = [[1,2],[6]];
 proto.enterprise.gloo.solo.io.AccessTokenValidation.ValidationTypeCase = {
   VALIDATION_TYPE_NOT_SET: 0,
   INTROSPECTION_URL: 1,
-  JWT: 2
+  JWT: 2,
+  INTROSPECTION: 3
 };
 
 /**
@@ -6290,6 +6298,7 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.toObject = function(includeI
   var f, obj = {
     introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
     jwt: (f = msg.getJwt()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.toObject(includeInstance, f),
+    introspection: (f = msg.getIntrospection()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject(includeInstance, f),
     userinfoUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
     cacheTimeout: (f = msg.getCacheTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     requiredScopes: (f = msg.getRequiredScopes()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList.toObject(includeInstance, f)
@@ -6337,6 +6346,11 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.deserializeBinaryFromReader);
       msg.setJwt(value);
+      break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader);
+      msg.setIntrospection(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -6394,6 +6408,14 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter = fu
       2,
       f,
       proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.serializeBinaryToWriter
+    );
+  }
+  f = message.getIntrospection();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter
     );
   }
   f = message.getUserinfoUrl();
@@ -7017,6 +7039,219 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.setI
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.displayName = 'proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation;
+  return proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIntrospectionUrl(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientId(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setClientSecretRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getIntrospectionUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getClientId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getClientSecretRef();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string introspection_url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getIntrospectionUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setIntrospectionUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string client_id = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getClientId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setClientId = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef client_secret_ref = 3;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getClientSecretRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 3));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setClientSecretRef = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.clearClientSecretRef = function() {
+  this.setClientSecretRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.hasClientSecretRef = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList.repeatedFields_, null);
 };
@@ -7225,6 +7460,36 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.clearJwt = functio
  */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.hasJwt = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional IntrospectionValidation introspection = 3;
+ * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.getIntrospection = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation|undefined} value */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.setIntrospection = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.clearIntrospection = function() {
+  this.setIntrospection(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.hasIntrospection = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -10204,6 +10469,1350 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_ = [[1,2,3],[6]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ValidationTypeCase = {
+  VALIDATION_TYPE_NOT_SET: 0,
+  INTROSPECTION_URL: 1,
+  JWT: 2,
+  INTROSPECTION: 3
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ValidationTypeCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getValidationTypeCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ValidationTypeCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeValidationCase = {
+  SCOPE_VALIDATION_NOT_SET: 0,
+  REQUIRED_SCOPES: 6
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeValidationCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getScopeValidationCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeValidationCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[1]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    jwt: (f = msg.getJwt()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.toObject(includeInstance, f),
+    introspection: (f = msg.getIntrospection()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.toObject(includeInstance, f),
+    userinfoUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    cacheTimeout: (f = msg.getCacheTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    requiredScopes: (f = msg.getRequiredScopes()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIntrospectionUrl(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.deserializeBinaryFromReader);
+      msg.setJwt(value);
+      break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.deserializeBinaryFromReader);
+      msg.setIntrospection(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserinfoUrl(value);
+      break;
+    case 5:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setCacheTimeout(value);
+      break;
+    case 6:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.deserializeBinaryFromReader);
+      msg.setRequiredScopes(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {string} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getJwt();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.serializeBinaryToWriter
+    );
+  }
+  f = message.getIntrospection();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserinfoUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getCacheTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequiredScopes();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.JwksSourceSpecifierCase = {
+  JWKS_SOURCE_SPECIFIER_NOT_SET: 0,
+  REMOTE_JWKS: 1,
+  LOCAL_JWKS: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.JwksSourceSpecifierCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.getJwksSourceSpecifierCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.JwksSourceSpecifierCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    remoteJwks: (f = msg.getRemoteJwks()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.toObject(includeInstance, f),
+    localJwks: (f = msg.getLocalJwks()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.toObject(includeInstance, f),
+    issuer: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.deserializeBinaryFromReader);
+      msg.setRemoteJwks(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.deserializeBinaryFromReader);
+      msg.setLocalJwks(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIssuer(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRemoteJwks();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocalJwks();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getIssuer();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    url: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    refreshInterval: (f = msg.getRefreshInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUrl(value);
+      break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setRefreshInterval(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getRefreshInterval();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.getUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.setUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration refresh_interval = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.getRefreshInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.setRefreshInterval = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.clearRefreshInterval = function() {
+  this.setRefreshInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.prototype.hasRefreshInterval = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    inlineString: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInlineString(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInlineString();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string inline_string = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.prototype.getInlineString = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.prototype.setInlineString = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional RemoteJwks remote_jwks = 1;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.getRemoteJwks = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.setRemoteJwks = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.clearRemoteJwks = function() {
+  this.setRemoteJwks(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.hasRemoteJwks = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional LocalJwks local_jwks = 2;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.getLocalJwks = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.setLocalJwks = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.clearLocalJwks = function() {
+  this.setLocalJwks(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.hasLocalJwks = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string issuer = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.getIssuer = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.prototype.setIssuer = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    clientSecret: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIntrospectionUrl(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientId(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientSecret(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getIntrospectionUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getClientId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getClientSecret();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string introspection_url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.getIntrospectionUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.setIntrospectionUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string client_id = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.getClientId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.setClientId = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string client_secret = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.getClientSecret = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.setClientSecret = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    scopeList: jspb.Message.getRepeatedField(msg, 1)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScope(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getScopeList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated string scope = 1;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.getScopeList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.setScopeList = function(value) {
+  jspb.Message.setField(this, 1, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.addScope = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList.prototype.clearScopeList = function() {
+  this.setScopeList([]);
+};
+
+
+/**
+ * optional string introspection_url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getIntrospectionUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setIntrospectionUrl = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.clearIntrospectionUrl = function() {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.hasIntrospectionUrl = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional JwtValidation jwt = 2;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getJwt = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.JwtValidation|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setJwt = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.clearJwt = function() {
+  this.setJwt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.hasJwt = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional IntrospectionValidation introspection = 3;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getIntrospection = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setIntrospection = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.clearIntrospection = function() {
+  this.setIntrospection(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.hasIntrospection = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string userinfo_url = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getUserinfoUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setUserinfoUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration cache_timeout = 5;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getCacheTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 5));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setCacheTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.clearCacheTimeout = function() {
+  this.setCacheTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.hasCacheTimeout = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional ScopeList required_scopes = 6;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.getRequiredScopes = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList, 6));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.ScopeList|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.setRequiredScopes = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.oneofGroups_[1], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.clearRequiredScopes = function() {
+  this.setRequiredScopes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototype.hasRequiredScopes = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_);
 };
@@ -10219,7 +11828,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,2]];
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,3]];
 
 /**
  * @enum {number}
@@ -10227,7 +11836,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,2]];
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.OauthTypeCase = {
   OAUTH_TYPE_NOT_SET: 0,
   OIDC_AUTHORIZATION_CODE: 1,
-  ACCESS_TOKEN_VALIDATION: 2
+  ACCESS_TOKEN_VALIDATION_CONFIG: 3
 };
 
 /**
@@ -10267,7 +11876,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.toObject = fu
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.toObject = function(includeInstance, msg) {
   var f, obj = {
     oidcAuthorizationCode: (f = msg.getOidcAuthorizationCode()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject(includeInstance, f),
-    accessTokenValidation: (f = msg.getAccessTokenValidation()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.toObject(includeInstance, f)
+    accessTokenValidationConfig: (f = msg.getAccessTokenValidationConfig()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -10309,10 +11918,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.deserializeBinaryFromRe
       reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserializeBinaryFromReader);
       msg.setOidcAuthorizationCode(value);
       break;
-    case 2:
-      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation;
-      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.deserializeBinaryFromReader);
-      msg.setAccessTokenValidation(value);
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.deserializeBinaryFromReader);
+      msg.setAccessTokenValidationConfig(value);
       break;
     default:
       reader.skipField();
@@ -10351,12 +11960,12 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.serializeBinaryToWriter
       proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializeBinaryToWriter
     );
   }
-  f = message.getAccessTokenValidation();
+  f = message.getAccessTokenValidationConfig();
   if (f != null) {
     writer.writeMessage(
-      2,
+      3,
       f,
-      proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.serializeBinaryToWriter
     );
   }
 };
@@ -10393,23 +12002,23 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasOidcAuthor
 
 
 /**
- * optional AccessTokenValidation access_token_validation = 2;
- * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation}
+ * optional AccessTokenValidationConfig access_token_validation_config = 3;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig}
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.getAccessTokenValidation = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation} */ (
-    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation, 2));
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.getAccessTokenValidationConfig = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig, 3));
 };
 
 
-/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation|undefined} value */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.setAccessTokenValidation = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_[0], value);
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.setAccessTokenValidationConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_[0], value);
 };
 
 
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.clearAccessTokenValidation = function() {
-  this.setAccessTokenValidation(undefined);
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.clearAccessTokenValidationConfig = function() {
+  this.setAccessTokenValidationConfig(undefined);
 };
 
 
@@ -10417,8 +12026,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.clearAccessTo
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasAccessTokenValidation = function() {
-  return jspb.Message.getField(this, 2) != null;
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasAccessTokenValidationConfig = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

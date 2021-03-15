@@ -247,7 +247,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 		})
 	})
 
-	Describe("translating OAuth2.0 access token validation config", func() {
+	Describe("translating OAuth2.0 access token IntrospectionUrl config", func() {
 
 		var oAuthConfig *extauthv1.ExtAuthConfig
 
@@ -258,15 +258,15 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					{
 						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
 							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
-								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation{
-									AccessTokenValidation: &extauthv1.AccessTokenValidation{
-										ValidationType: &extauthv1.AccessTokenValidation_IntrospectionUrl{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig{
+									AccessTokenValidationConfig: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig{
+										ValidationType: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionUrl{
 											IntrospectionUrl: "introspection-url",
 										},
 										UserinfoUrl:  "user-info-url",
 										CacheTimeout: nil, // not user-configured
-										ScopeValidation: &extauthv1.AccessTokenValidation_RequiredScopes{
-											RequiredScopes: &extauthv1.AccessTokenValidation_ScopeList{
+										ScopeValidation: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_RequiredScopes{
+											RequiredScopes: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_ScopeList{
 												Scope: []string{"foo", "bar"},
 											},
 										},
@@ -284,6 +284,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
 
 				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"", "",
 					"introspection-url",
 					expectedScopeValidator,
 					"user-info-url",
@@ -298,10 +299,85 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 		When("the cache expiration timeout has been configured", func() {
 			It("works as expected", func() {
-				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidation().CacheTimeout = ptypes.DurationProto(time.Second)
+				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().CacheTimeout = ptypes.DurationProto(time.Second)
 				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
 
 				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"", "",
+					"introspection-url",
+					expectedScopeValidator,
+					"user-info-url",
+					time.Second,
+				).Return(authServiceMock)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+	})
+
+	Describe("translating OAuth2.0 access token IntrospectionValidation config", func() {
+
+		var oAuthConfig *extauthv1.ExtAuthConfig
+
+		BeforeEach(func() {
+			oAuthConfig = &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.oauth2-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig{
+									AccessTokenValidationConfig: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig{
+										ValidationType: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Introspection{
+											Introspection: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation{
+												IntrospectionUrl: "introspection-url",
+												ClientId:         "client-id",
+												ClientSecret:     "client-secret",
+											},
+										},
+										UserinfoUrl:  "user-info-url",
+										CacheTimeout: nil, // not user-configured
+										ScopeValidation: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_RequiredScopes{
+											RequiredScopes: &extauthv1.ExtAuthConfig_AccessTokenValidationConfig_ScopeList{
+												Scope: []string{"foo", "bar"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		When("no cache expiration timeout has been configured", func() {
+			It("correctly defaults the timeout", func() {
+				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
+
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"client-id", "client-secret",
+					"introspection-url",
+					expectedScopeValidator,
+					"user-info-url",
+					config.DefaultOAuthCacheTtl,
+				).Return(authServiceMock)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+
+		When("the cache expiration timeout has been configured", func() {
+			It("works as expected", func() {
+				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().CacheTimeout = ptypes.DurationProto(time.Second)
+				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
+
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"client-id", "client-secret",
 					"introspection-url",
 					expectedScopeValidator,
 					"user-info-url",

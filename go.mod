@@ -47,9 +47,9 @@ require (
 	github.com/solo-io/anyvendor v0.0.3
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.11.3
+	github.com/solo-io/ext-auth-service v0.12.0
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.7.0-beta26
+	github.com/solo-io/gloo v1.7.0-beta29
 	github.com/solo-io/go-list-licenses v0.1.3
 	github.com/solo-io/go-utils v0.20.5
 	github.com/solo-io/k8s-utils v0.0.6
@@ -59,8 +59,8 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.3
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210308204827-31abe5f01884
-	github.com/solo-io/solo-kit v0.18.1
+	github.com/solo-io/solo-apis v0.0.0-20210313001636-69e42c5a9185
+	github.com/solo-io/solo-kit v0.18.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spaolacci/murmur3 v1.1.0 // indirect

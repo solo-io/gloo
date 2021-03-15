@@ -2,6 +2,9 @@ package extauth_test
 
 import (
 	"context"
+	"time"
+
+	"github.com/golang/protobuf/ptypes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -461,6 +464,71 @@ var _ = Describe("Translate", func() {
 			Expect(actual.Query).To(Equal(expected.Query))
 			data := params.Snapshot.Artifacts[0].Data
 			Expect(actual.Modules).To(Equal(data))
+		})
+	})
+
+	Context("with AccessTokenValidation extauth", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "oauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+						Oauth2: &extauth.OAuth2{
+							OauthType: &extauth.OAuth2_AccessTokenValidation{
+								AccessTokenValidation: &extauth.AccessTokenValidation{
+									ValidationType: &extauth.AccessTokenValidation_Introspection{
+										Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+											IntrospectionUrl: "introspection-url",
+											ClientId:         "client-id",
+											ClientSecretRef:  secret.Metadata.Ref(),
+										},
+									},
+									CacheTimeout: ptypes.DurationProto(time.Minute),
+									UserinfoUrl:  "user-info-url",
+									ScopeValidation: &extauth.AccessTokenValidation_RequiredScopes{
+										RequiredScopes: &extauth.AccessTokenValidation_ScopeList{
+											Scope: []string{"foo", "bar"},
+										},
+									},
+								},
+							},
+						},
+					},
+				}},
+			}
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+
+			params.Snapshot = &v1.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+
+		})
+
+		It("should succeed for IntrospectionValidation config", func() {
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+
+			actual := translated.Configs[0].GetOauth2().GetAccessTokenValidationConfig()
+			expected := authConfig.Configs[0].GetOauth2().GetAccessTokenValidation()
+
+			Expect(actual.GetUserinfoUrl()).To(Equal(expected.GetUserinfoUrl()))
+			Expect(actual.GetCacheTimeout()).To(Equal(expected.GetCacheTimeout()))
+			Expect(actual.GetIntrospection().GetIntrospectionUrl()).To(Equal(expected.GetIntrospection().GetIntrospectionUrl()))
+			Expect(actual.GetIntrospection().GetClientId()).To(Equal(expected.GetIntrospection().GetClientId()))
+			Expect(actual.GetIntrospection().GetClientSecret()).To(Equal(clientSecret.ClientSecret))
+			Expect(actual.GetRequiredScopes().GetScope()).To(Equal(expected.GetRequiredScopes().GetScope()))
 		})
 	})
 

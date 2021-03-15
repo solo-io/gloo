@@ -899,6 +899,11 @@ export class AccessTokenValidation extends jspb.Message {
   getJwt(): AccessTokenValidation.JwtValidation | undefined;
   setJwt(value?: AccessTokenValidation.JwtValidation): void;
 
+  hasIntrospection(): boolean;
+  clearIntrospection(): void;
+  getIntrospection(): AccessTokenValidation.IntrospectionValidation | undefined;
+  setIntrospection(value?: AccessTokenValidation.IntrospectionValidation): void;
+
   getUserinfoUrl(): string;
   setUserinfoUrl(value: string): void;
 
@@ -928,6 +933,7 @@ export namespace AccessTokenValidation {
   export type AsObject = {
     introspectionUrl: string,
     jwt?: AccessTokenValidation.JwtValidation.AsObject,
+    introspection?: AccessTokenValidation.IntrospectionValidation.AsObject,
     userinfoUrl: string,
     cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     requiredScopes?: AccessTokenValidation.ScopeList.AsObject,
@@ -1018,6 +1024,36 @@ export namespace AccessTokenValidation {
     }
   }
 
+  export class IntrospectionValidation extends jspb.Message {
+    getIntrospectionUrl(): string;
+    setIntrospectionUrl(value: string): void;
+
+    getClientId(): string;
+    setClientId(value: string): void;
+
+    hasClientSecretRef(): boolean;
+    clearClientSecretRef(): void;
+    getClientSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setClientSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): IntrospectionValidation.AsObject;
+    static toObject(includeInstance: boolean, msg: IntrospectionValidation): IntrospectionValidation.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: IntrospectionValidation, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): IntrospectionValidation;
+    static deserializeBinaryFromReader(message: IntrospectionValidation, reader: jspb.BinaryReader): IntrospectionValidation;
+  }
+
+  export namespace IntrospectionValidation {
+    export type AsObject = {
+      introspectionUrl: string,
+      clientId: string,
+      clientSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    }
+  }
+
   export class ScopeList extends jspb.Message {
     clearScopeList(): void;
     getScopeList(): Array<string>;
@@ -1044,6 +1080,7 @@ export namespace AccessTokenValidation {
     VALIDATION_TYPE_NOT_SET = 0,
     INTROSPECTION_URL = 1,
     JWT = 2,
+    INTROSPECTION = 3,
   }
 
   export enum ScopeValidationCase {
@@ -1458,16 +1495,215 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class AccessTokenValidationConfig extends jspb.Message {
+    hasIntrospectionUrl(): boolean;
+    clearIntrospectionUrl(): void;
+    getIntrospectionUrl(): string;
+    setIntrospectionUrl(value: string): void;
+
+    hasJwt(): boolean;
+    clearJwt(): void;
+    getJwt(): ExtAuthConfig.AccessTokenValidationConfig.JwtValidation | undefined;
+    setJwt(value?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation): void;
+
+    hasIntrospection(): boolean;
+    clearIntrospection(): void;
+    getIntrospection(): ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation | undefined;
+    setIntrospection(value?: ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation): void;
+
+    getUserinfoUrl(): string;
+    setUserinfoUrl(value: string): void;
+
+    hasCacheTimeout(): boolean;
+    clearCacheTimeout(): void;
+    getCacheTimeout(): google_protobuf_duration_pb.Duration | undefined;
+    setCacheTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+    hasRequiredScopes(): boolean;
+    clearRequiredScopes(): void;
+    getRequiredScopes(): ExtAuthConfig.AccessTokenValidationConfig.ScopeList | undefined;
+    setRequiredScopes(value?: ExtAuthConfig.AccessTokenValidationConfig.ScopeList): void;
+
+    getValidationTypeCase(): AccessTokenValidationConfig.ValidationTypeCase;
+    getScopeValidationCase(): AccessTokenValidationConfig.ScopeValidationCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AccessTokenValidationConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: AccessTokenValidationConfig): AccessTokenValidationConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AccessTokenValidationConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AccessTokenValidationConfig;
+    static deserializeBinaryFromReader(message: AccessTokenValidationConfig, reader: jspb.BinaryReader): AccessTokenValidationConfig;
+  }
+
+  export namespace AccessTokenValidationConfig {
+    export type AsObject = {
+      introspectionUrl: string,
+      jwt?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.AsObject,
+      introspection?: ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.AsObject,
+      userinfoUrl: string,
+      cacheTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+      requiredScopes?: ExtAuthConfig.AccessTokenValidationConfig.ScopeList.AsObject,
+    }
+
+    export class JwtValidation extends jspb.Message {
+      hasRemoteJwks(): boolean;
+      clearRemoteJwks(): void;
+      getRemoteJwks(): ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks | undefined;
+      setRemoteJwks(value?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks): void;
+
+      hasLocalJwks(): boolean;
+      clearLocalJwks(): void;
+      getLocalJwks(): ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks | undefined;
+      setLocalJwks(value?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks): void;
+
+      getIssuer(): string;
+      setIssuer(value: string): void;
+
+      getJwksSourceSpecifierCase(): JwtValidation.JwksSourceSpecifierCase;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): JwtValidation.AsObject;
+      static toObject(includeInstance: boolean, msg: JwtValidation): JwtValidation.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: JwtValidation, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): JwtValidation;
+      static deserializeBinaryFromReader(message: JwtValidation, reader: jspb.BinaryReader): JwtValidation;
+    }
+
+    export namespace JwtValidation {
+      export type AsObject = {
+        remoteJwks?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.RemoteJwks.AsObject,
+        localJwks?: ExtAuthConfig.AccessTokenValidationConfig.JwtValidation.LocalJwks.AsObject,
+        issuer: string,
+      }
+
+      export class RemoteJwks extends jspb.Message {
+        getUrl(): string;
+        setUrl(value: string): void;
+
+        hasRefreshInterval(): boolean;
+        clearRefreshInterval(): void;
+        getRefreshInterval(): google_protobuf_duration_pb.Duration | undefined;
+        setRefreshInterval(value?: google_protobuf_duration_pb.Duration): void;
+
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): RemoteJwks.AsObject;
+        static toObject(includeInstance: boolean, msg: RemoteJwks): RemoteJwks.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: RemoteJwks, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): RemoteJwks;
+        static deserializeBinaryFromReader(message: RemoteJwks, reader: jspb.BinaryReader): RemoteJwks;
+      }
+
+      export namespace RemoteJwks {
+        export type AsObject = {
+          url: string,
+          refreshInterval?: google_protobuf_duration_pb.Duration.AsObject,
+        }
+      }
+
+      export class LocalJwks extends jspb.Message {
+        getInlineString(): string;
+        setInlineString(value: string): void;
+
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): LocalJwks.AsObject;
+        static toObject(includeInstance: boolean, msg: LocalJwks): LocalJwks.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: LocalJwks, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): LocalJwks;
+        static deserializeBinaryFromReader(message: LocalJwks, reader: jspb.BinaryReader): LocalJwks;
+      }
+
+      export namespace LocalJwks {
+        export type AsObject = {
+          inlineString: string,
+        }
+      }
+
+      export enum JwksSourceSpecifierCase {
+        JWKS_SOURCE_SPECIFIER_NOT_SET = 0,
+        REMOTE_JWKS = 1,
+        LOCAL_JWKS = 2,
+      }
+    }
+
+    export class IntrospectionValidation extends jspb.Message {
+      getIntrospectionUrl(): string;
+      setIntrospectionUrl(value: string): void;
+
+      getClientId(): string;
+      setClientId(value: string): void;
+
+      getClientSecret(): string;
+      setClientSecret(value: string): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): IntrospectionValidation.AsObject;
+      static toObject(includeInstance: boolean, msg: IntrospectionValidation): IntrospectionValidation.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: IntrospectionValidation, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): IntrospectionValidation;
+      static deserializeBinaryFromReader(message: IntrospectionValidation, reader: jspb.BinaryReader): IntrospectionValidation;
+    }
+
+    export namespace IntrospectionValidation {
+      export type AsObject = {
+        introspectionUrl: string,
+        clientId: string,
+        clientSecret: string,
+      }
+    }
+
+    export class ScopeList extends jspb.Message {
+      clearScopeList(): void;
+      getScopeList(): Array<string>;
+      setScopeList(value: Array<string>): void;
+      addScope(value: string, index?: number): string;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): ScopeList.AsObject;
+      static toObject(includeInstance: boolean, msg: ScopeList): ScopeList.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: ScopeList, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): ScopeList;
+      static deserializeBinaryFromReader(message: ScopeList, reader: jspb.BinaryReader): ScopeList;
+    }
+
+    export namespace ScopeList {
+      export type AsObject = {
+        scopeList: Array<string>,
+      }
+    }
+
+    export enum ValidationTypeCase {
+      VALIDATION_TYPE_NOT_SET = 0,
+      INTROSPECTION_URL = 1,
+      JWT = 2,
+      INTROSPECTION = 3,
+    }
+
+    export enum ScopeValidationCase {
+      SCOPE_VALIDATION_NOT_SET = 0,
+      REQUIRED_SCOPES = 6,
+    }
+  }
+
   export class OAuth2Config extends jspb.Message {
     hasOidcAuthorizationCode(): boolean;
     clearOidcAuthorizationCode(): void;
     getOidcAuthorizationCode(): ExtAuthConfig.OidcAuthorizationCodeConfig | undefined;
     setOidcAuthorizationCode(value?: ExtAuthConfig.OidcAuthorizationCodeConfig): void;
 
-    hasAccessTokenValidation(): boolean;
-    clearAccessTokenValidation(): void;
-    getAccessTokenValidation(): AccessTokenValidation | undefined;
-    setAccessTokenValidation(value?: AccessTokenValidation): void;
+    hasAccessTokenValidationConfig(): boolean;
+    clearAccessTokenValidationConfig(): void;
+    getAccessTokenValidationConfig(): ExtAuthConfig.AccessTokenValidationConfig | undefined;
+    setAccessTokenValidationConfig(value?: ExtAuthConfig.AccessTokenValidationConfig): void;
 
     getOauthTypeCase(): OAuth2Config.OauthTypeCase;
     serializeBinary(): Uint8Array;
@@ -1483,13 +1719,13 @@ export namespace ExtAuthConfig {
   export namespace OAuth2Config {
     export type AsObject = {
       oidcAuthorizationCode?: ExtAuthConfig.OidcAuthorizationCodeConfig.AsObject,
-      accessTokenValidation?: AccessTokenValidation.AsObject,
+      accessTokenValidationConfig?: ExtAuthConfig.AccessTokenValidationConfig.AsObject,
     }
 
     export enum OauthTypeCase {
       OAUTH_TYPE_NOT_SET = 0,
       OIDC_AUTHORIZATION_CODE = 1,
-      ACCESS_TOKEN_VALIDATION = 2,
+      ACCESS_TOKEN_VALIDATION_CONFIG = 3,
     }
   }
 

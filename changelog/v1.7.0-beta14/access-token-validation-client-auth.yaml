@@ -1,0 +1,26 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4418
+    resolvesIssue: true
+    description: >
+      Allow setting basic authentication credentials in OAuth2.0 introspection requests.
+      This enables integration with introspection servers which require clients to be authenticated.
+      Credentials can be provided by using the new IntrospectionValidation fields on the OAuth2
+      AccessTokenValidation message. Refer to https://docs.solo.io/gloo-edge/master/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#introspectionvalidation
+      for more details.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.12.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.18.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.7.0-beta29
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: gloo
+    dependencyOwner: solo-io
+    dependencyTag: v1.7.0-beta29

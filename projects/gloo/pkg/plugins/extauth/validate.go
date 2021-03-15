@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	OAuth2EmtpyIntrospectionUrlErr = errors.New("oauth2: introspection URL cannot be empty")
-	OAuth2EmtpyRemoteJwksUrlErr    = errors.New("oauth2: remote JWKS URL cannot be empty")
-	OAuth2EmtpyLocalJwksErr        = errors.New("oauth2: must provide inline JWKS string")
-	OAuth2IncompleteOIDCInfoErr    = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
+	OAuth2EmtpyIntrospectionUrlErr              = errors.New("oauth2: introspection URL cannot be empty")
+	OAuth2IncompleteIntrospectionCredentialsErr = errors.New("oauth2: all of the following attributes must be provided: clientId, clientSecret")
+	OAuth2EmtpyRemoteJwksUrlErr                 = errors.New("oauth2: remote JWKS URL cannot be empty")
+	OAuth2EmtpyLocalJwksErr                     = errors.New("oauth2: must provide inline JWKS string")
+	OAuth2IncompleteOIDCInfoErr                 = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
 )
 
 type invalidAuthConfigError struct {
@@ -64,6 +65,16 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 				case *extauth.AccessTokenValidation_IntrospectionUrl:
 					if validation.IntrospectionUrl == "" {
 						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+					}
+				case *extauth.AccessTokenValidation_Introspection:
+					if validation.Introspection.GetIntrospectionUrl() == "" {
+						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+					}
+					// XOR clientId and clientSecretRef
+					clientIdExists := validation.Introspection.GetClientId() != ""
+					clientSecretExists := validation.Introspection.GetClientSecretRef() != nil
+					if clientIdExists != clientSecretExists {
+						reports.AddError(ac, OAuth2IncompleteIntrospectionCredentialsErr)
 					}
 				case *extauth.AccessTokenValidation_Jwt:
 					switch jwksSource := validation.Jwt.JwksSourceSpecifier.(type) {

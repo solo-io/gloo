@@ -156,27 +156,37 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			}
 			return iss, config.GetName().GetValue(), nil
 
-		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidation:
+		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig:
+			userInfoUrl := oauthCfg.AccessTokenValidationConfig.GetUserinfoUrl()
+			scopeValidator := utils.NewMatchAllValidator(oauthCfg.AccessTokenValidationConfig.GetRequiredScopes().GetScope())
 
-			userInfoUrl := oauthCfg.AccessTokenValidation.GetUserinfoUrl()
-			scopeValidator := utils.NewMatchAllValidator(oauthCfg.AccessTokenValidation.GetRequiredScopes().GetScope())
-
-			cacheTtl := oauthCfg.AccessTokenValidation.CacheTimeout
+			cacheTtl := oauthCfg.AccessTokenValidationConfig.CacheTimeout
 			if cacheTtl == nil {
 				cacheTtl = ptypes.DurationProto(DefaultOAuthCacheTtl)
 			}
 
-			switch validationType := oauthCfg.AccessTokenValidation.GetValidationType().(type) {
-			case *extauthv1.AccessTokenValidation_IntrospectionUrl:
+			switch validationType := oauthCfg.AccessTokenValidationConfig.GetValidationType().(type) {
+			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionUrl:
 				authService := t.serviceFactory.NewOAuth2TokenIntrospectionAuthService(
+					"", "",
 					validationType.IntrospectionUrl,
 					scopeValidator,
 					userInfoUrl,
 					cacheTtl.AsDuration(),
 				)
 				return authService, config.GetName().GetValue(), nil
+			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Introspection:
+				authService := t.serviceFactory.NewOAuth2TokenIntrospectionAuthService(
+					validationType.Introspection.GetClientId(),
+					validationType.Introspection.GetClientSecret(),
+					validationType.Introspection.GetIntrospectionUrl(),
+					scopeValidator,
+					userInfoUrl,
+					cacheTtl.AsDuration(),
+				)
+				return authService, config.GetName().GetValue(), nil
 
-			case *extauthv1.AccessTokenValidation_Jwt:
+			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Jwt:
 				authService, err := t.serviceFactory.NewOAuth2JwtAccessToken(
 					ctx,
 					validationType.Jwt.GetLocalJwks().GetInlineString(),
@@ -193,7 +203,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				return authService, config.GetName().GetValue(), nil
 
 			default:
-				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidation.ValidationType)
+				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidationConfig.ValidationType)
 			}
 		}
 

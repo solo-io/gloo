@@ -182,13 +182,49 @@ var _ = Describe("ValidateAuthConfig", func() {
 
 			Expect(reports.ValidateStrict()).To(MatchError(ContainSubstring(expectedErr.Error())))
 		},
-		Entry("empty introspection URL", &extauth.OAuth2{
+		Entry("IntrospectionUrl: empty introspection URL", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_IntrospectionUrl{},
 				},
 			},
 		}, OAuth2EmtpyIntrospectionUrlErr),
+		Entry("Introspection: empty introspection URL", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_Introspection{
+						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{},
+					},
+				},
+			},
+		}, OAuth2EmtpyIntrospectionUrlErr),
+		Entry("Introspection: provided client id but empty client secret ref", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_Introspection{
+						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+							IntrospectionUrl: "url",
+							ClientId:         "client_id",
+						},
+					},
+				},
+			},
+		}, OAuth2IncompleteIntrospectionCredentialsErr),
+		Entry("provided client secret ref but empty client id", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_Introspection{
+						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+							IntrospectionUrl: "url",
+							ClientSecretRef: &core.ResourceRef{
+								Name:      "name",
+								Namespace: "ns",
+							},
+						},
+					},
+				},
+			},
+		}, OAuth2IncompleteIntrospectionCredentialsErr),
 		Entry("empty remote JWKS URL", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{

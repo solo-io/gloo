@@ -98,9 +98,15 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 				},
 			}
 		case *extauth.OAuth2_AccessTokenValidation:
+			accessTokenValidationConfig, err := translateAccessTokenValidationConfig(snap, oauthCfg.AccessTokenValidation)
+			if err != nil {
+				return nil, err
+			}
 			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth2{
 				Oauth2: &extauth.ExtAuthConfig_OAuth2Config{
-					OauthType: &extauth.ExtAuthConfig_OAuth2Config_AccessTokenValidation{AccessTokenValidation: oauthCfg.AccessTokenValidation},
+					OauthType: &extauth.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig{
+						AccessTokenValidationConfig: accessTokenValidationConfig,
+					},
 				},
 			}
 		}
@@ -314,4 +320,89 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 		Headers:                 config.Headers,
 		DiscoveryOverride:       config.DiscoveryOverride,
 	}, nil
+}
+
+func translateAccessTokenValidationConfig(snap *v1.ApiSnapshot, config *extauth.AccessTokenValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig, error) {
+	accessTokenValidationConfig := &extauth.ExtAuthConfig_AccessTokenValidationConfig{
+		UserinfoUrl:  config.GetUserinfoUrl(),
+		CacheTimeout: config.GetCacheTimeout(),
+	}
+
+	// ValidationType
+	switch validationTypeConfig := config.ValidationType.(type) {
+	case *extauth.AccessTokenValidation_IntrospectionUrl:
+		accessTokenValidationConfig.ValidationType = &extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionUrl{
+			IntrospectionUrl: config.GetIntrospectionUrl(),
+		}
+	case *extauth.AccessTokenValidation_Introspection:
+		introspectionCfg, err := translateAccessTokenValidationIntrospection(snap, validationTypeConfig.Introspection)
+		if err != nil {
+			return nil, err
+		}
+		accessTokenValidationConfig.ValidationType = &extauth.ExtAuthConfig_AccessTokenValidationConfig_Introspection{
+			Introspection: introspectionCfg,
+		}
+	case *extauth.AccessTokenValidation_Jwt:
+		jwtCfg, err := translateAccessTokenValidationJwt(validationTypeConfig.Jwt)
+		if err != nil {
+			return nil, err
+		}
+		accessTokenValidationConfig.ValidationType = &extauth.ExtAuthConfig_AccessTokenValidationConfig_Jwt{
+			Jwt: jwtCfg,
+		}
+	}
+
+	// ScopeValidation
+	switch scopeValidationConfig := config.ScopeValidation.(type) {
+	case *extauth.AccessTokenValidation_RequiredScopes:
+		accessTokenValidationConfig.ScopeValidation = &extauth.ExtAuthConfig_AccessTokenValidationConfig_RequiredScopes{
+			RequiredScopes: &extauth.ExtAuthConfig_AccessTokenValidationConfig_ScopeList{
+				Scope: scopeValidationConfig.RequiredScopes.GetScope(),
+			},
+		}
+	}
+
+	return accessTokenValidationConfig, nil
+}
+
+func translateAccessTokenValidationIntrospection(snap *v1.ApiSnapshot, config *extauth.AccessTokenValidation_IntrospectionValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation, error) {
+	var clientSecret string
+	if config.GetClientSecretRef() != nil {
+		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+		if err != nil {
+			return nil, err
+		}
+		clientSecret = secret.GetOauth().GetClientSecret()
+	}
+
+	return &extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation{
+		IntrospectionUrl: config.GetIntrospectionUrl(),
+		ClientId:         config.GetClientId(),
+		ClientSecret:     clientSecret,
+	}, nil
+}
+
+func translateAccessTokenValidationJwt(config *extauth.AccessTokenValidation_JwtValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation, error) {
+	jwtValidation := &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation{
+		Issuer: config.GetIssuer(),
+	}
+
+	switch jwksSourceSpecifierConfig := config.JwksSourceSpecifier.(type) {
+	case *extauth.AccessTokenValidation_JwtValidation_LocalJwks_:
+		jwtValidation.JwksSourceSpecifier = &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_LocalJwks_{
+			LocalJwks: &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_LocalJwks{
+				InlineString: jwksSourceSpecifierConfig.LocalJwks.GetInlineString(),
+			},
+		}
+
+	case *extauth.AccessTokenValidation_JwtValidation_RemoteJwks_:
+		jwtValidation.JwksSourceSpecifier = &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks_{
+			RemoteJwks: &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks{
+				Url:             jwksSourceSpecifierConfig.RemoteJwks.GetUrl(),
+				RefreshInterval: jwksSourceSpecifierConfig.RemoteJwks.GetRefreshInterval(),
+			},
+		}
+	}
+
+	return jwtValidation, nil
 }
