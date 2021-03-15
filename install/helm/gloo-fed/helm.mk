@@ -395,6 +395,10 @@ ifneq ($(LOCAL_BUILD),)
 	yarn --cwd projects/ui build
 endif
 
+.PHONY: gloo-federation-console-docker
+gloo-federation-console-docker: build-ui
+	docker build -t quay.io/solo-io/gloo-federation-console:$(VERSION) projects/ui -f projects/ui/Dockerfile
+
 .PHONY: ui-docker
 ui-docker: build-ui
 	docker build -t quay.io/solo-io/gloo-federation-console:$(VERSION) projects/ui -f projects/ui/Dockerfile
