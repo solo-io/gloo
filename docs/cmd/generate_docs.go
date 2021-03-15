@@ -65,7 +65,7 @@ func securityScanMdFromCmd(opts *options) *cobra.Command {
 		Use:   "gen-security-scan-md",
 		Short: "generate a markdown file from gcloud bucket",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return generateSecurityScanMd()
+			return generateSecurityScanMd(args)
 		},
 	}
 	return app
@@ -249,7 +249,28 @@ func printVersionOrderReleases(minorReleaseMap map[Version]string, versionOrder 
 	}
 }
 
-func generateSecurityScanMd() error {
+// Generates security scan log for releases
+func generateSecurityScanMd(args []string) error {
+	if len(args) != 1 {
+		return InvalidInputError(fmt.Sprintf("%v", len(args)-1))
+	}
+	target := args[0]
+	var (
+		err error
+	)
+	switch target {
+	case glooDocGen:
+		err = generateSecurityScanGloo()
+	case glooEDocGen:
+		err = generateSecurityScanGlooE()
+	default:
+		return InvalidInputError(target)
+	}
+
+	return err
+}
+
+func generateSecurityScanGloo() error {
 	client := github.NewClient(nil)
 	allReleases, err := GetAllReleases(client, glooOpenSourceRepo)
 	if err != nil {
@@ -264,11 +285,44 @@ func generateSecurityScanMd() error {
 	for _, release := range allReleases {
 		// ignore beta releases when display security scan results
 		test, err := semver.NewVersion(release.GetTagName())
-		stableOnlyConstraint, _ := semver.NewConstraint("*")
+		stableOnlyConstraint, _ := semver.NewConstraint(">= 1.4.0")
 		if err == nil && stableOnlyConstraint.Check(test) {
 			tagNames = append(tagNames, release.GetTagName())
 		}
 	}
 
-	return BuildSecurityScanMarkdownReport(tagNames)
+	return BuildSecurityScanReportGloo(tagNames)
+}
+
+func generateSecurityScanGlooE() error {
+	// Initialize Auth
+	ctx := context.Background()
+	if os.Getenv("GITHUB_TOKEN") == "" {
+		return MissingGithubTokenError()
+	}
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+	allReleases, err := GetAllReleases(client, glooEnterpriseRepo)
+	if err != nil {
+		return err
+	}
+	allReleases = SortReleases(allReleases)
+	if err != nil {
+		return err
+	}
+
+	var tagNames []string
+	for _, release := range allReleases {
+		// ignore beta releases when display security scan results
+		test, err := semver.NewVersion(release.GetTagName())
+		stableOnlyConstraint, _ := semver.NewConstraint(">= 1.4.0")
+		if err == nil && stableOnlyConstraint.Check(test) {
+			tagNames = append(tagNames, release.GetTagName())
+		}
+	}
+
+	return BuildSecurityScanReportGlooE(tagNames)
 }
