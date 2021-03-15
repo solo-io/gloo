@@ -1,0 +1,5 @@
+changelog:
+  - dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.3.0
+    type: DEPENDENCY_BUMP
