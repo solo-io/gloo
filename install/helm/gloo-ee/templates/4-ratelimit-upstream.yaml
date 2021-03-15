@@ -1,8 +1,8 @@
-{{- if .Values.rateLimit.enabled }}
+{{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- if not $spec.disabled}}
-{{- $rateLimitName := $.Values.rateLimit.service.name }}
+{{- $rateLimitName := $.Values.global.extensions.rateLimit.service.name }}
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
 {{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
@@ -25,10 +25,10 @@ spec:
   kube:
     serviceName: {{ $rateLimitName }}
     serviceNamespace: {{ $.Release.Namespace }}
-    servicePort:  {{ $.Values.rateLimit.service.port }}
+    servicePort:  {{ $.Values.global.extensions.rateLimit.service.port }}
     serviceSpec:
       grpc: {}
 ---
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* .Values.rateLimit.enabled */}}
+{{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}

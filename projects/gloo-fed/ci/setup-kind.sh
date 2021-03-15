@@ -16,18 +16,20 @@ fi
 go mod tidy
 
 GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
+# NOTE: If inter-PR dependency is needed, this must be changed to a hard-coded version (ex: v1.7.0-beta25).
+GLOO_VERSION_TEST_INSTALL=$GLOO_VERSION
 VERSION=$(git describe --tags --dirty --always | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
 # Install glooctl
 if which glooctl;
 then
     echo "Found glooctl installed already"
-    glooctl upgrade --release="$GLOO_VERSION"
+    glooctl upgrade --release="$GLOO_VERSION_TEST_INSTALL"
 else
     echo "Installing glooctl"
-    GLOO_VERSION="$GLOO_VERSION" curl -sL https://run.solo.io/gloo/install | sh
+    curl -sL https://run.solo.io/gloo/install | sh
     export PATH=$HOME/.gloo/bin:$PATH
-    glooctl upgrade --release="$GLOO_VERSION"
+    glooctl upgrade --release="$GLOO_VERSION_TEST_INSTALL"
 fi
 
 cat <<EOF | kind create cluster --name $1 --config=-

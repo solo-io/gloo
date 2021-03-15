@@ -34,13 +34,15 @@ type Rbac struct {
 // Gloo-ee
 
 type GlooEeExtensions struct {
-	ExtAuth *ExtAuth `json:"extAuth,omitempty"`
+	ExtAuth   *ExtAuth   `json:"extAuth,omitempty"`
+	RateLimit *RateLimit `json:"rateLimit,omitempty"`
 }
 
 type RateLimit struct {
-	Enabled    bool                 `json:"enabled" desc:"if true, deploy rate limit service (default true)"`
-	Deployment *RateLimitDeployment `json:"deployment,omitempty"`
-	Service    *RateLimitService    `json:"service,omitempty"`
+	Enabled         bool                 `json:"enabled,omitempty" desc:"if true, deploy rate limit service (default true)"`
+	Deployment      *RateLimitDeployment `json:"deployment,omitempty"`
+	Service         *RateLimitService    `json:"service,omitempty"`
+	CustomRateLimit interface{}          `json:"customRateLimit,omitempty"`
 }
 
 type DynamoDb struct {

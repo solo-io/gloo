@@ -220,3 +220,38 @@ imagePullSecrets:
 - name: {{ .pullSecret }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Injection point for enterprise-exclusive settings into the settings manifest
+*/}}
+{{- define "gloo.extraSpecs" -}}
+{{- if not $.Values.global.extauthCustomYaml }}
+{{- $extauth := $.Values.global.extensions.extAuth }}
+{{- if $extauth.enabled }}
+  {{- if or $extauth.envoySidecar $extauth.standaloneDeployment }}
+  extauth:
+    transportApiVersion: {{ $extauth.transportApiVersion | default "V3" }}
+    extauthzServerRef:
+      # arbitrarily default to the standalone deployment name even if we're using both
+      {{- if $extauth.standaloneDeployment }}
+      name: extauth
+      {{- else }}
+      name: extauth-sidecar
+      {{- end }}
+      namespace: {{ .Release.Namespace }}
+    {{- if $extauth.requestTimeout }}
+    requestTimeout: {{ quote $extauth.requestTimeout }}
+    {{- end }}
+    {{- if $extauth.userIdHeader }}
+    userIdHeader: {{ quote $extauth.userIdHeader }}
+    {{- end }}
+  {{- end }}
+{{- end}}
+{{- end}}
+{{- if $.Values.global.extensions.rateLimit.enabled }}
+  ratelimitServer:
+    ratelimit_server_ref:
+      name: rate-limit
+      namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end -}}

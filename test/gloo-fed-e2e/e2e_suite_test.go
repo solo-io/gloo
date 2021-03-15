@@ -55,7 +55,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		instances, err := clientset.GlooInstances().ListGlooInstance(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
 		return len(instances.Items)
-	}, time.Second*10, time.Millisecond*500).Should(Equal(2))
+	}, time.Second*30, time.Millisecond*500).Should(Equal(2))
 
 	// Wait for Upstream to be Accepted
 	glooClient, err := gloov1.NewClientsetFromConfig(restCfg)
@@ -68,7 +68,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			return 0, err
 		}
 		return us.Status.GetState(), nil
-	}, time.Second*10, time.Millisecond*500).Should(Equal(gloov1.UpstreamStatus_Accepted))
+	}, time.Second*30, time.Millisecond*500).Should(Equal(gloov1.UpstreamStatus_Accepted))
 
 	// Wait for remote Upstream to be Accepted
 	remoteRestCfg := skv2_test.MustConfig(remoteClusterContext)

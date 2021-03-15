@@ -1,4 +1,4 @@
-{{- if .Values.rateLimit.enabled }}
+{{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- if not $spec.disabled}}
@@ -27,4 +27,4 @@ spec:
 ---
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* .Values.rateLimit.enabled */}}
+{{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}

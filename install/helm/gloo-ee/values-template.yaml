@@ -1,24 +1,5 @@
 ########################################################################
 ###                                                                  ###
-###                        Settings                                  ###
-###                                                                  ###
-########################################################################
-
-# Enable creation of the GlooE settings template, disable the Gloo one (see below)
-settings:
-  create: true
-  # Gloo allows you to directly reference a Kubernetes service as a routing destination. To enable this feature,
-  # Gloo scans the cluster for Kubernetes services and creates a special type of in-memory Upstream to represent them.
-  # If the cluster contains a lot of services and you do not restrict the namespaces Gloo is watching, this can result
-  # in significant overhead. If you do not plan on using this feature, you can set this flag to true to turn it off.
-  disableKubernetesDestinations: false
-  # Set this value to a an array of ratelimit descriptors to have rate limits on the gloo instance's installation namespace.
-  # For more info, see https://docs.solo.io/gloo/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto.sk/#servicesettings
-  rateLimit: {}
-  enableRestEds: true
-
-########################################################################
-###                                                                  ###
 ###                        Gloo                                      ###
 ###                                                                  ###
 ########################################################################
@@ -30,7 +11,8 @@ gloo:
   settings:
     # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
     # which is hard. We will provide our own settings template as part of the GlooE chart.
-    create: false
+    create: true    
+    enableRestEds: true
     integrations:
       knative:
         enabled: false
@@ -38,6 +20,14 @@ gloo:
         proxy:
           image:
             repository: gloo-ee-envoy-wrapper
+    # Gloo allows you to directly reference a Kubernetes service as a routing destination. To enable this feature,
+    # Gloo scans the cluster for Kubernetes services and creates a special type of in-memory Upstream to represent them.
+    # If the cluster contains a lot of services and you do not restrict the namespaces Gloo is watching, this can result
+    # in significant overhead. If you do not plan on using this feature, you can set this flag to true to turn it off.
+    disableKubernetesDestinations: false
+    # Set this value to a an array of ratelimit descriptors to have rate limits on the gloo instance's installation namespace.
+    # For more info, see https://docs.solo.io/gloo/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto.sk/#servicesettings
+    rateLimit: {}
   gloo:
     deployment:
       xdsPort: 9977
@@ -165,30 +155,6 @@ apiServer:
     name: "apiserver-ui"
     serviceType: ClusterIP
 
-########################################################################
-###                                                                  ###
-###                        Rate Limit                                ###
-###                                                                  ###
-########################################################################
-
-rateLimit:
-  # setting to false will disable rate limiting
-  enabled: true
-  deployment:
-    name: "rate-limit"
-    image:
-      repository: rate-limit-ee
-    glooAddress: gloo:9977
-    dynamodb:
-      region: us-east-2
-      tableName: rate-limits
-      consistentReads: true
-      batchSize: 100
-    runAsUser: 10101
-  service:
-    port: 18081
-    name: rate-limit
-
 redis:
   deployment:
     name: redis
@@ -236,6 +202,28 @@ global:
   glooRbac:
     create: true
   extensions:
+########################################################################
+###                                                                  ###
+###                        Rate Limit                                ###
+###                                                                  ###
+########################################################################
+    rateLimit:
+      # setting to false will disable rate limiting
+      enabled: true
+      deployment:
+        name: "rate-limit"
+        image:
+          repository: rate-limit-ee
+        glooAddress: gloo:9977
+        dynamodb:
+          region: us-east-2
+          tableName: rate-limits
+          consistentReads: true
+          batchSize: 100
+        runAsUser: 10101
+      service:
+        port: 18081
+        name: rate-limit
     extAuth:
       enabled: true
       standaloneDeployment: true
@@ -264,6 +252,8 @@ global:
     envoy:
       image:
         repository: gloo-ee-envoy-wrapper
+  extraSpecs: true
+  extauthCustomYaml: false
 ########################################################################
 ###                                                                  ###
 ###                        Prometheus                                ###

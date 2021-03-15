@@ -48,6 +48,8 @@ var _ = Describe("Helm Test", func() {
 	var (
 		version string
 
+		backtick = "`"
+
 		normalPromAnnotations = map[string]string{
 			"prometheus.io/path":   "/metrics",
 			"prometheus.io/port":   "9091",
@@ -584,11 +586,11 @@ var _ = Describe("Helm Test", func() {
 				// Subchart deployments (like those for graphana) are ignored.
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"rateLimit.enabled=true",
+						"global.extensions.rateLimit.enabled=true",
 						"apiServer.enable=true",
 						"global.extensions.extAuth.enabled=true",
 						"observability.enabled=true",
-						"rateLimit.deployment.extraRateLimitLabels.foo=bar",
+						"global.extensions.rateLimit.deployment.extraRateLimitLabels.foo=bar",
 						"redis.deployment.extraRedisLabels.foo=bar",
 						"apiServer.deployment.extraApiServerLabels.foo=bar",
 						"observability.deployment.extraObservabilityLabels.foo=bar",
@@ -675,7 +677,7 @@ var _ = Describe("Helm Test", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.istioIntegration.disableAutoinjection=true",
-						"rateLimit.enabled=true", // check as many as possible
+						"gloo.rateLimit.enabled=true", // check as many as possible
 						"apiServer.enable=true",
 						"global.extensions.extAuth.enabled=true",
 						"observability.enabled=true",
@@ -1317,6 +1319,7 @@ global:
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.extensions.extAuth.requestTimeout=1s",
+						"global.extensions.extAuth.enabled=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -1340,15 +1343,20 @@ spec:
     requestTimeout: "1s"
     userIdHeader: "x-user-id"
   gateway:
+    readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      allowWarnings: true
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
@@ -1388,15 +1396,20 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      allowWarnings: true
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
@@ -1413,7 +1426,7 @@ spec:
 			It("enable default credentials", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"settings.aws.enableCredentialsDiscovery=true",
+						"gloo.settings.aws.enableCredentialsDiscovery=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -1436,15 +1449,20 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      allowWarnings: true
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
     awsOptions:
       enableCredentialsDiscovey: true
   ratelimitServer:
@@ -1463,10 +1481,10 @@ spec:
 			It("Allows ratelimit descriptors to be set", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"settings.rateLimit.descriptors[0].key=generic_key",
-						"settings.rateLimit.descriptors[0].value=per-second",
-						"settings.rateLimit.descriptors[0].rateLimit.requestsPerUnit=2",
-						"settings.rateLimit.descriptors[0].rateLimit.unit=SECOND",
+						"gloo.settings.rateLimit.descriptors[0].key=generic_key",
+						"gloo.settings.rateLimit.descriptors[0].value=per-second",
+						"gloo.settings.rateLimit.descriptors[0].rateLimit.requestsPerUnit=2",
+						"gloo.settings.rateLimit.descriptors[0].rateLimit.unit=SECOND",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -1489,15 +1507,20 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      allowWarnings: true
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
   ratelimitServer:
     ratelimit_server_ref:
       namespace: ` + namespace + `
@@ -1545,9 +1568,11 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      allowWarnings: true
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1558,6 +1583,9 @@ spec:
       serviceAccountCredentials:
         cluster: aws_sts_cluster
         uri: sts.us-east-2.amazonaws.com
+    invalidConfigPolicy:
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
@@ -2699,7 +2727,7 @@ spec:
 			It("should add or change the correct components in the resulting helm chart", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"rateLimit.enabled=true",
+						"global.extensions.rateLimit.enabled=true",
 						"ratelimitServer.ratelimitServerRef.name=rate-limit",
 						"ratelimitServer.ratelimitServerRef.namespace=gloo-system",
 						"redis.clientSideShardingEnabled=true",

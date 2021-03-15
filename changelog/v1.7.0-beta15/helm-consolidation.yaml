@@ -1,0 +1,8 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3470
+    description: >
+      Define helm partial to inject enterprise-only settings in
+      Open source settings manifest. Due to the nature of helm chart scoping,
+      all values used in the partial must either already exist in the open source
+      template, or be in `.Values.global`.

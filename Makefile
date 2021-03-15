@@ -605,7 +605,6 @@ $(OUTPUT_DIR)/.helm-initialized:
 	mkdir -p install/helm/gloo-os-with-ui/files
 	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
 	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
-	cp install/helm/gloo-ee/templates/40-settings.yaml install/helm/gloo-os-with-ui/templates/40-settings.yaml
 	cp -r install/helm/gloo-ee/files install/helm/gloo-os-with-ui
 	helm dependency update install/helm/gloo-os-with-ui
 	touch $@

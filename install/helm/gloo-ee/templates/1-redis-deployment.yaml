@@ -1,4 +1,4 @@
-{{- if .Values.rateLimit.enabled }}
+{{- if .Values.global.extensions.rateLimit.enabled }}
 {{- $image := merge .Values.redis.deployment.image .Values.global.image }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
@@ -66,4 +66,4 @@ spec:
 ---
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* .Values.rateLimit.enabled */}}
+{{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}

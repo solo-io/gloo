@@ -158,7 +158,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.CertGenJob.Image.Tag = gc.OsGlooVersion
-	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ApiServer.Deployment.Envoy.Image.Tag = version
@@ -178,7 +177,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy
-	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
@@ -209,8 +207,18 @@ func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, version, pullP
 	if err != nil {
 		return err
 	}
+	// Extauth and rate-limit are both referenced in Values.gloo.settings, and thus need to be retro-typed
+	// to avoid type-leakage into gloo-OS. Beause helm doesn't like dooing this, we must also place these in
+	// the `.Values.global.` struct.
+	// The following code simply applies the version/pull policy cohesion that generateValuesYamlForGlooE() does
+	// for everything else.
+
 	glooEeExtensions.ExtAuth.Deployment.Image.Tag = version
 	glooEeExtensions.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
+
+	glooEeExtensions.RateLimit.Deployment.Image.Tag = version
+	glooEeExtensions.RateLimit.Deployment.Image.PullPolicy = pullPolicy
+
 	config.Global.Extensions = glooEeExtensions
 	return nil
 }

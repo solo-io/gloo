@@ -88,12 +88,12 @@ global:
   glooRbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
-settings:
-  singleNamespace: true
-  create: true
 gloo:
   deployment:
     disableUsageStatistics: true
+  settings:
+    singleNamespace: true
+    create: true
 `))
 	Expect(err).NotTo(HaveOccurred())
 
