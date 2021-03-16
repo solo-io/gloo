@@ -242,10 +242,10 @@ grpcserver: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64
 $(GRPCSERVER_OUT_DIR)/Dockerfile: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: grpcserver-docker
-grpcserver-docker: grpcserver $(GRPCSERVER_OUT_DIR)/Dockerfile $(GRPCSERVER_OUT_DIR)/.grpcserver-docker
+.PHONY: grpcserver-ee-docker
+grpcserver-ee-docker: grpcserver $(GRPCSERVER_OUT_DIR)/Dockerfile $(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker
 
-$(GRPCSERVER_OUT_DIR)/.grpcserver-docker: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/Dockerfile
+$(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(GRPCSERVER_OUT_DIR)
 	touch $@
 
@@ -340,10 +340,10 @@ rate-limit: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64
 $(RATELIMIT_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: rate-limit-docker
-rate-limit-docker: $(RATELIMIT_OUT_DIR)/.rate-limit-docker
+.PHONY: rate-limit-ee-docker
+rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker
 
-$(RATELIMIT_OUT_DIR)/.rate-limit-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
+$(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(RATELIMIT_OUT_DIR)
 	touch $@
 
@@ -364,7 +364,7 @@ $(EXTAUTH_OUT_DIR)/Dockerfile.build: $(EXTAUTH_DIR)/Dockerfile
 $(EXTAUTH_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
-$(EXTAUTH_OUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
+$(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) \
 		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
@@ -376,13 +376,13 @@ $(EXTAUTH_OUT_DIR)/.extauth-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(EXTAUTH_OUT_DIR)/extauth-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-docker-build
+$(EXTAUTH_OUT_DIR)/extauth-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build
 	docker create -ti --name extauth-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-docker-build
+$(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build
 	docker create -ti --name verify-plugins-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
@@ -392,8 +392,8 @@ $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-docke
 extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 
 # Build ext-auth-plugins docker image
-.PHONY: auth-plugins
-auth-plugins: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
+.PHONY: ext-auth-plugins-docker
+ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
@@ -402,10 +402,10 @@ auth-plugins: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 		.
 
 # Build extauth server docker image
-.PHONY: extauth-docker
-extauth-docker: $(EXTAUTH_OUT_DIR)/.extauth-docker
+.PHONY: extauth-ee-docker
+extauth-ee-docker: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker
 
-$(EXTAUTH_OUT_DIR)/.extauth-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
+$(EXTAUTH_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(EXTAUTH_OUT_DIR)
 	touch $@
 
@@ -426,10 +426,10 @@ observability: $(OBS_OUT_DIR)/observability-linux-amd64
 $(OBS_OUT_DIR)/Dockerfile: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: observability-docker
-observability-docker: $(OBS_OUT_DIR)/.observability-docker
+.PHONY: observability-ee-docker
+observability-ee-docker: $(OBS_OUT_DIR)/.observability-ee-docker
 
-$(OBS_OUT_DIR)/.observability-docker: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
+$(OBS_OUT_DIR)/.observability-ee-docker: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OBS_OUT_DIR)
 	touch $@
 
@@ -452,16 +452,16 @@ $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 
-.PHONY: gloo-docker
-gloo-docker: $(GLOO_OUT_DIR)/.gloo-docker
+.PHONY: gloo-ee-docker
+gloo-ee-docker: $(GLOO_OUT_DIR)/.gloo-ee-docker
 
-$(GLOO_OUT_DIR)/.gloo-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
+$(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
-gloo-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
+gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(GLOO_OUT_DIR) --no-cache
 	touch $@
 
@@ -641,8 +641,8 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
- docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-docker rate-limit-docker extauth-docker gloo-docker \
-       gloo-ee-envoy-wrapper-docker observability-docker auth-plugins
+ docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-ee-docker rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
+       gloo-ee-envoy-wrapper-docker observability-ee-docker ext-auth-plugins-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -667,8 +667,13 @@ ifeq ($(RELEASE),"true")
 	ci/extended-docker/extended-docker.sh
 endif
 
-push-kind-images: CLUSTER_NAME?=kind
-push-kind-images: docker
+# Helper targets for CI
+.PHONY: kind-test-docker-images
+ kind-test-docker-images: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-ee-docker rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
+       gloo-ee-envoy-wrapper-docker observability-ee-docker ext-auth-plugins-docker \
+
+CLUSTER_NAME?=kind
+push-kind-images: kind-test-docker-images
 	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
@@ -682,12 +687,12 @@ push-kind-images: docker
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
 
-TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
+TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-ee-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
-grpcserver-docker-test: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/.grpcserver-docker
+grpcserver-ee-docker-test: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker
 	docker push $(call get_test_tag,grpcserver-ee)
 
 grpcserver-envoy-docker-test: grpcserver-envoy-docker $(GRPC_ENVOY_OUT)/Dockerfile
@@ -696,16 +701,16 @@ grpcserver-envoy-docker-test: grpcserver-envoy-docker $(GRPC_ENVOY_OUT)/Dockerfi
 grpcserver-ui-docker-test: grpcserver-ui-build-local grpcserver-ui-docker
 	docker push $(call get_test_tag,grpcserver-ui)
 
-rate-limit-docker-test: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
+rate-limit-ee-docker-test: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,rate-limit-ee)
 
-extauth-docker-test: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
+extauth-ee-docker-test: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,extauth-ee)
 
-observability-docker-test: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
+observability-ee-docker-test: $(OBS_OUT_DIR)/observability-linux-amd64 $(OBS_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,observability-ee)
 
-gloo-docker-test: gloo-docker
+gloo-ee-docker-test: gloo-ee-docker
 	docker push $(call get_test_tag,gloo-ee)
 
 gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit gloo-ee-envoy-wrapper-docker
@@ -779,3 +784,12 @@ generate-escrow-pdf: tar-repo
 # use `make print-MAKEFILE_VAR` to print the value of MAKEFILE_VAR
 
 print-%  : ; @echo $($*)
+
+SCAN_DIR ?= $(OUTPUT_DIR)/scans
+SCAN_BUCKET ?= solo-gloo-security-scans/glooe
+
+.PHONY: publish-security-scan
+publish-security-scan:
+ifeq ($(RELEASE),"true")
+	gsutil cp -r $(SCAN_DIR)/$(VERSION)/$(SCAN_FILE) gs://$(SCAN_BUCKET)/$(VERSION)/$(SCAN_FILE)
+endif
