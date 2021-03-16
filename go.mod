@@ -40,7 +40,7 @@ require (
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.15
-	github.com/solo-io/rate-limiter v0.1.11
+	github.com/solo-io/rate-limiter v0.1.12
 	github.com/solo-io/reporting-client v0.2.0
 	// Corresponds to the `gloo-v1.6.11` tag
 	github.com/solo-io/solo-apis v0.0.0-20210303205632-29483bed2817

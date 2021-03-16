@@ -1,0 +1,8 @@
+changelog:
+  - dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.1.12
+    type: DEPENDENCY_BUMP
+  - type: FIX
+    description: Allow set-style rules to omit rate limits, similar to envoy style API.
+    issueLink: https://github.com/solo-io/gloo/issues/4279
