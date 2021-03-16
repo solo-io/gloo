@@ -55,7 +55,7 @@ require (
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.15
-	github.com/solo-io/rate-limiter v0.3.0
+	github.com/solo-io/rate-limiter v0.3.1
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.3
 	github.com/solo-io/skv2-enterprise v0.0.8
