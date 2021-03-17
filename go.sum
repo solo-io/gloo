@@ -1451,8 +1451,8 @@ github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zz
 github.com/solo-io/solo-apis v0.0.0-20210122162349-0e170e74af10/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
 github.com/solo-io/solo-apis v0.0.0-20210312215825-0d5ed5c280a3 h1:gG1xIu392T4JgRxx4IUyetQo1doiDezLeVwrMP0KiuE=
 github.com/solo-io/solo-apis v0.0.0-20210312215825-0d5ed5c280a3/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
-github.com/solo-io/solo-apis v0.0.0-20210313001636-69e42c5a9185 h1:c60ms6PeaorOQ7ZpyAl9ok47ObHsnCmV1Tu23viD9MI=
-github.com/solo-io/solo-apis v0.0.0-20210313001636-69e42c5a9185/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
+github.com/solo-io/solo-apis v0.0.0-20210316170159-36ec2f3718bb h1:/0Gwf0Xi0YlICi55sh3NdJJn63y4avXtWorCEcxTH4E=
+github.com/solo-io/solo-apis v0.0.0-20210316170159-36ec2f3718bb/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.16.2/go.mod h1:gMYmqGOt+VViItk0nCYbSZ1kRV/2/gH1xcLN9R15CHE=

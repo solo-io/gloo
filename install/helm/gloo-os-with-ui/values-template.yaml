@@ -6,16 +6,12 @@
 
 license_key: ""
 gloo:
-  rbac:
-    create: true
   settings:
     create: true
     enterpriseInjections: true
-    extauthCustomYaml: false
   gloo:
     deployment:
       runAsUser: 10101
-      serviceAccount: {}
       image:
         repository: gloo
       replicas: 1
@@ -26,27 +22,15 @@ gloo:
         deployment:
           replicas: 1
       podTemplate:
-        httpPort: 8080
-        httpsPort: 8443
         runAsUser: 10101
         fsGroup: 10101
         runUnprivileged: true
         disableNetBind: true
-        gracefulShutdown:
-          enabled: false
-          sleepTimeSeconds: 25
-        customReadinessProbe: {}
         image:
           repository: gloo-envoy-wrapper
       service:
-        customPorts: []
-        type: LoadBalancer
         # clusterIP: None
-        httpPort: 80
-        httpsPort: 443
         runAsUser: 10101
-        runUnprivileged: true
-        disableNetBind: true
         extraAnnotations:
           prometheus.io/scrape: "true"
           prometheus.io/path: /metrics
@@ -58,18 +42,15 @@ gloo:
   discovery:
     enabled: true
     fdsMode: WHITELIST
-    serviceAccount: {}
     deployment:
       runAsUser: 10101
       fsGroup: 10101
       image:
-        repository: discovery
         registry: quay.io/solo-io
   gateway:
     deployment:
       runAsUser: 10101
       image:
-        repository: gateway
         registry: quay.io/solo-io
     enabled: true
     updateValues: true
@@ -84,23 +65,14 @@ gloo:
     certGenJob:
       enabled: true
       image:
-        repository: certgen
         registry: quay.io/solo-io
-      restartPolicy: OnFailure
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
       runAsUser: 10101
-    proxyServiceAccount: {}
-    serviceAccount: {}
   accessLogger:
     enabled: false
-    port: 8083
-    serviceName: AccessLog
     image:
       repository: access-logger
-    replicas: 1
-
-
 
 ########################################################################
 ###                                                                  ###
@@ -143,8 +115,6 @@ apiServer:
 global:
   image:
     registry: quay.io/solo-io
-    pullPolicy: IfNotPresent
-    extended: false
   glooRbac:
     create: true
   extensions:
@@ -152,5 +122,3 @@ global:
       enabled: false
     rateLimit:
       enabled: false
-  glooStats:
-    enabled: true

@@ -1,0 +1,7 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3470
+    description: >
+      Removes entries in the values-template.yaml file that are unchanged duplicates of values in gloo OS's
+      template. Not all duplicatee values can be removed easily, but these can be removed without
+      changing the resulting Enterprise manifest.

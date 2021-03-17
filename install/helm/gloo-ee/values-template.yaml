@@ -30,14 +30,10 @@ gloo:
     rateLimit: {}
   gloo:
     deployment:
-      xdsPort: 9977
-      restXdsPort: 9976
-      validationPort: 9988
       runAsUser: 10101
       serviceAccount: {}
       image:
         repository: gloo-ee
-      replicas: 1
   gatewayProxies:
     gatewayProxy:
       envoyApiVersion: V3
@@ -85,12 +81,10 @@ gloo:
       runAsUser: 10101
       fsGroup: 10101
       image:
-        repository: discovery
         registry: quay.io/solo-io
-      replicas: 1
   gateway:
+    ### Most true booleans, even if set in gloo's chart, need to be set again for testing. ###
     enabled: true
-    readGatewaysFromAllNamespaces: false
     validation:
       enabled: true
       failurePolicy: "Ignore"
@@ -102,21 +96,16 @@ gloo:
     deployment:
       runAsUser: 10101
       image:
-        repository: gateway
         registry: quay.io/solo-io
-      replicas: 1
     updateValues: true
     certGenJob:
       enabled: true
       image:
-        repository: certgen
         registry: quay.io/solo-io
       restartPolicy: OnFailure
       setTtlAfterFinished: true
       ttlSecondsAfterFinished: 60
       runAsUser: 10101
-    proxyServiceAccount: {}
-    serviceAccount: {}
   ingressProxy:
     deployment:
       image:
@@ -194,19 +183,16 @@ observability:
 
 global:
   image:
-    registry: quay.io/solo-io
     pullPolicy: IfNotPresent
     extended: false
-  glooStats:
-    enabled: true
   glooRbac:
     create: true
   extensions:
-########################################################################
-###                                                                  ###
-###                        Rate Limit                                ###
-###                                                                  ###
-########################################################################
+    ########################################################################
+    ###                                                                  ###
+    ###                        Rate Limit                                ###
+    ###                                                                  ###
+    ########################################################################
     rateLimit:
       # setting to false will disable rate limiting
       enabled: true
@@ -224,6 +210,11 @@ global:
       service:
         port: 18081
         name: rate-limit
+    ########################################################################
+    ###                                                                  ###
+    ###                           Extauth                                ###
+    ###                                                                  ###
+    ########################################################################
     extAuth:
       enabled: true
       standaloneDeployment: true

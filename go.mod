@@ -59,7 +59,7 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.3
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210313001636-69e42c5a9185
+	github.com/solo-io/solo-apis v0.0.0-20210316170159-36ec2f3718bb
 	github.com/solo-io/solo-kit v0.18.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
