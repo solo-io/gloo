@@ -1,0 +1,5 @@
+changelog:
+  - dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.7.20
+    type: DEPENDENCY_BUMP
