@@ -3,7 +3,7 @@
 # all other builds are run from the `_output` directory and ignore this file.
 /ci
 /install
-/projects/gloo-ui/node_modules
+/projects/ui/node_modules
 /test
 /vendor_any
 

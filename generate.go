@@ -40,7 +40,7 @@ func main() {
 
 	generateOptions := cmd.GenerateOptions{
 		SkipGenMocks:    true,
-		SkipDirs:        []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"},
+		SkipDirs:        []string{"./projects/gloo/pkg/", "./projects/ui/"},
 		RelativeRoot:    ".",
 		CompileProtos:   true,
 		ExternalImports: imports,

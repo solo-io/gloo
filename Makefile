@@ -113,7 +113,6 @@ run-ci-regression-tests: install-go-tools
 
 .PHONY: update-ui-deps
 update-ui-deps:
-	yarn --cwd=projects/gloo-ui install
 	yarn --cwd=projects/ui install
 
 .PHONY: fmt-changed
@@ -135,7 +134,7 @@ clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf $(TEST_ASSET_DIR)
 	rm -rf install/helm/gloo-os-with-ui/templates/
-	rm -rf projects/gloo-ui/build
+	rm -rf projects/ui/build
 	rm -rf vendor_any
 	git clean -xdf install
 
@@ -157,27 +156,27 @@ generated-code: update-licenses
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
 # Flags for all UI code generation
-COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
+COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/ui/node_modules/.bin/protoc-gen-ts \
 		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external \
 		-I$(PROTOC_IMPORT_PATH)/ \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
 		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
-		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
+		--js_out=import_style=commonjs,binary:projects/ui/src/proto \
 
 # Flags for UI code generation when we do not need to generate GRPC Web service code
 UI_TYPES_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
-		--ts_out=projects/gloo-ui/src/proto
+		--ts_out=projects/ui/src/proto
 
 # Flags for UI code generation when we need to generate GRPC Web service code
 GRPC_WEB_SERVICE_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
-		--ts_out=service=grpc-web:projects/gloo-ui/src/proto
+		--ts_out=service=grpc-web:projects/ui/src/proto
 
 .PHONY: generated-ui
 generated-ui:
-	rm -rf projects/gloo-ui/src/proto
-	mkdir -p projects/gloo-ui/src/proto
+	rm -rf projects/ui/src/proto
+	mkdir -p projects/ui/src/proto
 	ci/check-protoc.sh
 	protoc $(UI_TYPES_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
@@ -231,7 +230,7 @@ generated-ui:
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
 	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
 		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
-	ci/fix-gen.sh
+	ci/fix-ui-gen.sh
 
 #################
 #     Build     #
@@ -308,28 +307,29 @@ run-envoy:
 
 .PHONY: run-ui
 run-ui:
-	yarn --cwd projects/gloo-ui install && \
-	yarn --cwd projects/gloo-ui start
+	./hack/check-gloo-fed.sh && \
+ 	yarn --cwd projects/ui install && \
+	yarn --cwd projects/ui start
 
 #----------------------------------------------------------------------------------
 # UI
 #----------------------------------------------------------------------------------
 
-GRPCSERVER_UI_DIR=projects/gloo-ui
-GLOO_UI_OUT_DIR=$(OUTPUT_DIR)/gloo-ui
+APISERVER_UI_DIR=projects/ui
+GLOO_UI_OUT_DIR=$(OUTPUT_DIR)/ui
 
-.PHONY: grpcserver-ui-build-local
+.PHONY: apiserver-ui-build-local
 # TODO rename this so the local build flag is not needed, infer from artifacts
-grpcserver-ui-build-local:
+apiserver-ui-build-local:
 ifneq ($(LOCAL_BUILD),)
-	yarn --cwd $(GRPCSERVER_UI_DIR) install && \
-	yarn --cwd $(GRPCSERVER_UI_DIR) build
+	yarn --cwd $(APISERVER_UI_DIR) install && \
+	yarn --cwd $(APISERVER_UI_DIR) build
 endif
 
 .PHONY: cleanup-node-modules
 cleanup-node-modules:
 	# Remove node_modules to save disk-space (Eg in CI)
-	rm -rf $(GRPCSERVER_UI_DIR)/node_modules
+	rm -rf $(APISERVER_UI_DIR)/node_modules
 
 .PHONY: cleanup-local-docker-images
 cleanup-local-docker-images:
@@ -341,11 +341,11 @@ cleanup-local-docker-images:
 
 
 .PHONY: setup-ui-out-dir
-setup-ui-out-dir: grpcserver-ui-build-local $(GRPCSERVER_UI_DIR)/Dockerfile
+setup-ui-out-dir: apiserver-ui-build-local $(APISERVER_UI_DIR)/Dockerfile
 	mkdir -p $(GLOO_UI_OUT_DIR)
-	cp $(GRPCSERVER_UI_DIR)/Dockerfile $(GLOO_UI_OUT_DIR)/Dockerfile
-	cp -r $(GRPCSERVER_UI_DIR)/conf $(GLOO_UI_OUT_DIR)/conf
-	cp -r $(GRPCSERVER_UI_DIR)/build $(GLOO_UI_OUT_DIR)/build
+	cp $(APISERVER_UI_DIR)/Dockerfile $(GLOO_UI_OUT_DIR)/Dockerfile
+	cp -r $(APISERVER_UI_DIR)/conf $(GLOO_UI_OUT_DIR)/conf
+	cp -r $(APISERVER_UI_DIR)/build $(GLOO_UI_OUT_DIR)/build
 
 # If building locally, set LOCAL_BUILD=true
 .PHONY: grpcserver-ui-docker
@@ -765,7 +765,7 @@ grpcserver-ee-docker-test: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSE
 grpcserver-envoy-docker-test: grpcserver-envoy-docker $(GRPC_ENVOY_OUT)/Dockerfile
 	docker push $(call get_test_tag,grpcserver-envoy)
 
-grpcserver-ui-docker-test: grpcserver-ui-build-local grpcserver-ui-docker
+grpcserver-ui-docker-test: apiserver-ui-build-local grpcserver-ui-docker
 	docker push $(call get_test_tag,grpcserver-ui)
 
 rate-limit-ee-docker-test: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile

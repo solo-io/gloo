@@ -37,12 +37,6 @@ jobs:
       - name: Yarn Install
         uses: borales/actions-yarn@v2.0.0
         with:
-          cmd: --cwd projects/gloo-ui install
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Yarn Install
-        uses: borales/actions-yarn@v2.0.0
-        with:
           cmd: --cwd projects/ui install
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
