@@ -75,7 +75,8 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
+	fedFilePath := filepath.Join(testHelper.TestAssetDir, "gloo-fed-"+testHelper.ChartVersion()+".tgz")
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "--gloo-fed-file", fedFilePath))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -111,7 +112,7 @@ var _ = AfterSuite(func() {
 	if os.Getenv("TEAR_DOWN") == "true" {
 		cleanupLdapServer(ctx, regressions.MustKubeClient())
 
-		err := testHelper.UninstallGloo()
+		err := testHelper.UninstallGlooAll()
 		Expect(err).NotTo(HaveOccurred())
 
 		// glooctl should delete the namespace. we do it again just in case it failed

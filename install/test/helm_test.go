@@ -12,7 +12,6 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/solo-io/solo-kit/test/matchers"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/setup"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -42,6 +41,11 @@ import (
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+)
+
+// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+const (
+	NamespacedRbacEnvName = "RBAC_NAMESPACED"
 )
 
 var _ = Describe("Helm Test", func() {
@@ -1903,6 +1907,8 @@ spec:
 
 		Context("apiserver deployment", func() {
 			const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
+			// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+			apiserverVersion := "1.7.0-beta14"
 
 			var expectedDeployment *appsv1.Deployment
 
@@ -1920,7 +1926,7 @@ spec:
 					Value: "10101",
 				}
 				rbacNamespacedEnvVar := v1.EnvVar{
-					Name:  setup.NamespacedRbacEnvName,
+					Name:  NamespacedRbacEnvName,
 					Value: "false",
 				}
 				noAuthEnvVar := v1.EnvVar{
@@ -1940,7 +1946,7 @@ spec:
 				}
 				uiContainer := v1.Container{
 					Name:            "apiserver-ui",
-					Image:           "quay.io/solo-io/grpcserver-ui:" + version,
+					Image:           "quay.io/solo-io/grpcserver-ui:" + apiserverVersion,
 					ImagePullPolicy: v1.PullAlways,
 					VolumeMounts: []v1.VolumeMount{
 						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
@@ -1950,7 +1956,7 @@ spec:
 				}
 				grpcServerContainer := v1.Container{
 					Name:            "apiserver",
-					Image:           "quay.io/solo-io/grpcserver-ee:" + version,
+					Image:           "quay.io/solo-io/grpcserver-ee:" + apiserverVersion,
 					ImagePullPolicy: v1.PullAlways,
 					Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
 					Env: []v1.EnvVar{
@@ -1964,7 +1970,7 @@ spec:
 				}
 				envoyContainer := v1.Container{
 					Name:            "gloo-grpcserver-envoy",
-					Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
+					Image:           "quay.io/solo-io/grpcserver-envoy:" + apiserverVersion,
 					ImagePullPolicy: v1.PullAlways,
 					VolumeMounts: []v1.VolumeMount{
 						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
@@ -2150,7 +2156,7 @@ spec:
 
 				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
 				for i, env := range envs {
-					if env.Name == setup.NamespacedRbacEnvName {
+					if env.Name == NamespacedRbacEnvName {
 						envs[i].Value = "true"
 					}
 				}
@@ -3197,6 +3203,8 @@ spec:
 				Context("apiserver deployment", func() {
 
 					const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
+					// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+					const apiserverVersion = "1.7.0-beta14"
 
 					var deploy *appsv1.Deployment
 
@@ -3214,7 +3222,7 @@ spec:
 							Value: "10101",
 						}
 						rbacNamespacedEnvVar := v1.EnvVar{
-							Name:  setup.NamespacedRbacEnvName,
+							Name:  NamespacedRbacEnvName,
 							Value: "false",
 						}
 						noAuthEnvVar := v1.EnvVar{
@@ -3223,7 +3231,7 @@ spec:
 						}
 						uiContainer := v1.Container{
 							Name:            "apiserver-ui",
-							Image:           "quay.io/solo-io/grpcserver-ui:" + version,
+							Image:           "quay.io/solo-io/grpcserver-ui:" + apiserverVersion,
 							ImagePullPolicy: v1.PullAlways,
 							VolumeMounts: []v1.VolumeMount{
 								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
@@ -3233,7 +3241,7 @@ spec:
 						}
 						grpcServerContainer := v1.Container{
 							Name:            "apiserver",
-							Image:           "quay.io/solo-io/grpcserver-ee:" + version,
+							Image:           "quay.io/solo-io/grpcserver-ee:" + apiserverVersion,
 							ImagePullPolicy: v1.PullAlways,
 							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
 							Env: []v1.EnvVar{
@@ -3246,7 +3254,7 @@ spec:
 						}
 						envoyContainer := v1.Container{
 							Name:            "gloo-grpcserver-envoy",
-							Image:           "quay.io/solo-io/grpcserver-envoy:" + version,
+							Image:           "quay.io/solo-io/grpcserver-envoy:" + apiserverVersion,
 							ImagePullPolicy: v1.PullAlways,
 							VolumeMounts: []v1.VolumeMount{
 								{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},

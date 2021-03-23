@@ -35,7 +35,6 @@ Name|Version|License
 [x/net](https://golang.org/x/net)|v0.0.0-20210119194325-5f4716e94777|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20201207232520-09787c993a3a|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/genproto](https://google.golang.org/genproto)|v0.0.0-20210218151259-fe80b386bf06|Apache License 2.0
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.35.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.25.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0

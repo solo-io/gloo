@@ -91,18 +91,41 @@ init:
 .PHONY: update-all-deps
 update-all-deps: install-go-tools update-ui-deps
 
-DEPSGOBIN=$(shell pwd)/_output/.bin
+DEPSGOBIN=$(ROOTDIR)/.bin
 
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 .PHONY: install-go-tools
-install-go-tools:
+install-go-tools: mod-download
 	mkdir -p $(DEPSGOBIN)
+	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
 	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
+	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/gomock
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
 	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
 	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
+
+.PHONY: mod-download
+mod-download:
+	go mod download
+
+.PHONY: clean-artifacts
+clean-artifacts:
+	rm -rf _output
+
+.PHONY: clean-generated-protos
+clean-generated-protos:
+	rm -rf $(ROOTDIR)/projects/apiserver/api/fed.rpc/v1/*resources.proto
+
+# Clean
+.PHONY: clean-fed
+clean-fed: clean-artifacts clean-generated-protos
+	rm -rf $(ROOTDIR)/vendor_any
+	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
+	rm -rf $(ROOTDIR)/projects/apiserver/pkg/api
+	rm -rf $(ROOTDIR)/projects/glooctl-extensions/fed/pkg/api
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
@@ -113,7 +136,7 @@ run-ci-regression-tests: install-go-tools
 
 .PHONY: update-ui-deps
 update-ui-deps:
-	yarn --cwd=projects/ui install
+	yarn --cwd=$(APISERVER_UI_DIR) install
 
 .PHONY: fmt-changed
 fmt-changed:
@@ -134,103 +157,40 @@ clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf $(TEST_ASSET_DIR)
 	rm -rf install/helm/gloo-os-with-ui/templates/
-	rm -rf projects/ui/build
-	rm -rf vendor_any
+	rm -rf $(APISERVER_UI_DIR)/build
+	rm -rf $(ROOTDIR)/vendor_any
 	git clean -xdf install
 
 #----------------------------------------------------------------------------------
 # Generated Code
 #----------------------------------------------------------------------------------
-PROTOC_IMPORT_PATH:=vendor_any
+PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 
 .PHONY: generate-all
-generate-all: generated-code generated-ui generate-gloo-fed
+generate-all: generated-code generate-gloo-fed
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code: update-licenses
-	rm -rf vendor_any
+	rm -rf $(ROOTDIR)/vendor_any
 	go mod tidy
 	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
-
-# Flags for all UI code generation
-COMMON_UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/ui/node_modules/.bin/protoc-gen-ts \
-		-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external \
-		-I$(PROTOC_IMPORT_PATH)/ \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external \
-		-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
-		--js_out=import_style=commonjs,binary:projects/ui/src/proto \
-
-# Flags for UI code generation when we do not need to generate GRPC Web service code
-UI_TYPES_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
-		--ts_out=projects/ui/src/proto
-
-# Flags for UI code generation when we need to generate GRPC Web service code
-GRPC_WEB_SERVICE_PROTOC_FLAGS=$(COMMON_UI_PROTOC_FLAGS) \
-		--ts_out=service=grpc-web:projects/ui/src/proto
-
-.PHONY: generated-ui
-generated-ui:
-	rm -rf projects/ui/src/proto
-	mkdir -p projects/ui/src/proto
 	ci/check-protoc.sh
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/http.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate/validate/validate.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/ext.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-	 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/envoy/*/*/*/*/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/external/udpa/*/*.proto
-	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/core/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/options/*/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*.proto
-	protoc $(UI_TYPES_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/*/*/*.proto
-	protoc $(GRPC_WEB_SERVICE_PROTOC_FLAGS) \
-		$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
-	ci/fix-ui-gen.sh
+
+.PHONY: generate-gloo-fed
+generate-gloo-fed: generate-gloo-fed-code generated-gloo-fed-ui
+
+# Generated Code - Required to update Codgen Templates
+.PHONY: generate-gloo-fed-code
+generate-gloo-fed-code: clean-fed
+	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/projects/gloo-fed/generate.go # Generates clients, controllers, etc
+	PATH=$(DEPSGOBIN):$$PATH $(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
+	PATH=$(DEPSGOBIN):$$PATH go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
+	PATH=$(DEPSGOBIN):$$PATH go generate $(ROOTDIR)/projects/... # Generates mocks
+	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
+	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
 #################
 #     Build     #
@@ -241,75 +201,308 @@ generated-ui:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: grpcserver gloo extauth rate-limit observability
+allprojects: gloo-fed-apiserver gloo extauth rate-limit observability
 
 #----------------------------------------------------------------------------------
 # Gloo Fed
 #----------------------------------------------------------------------------------
 
-# Include helm makefile so its targets can be ran from the root of this repo
-include $(ROOTDIR)/install/helm/gloo-fed/helm.mk
+GLOO_FED_DIR=$(ROOTDIR)/projects/gloo-fed
+GLOO_FED_SOURCES=$(shell find $(GLOO_FED_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
-# helper for testing
-.PHONY: allgloofedprojects
-allgloofedprojects: gloo-fed gloo-fed-rbac-validating-webhook gloo-fed-apiserver
+$(OUTPUT_DIR)/gloo-fed-linux-amd64: $(GLOO_FED_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_DIR)/cmd/main.go
 
+.PHONY: gloo-fed
+gloo-fed: $(OUTPUT_DIR)/gloo-fed-linux-amd64
 
-#----------------------------------------------------------------------------------
-# grpcserver
-#----------------------------------------------------------------------------------
+.PHONY: gloo-fed-docker
+gloo-fed-docker: $(OUTPUT_DIR)/gloo-fed-linux-amd64
+	docker build -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(OUTPUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile;
 
-GRPCSERVER_DIR=projects/grpcserver
-GRPCSERVER_OUT_DIR=$(OUTPUT_DIR)/grpcserver
-
-$(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64:
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ projects/grpcserver/server/cmd/main.go
-
-.PHONY: grpcserver
-grpcserver: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64
-
-$(GRPCSERVER_OUT_DIR)/Dockerfile: $(GRPCSERVER_DIR)/server/cmd/Dockerfile
-	cp $< $@
-
-.PHONY: grpcserver-ee-docker
-grpcserver-ee-docker: grpcserver $(GRPCSERVER_OUT_DIR)/Dockerfile $(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker
-
-$(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/Dockerfile
-	docker build -t $(IMAGE_REPO)/grpcserver-ee:$(VERSION) $(call get_test_tag_option,grpcserver-ee) $(GRPCSERVER_OUT_DIR)
-	touch $@
+.PHONY: kind-load-gloo-fed
+kind-load-gloo-fed: gloo-fed-docker
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed:$(VERSION)
 
 #----------------------------------------------------------------------------------
-# grpcserver-envoy
+# Gloo Federation Projects
 #----------------------------------------------------------------------------------
-GRPC_ENVOY_OUT=$(OUTPUT_DIR)/grpcserverenvoy
 
-.PHONY: grpcserver-envoy-docker
-grpcserver-envoy-docker: $(GRPC_ENVOY_OUT)/Dockerfile
-	docker build -t $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) $(call get_test_tag_option,grpcserver-envoy) $(GRPC_ENVOY_OUT)
+.PHONY: gloofed-docker
+gloofed-docker: gloo-fed-docker gloo-fed-rbac-validating-webhook-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker
 
-$(GRPC_ENVOY_OUT)/Dockerfile: $(GRPCSERVER_DIR)/envoy/Dockerfile
-	mkdir -p $(GRPC_ENVOY_OUT)
-	cp $< $@
+.PHONY: gloofed-load-kind-images
+gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-webhook kind-load-gloo-fed-apiserver kind-load-gloo-fed-apiserver-envoy kind-load-ui
 
+#----------------------------------------------------------------------------------
+# Gloo Fed Apiserver
+#----------------------------------------------------------------------------------
+GLOO_FED_APISERVER_DIR=$(ROOTDIR)/projects/apiserver
+APISERVER_SOURCES=$(shell find $(APISERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64: $(APISERVER_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_APISERVER_DIR)/cmd/main.go
+
+.PHONY: gloo-fed-apiserver
+gloo-fed-apiserver: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64
+
+.PHONY: gloo-fed-apiserver-docker
+gloo-fed-apiserver-docker: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64
+	docker build -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_DIR)/cmd/Dockerfile;
+
+.PHONY: kind-load-gloo-fed-apiserver
+kind-load-gloo-fed-apiserver: gloo-fed-apiserver-docker
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION)
+
+#----------------------------------------------------------------------------------
+# apiserver-envoy
+#----------------------------------------------------------------------------------
+CONFIG_YAML=cfg.yaml
+
+GLOO_FED_APISERVER_ENVOY_DIR=$(ROOTDIR)/projects/apiserver/apiserver-envoy
+
+.PHONY: gloo-fed-apiserver-envoy-docker
+gloo-fed-apiserver-envoy-docker:
+	cp $(GLOO_FED_APISERVER_ENVOY_DIR)/$(CONFIG_YAML) $(OUTPUT_DIR)/$(CONFIG_YAML)
+	docker build -t $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_ENVOY_DIR)/Dockerfile;
+
+.PHONY: kind-load-gloo-fed-apiserver-envoy
+kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION)
+
+#----------------------------------------------------------------------------------
 # helpers for local testing
-
-CONFIG_DIR=/etc/config.yaml
+#----------------------------------------------------------------------------------
 GRPC_PORT=10101
-GLOO_UI_PORT=20202
+CONFIG_YAML=cfg.yaml
 
 .PHONY: run-apiserver
 run-apiserver:
-	NO_AUTH=1 GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/grpcserver/server/cmd/main.go
+	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-fed $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
-	envoy -c $(GRPCSERVER_DIR)/envoy/$(CONFIG_YAML) -l debug
+	envoy -c projects/apiserver/apiserver-envoy/$(CONFIG_YAML) -l debug
 
 .PHONY: run-ui
 run-ui:
 	./hack/check-gloo-fed.sh && \
- 	yarn --cwd projects/ui install && \
-	yarn --cwd projects/ui start
+ 	yarn --cwd $(APISERVER_UI_DIR) install && \
+	yarn --cwd $(APISERVER_UI_DIR) start
+
+#----------------------------------------------------------------------------------
+# Gloo Fed Rbac Webhook
+#----------------------------------------------------------------------------------
+GLOO_FED_RBAC_WEBHOOK_DIR=$(ROOTDIR)/projects/rbac-validating-webhook
+GLOO_FED_RBAC_WEBHOOK_SOURCES=$(shell find $(GLOO_FED_RBAC_WEBHOOK_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-amd64: $(GLOO_FED_RBAC_WEBHOOK_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/main.go
+
+.PHONY: gloo-fed-rbac-validating-webhook
+gloo-fed-rbac-validating-webhook: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-amd64
+
+.PHONY: gloo-fed-rbac-validating-webhook-docker
+gloo-fed-rbac-validating-webhook-docker: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-amd64
+	docker build -t $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) $(OUTPUT_DIR) -f $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/Dockerfile;
+
+.PHONY: kind-load-gloo-fed-rbac-validating-webhook
+kind-load-gloo-fed-rbac-validating-webhook: gloo-fed-rbac-validating-webhook-docker
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
+
+#----------------------------------------------------------------------------------
+# ApiServer gRPC Code Generation
+#----------------------------------------------------------------------------------
+
+# proto sources
+APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/fed.rpc/v1
+
+COMMON_PROTOC_FLAGS=-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external \
+	-I$(PROTOC_IMPORT_PATH)/ \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external \
+	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external \
+
+GENERATED_TS_DIR=$(APISERVER_UI_DIR)/src/proto
+
+TS_OUT=--plugin=protoc-gen-ts=$(APISERVER_UI_DIR)/node_modules/.bin/protoc-gen-ts \
+			--ts_out=service=grpc-web:$(GENERATED_TS_DIR) \
+			--js_out=import_style=commonjs,binary:$(GENERATED_TS_DIR)
+
+# Flags for UI code generation when we need to generate GRPC Web service code
+# TODO find a programmatic way to clean up (or skip generating) _service.(d.ts|js) files
+UI_PROTOC_FLAGS=$(COMMON_PROTOC_FLAGS) $(TS_OUT)
+
+PROTOC=protoc $(COMMON_PROTOC_FLAGS)
+
+JS_PROTOC_COMMAND=$(PROTOC) -I$(APISERVER_DIR) $(UI_PROTOC_FLAGS) $(APISERVER_DIR)
+
+.PHONY: generated-gloo-fed-ui
+generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps
+	mkdir -p $(APISERVER_UI_DIR)/pkg/api/fed.rpc/v1
+	./ci/fix-ui-gen.sh
+
+.PHONY: generated-gloo-fed-ui-deps
+generated-gloo-fed-ui-deps:
+	rm -rf $(GENERATED_TS_DIR)
+	mkdir -p $(GENERATED_TS_DIR)
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/api/http.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate/validate/validate.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/extproto/ext.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2/api/core/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	 $(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2/api/multicluster/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/*/*/*/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo//gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.ratelimit/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/*/*.proto
 
 #----------------------------------------------------------------------------------
 # UI
@@ -318,13 +511,26 @@ run-ui:
 APISERVER_UI_DIR=projects/ui
 GLOO_UI_OUT_DIR=$(OUTPUT_DIR)/ui
 
-.PHONY: apiserver-ui-build-local
+.PHONY: update-gloo-fed-ui-deps
+update-gloo-fed-ui-deps:
 # TODO rename this so the local build flag is not needed, infer from artifacts
-apiserver-ui-build-local:
 ifneq ($(LOCAL_BUILD),)
-	yarn --cwd $(APISERVER_UI_DIR) install && \
+	yarn --cwd $(APISERVER_UI_DIR) install
+endif
+
+.PHONY: build-ui
+build-ui: update-gloo-fed-ui-deps
+ifneq ($(LOCAL_BUILD),)
 	yarn --cwd $(APISERVER_UI_DIR) build
 endif
+
+.PHONY: gloo-federation-console-docker
+gloo-federation-console-docker: build-ui
+	docker build -t $(IMAGE_REPO)/gloo-federation-console:$(VERSION) $(APISERVER_UI_DIR) -f $(APISERVER_UI_DIR)/Dockerfile
+
+.PHONY: kind-load-ui
+kind-load-ui: gloo-federation-console-docker
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-federation-console:$(VERSION)
 
 .PHONY: cleanup-node-modules
 cleanup-node-modules:
@@ -334,24 +540,13 @@ cleanup-node-modules:
 .PHONY: cleanup-local-docker-images
 cleanup-local-docker-images:
 	# Remove all of the kind images
+	# TODO: remove
+	docker image rm $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14
+	docker image rm $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14
+	docker image rm $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14
 	docker images | grep solo-io | grep -v envoy-gloo-ee |xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
 	# Remove the downloaded envoy-gloo-ee image
 	docker image rm $(ENVOY_GLOO_IMAGE)
-
-
-
-.PHONY: setup-ui-out-dir
-setup-ui-out-dir: apiserver-ui-build-local $(APISERVER_UI_DIR)/Dockerfile
-	mkdir -p $(GLOO_UI_OUT_DIR)
-	cp $(APISERVER_UI_DIR)/Dockerfile $(GLOO_UI_OUT_DIR)/Dockerfile
-	cp -r $(APISERVER_UI_DIR)/conf $(GLOO_UI_OUT_DIR)/conf
-	cp -r $(APISERVER_UI_DIR)/build $(GLOO_UI_OUT_DIR)/build
-
-# If building locally, set LOCAL_BUILD=true
-.PHONY: grpcserver-ui-docker
-grpcserver-ui-docker: setup-ui-out-dir
-	docker build -t $(IMAGE_REPO)/grpcserver-ui:$(VERSION) $(call get_test_tag_option,grpcserver-ui) $(GLOO_UI_OUT_DIR)
-
 
 #----------------------------------------------------------------------------------
 # RateLimit
@@ -652,6 +847,25 @@ ifeq ($(RELEASE),"true")
 endif
 
 #----------------------------------------------------------------------------------
+# Gloo Fed Deployment Manifests / Helm
+#----------------------------------------------------------------------------------
+
+# creates Chart.yaml, values.yaml, and requirements.yaml
+.PHONY: gloofed-helm-template
+gloofed-helm-template:
+	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
+	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/Chart-template.yaml > $(GLOO_FED_CHART_DIR)/Chart.yaml
+	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
+
+.PHONY: gloofed-produce-manifests
+gloofed-produce-manifests: gloofed-helm-template
+	helm template gloo-fed install/helm/gloo-fed --namespace gloo-fed > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
+
+.PHONY: package-gloo-fed-charts
+package-gloo-fed-charts: gloofed-helm-template
+	helm package --destination $(HELM_SYNC_DIR_GLOO_FED) $(GLOO_FED_CHART_DIR)
+
+#----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
 
@@ -702,9 +916,9 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
- docker: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-ee-docker rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
+ docker: rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
        gloo-ee-envoy-wrapper-docker observability-ee-docker ext-auth-plugins-docker \
-       gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker ui-docker gloo-fed-rbac-validating-webhook-docker
+       gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -713,9 +927,6 @@ endif
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) && \
-	docker push $(IMAGE_REPO)/grpcserver-ui:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
@@ -736,37 +947,47 @@ endif
 
 # Helper targets for CI
 .PHONY: kind-test-docker-images
- kind-test-docker-images: grpcserver-ui-docker grpcserver-envoy-docker grpcserver-ee-docker rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
+ kind-test-docker-images: gloo-federation-console-docker gloo-fed-apiserver-envoy-docker gloo-fed-apiserver-docker rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
        gloo-ee-envoy-wrapper-docker observability-ee-docker ext-auth-plugins-docker \
+       gloo-fed-docker gloo-fed-rbac-validating-webhook-docker
 
 CLUSTER_NAME?=kind
 push-kind-images: kind-test-docker-images
 	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/grpcserver-ui:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)  --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-federation-console:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-fed:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) --name $(CLUSTER_NAME)
+	# TODO: remove after helm clean up
+	docker pull $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14
+	docker pull $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14
+	docker pull $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14
+	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14 --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14 --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14 --name $(CLUSTER_NAME)
 
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
 
-TEST_DOCKER_TARGETS := grpcserver-ui-docker-test grpcserver-envoy-docker-test grpcserver-ee-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
+TEST_DOCKER_TARGETS := gloo-federation-console-docker-test apiserver-envoy-docker-test gloo-fed-apiserver-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
-grpcserver-ee-docker-test: $(GRPCSERVER_OUT_DIR)/grpcserver-linux-amd64 $(GRPCSERVER_OUT_DIR)/.grpcserver-ee-docker
-	docker push $(call get_test_tag,grpcserver-ee)
+gloo-fed-apiserver-docker-test: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64 $(OUTPUT_DIR)/.gloo-fed-apiserver-docker
+	docker push $(call get_test_tag,gloo-fed-apiserver)
 
-grpcserver-envoy-docker-test: grpcserver-envoy-docker $(GRPC_ENVOY_OUT)/Dockerfile
-	docker push $(call get_test_tag,grpcserver-envoy)
+gloo-fed-apiserver-envoy-docker-test: gloo-fed-apiserver-envoy-docker $(OUTPUT_DIR)/Dockerfile
+	docker push $(call get_test_tag,gloo-fed-apiserver-envoy)
 
-grpcserver-ui-docker-test: apiserver-ui-build-local grpcserver-ui-docker
-	docker push $(call get_test_tag,grpcserver-ui)
+gloo-federation-console-docker-test: build-ui gloo-federation-console-docker
+	docker push $(call get_test_tag,gloo-federation-console)
 
 rate-limit-ee-docker-test: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,rate-limit-ee)
@@ -792,6 +1013,15 @@ build-test-chart:
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
+	helm repo index $(TEST_ASSET_DIR)
+
+.PHONY: build-test-chart-fed
+build-test-chart-fed: gloofed-helm-template
+	mkdir -p $(TEST_ASSET_DIR)
+	helm repo add helm-hub https://charts.helm.sh/stable
+	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
+	helm dependency update install/helm/gloo-fed
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-fed
 	helm repo index $(TEST_ASSET_DIR)
 
 # Exclusively useful for testing with locally modified gloo-edge-OS builds.

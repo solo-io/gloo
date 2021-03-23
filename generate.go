@@ -22,7 +22,6 @@ func main() {
 	imports := sk_anyvendor.CreateDefaultMatchOptions(
 		[]string{
 			"projects/observability/**/*.proto",
-			"projects/grpcserver/**/*.proto",
 			sk_anyvendor.SoloKitMatchPattern,
 		},
 	)

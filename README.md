@@ -58,7 +58,7 @@ make extauth
   - may want to set `VERSION` env var to `kind`
 - `push-kind-images`: pushes images built by `make docker` target to your kind cluster
   - requires `CLUSTER_NAME` env var set. default kind cluster is named `kind`
-- `build-test-chart` and `build-os-with-ui-test-chart`: zipped helm chart saved in the `_test` dir
+- `build-test-chart`, `build-test-chart-fed` and `build-os-with-ui-test-chart`: zipped helm chart saved in the `_test` dir
   - may want to set `VERSION` env var to `kind`
 
 ## Additional Notes

@@ -38,7 +38,7 @@ grpcserver, gloo, extauth, rate-limit, observability.
 
 To generate code, run:
 ```
-make clean update-deps generate-gloo-fed-code
+make clean install-go-tools generate-gloo-fed-code
 ```
 
 # Custom Templates

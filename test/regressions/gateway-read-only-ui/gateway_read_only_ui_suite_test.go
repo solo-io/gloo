@@ -114,7 +114,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	if os.Getenv("TEAR_DOWN") == "true" {
-		err := testHelper.UninstallGloo()
+		err := testHelper.UninstallGlooAll()
 		Expect(err).NotTo(HaveOccurred())
 
 		// glooctl should delete the namespace. we do it again just in case it failed

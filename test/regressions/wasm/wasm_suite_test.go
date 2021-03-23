@@ -58,7 +58,8 @@ func StartTestHelper() {
 	valueOverrideFile, cleanupFunc := getHelmaWasmValuesOverrideFile()
 	defer cleanupFunc()
 
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile))
+	fedFilePath := filepath.Join(testHelper.TestAssetDir, "gloo-fed-"+testHelper.ChartVersion()+".tgz")
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile, "--gloo-fed-file", fedFilePath))
 	Expect(err).NotTo(HaveOccurred())
 
 	// Check that everything is OK
@@ -106,7 +107,7 @@ gloo:
 func TearDownTestHelper() {
 	if os.Getenv("TEAR_DOWN") == "true" {
 		Expect(testHelper).ToNot(BeNil())
-		err := testHelper.UninstallGloo()
+		err := testHelper.UninstallGlooAll()
 		Expect(err).NotTo(HaveOccurred())
 		_, err = kube2e.MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
 		Expect(apierrors.IsNotFound(err)).To(BeTrue())

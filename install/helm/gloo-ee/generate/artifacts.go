@@ -159,9 +159,10 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.CertGenJob.Image.Tag = gc.OsGlooVersion
 	config.Observability.Deployment.Image.Tag = version
-	config.ApiServer.Deployment.Server.Image.Tag = version
-	config.ApiServer.Deployment.Envoy.Image.Tag = version
-	config.ApiServer.Deployment.Ui.Image.Tag = version
+	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+	config.ApiServer.Deployment.Server.Image.Tag = "1.7.0-beta14"
+	config.ApiServer.Deployment.Envoy.Image.Tag = "1.7.0-beta14"
+	config.ApiServer.Deployment.Ui.Image.Tag = "1.7.0-beta14"
 	config.Global.GlooMtls.Sds.Image.Tag = gc.OsGlooVersion
 	config.Global.GlooMtls.EnvoySidecar.Image.Tag = version
 
@@ -179,9 +180,10 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
+	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+	config.ApiServer.Deployment.Ui.Image.PullPolicy = devPullPolicy
+	config.ApiServer.Deployment.Server.Image.PullPolicy = devPullPolicy
+	config.ApiServer.Deployment.Envoy.Image.PullPolicy = devPullPolicy
 
 	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
 		return err
@@ -233,7 +235,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
 		return err
 	}
 
-	glooEVersion := gc.Arguments.Version
 	for _, v := range config.Gloo.GatewayProxies {
 		v.PodTemplate.Image.Tag = gc.OsGlooVersion
 	}
@@ -245,9 +246,10 @@ func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
 	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.AccessLogger.Image.Tag = gc.OsGlooVersion
-	config.ApiServer.Deployment.Server.Image.Tag = glooEVersion
-	config.ApiServer.Deployment.Envoy.Image.Tag = glooEVersion
-	config.ApiServer.Deployment.Ui.Image.Tag = glooEVersion
+	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+	config.ApiServer.Deployment.Server.Image.Tag = "1.7.0-beta14"
+	config.ApiServer.Deployment.Envoy.Image.Tag = "1.7.0-beta14"
+	config.ApiServer.Deployment.Ui.Image.Tag = "1.7.0-beta14"
 
 	pullPolicy := gc.PullPolicyForVersion
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
@@ -259,9 +261,10 @@ func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
 	}
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
-	config.ApiServer.Deployment.Envoy.Image.PullPolicy = pullPolicy
+	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
+	config.ApiServer.Deployment.Ui.Image.PullPolicy = devPullPolicy
+	config.ApiServer.Deployment.Server.Image.PullPolicy = devPullPolicy
+	config.ApiServer.Deployment.Envoy.Image.PullPolicy = devPullPolicy
 
 	if gc.Arguments.RepoPrefixOverride != "" {
 		config.Global.Image.Registry = gc.Arguments.RepoPrefixOverride
