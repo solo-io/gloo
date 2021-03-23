@@ -1,0 +1,19 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4470
+    resolvesIssue: false
+    description: >
+      Expose a discovery_poll_interval which controls interval at which OIDC configuration
+      is discovered at <issuerUrl>/.well-known/openid-configuration. The default value is 30 minutes.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.7.21
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.6.18
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.6.18

@@ -42,7 +42,8 @@ const (
 	DefaultCallback      = "/oauth-gloo-callback"
 	DefaultOAuthCacheTtl = time.Minute * 10
 	// Default to 30 days (in seconds)
-	defaultMaxAge = 30 * 24 * 60 * 60
+	defaultMaxAge                    = 30 * 24 * 60 * 60
+	DefaultOIDCDiscoveryPollInterval = time.Minute * 30
 )
 
 var (
@@ -402,7 +403,7 @@ func (c *configGenerator) authConfigToService(
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil)
+			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil, DefaultOIDCDiscoveryPollInterval)
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -430,8 +431,13 @@ func (c *configGenerator) authConfigToService(
 
 			discoveryDataOverride := ToDiscoveryDataOverride(oidcCfg.GetDiscoveryOverride())
 
+			discoveryPollInterval := oidcCfg.GetDiscoveryPollInterval()
+			if discoveryPollInterval == nil {
+				discoveryPollInterval = ptypes.DurationProto(DefaultOIDCDiscoveryPollInterval)
+			}
+
 			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
-				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride)
+				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride, discoveryPollInterval.AsDuration())
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
