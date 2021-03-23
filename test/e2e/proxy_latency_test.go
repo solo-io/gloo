@@ -53,6 +53,10 @@ var _ = Describe("Proxy latency", func() {
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
+		// Initialize settings for extauthrunner
+		settings.ExtAuthSettings.HealthCheckHttpPath = "/healthcheck"
+		settings.ExtAuthSettings.HealthCheckHttpPort = int(services.AllocateGlooPort())
+
 		what := services.What{
 			DisableGateway: true,
 			DisableUds:     true,

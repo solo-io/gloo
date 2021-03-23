@@ -183,6 +183,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				BeforeEach(func() {
 					// start the ext auth server
 					extAuthPort := uint32(9100)
+					extAuthHealthPort := uint32(9101)
 
 					extAuthUpstream := &gloov1.Upstream{
 						Metadata: &core.Metadata{
@@ -227,10 +228,12 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					settings := extauthrunner.Settings{
 						GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),
 						ExtAuthSettings: server.Settings{
-							DebugPort:    0,
-							ServerPort:   int(extAuthPort),
-							SigningKey:   "hello",
-							UserIdHeader: "X-User-Id",
+							DebugPort:           0,
+							ServerPort:          int(extAuthPort),
+							SigningKey:          "hello",
+							UserIdHeader:        "X-User-Id",
+							HealthCheckHttpPath: "/healthcheck",
+							HealthCheckHttpPort: int(extAuthHealthPort),
 							// These settings are required for the server to add the userID to the dynamic metadata
 							MetadataSettings: service.DynamicMetadataSettings{
 								Enabled:   true,

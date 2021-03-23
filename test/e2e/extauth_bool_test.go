@@ -61,6 +61,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		// Extauth service setup
 
 		extAuthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
+		extAuthHealthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
 		extauthAddr := "localhost"
 		if runtime.GOOS == "darwin" {
 			extauthAddr = "host.docker.internal"
@@ -140,6 +141,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 				SigningKey:             "hello",
 				UserIdHeader:           "X-User-Id",
 				HealthCheckFailTimeout: 2, // seconds
+				HealthCheckHttpPort:    int(extAuthHealthPort),
+				HealthCheckHttpPath:    "/healthcheck",
 				LogSettings: server.LogSettings{
 					// Disable debug logs as they are noisy. If you are writing new
 					// tests, uncomment this while developing to increase verbosity. I couldn't find

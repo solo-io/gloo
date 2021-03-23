@@ -1,0 +1,39 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4470
+    resolvesIssue: false
+    description: >
+      Expose a discovery_poll_interval which controls interval at which OIDC configuration
+      is discovered at <issuerUrl>/.well-known/openid-configuration. The default value is 30 minutes.
+  - type: FIX
+    description: >-
+      Fix possible cache key collisions, by changing the way the cache key is generated for rate limit rules and
+      requests in redis/dynamodb. A side affect of this change is that upgrading this will _change_ the cache keys
+      under the covers, thus any long rate limits (i.e. per day / hour) will be effectively _reset_ upon upgrade.
+      Further, a couple characters are now disallowed in rate limit rules, namely the pipe character, back tic, and
+      caret.
+    issueLink: https://github.com/solo-io/gloo/issues/3801
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.3.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.7.0-beta32
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.7.0-beta32
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.13.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.21.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: k8s-utils
+    dependencyTag: v0.0.7

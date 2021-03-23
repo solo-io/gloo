@@ -5680,7 +5680,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
-    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f)
+    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
+    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5766,6 +5767,11 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.DiscoveryOverride;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader);
       msg.setDiscoveryOverride(value);
+      break;
+    case 12:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDiscoveryPollInterval(value);
       break;
     default:
       reader.skipField();
@@ -5872,6 +5878,14 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       11,
       f,
       proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter
+    );
+  }
+  f = message.getDiscoveryPollInterval();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -6116,6 +6130,36 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearDiscoveryOver
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasDiscoveryOverride = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration discovery_poll_interval = 12;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getDiscoveryPollInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 12));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setDiscoveryPollInterval = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearDiscoveryPollInterval = function() {
+  this.setDiscoveryPollInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasDiscoveryPollInterval = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 
@@ -9948,7 +9992,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
-    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f)
+    discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
+    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -10033,6 +10078,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       var value = new proto.enterprise.gloo.solo.io.DiscoveryOverride;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader);
       msg.setDiscoveryOverride(value);
+      break;
+    case 12:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDiscoveryPollInterval(value);
       break;
     default:
       reader.skipField();
@@ -10138,6 +10188,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       11,
       f,
       proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter
+    );
+  }
+  f = message.getDiscoveryPollInterval();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -10367,6 +10425,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasDiscoveryOverride = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration discovery_poll_interval = 12;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getDiscoveryPollInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 12));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setDiscoveryPollInterval = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearDiscoveryPollInterval = function() {
+  this.setDiscoveryPollInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasDiscoveryPollInterval = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

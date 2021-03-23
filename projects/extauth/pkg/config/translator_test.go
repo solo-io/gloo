@@ -180,7 +180,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 	Describe("translating deprecated OAuth OIDC config", func() {
 		It("works as expected", func() {
-			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+
+			authCfg := &extauthv1.ExtAuthConfig{
 				AuthConfigRefName: "default.oauth-authconfig",
 				Configs: []*extauthv1.ExtAuthConfig_Config{
 					{
@@ -191,21 +192,27 @@ var _ = Describe("Ext Auth Config Translator", func() {
 						},
 					},
 				},
-			})
+			}
+
+			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
+				gomock.Any(),
+				"",
+				"",
+				"test/", // include trailing slash
+				"",
+				config.DefaultCallback,
+				"",
+				nil,
+				nil,
+				oidc.SessionParameters{},
+				nil,
+				nil,
+				config.DefaultOIDCDiscoveryPollInterval,
+			).Return(authServiceMock, nil)
+
+			authService, err := translator.Translate(ctx, authCfg)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(authService).NotTo(BeNil())
-
-			authServiceChain, ok := authService.(chain.AuthServiceChain)
-			Expect(ok).To(BeTrue())
-			Expect(authServiceChain).NotTo(BeNil())
-			services := authServiceChain.ListAuthServices()
-			Expect(services).To(HaveLen(1))
-			service := services[0]
-
-			// Test that the Issuer Url always appends a trailing slash
-			oidcConfig, ok := service.(*oidc.IssuerImpl)
-			Expect(ok).To(BeTrue())
-			Expect(oidcConfig.IssuerUrl).To(Equal("test/"))
 		})
 	})
 
@@ -498,6 +505,81 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Equal(12),
 				"wrong number of fields found",
 			)
+		})
+	})
+
+	Context("discovery poll interval", func() {
+		var oAuthConfig *extauthv1.ExtAuthConfig
+
+		BeforeEach(func() {
+			oAuthConfig = &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.oauth2-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+							Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+								OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{
+									OidcAuthorizationCode: &extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig{
+										ClientId:                "client-id",
+										IssuerUrl:               "https://solo.io/",
+										AuthEndpointQueryParams: map[string]string{"some": "param"},
+										AppUrl:                  "app-url",
+										CallbackPath:            "/callback",
+										Scopes:                  []string{"foo", "bar"},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("correctly defaults the default", func() {
+			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
+				gomock.Any(),
+				"client-id",
+				"",
+				"https://solo.io/",
+				"app-url",
+				"/callback",
+				"",
+				map[string]string{"some": "param"},
+				[]string{"foo", "bar"},
+				oidc.SessionParameters{},
+				nil,
+				nil,
+				config.DefaultOIDCDiscoveryPollInterval,
+			).Return(authServiceMock, nil)
+
+			authService, err := translator.Translate(ctx, oAuthConfig)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+		})
+
+		It("correctly overrides the default", func() {
+			oneMinute := ptypes.DurationProto(time.Minute)
+			oAuthConfig.Configs[0].GetOauth2().GetOidcAuthorizationCode().DiscoveryPollInterval = oneMinute
+
+			serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
+				gomock.Any(),
+				"client-id",
+				"",
+				"https://solo.io/",
+				"app-url",
+				"/callback",
+				"",
+				map[string]string{"some": "param"},
+				[]string{"foo", "bar"},
+				oidc.SessionParameters{},
+				nil,
+				nil,
+				oneMinute.AsDuration(),
+			).Return(authServiceMock, nil)
+
+			authService, err := translator.Translate(ctx, oAuthConfig)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
 		})
 	})
 })

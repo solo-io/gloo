@@ -18,7 +18,8 @@ const (
 	DefaultCallback      = "/oauth-gloo-callback"
 	DefaultOAuthCacheTtl = time.Minute * 10
 	// Default to 30 days (in seconds)
-	defaultMaxAge = 30 * 24 * 60 * 60
+	defaultMaxAge                    = 30 * 24 * 60 * 60
+	DefaultOIDCDiscoveryPollInterval = time.Minute * 30
 )
 
 var (

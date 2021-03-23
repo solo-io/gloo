@@ -114,25 +114,38 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 	// support deprecated config
 	case *extauthv1.ExtAuthConfig_Config_Oauth:
-		stateSigner := oidc.NewStateSigner(t.signingKey)
 		cb := cfg.Oauth.CallbackPath
 		if cb == "" {
 			cb = DefaultCallback
 		}
-		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
-		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil)
+		issuerUrl := addTrailingSlash(cfg.Oauth.IssuerUrl)
+
+		authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
+			ctx,
+			cfg.Oauth.GetClientId(),
+			cfg.Oauth.GetClientSecret(),
+			issuerUrl,
+			cfg.Oauth.GetAppUrl(),
+			cb,
+			"",
+			cfg.Oauth.GetAuthEndpointQueryParams(),
+			cfg.Oauth.GetScopes(),
+			oidc.SessionParameters{},
+			nil,
+			nil,
+			DefaultOIDCDiscoveryPollInterval)
+
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
-		return iss, config.GetName().GetValue(), nil
+		return authService, config.GetName().GetValue(), nil
 
 	case *extauthv1.ExtAuthConfig_Config_Oauth2:
 
 		switch oauthCfg := cfg.Oauth2.OauthType.(type) {
 		case *extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode:
 			oidcCfg := oauthCfg.OidcAuthorizationCode
-			stateSigner := oidc.NewStateSigner(t.signingKey)
+
 			cb := oidcCfg.CallbackPath
 			if cb == "" {
 				cb = DefaultCallback
@@ -149,12 +162,30 @@ func (t *extAuthConfigTranslator) authConfigToService(
 
 			discoveryDataOverride := ToDiscoveryDataOverride(oidcCfg.GetDiscoveryOverride())
 
-			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
-				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride)
+			discoveryPollInterval := oidcCfg.GetDiscoveryPollInterval()
+			if discoveryPollInterval == nil {
+				discoveryPollInterval = ptypes.DurationProto(DefaultOIDCDiscoveryPollInterval)
+			}
+
+			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
+				ctx,
+				oidcCfg.GetClientId(),
+				oidcCfg.GetClientSecret(),
+				oidcCfg.GetIssuerUrl(),
+				oidcCfg.GetAppUrl(),
+				cb,
+				oidcCfg.GetLogoutPath(),
+				oidcCfg.GetAuthEndpointQueryParams(),
+				oidcCfg.GetScopes(),
+				sessionParameters,
+				headersConfig,
+				discoveryDataOverride,
+				discoveryPollInterval.AsDuration())
+
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
-			return iss, config.GetName().GetValue(), nil
+			return authService, config.GetName().GetValue(), nil
 
 		case *extauthv1.ExtAuthConfig_OAuth2Config_AccessTokenValidationConfig:
 			userInfoUrl := oauthCfg.AccessTokenValidationConfig.GetUserinfoUrl()

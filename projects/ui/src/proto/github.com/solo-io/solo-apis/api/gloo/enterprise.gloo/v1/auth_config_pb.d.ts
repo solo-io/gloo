@@ -848,6 +848,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getDiscoveryOverride(): DiscoveryOverride | undefined;
   setDiscoveryOverride(value?: DiscoveryOverride): void;
 
+  hasDiscoveryPollInterval(): boolean;
+  clearDiscoveryPollInterval(): void;
+  getDiscoveryPollInterval(): google_protobuf_duration_pb.Duration | undefined;
+  setDiscoveryPollInterval(value?: google_protobuf_duration_pb.Duration): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -871,6 +876,7 @@ export namespace OidcAuthorizationCode {
     session?: UserSession.AsObject,
     headers?: HeaderConfiguration.AsObject,
     discoveryOverride?: DiscoveryOverride.AsObject,
+    discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
 
@@ -1455,6 +1461,11 @@ export namespace ExtAuthConfig {
     getDiscoveryOverride(): DiscoveryOverride | undefined;
     setDiscoveryOverride(value?: DiscoveryOverride): void;
 
+    hasDiscoveryPollInterval(): boolean;
+    clearDiscoveryPollInterval(): void;
+    getDiscoveryPollInterval(): google_protobuf_duration_pb.Duration | undefined;
+    setDiscoveryPollInterval(value?: google_protobuf_duration_pb.Duration): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1478,6 +1489,7 @@ export namespace ExtAuthConfig {
       session?: UserSession.AsObject,
       headers?: HeaderConfiguration.AsObject,
       discoveryOverride?: DiscoveryOverride.AsObject,
+      discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
     }
   }
 
