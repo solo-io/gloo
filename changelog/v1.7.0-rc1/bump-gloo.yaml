@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.7.0-rc1
+  - dependencyOwner: linux
+    dependencyRepo: alpine
+    dependencyTag: v3.12.1
+    description: Update alpine base image
+    type: DEPENDENCY_BUMP

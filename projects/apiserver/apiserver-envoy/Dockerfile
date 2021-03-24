@@ -1,4 +1,4 @@
-FROM envoyproxy/envoy:v1.16.0
+FROM envoyproxy/envoy:v1.16.2
 RUN apt-get update
 USER 10101
 CMD /usr/local/bin/envoy -c /etc/envoy/config.yaml

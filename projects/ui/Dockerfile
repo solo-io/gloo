@@ -1,4 +1,4 @@
-FROM nginx:1.19.3-alpine
+FROM nginx:1.19.8-alpine
 
 # Replace existing NGINX configuration
 RUN rm -rf /etc/nginx/conf.d /etc/nginx/nginx.conf

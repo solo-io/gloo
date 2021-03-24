@@ -109,7 +109,8 @@ proto.gloo.solo.io.SslConfig.toObject = function(includeInstance, msg) {
     sniDomainsList: jspb.Message.getRepeatedField(msg, 3),
     verifySubjectAltNameList: jspb.Message.getRepeatedField(msg, 5),
     parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
-    alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7)
+    alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7),
+    oneWayTls: jspb.Message.getFieldWithDefault(msg, 8, false)
   };
 
   if (includeInstance) {
@@ -177,6 +178,10 @@ proto.gloo.solo.io.SslConfig.deserializeBinaryFromReader = function(msg, reader)
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.addAlpnProtocols(value);
+      break;
+    case 8:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setOneWayTls(value);
       break;
     default:
       reader.skipField();
@@ -257,6 +262,13 @@ proto.gloo.solo.io.SslConfig.serializeBinaryToWriter = function(message, writer)
   if (f.length > 0) {
     writer.writeRepeatedString(
       7,
+      f
+    );
+  }
+  f = message.getOneWayTls();
+  if (f) {
+    writer.writeBool(
+      8,
       f
     );
   }
@@ -467,6 +479,23 @@ proto.gloo.solo.io.SslConfig.prototype.addAlpnProtocols = function(value, opt_in
 
 proto.gloo.solo.io.SslConfig.prototype.clearAlpnProtocolsList = function() {
   this.setAlpnProtocolsList([]);
+};
+
+
+/**
+ * optional bool one_way_tls = 8;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.SslConfig.prototype.getOneWayTls = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 8, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.SslConfig.prototype.setOneWayTls = function(value) {
+  jspb.Message.setProto3BooleanField(this, 8, value);
 };
 
 

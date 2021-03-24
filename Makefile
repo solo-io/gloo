@@ -166,7 +166,14 @@ clean:
 PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 
 .PHONY: generate-all
-generate-all: generated-code generate-gloo-fed
+generate-all: check-solo-apis generated-code generate-gloo-fed
+
+GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
+
+.PHONY: check-solo-apis
+check-solo-apis:
+	# Ensure that the gloo and solo-apis dependencies are in lockstep
+	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
