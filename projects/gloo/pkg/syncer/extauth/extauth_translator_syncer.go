@@ -44,7 +44,17 @@ var (
 )
 
 const (
-	Name = "extauth"
+	Name            = "extauth"
+	emptyVersionKey = "empty"
+)
+
+var (
+	emptyTypedResources = map[string]envoycache.Resources{
+		extauth.ExtAuthConfigType: {
+			Version: emptyVersionKey,
+			Items:   map[string]envoycache.Resource{},
+		},
+	}
 )
 
 func init() {
@@ -139,14 +149,28 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 		resources = append(resources, resource)
 	}
 
-	h, err := hashstructure.Hash(resources, nil)
-	if err != nil {
-		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
-		return syncerError(ctx, err)
+	var extAuthSnapshot envoycache.Snapshot
+	if resources == nil {
+		// If there are no auth configs, use an empty configuration
+		//
+		// The SnapshotCache can now differentiate between nil and empty resources in a snapshot.
+		// This was introduced with: https://github.com/solo-io/solo-kit/pull/410
+		// A nil resource is not updated, whereas an empty resource is intended to be modified.
+		//
+		// The extauth service only becomes healthy after it has received auth configuration
+		// from Gloo via xDS. Therefore, we must set the auth config resource to empty in the snapshot
+		// so that extauth picks up the empty config, and becomes healthy
+		extAuthSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
+	} else {
+		h, err := hashstructure.Hash(resources, nil)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
+			return syncerError(ctx, err)
+		}
+		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	}
 
-	extAuthSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-	err = xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
+	err := xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
 	if err != nil {
 		return syncerError(ctx, err)
 	}

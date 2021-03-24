@@ -542,15 +542,28 @@ var _ = Describe("Helm Test", func() {
 								Value: "x-user-id",
 							},
 							statsEnvVar,
+							{
+								Name:  "HEALTH_HTTP_PORT",
+								Value: "8082",
+							},
+							{
+								Name:  "HEALTH_HTTP_PATH",
+								Value: "/healthcheck",
+							},
 						},
 						ReadinessProbe: &v1.Probe{
 							Handler: v1.Handler{
-								Exec: &v1.ExecAction{
-									Command: []string{"/bin/sh", "-c", "nc -z localhost 8083"},
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/healthcheck",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 8082,
+									},
 								},
 							},
-							InitialDelaySeconds: 1,
-							FailureThreshold:    3,
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
 							SuccessThreshold:    1,
 						},
 						Resources: v1.ResourceRequirements{},
@@ -1756,6 +1769,14 @@ spec:
 								Name:  "START_STATS_SERVER",
 								Value: "true",
 							},
+							{
+								Name:  "HEALTH_HTTP_PORT",
+								Value: "8082",
+							},
+							{
+								Name:  "HEALTH_HTTP_PATH",
+								Value: "/healthcheck",
+							},
 						},
 						VolumeMounts: []v1.VolumeMount{
 							{
@@ -1846,6 +1867,14 @@ spec:
 							{
 								Name:  "START_STATS_SERVER",
 								Value: "true",
+							},
+							{
+								Name:  "HEALTH_HTTP_PORT",
+								Value: "8082",
+							},
+							{
+								Name:  "HEALTH_HTTP_PATH",
+								Value: "/healthcheck",
 							},
 						},
 						VolumeMounts: []v1.VolumeMount{

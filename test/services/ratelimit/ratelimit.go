@@ -31,6 +31,15 @@ func RunRateLimitServer(ctx context.Context, serverHost string, glooport int) fu
 			return false, err
 		}
 
+		go func() {
+			select {
+			case <-ctx.Done():
+				// Close the connection when the underlying context is done
+				conn.Close()
+				return
+			}
+		}()
+
 		return response.Status == healthpb.HealthCheckResponse_SERVING, nil
 	}
 }

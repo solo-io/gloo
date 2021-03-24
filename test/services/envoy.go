@@ -424,3 +424,7 @@ func (ei *EnvoyInstance) Logs() (string, error) {
 
 	return ei.logs.String(), nil
 }
+
+func (ei *EnvoyInstance) GetConfigDump() (*http.Response, error) {
+	return http.Get(fmt.Sprintf("http://localhost:%d/config_dump", ei.AdminPort))
+}

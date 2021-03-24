@@ -4,7 +4,16 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-projects/test/v1helpers"
+
+	"github.com/solo-io/go-utils/testutils"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -326,11 +335,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 				// Wait for auth config to be created
-				EventuallyWithOffset(1, func() error {
-					_, err := authConfigClient.Read(testHelper.InstallNamespace, ac.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-					return err
-				}, "15s", "0.5s").Should(BeNil())
-				time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the auth config, otherwise the webhook validation might fail
+				v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+					return authConfigClient.Read(testHelper.InstallNamespace, ac.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+				})
 
 				authConfigRef := ac.Metadata.Ref()
 				return authConfigRef, func() {
@@ -365,20 +372,18 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				}, "30s", "1s").Should(BeNil())
 
 				// Wait for proxy to be accepted
-				EventuallyWithOffset(1, func() error {
-					proxy, err := proxyClient.Read(testHelper.InstallNamespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-					if err != nil {
-						return err
-					}
-					if proxy.Status.State == core.Status_Accepted {
-						return nil
-					}
-					return errors.Errorf("waiting for proxy to be accepted, but status is %v", proxy.Status)
-				}, "15s", "0.5s").Should(BeNil())
+				v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+					return proxyClient.Read(testHelper.InstallNamespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+				})
 
 				return func() {
 					regressions.DeleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 				}
+			}
+
+			isRolloutComplete := func(name, namespace string) (bool, error) {
+				result, err := testutils.KubectlOut("rollout", "status", fmt.Sprintf("deployment/%s", name), "-n", namespace)
+				return strings.Contains(result, "successfully rolled out"), err
 			}
 
 			BeforeEach(func() {
@@ -393,6 +398,14 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				cleanUp2, err := createHttpEchoDeploymentAndService(ctx, kubeClient, testHelper.InstallNamespace, appName2, echoAppPort)
 				Expect(err).NotTo(HaveOccurred())
 				cleanUpFuncs = append(cleanUpFuncs, cleanUp2)
+
+				// Wait for both target http-echo deployments to be ready
+				Eventually(func() (bool, error) {
+					return isRolloutComplete(appName1, testHelper.InstallNamespace)
+				}, "30s", "1s").Should(BeTrue())
+				Eventually(func() (bool, error) {
+					return isRolloutComplete(appName2, testHelper.InstallNamespace)
+				}, "30s", "1s").Should(BeTrue())
 
 				// Define the three types of auth configuration we will use
 				allowUser = buildBasicAuthConfig("basic-auth-user", testHelper.InstallNamespace,
@@ -794,6 +807,282 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					})
 				})
 			})
+
+			Context("health checker", func() {
+
+				var (
+					vhPlugins *gloov1.VirtualHostOptions
+
+					pollingRunner            *pollingRunner
+					pollingResponseMutex     sync.RWMutex
+					pollingResponseFrequency map[string]int
+				)
+
+				getVirtualService := func(vhPlugins *gloov1.VirtualHostOptions) *gatewayv1.VirtualService {
+					return &gatewayv1.VirtualService{
+						Metadata: &core.Metadata{
+							Name:      "echo-vs",
+							Namespace: testHelper.InstallNamespace,
+						},
+						VirtualHost: &gatewayv1.VirtualHost{
+							Options: vhPlugins,
+							Domains: []string{"*"},
+							Routes: []*gatewayv1.Route{
+								{
+									Matchers: []*matchers.Matcher{{
+										PathSpecifier: &matchers.Matcher_Prefix{
+											Prefix: regressions.TestMatcherPrefix + "/1",
+										},
+									}},
+									Options: &gloov1.RouteOptions{
+										Retries: &retries.RetryPolicy{
+											RetryOn:    "5xx",
+											NumRetries: 2,
+										},
+									},
+									Action: &gatewayv1.Route_RouteAction{
+										RouteAction: &gloov1.RouteAction{
+											Destination: &gloov1.RouteAction_Single{
+												Single: &gloov1.Destination{
+													DestinationType: &gloov1.Destination_Kube{
+														Kube: &gloov1.KubernetesServiceDestination{
+															Ref: &core.ResourceRef{
+																Namespace: testHelper.InstallNamespace,
+																Name:      appName1,
+															},
+															Port: uint32(echoAppPort),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					}
+				}
+
+				updateSettingsWithFailureModeAllow := func() {
+					// These tests poll the endpoint frequently and expect all 200 responses
+					// A small network drop could result in a error, which by default is a 403
+					// Ideally, we would retry on this, or set a StatusOnError and retry on that. However,
+					// our retry policy does not yet support RetriableStatusCodes.
+					// Therefore, for now, we use FailureModeAllow, which indicates that if we fail to connect
+					// to the extauth server, allow the request.
+
+					settings, err := settingsClient.Read(testHelper.InstallNamespace, "default", clients.ReadOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to read settings to switch ext auth StatusOnError")
+
+					settings.Extauth.FailureModeAllow = true
+
+					_, err = settingsClient.Write(settings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
+				}
+
+				endpointPollingWorker := func() {
+					response, err := testHelper.Curl(helper.CurlOpts{
+						Protocol:          "http",
+						Path:              regressions.TestMatcherPrefix + "/1",
+						Method:            "GET",
+						Headers:           buildAuthHeader("user:password"),
+						Host:              defaults.GatewayProxyName,
+						Service:           defaults.GatewayProxyName,
+						Port:              gatewayPort,
+						ConnectionTimeout: 5,    // this is important, as the first curl call sometimes hangs indefinitely
+						Verbose:           true, // this is important, as curl will only output status codes with verbose output
+					})
+
+					// Modify the response for expected results
+					if err != nil {
+						response = err.Error()
+					} else if strings.Contains(response, response200) {
+						response = response200
+					}
+
+					// Store the response in a map
+					pollingResponseMutex.Lock()
+					defer pollingResponseMutex.Unlock()
+					_, ok := pollingResponseFrequency[response]
+					if ok {
+						pollingResponseFrequency[response] += 1
+					} else {
+						pollingResponseFrequency[response] = 1
+					}
+				}
+
+				JustBeforeEach(func() {
+					// Set FailureModeAllow to true, so that network errors do not cause flakes
+					updateSettingsWithFailureModeAllow()
+
+					// Persist the auth config
+					authConfigRef, cleanUpAuthConfig := writeAuthConfig(allowUser)
+
+					// Persist virtual service
+					vhPlugins = &gloov1.VirtualHostOptions{
+						Extauth: buildExtAuthExtension(authConfigRef),
+					}
+					virtualService := getVirtualService(vhPlugins)
+					cleanUpVirtualService := writeVs(virtualService)
+
+					// This polls the endpoint at an interval and stores the responses
+					pollingRunner = newPollingRunner(endpointPollingWorker, time.Millisecond*10, 5)
+					pollingResponseFrequency = make(map[string]int)
+
+					// Ensure all created resources are cleaned between tests
+					cleanUpFuncs = append(cleanUpFuncs, cleanUpAuthConfig, cleanUpVirtualService)
+				})
+
+				modifyDeploymentReplicas := func(replicas int32) error {
+					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+
+					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					if err != nil {
+						return err
+					}
+
+					d.Spec.Replicas = &replicas
+					_, err = deploymentClient.Update(ctx, d, metav1.UpdateOptions{})
+					return err
+				}
+
+				getDeploymentReplicas := func() (int, error) {
+					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+
+					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					if err != nil {
+						return 0, err
+					}
+
+					if d.Status.UpdatedReplicas != d.Status.ReadyReplicas {
+						return 0, errors.New("Updated and Ready replicas do not match")
+					}
+
+					return int(d.Status.ReadyReplicas), nil
+				}
+
+				isExtAuthRolloutComplete := func() (bool, error) {
+					return isRolloutComplete("extauth", "gloo-system")
+				}
+
+				modifyDeploymentEnv := func(envVar corev1.EnvVar) error {
+					deploymentClient := kubeClient.AppsV1().Deployments(testHelper.InstallNamespace)
+
+					d, err := deploymentClient.Get(ctx, "extauth", metav1.GetOptions{})
+					if err != nil {
+						return err
+					}
+
+					d.Spec.Template.Spec.Containers[0].Env = append(d.Spec.Template.Spec.Containers[0].Env, envVar)
+					_, err = deploymentClient.Update(ctx, d, metav1.UpdateOptions{})
+					return err
+				}
+
+				allPollingResponsesAre200 := func() (bool, error) {
+					keys := make([]string, 0)
+					for k := range pollingResponseFrequency {
+						keys = append(keys, k)
+					}
+
+					if len(keys) != 1 || keys[0] != response200 {
+						return false, errors.New(fmt.Sprintf("received non-200 response %v", pollingResponseFrequency))
+					}
+					return true, nil
+				}
+
+				// This test is added as a safeguard to ensure that we're not accepting all requests blindly
+				It("denies unauthenticated requests", func() {
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", nil, response401)
+				})
+
+				It("allows authenticated requests on route when no cluster events happen", func() {
+					// Scale the extauth deployment to 1 pod and wait for it to be ready
+					err = modifyDeploymentReplicas(1)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+					// Ensure that the upstream is reachable
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+					pollingRunner.StartPolling(ctx)
+
+					// Do nothing for 1 second to allow time for successful polling requests
+					time.Sleep(time.Second * 1)
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 200s
+					Expect(allPollingResponsesAre200()).Should(BeTrue())
+				})
+
+				It("allows authenticated requests on route when extauth deployment is modified", func() {
+					// There should only be 1 pod to start
+					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
+
+					// Ensure that the upstream is reachable
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+					pollingRunner.StartPolling(ctx)
+
+					// Modify the deployment, causing the pods to be brought up again
+					err := modifyDeploymentEnv(corev1.EnvVar{
+						Name:  "HEALTH_CHECKER_ENV_VAR",
+						Value: "VALUE",
+					})
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 200s
+					Expect(allPollingResponsesAre200()).Should(BeTrue())
+				})
+
+				It("allows authenticated requests on route when extauth deployment is scaled up", func() {
+					// There should only be 1 pod to start
+					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(1))
+
+					// Ensure that the upstream is reachable
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+					pollingRunner.StartPolling(ctx)
+
+					// Scale up the extauth deployment to 4 pods and wait for them all to be ready
+					err := modifyDeploymentReplicas(4)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 200s
+					Expect(allPollingResponsesAre200()).Should(BeTrue())
+				})
+
+				It("allows authenticated requests on route when extauth deployment is scaled down", func() {
+					// There should be 4 pods (from the previous test) to start
+					Eventually(getDeploymentReplicas, "60s", "1s").Should(Equal(4))
+
+					// Ensure that the upstream is reachable
+					curlAndAssertResponse(regressions.TestMatcherPrefix+"/1", buildAuthHeader("user:password"), response200)
+
+					pollingRunner.StartPolling(ctx)
+
+					// Do nothing for 1 second to allow time for successful polling requests
+					time.Sleep(time.Second * 1)
+
+					// Scale down the extauth deployment to 1 pod and wait for it to be ready
+					err = modifyDeploymentReplicas(1)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(isExtAuthRolloutComplete, "60s", "1s").Should(BeTrue())
+
+					pollingRunner.StopPolling()
+
+					// Expect all responses to be 200s
+					Expect(allPollingResponsesAre200()).Should(BeTrue())
+				})
+
+			})
+
 		})
 	})
 }
@@ -897,4 +1186,126 @@ func buildBasicAuthConfig(name, namespace string, users map[string]*extauthapi.B
 			},
 		}},
 	}
+}
+
+type Lifecycle interface {
+	Start(ctx context.Context)
+	Stop()
+}
+
+type pollingRunner struct {
+	producer Lifecycle
+	consumer Lifecycle
+
+	workQueue chan int
+}
+
+func newPollingRunner(pollingFunc func(), pollingInterval time.Duration, concurrencyFactor int) *pollingRunner {
+	workQueue := make(chan int, 50)
+
+	return &pollingRunner{
+		producer:  newIntervalProducer(workQueue, pollingInterval),
+		consumer:  newPooledConsumers(workQueue, pollingFunc, concurrencyFactor),
+		workQueue: workQueue,
+	}
+}
+
+func (r *pollingRunner) StartPolling(ctx context.Context) {
+	r.producer.Start(ctx)
+	r.consumer.Start(ctx)
+}
+
+func (r *pollingRunner) StopPolling() {
+	// Close the channel used to pass work between producers and consumer
+	defer close(r.workQueue)
+
+	r.producer.Stop()
+	r.consumer.Stop()
+}
+
+type intervalProducer struct {
+	workQueue chan int
+	interval  time.Duration
+	stop      chan bool
+}
+
+func newIntervalProducer(workQueue chan int, interval time.Duration) *intervalProducer {
+	return &intervalProducer{
+		workQueue: workQueue,
+		interval:  interval,
+		stop:      make(chan bool),
+	}
+}
+
+func (p *intervalProducer) Start(ctx context.Context) {
+	// At the polling interval, drop a new piece of work on the workQueue
+	workId := 0
+	go func(testContext context.Context) {
+		for {
+			select {
+			case <-time.After(p.interval):
+				workId++
+				p.workQueue <- workId
+			case <-p.stop:
+				return
+			case <-testContext.Done():
+				return
+			}
+		}
+	}(ctx)
+}
+
+func (p *intervalProducer) Stop() {
+	defer close(p.stop)
+	p.stop <- true
+}
+
+type pooledConsumers struct {
+	workQueue     chan int
+	run           func()
+	poolSize      int
+	stop          chan bool
+	activeWorkers sync.WaitGroup
+}
+
+func newPooledConsumers(workQueue chan int, run func(), poolSize int) *pooledConsumers {
+	return &pooledConsumers{
+		workQueue:     workQueue,
+		run:           run,
+		poolSize:      poolSize,
+		stop:          make(chan bool),
+		activeWorkers: sync.WaitGroup{},
+	}
+}
+
+func (c *pooledConsumers) Start(ctx context.Context) {
+	for worker := 0; worker < c.poolSize; worker++ {
+		c.startWorker(ctx, worker)
+	}
+}
+
+func (c *pooledConsumers) startWorker(ctx context.Context, workerId int) {
+	c.activeWorkers.Add(1)
+	go func(testContext context.Context) {
+		defer c.activeWorkers.Done()
+		for {
+			select {
+			case <-c.workQueue:
+				c.run() // blocking
+			case <-c.stop:
+				return
+			case <-testContext.Done():
+				return
+			}
+		}
+	}(ctx)
+}
+
+func (c *pooledConsumers) Stop() {
+	defer close(c.stop)
+	for worker := 0; worker < c.poolSize; worker++ {
+		c.stop <- true
+	}
+
+	c.activeWorkers.Wait()
 }

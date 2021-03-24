@@ -21,6 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
@@ -227,13 +229,6 @@ var _ = Describe("External auth", func() {
 			Context("basic auth sanity tests", func() {
 
 				BeforeEach(func() {
-
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
-
 					basicConfigSetup()
 				})
 
@@ -556,14 +551,6 @@ var _ = Describe("External auth", func() {
 				})
 
 				Context("Oidc tests that don't forward to upstream", func() {
-					BeforeEach(func() {
-						// drain channel as we dont care about it
-						go func(testUpstream v1helpers.TestUpstream) {
-							for range testUpstream.C {
-							}
-						}(*testUpstream)
-					})
-
 					It("should redirect to auth page", func() {
 						client := &http.Client{
 							CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -811,38 +798,23 @@ var _ = Describe("External auth", func() {
 					// Start the auth server
 					authServer.Start()
 
-					// Write the auth configuration
+					// Write the auth configuration and ensure it is accepted
 					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
+					v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(authConfig.GetMetadata().GetNamespace(), authConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
+					})
 
 					// Write the proxy and ensure it is accepted
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
-					Eventually(func() (core.Status, error) {
-						proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-						if err != nil {
-							return core.Status{}, err
-						}
-						if proxy.Status == nil {
-							return core.Status{}, nil
-						}
-						return *proxy.Status, nil
-					}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-						"Reason": BeEmpty(),
-						"State":  Equal(core.Status_Accepted),
-					}))
+					v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					})
 				})
 
 				AfterEach(func() {
 					authServer.Stop()
-				})
-
-				BeforeEach(func() {
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
 				})
 
 				Context("using IntrospectionUrl", func() {
@@ -1229,14 +1201,6 @@ var _ = Describe("External auth", func() {
 					authServerPort = 5556
 				)
 
-				BeforeEach(func() {
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
-				})
-
 				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
 					EventuallyWithOffset(1, func() (int, error) {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
@@ -1377,14 +1341,6 @@ var _ = Describe("External auth", func() {
 					authServerB     *passthrough_test_utils.GrpcAuthServer
 					authServerBPort = 5557
 				)
-
-				BeforeEach(func() {
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
-				})
 
 				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
 					EventuallyWithOffset(1, func() (int, error) {
@@ -1539,14 +1495,6 @@ var _ = Describe("External auth", func() {
 					authServerA     *passthrough_test_utils.GrpcAuthServer
 					authServerAPort = 5556
 				)
-
-				BeforeEach(func() {
-					// drain channel as we dont care about it
-					go func(testUpstream v1helpers.TestUpstream) {
-						for range testUpstream.C {
-						}
-					}(*testUpstream)
-				})
 
 				expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
 					EventuallyWithOffset(1, func() (int, error) {
@@ -1725,14 +1673,6 @@ var _ = Describe("External auth", func() {
 				})
 
 				Context("Oidc tests that don't forward to upstream", func() {
-					BeforeEach(func() {
-						// drain channel as we dont care about it
-						go func(testUpstream v1helpers.TestUpstream) {
-							for range testUpstream.C {
-							}
-						}(*testUpstream)
-					})
-
 					It("should redirect to auth page", func() {
 						client := &http.Client{
 							CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -1947,49 +1887,91 @@ var _ = Describe("External auth", func() {
 
 		Context("health checker", func() {
 
-			// NOTE: This test MUST run last, since it runs cancel()
-			It("should fail healthcheck immediately on shutdown", func() {
-				// Need to create some generic config so that extauth starts passing health checks
-				basicConfigSetup()
+			var healthCheckClient grpc_health_v1.HealthClient
 
-				// Connects to the extauth service's health check
-				conn, err := grpc.Dial("localhost:"+strconv.Itoa(settings.ExtAuthSettings.ServerPort), grpc.WithInsecure())
+			getHealthCheckClient := func() grpc_health_v1.HealthClient {
+				if healthCheckClient != nil {
+					return healthCheckClient
+				}
+
+				extAuthHealthServerAddr := "localhost:" + strconv.Itoa(settings.ExtAuthSettings.ServerPort)
+				conn, err := grpc.Dial(extAuthHealthServerAddr, grpc.WithInsecure())
 				Expect(err).To(BeNil())
-				defer conn.Close()
-				healthCheckClient := grpc_health_v1.NewHealthClient(conn)
-				Eventually(func() bool { // Wait for the extauth server to start up
-					var header metadata.MD
-					resp, err := healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-						Service: settings.ExtAuthSettings.ServiceName,
-					}, grpc.Header(&header))
-					if err != nil {
-						return false
+
+				healthCheckClient = grpc_health_v1.NewHealthClient(conn)
+
+				go func() {
+					select {
+					case <-ctx.Done():
+						healthCheckClient = nil
+						conn.Close()
+
+						return
 					}
+				}()
 
-					return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
-				}, "5m", ".1s").Should(BeTrue())
+				return healthCheckClient
+			}
 
-				// Start sending health checking requests continuously
-				waitForHealthcheck := make(chan struct{})
-				go func(waitForHealthcheck chan struct{}) {
-					defer GinkgoRecover()
-					Eventually(func() bool {
-						ctx = context.Background()
-						var header metadata.MD
-						healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
-							Service: settings.ExtAuthSettings.ServiceName,
-						}, grpc.Header(&header))
-						return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
-					}, "5s", ".1s").Should(BeTrue())
-					waitForHealthcheck <- struct{}{}
-				}(waitForHealthcheck)
+			getServiceHealthStatus := func() (grpc_health_v1.HealthCheckResponse_ServingStatus, error) {
+				client := getHealthCheckClient()
 
-				// Start the health checker first, then cancel
-				time.Sleep(200 * time.Millisecond)
-				cancel()
-				Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+				var header metadata.MD
+				resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+					Service: settings.ExtAuthSettings.ServiceName,
+				}, grpc.Header(&header))
+
+				return resp.GetStatus(), err
+			}
+
+			Context("should pass after receiving xDS config from gloo", func() {
+
+				It("without auth configs", func() {
+					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+					Consistently(getServiceHealthStatus, "3s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+				})
+
+				It("with auth configs", func() {
+					// Creates a proxy with an auth configuration
+					basicConfigSetup()
+
+					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+					Consistently(getServiceHealthStatus, "3s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+				})
+
 			})
+
+			// NOTE: This test MUST run last, since it runs cancel()
+			Context("shutdown", func() {
+
+				It("should fail healthcheck immediately on shutdown", func() {
+
+					Eventually(getServiceHealthStatus, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+
+					// Start sending health checking requests continuously
+					waitForHealthcheck := make(chan struct{})
+					go func(waitForHealthcheck chan struct{}) {
+						defer GinkgoRecover()
+						Eventually(func() bool {
+							ctx = context.Background()
+							var header metadata.MD
+							getHealthCheckClient().Check(ctx, &grpc_health_v1.HealthCheckRequest{
+								Service: settings.ExtAuthSettings.ServiceName,
+							}, grpc.Header(&header))
+							return len(header.Get("x-envoy-immediate-health-check-fail")) == 1
+						}, "5s", ".1s").Should(BeTrue())
+						waitForHealthcheck <- struct{}{}
+					}(waitForHealthcheck)
+
+					// Start the health checker first, then cancel
+					time.Sleep(200 * time.Millisecond)
+					cancel()
+					Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+				})
+			})
+
 		})
+
 	})
 
 })

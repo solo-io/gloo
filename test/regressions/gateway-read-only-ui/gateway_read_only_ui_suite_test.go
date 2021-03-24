@@ -142,6 +142,7 @@ gloo:
         registry: quay.io/solo-io
   gatewayProxies:
     gatewayProxy:
+      healthyPanicThreshold: 0
       podTemplate:
         image:
           registry: quay.io/solo-io

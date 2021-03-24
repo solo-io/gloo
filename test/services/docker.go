@@ -16,6 +16,15 @@ var (
 	dockerDefaultNetwork = "bridge" // if unspecified, docker containers are created on the default bridge network
 )
 
+// Extra options for running in docker
+type DockerOptions struct {
+	// Extra volume arguments
+	Volumes []string
+	// Extra env arguments.
+	// see https://docs.docker.com/engine/reference/run/#env-environment-variables for more info
+	Env []string
+}
+
 func RunContainer(containerName string, args []string) error {
 	updatedContainerName := getUpdatedContainerName(containerName)
 	runArgs := []string{"run", "--name", updatedContainerName}

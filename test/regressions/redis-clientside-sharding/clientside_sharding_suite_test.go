@@ -113,6 +113,9 @@ func getHelmOverrides() (filename string, cleanup func()) {
 	// Set up gloo with mTLS enabled, clientSideSharding enabled, and redis scaled to 2
 	_, err = values.Write([]byte(`
 gloo:
+  gatewayProxies:
+    gatewayProxy:
+      healthyPanicThreshold: 0
   rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

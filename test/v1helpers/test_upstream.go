@@ -118,7 +118,11 @@ func RunTestServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		h.Shutdown(ctx)
 		cancel()
-		// close channel, the http handler may panic but this should be caught by the http code.
+
+		// drain and close channel
+		// the http handler may panic but this should be caught by the http code.
+		for range bodychan {
+		}
 		close(bodychan)
 	}()
 	return uint32(port), bodychan

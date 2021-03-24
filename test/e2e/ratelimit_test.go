@@ -89,11 +89,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-				// drain channel as we dont care about it
-				go func() {
-					for range testUpstream.C {
-					}
-				}()
+
 				var opts clients.WriteOpts
 				up := testUpstream.Upstream
 				_, err = testClients.UpstreamClient.Write(up, opts)

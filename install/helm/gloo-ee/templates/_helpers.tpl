@@ -156,19 +156,22 @@ Expand the name of the chart.
     - name: KEY_PATH
       value: {{ $extAuth.keyPath }}
     {{- end}}
+    - name: HEALTH_HTTP_PORT
+      value: "8082"
+    - name: HEALTH_HTTP_PATH
+      value: "/healthcheck"
     {{- if $extAuth.headersToRedact }}
     - name: HEADERS_TO_REDACT
       value: {{ $extAuth.headersToRedact | quote }}
     {{- end }}
   {{- if ne $extAuthMode "sidecar" }}
   readinessProbe:
-    exec:
-      command:
-        - /bin/sh
-        - -c
-        - nc -z localhost {{ $extAuthServerPort }}
-    initialDelaySeconds: 1
-    failureThreshold: 3
+    httpGet:
+      port: 8082
+      path: "/healthcheck"
+    initialDelaySeconds: 2
+    periodSeconds: 5
+    failureThreshold: 2
     successThreshold: 1
   {{- end }}
 {{- if or $extAuth.deployment.extraVolumeMount (or $extAuth.plugins (eq $extAuthMode "sidecar")) }}

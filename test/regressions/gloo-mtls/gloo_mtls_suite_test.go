@@ -102,6 +102,9 @@ var _ = AfterSuite(func() {
 		// ignore errors
 		_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
 
+		// UninstallGloo should handle this, but it doesn't right now
+		_ = testutils.Kubectl("delete", "namespace", "gloo-fed")
+
 		EventuallyWithOffset(1, func() error {
 			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
 		}, "60s", "1s").Should(HaveOccurred())
@@ -115,6 +118,9 @@ func getHelmOverrides() (filename string, cleanup func()) {
 	// Set global.glooMtls.enabled = true, and make sure to pull the quay.io/solo-io
 	_, err = values.Write([]byte(`
 gloo:
+  gatewayProxies:
+    gatewayProxy:
+      healthyPanicThreshold: 0
   rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

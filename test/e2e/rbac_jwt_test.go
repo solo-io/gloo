@@ -286,13 +286,7 @@ var _ = Describe("JWT + RBAC", func() {
 			})
 		})
 		Context("token source", func() {
-			BeforeEach(func() {
-				// drain channel as we dont care about it
-				go func() {
-					for range testUpstream.C {
-					}
-				}()
-			})
+
 			It("should get token from custom header", func() {
 				Eventually(func() (int, error) {
 					url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
@@ -370,13 +364,6 @@ var _ = Describe("JWT + RBAC", func() {
 	})
 	Context("user access tests", func() {
 		BeforeEach(func() {
-
-			// drain channel as we dont care about it
-			go func() {
-				for range testUpstream.C {
-				}
-			}()
-
 			proxy := getProxyJwtRbac(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
 
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})

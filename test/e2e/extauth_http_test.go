@@ -145,12 +145,6 @@ var _ = Describe("External http", func() {
 	Context("custom sanity tests", func() {
 
 		JustBeforeEach(func() {
-			// drain channel as we dont care about it
-			go func() {
-				for range testUpstream.C {
-				}
-			}()
-
 			proxy := getProxyCustomAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})

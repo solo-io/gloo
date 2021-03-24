@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/2549
+    resolvesIssue: false
+    description: >-
+      Introduce a readinessProbe on the ext auth deployment, ensuring
+      that the extauth pod is not marked as ready until it has received Gloo configuration.
+      We had previously relied on envoy health checks, so this protects agains the edge
+      case where k8s terminates a pod, and we dont want to direct traffic to the new one,
+      until it has received configuration.

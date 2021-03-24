@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -111,13 +110,6 @@ var _ = Describe("Proxy latency", func() {
 		Context("proxy latency", func() {
 
 			BeforeEach(func() {
-
-				// drain channel as we dont care about it
-				go func() {
-					for range testUpstream.C {
-					}
-				}()
-
 				proxy := getProxyLatencyProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
@@ -157,7 +149,7 @@ var _ = Describe("Proxy latency", func() {
 })
 
 func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
-	resp, err := http.Get(fmt.Sprintf("http://%s:%d/config_dump", envoyInstance.LocalAddr(), envoyInstance.AdminPort))
+	resp, err := envoyInstance.GetConfigDump()
 	if err != nil {
 		return nil, err
 	}
