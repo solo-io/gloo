@@ -9,10 +9,6 @@ func main() {
 			ParentPath: "install/manifest",
 		},
 		{
-			Name:       "gloo-with-read-only-ui-release.yaml",
-			ParentPath: "install/manifest",
-		},
-		{
 			Name:       "gloo-fed-release.yaml",
 			ParentPath: "install/manifest",
 		},
