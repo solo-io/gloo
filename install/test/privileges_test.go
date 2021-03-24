@@ -42,32 +42,6 @@ var _ = Describe("Deployment Privileges Test", func() {
 		})
 	})
 
-	Context("Gloo OS with read-only UI", func() {
-		Context("all cluster-scoped deployments", func() {
-			It("is running all deployments with non root user permissions by default", func() {
-				testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
-				Expect(err).NotTo(HaveOccurred())
-
-				expectNonRoot(testManifest)
-			})
-
-			It("is running all deployments with non root user permissions with knative, accessLogger, ingress, and mTLS enabled", func() {
-				testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"gateway.enabled=false",
-						"settings.integrations.knative.enabled=true",
-						"settings.integrations.knative.version=v0.10.0",
-						"accessLogger.enabled=true",
-						"ingress.enabled=true",
-						"global.glooMtls.enabled=true",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				expectNonRoot(testManifest)
-			})
-		})
-	})
 })
 
 func expectNonRoot(testManifest manifesttestutils.TestManifest) {

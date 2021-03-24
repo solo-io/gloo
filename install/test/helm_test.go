@@ -27,7 +27,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
-	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 	"github.com/solo-io/solo-projects/pkg/install"
 	jobsv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,11 +40,6 @@ import (
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-)
-
-// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-const (
-	NamespacedRbacEnvName = "RBAC_NAMESPACED"
 )
 
 var _ = Describe("Helm Test", func() {
@@ -604,12 +598,10 @@ var _ = Describe("Helm Test", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.extensions.rateLimit.enabled=true",
-						"apiServer.enable=true",
 						"global.extensions.extAuth.enabled=true",
 						"observability.enabled=true",
 						"global.extensions.rateLimit.deployment.extraRateLimitLabels.foo=bar",
 						"redis.deployment.extraRedisLabels.foo=bar",
-						"apiServer.deployment.extraApiServerLabels.foo=bar",
 						"observability.deployment.extraObservabilityLabels.foo=bar",
 						"global.extensions.extAuth.deployment.extraExtAuthLabels.foo=bar",
 					},
@@ -656,7 +648,7 @@ var _ = Describe("Helm Test", func() {
 					resourcesTested += 1
 				})
 				// Is there an elegant way to parameterized the expected number of deployments based on the valueArgs?
-				Expect(resourcesTested).To(Equal(5), "Tested %d resources when we were expecting 5."+
+				Expect(resourcesTested).To(Equal(4), "Tested %d resources when we were expecting 4."+
 					" Was a new pod added, or is an existing pod no longer being generated?", resourcesTested)
 			})
 
@@ -695,7 +687,6 @@ var _ = Describe("Helm Test", func() {
 					valuesArgs: []string{
 						"global.istioIntegration.disableAutoinjection=true",
 						"gloo.rateLimit.enabled=true", // check as many as possible
-						"apiServer.enable=true",
 						"global.extensions.extAuth.enabled=true",
 						"observability.enabled=true",
 					},
@@ -1934,395 +1925,6 @@ spec:
 			})
 		})
 
-		Context("apiserver deployment", func() {
-			const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
-			// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-			apiserverVersion := "1.7.0-beta14"
-
-			var expectedDeployment *appsv1.Deployment
-
-			BeforeEach(func() {
-				labels = map[string]string{
-					"gloo": "apiserver-ui",
-					"app":  "gloo",
-				}
-				selector = map[string]string{
-					"app":  "gloo",
-					"gloo": "apiserver-ui",
-				}
-				grpcPortEnvVar := v1.EnvVar{
-					Name:  "GRPC_PORT",
-					Value: "10101",
-				}
-				rbacNamespacedEnvVar := v1.EnvVar{
-					Name:  NamespacedRbacEnvName,
-					Value: "false",
-				}
-				noAuthEnvVar := v1.EnvVar{
-					Name:  "NO_AUTH",
-					Value: "1",
-				}
-				licenseEnvVar := v1.EnvVar{
-					Name: "GLOO_LICENSE_KEY",
-					ValueFrom: &v1.EnvVarSource{
-						SecretKeyRef: &v1.SecretKeySelector{
-							LocalObjectReference: v1.LocalObjectReference{
-								Name: "license",
-							},
-							Key: "license-key",
-						},
-					},
-				}
-				uiContainer := v1.Container{
-					Name:            "apiserver-ui",
-					Image:           "quay.io/solo-io/grpcserver-ui:" + apiserverVersion,
-					ImagePullPolicy: v1.PullAlways,
-					VolumeMounts: []v1.VolumeMount{
-						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
-						{Name: "empty-run", MountPath: "/var/run"},
-					},
-					Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
-				}
-				grpcServerContainer := v1.Container{
-					Name:            "apiserver",
-					Image:           "quay.io/solo-io/grpcserver-ee:" + apiserverVersion,
-					ImagePullPolicy: v1.PullAlways,
-					Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
-					Env: []v1.EnvVar{
-						GetPodNamespaceEnvVar(),
-						rbacNamespacedEnvVar,
-						grpcPortEnvVar,
-						statsEnvVar,
-						noAuthEnvVar,
-						licenseEnvVar,
-					},
-				}
-				envoyContainer := v1.Container{
-					Name:            "gloo-grpcserver-envoy",
-					Image:           "quay.io/solo-io/grpcserver-envoy:" + apiserverVersion,
-					ImagePullPolicy: v1.PullAlways,
-					VolumeMounts: []v1.VolumeMount{
-						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
-					},
-					Env: []v1.EnvVar{
-						{
-							Name:  "ENVOY_UID",
-							Value: "0",
-						},
-					},
-					SecurityContext: &v1.SecurityContext{
-						RunAsUser: aws.Int64(101),
-					},
-					ReadinessProbe: &v1.Probe{
-						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
-							Path: "/",
-							Port: intstr.IntOrString{IntVal: 8080},
-						}},
-						InitialDelaySeconds: 5,
-						PeriodSeconds:       10,
-					},
-				}
-
-				nonRootUser := int64(10101)
-				nonRoot := true
-
-				nonRootSC := &v1.PodSecurityContext{
-					RunAsUser:    &nonRootUser,
-					RunAsNonRoot: &nonRoot,
-				}
-
-				rb := ResourceBuilder{
-					Namespace: namespace,
-					Name:      "api-server",
-					Labels:    labels,
-				}
-				expectedDeployment = rb.GetDeploymentAppsv1()
-				expectedDeployment.Spec.Selector.MatchLabels = selector
-				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
-				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
-					{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-					{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-					{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-						LocalObjectReference: v1.LocalObjectReference{
-							Name: defaultBootstrapConfigMapName,
-						},
-					}}},
-				}
-				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
-				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
-				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
-				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
-				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
-			})
-
-			It("is there by default", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-				Expect(err).NotTo(HaveOccurred())
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			It("does render the default bootstrap config map for the envoy sidecar", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-				Expect(err).NotTo(HaveOccurred())
-				testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
-			})
-
-			It("correctly sets resource limits", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"apiServer.deployment.ui.resources.limits.cpu=300m",
-						"apiServer.deployment.ui.resources.limits.memory=300Mi",
-						"apiServer.deployment.ui.resources.requests.cpu=30m",
-						"apiServer.deployment.ui.resources.requests.memory=30Mi",
-						"apiServer.deployment.envoy.resources.limits.cpu=100m",
-						"apiServer.deployment.envoy.resources.limits.memory=100Mi",
-						"apiServer.deployment.envoy.resources.requests.cpu=10m",
-						"apiServer.deployment.envoy.resources.requests.memory=10Mi",
-						"apiServer.deployment.server.resources.limits.cpu=200m",
-						"apiServer.deployment.server.resources.limits.memory=200Mi",
-						"apiServer.deployment.server.resources.requests.cpu=20m",
-						"apiServer.deployment.server.resources.requests.memory=20Mi",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				// UI
-				expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
-					Limits: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("300m"),
-						v1.ResourceMemory: resource.MustParse("300Mi"),
-					},
-					Requests: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("30m"),
-						v1.ResourceMemory: resource.MustParse("30Mi"),
-					},
-				}
-
-				// Server
-				expectedDeployment.Spec.Template.Spec.Containers[1].Resources = v1.ResourceRequirements{
-					Limits: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("200m"),
-						v1.ResourceMemory: resource.MustParse("200Mi"),
-					},
-					Requests: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("20m"),
-						v1.ResourceMemory: resource.MustParse("20Mi"),
-					},
-				}
-
-				// Envoy
-				expectedDeployment.Spec.Template.Spec.Containers[2].Resources = v1.ResourceRequirements{
-					Limits: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("100m"),
-						v1.ResourceMemory: resource.MustParse("100Mi"),
-					},
-					Requests: v1.ResourceList{
-						v1.ResourceCPU:    resource.MustParse("10m"),
-						v1.ResourceMemory: resource.MustParse("10Mi"),
-					},
-				}
-
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			It("allows setting custom runAsUser", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"apiServer.deployment.runAsUser=10102"},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				uid := int64(10102)
-				expectedDeployment.Spec.Template.Spec.SecurityContext.RunAsUser = &uid
-
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			It("allows setting a custom number of replicas", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"apiServer.deployment.replicas=2"},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				customNumReplicas := int32(2)
-				expectedDeployment.Spec.Replicas = &customNumReplicas
-
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			It("correctly sets the GLOO_LICENSE_KEY env", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"apiServer.enterprise=true",
-						"license_secret_name=custom-license-secret",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				licenseKeyEnvVarSource := v1.EnvVarSource{
-					SecretKeyRef: &v1.SecretKeySelector{
-						LocalObjectReference: v1.LocalObjectReference{
-							Name: "custom-license-secret",
-						},
-						Key: "license-key",
-					},
-				}
-				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
-				for i, env := range envs {
-					if env.Name == "GLOO_LICENSE_KEY" {
-						envs[i].ValueFrom = &licenseKeyEnvVarSource
-					}
-				}
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			It("correctly sets the RBAC_NAMESPACED env", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"global.glooRbac.namespaced=true",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
-				for i, env := range envs {
-					if env.Name == NamespacedRbacEnvName {
-						envs[i].Value = "true"
-					}
-				}
-				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-			})
-
-			When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
-				const customConfigMapName = "custom-bootstrap-config"
-				var actualManifest TestManifest
-
-				BeforeEach(func() {
-					var err error
-					actualManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{
-							"apiServer.deployment.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
-						},
-					})
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
-					expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
-						{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-						{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-						{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-							LocalObjectReference: v1.LocalObjectReference{
-								Name: customConfigMapName,
-							},
-						}}},
-					}
-					actualManifest.ExpectDeploymentAppsV1(expectedDeployment)
-				})
-
-				It("does not render the default config map", func() {
-					actualManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).To(BeNil())
-				})
-
-			})
-
-			It("can be set as NodePort service", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"apiServer.service.serviceType=NodePort",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
-					if u.GetKind() != "Service" {
-						return false
-					}
-					runtimeObj, err := kuberesource.ConvertUnstructured(u)
-					Expect(err).NotTo(HaveOccurred())
-
-					service, isService := runtimeObj.(*v1.Service)
-					if isService && service.GetName() == "apiserver-ui" {
-						Expect(service.Spec.Type).To(Equal(v1.ServiceTypeNodePort), "The apiserver-ui service should be of type NodePort so it is not exposed outside the cluster")
-						return true
-					} else if !isService {
-						Fail("Unexpected casting error")
-						return false
-					} else {
-						return false
-					}
-				})
-
-				Expect(apiServerService.NumResources()).To(Equal(1), "Should have found the apiserver-ui service")
-			})
-
-			It("sits behind a service that is not exposed outside of the cluster", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
-				Expect(err).NotTo(HaveOccurred())
-				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
-					if u.GetKind() != "Service" {
-						return false
-					}
-					runtimeObj, err := kuberesource.ConvertUnstructured(u)
-					Expect(err).NotTo(HaveOccurred())
-
-					service, isService := runtimeObj.(*v1.Service)
-					if isService && service.GetName() == "apiserver-ui" {
-						Expect(service.Spec.Type).To(Equal(v1.ServiceTypeClusterIP), "The apiserver-ui service should be of type ClusterIP so it is not exposed outside the cluster")
-						return true
-					} else if !isService {
-						Fail("Unexpected casting error")
-						return false
-					} else {
-						return false
-					}
-				})
-
-				Expect(apiServerService.NumResources()).To(Equal(1), "Should have found the apiserver-ui service")
-			})
-
-			Context("pass image pull secrets", func() {
-				pullSecretName := "test-pull-secret"
-				pullSecret := []v1.LocalObjectReference{
-					{Name: pullSecretName},
-				}
-
-				It("via global values", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{fmt.Sprintf("global.image.pullSecret=%s", pullSecretName)},
-					})
-					Expect(err).NotTo(HaveOccurred())
-
-					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-
-				})
-
-				It("via podTemplate values", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{
-							fmt.Sprintf("apiServer.deployment.server.image.pullSecret=%s", pullSecretName),
-						},
-					})
-					Expect(err).NotTo(HaveOccurred())
-
-					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-				})
-
-				It("podTemplate values win over global", func() {
-					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{
-							"global.image.pullSecret=wrong",
-							fmt.Sprintf("apiServer.deployment.server.image.pullSecret=%s", pullSecretName),
-						},
-					})
-					Expect(err).NotTo(HaveOccurred())
-					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
-					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
-				})
-
-			})
-		})
-
 		Context("gloo mtls settings", func() {
 			var (
 				glooMtlsSecretVolume = v1.Volume{
@@ -2642,79 +2244,6 @@ spec:
 
 			})
 
-			It("should allow gloo-fed apiserver service to handle TLS itself using a kubernetes secret", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
-					valuesArgs: []string{"glooFedApiserver.sslSecretName=ssl-secret"},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-					return resource.GetKind() == "Deployment"
-				}).ExpectAll(func(deployment *unstructured.Unstructured) {
-					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
-					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
-					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
-					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
-
-					if structuredDeployment.GetName() == "gloo-fed-console" {
-						mode := int32(420)
-						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].Name).To(Equal("apiserver-ssl-certs"))
-						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].VolumeSource.Secret).To(Equal(&corev1.SecretVolumeSource{
-							SecretName:  "ssl-secret",
-							DefaultMode: &mode,
-						}))
-						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].VolumeMounts[1]).To(Equal(corev1.VolumeMount{
-							MountPath: "/etc/apiserver/ssl",
-							ReadOnly:  true,
-							Name:      "apiserver-ssl-certs",
-						}))
-						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Scheme).To(Equal(corev1.URISchemeHTTPS))
-					}
-				})
-
-				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-					return resource.GetKind() == "ConfigMap"
-				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
-					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
-					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
-					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
-					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
-
-					if structuredConfigMap.GetName() == "default-apiserver-envoy-config" {
-						bootstrap := bootstrapv3.Bootstrap{}
-						Expect(structuredConfigMap.Data["config.yaml"]).NotTo(BeEmpty())
-						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["config.yaml"]))
-						if err != nil {
-							Expect(err).NotTo(HaveOccurred())
-						}
-						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
-						tlsContext := tlsv3.DownstreamTlsContext{}
-						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
-						Expect(&tlsContext).To(MatchProto(&tlsv3.DownstreamTlsContext{
-							CommonTlsContext: &tlsv3.CommonTlsContext{
-								TlsCertificates: []*tlsv3.TlsCertificate{
-									{
-										CertificateChain: &corev3.DataSource{
-											Specifier: &corev3.DataSource_Filename{
-												Filename: "/etc/apiserver/ssl/tls.crt",
-											},
-										},
-										PrivateKey: &corev3.DataSource{
-											Specifier: &corev3.DataSource_Filename{
-												Filename: "/etc/apiserver/ssl/tls.key",
-											},
-										},
-									},
-								},
-							},
-						}))
-					}
-				})
-
-			})
 		})
 
 		Context("redis scaled with client-side sharding", func() {
@@ -2837,569 +2366,377 @@ spec:
 			})
 		})
 
-	})
+		Context("gloo-fed apiserver deployment", func() {
+			const defaultBootstrapConfigMapName = "gloo-fed-default-apiserver-envoy-config"
 
-	Describe("gloo with read-only ui helm tests", func() {
-		var (
-			labels           map[string]string
-			selector         map[string]string
-			manifestYaml     string
-			glooOsVersion    string
-			glooOsPullPolicy v1.PullPolicy
-		)
+			var expectedDeployment *appsv1.Deployment
 
-		BeforeEach(func() {
-
-			var err error
-			var glooEGenerationFiles = &generate.GenerationFiles{
-				Artifact:             generate.GlooE,
-				RequirementsTemplate: "../../install/helm/gloo-ee/requirements-template.yaml",
-			}
-			var glooOsWithReadOnlyUiGenerationFiles = &generate.GenerationFiles{
-				Artifact:             generate.GlooWithRoUi,
-				RequirementsTemplate: "../../install/helm/gloo-os-with-ui/requirements-template.yaml",
-			}
-			glooOsVersion, err = generate.GetGlooOsVersion(glooEGenerationFiles, glooOsWithReadOnlyUiGenerationFiles)
-			Expect(err).NotTo(HaveOccurred())
-			glooOsPullPolicy = v1.PullAlways
-
-			version = os.Getenv("TAGGED_VERSION")
-			if version == "" {
-				version = "dev"
-			} else {
-				version = version[1:]
-			}
-			manifestYaml = ""
-		})
-
-		AfterEach(func() {
-			if manifestYaml != "" {
-				err := os.Remove(manifestYaml)
-				Expect(err).ToNot(HaveOccurred())
-			}
-		})
-
-		Context("gateway", func() {
 			BeforeEach(func() {
 				labels = map[string]string{
-					"gloo":             "gateway-proxy",
-					"gateway-proxy-id": defaults.GatewayProxyName,
-					"app":              "gloo",
+					"app":      "gloo-fed",
+					"gloo-fed": "console",
 				}
 				selector = map[string]string{
-					"gateway-proxy": "live",
-				}
-			})
-
-			Context("gateway-proxy deployment", func() {
-				var (
-					gatewayProxyDeployment *appsv1.Deployment
-				)
-
-				includeStatConfig := func() {
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-stats"] = "/stats"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-ready"] = "/ready"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-config_dump"] = "/config_dump"
-					gatewayProxyDeployment.Spec.Template.ObjectMeta.Annotations["readconfig-port"] = "8082"
+					"app":      "gloo-fed",
+					"gloo-fed": "console",
 				}
 
-				BeforeEach(func() {
-					selector = map[string]string{
-						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": defaults.GatewayProxyName,
-					}
-					podLabels := map[string]string{
-						"gloo":             "gateway-proxy",
-						"gateway-proxy-id": defaults.GatewayProxyName,
-						"gateway-proxy":    "live",
-					}
-					podAnnotations := map[string]string{
-						"prometheus.io/path":   "/metrics",
-						"prometheus.io/port":   "8081",
-						"prometheus.io/scrape": "true",
-					}
-					podname := v1.EnvVar{
-						Name: "POD_NAME",
-						ValueFrom: &v1.EnvVarSource{
-							FieldRef: &v1.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
+				podname := v1.EnvVar{
+					Name: "POD_NAME",
+					ValueFrom: &v1.EnvVarSource{
+						FieldRef: &v1.ObjectFieldSelector{
+							FieldPath: "metadata.name",
 						},
-					}
+					},
+				}
 
-					container := GetQuayContainerSpec("gloo-envoy-wrapper", glooOsVersion, GetPodNamespaceEnvVar(), podname)
-					container.Name = defaults.GatewayProxyName
-					container.Args = []string{"--disable-hot-restart"}
-
-					rb := ResourceBuilder{
-						Namespace:  namespace,
-						Name:       defaults.GatewayProxyName,
-						Labels:     labels,
-						Containers: []ContainerSpec{container},
-					}
-					deploy := rb.GetDeploymentAppsv1()
-					deploy.Spec.Selector = &k8s.LabelSelector{
-						MatchLabels: selector,
-					}
-					deploy.Spec.Template.ObjectMeta.Labels = podLabels
-					deploy.Spec.Template.ObjectMeta.Annotations = podAnnotations
-					deploy.Spec.Template.Spec.Volumes = []v1.Volume{{
-						Name: "envoy-config",
-						VolumeSource: v1.VolumeSource{
-							ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{
-									Name: "gateway-proxy-envoy-config",
-								},
-							},
+				uiContainer := v1.Container{
+					Name:            "console",
+					Image:           "quay.io/solo-io/gloo-federation-console:" + version,
+					ImagePullPolicy: v1.PullIfNotPresent,
+					VolumeMounts: []v1.VolumeMount{
+						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+						{Name: "empty-run", MountPath: "/var/run"},
+					},
+					Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8090, Protocol: v1.ProtocolTCP}},
+					Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{
+							v1.ResourceCPU:    resource.MustParse("125m"),
+							v1.ResourceMemory: resource.MustParse("256Mi"),
 						},
-					}}
-					deploy.Spec.Template.Spec.Containers[0].ImagePullPolicy = glooOsPullPolicy
-					deploy.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
-						{Name: "http", ContainerPort: 8080, Protocol: "TCP"},
-						{Name: "https", ContainerPort: 8443, Protocol: "TCP"},
-					}
-					deploy.Spec.Template.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{{
-						Name:      "envoy-config",
-						ReadOnly:  false,
-						MountPath: "/etc/envoy",
-						SubPath:   "",
-					}}
-					truez := true
-					falsez := false
-					defaultUser := int64(10101)
-					deploy.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+					},
+				}
+
+				licenseEnvVar := v1.EnvVar{
+					Name: "GLOO_LICENSE_KEY",
+					ValueFrom: &v1.EnvVarSource{
+						SecretKeyRef: &v1.SecretKeySelector{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: "license",
+							},
+							Key: "license-key",
+						},
+					},
+				}
+
+				truez := true
+				falsez := false
+				grpcServerContainer := v1.Container{
+					Name:            "apiserver",
+					Image:           "quay.io/solo-io/gloo-fed-apiserver:" + version,
+					ImagePullPolicy: v1.PullIfNotPresent,
+					Ports: []v1.ContainerPort{
+						{Name: "grpc", ContainerPort: 10101, Protocol: v1.ProtocolTCP},
+						{Name: "healthcheck", HostPort: 0, ContainerPort: 8081, Protocol: v1.ProtocolTCP}},
+					Env: []v1.EnvVar{
+						GetPodNamespaceEnvVar(),
+						podname,
+						{
+							Name:  "WRITE_NAMESPACE",
+							Value: "gloo-system",
+						},
+						licenseEnvVar,
+					},
+					SecurityContext: &v1.SecurityContext{
 						Capabilities: &v1.Capabilities{
 							Drop: []v1.Capability{"ALL"},
 						},
+						RunAsUser:                aws.Int64(101),
 						ReadOnlyRootFilesystem:   &truez,
 						AllowPrivilegeEscalation: &falsez,
-						RunAsNonRoot:             &truez,
-						RunAsUser:                &defaultUser,
+					},
+					VolumeMounts: []v1.VolumeMount{
+						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
+						{Name: "empty-run", MountPath: "/var/run"},
+					},
+					Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{
+							v1.ResourceCPU:    resource.MustParse("125m"),
+							v1.ResourceMemory: resource.MustParse("256Mi"),
+						},
+					},
+				}
+
+				envoyContainer := v1.Container{
+					Name:            "envoy",
+					Image:           "quay.io/solo-io/gloo-fed-apiserver-envoy:" + version,
+					ImagePullPolicy: v1.PullIfNotPresent,
+					VolumeMounts: []v1.VolumeMount{
+						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
+					},
+					Env: []v1.EnvVar{
+						{
+							Name:  "ENVOY_UID",
+							Value: "0",
+						},
+					},
+					SecurityContext: &v1.SecurityContext{
+						RunAsUser: aws.Int64(101),
+					},
+					ReadinessProbe: &v1.Probe{
+						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
+							Path: "/",
+							Port: intstr.IntOrString{IntVal: 8090},
+						}},
+						InitialDelaySeconds: 5,
+						PeriodSeconds:       10,
+					},
+					Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{
+							v1.ResourceCPU:    resource.MustParse("125m"),
+							v1.ResourceMemory: resource.MustParse("256Mi"),
+						},
+					},
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "gloo-fed-console",
+					Labels:    labels,
+				}
+				expectedDeployment = rb.GetDeploymentAppsv1()
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+				expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+					{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+					{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+					{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: defaultBootstrapConfigMapName,
+						},
+					}}},
+				}
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{grpcServerContainer, uiContainer, envoyContainer}
+				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "gloo-fed-console"
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = nil
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nil
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
+			})
+
+			It("is there by default", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("does render the default bootstrap config map for the envoy sidecar", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
+			})
+
+			It("correctly sets resource limits", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{
+						"glooFedApiserver.console.resources.limits.cpu=300m",
+						"glooFedApiserver.console.resources.limits.memory=300Mi",
+						"glooFedApiserver.console.resources.requests.cpu=30m",
+						"glooFedApiserver.console.resources.requests.memory=30Mi",
+						"glooFedApiserver.envoy.resources.limits.cpu=100m",
+						"glooFedApiserver.envoy.resources.limits.memory=100Mi",
+						"glooFedApiserver.envoy.resources.requests.cpu=10m",
+						"glooFedApiserver.envoy.resources.requests.memory=10Mi",
+						"glooFedApiserver.resources.limits.cpu=200m",
+						"glooFedApiserver.resources.limits.memory=200Mi",
+						"glooFedApiserver.resources.requests.cpu=20m",
+						"glooFedApiserver.resources.requests.memory=20Mi",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// Apiserver
+				expectedDeployment.Spec.Template.Spec.Containers[0].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("200m"),
+						v1.ResourceMemory: resource.MustParse("200Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("20m"),
+						v1.ResourceMemory: resource.MustParse("20Mi"),
+					},
+				}
+
+				// Console
+				expectedDeployment.Spec.Template.Spec.Containers[1].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("300m"),
+						v1.ResourceMemory: resource.MustParse("300Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("30m"),
+						v1.ResourceMemory: resource.MustParse("30Mi"),
+					},
+				}
+
+				// Envoy
+				expectedDeployment.Spec.Template.Spec.Containers[2].Resources = v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("100m"),
+						v1.ResourceMemory: resource.MustParse("100Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("10m"),
+						v1.ResourceMemory: resource.MustParse("10Mi"),
+					},
+				}
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("allows setting custom runAsUser", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{"glooFedApiserver.runAsUser=10102"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				uid := int64(10102)
+				// Apiserver container
+				expectedDeployment.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser = &uid
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+
+			})
+
+			It("allows setting a custom number of replicas", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{"glooFedApiserver.replicas=2"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				customNumReplicas := int32(2)
+				expectedDeployment.Spec.Replicas = &customNumReplicas
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+
+			})
+
+			It("correctly sets the GLOO_LICENSE_KEY env", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					valuesArgs: []string{
+						"global.license_secret_name=custom-license-secret",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				licenseKeyEnvVarSource := v1.EnvVarSource{
+					SecretKeyRef: &v1.SecretKeySelector{
+						LocalObjectReference: v1.LocalObjectReference{
+							Name: "custom-license-secret",
+						},
+						Key: "license-key",
+					},
+				}
+				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
+				for i, env := range envs {
+					if env.Name == "GLOO_LICENSE_KEY" {
+						envs[i].ValueFrom = &licenseKeyEnvVarSource
 					}
+				}
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 
-					deploy.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
-						RunAsUser: &defaultUser,
-						FSGroup:   &defaultUser,
+			When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
+				const customConfigMapName = "custom-bootstrap-config"
+				var actualManifest TestManifest
+
+				BeforeEach(func() {
+					var err error
+					actualManifest, err = BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+						valuesArgs: []string{
+							"glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
+					expectedDeployment.Spec.Template.Spec.Volumes = []v1.Volume{
+						{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
+						{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
+							LocalObjectReference: v1.LocalObjectReference{
+								Name: customConfigMapName,
+							},
+						}}},
 					}
-
-					deploy.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
-
-					gatewayProxyDeployment = deploy
+					actualManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
 
-				It("creates a deployment without envoy config annotations that contains the Settings resource", func() {
-					testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
+				It("does not render the default config map", func() {
+					actualManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).To(BeNil())
+				})
+
+			})
+
+			It("sits behind a service that is not exposed outside of the cluster", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+					if u.GetKind() != "Service" {
+						return false
+					}
+					runtimeObj, err := kuberesource.ConvertUnstructured(u)
 					Expect(err).NotTo(HaveOccurred())
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-					testManifest.ExpectCustomResource("Settings", namespace, "default")
+
+					service, isService := runtimeObj.(*v1.Service)
+					if isService && service.GetName() == "gloo-fed-console" {
+						Expect(service.Spec.Type).To(Equal(v1.ServiceTypeClusterIP), "The gloo-fed-console service should be of type ClusterIP so it is not exposed outside the cluster")
+						return true
+					} else if !isService {
+						Fail("Unexpected casting error")
+						return false
+					} else {
+						return false
+					}
 				})
 
-				It("creates a deployment with envoy config annotations that contains the Settings resource", func() {
-					testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.readConfig=true"},
+				Expect(apiServerService.NumResources()).To(Equal(1), "Should have found the gloo-fed-console service")
+			})
+
+			Context("pass image pull secrets", func() {
+				pullSecretName := "test-pull-secret"
+				pullSecret := []v1.LocalObjectReference{
+					{Name: pullSecretName},
+				}
+
+				It("via global values", func() {
+					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+						valuesArgs: []string{fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName)},
 					})
 					Expect(err).NotTo(HaveOccurred())
-					includeStatConfig()
-					testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-					testManifest.ExpectCustomResource("Settings", namespace, "default")
+
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+
 				})
 
-				Context("gloo-fed apiserver deployment", func() {
-					const defaultBootstrapConfigMapName = "gloo-fed-default-apiserver-envoy-config"
-
-					var deploy *appsv1.Deployment
-
-					BeforeEach(func() {
-						labels = map[string]string{
-							"app":      "gloo-fed",
-							"gloo-fed": "console",
-						}
-						selector = map[string]string{
-							"app":      "gloo-fed",
-							"gloo-fed": "console",
-						}
-
-						console := v1.Container{
-							Name:            "console",
-							Image:           "quay.io/solo-io/gloo-federation-console:" + version,
-							ImagePullPolicy: v1.PullIfNotPresent,
-							Ports:           []v1.ContainerPort{{Name: "static", ContainerPort: 8090, Protocol: v1.ProtocolTCP}},
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									"cpu":    resource.MustParse("125m"),
-									"memory": resource.MustParse("256Mi"),
-								},
-							},
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
-								{Name: "empty-run", MountPath: "/var/run"},
-							},
-						}
-
-						readOnlyRootFilesystem := true
-						allowPrivilegeEscalation := false
-
-						uiContainer := v1.Container{
-							Name:            "apiserver",
-							Image:           "quay.io/solo-io/gloo-fed-apiserver:" + version,
-							ImagePullPolicy: v1.PullIfNotPresent,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
-								{Name: "empty-run", MountPath: "/var/run"},
-							},
-							Ports: []v1.ContainerPort{
-								{Name: "grpc", ContainerPort: 10101, Protocol: v1.ProtocolTCP},
-								{Name: "healthcheck", ContainerPort: 8081, Protocol: v1.ProtocolTCP},
-							},
-							Env: []v1.EnvVar{
-								{
-									Name: "POD_NAMESPACE",
-									ValueFrom: &v1.EnvVarSource{
-										FieldRef: &v1.ObjectFieldSelector{
-											FieldPath: "metadata.namespace",
-										},
-									},
-								},
-								{
-									Name: "POD_NAME",
-									ValueFrom: &v1.EnvVarSource{
-										FieldRef: &v1.ObjectFieldSelector{
-											FieldPath: "metadata.name",
-										},
-									},
-								},
-								{
-									Name:  "WRITE_NAMESPACE",
-									Value: "gloo-system",
-								},
-								{
-									Name: "GLOO_LICENSE_KEY",
-									ValueFrom: &v1.EnvVarSource{
-										SecretKeyRef: &v1.SecretKeySelector{
-											LocalObjectReference: v1.LocalObjectReference{
-												Name: "license",
-											},
-											Key: "license-key",
-										},
-									},
-								},
-							},
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									"cpu":    resource.MustParse("125m"),
-									"memory": resource.MustParse("256Mi"),
-								},
-							},
-							SecurityContext: &v1.SecurityContext{
-								RunAsUser: aws.Int64(101),
-								Capabilities: &v1.Capabilities{
-									Drop: []v1.Capability{"ALL"},
-								},
-								ReadOnlyRootFilesystem:   &readOnlyRootFilesystem,
-								AllowPrivilegeEscalation: &allowPrivilegeEscalation,
-							},
-						}
-
-						envoyContainer := v1.Container{
-							Name:            "envoy",
-							Image:           "quay.io/solo-io/gloo-fed-apiserver-envoy:" + version,
-							ImagePullPolicy: v1.PullIfNotPresent,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
-							},
-							ReadinessProbe: &v1.Probe{
-								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
-									Path: "/",
-									Port: intstr.IntOrString{IntVal: 8090},
-								}},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-							Env: []v1.EnvVar{
-								{
-									Name:  "ENVOY_UID",
-									Value: "0",
-								},
-							},
-							SecurityContext: &v1.SecurityContext{
-								RunAsUser: aws.Int64(101),
-							},
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									"cpu":    resource.MustParse("125m"),
-									"memory": resource.MustParse("256Mi"),
-								},
-							},
-							StdinOnce: false,
-						}
-
-						rb := ResourceBuilder{
-							Namespace: namespace,
-							Name:      "gloo-fed-console",
-							Labels:    labels,
-						}
-						deploy = rb.GetDeploymentAppsv1()
-						deploy.Spec.Selector.MatchLabels = selector
-						deploy.Spec.Template.ObjectMeta.Labels = selector
-						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
-							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-							{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{
-									Name: defaultBootstrapConfigMapName,
-								},
-							}}},
-						}
-						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, console, envoyContainer}
-						deploy.Spec.Template.Spec.ServiceAccountName = "gloo-fed-console"
-						deploy.Spec.Replicas = nil
+				It("via podTemplate values", func() {
+					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+						valuesArgs: []string{
+							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),
+						},
 					})
+					Expect(err).NotTo(HaveOccurred())
 
-					It("is there by default", func() {
-						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
-						Expect(err).NotTo(HaveOccurred())
-						testManifest.ExpectDeploymentAppsV1(deploy)
-					})
-
-					It("does render the default bootstrap config map for the envoy sidecar", func() {
-						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
-						Expect(err).NotTo(HaveOccurred())
-
-						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-							return resource.GetKind() == "ConfigMap"
-						}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
-							Expect(cfgmap).NotTo(BeNil())
-							Expect(cfgmap.GetName()).To(Equal(defaultBootstrapConfigMapName))
-						})
-					})
-
-					It("correctly sets the GLOO_LICENSE_KEY env for gloo-fed", func() {
-						testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
-							valuesArgs: []string{"license_secret_name=custom-license-secret"},
-						})
-						Expect(err).NotTo(HaveOccurred())
-
-						licenseKeyEnvVarSource := v1.EnvVarSource{
-							SecretKeyRef: &v1.SecretKeySelector{
-								LocalObjectReference: v1.LocalObjectReference{
-									Name: "custom-license-secret",
-								},
-								Key: "license-key",
-							},
-						}
-						envs := deploy.Spec.Template.Spec.Containers[0].Env
-						for i, env := range envs {
-							if env.Name == "GLOO_LICENSE_KEY" {
-								envs[i].ValueFrom = &licenseKeyEnvVarSource
-							}
-						}
-						testManifest.ExpectDeploymentAppsV1(deploy)
-					})
-
-					When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
-						const customConfigMapName = "custom-bootstrap-config"
-						var actualManifest TestManifest
-
-						BeforeEach(func() {
-							var err error
-							actualManifest, err = BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
-								valuesArgs: []string{
-									"glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
-								},
-							})
-							Expect(err).NotTo(HaveOccurred())
-						})
-
-						It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
-							deploy.Spec.Template.Spec.Volumes = []v1.Volume{
-								{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-								{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-								{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: customConfigMapName,
-									},
-								}}},
-							}
-							actualManifest.ExpectDeploymentAppsV1(deploy)
-						})
-
-						It("does not render the default config map", func() {
-							actualManifest.Expect("ConfigMap", "gloo-fed", defaultBootstrapConfigMapName).To(BeNil())
-						})
-					})
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
 
-				Context("apiserver deployment", func() {
-
-					const defaultBootstrapConfigMapName = "default-apiserver-envoy-config"
-					// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-					const apiserverVersion = "1.7.0-beta14"
-
-					var deploy *appsv1.Deployment
-
-					BeforeEach(func() {
-						labels = map[string]string{
-							"gloo": "apiserver-ui",
-							"app":  "gloo",
-						}
-						selector = map[string]string{
-							"app":  "gloo",
-							"gloo": "apiserver-ui",
-						}
-						grpcPortEnvVar := v1.EnvVar{
-							Name:  "GRPC_PORT",
-							Value: "10101",
-						}
-						rbacNamespacedEnvVar := v1.EnvVar{
-							Name:  NamespacedRbacEnvName,
-							Value: "false",
-						}
-						noAuthEnvVar := v1.EnvVar{
-							Name:  "NO_AUTH",
-							Value: "1",
-						}
-						uiContainer := v1.Container{
-							Name:            "apiserver-ui",
-							Image:           "quay.io/solo-io/grpcserver-ui:" + apiserverVersion,
-							ImagePullPolicy: v1.PullAlways,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "empty-cache", MountPath: "/var/cache/nginx"},
-								{Name: "empty-run", MountPath: "/var/run"},
-							},
-							Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8080, Protocol: v1.ProtocolTCP}},
-						}
-						grpcServerContainer := v1.Container{
-							Name:            "apiserver",
-							Image:           "quay.io/solo-io/grpcserver-ee:" + apiserverVersion,
-							ImagePullPolicy: v1.PullAlways,
-							Ports:           []v1.ContainerPort{{Name: "grpcport", ContainerPort: 10101, Protocol: v1.ProtocolTCP}},
-							Env: []v1.EnvVar{
-								GetPodNamespaceEnvVar(),
-								rbacNamespacedEnvVar,
-								grpcPortEnvVar,
-								statsEnvVar,
-								noAuthEnvVar,
-							},
-						}
-						envoyContainer := v1.Container{
-							Name:            "gloo-grpcserver-envoy",
-							Image:           "quay.io/solo-io/grpcserver-envoy:" + apiserverVersion,
-							ImagePullPolicy: v1.PullAlways,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
-							},
-							ReadinessProbe: &v1.Probe{
-								Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
-									Path: "/",
-									Port: intstr.IntOrString{IntVal: 8080},
-								}},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-							Env: []v1.EnvVar{
-								{
-									Name:  "ENVOY_UID",
-									Value: "0",
-								},
-							},
-							SecurityContext: &v1.SecurityContext{
-								RunAsUser: aws.Int64(101),
-							},
-						}
-
-						nonRootUser := int64(10101)
-						nonRoot := true
-
-						nonRootSC := &v1.PodSecurityContext{
-							RunAsUser:    &nonRootUser,
-							RunAsNonRoot: &nonRoot,
-						}
-
-						rb := ResourceBuilder{
-							Namespace: namespace,
-							Name:      "api-server",
-							Labels:    labels,
-						}
-						deploy = rb.GetDeploymentAppsv1()
-						deploy.Spec.Selector.MatchLabels = selector
-						deploy.Spec.Template.ObjectMeta.Labels = selector
-						deploy.Spec.Template.Spec.Volumes = []v1.Volume{
-							{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-							{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-							{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{
-									Name: defaultBootstrapConfigMapName,
-								},
-							}}},
-						}
-						deploy.Spec.Template.Spec.Containers = []v1.Container{uiContainer, grpcServerContainer, envoyContainer}
-						deploy.Spec.Template.Spec.ServiceAccountName = "apiserver-ui"
-						deploy.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
-						deploy.Spec.Template.Spec.SecurityContext = nonRootSC
-						deploy.Spec.Replicas = nil
+				It("podTemplate values win over global", func() {
+					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+						valuesArgs: []string{
+							"global.image.pullSecret=wrong",
+							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),
+						},
 					})
-
-					It("is there by default", func() {
-						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
-						Expect(err).NotTo(HaveOccurred())
-						testManifest.ExpectDeploymentAppsV1(deploy)
-					})
-
-					It("can customize number of replicas", func() {
-						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-							valuesArgs: []string{"apiServer.deployment.replicas=2"},
-						})
-
-						Expect(err).NotTo(HaveOccurred())
-
-						customNumReplicas := int32(2)
-						deploy.Spec.Replicas = &customNumReplicas
-
-						testManifest.ExpectDeploymentAppsV1(deploy)
-
-					})
-
-					It("does render the default bootstrap config map for the envoy sidecar", func() {
-						testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{})
-						Expect(err).NotTo(HaveOccurred())
-						testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
-					})
-
-					When("a custom bootstrap config for the API server envoy sidecar is provided", func() {
-						const customConfigMapName = "custom-bootstrap-config"
-						var actualManifest TestManifest
-
-						BeforeEach(func() {
-							var err error
-							actualManifest, err = BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-								valuesArgs: []string{
-									"apiServer.deployment.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
-								},
-							})
-							Expect(err).NotTo(HaveOccurred())
-						})
-
-						It("adds the custom config map to the API server deployment volume mounts instead of the default one", func() {
-							deploy.Spec.Template.Spec.Volumes = []v1.Volume{
-								{Name: "empty-cache", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-								{Name: "empty-run", VolumeSource: v1.VolumeSource{EmptyDir: &v1.EmptyDirVolumeSource{}}},
-								{Name: "envoy-config", VolumeSource: v1.VolumeSource{ConfigMap: &v1.ConfigMapVolumeSource{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: customConfigMapName,
-									},
-								}}},
-							}
-							actualManifest.ExpectDeploymentAppsV1(deploy)
-						})
-
-						It("does not render the default config map", func() {
-							actualManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).To(BeNil())
-						})
-					})
+					Expect(err).NotTo(HaveOccurred())
+					expectedDeployment.Spec.Template.Spec.ImagePullSecrets = pullSecret
+					testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 				})
+
 			})
 		})
+
 	})
+
 })
 
 func constructResourceID(resource *unstructured.Unstructured) string {

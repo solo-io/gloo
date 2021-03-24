@@ -17,6 +17,9 @@ metadata:
   name: gloo-fed-console
   namespace: {{ .Release.Namespace }}
 spec:
+  {{- if not (kindIs "invalid" $glooFedApiserver.replicas) }}
+  replicas: {{ $glooFedApiserver.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: gloo-fed
@@ -81,7 +84,9 @@ spec:
             memory: 256Mi
 {{- end}}
         securityContext:
-          runAsUser: 101
+          {{- if not $glooFedApiserver.floatingUserId }}
+          runAsUser: {{ printf "%.0f" (float64 $glooFedApiserver.runAsUser) -}}
+          {{- end }}
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
@@ -129,23 +134,13 @@ spec:
         readinessProbe:
           httpGet:
             path: /
-          {{- if .Values.glooFedApiserver.sslSecretName }}
-            port: 8443
-            scheme: HTTPS
-          {{- else }}
             port: 8090
-          {{- end }} {{/* .Values.glooFedApiserver.sslSecretName */}}
           periodSeconds: 10
           initialDelaySeconds: 5
         volumeMounts:
           - name: envoy-config
             mountPath: /etc/envoy
             readOnly: true
-        {{- if $.Values.glooFedApiserver.sslSecretName }}
-          - mountPath: /etc/apiserver/ssl
-            name: apiserver-ssl-certs
-            readOnly: true
-        {{- end }}
       volumes:
         - name: empty-cache
           emptyDir: {}
@@ -154,12 +149,6 @@ spec:
         - name: envoy-config
           configMap:
             name: {{ $envoy.bootstrapConfig.configMapName }}
-        {{- if $.Values.glooFedApiserver.sslSecretName }}
-        - name: apiserver-ssl-certs
-          secret:
-            defaultMode: 420
-            secretName: {{ $.Values.glooFedApiserver.sslSecretName }}
-        {{- end }}
 {{- if $glooFedApiserverImage.pullSecret }}
       imagePullSecrets:
         - name: {{ $glooFedApiserverImage.pullSecret }}
@@ -179,13 +168,8 @@ metadata:
     app: gloo-fed
     gloo: apiserver
 data:
-{{- if .Values.glooFedApiserver.sslSecretName }}
-  config.yaml: |-
-{{ .Files.Get "files/gloo-fed-ssl-apiserver-envoy-config.yaml" | indent 4 }}
-{{- else }}
   config.yaml: |-
 {{ .Files.Get "files/gloo-fed-default-apiserver-envoy-config.yaml" | indent 4 }}
-{{- end }}
 {{- end }}
 
 ---

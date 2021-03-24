@@ -156,7 +156,6 @@ check-format:
 clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf $(TEST_ASSET_DIR)
-	rm -rf install/helm/gloo-os-with-ui/templates/
 	rm -rf $(APISERVER_UI_DIR)/build
 	rm -rf $(ROOTDIR)/vendor_any
 	git clean -xdf install
@@ -540,10 +539,6 @@ cleanup-node-modules:
 .PHONY: cleanup-local-docker-images
 cleanup-local-docker-images:
 	# Remove all of the kind images
-	# TODO: remove
-	docker image rm $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14
-	docker image rm $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14
-	docker image rm $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14
 	docker images | grep solo-io | grep -v envoy-gloo-ee |xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
 	# Remove the downloaded envoy-gloo-ee image
 	docker image rm $(ENVOY_GLOO_IMAGE)
@@ -761,18 +756,14 @@ $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyin
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
 HELM_SYNC_DIR_FOR_GLOO_EE := $(OUTPUT_DIR)/helm
-HELM_SYNC_DIR_RO_UI_GLOO := $(OUTPUT_DIR)/helm_gloo_os_ui
 HELM_SYNC_DIR_GLOO_FED := $(OUTPUT_DIR)/helm_gloo_fed
 HELM_DIR := install/helm
 GLOOE_CHART_DIR := $(HELM_DIR)/gloo-ee
-GLOO_OS_UI_CHART_DIR := $(HELM_DIR)/gloo-os-with-ui
 GLOO_FED_CHART_DIR := $(HELM_DIR)/gloo-fed
 MANIFEST_DIR := install/manifest
-MANIFEST_FOR_RO_UI_GLOO := gloo-with-read-only-ui-release.yaml
 MANIFEST_FOR_GLOO_EE := glooe-release.yaml
 MANIFEST_FOR_GLOO_FED := gloo-fed-release.yaml
 GLOOE_HELM_BUCKET := gs://gloo-ee-helm
-GLOO_OS_UI_HELM_BUCKET := gs://gloo-os-ui-helm
 GLOO_FED_HELM_BUCKET := gs://gloo-fed-helm
 
 .PHONY: manifest
@@ -783,7 +774,6 @@ manifest: helm-template init-helm produce-manifests
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	mkdir -p $(HELM_SYNC_DIR_RO_UI_GLOO)
 	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
 	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
 
@@ -795,24 +785,15 @@ $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
 	helm dependency update install/helm/gloo-ee
-	# see install/helm/gloo-os-with-ui/README.md
-	mkdir -p install/helm/gloo-os-with-ui/templates
-	mkdir -p install/helm/gloo-os-with-ui/files
-	cp install/helm/gloo-ee/templates/_helpers.tpl install/helm/gloo-os-with-ui/templates/_helpers.tpl
-	cp install/helm/gloo-ee/templates/*-apiserver-*.yaml install/helm/gloo-os-with-ui/templates/
-	cp -r install/helm/gloo-ee/files install/helm/gloo-os-with-ui
-	helm dependency update install/helm/gloo-os-with-ui
 	touch $@
 
 .PHONY: produce-manifests
 produce-manifests: init-helm gloofed-produce-manifests
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
-	helm template gloo install/helm/gloo-os-with-ui --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_RO_UI_GLOO)
 
 .PHONY: package-gloo-edge-chart
 package-gloo-edge-charts: init-helm
 	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE) $(GLOOE_CHART_DIR)
-	helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO) $(GLOO_OS_UI_CHART_DIR)
 
 .PHONY: fetch-package-and-save-helm
 fetch-package-and-save-helm: init-helm package-gloo-fed-charts
@@ -823,15 +804,6 @@ ifeq ($(RELEASE),"true")
 					helm repo index $(HELM_SYNC_DIR_FOR_GLOO_EE) --merge $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
 					gsutil -m rsync $(HELM_SYNC_DIR_FOR_GLOO_EE)/charts $(GLOOE_HELM_BUCKET)/charts && \
 					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml $(GLOOE_HELM_BUCKET)/index.yaml); do \
-		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
-		sleep 2; \
-	done
-	until $$(GENERATION=$$(gsutil ls -a $(GLOO_OS_UI_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
-					gsutil cp -v $(GLOO_OS_UI_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml && \
-					helm package --destination $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(HELM_DIR)/gloo-os-with-ui >> /dev/null && \
-					helm repo index $(HELM_SYNC_DIR_RO_UI_GLOO) --merge $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml && \
-					gsutil -m rsync $(HELM_SYNC_DIR_RO_UI_GLOO)/charts $(GLOO_OS_UI_HELM_BUCKET)/charts && \
-					gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_RO_UI_GLOO)/index.yaml $(GLOO_OS_UI_HELM_BUCKET)/index.yaml); do \
 		echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 		sleep 2; \
 	done
@@ -964,13 +936,6 @@ push-kind-images: kind-test-docker-images
 	kind load docker-image $(IMAGE_REPO)/gloo-federation-console:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-fed:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) --name $(CLUSTER_NAME)
-	# TODO: remove after helm clean up
-	docker pull $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14
-	docker pull $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14
-	docker pull $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14
-	kind load docker-image $(IMAGE_REPO)/grpcserver-ee:1.7.0-beta14 --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/grpcserver-envoy:1.7.0-beta14 --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/grpcserver-ui:1.7.0-beta14 --name $(CLUSTER_NAME)
 
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
@@ -1038,16 +1003,6 @@ build-chart-with-local-gloo-dev:
 	rm install/helm/gloo-ee/charts/gloo*
 	cp ../gloo/_test/gloo-dev.tgz install/helm/gloo-ee/charts/
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
-	helm repo index $(TEST_ASSET_DIR)
-
-.PHONY: build-os-with-ui-test-chart
-build-os-with-ui-test-chart: init-helm
-	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
-	helm repo add helm-hub https://charts.helm.sh/stable
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
-	helm dependency update install/helm/gloo-os-with-ui
-	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-os-with-ui
 	helm repo index $(TEST_ASSET_DIR)
 
 #----------------------------------------------------------------------------------

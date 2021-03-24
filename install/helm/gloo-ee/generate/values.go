@@ -22,7 +22,6 @@ type Config struct {
 	Grafana             interface{}       `json:"grafana,omitempty"`
 	Prometheus          interface{}       `json:"prometheus,omitempty"`
 	Tags                map[string]string `json:"tags,omitempty"`
-	ApiServer           *ApiServer        `json:"apiServer,omitempty"`
 }
 
 // Common
@@ -165,55 +164,6 @@ type ExtAuthSigningKey struct {
 
 type ExtAuthPlugin struct {
 	Image *glooGen.Image `json:"image,omitempty"`
-}
-
-type ApiServer struct {
-	Enable bool `json:"enable,omitempty" desc:"If set, will deploy a read-only UI for Gloo"`
-	// used for gating config (like license secret) that are only relevant to the enterprise UI
-	Enterprise bool                 `json:"enterprise,omitempty"`
-	Deployment *ApiServerDeployment `json:"deployment,omitempty"`
-	Service    *ApiServerService    `json:"service,omitempty"`
-	EnableBeta bool                 `json:"enableBeta,omitempty"`
-}
-
-type ApiServerDeployment struct {
-	Server               *ApiServerServerDeployment `json:"server,omitempty"`
-	Ui                   *ApiServerUiDeployment     `json:"ui,omitempty"`
-	Envoy                *ApiServerEnvoyDeployment  `json:"envoy,omitempty"`
-	Stats                *glooGen.Stats             `json:"stats"`
-	RunAsUser            float64                    `json:"runAsUser" desc:"Explicitly set the user ID for the 3 api-server containers to run as. Default is 10101"`
-	FloatingUserId       bool                       `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraApiServerLabels map[string]string          `json:"extraApiServerLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ApiServer deployment."`
-	SslSecretName        string                     `json:"sslSecretName"`
-	*glooGen.DeploymentSpec
-}
-
-type ApiServerServerDeployment struct {
-	GrpcPort uint           `json:"grpcPort"`
-	OAuth    *OAuth         `json:"oauth,omitempty"`
-	Image    *glooGen.Image `json:"image"`
-	*glooGen.DeploymentSpec
-}
-
-type ApiServerEnvoyDeployment struct {
-	Image           *glooGen.Image                 `json:"image"`
-	BootstrapConfig *ApiServerEnvoyBootstrapConfig `json:"bootstrapConfig"`
-	*glooGen.DeploymentSpec
-}
-
-type ApiServerEnvoyBootstrapConfig struct {
-	ConfigMapName string `json:"configMapName" desc:"Name of the ConfigMap that contains the bootstrap configuration for the API server envoy sidecar. The configuration must be stored in a data entry named 'config.yaml' in the ConfigMap"`
-}
-
-type ApiServerUiDeployment struct {
-	StaticPort uint           `json:"staticPort"`
-	Image      *glooGen.Image `json:"image,omitempty"`
-	*glooGen.DeploymentSpec
-}
-
-type ApiServerService struct {
-	Name        string `json:"name"`
-	ServiceType string `json:"serviceType"`
 }
 
 type OAuth struct {

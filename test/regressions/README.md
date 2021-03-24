@@ -18,5 +18,6 @@ Then run the tests from the appropriate directory with the right env vars, e.g.:
 ```
 where `$KUBE_TEST_VAL`, is set for the test suite you want to run, i.e. one of:
 - 'gateway'
-- 'readonly'
 - 'gloomtls'
+- 'redis-clientside-sharding'
+- 'wasm'

@@ -12,8 +12,9 @@ glooFedApiserver:
   enable: true
   port: 10101
   healthCheckPort: 8081
-  sslSecretName: ""
   stats: null
+  floatingUserId: false
+  runAsUser: 101
   image:
     pullPolicy: IfNotPresent
     registry: quay.io/solo-io
@@ -49,6 +50,8 @@ glooFedApiserver:
 global:
   glooStats:
     enabled: true
+  glooMtls:
+    enabled: false
   image:
     extended: false
     pullPolicy: IfNotPresent

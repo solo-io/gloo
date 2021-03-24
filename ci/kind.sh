@@ -21,4 +21,4 @@ sed -nE 's|(\\x1b\[0m)?Successfully tagged (.*$)|\2|p' ${TEMP_FILE} | while read
 # Now that the images are loaded into kind, we can delete them locally to save some disk space
 make cleanup-local-docker-images
 
-make VERSION=kind build-test-chart-fed build-test-chart build-os-with-ui-test-chart glooctl-linux-amd64
+make VERSION=kind build-test-chart-fed build-test-chart glooctl-linux-amd64

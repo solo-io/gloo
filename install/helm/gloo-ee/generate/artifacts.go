@@ -47,15 +47,12 @@ type Artifact int
 
 const (
 	GlooE Artifact = iota
-	GlooWithRoUi
 )
 
 func ArtifactName(artifact Artifact) string {
 	switch artifact {
 	case GlooE:
 		return "GlooE"
-	case GlooWithRoUi:
-		return "Gloo OS with read-only UI"
 	default:
 		return "unknown artifact"
 	}
@@ -128,8 +125,6 @@ func (gc *GenerationConfig) generateValuesYamls() error {
 	switch gc.GenerationFiles.Artifact {
 	case GlooE:
 		return gc.generateValuesYamlForGlooE()
-	case GlooWithRoUi:
-		return gc.generateValuesYamlForGlooOsWithRoUi()
 	default:
 		return errors.New("unknown artifact specified")
 	}
@@ -159,10 +154,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
 	config.Gloo.Gateway.CertGenJob.Image.Tag = gc.OsGlooVersion
 	config.Observability.Deployment.Image.Tag = version
-	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-	config.ApiServer.Deployment.Server.Image.Tag = "1.7.0-beta14"
-	config.ApiServer.Deployment.Envoy.Image.Tag = "1.7.0-beta14"
-	config.ApiServer.Deployment.Ui.Image.Tag = "1.7.0-beta14"
 	config.Global.GlooMtls.Sds.Image.Tag = gc.OsGlooVersion
 	config.Global.GlooMtls.EnvoySidecar.Image.Tag = version
 
@@ -180,10 +171,6 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
-	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-	config.ApiServer.Deployment.Ui.Image.PullPolicy = devPullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = devPullPolicy
-	config.ApiServer.Deployment.Envoy.Image.PullPolicy = devPullPolicy
 
 	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
 		return err
@@ -223,52 +210,4 @@ func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, version, pullP
 
 	config.Global.Extensions = glooEeExtensions
 	return nil
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// generate Gloo-os with read-only ui values file
-////////////////////////////////////////////////////////////////////////////////
-
-func (gc *GenerationConfig) generateValuesYamlForGlooOsWithRoUi() error {
-	config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
-	if err != nil {
-		return err
-	}
-
-	for _, v := range config.Gloo.GatewayProxies {
-		v.PodTemplate.Image.Tag = gc.OsGlooVersion
-	}
-	if config.Gloo.IngressProxy != nil {
-		config.Gloo.IngressProxy.Deployment.Image.Tag = gc.OsGlooVersion
-	}
-	// Use open source gloo version for gloo, discovery, and gateway
-	config.Gloo.Gloo.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.AccessLogger.Image.Tag = gc.OsGlooVersion
-	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-	config.ApiServer.Deployment.Server.Image.Tag = "1.7.0-beta14"
-	config.ApiServer.Deployment.Envoy.Image.Tag = "1.7.0-beta14"
-	config.ApiServer.Deployment.Ui.Image.Tag = "1.7.0-beta14"
-
-	pullPolicy := gc.PullPolicyForVersion
-	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
-	for _, v := range config.Gloo.GatewayProxies {
-		v.PodTemplate.Image.PullPolicy = pullPolicy
-	}
-	if config.Gloo.IngressProxy != nil {
-		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
-	}
-	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
-	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
-	// TODO: remove old apiserver references once helm is refactored for gloo-fed apiserver
-	config.ApiServer.Deployment.Ui.Image.PullPolicy = devPullPolicy
-	config.ApiServer.Deployment.Server.Image.PullPolicy = devPullPolicy
-	config.ApiServer.Deployment.Envoy.Image.PullPolicy = devPullPolicy
-
-	if gc.Arguments.RepoPrefixOverride != "" {
-		config.Global.Image.Registry = gc.Arguments.RepoPrefixOverride
-	}
-
-	return writeYaml(&config, gc.GenerationFiles.ValuesOutput)
 }

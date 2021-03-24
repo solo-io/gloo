@@ -86,29 +86,4 @@ var _ = Describe("RBAC Test", func() {
 		})
 	})
 
-	Context("Gloo OS with read-only UI", func() {
-		Context("implementation-agnostic permissions", func() {
-			It("correctly assigns permissions for single-namespace gloo", func() {
-				testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"global.glooRbac.namespaced=true",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("gloo-system")
-				testManifest.ExpectPermissions(permissions)
-			})
-
-			It("correctly assigns permissions for cluster-scoped gloo", func() {
-				testManifest, err := BuildTestManifest(install.GlooOsWithUiChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"global.glooRbac.namespaced=false",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-				permissions := GetGlooWithReadOnlyUiServiceAccountPermissions("")
-				testManifest.ExpectPermissions(permissions)
-			})
-		})
-	})
 })
