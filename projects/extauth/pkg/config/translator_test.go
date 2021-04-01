@@ -5,6 +5,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/onsi/ginkgo/extensions/table"
+	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -208,6 +211,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				nil,
 				nil,
 				config.DefaultOIDCDiscoveryPollInterval,
+				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, authCfg)
@@ -501,7 +505,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
 				AuthEndpoint:  "auth.url/",
 				TokenEndpoint: "token.url/",
-				Keys:          "keys",
+				KeysUri:       "keys",
 				ResponseTypes: []string{"code"},
 				Subjects:      []string{"public"},
 				IDTokenAlgs:   []string{"HS256"},
@@ -574,6 +578,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				nil,
 				nil,
 				config.DefaultOIDCDiscoveryPollInterval,
+				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -599,11 +604,88 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				nil,
 				nil,
 				oneMinute.AsDuration(),
+				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(authService).NotTo(BeNil())
 		})
+	})
+
+	Context("jwks on demand cache refresh policy", func() {
+
+		table.DescribeTable("returns the expected cache refresh policy",
+			func(policyConfig *extauthv1.JwksOnDemandCacheRefreshPolicy, expectedCacheRefreshPolicy jwks.KeySourceFactory) {
+				oAuthConfig := &extauthv1.ExtAuthConfig{
+					AuthConfigRefName: "default.oauth2-authconfig",
+					Configs: []*extauthv1.ExtAuthConfig_Config{
+						{
+							AuthConfig: &extauthv1.ExtAuthConfig_Config_Oauth2{
+								Oauth2: &extauthv1.ExtAuthConfig_OAuth2Config{
+									OauthType: &extauthv1.ExtAuthConfig_OAuth2Config_OidcAuthorizationCode{
+										OidcAuthorizationCode: &extauthv1.ExtAuthConfig_OidcAuthorizationCodeConfig{
+											ClientId:                "client-id",
+											IssuerUrl:               "https://solo.io/",
+											AuthEndpointQueryParams: map[string]string{"some": "param"},
+											AppUrl:                  "app-url",
+											CallbackPath:            "/callback",
+											Scopes:                  []string{"foo", "bar"},
+											JwksCacheRefreshPolicy:  policyConfig,
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+
+				serviceFactory.EXPECT().NewOidcAuthorizationCodeAuthService(
+					gomock.Any(),
+					"client-id",
+					"",
+					"https://solo.io/",
+					"app-url",
+					"/callback",
+					"",
+					map[string]string{"some": "param"},
+					[]string{"foo", "bar"},
+					oidc.SessionParameters{},
+					nil,
+					nil,
+					config.DefaultOIDCDiscoveryPollInterval,
+					expectedCacheRefreshPolicy,
+				).Return(authServiceMock, nil)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			},
+			table.Entry("nil",
+				nil,
+				jwks.NewNilKeySourceFactory(),
+			),
+			table.Entry("NEVER",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Never{},
+				},
+				jwks.NewNilKeySourceFactory(),
+			),
+			table.Entry("ALWAYS",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Always{},
+				},
+				jwks.NewHttpKeySourceFactory(nil),
+			),
+			table.Entry("MAX_IDP_REQUESTS_PER_POLLING_INTERVAL",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval{
+						MaxIdpReqPerPollingInterval: 5,
+					},
+				},
+				jwks.NewMaxRequestHttpKeySourceFactory(nil, 5),
+			),
+		)
+
 	})
 })

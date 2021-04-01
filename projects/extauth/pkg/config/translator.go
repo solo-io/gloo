@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -133,7 +135,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			oidc.SessionParameters{},
 			nil,
 			nil,
-			DefaultOIDCDiscoveryPollInterval)
+			DefaultOIDCDiscoveryPollInterval,
+			jwks.NewNilKeySourceFactory())
 
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
@@ -167,6 +170,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				discoveryPollInterval = ptypes.DurationProto(DefaultOIDCDiscoveryPollInterval)
 			}
 
+			jwksOnDemandCacheRefreshPolicy := ToOnDemandCacheRefreshPolicy(oidcCfg.GetJwksCacheRefreshPolicy())
+
 			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
 				ctx,
 				oidcCfg.GetClientId(),
@@ -180,7 +185,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				sessionParameters,
 				headersConfig,
 				discoveryDataOverride,
-				discoveryPollInterval.AsDuration())
+				discoveryPollInterval.AsDuration(),
+				jwksOnDemandCacheRefreshPolicy)
 
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
@@ -444,7 +450,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 			// IssuerUrl is intentionally excluded as it cannot be overridden
 			AuthEndpoint:  discoveryOverride.GetAuthEndpoint(),
 			TokenEndpoint: discoveryOverride.GetTokenEndpoint(),
-			Keys:          discoveryOverride.GetJwksUri(),
+			KeysUri:       discoveryOverride.GetJwksUri(),
 			ResponseTypes: discoveryOverride.GetResponseTypes(),
 			Subjects:      discoveryOverride.GetSubjects(),
 			IDTokenAlgs:   discoveryOverride.GetIdTokenAlgs(),
@@ -468,4 +474,26 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 		Options:           sessionOptions,
 		RefreshIfExpired:  refreshIfExpired,
 	}, nil
+}
+
+func ToOnDemandCacheRefreshPolicy(policy *extauthv1.JwksOnDemandCacheRefreshPolicy) jwks.KeySourceFactory {
+	// The onDemandCacheRefreshPolicy determines how the JWKS cache should be refreshed when a request is made
+	// that contains a key not contained in the JWKS cache
+	switch cacheRefreshPolicy := policy.GetPolicy().(type) {
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_Never:
+		// Never refresh the cache on missing key
+		return jwks.NewNilKeySourceFactory()
+
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_Always:
+		// Always refresh the cache on missing key
+		return jwks.NewHttpKeySourceFactory(nil)
+
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval:
+		// Refresh the cache on missing key `MaxIdpReqPerPollingInterval` times per interval
+		return jwks.NewMaxRequestHttpKeySourceFactory(nil, cacheRefreshPolicy.MaxIdpReqPerPollingInterval)
+	}
+
+	// The default case is Never refresh
+	return jwks.NewNilKeySourceFactory()
+
 }

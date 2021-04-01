@@ -320,6 +320,7 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 		Headers:                 config.Headers,
 		DiscoveryOverride:       config.DiscoveryOverride,
 		DiscoveryPollInterval:   config.GetDiscoveryPollInterval(),
+		JwksCacheRefreshPolicy:  config.GetJwksCacheRefreshPolicy(),
 	}, nil
 }
 
