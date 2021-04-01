@@ -60,6 +60,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.HeaderConfiguration', null, glo
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Request', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Response', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap.ConnectionPool', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth', null, global);
@@ -5627,6 +5628,277 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearClaimsList = func
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.displayName = 'proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_ = [[1,2,3]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.PolicyCase = {
+  POLICY_NOT_SET: 0,
+  NEVER: 1,
+  ALWAYS: 2,
+  MAX_IDP_REQ_PER_POLLING_INTERVAL: 3
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.PolicyCase}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.getPolicyCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.PolicyCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    never: (f = msg.getNever()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
+    always: (f = msg.getAlways()) && google_protobuf_empty_pb.Empty.toObject(includeInstance, f),
+    maxIdpReqPerPollingInterval: jspb.Message.getFieldWithDefault(msg, 3, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy;
+  return proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setNever(value);
+      break;
+    case 2:
+      var value = new google_protobuf_empty_pb.Empty;
+      reader.readMessage(value,google_protobuf_empty_pb.Empty.deserializeBinaryFromReader);
+      msg.setAlways(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setMaxIdpReqPerPollingInterval(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getNever();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
+    );
+  }
+  f = message.getAlways();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_empty_pb.Empty.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.Empty never = 1;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.getNever = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 1));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.setNever = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.clearNever = function() {
+  this.setNever(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.hasNever = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Empty always = 2;
+ * @return {?proto.google.protobuf.Empty}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.getAlways = function() {
+  return /** @type{?proto.google.protobuf.Empty} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_empty_pb.Empty, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Empty|undefined} value */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.setAlways = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.clearAlways = function() {
+  this.setAlways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.hasAlways = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional uint32 max_idp_req_per_polling_interval = 3;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.getMaxIdpReqPerPollingInterval = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.setMaxIdpReqPerPollingInterval = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.clearMaxIdpReqPerPollingInterval = function() {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.prototype.hasMaxIdpReqPerPollingInterval = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.repeatedFields_, null);
 };
@@ -5681,7 +5953,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
-    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5772,6 +6045,11 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setDiscoveryPollInterval(value);
+      break;
+    case 13:
+      var value = new proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader);
+      msg.setJwksCacheRefreshPolicy(value);
       break;
     default:
       reader.skipField();
@@ -5886,6 +6164,14 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       12,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwksCacheRefreshPolicy();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter
     );
   }
 };
@@ -6160,6 +6446,36 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearDiscoveryPoll
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasDiscoveryPollInterval = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional JwksOnDemandCacheRefreshPolicy jwks_cache_refresh_policy = 13;
+ * @return {?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getJwksCacheRefreshPolicy = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy, 13));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setJwksCacheRefreshPolicy = function(value) {
+  jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearJwksCacheRefreshPolicy = function() {
+  this.setJwksCacheRefreshPolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasJwksCacheRefreshPolicy = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
@@ -7033,7 +7349,8 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toOb
   var f, obj = {
     introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
     clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    userIdAttributeName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -7082,6 +7399,10 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.dese
       var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
       reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setClientSecretRef(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserIdAttributeName(value);
       break;
     default:
       reader.skipField();
@@ -7132,6 +7453,13 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.seri
       3,
       f,
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserIdAttributeName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -7194,6 +7522,21 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prot
  */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.hasClientSecretRef = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string user_id_attribute_name = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getUserIdAttributeName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setUserIdAttributeName = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -9993,7 +10336,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
-    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -10083,6 +10427,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setDiscoveryPollInterval(value);
+      break;
+    case 13:
+      var value = new proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader);
+      msg.setJwksCacheRefreshPolicy(value);
       break;
     default:
       reader.skipField();
@@ -10196,6 +10545,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       12,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getJwksCacheRefreshPolicy();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter
     );
   }
 };
@@ -10455,6 +10812,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasDiscoveryPollInterval = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional JwksOnDemandCacheRefreshPolicy jwks_cache_refresh_policy = 13;
+ * @return {?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getJwksCacheRefreshPolicy = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy, 13));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setJwksCacheRefreshPolicy = function(value) {
+  jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearJwksCacheRefreshPolicy = function() {
+  this.setJwksCacheRefreshPolicy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasJwksCacheRefreshPolicy = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
@@ -11328,7 +11715,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.Introspe
   var f, obj = {
     introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
     clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    clientSecret: jspb.Message.getFieldWithDefault(msg, 3, "")
+    clientSecret: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    userIdAttributeName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -11376,6 +11764,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.Introspe
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setClientSecret(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserIdAttributeName(value);
       break;
     default:
       reader.skipField();
@@ -11427,6 +11819,13 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.Introspe
       f
     );
   }
+  f = message.getUserIdAttributeName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -11472,6 +11871,21 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.Introspe
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.setClientSecret = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string user_id_attribute_name = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.getUserIdAttributeName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation.prototype.setUserIdAttributeName = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

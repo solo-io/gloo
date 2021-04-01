@@ -296,6 +296,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					expectedScopeValidator,
 					"user-info-url",
 					config.DefaultOAuthCacheTtl,
+					"",
 				).Return(authServiceMock)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
@@ -315,6 +316,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					expectedScopeValidator,
 					"user-info-url",
 					time.Second,
+					"",
 				).Return(authServiceMock)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
@@ -370,6 +372,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					expectedScopeValidator,
 					"user-info-url",
 					config.DefaultOAuthCacheTtl,
+					"",
 				).Return(authServiceMock)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)
@@ -389,6 +392,27 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					expectedScopeValidator,
 					"user-info-url",
 					time.Second,
+					"",
+				).Return(authServiceMock)
+
+				authService, err := translator.Translate(ctx, oAuthConfig)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(authService).NotTo(BeNil())
+			})
+		})
+
+		When("a user ID attribute name has been configured", func() {
+			It("works as expected", func() {
+				oAuthConfig.Configs[0].GetOauth2().GetAccessTokenValidationConfig().GetIntrospection().UserIdAttributeName = "sub"
+				expectedScopeValidator := utils.NewMatchAllValidator([]string{"foo", "bar"})
+
+				serviceFactory.EXPECT().NewOAuth2TokenIntrospectionAuthService(
+					"client-id", "client-secret",
+					"introspection-url",
+					expectedScopeValidator,
+					"user-info-url",
+					config.DefaultOAuthCacheTtl,
+					"sub",
 				).Return(authServiceMock)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)

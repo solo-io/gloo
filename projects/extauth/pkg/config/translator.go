@@ -204,6 +204,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					scopeValidator,
 					userInfoUrl,
 					cacheTtl.AsDuration(),
+					"",
 				)
 				return authService, config.GetName().GetValue(), nil
 			case *extauthv1.ExtAuthConfig_AccessTokenValidationConfig_Introspection:
@@ -214,6 +215,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 					scopeValidator,
 					userInfoUrl,
 					cacheTtl.AsDuration(),
+					validationType.Introspection.GetUserIdAttributeName(),
 				)
 				return authService, config.GetName().GetValue(), nil
 

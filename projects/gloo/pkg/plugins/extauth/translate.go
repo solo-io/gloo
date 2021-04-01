@@ -377,9 +377,10 @@ func translateAccessTokenValidationIntrospection(snap *v1.ApiSnapshot, config *e
 	}
 
 	return &extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation{
-		IntrospectionUrl: config.GetIntrospectionUrl(),
-		ClientId:         config.GetClientId(),
-		ClientSecret:     clientSecret,
+		IntrospectionUrl:    config.GetIntrospectionUrl(),
+		ClientId:            config.GetClientId(),
+		ClientSecret:        clientSecret,
+		UserIdAttributeName: config.GetUserIdAttributeName(),
 	}, nil
 }
 

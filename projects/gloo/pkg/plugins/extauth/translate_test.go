@@ -481,9 +481,10 @@ var _ = Describe("Translate", func() {
 								AccessTokenValidation: &extauth.AccessTokenValidation{
 									ValidationType: &extauth.AccessTokenValidation_Introspection{
 										Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
-											IntrospectionUrl: "introspection-url",
-											ClientId:         "client-id",
-											ClientSecretRef:  secret.Metadata.Ref(),
+											IntrospectionUrl:    "introspection-url",
+											ClientId:            "client-id",
+											ClientSecretRef:     secret.Metadata.Ref(),
+											UserIdAttributeName: "sub",
 										},
 									},
 									CacheTimeout: ptypes.DurationProto(time.Minute),
@@ -528,8 +529,8 @@ var _ = Describe("Translate", func() {
 			Expect(actual.GetIntrospection().GetIntrospectionUrl()).To(Equal(expected.GetIntrospection().GetIntrospectionUrl()))
 			Expect(actual.GetIntrospection().GetClientId()).To(Equal(expected.GetIntrospection().GetClientId()))
 			Expect(actual.GetIntrospection().GetClientSecret()).To(Equal(clientSecret.ClientSecret))
+			Expect(actual.GetIntrospection().GetUserIdAttributeName()).To(Equal(expected.GetIntrospection().GetUserIdAttributeName()))
 			Expect(actual.GetRequiredScopes().GetScope()).To(Equal(expected.GetRequiredScopes().GetScope()))
 		})
 	})
-
 })

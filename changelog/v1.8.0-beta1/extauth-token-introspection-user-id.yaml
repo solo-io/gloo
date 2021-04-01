@@ -1,0 +1,19 @@
+changelog:
+- type: NEW_FEATURE
+  description: >
+    Add a new `user_id_attribute_name` attribute to the `AccessTokenValidation` API through which users can optionally
+    select which attribute in an OAuth2.0 token introspection response contains the ID of the resource owner.
+    The external auth server can then emit the user ID either as a header, as dynamic metadata, or both.
+  issueLink: https://github.com/solo-io/gloo/issues/4505
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.8.0-beta2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.21.3
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.14.0

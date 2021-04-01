@@ -1363,6 +1363,7 @@ spec:
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
+      replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
   ratelimitServer:
@@ -1416,6 +1417,7 @@ spec:
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
+      replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
   ratelimitServer:
@@ -1469,6 +1471,7 @@ spec:
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
+      replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
     awsOptions:
@@ -1527,6 +1530,7 @@ spec:
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
+      replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
   ratelimitServer:
@@ -1592,6 +1596,7 @@ spec:
         cluster: aws_sts_cluster
         uri: sts.us-east-2.amazonaws.com
     invalidConfigPolicy:
+      replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
   ratelimitServer:
