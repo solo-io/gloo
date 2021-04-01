@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3470
+    description: Remove duplicate values from value-template that can be solved without codegen changes.

@@ -9,62 +9,21 @@ create_license_secret: true
 license_secret_name: license
 gloo:
   settings:
-    # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
-    # which is hard. We will provide our own settings template as part of the GlooE chart.
-    create: true    
-    enableRestEds: true
     integrations:
       knative:
-        enabled: false
-        version: "0.10.0"
         proxy:
           image:
             repository: gloo-ee-envoy-wrapper
-    # Gloo allows you to directly reference a Kubernetes service as a routing destination. To enable this feature,
-    # Gloo scans the cluster for Kubernetes services and creates a special type of in-memory Upstream to represent them.
-    # If the cluster contains a lot of services and you do not restrict the namespaces Gloo is watching, this can result
-    # in significant overhead. If you do not plan on using this feature, you can set this flag to true to turn it off.
-    disableKubernetesDestinations: false
-    # Set this value to a an array of ratelimit descriptors to have rate limits on the gloo instance's installation namespace.
-    # For more info, see https://docs.solo.io/gloo/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/ratelimit/ratelimit.proto.sk/#servicesettings
-    rateLimit: {}
   gloo:
     deployment:
-      runAsUser: 10101
-      serviceAccount: {}
       image:
         repository: gloo-ee
   gatewayProxies:
     gatewayProxy:
-      envoyApiVersion: V3
-      gatewaySettings: {}
-      failover:
-        enabled: false
-        port: 15443
-        secretName: failover-downstream
-      kind:
-        deployment:
-          replicas: 1
       podTemplate:
-        probes: false
         image:
           repository: gloo-ee-envoy-wrapper
-        httpPort: 8080
-        httpsPort: 8443
-        runAsUser: 10101
-        fsGroup: 10101
-        runUnprivileged: true
-        disableNetBind: true
-        gracefulShutdown:
-          enabled: false
-          sleepTimeSeconds: 25
-        customReadinessProbe: {}
       service:
-        customPorts: []
-        type: LoadBalancer
-        # clusterIP: None
-        httpPort: 80
-        httpsPort: 443
         extraAnnotations:
           prometheus.io/scrape: "true"
           prometheus.io/path: /metrics
@@ -74,38 +33,17 @@ gloo:
             name: stats
             protocol: TCP
   discovery:
-    enabled: true
-    fdsMode: WHITELIST
-    serviceAccount: {}
     deployment:
-      runAsUser: 10101
-      fsGroup: 10101
       image:
         registry: quay.io/solo-io
   gateway:
-    ### Most true booleans, even if set in gloo's chart, need to be set again for testing. ###
-    enabled: true
-    validation:
-      enabled: true
-      failurePolicy: "Ignore"
-      secretName: gateway-validation-certs
-      alwaysAcceptResources: true
-      allowWarnings: true
-      webhook:
-        enabled: true
     deployment:
-      runAsUser: 10101
       image:
         registry: quay.io/solo-io
     updateValues: true
     certGenJob:
-      enabled: true
       image:
         registry: quay.io/solo-io
-      restartPolicy: OnFailure
-      setTtlAfterFinished: true
-      ttlSecondsAfterFinished: 60
-      runAsUser: 10101
   ingressProxy:
     deployment:
       image:
@@ -184,7 +122,6 @@ observability:
 global:
   image:
     pullPolicy: IfNotPresent
-    extended: false
   glooRbac:
     create: true
   extensions:
@@ -236,7 +173,6 @@ global:
         name: extauth-signing-key
         signing-key: ""
   glooMtls:
-    enabled: false
     sds:
       image:
         repository: sds

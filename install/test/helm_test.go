@@ -1366,6 +1366,7 @@ spec:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
@@ -1420,6 +1421,7 @@ spec:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
@@ -1474,6 +1476,7 @@ spec:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
     awsOptions:
       enableCredentialsDiscovey: true
   ratelimitServer:
@@ -1533,6 +1536,7 @@ spec:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
   ratelimitServer:
     ratelimit_server_ref:
       namespace: ` + namespace + `
@@ -1599,6 +1603,7 @@ spec:
       replaceInvalidRoutes: false
       invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
       invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `
