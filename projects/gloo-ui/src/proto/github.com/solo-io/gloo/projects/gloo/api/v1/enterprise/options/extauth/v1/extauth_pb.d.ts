@@ -809,6 +809,48 @@ export namespace DiscoveryOverride {
   }
 }
 
+export class JwksOnDemandCacheRefreshPolicy extends jspb.Message {
+  hasNever(): boolean;
+  clearNever(): void;
+  getNever(): google_protobuf_empty_pb.Empty | undefined;
+  setNever(value?: google_protobuf_empty_pb.Empty): void;
+
+  hasAlways(): boolean;
+  clearAlways(): void;
+  getAlways(): google_protobuf_empty_pb.Empty | undefined;
+  setAlways(value?: google_protobuf_empty_pb.Empty): void;
+
+  hasMaxIdpReqPerPollingInterval(): boolean;
+  clearMaxIdpReqPerPollingInterval(): void;
+  getMaxIdpReqPerPollingInterval(): number;
+  setMaxIdpReqPerPollingInterval(value: number): void;
+
+  getPolicyCase(): JwksOnDemandCacheRefreshPolicy.PolicyCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JwksOnDemandCacheRefreshPolicy.AsObject;
+  static toObject(includeInstance: boolean, msg: JwksOnDemandCacheRefreshPolicy): JwksOnDemandCacheRefreshPolicy.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JwksOnDemandCacheRefreshPolicy, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JwksOnDemandCacheRefreshPolicy;
+  static deserializeBinaryFromReader(message: JwksOnDemandCacheRefreshPolicy, reader: jspb.BinaryReader): JwksOnDemandCacheRefreshPolicy;
+}
+
+export namespace JwksOnDemandCacheRefreshPolicy {
+  export type AsObject = {
+    never?: google_protobuf_empty_pb.Empty.AsObject,
+    always?: google_protobuf_empty_pb.Empty.AsObject,
+    maxIdpReqPerPollingInterval: number,
+  }
+
+  export enum PolicyCase {
+    POLICY_NOT_SET = 0,
+    NEVER = 1,
+    ALWAYS = 2,
+    MAX_IDP_REQ_PER_POLLING_INTERVAL = 3,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -857,6 +899,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getDiscoveryPollInterval(): google_protobuf_duration_pb.Duration | undefined;
   setDiscoveryPollInterval(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasJwksCacheRefreshPolicy(): boolean;
+  clearJwksCacheRefreshPolicy(): void;
+  getJwksCacheRefreshPolicy(): JwksOnDemandCacheRefreshPolicy | undefined;
+  setJwksCacheRefreshPolicy(value?: JwksOnDemandCacheRefreshPolicy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -881,6 +928,7 @@ export namespace OidcAuthorizationCode {
     headers?: HeaderConfiguration.AsObject,
     discoveryOverride?: DiscoveryOverride.AsObject,
     discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
+    jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
   }
 }
 
@@ -1307,6 +1355,11 @@ export namespace ExtAuthConfig {
     getDiscoveryPollInterval(): google_protobuf_duration_pb.Duration | undefined;
     setDiscoveryPollInterval(value?: google_protobuf_duration_pb.Duration): void;
 
+    hasJwksCacheRefreshPolicy(): boolean;
+    clearJwksCacheRefreshPolicy(): void;
+    getJwksCacheRefreshPolicy(): JwksOnDemandCacheRefreshPolicy | undefined;
+    setJwksCacheRefreshPolicy(value?: JwksOnDemandCacheRefreshPolicy): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1331,6 +1384,7 @@ export namespace ExtAuthConfig {
       headers?: HeaderConfiguration.AsObject,
       discoveryOverride?: DiscoveryOverride.AsObject,
       discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
+      jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
     }
   }
 
