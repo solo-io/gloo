@@ -2376,6 +2376,10 @@ func (m *AccessTokenValidation_IntrospectionValidation) Hash(hasher hash.Hash64)
 		}
 	}
 
+	if _, err = hasher.Write([]byte(m.GetUserIdAttributeName())); err != nil {
+		return 0, err
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -3419,6 +3423,10 @@ func (m *ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation) Hash
 	}
 
 	if _, err = hasher.Write([]byte(m.GetClientSecret())); err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetUserIdAttributeName())); err != nil {
 		return 0, err
 	}
 
