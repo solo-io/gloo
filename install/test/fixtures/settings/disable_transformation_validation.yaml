@@ -14,7 +14,7 @@ spec:
    validation:
      alwaysAccept: true
      allowWarnings: true
-     disableTransformationValidation: false
+     disableTransformationValidation: true
      proxyValidationServerAddr: gloo:9988
  gloo:
    enableRestEds: true
@@ -23,18 +23,11 @@ spec:
    disableKubernetesDestinations: false
    disableProxyGarbageCollection: false
    invalidConfigPolicy:
-     invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run `glooctl check` to find and fix config errors.
-     invalidRouteResponseCode: 404
      replaceInvalidRoutes: false
+     invalidRouteResponseBody: Gloo Gateway has invalid configuration. Administrators should run `glooctl check` to find and fix config errors.
+     invalidRouteResponseCode: 404 
  kubernetesArtifactSource: {}
  kubernetesConfigSource: {}
  kubernetesSecretSource: {}
  refreshRate: 60s
  discoveryNamespace: {{ . }}
- rateLimit:
-   descriptors:
-     - key: generic_key
-       value: "per-second"
-       rateLimit:
-         requestsPerUnit: 2
-         unit: SECOND
