@@ -6,6 +6,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/onsi/ginkgo/extensions/table"
+	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	mocks_auth_service "github.com/solo-io/ext-auth-service/test/mocks/auth"
@@ -704,7 +707,7 @@ var _ = Describe("Config Generator", func() {
 			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
 				AuthEndpoint:  "auth.url/",
 				TokenEndpoint: "token.url/",
-				Keys:          "keys",
+				KeysUri:       "keys",
 				ResponseTypes: []string{"code"},
 				Subjects:      []string{"public"},
 				IDTokenAlgs:   []string{"HS256"},
@@ -733,6 +736,40 @@ var _ = Describe("Config Generator", func() {
 				"wrong number of fields found",
 			)
 		})
+	})
+
+	Context("jwks on demand cache refresh policy", func() {
+
+		table.DescribeTable("returns the expected cache refresh policy",
+			func(policyConfig *extauthv1.JwksOnDemandCacheRefreshPolicy, expectedCacheRefreshPolicy jwks.KeySourceFactory) {
+				Expect(config.ToOnDemandCacheRefreshPolicy(policyConfig)).To(Equal(expectedCacheRefreshPolicy))
+			},
+			table.Entry("nil",
+				nil,
+				jwks.NewNilKeySourceFactory(),
+			),
+			table.Entry("NEVER",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Never{},
+				},
+				jwks.NewNilKeySourceFactory(),
+			),
+			table.Entry("ALWAYS",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Always{},
+				},
+				jwks.NewHttpKeySourceFactory(nil),
+			),
+			table.Entry("MAX_IDP_REQUESTS_PER_POLLING_INTERVAL",
+				&extauthv1.JwksOnDemandCacheRefreshPolicy{
+					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval{
+						MaxIdpReqPerPollingInterval: 5,
+					},
+				},
+				jwks.NewMaxRequestHttpKeySourceFactory(nil, 5),
+			),
+		)
+
 	})
 
 })

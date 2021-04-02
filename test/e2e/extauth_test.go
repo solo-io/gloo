@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
@@ -16,9 +17,12 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/protobuf/ptypes"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
@@ -265,6 +269,7 @@ var _ = Describe("External auth", func() {
 				var (
 					authConfig      *extauth.AuthConfig
 					oauth2          *extauth.OAuth2_OidcAuthorizationCode
+					privateKey      *rsa.PrivateKey
 					discoveryServer fakeDiscoveryServer
 					secret          *gloov1.Secret
 					proxy           *gloov1.Proxy
@@ -273,8 +278,7 @@ var _ = Describe("External auth", func() {
 				)
 				BeforeEach(func() {
 					discoveryServer = fakeDiscoveryServer{}
-
-					discoveryServer.Start()
+					privateKey = discoveryServer.Start()
 
 					clientSecret := &extauth.OauthSecret{
 						ClientSecret: "test",
@@ -532,6 +536,220 @@ var _ = Describe("External auth", func() {
 							fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
 							return string(body), nil
 						}, "5s", "0.5s").Should(Equal("alternate-auth"))
+					})
+				})
+
+				Context("jwks on demand cache refresh policy", func() {
+					// The JWKS on demand cache refresh policy defines the behavior
+					// when an id token is provided with a key id that is not in the local OIDC store
+					//
+					// The tests make an assumption:
+					//	OIDC polls the discovery endpoint at an interval (default=15 minutes). That poll
+					//	will update the local store with the freshest keys.
+					//	These tests assume that a poll will not occur during a test. The reason
+					//  we're comfortable with this assumption is that each test writes a new AuthConfig,
+					//	which in turn creates a new AuthService, which restarts the polling. Therefore,
+					//	a discovery poll should not occur during a test.
+
+					// A request with valid token will return 200
+					expectRequestWithTokenSucceeds := func(offset int, token string) {
+						EventuallyWithOffset(offset+1, func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							req.Header.Add("Authorization", "Bearer "+token)
+
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(http.StatusOK))
+					}
+
+					// A request with invalid token will be redirected to the /auth endoint
+					expectRequestWithTokenFails := func(offset int, token string) {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								// stop at the auth point
+								if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+									return http.ErrUseLastResponse
+								}
+								return nil
+							},
+						}
+
+						EventuallyWithOffset(offset+1, func() (string, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							req.Header.Add("Authorization", "Bearer "+token)
+
+							resp, err := client.Do(req)
+							if err != nil {
+								return "", err
+							}
+							body, err := ioutil.ReadAll(resp.Body)
+							if err != nil {
+								return "", err
+							}
+							return string(body), nil
+						}, "5s", "0.5s").Should(Equal("auth"))
+					}
+
+					// create an id token
+					createIdTokenWithKid := func(kid string) string {
+						tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+							"foo": "bar",
+							"aud": "test-clientid",
+							"sub": "user",
+							"iss": "http://localhost:5556",
+						})
+						tokenToSign.Header["kid"] = kid
+						token, err := tokenToSign.SignedString(privateKey)
+						Expect(err).NotTo(HaveOccurred())
+
+						return token
+					}
+
+					JustBeforeEach(func() {
+						// Ensure that keys have been loaded properly
+						validToken := createIdTokenWithKid(discoveryServer.getValidKeyId())
+						expectRequestWithTokenSucceeds(0, validToken)
+					})
+
+					When("policy is nil or NEVER", func() {
+
+						BeforeEach(func() {
+							oauth2.OidcAuthorizationCode.JwksCacheRefreshPolicy = nil
+						})
+
+						It("should accept token with valid kid", func() {
+							validToken := createIdTokenWithKid(discoveryServer.getValidKeyId())
+							expectRequestWithTokenSucceeds(0, validToken)
+						})
+
+						It("should deny token with new kid", func() {
+							invalidToken := createIdTokenWithKid("kid-2")
+							expectRequestWithTokenFails(0, invalidToken)
+						})
+
+						It("should deny token with new kid after keys rotate", func() {
+							// rotate the keys
+							discoveryServer.updateKeyIds([]string{"kid-2"})
+
+							// execute a request with the valid token
+							// it should be denied because the local cache is never updated
+							newToken := createIdTokenWithKid("kid-2")
+							expectRequestWithTokenFails(0, newToken)
+						})
+
+					})
+
+					When("policy is ALWAYS", func() {
+
+						BeforeEach(func() {
+							oauth2.OidcAuthorizationCode.JwksCacheRefreshPolicy = &extauth.JwksOnDemandCacheRefreshPolicy{
+								Policy: &extauth.JwksOnDemandCacheRefreshPolicy_Always{},
+							}
+						})
+
+						It("should accept token with valid kid", func() {
+							validToken := createIdTokenWithKid(discoveryServer.getValidKeyId())
+							expectRequestWithTokenSucceeds(0, validToken)
+						})
+
+						It("should deny token with new kid", func() {
+							invalidToken := createIdTokenWithKid("kid-2")
+							expectRequestWithTokenFails(0, invalidToken)
+						})
+
+						It("should accept token with new kid after keys rotate", func() {
+							for i := 0; i < 5; i++ {
+								// rotate the keys
+								newKid := fmt.Sprintf("kid-new-%d", i)
+								discoveryServer.updateKeyIds([]string{newKid})
+
+								// execute a request using the new token
+								// it should be accepted because the local cache gets updated
+								validToken := createIdTokenWithKid(newKid)
+								expectRequestWithTokenSucceeds(0, validToken)
+							}
+						})
+					})
+
+					When("policy is MAX_IDP_REQUESTS_PER_POLLING_INTERVAL", func() {
+
+						// The number of refreshes to allow before rate limiting
+						// This test is subject to flakes because it relies on the behavior of OIDC
+						// polling the discovery endpoint at an interval. To ensure that we complete the maxRequests
+						// before the polling occurs, set the value to 1.
+						const maxRequests = 1
+
+						// The kid that will be rate limited
+						const rateLimitedKid = "kid-ratelimited"
+
+						expectRequestWithNewKidAcceptedNTimes := func() {
+							// The first n times should succeed
+							for i := 1; i <= maxRequests; i++ {
+								// rotate the keys
+								newKid := fmt.Sprintf("kid-new-%d", i)
+								discoveryServer.updateKeyIds([]string{newKid})
+
+								// execute a request using the new token
+								// it should be accepted because the local cache gets updated
+								validToken := createIdTokenWithKid(newKid)
+								expectRequestWithTokenSucceeds(1, validToken)
+							}
+
+							// rotate the keys one more time
+							discoveryServer.updateKeyIds([]string{rateLimitedKid})
+
+							// execute a request using the new token
+							// it should be rejected because the local cache no longer will be updated
+							newToken := createIdTokenWithKid(rateLimitedKid)
+							expectRequestWithTokenFails(1, newToken)
+						}
+
+						BeforeEach(func() {
+							oauth2.OidcAuthorizationCode.JwksCacheRefreshPolicy = &extauth.JwksOnDemandCacheRefreshPolicy{
+								Policy: &extauth.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval{
+									MaxIdpReqPerPollingInterval: maxRequests,
+								},
+							}
+						})
+
+						It("should accept token with valid kid", func() {
+							validToken := createIdTokenWithKid(discoveryServer.getValidKeyId())
+							expectRequestWithTokenSucceeds(0, validToken)
+						})
+
+						It("should deny token with new kid", func() {
+							invalidToken := createIdTokenWithKid("kid-2")
+							expectRequestWithTokenFails(0, invalidToken)
+						})
+
+						It("should accept token with new kid after keys rotate first n times", func() {
+							expectRequestWithNewKidAcceptedNTimes()
+						})
+
+						Context("after discovery poll interval", func() {
+							// The rate limit is set per discovery interval, so after that interval
+							// the rate limit should be reset.
+
+							BeforeEach(func() {
+								// Set the poll interval to a relatively short period
+								oauth2.OidcAuthorizationCode.DiscoveryPollInterval = ptypes.DurationProto(time.Second * 4)
+							})
+
+							It("should reset rate limit", func() {
+								expectRequestWithNewKidAcceptedNTimes()
+
+								// Create a new token with the rate limited kid
+								// Eventually this should be accepted, which indicates that a discovery poll occurred
+								newToken := createIdTokenWithKid(rateLimitedKid)
+								expectRequestWithTokenSucceeds(0, newToken)
+
+								expectRequestWithNewKidAcceptedNTimes()
+							})
+						})
+
 					})
 				})
 
@@ -1469,7 +1687,7 @@ var _ = Describe("External auth", func() {
 						"sub": "user",
 						"iss": "http://localhost:5556",
 					})
-					tokenToSign.Header["kid"] = "test-123"
+					tokenToSign.Header["kid"] = discoveryServer.getValidKeyId()
 					token, err = tokenToSign.SignedString(privateKey)
 					Expect(err).NotTo(HaveOccurred())
 				})
@@ -1775,6 +1993,9 @@ type fakeDiscoveryServer struct {
 	createExpiredToken bool
 	token              string
 	lastGrant          string
+
+	// The set of key IDs that are supported by the server
+	keyIds []string
 }
 
 func (f *fakeDiscoveryServer) Stop() {
@@ -1803,13 +2024,27 @@ func (f *fakeDiscoveryServer) updateToken(grantType string) {
 	}
 
 	tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	tokenToSign.Header["kid"] = "test-123"
+	tokenToSign.Header["kid"] = f.getValidKeyId()
 	token, err := tokenToSign.SignedString(cachedPrivateKey)
 	Expect(err).NotTo(HaveOccurred())
 	f.token = token
 }
 
+func (f *fakeDiscoveryServer) updateKeyIds(keyIds []string) {
+	if len(keyIds) > 0 {
+		f.keyIds = keyIds
+	}
+}
+
+func (f *fakeDiscoveryServer) getValidKeyId() string {
+	// If there is more than one valid kid, return the first one
+	return f.keyIds[0]
+}
+
 func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
+	// Initialize the server with 1 valid kid
+	f.keyIds = []string{"kid-1"}
+
 	f.updateToken("")
 	n := base64.RawURLEncoding.EncodeToString(cachedPrivateKey.N.Bytes())
 	e := base64.RawURLEncoding.EncodeToString(big.NewInt(0).SetUint64(uint64(cachedPrivateKey.E)).Bytes())
@@ -1890,20 +2125,28 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			 }
 	`))
 		case "/keys":
-			_, _ = rw.Write([]byte(`
-		{
-			"keys": [
-			  {
-				"use": "sig",
-				"kty": "RSA",
-				"kid": "test-123",
-				"alg": "RS256",
-				"n": "` + n + `",
-				"e": "` + e + `"
-			  }
-			]
-		  }
-		`))
+			var keyListBuffer bytes.Buffer
+			for _, kid := range f.keyIds {
+				keyListBuffer.WriteString(`
+				{
+					"use": "sig",
+					"kty": "RSA",
+					"kid": "` + kid + `",
+					"alg": "RS256",
+					"n": "` + n + `",
+					"e": "` + e + `"
+				},`)
+			}
+			// Remove the last comma so it's valid json
+			keyList := strings.TrimSuffix(keyListBuffer.String(), ",")
+			keysResponse := `
+			{
+				"keys": [
+				    ` + keyList + `
+				]
+			}
+			`
+			_, _ = rw.Write([]byte(keysResponse))
 		}
 	})
 

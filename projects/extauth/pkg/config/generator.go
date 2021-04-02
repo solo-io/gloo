@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+
 	structpb "github.com/golang/protobuf/ptypes/struct"
 
 	jwtextauth "github.com/solo-io/ext-auth-service/pkg/config/jwt"
@@ -353,7 +355,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 			// IssuerUrl is intentionally excluded as it cannot be overridden
 			AuthEndpoint:  discoveryOverride.GetAuthEndpoint(),
 			TokenEndpoint: discoveryOverride.GetTokenEndpoint(),
-			Keys:          discoveryOverride.GetJwksUri(),
+			KeysUri:       discoveryOverride.GetJwksUri(),
 			ResponseTypes: discoveryOverride.GetResponseTypes(),
 			Subjects:      discoveryOverride.GetSubjects(),
 			IDTokenAlgs:   discoveryOverride.GetIdTokenAlgs(),
@@ -377,6 +379,28 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 		Options:           sessionOptions,
 		RefreshIfExpired:  refreshIfExpired,
 	}, nil
+}
+
+func ToOnDemandCacheRefreshPolicy(policy *extauthv1.JwksOnDemandCacheRefreshPolicy) jwks.KeySourceFactory {
+	// The onDemandCacheRefreshPolicy determines how the JWKS cache should be refreshed when a request is made
+	// that contains a key not contained in the JWKS cache
+	switch cacheRefreshPolicy := policy.GetPolicy().(type) {
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_Never:
+		// Never refresh the cache on missing key
+		return jwks.NewNilKeySourceFactory()
+
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_Always:
+		// Always refresh the cache on missing key
+		return jwks.NewHttpKeySourceFactory(nil)
+
+	case *extauthv1.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval:
+		// Refresh the cache on missing key `MaxIdpReqPerPollingInterval` times per interval
+		return jwks.NewMaxRequestHttpKeySourceFactory(nil, cacheRefreshPolicy.MaxIdpReqPerPollingInterval)
+	}
+
+	// The default case is Never refresh
+	return jwks.NewNilKeySourceFactory()
+
 }
 
 func (c *configGenerator) authConfigToService(
@@ -403,7 +427,8 @@ func (c *configGenerator) authConfigToService(
 		}
 		cfg.Oauth.IssuerUrl = addTrailingSlash(cfg.Oauth.IssuerUrl)
 		iss, err := oidc.NewIssuer(ctx, cfg.Oauth.ClientId, cfg.Oauth.ClientSecret, cfg.Oauth.IssuerUrl, cfg.Oauth.AppUrl, cb,
-			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil, DefaultOIDCDiscoveryPollInterval)
+			"", cfg.Oauth.AuthEndpointQueryParams, cfg.Oauth.Scopes, stateSigner, oidc.SessionParameters{}, nil, nil, DefaultOIDCDiscoveryPollInterval,
+			jwks.NewNilKeySourceFactory())
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
 		}
@@ -436,8 +461,11 @@ func (c *configGenerator) authConfigToService(
 				discoveryPollInterval = ptypes.DurationProto(DefaultOIDCDiscoveryPollInterval)
 			}
 
+			jwksOnDemandCacheRefreshPolicy := ToOnDemandCacheRefreshPolicy(oidcCfg.GetJwksCacheRefreshPolicy())
+
 			iss, err := oidc.NewIssuer(ctx, oidcCfg.ClientId, oidcCfg.ClientSecret, oidcCfg.IssuerUrl, oidcCfg.AppUrl, cb,
-				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride, discoveryPollInterval.AsDuration())
+				oidcCfg.LogoutPath, oidcCfg.AuthEndpointQueryParams, oidcCfg.Scopes, stateSigner, sessionParameters, headersConfig, discoveryDataOverride, discoveryPollInterval.AsDuration(),
+				jwksOnDemandCacheRefreshPolicy)
 			if err != nil {
 				return nil, config.GetName().GetValue(), err
 			}
