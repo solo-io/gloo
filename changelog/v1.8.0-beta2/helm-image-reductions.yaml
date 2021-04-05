@@ -1,0 +1,14 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/3470
+    description: Remove duplicate helm values, mostly from the image struct.
+  - type: DEPENDENCY_BUMP
+    description: Bumped the version of gloo to pick up the new changelog feature.
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.8.0-beta3
+  - type: DEPENDENCY_BUMP
+    description: Bumped the version of solo-apis to stay in lockstep
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: v0.0.0-20210405184923-dcd5cae33238

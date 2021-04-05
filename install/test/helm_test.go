@@ -1355,6 +1355,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
       allowWarnings: true
   gloo:
     enableRestEds: true
@@ -1410,6 +1411,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
       allowWarnings: true
   gloo:
     enableRestEds: true
@@ -1465,6 +1467,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
       allowWarnings: true
   gloo:
     enableRestEds: true
@@ -1525,6 +1528,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
       allowWarnings: true
   gloo:
     enableRestEds: true
@@ -1588,6 +1592,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
       allowWarnings: true
   gloo:
     enableRestEds: true

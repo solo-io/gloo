@@ -3,6 +3,8 @@ package generate
 import (
 	"os"
 
+	"github.com/solo-io/gloo/install/helm/gloo/generate"
+
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/ghodss/yaml"
@@ -140,7 +142,11 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 		return err
 	}
 
-	version := gc.Arguments.Version
+	version := &gc.Arguments.Version
+	tag := &gc.OsGlooVersion
+	if tag == nil {
+		tag = version
+	}
 	config.Gloo.Gloo.Deployment.Image.Tag = version
 	for _, v := range config.Gloo.GatewayProxies {
 		v.PodTemplate.Image.Tag = version
@@ -150,34 +156,68 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	}
 	config.Gloo.Settings.Integrations.Knative.Proxy.Image.Tag = version
 	// Use open source gloo version for discovery and gateway
-	config.Gloo.Discovery.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.Gateway.Deployment.Image.Tag = gc.OsGlooVersion
-	config.Gloo.Gateway.CertGenJob.Image.Tag = gc.OsGlooVersion
+
+	// This code used to assume that all relavant structs were already instantiated.
+	// But since we no longer duplicate certain most values between the OS and enterprise
+	// values-template.yaml file, we need to nil check and create several values that
+	// are no longer present in the default enterprise values-template.
+	if config.Gloo.Discovery == nil {
+		config.Gloo.Discovery = &generate.Discovery{}
+	}
+	if config.Gloo.Discovery.Deployment == nil {
+		config.Gloo.Discovery.Deployment = &generate.DiscoveryDeployment{}
+	}
+	config.Gloo.Discovery.Deployment.Image.Tag = tag
+
+	if config.Gloo.Gateway == nil {
+		config.Gloo.Gateway = &generate.Gateway{}
+	}
+	if config.Gloo.Gateway.Deployment == nil {
+		config.Gloo.Gateway.Deployment = &generate.GatewayDeployment{}
+	}
+	if config.Gloo.Gateway.Deployment.Image == nil {
+		config.Gloo.Gateway.Deployment.Image = &generate.Image{}
+	}
+	config.Gloo.Gateway.Deployment.Image.Tag = tag
+
+	if config.Gloo.Gateway.CertGenJob == nil {
+		config.Gloo.Gateway.CertGenJob = &generate.CertGenJob{}
+	}
+	if config.Gloo.Gateway.CertGenJob.Image == nil {
+		config.Gloo.Gateway.CertGenJob.Image = &generate.Image{}
+	}
+	config.Gloo.Gateway.CertGenJob.Image.Tag = tag
+
 	config.Observability.Deployment.Image.Tag = version
-	config.Global.GlooMtls.Sds.Image.Tag = gc.OsGlooVersion
+
+	if config.Global.GlooMtls.Sds.Image == nil {
+		config.Global.GlooMtls.Sds.Image = &generate.Image{}
+	}
+	config.Global.GlooMtls.Sds.Image.Tag = tag
 	config.Global.GlooMtls.EnvoySidecar.Image.Tag = version
 
 	pullPolicy := gc.PullPolicyForVersion
-	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.Gloo.Deployment.Image.PullPolicy = &pullPolicy
 	for _, v := range config.Gloo.GatewayProxies {
-		v.PodTemplate.Image.PullPolicy = pullPolicy
+		v.PodTemplate.Image.PullPolicy = &pullPolicy
 	}
 	if config.Gloo.IngressProxy != nil {
-		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = &pullPolicy
 	}
-	config.Gloo.Settings.Integrations.Knative.Proxy.Image.PullPolicy = pullPolicy
-	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
-	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
-	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = pullPolicy
-	config.Observability.Deployment.Image.PullPolicy = pullPolicy
-	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 
-	if err = updateExtensionsImageVersionAndPullPolicy(config, version, pullPolicy); err != nil {
+	config.Gloo.Settings.Integrations.Knative.Proxy.Image.PullPolicy = &pullPolicy
+	config.Gloo.Discovery.Deployment.Image.PullPolicy = &pullPolicy
+	config.Gloo.Gateway.Deployment.Image.PullPolicy = &pullPolicy
+	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = &pullPolicy
+	config.Observability.Deployment.Image.PullPolicy = &pullPolicy
+	config.Redis.Deployment.Image.PullPolicy = &pullPolicy
+
+	if err = updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, version); err != nil {
 		return err
 	}
 
 	if gc.Arguments.RepoPrefixOverride != "" {
-		config.Global.Image.Registry = gc.Arguments.RepoPrefixOverride
+		config.Global.Image.Registry = &gc.Arguments.RepoPrefixOverride
 	}
 
 	if err := writeYaml(&config, gc.GenerationFiles.ValuesOutput); err != nil {
@@ -186,7 +226,7 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	return nil
 }
 
-func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, version, pullPolicy string) (err error) {
+func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, pullPolicy string, version *string) (err error) {
 	bytes, err := yaml.Marshal(config.Global.Extensions)
 	if err != nil {
 		return err
@@ -197,16 +237,16 @@ func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, version, pullP
 		return err
 	}
 	// Extauth and rate-limit are both referenced in Values.gloo.settings, and thus need to be retro-typed
-	// to avoid type-leakage into gloo-OS. Beause helm doesn't like dooing this, we must also place these in
-	// the `.Values.global.` struct.
+	// to avoid type-leakage into gloo-OS. Because helm like re-typing values defined in imported charts,
+	// we must also place these in the shared `.Values.global.` struct.
 	// The following code simply applies the version/pull policy cohesion that generateValuesYamlForGlooE() does
 	// for everything else.
 
 	glooEeExtensions.ExtAuth.Deployment.Image.Tag = version
-	glooEeExtensions.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
+	glooEeExtensions.ExtAuth.Deployment.Image.PullPolicy = &pullPolicy
 
 	glooEeExtensions.RateLimit.Deployment.Image.Tag = version
-	glooEeExtensions.RateLimit.Deployment.Image.PullPolicy = pullPolicy
+	glooEeExtensions.RateLimit.Deployment.Image.PullPolicy = &pullPolicy
 
 	config.Global.Extensions = glooEeExtensions
 	return nil

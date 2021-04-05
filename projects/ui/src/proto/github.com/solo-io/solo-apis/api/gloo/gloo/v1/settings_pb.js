@@ -5802,7 +5802,8 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject = function(includeI
     ignoreGlooValidationFailure: jspb.Message.getFieldWithDefault(msg, 5, false),
     alwaysAccept: (f = msg.getAlwaysAccept()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    warnRouteShortCircuiting: (f = msg.getWarnRouteShortCircuiting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    warnRouteShortCircuiting: (f = msg.getWarnRouteShortCircuiting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    disableTransformationValidation: (f = msg.getDisableTransformationValidation()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5869,6 +5870,11 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader 
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setWarnRouteShortCircuiting(value);
+      break;
+    case 9:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setDisableTransformationValidation(value);
       break;
     default:
       reader.skipField();
@@ -5947,6 +5953,14 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter = fu
   if (f != null) {
     writer.writeMessage(
       8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisableTransformationValidation();
+  if (f != null) {
+    writer.writeMessage(
+      9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -6103,6 +6117,36 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearWarnRouteShor
  */
 proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasWarnRouteShortCircuiting = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue disable_transformation_validation = 9;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getDisableTransformationValidation = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setDisableTransformationValidation = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearDisableTransformationValidation = function() {
+  this.setDisableTransformationValidation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasDisableTransformationValidation = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

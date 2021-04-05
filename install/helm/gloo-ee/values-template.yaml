@@ -32,18 +32,8 @@ gloo:
           - containerPort: 8081
             name: stats
             protocol: TCP
-  discovery:
-    deployment:
-      image:
-        registry: quay.io/solo-io
   gateway:
-    deployment:
-      image:
-        registry: quay.io/solo-io
     updateValues: true
-    certGenJob:
-      image:
-        registry: quay.io/solo-io
   ingressProxy:
     deployment:
       image:
@@ -173,9 +163,6 @@ global:
         name: extauth-signing-key
         signing-key: ""
   glooMtls:
-    sds:
-      image:
-        repository: sds
     envoy:
       image:
         repository: gloo-ee-envoy-wrapper
