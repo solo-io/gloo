@@ -1267,6 +1267,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1314,6 +1315,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1366,6 +1368,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1421,6 +1424,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1431,6 +1435,53 @@ spec:
       serviceAccountCredentials:
         cluster: aws_sts_cluster
         uri: sts.us-east-2.amazonaws.com
+  ratelimitServer:
+    ratelimit_server_ref: 
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+			It("can disable transformation validation", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.gateway.validation.disableTransformationValidation=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth: 
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: true
+  gloo:
+    enableRestEds: true
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
   ratelimitServer:
     ratelimit_server_ref: 
       namespace: ` + namespace + `

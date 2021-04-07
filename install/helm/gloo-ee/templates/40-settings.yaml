@@ -50,6 +50,7 @@ spec:
     validation:
       proxyValidationServerAddr: "gloo:{{ .Values.gloo.gloo.deployment.validationPort }}"
       alwaysAccept: {{ .Values.gloo.gateway.validation.alwaysAcceptResources }}
+      disableTransformationValidation: {{ .Values.gloo.gateway.validation.disableTransformationValidation }}
 {{- end }}
 
 {{- if .Values.gloo.discovery.fdsMode }}
