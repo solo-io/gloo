@@ -890,6 +890,11 @@ export namespace GatewayOptions {
     getWarnRouteShortCircuiting(): google_protobuf_wrappers_pb.BoolValue | undefined;
     setWarnRouteShortCircuiting(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+    hasDisableTransformationValidation(): boolean;
+    clearDisableTransformationValidation(): void;
+    getDisableTransformationValidation(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setDisableTransformationValidation(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ValidationOptions.AsObject;
     static toObject(includeInstance: boolean, msg: ValidationOptions): ValidationOptions.AsObject;
@@ -909,6 +914,7 @@ export namespace GatewayOptions {
       alwaysAccept?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       allowWarnings?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       warnRouteShortCircuiting?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      disableTransformationValidation?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 }
