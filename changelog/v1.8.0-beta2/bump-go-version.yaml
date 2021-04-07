@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the go version for go.mod and extauth
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.16

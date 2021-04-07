@@ -580,7 +580,7 @@ $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linu
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-EXTAUTH_GO_BUILD_IMAGE=golang:1.15.2-alpine
+EXTAUTH_GO_BUILD_IMAGE=golang:1.16.2-alpine
 EXTAUTH_OUT_DIR=$(OUTPUT_DIR)/extauth
 RELATIVE_EXTAUTH_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth
 _ := $(shell mkdir -p $(EXTAUTH_OUT_DIR))
