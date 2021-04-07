@@ -8,7 +8,18 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync/atomic"
 	"time"
+
+	"github.com/onsi/ginkgo/config"
+
+	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
+	"github.com/solo-io/rate-limiter/pkg/cache/redis"
+
+	ratelimitserver "github.com/solo-io/rate-limiter/pkg/server"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -40,28 +51,41 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
+var (
+	baseRateLimitPort = uint32(18081)
+)
+
 var _ = Describe("Rate Limit Local E2E", func() {
 
 	var (
-		ctx             context.Context
-		cancel          context.CancelFunc
-		testClients     services.TestClients
-		redisSession    *gexec.Session
-		isServerHealthy func() (bool, error)
-		glooSettings    *gloov1.Settings
-		cache           memory.InMemoryResourceCache
-		rlAddr          string
+		ctx              context.Context
+		cancel           context.CancelFunc
+		testClients      services.TestClients
+		redisSession     *gexec.Session
+		glooSettings     *gloov1.Settings
+		cache            memory.InMemoryResourceCache
+		rlAddr           string
+		isServerHealthy  func() (bool, error)
+		rlServerSettings ratelimitserver.Settings
 	)
 
 	const (
 		redisAddr     = "127.0.0.1"
 		redisPort     = uint32(6379)
 		rateLimitAddr = "127.0.0.1"
-		rateLimitPort = uint32(18081)
 	)
 
 	BeforeEach(func() {
 		glooSettings = &gloov1.Settings{}
+
+		rlServerSettings = ratelimitserver.NewSettings()
+		rlServerSettings.HealthFailTimeout = 2 // seconds
+		rlServerSettings.RateLimitPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(config.GinkgoConfig.ParallelNode))
+		rlServerSettings.ReadyPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(config.GinkgoConfig.ParallelNode))
+
+		// Tests are responsible for managing these settings
+		rlServerSettings.RedisSettings = redis.Settings{}
+		rlServerSettings.DynamoDbSettings = dynamodb.Settings{}
 	})
 
 	runAllTests := func() {
@@ -82,14 +106,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				envoyInstance.RatelimitAddr = rateLimitAddr
-				envoyInstance.RatelimitPort = rateLimitPort
+				envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
 				rlAddr = envoyInstance.LocalAddr()
 
 				err = envoyInstance.Run(testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
 
 				testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-
 				var opts clients.WriteOpts
 				up := testUpstream.Upstream
 				_, err = testClients.UpstreamClient.Write(up, opts)
@@ -875,6 +898,65 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 			})
 
+			Context("health checker", func() {
+
+				Context("should pass after receiving xDS config from gloo", func() {
+
+					It("without rate limit configs", func() {
+						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
+						Consistently(isServerHealthy, "3s", ".1s").Should(BeTrue())
+					})
+
+					It("with rate limit configs", func() {
+						// Creates a proxy with a rate limit configuration
+						proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+							build()
+
+						_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
+						Consistently(isServerHealthy, "3s", ".1s").Should(BeTrue())
+					})
+
+				})
+
+				Context("shutdown", func() {
+
+					It("should fail healthcheck immediately on shutdown", func() {
+						Eventually(isServerHealthy, "10s", ".1s").Should(BeTrue())
+
+						conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", rlServerSettings.RateLimitPort), grpc.WithInsecure())
+						Expect(err).NotTo(HaveOccurred())
+						defer conn.Close()
+						healthCheckClient := grpc_health_v1.NewHealthClient(conn)
+
+						// Start sending health checking requests continuously
+						waitForHealthcheckFail := make(chan struct{})
+						go func(waitForHealthcheckFail chan struct{}) {
+							defer GinkgoRecover()
+							Eventually(func() (bool, error) {
+								ctx = context.Background()
+								var header metadata.MD
+								healthCheckClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+									Service: rlServerSettings.GrpcServiceName,
+								}, grpc.Header(&header))
+								return len(header.Get("x-envoy-immediate-health-check-fail")) == 1, nil
+							}, "5s", ".1s").Should(BeTrue())
+							waitForHealthcheckFail <- struct{}{}
+						}(waitForHealthcheckFail)
+
+						// Start the health checker first, then cancel
+						time.Sleep(200 * time.Millisecond)
+						cancel()
+						Eventually(waitForHealthcheckFail, "5s", ".1s").Should(Receive())
+					})
+
+				})
+
+			})
+
 		})
 	}
 
@@ -890,7 +972,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				Static: &gloov1static.UpstreamSpec{
 					Hosts: []*gloov1static.Host{{
 						Addr: rlAddr,
-						Port: rateLimitPort,
+						Port: uint32(rlServerSettings.RateLimitPort),
 					}},
 				},
 			},
@@ -905,7 +987,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			DenyOnFail:         true, // ensures ConsistentlyNotRateLimited() calls will not pass unless server is healthy
 		}
 
-		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rateLimitAddr, testClients.GlooPort)
+		isServerHealthy = ratelimitservice.RunRateLimitServer(ctx, rateLimitAddr, testClients.GlooPort, rlServerSettings)
 
 		glooSettings.RatelimitServer = rlSettings
 
@@ -922,10 +1004,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 		BeforeEach(func() {
 			var err error
-			err = os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisAddr, redisPort))
-			Expect(err).NotTo(HaveOccurred())
-			err = os.Setenv("REDIS_SOCKET_TYPE", "tcp")
-			Expect(err).NotTo(HaveOccurred())
+			rlServerSettings.RedisSettings = redis.NewSettings()
+			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisAddr, redisPort)
+			rlServerSettings.RedisSettings.SocketType = "tcp"
 
 			command := exec.Command(getRedisPath(), "--port", "6379")
 			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -954,17 +1035,16 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	Context("DynamoDb-backed rate limiting", func() {
 
 		BeforeEach(func() {
+			var err error
+			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
+			awsEndpoint := "http://" + services.GetDynamoDbHost() + ":" + services.DynamoDbPort
+
 			// By setting these environment variables to non-empty values we signal we want to use DynamoDb
 			// instead of Redis as our rate limiting backend. Local DynamoDB requires any non-empty creds to work
-			err := os.Setenv("AWS_ACCESS_KEY_ID", "fakeMyKeyId")
-			Expect(err).NotTo(HaveOccurred())
-			err = os.Setenv("AWS_SECRET_ACCESS_KEY", "fakeSecretAccessKey")
-			Expect(err).NotTo(HaveOccurred())
-
-			awsEndpoint := "http://" + services.GetDynamoDbHost() + ":" + services.DynamoDbPort
-			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
-			err = os.Setenv("AWS_ENDPOINT", awsEndpoint)
-			Expect(err).NotTo(HaveOccurred())
+			rlServerSettings.DynamoDbSettings = dynamodb.NewSettings()
+			rlServerSettings.DynamoDbSettings.AwsAccessKeyId = "fakeMyKeyId"
+			rlServerSettings.DynamoDbSettings.AwsSecretAccessKey = "fakeSecretAccessKey"
+			rlServerSettings.DynamoDbSettings.AwsEndpoint = awsEndpoint
 
 			err = services.RunDynamoDbContainer()
 			Expect(err).NotTo(HaveOccurred())

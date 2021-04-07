@@ -2381,6 +2381,114 @@ spec:
 			})
 		})
 
+		Context("rate-limit deployment", func() {
+
+			var expectedDeployment *appsv1.Deployment
+
+			BeforeEach(func() {
+				labels = map[string]string{
+					"app":  "gloo",
+					"gloo": "rate-limit",
+				}
+				selector = map[string]string{
+					"gloo": "rate-limit",
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "rate-limit",
+					Labels:    labels,
+				}
+
+				nonRootUser := int64(10101)
+				nonRoot := true
+
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+				}
+
+				expectedDeployment = rb.GetDeploymentAppsv1()
+
+				expectedDeployment.Spec.Replicas = aws.Int32(1)
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:            "rate-limit",
+						Image:           "quay.io/solo-io/rate-limit-ee:dev",
+						ImagePullPolicy: "Always",
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "GLOO_ADDRESS",
+								Value: "gloo:9977",
+							},
+							statsEnvVar,
+							{
+								Name:  "REDIS_URL",
+								Value: "redis:6379",
+							},
+							{
+								Name:  "REDIS_SOCKET_TYPE",
+								Value: "tcp",
+							},
+							{
+								Name:  "READY_PORT_HTTP",
+								Value: "18080",
+							},
+							{
+								Name:  "READY_PATH_HTTP",
+								Value: "/ready",
+							},
+						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/ready",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 18080,
+									},
+								},
+							},
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+							SuccessThreshold:    1,
+						},
+						Resources: v1.ResourceRequirements{},
+					},
+				}
+				expectedDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+
+				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "rate-limit"
+
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
+			})
+
+			It("produces expected default deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "rate-limit"
+				})
+
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+		})
+
 		Context("gloo-fed apiserver deployment", func() {
 			const defaultBootstrapConfigMapName = "gloo-fed-default-apiserver-envoy-config"
 

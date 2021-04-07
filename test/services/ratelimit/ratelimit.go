@@ -12,11 +12,9 @@ import (
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/runner"
 )
 
-func RunRateLimitServer(ctx context.Context, serverHost string, glooport int) func() (bool, error) {
+func RunRateLimitServer(ctx context.Context, serverHost string, glooport int, serverSettings server.Settings) func() (bool, error) {
 	var c xds.Settings
 	c.GlooAddress = fmt.Sprintf("localhost:%d", glooport)
-
-	serverSettings := server.NewSettings()
 
 	go runner.Run(ctx, serverSettings, c)
 
@@ -26,19 +24,13 @@ func RunRateLimitServer(ctx context.Context, serverHost string, glooport int) fu
 			return false, err
 		}
 
-		response, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{})
+		defer conn.Close()
+		response, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{
+			Service: serverSettings.GrpcServiceName,
+		})
 		if err != nil {
 			return false, err
 		}
-
-		go func() {
-			select {
-			case <-ctx.Done():
-				// Close the connection when the underlying context is done
-				conn.Close()
-				return
-			}
-		}()
 
 		return response.Status == healthpb.HealthCheckResponse_SERVING, nil
 	}

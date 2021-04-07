@@ -49,8 +49,18 @@ var (
 	}
 )
 
+var (
+	emptyTypedResources = map[string]envoycache.Resources{
+		v1.RateLimitConfigType: {
+			Version: emptyVersionKey,
+			Items:   map[string]envoycache.Resource{},
+		},
+	}
+)
+
 const (
-	Name = "rate-limit"
+	Name            = "rate-limit"
+	emptyVersionKey = "empty"
 )
 
 func init() {
@@ -164,13 +174,26 @@ func (s *translatorSyncerExtension) Sync(
 		return syncerError(ctx, err)
 	}
 
-	hashedResources, err := hashstructure.Hash(snapshotResources, nil)
-	if err != nil {
-		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
-		return syncerError(ctx, err)
+	var rateLimitSnapshot envoycache.Snapshot
+	if snapshotResources == nil {
+		// If there are no rate limit configs, use an empty configuration
+		//
+		// The SnapshotCache can now differentiate between nil and empty resources in a snapshot.
+		// This was introduced with: https://github.com/solo-io/solo-kit/pull/410
+		// A nil resource is not updated, whereas an empty resource is intended to be modified.
+		//
+		// The ratelimit service only becomes healthy after it has received configuration
+		// from Gloo via xDS. Therefore, we must set the ratelimit config resource to empty in the snapshot
+		// so that ratelimiit picks up the empty config, and becomes healthy
+		rateLimitSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
+	} else {
+		h, err := hashstructure.Hash(snapshotResources, nil)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
+			return syncerError(ctx, err)
+		}
+		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), snapshotResources)
 	}
-
-	rateLimitSnapshot := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", hashedResources), snapshotResources)
 
 	err = xdsCache.SetSnapshot(RateLimitServerRole, rateLimitSnapshot)
 	if err != nil {

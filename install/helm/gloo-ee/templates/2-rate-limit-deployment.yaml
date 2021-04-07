@@ -100,6 +100,18 @@ spec:
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }} {{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+            - name: READY_PORT_HTTP
+              value: "18080"
+            - name: READY_PATH_HTTP
+              value: "/ready"
+          readinessProbe:
+            httpGet:
+              port: 18080
+              path: "/ready"
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
           {{- if $.Values.redis.clientSideShardingEnabled }}
           volumeMounts:
             - mountPath: /var/run/envoy/

@@ -2125,7 +2125,7 @@ var _ = Describe("External auth", func() {
 					// Start the health checker first, then cancel
 					time.Sleep(200 * time.Millisecond)
 					cancel()
-					Eventually(waitForHealthcheck).Should(Receive(), "5s", ".1s")
+					Eventually(waitForHealthcheck, "5s", ".1s").Should(Receive())
 				})
 			})
 

@@ -1422,7 +1422,6 @@ github.com/solo-io/go-utils v0.19.0/go.mod h1:If8NiehXROCFU65PGeDTrrZCNA5gJXvbcV
 github.com/solo-io/go-utils v0.20.0/go.mod h1:wy4um9xnqPNlASld4eSuQQqjNCXRBtDjVRLJsoGqkdE=
 github.com/solo-io/go-utils v0.20.1/go.mod h1:wy4um9xnqPNlASld4eSuQQqjNCXRBtDjVRLJsoGqkdE=
 github.com/solo-io/go-utils v0.20.2/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
-github.com/solo-io/go-utils v0.20.4/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
 github.com/solo-io/go-utils v0.21.0/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
 github.com/solo-io/go-utils v0.21.3 h1:va2w+iSWs/tsvISvNwZ+CkZrlY4epEFFvxv/nDpoLIM=
 github.com/solo-io/go-utils v0.21.3/go.mod h1:6e8K1spnMWwlnJRSNp/J84GEyJbrcK4Gm7i+ehzCi8c=
@@ -1436,8 +1435,8 @@ github.com/solo-io/protoc-gen-ext v0.0.12/go.mod h1:/U/jMDtVI7R6N323sfaUXK9Mmo54
 github.com/solo-io/protoc-gen-ext v0.0.13/go.mod h1:/U/jMDtVI7R6N323sfaUXK9Mmo54D7SY3pP7JtI/kMo=
 github.com/solo-io/protoc-gen-ext v0.0.15 h1:OVPo1essSt2hx5crEfnRxYlA5mwsGvrIWynNQDR/4xo=
 github.com/solo-io/protoc-gen-ext v0.0.15/go.mod h1:ch1ZUyVtN45zxAVwpuZUW+F1IR7aG0rCVAp2JrWKDCc=
-github.com/solo-io/rate-limiter v0.3.2 h1:7x4Oe45nrQTJPKBSux7FJsu3C20S4y0oC8lB/Eh4izg=
-github.com/solo-io/rate-limiter v0.3.2/go.mod h1:sgZPBGhOEoXBX7weRXOGQVB6aFLh/9R1WbBKBEBT+IA=
+github.com/solo-io/rate-limiter v0.4.0 h1:GyDDZ5Mtfl6Gvp8LF/8F1J04WjGrrM+i0NrGx6DGOc4=
+github.com/solo-io/rate-limiter v0.4.0/go.mod h1:+41iVLnVJjgtauxDwJsCr06sY/kRarlRMpp9OIylllA=
 github.com/solo-io/reporting-client v0.2.0 h1:v4NheU8EQL9G7kC3qrsKvC/sJzydrJyVr/sW4QN/owk=
 github.com/solo-io/reporting-client v0.2.0/go.mod h1:FmBDzwc1zEwayCCrlP+1w7NcpM0FIuvU+NSePj4wJq8=
 github.com/solo-io/skv2 v0.16.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCmrJBL0=
