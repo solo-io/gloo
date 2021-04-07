@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/4533
+    description: Add a graph to show the state of the circuit breaker, for each upstream dashboard.
