@@ -1,0 +1,105 @@
+name: security-scan-issues
+on:
+  schedule:
+    # Monday 9am EST
+    - cron: "0 13 * * 1"
+jobs:
+  image-scan:
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        image-type: [ 'rate-limit-ee', 'gloo-ee', 'gloo-ee-envoy-wrapper', 'observability-ee', 'extauth-ee' ]
+        gloo-version: [ 'master', 'v1.7.x', 'v1.6.x', 'v1.5.x']
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Pull latest tagged image
+        id: build-docker-image
+        run: |
+          VERSION=$( git describe --tags --abbrev=0 |  cut -c 2- )
+          docker pull ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION)
+          docker image tag ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION) ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+      - name: Trivy Action
+        # TODO: switch to lazy-actions/gitrivy@v2 once duplicate issue is resolved (https://github.com/lazy-actions/gitrivy/pull/62)
+        uses: dataswift/gha-trivy@v3.0.0
+        with:
+          token: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          image: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+          severity: 'CRITICAL,HIGH'
+  gloo-fed-image-scan:
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        image-type: [ 'gloo-fed', 'gloo-fed-apiserver', 'gloo-fed-apiserver-envoy', 'gloo-federation-console', 'gloo-fed-rbac-validating-webhook' ]
+        gloo-version: [ 'master', 'v1.7.x' ]
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Pull latest tagged image
+        id: build-docker-image
+        run: |
+          VERSION=$( git describe --tags --abbrev=0 |  cut -c 2- )
+          docker pull ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION)
+          docker image tag ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION) ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+      - name: Trivy Action
+        # TODO: switch to lazy-actions/gitrivy@v2 once duplicate issue is resolved (https://github.com/lazy-actions/gitrivy/pull/62)
+        uses: dataswift/gha-trivy@v3.0.0
+        with:
+          token: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          image: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+          severity: 'CRITICAL,HIGH'
+  grpc-image-scan:
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        image-type: [ 'grpcserver-ee', 'grpcserver-envoy', 'grpcserver-ui' ]
+        gloo-version: [ 'v1.6.x', 'v1.5.x']
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Pull latest tagged image
+        id: build-docker-image
+        run: |
+          VERSION=$( git describe --tags --abbrev=0 |  cut -c 2- )
+          docker pull ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION)
+          docker image tag ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:$(echo $VERSION) ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+      - name: Trivy Action
+        # TODO: switch to lazy-actions/gitrivy@v2 once duplicate issue is resolved (https://github.com/lazy-actions/gitrivy/pull/62)
+        uses: dataswift/gha-trivy@v3.0.0
+        with:
+          token: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          image: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ matrix.gloo-version }}
+          severity: 'CRITICAL,HIGH'

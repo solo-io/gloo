@@ -13,7 +13,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
     strategy:
       matrix:
-        image-type: [ 'rate-limit-ee', 'grpcserver-ee', 'grpcserver-envoy', 'grpcserver-ui', 'gloo-ee', 'gloo-ee-envoy-wrapper', 'observability-ee', 'extauth-ee', 'ext-auth-plugins', 'gloo-fed', 'gloo-fed-apiserver', 'gloo-fed-apiserver-envoy', 'gloo-federation-console', 'gloo-fed-rbac-validating-webhook' ]
+        image-type: [ 'rate-limit-ee', 'gloo-ee', 'gloo-ee-envoy-wrapper', 'observability-ee', 'extauth-ee', 'gloo-fed', 'gloo-fed-apiserver', 'gloo-fed-apiserver-envoy', 'gloo-federation-console', 'gloo-fed-rbac-validating-webhook' ]
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1
