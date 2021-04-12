@@ -32,10 +32,10 @@ Name|Version|License
 [go.opencensus.io](https://go.opencensus.io)|v0.22.6|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.16.0|MIT License
 [x/mod](https://golang.org/x/mod)|v0.4.1|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.0.0-20210119194325-5f4716e94777|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.0.0-20210226172049-e18ecbb05110|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20201207232520-09787c993a3a|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.35.0|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.36.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.25.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.4.2|Apache License 2.0

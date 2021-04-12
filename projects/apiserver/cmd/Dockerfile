@@ -1,4 +1,4 @@
-FROM alpine:3.13.2
+FROM alpine:3.13.4
 
 COPY gloo-fed-apiserver-linux-amd64 /usr/local/bin/gloo-fed-apiserver
 

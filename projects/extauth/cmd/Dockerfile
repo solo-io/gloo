@@ -1,4 +1,4 @@
-FROM alpine:3.13.2
+FROM alpine:3.13.4
 
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 COPY extauth-linux-amd64 /usr/local/bin/extauth

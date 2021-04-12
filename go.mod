@@ -22,7 +22,6 @@ require (
 	github.com/gobuffalo/packr v1.30.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/google/wire v0.4.0
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
@@ -47,7 +46,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.15.0
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.8.0-beta3
+	github.com/solo-io/gloo v1.8.0-beta5
 	github.com/solo-io/go-list-licenses v0.1.3
 	github.com/solo-io/go-utils v0.21.3
 	github.com/solo-io/k8s-utils v0.0.7
@@ -57,7 +56,7 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.3
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210405184923-dcd5cae33238
+	github.com/solo-io/solo-apis v0.0.0-20210412140752-75333d9b8d3d
 	github.com/solo-io/solo-kit v0.18.3
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -70,12 +69,12 @@ require (
 	go.opencensus.io v0.22.6
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.1
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	golang.org/x/tools v0.1.0
 	google.golang.org/genproto v0.0.0-20210218151259-fe80b386bf06 // indirect
-	google.golang.org/grpc v1.35.0
+	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
