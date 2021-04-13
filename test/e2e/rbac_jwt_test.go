@@ -93,6 +93,13 @@ func getToken(claims jwt.StandardClaims, key *rsa.PrivateKey) string {
 	return s
 }
 
+func getMapToken(claims jwt.MapClaims, key *rsa.PrivateKey) string {
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	s, err := token.SignedString(key)
+	ExpectWithOffset(2, err).NotTo(HaveOccurred())
+	return s
+}
+
 var _ = Describe("JWT + RBAC", func() {
 
 	var (
@@ -224,6 +231,20 @@ var _ = Describe("JWT + RBAC", func() {
 		return tok
 	}
 
+	getMapTokenFor := func(sub string) string {
+		claims := jwt.MapClaims{
+			"iss": issuer,
+			"aud": audience,
+			"sub": sub,
+			"data": map[string]string{
+				"name": "test",
+			},
+		}
+		tok := getMapToken(claims, privateKey)
+		By("using token " + tok)
+		return tok
+	}
+
 	addBearer := func(req *http.Request, token string) {
 		req.Header.Add("Authorization", "Bearer "+token)
 	}
@@ -342,7 +363,8 @@ var _ = Describe("JWT + RBAC", func() {
 			})
 			It("should re-route based on the new header added", func() {
 				Eventually(func() (int, error) {
-					token := getTokenFor("teatime")
+					// test with nested claim in token
+					token := getMapTokenFor("teatime")
 					url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken=%s", "localhost", envoyPort, token)
 					By("Querying " + url)
 					resp, err := http.Get(url)
@@ -527,7 +549,13 @@ func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef) *
 					Claim:  "sub",
 					Header: "x-sub",
 					Append: true,
-				}},
+				},
+					{
+						Claim:  "data",
+						Header: "x-data",
+						Append: true,
+					},
+				},
 			},
 		},
 	}
@@ -613,7 +641,12 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 					Headers: []*matchers.HeaderMatcher{{
 						Name:  "x-sub",
 						Value: "teatime,teatime",
-					}},
+					},
+						{
+							Name:  "x-data",
+							Value: "{\"name\":\"test\"}",
+						},
+					},
 					PathSpecifier: &matchers.Matcher_Prefix{
 						Prefix: "/authnonly",
 					},

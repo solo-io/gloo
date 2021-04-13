@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support added for nested claims in JWTs claimToHeader setting.
+    issueLink: https://github.com/solo-io/gloo/issues/3107
