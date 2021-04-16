@@ -7,6 +7,7 @@ import (
 
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/anyvendor/pkg/modutils"
@@ -19,7 +20,8 @@ import (
 
 func TestScripts(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Plugin Verification Script Suite")
+	junitReporter := reporters.NewJUnitReporter("junit.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Plugin Verification Script Suite", []Reporter{junitReporter})
 }
 
 var _ = Describe("Plugin verification script", func() {

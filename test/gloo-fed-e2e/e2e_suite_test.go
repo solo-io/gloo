@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -29,7 +30,8 @@ func TestE2e(t *testing.T) {
 		return
 	}
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "E2e Suite")
+	junitReporter := reporters.NewJUnitReporter("junit.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Fed E2e Suite", []Reporter{junitReporter})
 }
 
 var (

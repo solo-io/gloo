@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-projects/test/regressions"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
 	errors "github.com/rotisserie/eris"
@@ -40,7 +41,8 @@ func TestGateway(t *testing.T) {
 	skhelpers.SetupLog()
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(regressions.PrintGlooDebugLogs)
-	RunSpecs(t, "Gateway Suite")
+	junitReporter := reporters.NewJUnitReporter("junit.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Gateway Suite", []Reporter{junitReporter})
 }
 
 const (

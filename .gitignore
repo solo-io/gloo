@@ -44,3 +44,6 @@ id_rsa
 # ignore certs or keys generated in this directory
 *.crt
 *.key
+
+# junit
+junit.xml

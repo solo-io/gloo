@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-projects/test/regressions"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
@@ -34,7 +35,8 @@ func TestGateway(t *testing.T) {
 	skhelpers.SetupLog()
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(regressions.PrintGlooDebugLogs)
-	RunSpecs(t, "Gloo clientside sharding Suite")
+	junitReporter := reporters.NewJUnitReporter("junit.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Gloo clientside sharding Suite", []Reporter{junitReporter})
 }
 
 var (

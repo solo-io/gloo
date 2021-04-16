@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 )
 
 func TestCollectors(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Collectors Suite")
+	junitReporter := reporters.NewJUnitReporter("junit.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Collectors Suite", []Reporter{junitReporter})
 }
