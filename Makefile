@@ -29,7 +29,7 @@ ifeq ($(VERSION), $(WASM_VERSION))
 	WASM_VERSION = wasm-$(VERSION)
 endif
 
-ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.16.1-patch1
+ENVOY_GLOO_IMAGE ?= quay.io/solo-io/envoy-gloo:1.16.3
 ENVOY_GLOO_WASM_IMAGE ?= quay.io/solo-io/envoy-gloo:1.16.0-wasm-rc1
 
 # The full SHA of the currently checked out commit
@@ -117,6 +117,10 @@ install-go-tools: mod-download
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
 	GOBIN=$(DEPSGOBIN) go install github.com/gogo/protobuf/gogoproto
 	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
+
+.PHONY: run-tests
+run-tests:
+	$(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor $(TEST_PKG)
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run

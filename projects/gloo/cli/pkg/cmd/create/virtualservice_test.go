@@ -20,7 +20,7 @@ var _ = Describe("Virtualservice", func() {
 	It("can print as kube yaml in dry run", func() {
 		out, err := testutils.GlooctlOut("create virtualservice kube --dry-run --name vs --domains foo.bar,baz.qux")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(out).To(Equal(`apiVersion: gateway.solo.io/v1
+		Expect(out).To(ContainSubstring(`apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
   creationTimestamp: null
@@ -38,7 +38,7 @@ status: {}
 	It("can print as solo-kit yaml in dry run", func() {
 		out, err := testutils.GlooctlOut("create virtualservice kube --dry-run -oyaml --name vs --domains foo.bar,baz.qux")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(out).To(Equal(`---
+		Expect(out).To(ContainSubstring(`---
 displayName: vs
 metadata:
   name: vs
