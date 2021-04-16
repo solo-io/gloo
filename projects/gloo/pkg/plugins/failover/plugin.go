@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
+	"time"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -19,13 +21,16 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 //go:generate mockgen -destination mocks/mock_utils.go github.com/solo-io/gloo/projects/gloo/pkg/utils SslConfigTranslator
 
 const (
-	TransportSocketMatchKey = "envoy.transport_socket_match"
+	TransportSocketMatchKey   = "envoy.transport_socket_match"
+	DefaultDnsPollingInterval = 10 * time.Second
 )
 
 var (
@@ -44,23 +49,45 @@ var (
 	_ plugins.Upgradable     = new(failoverPluginImpl)
 )
 
-func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver) plugins.Plugin {
+func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver, apiEmitNotificationChan chan struct{}) plugins.Plugin {
 	return &failoverPluginImpl{
-		sslConfigTranslator: translator,
-		endpoints:           map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints{},
-		dnsResolver:         dnsResolver,
+		sslConfigTranslator:         translator,
+		endpoints:                   map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints{},
+		dnsResolver:                 dnsResolver,
+		watchedAddressesMutex:       sync.RWMutex{},
+		previousDnsResolutions:      map[string][]net.IPAddr{},
+		previousDnsResolutionsMutex: sync.RWMutex{},
+		apiEmitNotificationChan:     apiEmitNotificationChan,
 	}
 }
 
 type failoverPluginImpl struct {
-	sslConfigTranslator utils.SslConfigTranslator
-	endpoints           map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints
-	dnsResolver         consul.DnsResolver
-	settings            *gloov1.Settings
+	sslConfigTranslator         utils.SslConfigTranslator
+	endpoints                   map[string][]*envoy_config_endpoint_v3.LocalityLbEndpoints
+	dnsResolver                 consul.DnsResolver
+	syncLoopCancel              context.CancelFunc
+	watchedAddresses            []string
+	watchedAddressesMutex       sync.RWMutex
+	previousDnsResolutions      map[string][]net.IPAddr
+	previousDnsResolutionsMutex sync.RWMutex
+	apiEmitNotificationChan     chan struct{}
+	settings                    *gloov1.Settings
 }
 
 func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
 	f.settings = params.Settings
+	f.watchedAddresses = nil
+
+	syncLoopCtx, cancel := context.WithCancel(params.Ctx)
+	if f.syncLoopCancel != nil {
+		f.syncLoopCancel()
+	}
+	f.syncLoopCancel = cancel
+
+	// Start a go routine that will force emit Gloo if there is a change in DNS resolution for the
+	// EDS endpoints
+	go f.startDnsSyncLoop(syncLoopCtx)
+
 	return nil
 }
 
@@ -152,7 +179,7 @@ func (f *failoverPluginImpl) buildLocalityLBEndpoints(
 			}
 			// Use index+1 for the priority because the priority of the primary endpoints is automatically set to 0,
 			// and each corresponding failover endpoint has 1 greater
-			envoyEndpoints, socketMatches, err := GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
+			envoyEndpoints, socketMatches, err := f.GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				params.Ctx,
 				localityEndpoints,
 				uint32(idx+1),
@@ -216,7 +243,7 @@ func ValidateGlooLocalityLbEndpoint(
 	return nil
 }
 
-func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
+func (f *failoverPluginImpl) GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 	ctx context.Context,
 	endpoints *gloov1.LocalityLbEndpoints,
 	priority uint32,
@@ -252,13 +279,26 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				)
 			} else {
 				// the address is not an IP, need to do a DnsLookup
-				ips, err := dnsResolver.Resolve(ctx, v.GetAddress())
-				if err != nil {
-					return nil, nil, err
+				var ips []net.IPAddr
+				var err error
+
+				f.previousDnsResolutionsMutex.Lock()
+				defer f.previousDnsResolutionsMutex.Unlock()
+				if len(f.previousDnsResolutions[v.GetAddress()]) != 0 {
+					ips = f.previousDnsResolutions[v.GetAddress()]
+				} else {
+					ips, err = dnsResolver.Resolve(ctx, v.GetAddress())
+
+					if len(ips) == 0 && err == nil {
+						err = NoIpAddrError(v.GetAddress())
+					}
+					if err != nil {
+						return nil, nil, err
+					}
+
+					f.previousDnsResolutions[v.GetAddress()] = ips
 				}
-				if len(ips) == 0 {
-					return nil, nil, NoIpAddrError(v.GetAddress())
-				}
+
 				for i := range ips {
 					resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
 						ips[i].String(),
@@ -268,6 +308,11 @@ func GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 						v.GetHealthCheckConfig()),
 					)
 				}
+
+				// Add address into list of addresses that should be watched for DNS changes
+				f.watchedAddressesMutex.Lock()
+				f.watchedAddresses = append(f.watchedAddresses, v.GetAddress())
+				f.watchedAddressesMutex.Unlock()
 			}
 		}
 
@@ -366,4 +411,76 @@ func buildLbEndpoint(
 		},
 		LoadBalancingWeight: weight,
 	}
+}
+
+func (f *failoverPluginImpl) startDnsSyncLoop(ctx context.Context) {
+	pollingInterval := DefaultDnsPollingInterval
+	if intervalFromSettings := f.settings.GetGloo().GetFailoverUpstreamDnsPollingInterval(); intervalFromSettings != nil {
+		pollingInterval = intervalFromSettings.AsDuration()
+	}
+	timer := time.NewTicker(pollingInterval)
+	defer timer.Stop()
+
+	previousHash := uint64(0) // represents nil hash
+	contextutils.LoggerFrom(ctx).Debugf("starting DNS resolution sync loop for EDS upstream failovers")
+
+	for {
+		select {
+		case _, ok := <-timer.C:
+			if !ok {
+				contextutils.LoggerFrom(ctx).Warnf(
+					"DNS resolution sync loop timer for EDS upstream failover endpoints failed",
+				)
+				return
+			}
+			currentHash := f.buildFailoverEndpointHash(ctx)
+
+			if previousHash == currentHash {
+				continue
+			}
+
+			// Only notify if the previous hash has been initialized with a non-zero value
+			if previousHash != 0 {
+				contextutils.LoggerFrom(ctx).Debugf("DNS resolution changed for EDS upstream failovers. Sending a force emit.")
+				f.apiEmitNotificationChan <- struct{}{}
+				return
+			}
+
+			previousHash = currentHash
+		case <-ctx.Done():
+			contextutils.LoggerFrom(ctx).Debugf("stopping DNS resolution sync loop for EDS upstream failovers")
+			return
+		}
+	}
+}
+
+func (f *failoverPluginImpl) buildFailoverEndpointHash(ctx context.Context) uint64 {
+	dnsResolutions := make(map[string][]net.IPAddr)
+	f.watchedAddressesMutex.RLock()
+	defer f.watchedAddressesMutex.RUnlock()
+	f.previousDnsResolutionsMutex.Lock()
+	defer f.previousDnsResolutionsMutex.Unlock()
+	for _, address := range f.watchedAddresses {
+		// If there is an error resolving the DNS, we should use the previous DNS resolutions if
+		// they are available. Otherwise, we exclude this endpoint from the hash
+		ips, err := f.dnsResolver.Resolve(ctx, address)
+		if len(ips) == 0 && err == nil {
+			err = NoIpAddrError(address)
+		}
+		if err != nil && len(f.previousDnsResolutions[address]) == 0 {
+			contextutils.LoggerFrom(ctx).Warnf(
+				"error resolving DNS for upstream failover with address %v: %v", address, err,
+			)
+			continue
+		}
+
+		if err != nil {
+			previousIps := f.previousDnsResolutions[address]
+			dnsResolutions[address] = previousIps
+		} else {
+			f.previousDnsResolutions[address] = ips
+			dnsResolutions[address] = ips
+		}
+	}
+	return hashutils.MustHash(dnsResolutions)
 }

@@ -4627,7 +4627,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     disableProxyGarbageCollection: (f = msg.getDisableProxyGarbageCollection()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
-    enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4719,6 +4720,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setEnableRestEds(value);
+      break;
+    case 13:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setFailoverUpstreamDnsPollingInterval(value);
       break;
     default:
       reader.skipField();
@@ -4839,6 +4845,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       12,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailoverUpstreamDnsPollingInterval();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -5569,6 +5583,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearEnableRestEds = function() {
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasEnableRestEds = function() {
   return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration failover_upstream_dns_polling_interval = 13;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getFailoverUpstreamDnsPollingInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 13));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setFailoverUpstreamDnsPollingInterval = function(value) {
+  jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearFailoverUpstreamDnsPollingInterval = function() {
+  this.setFailoverUpstreamDnsPollingInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasFailoverUpstreamDnsPollingInterval = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

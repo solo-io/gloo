@@ -45,10 +45,12 @@ func Main() error {
 	}
 
 	cancellableCtx, _ := context.WithCancel(context.Background())
+	apiEmitterChan := make(chan struct{})
 
 	return setuputils.Main(setuputils.SetupOpts{
 		SetupFunc: NewSetupFuncWithRestControlPlaneAndExtensions(
-			GetGlooEeExtensions(cancellableCtx),
+			GetGlooEeExtensions(cancellableCtx, apiEmitterChan),
+			apiEmitterChan,
 		),
 		ExitOnError:   true,
 		LoggerName:    "gloo-ee",
@@ -58,14 +60,14 @@ func Main() error {
 	})
 }
 
-func NewSetupFuncWithRestControlPlaneAndExtensions(extensions setup.Extensions) setuputils.SetupFunc {
+func NewSetupFuncWithRestControlPlaneAndExtensions(extensions setup.Extensions, apiEmitterChan chan struct{}) setuputils.SetupFunc {
 	runWithExtensions := func(opts bootstrap.Opts) error {
-		return setup.RunGlooWithExtensions(opts, extensions)
+		return setup.RunGlooWithExtensions(opts, extensions, apiEmitterChan)
 	}
 	return setup.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
 }
 
-func GetGlooEeExtensions(ctx context.Context) setup.Extensions {
+func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setup.Extensions {
 	return setup.Extensions{
 		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
@@ -87,6 +89,7 @@ func GetGlooEeExtensions(ctx context.Context) setup.Extensions {
 				return failover.NewFailoverPlugin(
 					utils.NewSslConfigTranslator(),
 					failover.NewDnsResolver(),
+					apiEmitterChan,
 				)
 			},
 			func() plugins.Plugin { return http_path.NewPlugin() },

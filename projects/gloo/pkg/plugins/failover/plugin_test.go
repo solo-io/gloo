@@ -2,11 +2,9 @@ package failover_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -14,13 +12,16 @@ import (
 	envoytls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
@@ -29,6 +30,7 @@ import (
 	"github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	mock_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover/mocks"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ = Describe("Failover", func() {
@@ -36,8 +38,11 @@ var _ = Describe("Failover", func() {
 	var (
 		ctrl          *gomock.Controller
 		ctx           context.Context
+		cancel        context.CancelFunc
 		sslTranslator *mock_utils.MockSslConfigTranslator
 		dnsResolver   *mock_consul.MockDnsResolver
+
+		apiEmitNotificationChan chan struct{}
 
 		sslEndpoint = &gloov1.LbEndpoint{
 			Address: "ssl.address.who.dis",
@@ -147,7 +152,11 @@ var _ = Describe("Failover", func() {
 			cluster *envoy_config_cluster_v3.Cluster,
 			endpoints *envoy_config_endpoint_v3.ClusterLoadAssignment,
 		) error {
-			err := plugin.Init(plugins.InitParams{Ctx: ctx})
+			err := plugin.Init(plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Gloo: &gloov1.GlooOptions{
+				FailoverUpstreamDnsPollingInterval: &durationpb.Duration{
+					Seconds: 1,
+				},
+			}}})
 			Expect(err).NotTo(HaveOccurred())
 			ups, ok := plugin.(plugins.UpstreamPlugin)
 			Expect(ok).To(BeTrue())
@@ -163,29 +172,33 @@ var _ = Describe("Failover", func() {
 
 	BeforeEach(func() {
 		ctrl, ctx = gomock.WithContext(context.TODO(), GinkgoT())
+		ctx, cancel = context.WithCancel(ctx)
 		sslTranslator = mock_utils.NewMockSslConfigTranslator(ctrl)
 		dnsResolver = mock_consul.NewMockDnsResolver(ctrl)
+		apiEmitNotificationChan = make(chan struct{})
 	})
 
 	AfterEach(func() {
+		close(apiEmitNotificationChan)
 		ctrl.Finish()
+		cancel()
 	})
 
 	It("will return nil if failover cfg is nil", func() {
-		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{}, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("will fail if no healthchecks are present", func() {
-		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{Failover: &gloov1.Failover{}}, nil, nil)
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(testutils.HaveInErrorChain(failover.NoHealthCheckError))
 	})
 
 	It("will fail if a DNS endpoint is specified with weights", func() {
-		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		err := runPlugin(plugin, plugins.Params{}, &gloov1.Upstream{
 			OutlierDetection: &cluster.OutlierDetection{},
 			Failover: &gloov1.Failover{
@@ -309,7 +322,7 @@ var _ = Describe("Failover", func() {
 			Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
 		}
 
-		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
 			Snapshot: &gloov1.ApiSnapshot{
@@ -322,7 +335,6 @@ var _ = Describe("Failover", func() {
 	})
 
 	It("will successfully return failover endpoints in the EDS ClusterLoadAssignment", func() {
-
 		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
 			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
@@ -433,7 +445,7 @@ var _ = Describe("Failover", func() {
 			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
 			Return(tlsContext, nil)
 
-		dnsResolver.EXPECT().Resolve(ctx, sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
+		dnsResolver.EXPECT().Resolve(gomock.Any(), sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
 
 		cluster := &envoy_config_cluster_v3.Cluster{}
 		cluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -458,7 +470,7 @@ var _ = Describe("Failover", func() {
 			},
 		}
 
-		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver)
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
 			Snapshot: &gloov1.ApiSnapshot{
@@ -470,6 +482,196 @@ var _ = Describe("Failover", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cluster).To(matchers.MatchProto(expectedCluster))
 		Expect(endpoints).To(matchers.MatchProto(expected))
+	})
+
+	It("force emits when a DNS resolution changes", func() {
+		secretList := gloov1.SecretList{{}}
+		sslTranslator.EXPECT().
+			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
+			Return(tlsContext, nil)
+
+		initialIps := []net.IPAddr{ipAddr1, ipAddr2}
+		updatedIps := []net.IPAddr{{IP: net.IPv4(127, 0, 0, 1)}, {IP: net.IPv4(127, 0, 0, 100)}}
+
+		// 2 times for the initial resolved that is called during the main call in ProcessUpstreams
+		// and then the initial resolve that is called in the go routine
+		dnsResolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).Do(func(context.Context, string) {
+			fmt.Fprint(GinkgoWriter, "Initial resolve called for endpoint.")
+		}).Return(initialIps, nil).Times(2)
+
+		// Once we see an updated address, all dns resolution go routines will be cancelled after the
+		// notifcation channel is notified to emit
+		dnsResolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).Do(func(context.Context, string) {
+			fmt.Fprint(GinkgoWriter, "Updated resolve called for endpoint.")
+		}).Return(updatedIps, nil).Times(1)
+
+		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
+		}
+
+		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
+
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
+		params := plugins.Params{
+			Ctx: ctx,
+			Snapshot: &gloov1.ApiSnapshot{
+				Secrets: secretList,
+			},
+		}
+
+		err := runPlugin(plugin, params, upstream, cluster, endpoints)
+		Expect(err).NotTo(HaveOccurred())
+
+		Eventually(apiEmitNotificationChan, "5s", "1s").Should(Receive(BeEquivalentTo(struct{}{})))
+		Consistently(apiEmitNotificationChan, "5s", "1s").ShouldNot(Receive())
+	})
+
+	It("uses the previous dns resolution when there is an error", func() {
+		secretList := gloov1.SecretList{{}}
+		sslTranslator.EXPECT().
+			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
+			Return(tlsContext, nil)
+
+		initialIps := []net.IPAddr{ipAddr1, ipAddr2}
+		resolutionError := eris.New("DNS resolution error")
+
+		// 2 times for the initial resolved that is called during the main call in ProcessUpstreams
+		// and then the initial resolve that is called in the go routine
+		dnsResolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).Do(func(context.Context, string) {
+			fmt.Fprint(GinkgoWriter, "Initial resolve called for endpoint.")
+		}).Return(initialIps, nil).Times(2)
+
+		// We should use the previous IPs when we encounter this error. Given that, there will be no
+		// DNS changes so expect that a notification will not be sent
+		dnsResolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).Do(func(context.Context, string) {
+			fmt.Fprint(GinkgoWriter, "Errored resolve called for endpoint.")
+		}).Return([]net.IPAddr{}, resolutionError).AnyTimes()
+
+		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
+		}
+
+		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
+		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p1_region",
+						Zone:    "p1_zone",
+						SubZone: "p1_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Hostname: sslEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										Hostname: sslEndpoint.GetAddress(),
+									},
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: ipAddr1.String(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_config_core_v3.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									static.TransportSocketMatchKey: metadataMatch,
+								},
+							},
+						},
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Hostname: sslEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										Hostname: sslEndpoint.GetAddress(),
+									},
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: ipAddr2.String(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: sslEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+								},
+							},
+							Metadata: &envoy_config_core_v3.Metadata{
+								FilterMetadata: map[string]*structpb.Struct{
+									static.TransportSocketMatchKey: metadataMatch,
+								},
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 8888,
+					},
+					Priority: 1,
+				},
+				{
+					Locality: &envoy_config_core_v3.Locality{
+						Region:  "p2_region",
+						Zone:    "p2_zone",
+						SubZone: "p2_sub_zone",
+					},
+					LbEndpoints: []*envoy_config_endpoint_v3.LbEndpoint{
+						{
+							HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
+								Endpoint: &envoy_config_endpoint_v3.Endpoint{
+									Address: &envoy_config_core_v3.Address{
+										Address: &envoy_config_core_v3.Address_SocketAddress{
+											SocketAddress: &envoy_config_core_v3.SocketAddress{
+												Address: httpEndpoint.GetAddress(),
+												PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
+													PortValue: httpEndpoint.GetPort(),
+												},
+											},
+										},
+									},
+									Hostname: httpEndpoint.GetAddress(),
+									HealthCheckConfig: &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
+										PortValue: httpEndpoint.GetHealthCheckConfig().GetPortValue(),
+										Hostname:  httpEndpoint.GetHealthCheckConfig().GetHostname(),
+									},
+								},
+							},
+							LoadBalancingWeight: &wrappers.UInt32Value{
+								Value: httpEndpoint.GetLoadBalancingWeight().GetValue(),
+							},
+						},
+					},
+					LoadBalancingWeight: &wrappers.UInt32Value{
+						Value: 7777,
+					},
+					Priority: 2,
+				},
+			},
+		}
+
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
+		params := plugins.Params{
+			Ctx: ctx,
+			Snapshot: &gloov1.ApiSnapshot{
+				Secrets: secretList,
+			},
+		}
+
+		err := runPlugin(plugin, params, upstream, cluster, endpoints)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(endpoints).To(matchers.MatchProto(expected))
+
+		Consistently(apiEmitNotificationChan, "5s", "1s").ShouldNot(Receive())
 	})
 
 })

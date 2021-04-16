@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  description: >
+    Watch upstream failover endpoints for changes in DNS resolution. Thus, allowing 
+    resolution changes to be captured between gloo syncs caused by changes.
+  issueLink: https://github.com/solo-io/gloo/issues/4228
