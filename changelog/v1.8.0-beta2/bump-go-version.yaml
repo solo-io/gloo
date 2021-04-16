@@ -3,4 +3,4 @@ changelog:
     description: Bumped the go version for go.mod and extauth
     dependencyOwner: golang
     dependencyRepo: go
-    dependencyTag: v1.16
+    dependencyTag: v1.16.3

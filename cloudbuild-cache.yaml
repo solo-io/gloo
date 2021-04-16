@@ -43,22 +43,22 @@ steps:
     path: /root/.ssh
   id: 'untar-mod-cache'
 
-- name: 'golang:1.14.6'
+- name: 'golang:1.16.3'
   args: ['go', 'env', '-w', 'GOPRIVATE=github.com/solo-io']
   volumes: *vol
   id: 'set-private'
 
-- name: 'golang:1.14.6'
+- name: 'golang:1.16.3'
   args: ['go', 'mod', 'download']
   volumes: *vol
   id: 'download'
 
-- name: 'golang:1.14.6'
+- name: 'golang:1.16.3'
   args: ['go', 'mod', 'tidy']
   volumes: *vol
   id: 'tidy'
 
-- name: 'golang:1.14.6'
+- name: 'golang:1.16.3'
   entrypoint: 'bash'
   volumes: *vol
   args: ['-c', ' cd /go/pkg && tar -zvcf solo-projects-mod.tar.gz mod']

@@ -10,7 +10,6 @@ require (
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/deislabs/oras v0.8.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
 	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
@@ -60,7 +59,6 @@ require (
 	github.com/solo-io/solo-kit v0.18.3
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
-	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1 // indirect
