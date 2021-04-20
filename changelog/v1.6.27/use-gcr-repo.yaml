@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >-
+      Use private gcr.io container repo instead of public quay.io repo for envoy-gloo-ee images.
