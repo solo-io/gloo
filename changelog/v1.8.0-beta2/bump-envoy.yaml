@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo-ee
+    dependencyRepo: solo-io
+    dependencyTag: v1.18.0
+  - type: FIX
+    description: Upgrade envoy-gloo version to handle CVE-2021-28682, CVE-2021-28683 and CVE-2021-29258.
+      C++ WASM filters now require upgrading to proxy-wasm-cpp-sdk-b2e6b0759d34d760e527dadca413a285614f9e99 due to
+      a breaking change introduced by https://github.com/proxy-wasm/proxy-wasm-cpp-host/pull/133.
+    issueLink: https://github.com/proxy-wasm/proxy-wasm-cpp-host/pull/133

@@ -1,0 +1,19 @@
+workspace(name = "filter_example")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Built against ABI 0_2_1
+http_archive(
+        sha256 = "5481df475948d10921631efcc6c9f5070913f8020ddb064392ffeb01bf8183c6",
+        strip_prefix = "proxy-wasm-cpp-sdk-b2e6b0759d34d760e527dadca413a285614f9e99",
+        urls = ["https://github.com/proxy-wasm/proxy-wasm-cpp-sdk/archive/b2e6b0759d34d760e527dadca413a285614f9e99.tar.gz"],
+        name = "proxy_wasm_cpp_sdk",
+)
+
+load("@proxy_wasm_cpp_sdk//bazel/dep:deps.bzl", "wasm_dependencies")
+
+wasm_dependencies()
+
+load("@proxy_wasm_cpp_sdk//bazel/dep:deps_extra.bzl", "wasm_dependencies_extra")
+
+wasm_dependencies_extra()

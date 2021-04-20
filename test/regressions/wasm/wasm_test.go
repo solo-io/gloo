@@ -189,7 +189,7 @@ func writeWasmFilterToGateway(gatewayClient gatewayv1.GatewayClient, gatewayName
 		Wasm: &wasm.PluginSource{
 			Filters: []*wasm.WasmFilter{{
 				Src: &wasm.WasmFilter_Image{
-					Image: "webassemblyhub.io/sodman/example-filter:v0.5",
+					Image: "webassemblyhub.io/yuval/header-test:v0.3",
 				},
 				Config: configAny,
 				Name:   "wasm-test-filter",

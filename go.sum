@@ -1403,8 +1403,8 @@ github.com/solo-io/ext-auth-service v0.15.0 h1:E2WEV1hI7Jw9lrVDiFw2CPCaHwasR0xZf
 github.com/solo-io/ext-auth-service v0.15.0/go.mod h1:eaFqIYgVvBX3zAVq3oHKi9m/Vou2sWNqQHRxNGgKT70=
 github.com/solo-io/external-apis v0.1.4 h1:OEZ8+3puweHeS0ltDlcbCgL89LLaIEraw+x4e9mQPuM=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
-github.com/solo-io/gloo v1.8.0-beta7 h1:sIVMnjZ33FmQk+/xjc3VZkNVdxzVdfwsKqJDBv06b5M=
-github.com/solo-io/gloo v1.8.0-beta7/go.mod h1:vs77oXhYHtEwrdHclKOEoBl8iHMhnPVxZp0YFx3f7WU=
+github.com/solo-io/gloo v1.8.0-beta8 h1:AzVoe0piy5+fIPlOYOUDLXVLObazJreSyDHLCBa1AXE=
+github.com/solo-io/gloo v1.8.0-beta8/go.mod h1:vs77oXhYHtEwrdHclKOEoBl8iHMhnPVxZp0YFx3f7WU=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.0/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.3 h1:jMbYURUSu5G47p7ijcQFkx+xLYlmd0RKqHmi+nlUywg=
@@ -1442,8 +1442,8 @@ github.com/solo-io/skv2-enterprise v0.0.8/go.mod h1:QrJECcP3yyRL8ESdqjxAVHRzHmN8
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20210122162349-0e170e74af10/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
 github.com/solo-io/solo-apis v0.0.0-20210331192754-d6862816633b/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
-github.com/solo-io/solo-apis v0.0.0-20210415143354-b4af9c42facf h1:66iHhkNi0R+M8JEbcvtuxl4sDKLL3MuobZLEVP6Ayto=
-github.com/solo-io/solo-apis v0.0.0-20210415143354-b4af9c42facf/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
+github.com/solo-io/solo-apis v0.0.0-20210416171031-19232b9a8f63 h1:cEEtjvYfMB1jZB1SXrIgu3Gqr+mNGcELp9FDc38SlyU=
+github.com/solo-io/solo-apis v0.0.0-20210416171031-19232b9a8f63/go.mod h1:pAKKsh7pWK1nkzSfSV67RlmiynYzZlu+IWAylvEqkUI=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.16.2/go.mod h1:gMYmqGOt+VViItk0nCYbSZ1kRV/2/gH1xcLN9R15CHE=
