@@ -10,7 +10,7 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/solo-projects/test/regressions"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -170,10 +170,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 	It("rejects invalid inja template in transformation", func() {
 		injaTransform := `{% if default(data.error.message, "") != "" %}400{% else %}{{ header(":status") }}{% endif %}`
-		t := &transformation2.Transformations{
+		t := &glootransformation.Transformations{
 			ClearRouteCache: true,
-			ResponseTransformation: &transformation.Transformation{
-				TransformationType: &transformation.Transformation_TransformationTemplate{
+			ResponseTransformation: &glootransformation.Transformation{
+				TransformationType: &glootransformation.Transformation_TransformationTemplate{
 					TransformationTemplate: &transformation.TransformationTemplate{
 						Headers: map[string]*transformation.InjaTemplate{
 							":status": {Text: injaTransform},

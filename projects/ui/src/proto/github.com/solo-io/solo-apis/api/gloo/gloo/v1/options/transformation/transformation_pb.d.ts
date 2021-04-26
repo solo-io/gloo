@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation/transformation_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformers/xslt/xslt_transformer_pb";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 
 export class ResponseMatch extends jspb.Message {
@@ -19,8 +20,8 @@ export class ResponseMatch extends jspb.Message {
 
   hasResponseTransformation(): boolean;
   clearResponseTransformation(): void;
-  getResponseTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation | undefined;
-  setResponseTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation): void;
+  getResponseTransformation(): Transformation | undefined;
+  setResponseTransformation(value?: Transformation): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ResponseMatch.AsObject;
@@ -36,7 +37,7 @@ export namespace ResponseMatch {
   export type AsObject = {
     matchersList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb.HeaderMatcher.AsObject>,
     responseCodeDetails: string,
-    responseTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.AsObject,
+    responseTransformation?: Transformation.AsObject,
   }
 }
 
@@ -51,13 +52,13 @@ export class RequestMatch extends jspb.Message {
 
   hasRequestTransformation(): boolean;
   clearRequestTransformation(): void;
-  getRequestTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation | undefined;
-  setRequestTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation): void;
+  getRequestTransformation(): Transformation | undefined;
+  setRequestTransformation(value?: Transformation): void;
 
   hasResponseTransformation(): boolean;
   clearResponseTransformation(): void;
-  getResponseTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation | undefined;
-  setResponseTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation): void;
+  getResponseTransformation(): Transformation | undefined;
+  setResponseTransformation(value?: Transformation): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RequestMatch.AsObject;
@@ -73,24 +74,24 @@ export namespace RequestMatch {
   export type AsObject = {
     matcher?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb.Matcher.AsObject,
     clearRouteCache: boolean,
-    requestTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.AsObject,
-    responseTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.AsObject,
+    requestTransformation?: Transformation.AsObject,
+    responseTransformation?: Transformation.AsObject,
   }
 }
 
 export class Transformations extends jspb.Message {
   hasRequestTransformation(): boolean;
   clearRequestTransformation(): void;
-  getRequestTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation | undefined;
-  setRequestTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation): void;
+  getRequestTransformation(): Transformation | undefined;
+  setRequestTransformation(value?: Transformation): void;
 
   getClearRouteCache(): boolean;
   setClearRouteCache(value: boolean): void;
 
   hasResponseTransformation(): boolean;
   clearResponseTransformation(): void;
-  getResponseTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation | undefined;
-  setResponseTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation): void;
+  getResponseTransformation(): Transformation | undefined;
+  setResponseTransformation(value?: Transformation): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Transformations.AsObject;
@@ -104,9 +105,9 @@ export class Transformations extends jspb.Message {
 
 export namespace Transformations {
   export type AsObject = {
-    requestTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.AsObject,
+    requestTransformation?: Transformation.AsObject,
     clearRouteCache: boolean,
-    responseTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.AsObject,
+    responseTransformation?: Transformation.AsObject,
   }
 }
 
@@ -149,6 +150,9 @@ export class TransformationStages extends jspb.Message {
   getRegular(): RequestResponseTransformations | undefined;
   setRegular(value?: RequestResponseTransformations): void;
 
+  getInheritTransformation(): boolean;
+  setInheritTransformation(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransformationStages.AsObject;
   static toObject(includeInstance: boolean, msg: TransformationStages): TransformationStages.AsObject;
@@ -163,5 +167,48 @@ export namespace TransformationStages {
   export type AsObject = {
     early?: RequestResponseTransformations.AsObject,
     regular?: RequestResponseTransformations.AsObject,
+    inheritTransformation: boolean,
+  }
+}
+
+export class Transformation extends jspb.Message {
+  hasTransformationTemplate(): boolean;
+  clearTransformationTemplate(): void;
+  getTransformationTemplate(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate | undefined;
+  setTransformationTemplate(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate): void;
+
+  hasHeaderBodyTransform(): boolean;
+  clearHeaderBodyTransform(): void;
+  getHeaderBodyTransform(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform | undefined;
+  setHeaderBodyTransform(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform): void;
+
+  hasXsltTransformation(): boolean;
+  clearXsltTransformation(): void;
+  getXsltTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation | undefined;
+  setXsltTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation): void;
+
+  getTransformationTypeCase(): Transformation.TransformationTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Transformation.AsObject;
+  static toObject(includeInstance: boolean, msg: Transformation): Transformation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Transformation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Transformation;
+  static deserializeBinaryFromReader(message: Transformation, reader: jspb.BinaryReader): Transformation;
+}
+
+export namespace Transformation {
+  export type AsObject = {
+    transformationTemplate?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.AsObject,
+    headerBodyTransform?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.AsObject,
+    xsltTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.AsObject,
+  }
+
+  export enum TransformationTypeCase {
+    TRANSFORMATION_TYPE_NOT_SET = 0,
+    TRANSFORMATION_TEMPLATE = 1,
+    HEADER_BODY_TRANSFORM = 2,
+    XSLT_TRANSFORMATION = 3,
   }
 }

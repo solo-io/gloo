@@ -131,6 +131,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			cb,
 			"",
 			cfg.Oauth.GetAuthEndpointQueryParams(),
+			nil, // not supported in deprecated API, net-new feature
 			cfg.Oauth.GetScopes(),
 			oidc.SessionParameters{},
 			nil,
@@ -181,6 +182,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				cb,
 				oidcCfg.GetLogoutPath(),
 				oidcCfg.GetAuthEndpointQueryParams(),
+				oidcCfg.GetTokenEndpointQueryParams(),
 				oidcCfg.GetScopes(),
 				sessionParameters,
 				headersConfig,

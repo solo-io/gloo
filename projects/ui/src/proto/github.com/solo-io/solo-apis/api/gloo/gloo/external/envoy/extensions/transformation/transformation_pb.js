@@ -17,6 +17,7 @@ var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb.js');
 goog.exportSymbol('proto.envoy.api.v2.filter.http.Extraction', null, global);
 goog.exportSymbol('proto.envoy.api.v2.filter.http.FilterTransformations', null, global);
 goog.exportSymbol('proto.envoy.api.v2.filter.http.HeaderBodyTransform', null, global);
@@ -2127,7 +2128,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.envoy.api.v2.filter.http.Transformation.oneofGroups_ = [[1,2]];
+proto.envoy.api.v2.filter.http.Transformation.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -2135,7 +2136,8 @@ proto.envoy.api.v2.filter.http.Transformation.oneofGroups_ = [[1,2]];
 proto.envoy.api.v2.filter.http.Transformation.TransformationTypeCase = {
   TRANSFORMATION_TYPE_NOT_SET: 0,
   TRANSFORMATION_TEMPLATE: 1,
-  HEADER_BODY_TRANSFORM: 2
+  HEADER_BODY_TRANSFORM: 2,
+  TRANSFORMER_CONFIG: 3
 };
 
 /**
@@ -2175,7 +2177,8 @@ proto.envoy.api.v2.filter.http.Transformation.prototype.toObject = function(opt_
 proto.envoy.api.v2.filter.http.Transformation.toObject = function(includeInstance, msg) {
   var f, obj = {
     transformationTemplate: (f = msg.getTransformationTemplate()) && proto.envoy.api.v2.filter.http.TransformationTemplate.toObject(includeInstance, f),
-    headerBodyTransform: (f = msg.getHeaderBodyTransform()) && proto.envoy.api.v2.filter.http.HeaderBodyTransform.toObject(includeInstance, f)
+    headerBodyTransform: (f = msg.getHeaderBodyTransform()) && proto.envoy.api.v2.filter.http.HeaderBodyTransform.toObject(includeInstance, f),
+    transformerConfig: (f = msg.getTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2222,6 +2225,11 @@ proto.envoy.api.v2.filter.http.Transformation.deserializeBinaryFromReader = func
       reader.readMessage(value,proto.envoy.api.v2.filter.http.HeaderBodyTransform.deserializeBinaryFromReader);
       msg.setHeaderBodyTransform(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.deserializeBinaryFromReader);
+      msg.setTransformerConfig(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2265,6 +2273,14 @@ proto.envoy.api.v2.filter.http.Transformation.serializeBinaryToWriter = function
       2,
       f,
       proto.envoy.api.v2.filter.http.HeaderBodyTransform.serializeBinaryToWriter
+    );
+  }
+  f = message.getTransformerConfig();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.serializeBinaryToWriter
     );
   }
 };
@@ -2327,6 +2343,36 @@ proto.envoy.api.v2.filter.http.Transformation.prototype.clearHeaderBodyTransform
  */
 proto.envoy.api.v2.filter.http.Transformation.prototype.hasHeaderBodyTransform = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.config.core.v3.TypedExtensionConfig transformer_config = 3;
+ * @return {?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig}
+ */
+proto.envoy.api.v2.filter.http.Transformation.prototype.getTransformerConfig = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig, 3));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig|undefined} value */
+proto.envoy.api.v2.filter.http.Transformation.prototype.setTransformerConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.envoy.api.v2.filter.http.Transformation.oneofGroups_[0], value);
+};
+
+
+proto.envoy.api.v2.filter.http.Transformation.prototype.clearTransformerConfig = function() {
+  this.setTransformerConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.api.v2.filter.http.Transformation.prototype.hasTransformerConfig = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

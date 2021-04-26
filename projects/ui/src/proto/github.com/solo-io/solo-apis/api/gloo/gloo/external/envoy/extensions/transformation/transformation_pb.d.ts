@@ -8,6 +8,7 @@ import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb";
 
 export class FilterTransformations extends jspb.Message {
   clearTransformationsList(): void;
@@ -305,6 +306,11 @@ export class Transformation extends jspb.Message {
   getHeaderBodyTransform(): HeaderBodyTransform | undefined;
   setHeaderBodyTransform(value?: HeaderBodyTransform): void;
 
+  hasTransformerConfig(): boolean;
+  clearTransformerConfig(): void;
+  getTransformerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
+  setTransformerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
+
   getTransformationTypeCase(): Transformation.TransformationTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Transformation.AsObject;
@@ -320,12 +326,14 @@ export namespace Transformation {
   export type AsObject = {
     transformationTemplate?: TransformationTemplate.AsObject,
     headerBodyTransform?: HeaderBodyTransform.AsObject,
+    transformerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
   }
 
   export enum TransformationTypeCase {
     TRANSFORMATION_TYPE_NOT_SET = 0,
     TRANSFORMATION_TEMPLATE = 1,
     HEADER_BODY_TRANSFORM = 2,
+    TRANSFORMER_CONFIG = 3,
   }
 }
 

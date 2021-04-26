@@ -861,6 +861,8 @@ export class OidcAuthorizationCode extends jspb.Message {
 
   getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
   clearAuthEndpointQueryParamsMap(): void;
+  getTokenEndpointQueryParamsMap(): jspb.Map<string, string>;
+  clearTokenEndpointQueryParamsMap(): void;
   getAppUrl(): string;
   setAppUrl(value: string): void;
 
@@ -916,6 +918,7 @@ export namespace OidcAuthorizationCode {
     clientSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     issuerUrl: string,
     authEndpointQueryParamsMap: Array<[string, string]>,
+    tokenEndpointQueryParamsMap: Array<[string, string]>,
     appUrl: string,
     callbackPath: string,
     logoutPath: string,
@@ -1484,6 +1487,8 @@ export namespace ExtAuthConfig {
 
     getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
     clearAuthEndpointQueryParamsMap(): void;
+    getTokenEndpointQueryParamsMap(): jspb.Map<string, string>;
+    clearTokenEndpointQueryParamsMap(): void;
     getAppUrl(): string;
     setAppUrl(value: string): void;
 
@@ -1539,6 +1544,7 @@ export namespace ExtAuthConfig {
       clientSecret: string,
       issuerUrl: string,
       authEndpointQueryParamsMap: Array<[string, string]>,
+      tokenEndpointQueryParamsMap: Array<[string, string]>,
       appUrl: string,
       callbackPath: string,
       logoutPath: string,

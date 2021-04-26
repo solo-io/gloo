@@ -5946,6 +5946,7 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     issuerUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     authEndpointQueryParamsMap: (f = msg.getAuthEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    tokenEndpointQueryParamsMap: (f = msg.getTokenEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
     appUrl: jspb.Message.getFieldWithDefault(msg, 5, ""),
     callbackPath: jspb.Message.getFieldWithDefault(msg, 6, ""),
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
@@ -6006,6 +6007,12 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       break;
     case 4:
       var value = msg.getAuthEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 14:
+      var value = msg.getTokenEndpointQueryParamsMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
@@ -6105,6 +6112,10 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
   f = message.getAuthEndpointQueryParamsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getTokenEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(14, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
   f = message.getAppUrl();
   if (f.length > 0) {
@@ -6252,6 +6263,24 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getAuthEndpointQue
 
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearAuthEndpointQueryParamsMap = function() {
   this.getAuthEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * map<string, string> token_endpoint_query_params = 14;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getTokenEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 14, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearTokenEndpointQueryParamsMap = function() {
+  this.getTokenEndpointQueryParamsMap().clear();
 };
 
 
@@ -10329,6 +10358,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     clientSecret: jspb.Message.getFieldWithDefault(msg, 2, ""),
     issuerUrl: jspb.Message.getFieldWithDefault(msg, 3, ""),
     authEndpointQueryParamsMap: (f = msg.getAuthEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    tokenEndpointQueryParamsMap: (f = msg.getTokenEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
     appUrl: jspb.Message.getFieldWithDefault(msg, 5, ""),
     callbackPath: jspb.Message.getFieldWithDefault(msg, 6, ""),
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
@@ -10388,6 +10418,12 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       break;
     case 4:
       var value = msg.getAuthEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 14:
+      var value = msg.getTokenEndpointQueryParamsMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
@@ -10486,6 +10522,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
   f = message.getAuthEndpointQueryParamsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getTokenEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(14, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
   f = message.getAppUrl();
   if (f.length > 0) {
@@ -10618,6 +10658,24 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
 
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearAuthEndpointQueryParamsMap = function() {
   this.getAuthEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * map<string, string> token_endpoint_query_params = 14;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getTokenEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 14, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearTokenEndpointQueryParamsMap = function() {
+  this.getTokenEndpointQueryParamsMap().clear();
 };
 
 

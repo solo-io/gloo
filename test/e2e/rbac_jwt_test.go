@@ -22,7 +22,7 @@ import (
 	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
-	transformation2 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	glootransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -624,9 +624,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream *c
 				},
 			}, {
 				Options: &gloov1.RouteOptions{
-					Transformations: &transformation2.Transformations{
-						RequestTransformation: &transformation.Transformation{
-							TransformationType: &transformation.Transformation_TransformationTemplate{
+					Transformations: &glootransformation.Transformations{
+						RequestTransformation: &glootransformation.Transformation{
+							TransformationType: &glootransformation.Transformation_TransformationTemplate{
 								TransformationTemplate: &transformation.TransformationTemplate{
 									Headers:            map[string]*transformation.InjaTemplate{"x-new-header": {Text: "new"}},
 									BodyTransformation: &transformation.TransformationTemplate_Passthrough{Passthrough: &transformation.Passthrough{}},

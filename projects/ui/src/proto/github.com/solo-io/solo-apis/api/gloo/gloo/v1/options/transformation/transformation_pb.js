@@ -15,10 +15,12 @@ var global = Function('return this')();
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation/transformation_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformers/xslt/xslt_transformer_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.RequestMatch', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.RequestResponseTransformations', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.ResponseMatch', null, global);
+goog.exportSymbol('proto.transformation.options.gloo.solo.io.Transformation', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.TransformationStages', null, global);
 goog.exportSymbol('proto.transformation.options.gloo.solo.io.Transformations', null, global);
 
@@ -78,7 +80,7 @@ proto.transformation.options.gloo.solo.io.ResponseMatch.toObject = function(incl
     matchersList: jspb.Message.toObjectList(msg.getMatchersList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb.HeaderMatcher.toObject, includeInstance),
     responseCodeDetails: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    responseTransformation: (f = msg.getResponseTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.toObject(includeInstance, f)
+    responseTransformation: (f = msg.getResponseTransformation()) && proto.transformation.options.gloo.solo.io.Transformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -125,8 +127,8 @@ proto.transformation.options.gloo.solo.io.ResponseMatch.deserializeBinaryFromRea
       msg.setResponseCodeDetails(value);
       break;
     case 3:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.Transformation;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
     default:
@@ -178,7 +180,7 @@ proto.transformation.options.gloo.solo.io.ResponseMatch.serializeBinaryToWriter 
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     );
   }
 };
@@ -231,16 +233,16 @@ proto.transformation.options.gloo.solo.io.ResponseMatch.prototype.setResponseCod
 
 
 /**
- * optional envoy.api.v2.filter.http.Transformation response_transformation = 3;
- * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ * optional Transformation response_transformation = 3;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformation}
  */
 proto.transformation.options.gloo.solo.io.ResponseMatch.prototype.getResponseTransformation = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation, 3));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Transformation, 3));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformation|undefined} value */
 proto.transformation.options.gloo.solo.io.ResponseMatch.prototype.setResponseTransformation = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
@@ -309,8 +311,8 @@ proto.transformation.options.gloo.solo.io.RequestMatch.toObject = function(inclu
   var f, obj = {
     matcher: (f = msg.getMatcher()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb.Matcher.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 2, false),
-    requestTransformation: (f = msg.getRequestTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.toObject(includeInstance, f),
-    responseTransformation: (f = msg.getResponseTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.toObject(includeInstance, f)
+    requestTransformation: (f = msg.getRequestTransformation()) && proto.transformation.options.gloo.solo.io.Transformation.toObject(includeInstance, f),
+    responseTransformation: (f = msg.getResponseTransformation()) && proto.transformation.options.gloo.solo.io.Transformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -357,13 +359,13 @@ proto.transformation.options.gloo.solo.io.RequestMatch.deserializeBinaryFromRead
       msg.setClearRouteCache(value);
       break;
     case 3:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.Transformation;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader);
       msg.setRequestTransformation(value);
       break;
     case 4:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.Transformation;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
     default:
@@ -415,7 +417,7 @@ proto.transformation.options.gloo.solo.io.RequestMatch.serializeBinaryToWriter =
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     );
   }
   f = message.getResponseTransformation();
@@ -423,7 +425,7 @@ proto.transformation.options.gloo.solo.io.RequestMatch.serializeBinaryToWriter =
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     );
   }
 };
@@ -477,16 +479,16 @@ proto.transformation.options.gloo.solo.io.RequestMatch.prototype.setClearRouteCa
 
 
 /**
- * optional envoy.api.v2.filter.http.Transformation request_transformation = 3;
- * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ * optional Transformation request_transformation = 3;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformation}
  */
 proto.transformation.options.gloo.solo.io.RequestMatch.prototype.getRequestTransformation = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation, 3));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Transformation, 3));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformation|undefined} value */
 proto.transformation.options.gloo.solo.io.RequestMatch.prototype.setRequestTransformation = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
@@ -507,16 +509,16 @@ proto.transformation.options.gloo.solo.io.RequestMatch.prototype.hasRequestTrans
 
 
 /**
- * optional envoy.api.v2.filter.http.Transformation response_transformation = 4;
- * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ * optional Transformation response_transformation = 4;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformation}
  */
 proto.transformation.options.gloo.solo.io.RequestMatch.prototype.getResponseTransformation = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation, 4));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Transformation, 4));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformation|undefined} value */
 proto.transformation.options.gloo.solo.io.RequestMatch.prototype.setResponseTransformation = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
@@ -583,9 +585,9 @@ proto.transformation.options.gloo.solo.io.Transformations.prototype.toObject = f
  */
 proto.transformation.options.gloo.solo.io.Transformations.toObject = function(includeInstance, msg) {
   var f, obj = {
-    requestTransformation: (f = msg.getRequestTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.toObject(includeInstance, f),
+    requestTransformation: (f = msg.getRequestTransformation()) && proto.transformation.options.gloo.solo.io.Transformation.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 3, false),
-    responseTransformation: (f = msg.getResponseTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.toObject(includeInstance, f)
+    responseTransformation: (f = msg.getResponseTransformation()) && proto.transformation.options.gloo.solo.io.Transformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -623,8 +625,8 @@ proto.transformation.options.gloo.solo.io.Transformations.deserializeBinaryFromR
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.Transformation;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader);
       msg.setRequestTransformation(value);
       break;
     case 3:
@@ -632,8 +634,8 @@ proto.transformation.options.gloo.solo.io.Transformations.deserializeBinaryFromR
       msg.setClearRouteCache(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.deserializeBinaryFromReader);
+      var value = new proto.transformation.options.gloo.solo.io.Transformation;
+      reader.readMessage(value,proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
     default:
@@ -670,7 +672,7 @@ proto.transformation.options.gloo.solo.io.Transformations.serializeBinaryToWrite
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     );
   }
   f = message.getClearRouteCache();
@@ -685,23 +687,23 @@ proto.transformation.options.gloo.solo.io.Transformations.serializeBinaryToWrite
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation.serializeBinaryToWriter
+      proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional envoy.api.v2.filter.http.Transformation request_transformation = 1;
- * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ * optional Transformation request_transformation = 1;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformation}
  */
 proto.transformation.options.gloo.solo.io.Transformations.prototype.getRequestTransformation = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation, 1));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Transformation, 1));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformation|undefined} value */
 proto.transformation.options.gloo.solo.io.Transformations.prototype.setRequestTransformation = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -739,16 +741,16 @@ proto.transformation.options.gloo.solo.io.Transformations.prototype.setClearRout
 
 
 /**
- * optional envoy.api.v2.filter.http.Transformation response_transformation = 2;
- * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ * optional Transformation response_transformation = 2;
+ * @return {?proto.transformation.options.gloo.solo.io.Transformation}
  */
 proto.transformation.options.gloo.solo.io.Transformations.prototype.getResponseTransformation = function() {
-  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.Transformation, 2));
+  return /** @type{?proto.transformation.options.gloo.solo.io.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.transformation.options.gloo.solo.io.Transformation, 2));
 };
 
 
-/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+/** @param {?proto.transformation.options.gloo.solo.io.Transformation|undefined} value */
 proto.transformation.options.gloo.solo.io.Transformations.prototype.setResponseTransformation = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
@@ -1030,7 +1032,8 @@ proto.transformation.options.gloo.solo.io.TransformationStages.prototype.toObjec
 proto.transformation.options.gloo.solo.io.TransformationStages.toObject = function(includeInstance, msg) {
   var f, obj = {
     early: (f = msg.getEarly()) && proto.transformation.options.gloo.solo.io.RequestResponseTransformations.toObject(includeInstance, f),
-    regular: (f = msg.getRegular()) && proto.transformation.options.gloo.solo.io.RequestResponseTransformations.toObject(includeInstance, f)
+    regular: (f = msg.getRegular()) && proto.transformation.options.gloo.solo.io.RequestResponseTransformations.toObject(includeInstance, f),
+    inheritTransformation: jspb.Message.getFieldWithDefault(msg, 3, false)
   };
 
   if (includeInstance) {
@@ -1077,6 +1080,10 @@ proto.transformation.options.gloo.solo.io.TransformationStages.deserializeBinary
       reader.readMessage(value,proto.transformation.options.gloo.solo.io.RequestResponseTransformations.deserializeBinaryFromReader);
       msg.setRegular(value);
       break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setInheritTransformation(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1120,6 +1127,13 @@ proto.transformation.options.gloo.solo.io.TransformationStages.serializeBinaryTo
       2,
       f,
       proto.transformation.options.gloo.solo.io.RequestResponseTransformations.serializeBinaryToWriter
+    );
+  }
+  f = message.getInheritTransformation();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
     );
   }
 };
@@ -1182,6 +1196,297 @@ proto.transformation.options.gloo.solo.io.TransformationStages.prototype.clearRe
  */
 proto.transformation.options.gloo.solo.io.TransformationStages.prototype.hasRegular = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional bool inherit_transformation = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.getInheritTransformation = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.transformation.options.gloo.solo.io.TransformationStages.prototype.setInheritTransformation = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.transformation.options.gloo.solo.io.Transformation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_);
+};
+goog.inherits(proto.transformation.options.gloo.solo.io.Transformation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.transformation.options.gloo.solo.io.Transformation.displayName = 'proto.transformation.options.gloo.solo.io.Transformation';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_ = [[1,2,3]];
+
+/**
+ * @enum {number}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.TransformationTypeCase = {
+  TRANSFORMATION_TYPE_NOT_SET: 0,
+  TRANSFORMATION_TEMPLATE: 1,
+  HEADER_BODY_TRANSFORM: 2,
+  XSLT_TRANSFORMATION: 3
+};
+
+/**
+ * @return {proto.transformation.options.gloo.solo.io.Transformation.TransformationTypeCase}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.getTransformationTypeCase = function() {
+  return /** @type {proto.transformation.options.gloo.solo.io.Transformation.TransformationTypeCase} */(jspb.Message.computeOneofCase(this, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.toObject = function(opt_includeInstance) {
+  return proto.transformation.options.gloo.solo.io.Transformation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.transformation.options.gloo.solo.io.Transformation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Transformation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    transformationTemplate: (f = msg.getTransformationTemplate()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.toObject(includeInstance, f),
+    headerBodyTransform: (f = msg.getHeaderBodyTransform()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.toObject(includeInstance, f),
+    xsltTransformation: (f = msg.getXsltTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.transformation.options.gloo.solo.io.Transformation}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.transformation.options.gloo.solo.io.Transformation;
+  return proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.transformation.options.gloo.solo.io.Transformation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.transformation.options.gloo.solo.io.Transformation}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.deserializeBinaryFromReader);
+      msg.setTransformationTemplate(value);
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.deserializeBinaryFromReader);
+      msg.setHeaderBodyTransform(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.deserializeBinaryFromReader);
+      msg.setXsltTransformation(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.transformation.options.gloo.solo.io.Transformation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.transformation.options.gloo.solo.io.Transformation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getTransformationTemplate();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate.serializeBinaryToWriter
+    );
+  }
+  f = message.getHeaderBodyTransform();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform.serializeBinaryToWriter
+    );
+  }
+  f = message.getXsltTransformation();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional envoy.api.v2.filter.http.TransformationTemplate transformation_template = 1;
+ * @return {?proto.envoy.api.v2.filter.http.TransformationTemplate}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.getTransformationTemplate = function() {
+  return /** @type{?proto.envoy.api.v2.filter.http.TransformationTemplate} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.TransformationTemplate, 1));
+};
+
+
+/** @param {?proto.envoy.api.v2.filter.http.TransformationTemplate|undefined} value */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.setTransformationTemplate = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.Transformation.prototype.clearTransformationTemplate = function() {
+  this.setTransformationTemplate(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.hasTransformationTemplate = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional envoy.api.v2.filter.http.HeaderBodyTransform header_body_transform = 2;
+ * @return {?proto.envoy.api.v2.filter.http.HeaderBodyTransform}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.getHeaderBodyTransform = function() {
+  return /** @type{?proto.envoy.api.v2.filter.http.HeaderBodyTransform} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_transformation_pb.HeaderBodyTransform, 2));
+};
+
+
+/** @param {?proto.envoy.api.v2.filter.http.HeaderBodyTransform|undefined} value */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.setHeaderBodyTransform = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.Transformation.prototype.clearHeaderBodyTransform = function() {
+  this.setHeaderBodyTransform(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.hasHeaderBodyTransform = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional envoy.config.transformer.xslt.v2.XsltTransformation xslt_transformation = 3;
+ * @return {?proto.envoy.config.transformer.xslt.v2.XsltTransformation}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.getXsltTransformation = function() {
+  return /** @type{?proto.envoy.config.transformer.xslt.v2.XsltTransformation} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformers_xslt_xslt_transformer_pb.XsltTransformation, 3));
+};
+
+
+/** @param {?proto.envoy.config.transformer.xslt.v2.XsltTransformation|undefined} value */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.setXsltTransformation = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.transformation.options.gloo.solo.io.Transformation.oneofGroups_[0], value);
+};
+
+
+proto.transformation.options.gloo.solo.io.Transformation.prototype.clearXsltTransformation = function() {
+  this.setXsltTransformation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.transformation.options.gloo.solo.io.Transformation.prototype.hasXsltTransformation = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

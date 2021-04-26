@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4329
+    description: >
+      Allows configuration of query parameters to add to the Gloo extauth service's OIDC token endpoint request
+      (`/token`). This can be useful as part of OIDC PKCE to set the `code_verifier`.
