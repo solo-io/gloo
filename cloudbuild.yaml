@@ -86,6 +86,7 @@ steps:
     - |
       ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
       gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/libsaxon-solo.so /workspace/libsaxon-solo.so
       chmod +x /workspace/envoy
   dir: &dir "/workspace/solo-projects"
   waitFor: ['prepare-workspace']
@@ -130,6 +131,7 @@ steps:
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "ENVOY_BINARY=/workspace/envoy"
+    - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"
     - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
     - "RUN_KUBE_TESTS=1"
     - "CLOUD_BUILD=1"

@@ -3,11 +3,18 @@ package gateway_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
-	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"github.com/solo-io/go-utils/testutils"
 	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
+	"github.com/solo-io/solo-projects/test/e2e/transformation_helpers"
+
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/regressions"
 
@@ -77,6 +84,9 @@ var _ = Describe("dlp tests", func() {
 		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		err := httpEcho.Terminate()
 		Expect(err).NotTo(HaveOccurred())
+		// Delete http echo service
+		err = testutils.Kubectl("delete", "service", "-n", testHelper.InstallNamespace, helper.HttpEchoName, "--grace-period=0")
+		Expect(err).NotTo(HaveOccurred())
 		cancel()
 	})
 
@@ -135,6 +145,56 @@ var _ = Describe("dlp tests", func() {
 			}
 			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, regressions.TestMatcherPrefix)
 			checkConnection(`"YYYlo":"YYYld"`)
+		})
+	})
+
+	Context("xslt transformer", func() {
+		expectBody := func(body, expectedBody string) {
+			waitForGateway()
+			expectedString := regexp.MustCompile("[\\r\\n\\s]+").ReplaceAllString(expectedBody, "")
+			gatewayPort := 80
+			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+				Protocol:          "http",
+				Path:              regressions.TestMatcherPrefix,
+				Headers:           map[string]string{"hello": "world"},
+				Host:              defaults.GatewayProxyName,
+				Service:           defaults.GatewayProxyName,
+				Port:              gatewayPort,
+				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+				Verbose:           true,
+				Body:              body,
+			}, expectedString, 1, time.Second*20)
+		}
+
+		It("will transform xml -> json", func() {
+
+			virtualHostPlugins := &gloov1.VirtualHostOptions{
+				StagedTransformations: &transformation.TransformationStages{
+					Early: &transformation.RequestResponseTransformations{
+						RequestTransforms: []*transformation.RequestMatch{
+							{
+								Matcher: &matchers.Matcher{
+									PathSpecifier: &matchers.Matcher_Prefix{Prefix: "/"},
+								},
+								RequestTransformation: &transformation.Transformation{
+									TransformationType: &transformation.Transformation_XsltTransformation{
+										XsltTransformation: &xslt.XsltTransformation{
+											Xslt: transformation_helpers.XmlToJsonTransform,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			httpEchoRef := &core.ResourceRef{
+				Namespace: testHelper.InstallNamespace,
+				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+			}
+			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, regressions.TestMatcherPrefix)
+			expectBody(transformation_helpers.CarsXml, transformation_helpers.CarsJson)
 		})
 	})
 })

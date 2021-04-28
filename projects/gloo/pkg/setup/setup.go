@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformer"
+
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 
@@ -95,6 +97,7 @@ func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setu
 			func() plugins.Plugin { return http_path.NewPlugin() },
 			func() plugins.Plugin { return wasm.NewPlugin() },
 			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
+			func() plugins.Plugin { return transformer.NewPlugin() },
 		},
 	}
 }
