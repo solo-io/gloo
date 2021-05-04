@@ -43,7 +43,7 @@ require (
 	github.com/solo-io/anyvendor v0.0.3
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.16.0
+	github.com/solo-io/ext-auth-service v0.16.1-0.20210504192211-c821af9c45b4
 	github.com/solo-io/external-apis v0.1.4
 	github.com/solo-io/gloo v1.8.0-beta11
 	github.com/solo-io/go-list-licenses v0.1.3
