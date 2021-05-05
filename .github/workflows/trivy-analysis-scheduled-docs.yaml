@@ -1,0 +1,277 @@
+name: security-scan-docs
+on:
+  schedule:
+    # Monday 9am EST
+    - cron: "0 13 * * 1"
+  workflow_dispatch: # on button click
+jobs:
+  image-scan:
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      TAGGED_VERSION: ${{ github.ref }}
+      SCAN_DIR: _output/scans
+    strategy:
+      matrix:
+        image-type: [ 'rate-limit-ee', 'gloo-ee', 'gloo-ee-envoy-wrapper', 'observability-ee', 'extauth-ee' ]
+        # master is skipped (docs are updated only for stable releases)
+        gloo-version: [ 'v1.7.x', 'v1.6.x', 'v1.5.x']
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Setup - gcloud / gsutil to check scan
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
+          project_id: solo-public
+          export_default_credentials: true
+      - name: Free disk space
+        # https://github.com/actions/virtual-environments/issues/709
+        run: |
+          sudo apt-get clean
+          df -h
+      - name: Set up Go 1.16.3
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Check if scan exists
+        id: check-scan-exists
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | cut -c 2-)
+          echo "::set-output name=VERSION::$(echo $VERSION)"
+          EXISTS=$(gsutil -q stat gs://solo-gloo-security-scans/glooe/$(echo $VERSION)/${{ matrix.image-type }}_cve_report.docgen; echo $?)
+          echo "::set-output name=EXISTS::$(echo $EXISTS)"
+      - uses: actions/cache@v1
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Configure git for private modules
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        env:
+          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
+          # because secrets.GITHUB_ACTION is reserved in github workflows
+          TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Setup - gcloud / gsutil
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        # required for building gloo-ee-envoy-wrapper which uses envoy image in gcr.io
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
+          project_id: gloo-ee
+          export_default_credentials: true
+      - name: Setup docker
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          gcloud auth configure-docker
+      - name: Build an image from Dockerfile
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        id: build-docker-image
+        run: |
+          go env -w GOPRIVATE=github.com/solo-io
+          go mod tidy
+          TAGGED_VERSION=v${{ steps.check-scan-exists.outputs.VERSION }} LOCAL_BUILD=true make ${{ matrix.image-type }}-docker
+      - name: Setup - gcloud / gsutil for docs
+        # need to switch to solo-public SA to publish scan docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
+          project_id: solo-public
+          export_default_credentials: true
+      - name: Setup Gloo Docs Output
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          mkdir -p ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}
+      - name: Gloo Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ steps.check-scan-exists.outputs.VERSION }}
+          format: 'template'
+          template: '@hack/utils/security_scan_report/markdown.tpl'
+          output: ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}/${{ matrix.image-type }}_cve_report.docgen
+          severity: 'CRITICAL,HIGH'
+      - name: Publish Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          VERSION=${{ steps.check-scan-exists.outputs.VERSION }} SCAN_FILE=${{ matrix.image-type }}_cve_report.docgen make publish-security-scan
+  gloo-fed-image-scan: # gloo-fed supported in v1.7+
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      TAGGED_VERSION: ${{ github.ref }}
+      SCAN_DIR: _output/scans
+    strategy:
+      matrix:
+        image-type: [ 'gloo-fed', 'gloo-fed-apiserver', 'gloo-fed-apiserver-envoy', 'gloo-federation-console', 'gloo-fed-rbac-validating-webhook' ]
+        gloo-version: [ 'v1.7.x' ]
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Setup - gcloud / gsutil to check scan
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
+          project_id: solo-public
+          export_default_credentials: true
+      - name: Free disk space
+        # https://github.com/actions/virtual-environments/issues/709
+        run: |
+          sudo apt-get clean
+          df -h
+      - name: Set up Go 1.16.3
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Check if scan exists
+        id: check-scan-exists
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | cut -c 2-)
+          echo "::set-output name=VERSION::$(echo $VERSION)"
+          EXISTS=$(gsutil -q stat gs://solo-gloo-security-scans/glooe/$(echo $VERSION)/${{ matrix.image-type }}_cve_report.docgen; echo $?)
+          echo "::set-output name=EXISTS::$(echo $EXISTS)"
+      - uses: actions/cache@v1
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Configure git for private modules
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        env:
+          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
+          # because secrets.GITHUB_ACTION is reserved in github workflows
+          TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Build an image from Dockerfile
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        id: build-docker-image
+        run: |
+          go env -w GOPRIVATE=github.com/solo-io
+          go mod tidy
+          TAGGED_VERSION=v${{ steps.check-scan-exists.outputs.VERSION }} LOCAL_BUILD=true make ${{ matrix.image-type }}-docker
+      - name: Setup Gloo Docs Output
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          mkdir -p ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}
+      - name: Gloo Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ steps.check-scan-exists.outputs.VERSION }}
+          format: 'template'
+          template: '@hack/utils/security_scan_report/markdown.tpl'
+          output: ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}/${{ matrix.image-type }}_cve_report.docgen
+          severity: 'CRITICAL,HIGH'
+      - name: Publish Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          VERSION=${{ steps.check-scan-exists.outputs.VERSION }} SCAN_FILE=${{ matrix.image-type }}_cve_report.docgen make publish-security-scan
+  grpc-image-scan: # gloo-fed replaced grpc images in 1.7+
+    name: Trivy Scan
+    runs-on: "ubuntu-18.04"
+    env:
+      IMAGE_REPO: quay.io/solo-io
+      GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      TAGGED_VERSION: ${{ github.ref }}
+      SCAN_DIR: _output/scans
+    strategy:
+      matrix:
+        image-type: [ 'grpcserver-ee', 'grpcserver-envoy', 'grpcserver-ui' ]
+        gloo-version: [ 'v1.6.x', 'v1.5.x']
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Setup - gcloud / gsutil to check scan
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
+          project_id: solo-public
+          export_default_credentials: true
+      - name: Free disk space
+        # https://github.com/actions/virtual-environments/issues/709
+        run: |
+          sudo apt-get clean
+          df -h
+      - name: Set up Go 1.16.3
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ matrix.gloo-version }}
+      - name: Check if scan exists
+        id: check-scan-exists
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 | cut -c 2-)
+          echo "::set-output name=VERSION::$(echo $VERSION)"
+          EXISTS=$(gsutil -q stat gs://solo-gloo-security-scans/glooe/$(echo $VERSION)/${{ matrix.image-type }}_cve_report.docgen; echo $?)
+          echo "::set-output name=EXISTS::$(echo $EXISTS)"
+      - uses: actions/cache@v1
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Configure git for private modules
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        env:
+          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
+          # because secrets.GITHUB_ACTION is reserved in github workflows
+          TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Build an image from Dockerfile
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        id: build-docker-image
+        run: |
+          go env -w GOPRIVATE=github.com/solo-io
+          go mod tidy
+          TAGGED_VERSION=v${{ steps.check-scan-exists.outputs.VERSION }} LOCAL_BUILD=true make ${{ matrix.image-type }}-docker
+      - name: Setup Gloo Docs Output
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          mkdir -p ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}
+      - name: Gloo Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ steps.check-scan-exists.outputs.VERSION }}
+          format: 'template'
+          template: '@hack/utils/security_scan_report/markdown.tpl'
+          output: ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}/${{ matrix.image-type }}_cve_report.docgen
+          severity: 'CRITICAL,HIGH'
+      - name: Publish Docs
+        if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        run: |
+          VERSION=${{ steps.check-scan-exists.outputs.VERSION }} SCAN_FILE=${{ matrix.image-type }}_cve_report.docgen make publish-security-scan
