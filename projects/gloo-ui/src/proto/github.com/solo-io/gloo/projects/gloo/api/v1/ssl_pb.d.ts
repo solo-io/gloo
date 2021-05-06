@@ -42,6 +42,9 @@ export class SslConfig extends jspb.Message {
   setAlpnProtocolsList(value: Array<string>): void;
   addAlpnProtocols(value: string, index?: number): string;
 
+  getOneWayTls(): boolean;
+  setOneWayTls(value: boolean): void;
+
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SslConfig.AsObject;
@@ -62,6 +65,7 @@ export namespace SslConfig {
     verifySubjectAltNameList: Array<string>,
     parameters?: SslParameters.AsObject,
     alpnProtocolsList: Array<string>,
+    oneWayTls: boolean,
   }
 
   export enum SslSecretsCase {

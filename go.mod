@@ -7,7 +7,6 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
 	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
@@ -35,7 +34,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.7.22
-	github.com/solo-io/gloo v1.6.23
+	github.com/solo-io/gloo v1.6.24
 	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17
