@@ -19,13 +19,13 @@ Name|Version|License
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [mitchellh/hashstructure](https://github.com/mitchellh/hashstructure)|v1.0.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.4|MIT License
-[onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.14.1|MIT License
+[onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.15.0|MIT License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.10.5|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.9.0|Apache License 2.0
 [prometheus/prometheus](https://github.com/prometheus/prometheus)|v2.5.0+incompatible|Apache License 2.0
-[rotisserie/eris](https://github.com/rotisserie/eris)|v0.4.0|MIT License
+[rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.0|MIT License
 [sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.7.0|MIT License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.1.3|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License

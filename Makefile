@@ -125,7 +125,7 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/vendor_any
 	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
 	rm -rf $(ROOTDIR)/projects/apiserver/pkg/api
-	rm -rf $(ROOTDIR)/projects/glooctl-extensions/fed/pkg/api
+	rm -rf $(ROOTDIR)/projects/glooctl-plugins/fed/pkg/api
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
@@ -723,11 +723,11 @@ glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
 build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
 
 #----------------------------------------------------------------------------------
-# Glooctl Extensions
+# Glooctl Plugins
 #----------------------------------------------------------------------------------
 
 # Include helm makefile so its targets can be ran from the root of this repo
-include $(ROOTDIR)/projects/glooctl-extensions/extensions.mk
+include $(ROOTDIR)/projects/glooctl-plugins/plugins.mk
 
 #----------------------------------------------------------------------------------
 # Envoy init (BASE/SIDECAR)

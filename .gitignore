@@ -47,3 +47,6 @@ id_rsa
 
 # junit
 junit.xml
+
+# Ignore index cloned plugin index
+ci/index

@@ -1,0 +1,36 @@
+name: Release CLI Plugins
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release-cli-plugins:
+    name: Release CLI Plugins
+    runs-on: ubuntu-18.04
+    env:
+      PLUGINS_ROOT: projects/glooctl-plugins
+      INDEX_DIR: ci/index
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: Checkout custom github actions
+        uses: actions/checkout@v2
+        with:
+          repository: solo-io/cli-kit
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: cli-kit
+      - name: Release Plugins
+        uses: ./cli-kit/.github/actions/release-plugins
+        with:
+          version: ${{ github.event.release.tag_name }}
+          githubToken: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          gcsCredentials: ${{ secrets.GCP_SA_KEY }}
+          workDir: projects/glooctl-plugins
+          indexDir: ci/index
+          outputDir: ci/_output
+          branchPrefix: ${{ github.repository }}_

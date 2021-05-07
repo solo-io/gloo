@@ -38,14 +38,14 @@ mv projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/resource_apis.proto 
 cp projects/apiserver/api/fed.rpc/v1/*resources.proto vendor_any/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/ > /dev/null
 
 # fix cli paths
-mkdir -p projects/glooctl-extensions/fed/pkg/api/gloo.solo.io/v1/cli
-mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/cli/* projects/glooctl-extensions/fed/pkg/api/gloo.solo.io/v1/cli  > /dev/null
-mkdir -p projects/glooctl-extensions/fed/pkg/api/gateway.solo.io/v1/cli
-mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/cli/* projects/glooctl-extensions/fed/pkg/api/gateway.solo.io/v1/cli  > /dev/null
-mkdir -p projects/glooctl-extensions/fed/pkg/api/enterprise.gloo.solo.io/v1/cli
-mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/cli/* projects/glooctl-extensions/fed/pkg/api/enterprise.gloo.solo.io/v1/cli  > /dev/null
-mkdir -p projects/glooctl-extensions/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli
-mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli/* projects/glooctl-extensions/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli  > /dev/null
+mkdir -p projects/glooctl-plugins/fed/pkg/api/gloo.solo.io/v1/cli
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/cli/* projects/glooctl-plugins/fed/pkg/api/gloo.solo.io/v1/cli  > /dev/null
+mkdir -p projects/glooctl-plugins/fed/pkg/api/gateway.solo.io/v1/cli
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/cli/* projects/glooctl-plugins/fed/pkg/api/gateway.solo.io/v1/cli  > /dev/null
+mkdir -p projects/glooctl-plugins/fed/pkg/api/enterprise.gloo.solo.io/v1/cli
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/cli/* projects/glooctl-plugins/fed/pkg/api/enterprise.gloo.solo.io/v1/cli  > /dev/null
+mkdir -p projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli
+mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli/* projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli  > /dev/null
 
 # fix apiserver handler paths
 mkdir -p projects/apiserver/pkg/api/gloo.solo.io/v1/handler
