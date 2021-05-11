@@ -1,4 +1,4 @@
-FROM alpine:3.12.1
+FROM alpine:3.13.5
 
 COPY observability-linux-amd64 /usr/local/bin/observability
 
