@@ -16,7 +16,7 @@ import (
 	jwtplugin "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	extauthrunner "github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
@@ -470,7 +470,7 @@ func getJwtVhostCfg(jwtksServerRef *core.ResourceRef, allowMissingFailed, keepTo
 func getJwtTokenFor(sub string, privateKey *rsa.PrivateKey) string {
 	claims := jwt.StandardClaims{
 		Issuer:   issuer,
-		Audience: audience,
+		Audience: []string{audience},
 		Subject:  sub,
 	}
 	tok := getToken(claims, privateKey)

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
@@ -223,7 +223,7 @@ var _ = Describe("JWT + RBAC", func() {
 	getTokenFor := func(sub string) string {
 		claims := jwt.StandardClaims{
 			Issuer:   issuer,
-			Audience: audience,
+			Audience: []string{audience},
 			Subject:  sub,
 		}
 		tok := getToken(claims, privateKey)
