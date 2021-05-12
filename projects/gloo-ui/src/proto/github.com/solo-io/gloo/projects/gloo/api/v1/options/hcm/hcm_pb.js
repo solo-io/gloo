@@ -19,6 +19,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protoc
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ForwardClientCertDetails', null, global);
+goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails', null, global);
 
@@ -99,7 +100,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     github_com_solo$io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance),
     maxConnectionDuration: (f = msg.getMaxConnectionDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxStreamDuration: (f = msg.getMaxStreamDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0)
+    serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0),
+    pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0)
   };
 
   if (includeInstance) {
@@ -244,6 +246,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 25:
       var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation} */ (reader.readEnum());
       msg.setServerHeaderTransformation(value);
+      break;
+    case 26:
+      var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction} */ (reader.readEnum());
+      msg.setPathWithEscapedSlashesAction(value);
       break;
     default:
       reader.skipField();
@@ -455,6 +461,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       f
     );
   }
+  f = message.getPathWithEscapedSlashesAction();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      26,
+      f
+    );
+  }
 };
 
 
@@ -476,6 +489,17 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransfo
   OVERWRITE: 0,
   APPEND_IF_ABSENT: 1,
   PASS_THROUGH: 2
+};
+
+/**
+ * @enum {number}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction = {
+  IMPLEMENTATION_SPECIFIC_DEFAULT: 0,
+  KEEP_UNCHANGED: 1,
+  REJECT_REQUEST: 2,
+  UNESCAPE_AND_REDIRECT: 3,
+  UNESCAPE_AND_FORWARD: 4
 };
 
 
@@ -1316,6 +1340,21 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getServer
 /** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setServerHeaderTransformation = function(value) {
   jspb.Message.setProto3EnumField(this, 25, value);
+};
+
+
+/**
+ * optional PathWithEscapedSlashesAction path_with_escaped_slashes_action = 26;
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPathWithEscapedSlashesAction = function() {
+  return /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction} */ (jspb.Message.getFieldWithDefault(this, 26, 0));
+};
+
+
+/** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPathWithEscapedSlashesAction = function(value) {
+  jspb.Message.setProto3EnumField(this, 26, value);
 };
 
 

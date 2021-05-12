@@ -34,6 +34,16 @@ export class ListenerTracingSettings extends jspb.Message {
   getDatadogConfig(): github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig | undefined;
   setDatadogConfig(value?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig): void;
 
+  clearEnvironmentVariablesForTagsList(): void;
+  getEnvironmentVariablesForTagsList(): Array<TracingTagEnvironmentVariable>;
+  setEnvironmentVariablesForTagsList(value: Array<TracingTagEnvironmentVariable>): void;
+  addEnvironmentVariablesForTags(value?: TracingTagEnvironmentVariable, index?: number): TracingTagEnvironmentVariable;
+
+  clearLiteralsForTagsList(): void;
+  getLiteralsForTagsList(): Array<TracingTagLiteral>;
+  setLiteralsForTagsList(value: Array<TracingTagLiteral>): void;
+  addLiteralsForTags(value?: TracingTagLiteral, index?: number): TracingTagLiteral;
+
   getProviderConfigCase(): ListenerTracingSettings.ProviderConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerTracingSettings.AsObject;
@@ -52,6 +62,8 @@ export namespace ListenerTracingSettings {
     tracePercentages?: TracePercentages.AsObject,
     zipkinConfig?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.AsObject,
     datadogConfig?: github_com_solo_io_gloo_projects_gloo_api_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.AsObject,
+    environmentVariablesForTagsList: Array<TracingTagEnvironmentVariable.AsObject>,
+    literalsForTagsList: Array<TracingTagLiteral.AsObject>,
   }
 
   export enum ProviderConfigCase {
@@ -124,5 +136,57 @@ export namespace TracePercentages {
     clientSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
     randomSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
     overallSamplePercentage?: google_protobuf_wrappers_pb.FloatValue.AsObject,
+  }
+}
+
+export class TracingTagEnvironmentVariable extends jspb.Message {
+  getTag(): string;
+  setTag(value: string): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  getDefaultValue(): string;
+  setDefaultValue(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TracingTagEnvironmentVariable.AsObject;
+  static toObject(includeInstance: boolean, msg: TracingTagEnvironmentVariable): TracingTagEnvironmentVariable.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TracingTagEnvironmentVariable, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TracingTagEnvironmentVariable;
+  static deserializeBinaryFromReader(message: TracingTagEnvironmentVariable, reader: jspb.BinaryReader): TracingTagEnvironmentVariable;
+}
+
+export namespace TracingTagEnvironmentVariable {
+  export type AsObject = {
+    tag: string,
+    name: string,
+    defaultValue: string,
+  }
+}
+
+export class TracingTagLiteral extends jspb.Message {
+  getTag(): string;
+  setTag(value: string): void;
+
+  getValue(): string;
+  setValue(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TracingTagLiteral.AsObject;
+  static toObject(includeInstance: boolean, msg: TracingTagLiteral): TracingTagLiteral.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TracingTagLiteral, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TracingTagLiteral;
+  static deserializeBinaryFromReader(message: TracingTagLiteral, reader: jspb.BinaryReader): TracingTagLiteral;
+}
+
+export namespace TracingTagLiteral {
+  export type AsObject = {
+    tag: string,
+    value: string,
   }
 }

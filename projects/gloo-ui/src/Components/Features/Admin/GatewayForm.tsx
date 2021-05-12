@@ -21,6 +21,10 @@ import { colors, soloConstants } from 'Styles';
 import * as yup from 'yup';
 import { Gateway } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/gateway_pb';
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_options_protocol_upgrade_protocol_upgrade_pb from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/protocol_upgrade_pb';
+import {
+  TracingTagEnvironmentVariable,
+  TracingTagLiteral
+} from "../../../proto/github.com/solo-io/gloo/projects/gloo/api/v1/options/tracing/tracing_pb";
 
 const GatewayFormContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -102,7 +106,9 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   proxy100Continue: (undefined as unknown) as boolean,
   tracing: {
     requestHeadersForTagsList: (undefined as unknown) as string[],
-    verbose: (undefined as unknown) as boolean
+    verbose: (undefined as unknown) as boolean,
+    environmentVariablesForTagsList: (undefined as unknown) as TracingTagEnvironmentVariable.AsObject[],
+    literalsForTagsList: (undefined as unknown) as TracingTagLiteral.AsObject[],
   },
   preserveExternalRequestId: (undefined as unknown) as boolean,
   setCurrentClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
@@ -111,6 +117,7 @@ let defaultHttpValues: HttpConnectionManagerSettingsForm = {
   >,
   forwardClientCertDetails: (undefined as unknown) as HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
   serverHeaderTransformation: (undefined as unknown) as HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
+  pathWithEscapedSlashesAction: (undefined as unknown) as HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
 };
 
 const validationSchema = yup.object().shape({

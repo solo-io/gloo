@@ -7,7 +7,7 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
-	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
 	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -34,7 +34,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.7.22
-	github.com/solo-io/gloo v1.6.24
+	github.com/solo-io/gloo v1.6.26
 	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17
@@ -42,8 +42,8 @@ require (
 	github.com/solo-io/rate-limiter v0.1.12
 	github.com/solo-io/reporting-client v0.2.0
 	// Corresponds to the `gloo-v1.6.19` tag
-	github.com/solo-io/solo-apis v0.0.0-20210401164327-d51cbf1ee319
-	github.com/solo-io/solo-kit v0.17.4
+	github.com/solo-io/solo-apis v0.0.0-20210512202809-a92885403740
+	github.com/solo-io/solo-kit v0.17.5
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.5
