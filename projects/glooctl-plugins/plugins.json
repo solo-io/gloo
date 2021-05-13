@@ -1,8 +1,7 @@
 {
   "index": "https://github.com/solo-io/glooctl-plugin-index",
   "bucket": {
-    "name": "gloo-ee",
-    "base_path": "glooctl-plugins"
+    "name": "glooctl-plugins"
   },
   "platforms": [
     {
@@ -18,17 +17,17 @@
     {
       "name": "plugin",
       "description": "The plugin management system for glooctl",
-      "build_target": "projects/glooctl-plugins/manager/cmd/plugin/main.go"
+      "build_target": "manager/cmd/plugin/main.go"
     },
     {
       "name": "wasm",
       "description": "Utility to manage Gloo WASM filters",
-      "build_target": "projects/glooctl-plugins/wasm/cmd/main.go"
+      "build_target": "wasm/cmd/main.go"
     },
     {
       "name": "fed",
       "description": "Utility to manage Gloo Federation",
-      "build_target": "projects/glooctl-plugins/fed/cmd/main.go"
+      "build_target": "fed/cmd/main.go"
     }
   ]
 }
