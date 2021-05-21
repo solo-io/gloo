@@ -221,7 +221,7 @@ Expand the name of a container image
 {{- if .pullSecret -}}
 imagePullSecrets:
 - name: {{ .pullSecret }}
-{{- end -}}
+{{ end -}}
 {{- end -}}
 
 {{/*

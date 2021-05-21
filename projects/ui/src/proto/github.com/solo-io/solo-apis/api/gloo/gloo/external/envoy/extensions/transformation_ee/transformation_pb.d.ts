@@ -71,6 +71,11 @@ export class RouteTransformations extends jspb.Message {
   getResponseTransformation(): Transformation | undefined;
   setResponseTransformation(value?: Transformation): void;
 
+  hasOnStreamCompletionTransformation(): boolean;
+  clearOnStreamCompletionTransformation(): void;
+  getOnStreamCompletionTransformation(): Transformation | undefined;
+  setOnStreamCompletionTransformation(value?: Transformation): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteTransformations.AsObject;
   static toObject(includeInstance: boolean, msg: RouteTransformations): RouteTransformations.AsObject;
@@ -86,6 +91,7 @@ export namespace RouteTransformations {
     requestTransformation?: Transformation.AsObject,
     clearRouteCache: boolean,
     responseTransformation?: Transformation.AsObject,
+    onStreamCompletionTransformation?: Transformation.AsObject,
   }
 }
 
@@ -123,6 +129,12 @@ export class DlpTransformation extends jspb.Message {
   setActionsList(value: Array<Action>): void;
   addActions(value?: Action, index?: number): Action;
 
+  getEnableHeaderTransformation(): boolean;
+  setEnableHeaderTransformation(value: boolean): void;
+
+  getEnableDynamicMetadataTransformation(): boolean;
+  setEnableDynamicMetadataTransformation(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DlpTransformation.AsObject;
   static toObject(includeInstance: boolean, msg: DlpTransformation): DlpTransformation.AsObject;
@@ -136,6 +148,8 @@ export class DlpTransformation extends jspb.Message {
 export namespace DlpTransformation {
   export type AsObject = {
     actionsList: Array<Action.AsObject>,
+    enableHeaderTransformation: boolean,
+    enableDynamicMetadataTransformation: boolean,
   }
 }
 

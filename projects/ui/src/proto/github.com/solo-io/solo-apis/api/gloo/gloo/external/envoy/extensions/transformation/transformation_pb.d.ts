@@ -77,6 +77,11 @@ export namespace TransformationRule {
     getResponseTransformation(): Transformation | undefined;
     setResponseTransformation(value?: Transformation): void;
 
+    hasOnStreamCompletionTransformation(): boolean;
+    clearOnStreamCompletionTransformation(): void;
+    getOnStreamCompletionTransformation(): Transformation | undefined;
+    setOnStreamCompletionTransformation(value?: Transformation): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Transformations.AsObject;
     static toObject(includeInstance: boolean, msg: Transformations): Transformations.AsObject;
@@ -92,6 +97,7 @@ export namespace TransformationRule {
       requestTransformation?: Transformation.AsObject,
       clearRouteCache: boolean,
       responseTransformation?: Transformation.AsObject,
+      onStreamCompletionTransformation?: Transformation.AsObject,
     }
   }
 }

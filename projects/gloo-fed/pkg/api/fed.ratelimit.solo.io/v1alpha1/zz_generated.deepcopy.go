@@ -11,7 +11,6 @@ import (
 // Generated Deepcopy methods for FederatedRateLimitConfig
 
 func (in *FederatedRateLimitConfig) DeepCopyInto(out *FederatedRateLimitConfig) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 

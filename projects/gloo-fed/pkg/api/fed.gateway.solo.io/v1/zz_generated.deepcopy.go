@@ -11,7 +11,6 @@ import (
 // Generated Deepcopy methods for FederatedGateway
 
 func (in *FederatedGateway) DeepCopyInto(out *FederatedGateway) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 
@@ -72,7 +71,6 @@ func (in *FederatedGatewayList) DeepCopyObject() runtime.Object {
 // Generated Deepcopy methods for FederatedVirtualService
 
 func (in *FederatedVirtualService) DeepCopyInto(out *FederatedVirtualService) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 
@@ -133,7 +131,6 @@ func (in *FederatedVirtualServiceList) DeepCopyObject() runtime.Object {
 // Generated Deepcopy methods for FederatedRouteTable
 
 func (in *FederatedRouteTable) DeepCopyInto(out *FederatedRouteTable) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 

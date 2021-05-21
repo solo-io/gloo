@@ -1357,6 +1357,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
       disableTransformationValidation: false
       allowWarnings: true
+      warnRouteShortCircuiting: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1413,6 +1414,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
       disableTransformationValidation: false
       allowWarnings: true
+      warnRouteShortCircuiting: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1469,6 +1471,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
       disableTransformationValidation: false
       allowWarnings: true
+      warnRouteShortCircuiting: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1530,6 +1533,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
       disableTransformationValidation: false
       allowWarnings: true
+      warnRouteShortCircuiting: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977
@@ -1594,6 +1598,7 @@ spec:
       proxyValidationServerAddr: gloo:9988
       disableTransformationValidation: false
       allowWarnings: true
+      warnRouteShortCircuiting: false
   gloo:
     enableRestEds: true
     xdsBindAddr: 0.0.0.0:9977

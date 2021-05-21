@@ -76,6 +76,11 @@ export class Listener extends jspb.Message {
   getMetadata(): google_protobuf_struct_pb.Struct | undefined;
   setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
+  hasRouteOptions(): boolean;
+  clearRouteOptions(): void;
+  getRouteOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions | undefined;
+  setRouteOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions): void;
+
   getListenertypeCase(): Listener.ListenertypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Listener.AsObject;
@@ -98,6 +103,7 @@ export namespace Listener {
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
+    routeOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.AsObject,
   }
 
   export enum ListenertypeCase {

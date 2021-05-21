@@ -18,6 +18,8 @@ type FederatedAuthConfigSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
 	// Insert a resource into the set.
@@ -86,8 +88,27 @@ func (s *federatedAuthConfigSet) List(filterResource ...func(*fed_enterprise_glo
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	federatedAuthConfigList := make([]*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig, 0, len(objs))
+	for _, obj := range objs {
+		federatedAuthConfigList = append(federatedAuthConfigList, obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
+	}
+	return federatedAuthConfigList
+}
+
+func (s *federatedAuthConfigSet) UnsortedList(filterResource ...func(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) bool) []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
+		})
+	}
+
 	var federatedAuthConfigList []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		federatedAuthConfigList = append(federatedAuthConfigList, obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
 	}
 	return federatedAuthConfigList

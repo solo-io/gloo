@@ -18,6 +18,8 @@ type FederatedUpstreamSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedUpstream
 	// Insert a resource into the set.
@@ -86,8 +88,27 @@ func (s *federatedUpstreamSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	federatedUpstreamList := make([]*fed_gloo_solo_io_v1.FederatedUpstream, 0, len(objs))
+	for _, obj := range objs {
+		federatedUpstreamList = append(federatedUpstreamList, obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
+	}
+	return federatedUpstreamList
+}
+
+func (s *federatedUpstreamSet) UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstream) bool) []*fed_gloo_solo_io_v1.FederatedUpstream {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
+		})
+	}
+
 	var federatedUpstreamList []*fed_gloo_solo_io_v1.FederatedUpstream
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		federatedUpstreamList = append(federatedUpstreamList, obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
 	}
 	return federatedUpstreamList
@@ -207,6 +228,8 @@ type FederatedUpstreamGroupSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedUpstreamGroup
 	// Insert a resource into the set.
@@ -275,8 +298,27 @@ func (s *federatedUpstreamGroupSet) List(filterResource ...func(*fed_gloo_solo_i
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	federatedUpstreamGroupList := make([]*fed_gloo_solo_io_v1.FederatedUpstreamGroup, 0, len(objs))
+	for _, obj := range objs {
+		federatedUpstreamGroupList = append(federatedUpstreamGroupList, obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
+	}
+	return federatedUpstreamGroupList
+}
+
+func (s *federatedUpstreamGroupSet) UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedUpstreamGroup) bool) []*fed_gloo_solo_io_v1.FederatedUpstreamGroup {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
+		})
+	}
+
 	var federatedUpstreamGroupList []*fed_gloo_solo_io_v1.FederatedUpstreamGroup
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		federatedUpstreamGroupList = append(federatedUpstreamGroupList, obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
 	}
 	return federatedUpstreamGroupList
@@ -396,6 +438,8 @@ type FederatedSettingsSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_gloo_solo_io_v1.FederatedSettings
 	// Insert a resource into the set.
@@ -464,8 +508,27 @@ func (s *federatedSettingsSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	federatedSettingsList := make([]*fed_gloo_solo_io_v1.FederatedSettings, 0, len(objs))
+	for _, obj := range objs {
+		federatedSettingsList = append(federatedSettingsList, obj.(*fed_gloo_solo_io_v1.FederatedSettings))
+	}
+	return federatedSettingsList
+}
+
+func (s *federatedSettingsSet) UnsortedList(filterResource ...func(*fed_gloo_solo_io_v1.FederatedSettings) bool) []*fed_gloo_solo_io_v1.FederatedSettings {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_gloo_solo_io_v1.FederatedSettings))
+		})
+	}
+
 	var federatedSettingsList []*fed_gloo_solo_io_v1.FederatedSettings
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		federatedSettingsList = append(federatedSettingsList, obj.(*fed_gloo_solo_io_v1.FederatedSettings))
 	}
 	return federatedSettingsList

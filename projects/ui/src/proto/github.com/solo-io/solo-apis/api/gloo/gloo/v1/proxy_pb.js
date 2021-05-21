@@ -301,7 +301,8 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject, includeInstance),
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.ListenerOptions.toObject(includeInstance, f),
-    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    routeOptions: (f = msg.getRouteOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -379,6 +380,11 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setMetadata(value);
+      break;
+    case 10:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.deserializeBinaryFromReader);
+      msg.setRouteOptions(value);
       break;
     default:
       reader.skipField();
@@ -476,6 +482,14 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       9,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getRouteOptions();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.serializeBinaryToWriter
     );
   }
 };
@@ -704,6 +718,36 @@ proto.gloo.solo.io.Listener.prototype.clearMetadata = function() {
  */
 proto.gloo.solo.io.Listener.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional RouteConfigurationOptions route_options = 10;
+ * @return {?proto.gloo.solo.io.RouteConfigurationOptions}
+ */
+proto.gloo.solo.io.Listener.prototype.getRouteOptions = function() {
+  return /** @type{?proto.gloo.solo.io.RouteConfigurationOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions, 10));
+};
+
+
+/** @param {?proto.gloo.solo.io.RouteConfigurationOptions|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setRouteOptions = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearRouteOptions = function() {
+  this.setRouteOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasRouteOptions = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

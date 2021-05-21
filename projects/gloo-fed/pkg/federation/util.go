@@ -1,10 +1,10 @@
 package federation
 
 import (
-	"github.com/solo-io/skv2/pkg/resource"
+	"github.com/solo-io/skv2/pkg/ezkube"
 )
 
-func GetOwnerLabel(r resource.Resource) map[string]string {
+func GetOwnerLabel(r ezkube.ResourceId) map[string]string {
 	return map[string]string{HubOwner: r.GetNamespace() + "." + r.GetName()}
 }
 

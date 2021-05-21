@@ -3,14 +3,13 @@ module github.com/solo-io/solo-projects
 go 1.16
 
 require (
-	cloud.google.com/go v0.76.0 // indirect
 	cloud.google.com/go/datastore v1.3.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/deislabs/oras v0.8.1
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
-	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
 	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -46,24 +45,23 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.16.1
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.8.0-beta11
+	github.com/solo-io/gloo v1.8.0-beta15
 	github.com/solo-io/go-list-licenses v0.1.3
-	github.com/solo-io/go-utils v0.21.3
+	github.com/solo-io/go-utils v0.21.5
 	github.com/solo-io/k8s-utils v0.0.7
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.4.0
 	github.com/solo-io/reporting-client v0.2.0
-	github.com/solo-io/skv2 v0.17.3
+	github.com/solo-io/skv2 v0.17.17
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210426193107-cf69e2e8a379
-	github.com/solo-io/solo-kit v0.18.3
+	github.com/solo-io/solo-apis v0.0.0-20210521152057-ff88aba7337a
+	github.com/solo-io/solo-kit v0.18.5
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.6
 	go.uber.org/zap v1.16.0
@@ -81,7 +79,6 @@ require (
 	k8s.io/apimachinery v0.20.1
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.19.7
-	k8s.io/klog/v2 v2.5.0 // indirect
 	k8s.io/kubernetes v1.19.6
 	k8s.io/utils v0.19.6 // indirect
 	sigs.k8s.io/controller-runtime v0.7.0
@@ -96,6 +93,8 @@ replace (
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
+	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
+	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 
 	// Lock sys package to fix darwin upgrade issue

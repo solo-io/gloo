@@ -111,7 +111,8 @@ proto.gateway.solo.io.GatewaySpec.toObject = function(includeInstance, msg) {
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpGateway: (f = msg.getHttpGateway()) && proto.gateway.solo.io.HttpGateway.toObject(includeInstance, f),
     tcpGateway: (f = msg.getTcpGateway()) && proto.gateway.solo.io.TcpGateway.toObject(includeInstance, f),
-    proxyNamesList: jspb.Message.getRepeatedField(msg, 12)
+    proxyNamesList: jspb.Message.getRepeatedField(msg, 12),
+    routeOptions: (f = msg.getRouteOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -183,6 +184,11 @@ proto.gateway.solo.io.GatewaySpec.deserializeBinaryFromReader = function(msg, re
     case 12:
       var value = /** @type {string} */ (reader.readString());
       msg.addProxyNames(value);
+      break;
+    case 13:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.deserializeBinaryFromReader);
+      msg.setRouteOptions(value);
       break;
     default:
       reader.skipField();
@@ -271,6 +277,14 @@ proto.gateway.solo.io.GatewaySpec.serializeBinaryToWriter = function(message, wr
     writer.writeRepeatedString(
       12,
       f
+    );
+  }
+  f = message.getRouteOptions();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.serializeBinaryToWriter
     );
   }
 };
@@ -469,6 +483,36 @@ proto.gateway.solo.io.GatewaySpec.prototype.addProxyNames = function(value, opt_
 
 proto.gateway.solo.io.GatewaySpec.prototype.clearProxyNamesList = function() {
   this.setProxyNamesList([]);
+};
+
+
+/**
+ * optional gloo.solo.io.RouteConfigurationOptions route_options = 13;
+ * @return {?proto.gloo.solo.io.RouteConfigurationOptions}
+ */
+proto.gateway.solo.io.GatewaySpec.prototype.getRouteOptions = function() {
+  return /** @type{?proto.gloo.solo.io.RouteConfigurationOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions, 13));
+};
+
+
+/** @param {?proto.gloo.solo.io.RouteConfigurationOptions|undefined} value */
+proto.gateway.solo.io.GatewaySpec.prototype.setRouteOptions = function(value) {
+  jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+proto.gateway.solo.io.GatewaySpec.prototype.clearRouteOptions = function() {
+  this.setRouteOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.GatewaySpec.prototype.hasRouteOptions = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

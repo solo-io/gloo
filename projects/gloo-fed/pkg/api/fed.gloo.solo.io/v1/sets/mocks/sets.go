@@ -70,6 +70,24 @@ func (mr *MockFederatedUpstreamSetMockRecorder) List(filterResource ...interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedUpstreamSet)(nil).List), filterResource...)
 }
 
+// UnsortedList mocks base method
+func (m *MockFederatedUpstreamSet) UnsortedList(filterResource ...func(*v1.FederatedUpstream) bool) []*v1.FederatedUpstream {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedUpstream)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedUpstreamSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedUpstreamSet)(nil).UnsortedList), filterResource...)
+}
+
 // Map mocks base method
 func (m *MockFederatedUpstreamSet) Map() map[string]*v1.FederatedUpstream {
 	m.ctrl.T.Helper()
@@ -294,6 +312,24 @@ func (mr *MockFederatedUpstreamGroupSetMockRecorder) List(filterResource ...inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedUpstreamGroupSet)(nil).List), filterResource...)
 }
 
+// UnsortedList mocks base method
+func (m *MockFederatedUpstreamGroupSet) UnsortedList(filterResource ...func(*v1.FederatedUpstreamGroup) bool) []*v1.FederatedUpstreamGroup {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedUpstreamGroup)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedUpstreamGroupSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedUpstreamGroupSet)(nil).UnsortedList), filterResource...)
+}
+
 // Map mocks base method
 func (m *MockFederatedUpstreamGroupSet) Map() map[string]*v1.FederatedUpstreamGroup {
 	m.ctrl.T.Helper()
@@ -516,6 +552,24 @@ func (m *MockFederatedSettingsSet) List(filterResource ...func(*v1.FederatedSett
 func (mr *MockFederatedSettingsSetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedSettingsSet)(nil).List), filterResource...)
+}
+
+// UnsortedList mocks base method
+func (m *MockFederatedSettingsSet) UnsortedList(filterResource ...func(*v1.FederatedSettings) bool) []*v1.FederatedSettings {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedSettings)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedSettingsSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedSettingsSet)(nil).UnsortedList), filterResource...)
 }
 
 // Map mocks base method

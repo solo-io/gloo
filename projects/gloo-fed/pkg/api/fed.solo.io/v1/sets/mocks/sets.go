@@ -70,6 +70,24 @@ func (mr *MockGlooInstanceSetMockRecorder) List(filterResource ...interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockGlooInstanceSet)(nil).List), filterResource...)
 }
 
+// UnsortedList mocks base method
+func (m *MockGlooInstanceSet) UnsortedList(filterResource ...func(*v1.GlooInstance) bool) []*v1.GlooInstance {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.GlooInstance)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockGlooInstanceSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockGlooInstanceSet)(nil).UnsortedList), filterResource...)
+}
+
 // Map mocks base method
 func (m *MockGlooInstanceSet) Map() map[string]*v1.GlooInstance {
 	m.ctrl.T.Helper()
@@ -292,6 +310,24 @@ func (m *MockFailoverSchemeSet) List(filterResource ...func(*v1.FailoverScheme) 
 func (mr *MockFailoverSchemeSetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFailoverSchemeSet)(nil).List), filterResource...)
+}
+
+// UnsortedList mocks base method
+func (m *MockFailoverSchemeSet) UnsortedList(filterResource ...func(*v1.FailoverScheme) bool) []*v1.FailoverScheme {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FailoverScheme)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFailoverSchemeSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFailoverSchemeSet)(nil).UnsortedList), filterResource...)
 }
 
 // Map mocks base method

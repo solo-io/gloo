@@ -441,7 +441,8 @@ proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.toObjec
   var f, obj = {
     requestTransformation: (f = msg.getRequestTransformation()) && proto.envoy.config.filter.http.transformation_ee.v2.Transformation.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 3, false),
-    responseTransformation: (f = msg.getResponseTransformation()) && proto.envoy.config.filter.http.transformation_ee.v2.Transformation.toObject(includeInstance, f)
+    responseTransformation: (f = msg.getResponseTransformation()) && proto.envoy.config.filter.http.transformation_ee.v2.Transformation.toObject(includeInstance, f),
+    onStreamCompletionTransformation: (f = msg.getOnStreamCompletionTransformation()) && proto.envoy.config.filter.http.transformation_ee.v2.Transformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -492,6 +493,11 @@ proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.deseria
       reader.readMessage(value,proto.envoy.config.filter.http.transformation_ee.v2.Transformation.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
+    case 4:
+      var value = new proto.envoy.config.filter.http.transformation_ee.v2.Transformation;
+      reader.readMessage(value,proto.envoy.config.filter.http.transformation_ee.v2.Transformation.deserializeBinaryFromReader);
+      msg.setOnStreamCompletionTransformation(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -540,6 +546,14 @@ proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.seriali
   if (f != null) {
     writer.writeMessage(
       2,
+      f,
+      proto.envoy.config.filter.http.transformation_ee.v2.Transformation.serializeBinaryToWriter
+    );
+  }
+  f = message.getOnStreamCompletionTransformation();
+  if (f != null) {
+    writer.writeMessage(
+      4,
       f,
       proto.envoy.config.filter.http.transformation_ee.v2.Transformation.serializeBinaryToWriter
     );
@@ -621,6 +635,36 @@ proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototy
  */
 proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototype.hasResponseTransformation = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Transformation on_stream_completion_transformation = 4;
+ * @return {?proto.envoy.config.filter.http.transformation_ee.v2.Transformation}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototype.getOnStreamCompletionTransformation = function() {
+  return /** @type{?proto.envoy.config.filter.http.transformation_ee.v2.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.transformation_ee.v2.Transformation, 4));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.transformation_ee.v2.Transformation|undefined} value */
+proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototype.setOnStreamCompletionTransformation = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototype.clearOnStreamCompletionTransformation = function() {
+  this.setOnStreamCompletionTransformation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.prototype.hasOnStreamCompletionTransformation = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -863,7 +907,9 @@ proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.
 proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.toObject = function(includeInstance, msg) {
   var f, obj = {
     actionsList: jspb.Message.toObjectList(msg.getActionsList(),
-    proto.envoy.config.filter.http.transformation_ee.v2.Action.toObject, includeInstance)
+    proto.envoy.config.filter.http.transformation_ee.v2.Action.toObject, includeInstance),
+    enableHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 2, false),
+    enableDynamicMetadataTransformation: jspb.Message.getFieldWithDefault(msg, 3, false)
   };
 
   if (includeInstance) {
@@ -905,6 +951,14 @@ proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.deserializ
       reader.readMessage(value,proto.envoy.config.filter.http.transformation_ee.v2.Action.deserializeBinaryFromReader);
       msg.addActions(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableHeaderTransformation(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableDynamicMetadataTransformation(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -942,6 +996,20 @@ proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.serializeB
       proto.envoy.config.filter.http.transformation_ee.v2.Action.serializeBinaryToWriter
     );
   }
+  f = message.getEnableHeaderTransformation();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
+  f = message.getEnableDynamicMetadataTransformation();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -973,6 +1041,40 @@ proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.
 
 proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.clearActionsList = function() {
   this.setActionsList([]);
+};
+
+
+/**
+ * optional bool enable_header_transformation = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.getEnableHeaderTransformation = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.setEnableHeaderTransformation = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+/**
+ * optional bool enable_dynamic_metadata_transformation = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.getEnableDynamicMetadataTransformation = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation.prototype.setEnableDynamicMetadataTransformation = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
 };
 
 

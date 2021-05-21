@@ -46,6 +46,11 @@ export class GatewaySpec extends jspb.Message {
   setProxyNamesList(value: Array<string>): void;
   addProxyNames(value: string, index?: number): string;
 
+  hasRouteOptions(): boolean;
+  clearRouteOptions(): void;
+  getRouteOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions | undefined;
+  setRouteOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions): void;
+
   getGatewaytypeCase(): GatewaySpec.GatewaytypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewaySpec.AsObject;
@@ -67,6 +72,7 @@ export namespace GatewaySpec {
     httpGateway?: HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
     proxyNamesList: Array<string>,
+    routeOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.AsObject,
   }
 
   export enum GatewaytypeCase {

@@ -108,6 +108,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getServerHeaderTransformation(): HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap];
   setServerHeaderTransformation(value: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap]): void;
 
+  getPathWithEscapedSlashesAction(): HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap];
+  setPathWithEscapedSlashesAction(value: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -144,6 +147,7 @@ export namespace HttpConnectionManagerSettings {
     maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
     serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
+    pathWithEscapedSlashesAction: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
@@ -201,4 +205,14 @@ export namespace HttpConnectionManagerSettings {
   }
 
   export const ServerHeaderTransformation: ServerHeaderTransformationMap;
+
+  export interface PathWithEscapedSlashesActionMap {
+    IMPLEMENTATION_SPECIFIC_DEFAULT: 0;
+    KEEP_UNCHANGED: 1;
+    REJECT_REQUEST: 2;
+    UNESCAPE_AND_REDIRECT: 3;
+    UNESCAPE_AND_FORWARD: 4;
+  }
+
+  export const PathWithEscapedSlashesAction: PathWithEscapedSlashesActionMap;
 }

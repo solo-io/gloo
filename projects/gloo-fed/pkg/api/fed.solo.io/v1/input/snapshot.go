@@ -30,6 +30,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/solo-io/skv2/pkg/resource"
 	"github.com/solo-io/skv2/pkg/verifier"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
@@ -42,22 +43,103 @@ import (
 
 	v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
+	v1_types "k8s.io/api/core/v1"
 
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
+	apps_v1_types "k8s.io/api/apps/v1"
 
 	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
+	gateway_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gateway_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 
 	gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	gloo_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 
 	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
+	enterprise_gloo_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	enterprise_gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 
 	ratelimit_api_solo_io_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	ratelimit_api_solo_io_v1alpha1_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	ratelimit_api_solo_io_v1alpha1_sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
 )
+
+// SnapshotGVKs is a list of the GVKs included in this snapshot
+var SnapshotGVKs = []schema.GroupVersionKind{
+
+	schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Service",
+	},
+	schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Pod",
+	},
+
+	schema.GroupVersionKind{
+		Group:   "apps",
+		Version: "v1",
+		Kind:    "Deployment",
+	},
+	schema.GroupVersionKind{
+		Group:   "apps",
+		Version: "v1",
+		Kind:    "DaemonSet",
+	},
+
+	schema.GroupVersionKind{
+		Group:   "gateway.solo.io",
+		Version: "v1",
+		Kind:    "Gateway",
+	},
+	schema.GroupVersionKind{
+		Group:   "gateway.solo.io",
+		Version: "v1",
+		Kind:    "VirtualService",
+	},
+	schema.GroupVersionKind{
+		Group:   "gateway.solo.io",
+		Version: "v1",
+		Kind:    "RouteTable",
+	},
+
+	schema.GroupVersionKind{
+		Group:   "gloo.solo.io",
+		Version: "v1",
+		Kind:    "Upstream",
+	},
+	schema.GroupVersionKind{
+		Group:   "gloo.solo.io",
+		Version: "v1",
+		Kind:    "UpstreamGroup",
+	},
+	schema.GroupVersionKind{
+		Group:   "gloo.solo.io",
+		Version: "v1",
+		Kind:    "Settings",
+	},
+	schema.GroupVersionKind{
+		Group:   "gloo.solo.io",
+		Version: "v1",
+		Kind:    "Proxy",
+	},
+
+	schema.GroupVersionKind{
+		Group:   "enterprise.gloo.solo.io",
+		Version: "v1",
+		Kind:    "AuthConfig",
+	},
+
+	schema.GroupVersionKind{
+		Group:   "ratelimit.api.solo.io",
+		Version: "v1alpha1",
+		Kind:    "RateLimitConfig",
+	},
+}
 
 // the snapshot of input resources consumed by translation
 type Snapshot interface {
@@ -204,6 +286,174 @@ func NewSnapshot(
 	}
 }
 
+func NewSnapshotFromGeneric(
+	name string,
+	genericSnapshot resource.ClusterSnapshot,
+) Snapshot {
+
+	serviceSet := v1_sets.NewServiceSet()
+	podSet := v1_sets.NewPodSet()
+
+	deploymentSet := apps_v1_sets.NewDeploymentSet()
+	daemonSetSet := apps_v1_sets.NewDaemonSetSet()
+
+	gatewaySet := gateway_solo_io_v1_sets.NewGatewaySet()
+	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
+	routeTableSet := gateway_solo_io_v1_sets.NewRouteTableSet()
+
+	upstreamSet := gloo_solo_io_v1_sets.NewUpstreamSet()
+	upstreamGroupSet := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
+	settingsSet := gloo_solo_io_v1_sets.NewSettingsSet()
+	proxySet := gloo_solo_io_v1_sets.NewProxySet()
+
+	authConfigSet := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+
+	rateLimitConfigSet := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+
+	for _, snapshot := range genericSnapshot {
+
+		services := snapshot[schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Service",
+		}]
+
+		for _, service := range services {
+			serviceSet.Insert(service.(*v1_types.Service))
+		}
+		pods := snapshot[schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		}]
+
+		for _, pod := range pods {
+			podSet.Insert(pod.(*v1_types.Pod))
+		}
+
+		deployments := snapshot[schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "Deployment",
+		}]
+
+		for _, deployment := range deployments {
+			deploymentSet.Insert(deployment.(*apps_v1_types.Deployment))
+		}
+		daemonSets := snapshot[schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "DaemonSet",
+		}]
+
+		for _, daemonSet := range daemonSets {
+			daemonSetSet.Insert(daemonSet.(*apps_v1_types.DaemonSet))
+		}
+
+		gateways := snapshot[schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "Gateway",
+		}]
+
+		for _, gateway := range gateways {
+			gatewaySet.Insert(gateway.(*gateway_solo_io_v1_types.Gateway))
+		}
+		virtualServices := snapshot[schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "VirtualService",
+		}]
+
+		for _, virtualService := range virtualServices {
+			virtualServiceSet.Insert(virtualService.(*gateway_solo_io_v1_types.VirtualService))
+		}
+		routeTables := snapshot[schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "RouteTable",
+		}]
+
+		for _, routeTable := range routeTables {
+			routeTableSet.Insert(routeTable.(*gateway_solo_io_v1_types.RouteTable))
+		}
+
+		upstreams := snapshot[schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Upstream",
+		}]
+
+		for _, upstream := range upstreams {
+			upstreamSet.Insert(upstream.(*gloo_solo_io_v1_types.Upstream))
+		}
+		upstreamGroups := snapshot[schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "UpstreamGroup",
+		}]
+
+		for _, upstreamGroup := range upstreamGroups {
+			upstreamGroupSet.Insert(upstreamGroup.(*gloo_solo_io_v1_types.UpstreamGroup))
+		}
+		settings := snapshot[schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Settings",
+		}]
+
+		for _, settings := range settings {
+			settingsSet.Insert(settings.(*gloo_solo_io_v1_types.Settings))
+		}
+		proxies := snapshot[schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Proxy",
+		}]
+
+		for _, proxy := range proxies {
+			proxySet.Insert(proxy.(*gloo_solo_io_v1_types.Proxy))
+		}
+
+		authConfigs := snapshot[schema.GroupVersionKind{
+			Group:   "enterprise.gloo.solo.io",
+			Version: "v1",
+			Kind:    "AuthConfig",
+		}]
+
+		for _, authConfig := range authConfigs {
+			authConfigSet.Insert(authConfig.(*enterprise_gloo_solo_io_v1_types.AuthConfig))
+		}
+
+		rateLimitConfigs := snapshot[schema.GroupVersionKind{
+			Group:   "ratelimit.api.solo.io",
+			Version: "v1alpha1",
+			Kind:    "RateLimitConfig",
+		}]
+
+		for _, rateLimitConfig := range rateLimitConfigs {
+			rateLimitConfigSet.Insert(rateLimitConfig.(*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig))
+		}
+
+	}
+	return NewSnapshot(
+		name,
+		serviceSet,
+		podSet,
+		deploymentSet,
+		daemonSetSet,
+		gatewaySet,
+		virtualServiceSet,
+		routeTableSet,
+		upstreamSet,
+		upstreamGroupSet,
+		settingsSet,
+		proxySet,
+		authConfigSet,
+		rateLimitConfigSet,
+	)
+}
+
 func (s snapshot) Services() v1_sets.ServiceSet {
 	return s.services
 }
@@ -266,7 +516,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -278,7 +528,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -290,7 +540,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -303,7 +553,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -315,7 +565,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -327,7 +577,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -339,7 +589,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -352,7 +602,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -365,7 +615,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if _, err := controllerutils.UpdateStatus(ctx, clusterClient, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -378,21 +628,21 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 
 	if opts.Gateway {
 		for _, obj := range s.Gateways().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 	if opts.VirtualService {
 		for _, obj := range s.VirtualServices().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 	if opts.RouteTable {
 		for _, obj := range s.RouteTables().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -400,28 +650,28 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 
 	if opts.Upstream {
 		for _, obj := range s.Upstreams().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 	if opts.UpstreamGroup {
 		for _, obj := range s.UpstreamGroups().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 	if opts.Settings {
 		for _, obj := range s.Settings().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
 	}
 	if opts.Proxy {
 		for _, obj := range s.Proxies().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -429,7 +679,7 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 
 	if opts.AuthConfig {
 		for _, obj := range s.AuthConfigs().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -437,7 +687,7 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 
 	if opts.RateLimitConfig {
 		for _, obj := range s.RateLimitConfigs().List() {
-			if _, err := controllerutils.UpdateStatus(ctx, c, obj); err != nil {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
 				errs = multierror.Append(errs, err)
 			}
 		}
@@ -655,9 +905,9 @@ func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range serviceList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		services.Insert(&item)
+		services.Insert(item)
 	}
 
 	return nil
@@ -697,9 +947,9 @@ func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster
 	}
 
 	for _, item := range podList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		pods.Insert(&item)
+		pods.Insert(item)
 	}
 
 	return nil
@@ -740,9 +990,9 @@ func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range deploymentList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		deployments.Insert(&item)
+		deployments.Insert(item)
 	}
 
 	return nil
@@ -782,9 +1032,9 @@ func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, c
 	}
 
 	for _, item := range daemonSetList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		daemonSets.Insert(&item)
+		daemonSets.Insert(item)
 	}
 
 	return nil
@@ -825,9 +1075,9 @@ func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range gatewayList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		gateways.Insert(&item)
+		gateways.Insert(item)
 	}
 
 	return nil
@@ -867,9 +1117,9 @@ func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Conte
 	}
 
 	for _, item := range virtualServiceList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		virtualServices.Insert(&item)
+		virtualServices.Insert(item)
 	}
 
 	return nil
@@ -909,9 +1159,9 @@ func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range routeTableList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		routeTables.Insert(&item)
+		routeTables.Insert(item)
 	}
 
 	return nil
@@ -952,9 +1202,9 @@ func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cl
 	}
 
 	for _, item := range upstreamList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		upstreams.Insert(&item)
+		upstreams.Insert(item)
 	}
 
 	return nil
@@ -994,9 +1244,9 @@ func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Contex
 	}
 
 	for _, item := range upstreamGroupList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		upstreamGroups.Insert(&item)
+		upstreamGroups.Insert(item)
 	}
 
 	return nil
@@ -1036,9 +1286,9 @@ func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range settingsList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		settings.Insert(&item)
+		settings.Insert(item)
 	}
 
 	return nil
@@ -1078,9 +1328,9 @@ func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, clus
 	}
 
 	for _, item := range proxyList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		proxies.Insert(&item)
+		proxies.Insert(item)
 	}
 
 	return nil
@@ -1121,9 +1371,9 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range authConfigList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		authConfigs.Insert(&item)
+		authConfigs.Insert(item)
 	}
 
 	return nil
@@ -1164,9 +1414,9 @@ func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Cont
 	}
 
 	for _, item := range rateLimitConfigList.Items {
-		item := item               // pike
+		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
-		rateLimitConfigs.Insert(&item)
+		rateLimitConfigs.Insert(item)
 	}
 
 	return nil
@@ -1307,9 +1557,9 @@ func (b *singleClusterBuilder) insertServices(ctx context.Context, services v1_s
 	}
 
 	for _, item := range serviceList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		services.Insert(&item)
+		services.Insert(item)
 	}
 
 	return nil
@@ -1340,9 +1590,9 @@ func (b *singleClusterBuilder) insertPods(ctx context.Context, pods v1_sets.PodS
 	}
 
 	for _, item := range podList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		pods.Insert(&item)
+		pods.Insert(item)
 	}
 
 	return nil
@@ -1374,9 +1624,9 @@ func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployment
 	}
 
 	for _, item := range deploymentList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		deployments.Insert(&item)
+		deployments.Insert(item)
 	}
 
 	return nil
@@ -1407,9 +1657,9 @@ func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets 
 	}
 
 	for _, item := range daemonSetList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		daemonSets.Insert(&item)
+		daemonSets.Insert(item)
 	}
 
 	return nil
@@ -1441,9 +1691,9 @@ func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gate
 	}
 
 	for _, item := range gatewayList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		gateways.Insert(&item)
+		gateways.Insert(item)
 	}
 
 	return nil
@@ -1474,9 +1724,9 @@ func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtua
 	}
 
 	for _, item := range virtualServiceList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		virtualServices.Insert(&item)
+		virtualServices.Insert(item)
 	}
 
 	return nil
@@ -1507,9 +1757,9 @@ func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTable
 	}
 
 	for _, item := range routeTableList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		routeTables.Insert(&item)
+		routeTables.Insert(item)
 	}
 
 	return nil
@@ -1541,9 +1791,9 @@ func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams gl
 	}
 
 	for _, item := range upstreamList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		upstreams.Insert(&item)
+		upstreams.Insert(item)
 	}
 
 	return nil
@@ -1574,9 +1824,9 @@ func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstrea
 	}
 
 	for _, item := range upstreamGroupList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		upstreamGroups.Insert(&item)
+		upstreamGroups.Insert(item)
 	}
 
 	return nil
@@ -1607,9 +1857,9 @@ func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings gloo
 	}
 
 	for _, item := range settingsList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		settings.Insert(&item)
+		settings.Insert(item)
 	}
 
 	return nil
@@ -1640,9 +1890,9 @@ func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies gloo_s
 	}
 
 	for _, item := range proxyList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		proxies.Insert(&item)
+		proxies.Insert(item)
 	}
 
 	return nil
@@ -1674,9 +1924,9 @@ func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfig
 	}
 
 	for _, item := range authConfigList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		authConfigs.Insert(&item)
+		authConfigs.Insert(item)
 	}
 
 	return nil
@@ -1708,10 +1958,112 @@ func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateL
 	}
 
 	for _, item := range rateLimitConfigList.Items {
-		item := item // pike
+		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
-		rateLimitConfigs.Insert(&item)
+		rateLimitConfigs.Insert(item)
 	}
 
 	return nil
+}
+
+// build a snapshot from resources in a single cluster
+type inMemoryBuilder struct {
+	getSnapshot func() (resource.ClusterSnapshot, error)
+}
+
+// Produces snapshots of resources read from the manager for the given cluster
+func NewInMemoryBuilder(
+	getSnapshot func() (resource.ClusterSnapshot, error),
+) Builder {
+	return &inMemoryBuilder{
+		getSnapshot: getSnapshot,
+	}
+}
+
+func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts BuildOptions) (Snapshot, error) {
+	genericSnap, err := i.getSnapshot()
+	if err != nil {
+		return nil, err
+	}
+
+	services := v1_sets.NewServiceSet()
+	pods := v1_sets.NewPodSet()
+
+	deployments := apps_v1_sets.NewDeploymentSet()
+	daemonSets := apps_v1_sets.NewDaemonSetSet()
+
+	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
+	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
+	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
+
+	upstreams := gloo_solo_io_v1_sets.NewUpstreamSet()
+	upstreamGroups := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
+	settings := gloo_solo_io_v1_sets.NewSettingsSet()
+	proxies := gloo_solo_io_v1_sets.NewProxySet()
+
+	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+
+	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+
+	genericSnap.ForEachObject(func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject) {
+		switch obj := obj.(type) {
+		// insert Services
+		case *v1_types.Service:
+			services.Insert(obj)
+		// insert Pods
+		case *v1_types.Pod:
+			pods.Insert(obj)
+		// insert Deployments
+		case *apps_v1_types.Deployment:
+			deployments.Insert(obj)
+		// insert DaemonSets
+		case *apps_v1_types.DaemonSet:
+			daemonSets.Insert(obj)
+		// insert Gateways
+		case *gateway_solo_io_v1_types.Gateway:
+			gateways.Insert(obj)
+		// insert VirtualServices
+		case *gateway_solo_io_v1_types.VirtualService:
+			virtualServices.Insert(obj)
+		// insert RouteTables
+		case *gateway_solo_io_v1_types.RouteTable:
+			routeTables.Insert(obj)
+		// insert Upstreams
+		case *gloo_solo_io_v1_types.Upstream:
+			upstreams.Insert(obj)
+		// insert UpstreamGroups
+		case *gloo_solo_io_v1_types.UpstreamGroup:
+			upstreamGroups.Insert(obj)
+		// insert Settings
+		case *gloo_solo_io_v1_types.Settings:
+			settings.Insert(obj)
+		// insert Proxies
+		case *gloo_solo_io_v1_types.Proxy:
+			proxies.Insert(obj)
+		// insert AuthConfigs
+		case *enterprise_gloo_solo_io_v1_types.AuthConfig:
+			authConfigs.Insert(obj)
+		// insert RateLimitConfigs
+		case *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig:
+			rateLimitConfigs.Insert(obj)
+		}
+	})
+
+	return NewSnapshot(
+		name,
+
+		services,
+		pods,
+		deployments,
+		daemonSets,
+		gateways,
+		virtualServices,
+		routeTables,
+		upstreams,
+		upstreamGroups,
+		settings,
+		proxies,
+		authConfigs,
+		rateLimitConfigs,
+	), nil
 }

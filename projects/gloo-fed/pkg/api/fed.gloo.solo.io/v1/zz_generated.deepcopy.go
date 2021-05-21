@@ -11,7 +11,6 @@ import (
 // Generated Deepcopy methods for FederatedUpstream
 
 func (in *FederatedUpstream) DeepCopyInto(out *FederatedUpstream) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 
@@ -72,7 +71,6 @@ func (in *FederatedUpstreamList) DeepCopyObject() runtime.Object {
 // Generated Deepcopy methods for FederatedUpstreamGroup
 
 func (in *FederatedUpstreamGroup) DeepCopyInto(out *FederatedUpstreamGroup) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 
@@ -133,7 +131,6 @@ func (in *FederatedUpstreamGroupList) DeepCopyObject() runtime.Object {
 // Generated Deepcopy methods for FederatedSettings
 
 func (in *FederatedSettings) DeepCopyInto(out *FederatedSettings) {
-	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 

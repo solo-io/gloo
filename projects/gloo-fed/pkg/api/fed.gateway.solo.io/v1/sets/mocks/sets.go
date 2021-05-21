@@ -70,6 +70,24 @@ func (mr *MockFederatedGatewaySetMockRecorder) List(filterResource ...interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedGatewaySet)(nil).List), filterResource...)
 }
 
+// UnsortedList mocks base method
+func (m *MockFederatedGatewaySet) UnsortedList(filterResource ...func(*v1.FederatedGateway) bool) []*v1.FederatedGateway {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedGateway)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedGatewaySetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedGatewaySet)(nil).UnsortedList), filterResource...)
+}
+
 // Map mocks base method
 func (m *MockFederatedGatewaySet) Map() map[string]*v1.FederatedGateway {
 	m.ctrl.T.Helper()
@@ -294,6 +312,24 @@ func (mr *MockFederatedVirtualServiceSetMockRecorder) List(filterResource ...int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).List), filterResource...)
 }
 
+// UnsortedList mocks base method
+func (m *MockFederatedVirtualServiceSet) UnsortedList(filterResource ...func(*v1.FederatedVirtualService) bool) []*v1.FederatedVirtualService {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedVirtualService)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedVirtualServiceSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).UnsortedList), filterResource...)
+}
+
 // Map mocks base method
 func (m *MockFederatedVirtualServiceSet) Map() map[string]*v1.FederatedVirtualService {
 	m.ctrl.T.Helper()
@@ -516,6 +552,24 @@ func (m *MockFederatedRouteTableSet) List(filterResource ...func(*v1.FederatedRo
 func (mr *MockFederatedRouteTableSetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).List), filterResource...)
+}
+
+// UnsortedList mocks base method
+func (m *MockFederatedRouteTableSet) UnsortedList(filterResource ...func(*v1.FederatedRouteTable) bool) []*v1.FederatedRouteTable {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range filterResource {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UnsortedList", varargs...)
+	ret0, _ := ret[0].([]*v1.FederatedRouteTable)
+	return ret0
+}
+
+// UnsortedList indicates an expected call of UnsortedList
+func (mr *MockFederatedRouteTableSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).UnsortedList), filterResource...)
 }
 
 // Map mocks base method

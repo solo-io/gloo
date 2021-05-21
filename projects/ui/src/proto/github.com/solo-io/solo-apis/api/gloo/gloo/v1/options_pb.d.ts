@@ -82,6 +82,28 @@ export namespace ListenerOptions {
   }
 }
 
+export class RouteConfigurationOptions extends jspb.Message {
+  hasMaxDirectResponseBodySizeBytes(): boolean;
+  clearMaxDirectResponseBodySizeBytes(): void;
+  getMaxDirectResponseBodySizeBytes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxDirectResponseBodySizeBytes(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RouteConfigurationOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: RouteConfigurationOptions): RouteConfigurationOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RouteConfigurationOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RouteConfigurationOptions;
+  static deserializeBinaryFromReader(message: RouteConfigurationOptions, reader: jspb.BinaryReader): RouteConfigurationOptions;
+}
+
+export namespace RouteConfigurationOptions {
+  export type AsObject = {
+    maxDirectResponseBodySizeBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+  }
+}
+
 export class HttpListenerOptions extends jspb.Message {
   hasGrpcWeb(): boolean;
   clearGrpcWeb(): void;

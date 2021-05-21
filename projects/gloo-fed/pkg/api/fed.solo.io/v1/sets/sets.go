@@ -18,6 +18,8 @@ type GlooInstanceSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_solo_io_v1.GlooInstance
 	// Insert a resource into the set.
@@ -86,8 +88,27 @@ func (s *glooInstanceSet) List(filterResource ...func(*fed_solo_io_v1.GlooInstan
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	glooInstanceList := make([]*fed_solo_io_v1.GlooInstance, 0, len(objs))
+	for _, obj := range objs {
+		glooInstanceList = append(glooInstanceList, obj.(*fed_solo_io_v1.GlooInstance))
+	}
+	return glooInstanceList
+}
+
+func (s *glooInstanceSet) UnsortedList(filterResource ...func(*fed_solo_io_v1.GlooInstance) bool) []*fed_solo_io_v1.GlooInstance {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_solo_io_v1.GlooInstance))
+		})
+	}
+
 	var glooInstanceList []*fed_solo_io_v1.GlooInstance
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		glooInstanceList = append(glooInstanceList, obj.(*fed_solo_io_v1.GlooInstance))
 	}
 	return glooInstanceList
@@ -207,6 +228,8 @@ type FailoverSchemeSet interface {
 	Keys() sets.String
 	// List of resources stored in the set. Pass an optional filter function to filter on the list.
 	List(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme
+	// Unsorted list of resources stored in the set. Pass an optional filter function to filter on the list.
+	UnsortedList(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme
 	// Return the Set as a map of key to resource.
 	Map() map[string]*fed_solo_io_v1.FailoverScheme
 	// Insert a resource into the set.
@@ -275,8 +298,27 @@ func (s *failoverSchemeSet) List(filterResource ...func(*fed_solo_io_v1.Failover
 		})
 	}
 
+	objs := s.Generic().List(genericFilters...)
+	failoverSchemeList := make([]*fed_solo_io_v1.FailoverScheme, 0, len(objs))
+	for _, obj := range objs {
+		failoverSchemeList = append(failoverSchemeList, obj.(*fed_solo_io_v1.FailoverScheme))
+	}
+	return failoverSchemeList
+}
+
+func (s *failoverSchemeSet) UnsortedList(filterResource ...func(*fed_solo_io_v1.FailoverScheme) bool) []*fed_solo_io_v1.FailoverScheme {
+	if s == nil {
+		return nil
+	}
+	var genericFilters []func(ezkube.ResourceId) bool
+	for _, filter := range filterResource {
+		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
+			return filter(obj.(*fed_solo_io_v1.FailoverScheme))
+		})
+	}
+
 	var failoverSchemeList []*fed_solo_io_v1.FailoverScheme
-	for _, obj := range s.Generic().List(genericFilters...) {
+	for _, obj := range s.Generic().UnsortedList(genericFilters...) {
 		failoverSchemeList = append(failoverSchemeList, obj.(*fed_solo_io_v1.FailoverScheme))
 	}
 	return failoverSchemeList

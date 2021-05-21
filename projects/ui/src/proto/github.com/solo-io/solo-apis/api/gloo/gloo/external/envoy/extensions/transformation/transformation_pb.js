@@ -424,7 +424,8 @@ proto.envoy.api.v2.filter.http.TransformationRule.Transformations.toObject = fun
   var f, obj = {
     requestTransformation: (f = msg.getRequestTransformation()) && proto.envoy.api.v2.filter.http.Transformation.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 3, false),
-    responseTransformation: (f = msg.getResponseTransformation()) && proto.envoy.api.v2.filter.http.Transformation.toObject(includeInstance, f)
+    responseTransformation: (f = msg.getResponseTransformation()) && proto.envoy.api.v2.filter.http.Transformation.toObject(includeInstance, f),
+    onStreamCompletionTransformation: (f = msg.getOnStreamCompletionTransformation()) && proto.envoy.api.v2.filter.http.Transformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -475,6 +476,11 @@ proto.envoy.api.v2.filter.http.TransformationRule.Transformations.deserializeBin
       reader.readMessage(value,proto.envoy.api.v2.filter.http.Transformation.deserializeBinaryFromReader);
       msg.setResponseTransformation(value);
       break;
+    case 4:
+      var value = new proto.envoy.api.v2.filter.http.Transformation;
+      reader.readMessage(value,proto.envoy.api.v2.filter.http.Transformation.deserializeBinaryFromReader);
+      msg.setOnStreamCompletionTransformation(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -523,6 +529,14 @@ proto.envoy.api.v2.filter.http.TransformationRule.Transformations.serializeBinar
   if (f != null) {
     writer.writeMessage(
       2,
+      f,
+      proto.envoy.api.v2.filter.http.Transformation.serializeBinaryToWriter
+    );
+  }
+  f = message.getOnStreamCompletionTransformation();
+  if (f != null) {
+    writer.writeMessage(
+      4,
       f,
       proto.envoy.api.v2.filter.http.Transformation.serializeBinaryToWriter
     );
@@ -604,6 +618,36 @@ proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.clea
  */
 proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.hasResponseTransformation = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional Transformation on_stream_completion_transformation = 4;
+ * @return {?proto.envoy.api.v2.filter.http.Transformation}
+ */
+proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.getOnStreamCompletionTransformation = function() {
+  return /** @type{?proto.envoy.api.v2.filter.http.Transformation} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.api.v2.filter.http.Transformation, 4));
+};
+
+
+/** @param {?proto.envoy.api.v2.filter.http.Transformation|undefined} value */
+proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.setOnStreamCompletionTransformation = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.clearOnStreamCompletionTransformation = function() {
+  this.setOnStreamCompletionTransformation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.api.v2.filter.http.TransformationRule.Transformations.prototype.hasOnStreamCompletionTransformation = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

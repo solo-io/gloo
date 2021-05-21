@@ -13,6 +13,9 @@ export class FilterConfig extends jspb.Message {
   setDlpRulesList(value: Array<DlpRule>): void;
   addDlpRules(value?: DlpRule, index?: number): DlpRule;
 
+  getEnabledFor(): FilterConfig.EnableForMap[keyof FilterConfig.EnableForMap];
+  setEnabledFor(value: FilterConfig.EnableForMap[keyof FilterConfig.EnableForMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FilterConfig.AsObject;
   static toObject(includeInstance: boolean, msg: FilterConfig): FilterConfig.AsObject;
@@ -26,7 +29,16 @@ export class FilterConfig extends jspb.Message {
 export namespace FilterConfig {
   export type AsObject = {
     dlpRulesList: Array<DlpRule.AsObject>,
+    enabledFor: FilterConfig.EnableForMap[keyof FilterConfig.EnableForMap],
   }
+
+  export interface EnableForMap {
+    RESPONSE_BODY: 0;
+    ACCESS_LOGS: 1;
+    ALL: 2;
+  }
+
+  export const EnableFor: EnableForMap;
 }
 
 export class DlpRule extends jspb.Message {
@@ -63,6 +75,9 @@ export class Config extends jspb.Message {
   setActionsList(value: Array<Action>): void;
   addActions(value?: Action, index?: number): Action;
 
+  getEnabledFor(): Config.EnableForMap[keyof Config.EnableForMap];
+  setEnabledFor(value: Config.EnableForMap[keyof Config.EnableForMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Config.AsObject;
   static toObject(includeInstance: boolean, msg: Config): Config.AsObject;
@@ -76,7 +91,16 @@ export class Config extends jspb.Message {
 export namespace Config {
   export type AsObject = {
     actionsList: Array<Action.AsObject>,
+    enabledFor: Config.EnableForMap[keyof Config.EnableForMap],
   }
+
+  export interface EnableForMap {
+    RESPONSE_BODY: 0;
+    ACCESS_LOGS: 1;
+    ALL: 2;
+  }
+
+  export const EnableFor: EnableForMap;
 }
 
 export class Action extends jspb.Message {
