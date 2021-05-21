@@ -1,0 +1,8 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/4282
+  description: Enable DLP masking of access logs
+- type: DEPENDENCY_BUMP
+  dependencyOwner: envoy-gloo-ee
+  dependencyRepo: solo-io
+  dependencyTag: v1.19.0-rc4

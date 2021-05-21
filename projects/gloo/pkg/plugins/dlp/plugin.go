@@ -81,12 +81,12 @@ func (p *Plugin) ProcessVirtualHost(
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
 	if len(actions) != 0 {
-		dlpConfig.ResponseTransformation = &transformation_ee.Transformation{
-			TransformationType: &transformation_ee.Transformation_DlpTransformation{
-				DlpTransformation: &transformation_ee.DlpTransformation{
-					Actions: actions,
-				},
-			},
+		if dlpSettings.EnabledFor == dlp.Config_RESPONSE_BODY || dlpSettings.EnabledFor == dlp.Config_ALL {
+			setResponseTransformation(dlpConfig, actions)
+		}
+
+		if dlpSettings.EnabledFor == dlp.Config_ACCESS_LOGS || dlpSettings.EnabledFor == dlp.Config_ALL {
+			setOnStreamCompletionTransformaton(dlpConfig, actions)
 		}
 
 		pluginutils.SetVhostPerFilterConfig(out, FilterName, dlpConfig)
@@ -102,12 +102,12 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
 	if len(actions) != 0 {
-		dlpConfig.ResponseTransformation = &transformation_ee.Transformation{
-			TransformationType: &transformation_ee.Transformation_DlpTransformation{
-				DlpTransformation: &transformation_ee.DlpTransformation{
-					Actions: actions,
-				},
-			},
+		if dlpSettings.EnabledFor == dlp.Config_RESPONSE_BODY || dlpSettings.EnabledFor == dlp.Config_ALL {
+			setResponseTransformation(dlpConfig, actions)
+		}
+
+		if dlpSettings.EnabledFor == dlp.Config_ACCESS_LOGS || dlpSettings.EnabledFor == dlp.Config_ALL {
+			setOnStreamCompletionTransformaton(dlpConfig, actions)
 		}
 
 		pluginutils.SetRoutePerFilterConfig(out, FilterName, dlpConfig)
@@ -144,18 +144,21 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 				"therefore it will be skipped", i)
 			continue
 		}
-		transformationRules = append(transformationRules, &transformation_ee.TransformationRule{
-			Match: api_conversion.ToGlooRouteMatch(&envoyMatcher),
-			RouteTransformations: &transformation_ee.RouteTransformations{
-				ResponseTransformation: &transformation_ee.Transformation{
-					TransformationType: &transformation_ee.Transformation_DlpTransformation{
-						DlpTransformation: &transformation_ee.DlpTransformation{
-							Actions: actions,
-						},
-					},
-				},
-			},
-		})
+		routeTransformations := &transformation_ee.RouteTransformations{}
+		rules := &transformation_ee.TransformationRule{
+			Match:                api_conversion.ToGlooRouteMatch(&envoyMatcher),
+			RouteTransformations: routeTransformations,
+		}
+
+		if dlpSettings.EnabledFor == dlp.FilterConfig_RESPONSE_BODY || dlpSettings.EnabledFor == dlp.FilterConfig_ALL {
+			setResponseTransformation(routeTransformations, actions)
+		}
+
+		if dlpSettings.EnabledFor == dlp.FilterConfig_ACCESS_LOGS || dlpSettings.EnabledFor == dlp.FilterConfig_ALL {
+			setOnStreamCompletionTransformaton(routeTransformations, actions)
+		}
+
+		transformationRules = append(transformationRules, rules)
 	}
 
 	if transformationRules != nil {
@@ -170,6 +173,28 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	filters = append(filters, stagedFilter)
 	return filters, nil
+}
+
+func setResponseTransformation(routeTransformations *transformation_ee.RouteTransformations, actions []*transformation_ee.Action) {
+	routeTransformations.ResponseTransformation = &transformation_ee.Transformation{
+		TransformationType: &transformation_ee.Transformation_DlpTransformation{
+			DlpTransformation: &transformation_ee.DlpTransformation{
+				Actions: actions,
+			},
+		},
+	}
+}
+
+func setOnStreamCompletionTransformaton(routeTransformations *transformation_ee.RouteTransformations, actions []*transformation_ee.Action) {
+	routeTransformations.OnStreamCompletionTransformation = &transformation_ee.Transformation{
+		TransformationType: &transformation_ee.Transformation_DlpTransformation{
+			DlpTransformation: &transformation_ee.DlpTransformation{
+				EnableHeaderTransformation:          true,
+				EnableDynamicMetadataTransformation: true,
+				Actions:                             actions,
+			},
+		},
+	}
 }
 
 func getRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transformation_ee.Action {

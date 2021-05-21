@@ -306,6 +306,75 @@ var _ = Describe("dlp plugin", func() {
 				})
 			})
 
+			Context("only access logs", func() {
+				BeforeEach(func() {
+					dlpRule = &dlp.DlpRule{
+						Matcher: nil,
+						Actions: nil,
+					}
+					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
+					for key := range transformMap {
+						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
+							ActionType: key,
+						})
+					}
+					dlpListener = &dlp.FilterConfig{
+						DlpRules:   []*dlp.DlpRule{dlpRule},
+						EnabledFor: dlp.FilterConfig_ACCESS_LOGS,
+					}
+				})
+
+				It("can create the proper filled http filters", func() {
+					rule := checkListenerFilter()
+					filterDlp := rule.GetRouteTransformations()
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation()).NotTo(BeNil())
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).To(BeNil())
+					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
+					expected := api_conversion.ToGlooRouteMatch(&mAll)
+					Expect(*(rule.GetMatch())).To(Equal(*expected))
+				})
+			})
+
+			Context("access logs and responses", func() {
+				BeforeEach(func() {
+					dlpRule = &dlp.DlpRule{
+						Matcher: nil,
+						Actions: nil,
+					}
+					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
+					for key := range transformMap {
+						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
+							ActionType: key,
+						})
+					}
+					dlpListener = &dlp.FilterConfig{
+						DlpRules:   []*dlp.DlpRule{dlpRule},
+						EnabledFor: dlp.FilterConfig_ALL,
+					}
+				})
+
+				It("can create the proper filled http filters", func() {
+					rule := checkListenerFilter()
+					filterDlp := rule.GetRouteTransformations()
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation()).NotTo(BeNil())
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+					Expect(filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).NotTo(BeNil())
+					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeFalse())
+					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeFalse())
+					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
+					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
+					expected := api_conversion.ToGlooRouteMatch(&mAll)
+					Expect(*(rule.GetMatch())).To(Equal(*expected))
+				})
+			})
+
 		})
 
 		Context("per route/vhost", func() {
@@ -408,6 +477,84 @@ var _ = Describe("dlp plugin", func() {
 					perVhostDlp := translateVhost()
 					checkCustomAction(perVhostDlp.GetResponseTransformation().GetDlpTransformation())
 				})
+			})
+		})
+
+		Context("only access logs", func() {
+			BeforeEach(func() {
+				dlpRoute = &dlp.Config{}
+				dlpVhost = &dlp.Config{}
+
+				dlpRoute.EnabledFor = dlp.Config_ACCESS_LOGS
+				dlpVhost.EnabledFor = dlp.Config_ACCESS_LOGS
+
+				for key := range transformMap {
+					dlpRoute.Actions = append(dlpRoute.Actions, &dlp.Action{
+						ActionType: key,
+					})
+					dlpVhost.Actions = append(dlpVhost.Actions, &dlp.Action{
+						ActionType: key,
+					})
+				}
+			})
+
+			It("sets default actions on route", func() {
+				perRouteDlp := translateRoute()
+				Expect(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+				Expect(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+				checkAllDefaultActions(dlpRoute.GetActions(), perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+				Expect(perRouteDlp.GetResponseTransformation()).To(BeNil())
+			})
+
+			It("sets default actions on vhost", func() {
+				perVhostDlp := translateVhost()
+				Expect(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+				Expect(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+				checkAllDefaultActions(dlpRoute.GetActions(), perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+				Expect(perVhostDlp.GetResponseTransformation()).To(BeNil())
+			})
+		})
+
+		Context("access logs and responses", func() {
+			BeforeEach(func() {
+				dlpRoute = &dlp.Config{}
+				dlpVhost = &dlp.Config{}
+
+				dlpRoute.EnabledFor = dlp.Config_ALL
+				dlpVhost.EnabledFor = dlp.Config_ALL
+
+				for key := range transformMap {
+					dlpRoute.Actions = append(dlpRoute.Actions, &dlp.Action{
+						ActionType: key,
+					})
+					dlpVhost.Actions = append(dlpVhost.Actions, &dlp.Action{
+						ActionType: key,
+					})
+				}
+			})
+
+			It("sets default actions on route", func() {
+				perRouteDlp := translateRoute()
+				Expect(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+				Expect(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+				checkAllDefaultActions(dlpRoute.GetActions(), perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+				Expect(perRouteDlp.GetResponseTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeFalse())
+				Expect(perRouteDlp.GetResponseTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeFalse())
+				checkAllDefaultActions(dlpRoute.GetActions(), perRouteDlp.GetResponseTransformation().GetDlpTransformation())
+			})
+
+			It("sets default actions on vhost", func() {
+				perVhostDlp := translateVhost()
+				Expect(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeTrue())
+				Expect(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeTrue())
+				checkAllDefaultActions(dlpRoute.GetActions(), perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+
+				Expect(perVhostDlp.GetResponseTransformation().GetDlpTransformation().GetEnableHeaderTransformation()).To(BeFalse())
+				Expect(perVhostDlp.GetResponseTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeFalse())
+				checkAllDefaultActions(dlpRoute.GetActions(), perVhostDlp.GetResponseTransformation().GetDlpTransformation())
 			})
 		})
 	})
