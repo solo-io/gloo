@@ -1,3 +1,4 @@
+{{- define "observability.configMapSpec" -}}
 {{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 apiVersion: v1
 kind: ConfigMap
@@ -15,3 +16,10 @@ data:
   {{- end }}
   DASHBOARD_JSON_TEMPLATE: {{ default (.Files.Get "dashboards/upstream-dashboard-template.tmpl") .Values.observability.upstreamDashboardTemplate | toPrettyJson }}
 {{- end }}
+{{- end }}{{/* define "observability.configMapSpec */}}
+
+{{- $override := dict }}
+{{- if .Values.observability.configMap -}}
+{{- $override = .Values.observability.configMap.kubeResourceOverride }}
+{{- end -}}{{/* if .Values.observability.rbac */}}
+{{- include "gloo.util.merge" (list $ $override "observability.configMapSpec") }}

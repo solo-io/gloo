@@ -1,3 +1,4 @@
+{{- define "observability.deploymentSpec" -}}
 {{- if .Values.observability.enabled }}
 {{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
 {{- $image := .Values.observability.deployment.image }}
@@ -82,11 +83,18 @@ spec:
                 name: {{.Release.Name}}-observability-config
             - secretRef:
                 name: {{.Release.Name}}-observability-secrets
-      {{- include "gloo.pullSecret" $image | nindent 6 }}
       securityContext:
         runAsNonRoot: true
         {{- if not .Values.observability.deployment.floatingUserId }}
         runAsUser: {{ printf "%.0f" (float64 .Values.observability.deployment.runAsUser) -}}
         {{- end }}
+{{- include "gloo.pullSecret" $image | nindent 6 }}
 {{- end }}
 {{- end }}  {{- /* Observability enabled */ -}}
+{{- end }}{{/* define "observability.deploymentSpec */}}
+
+{{- $override := dict }}
+{{- if .Values.observability.deployment -}}
+{{- $override = .Values.observability.deployment.kubeResourceOverride }}
+{{- end -}}{{/* if .Values.observability.deployment */}}
+{{- include "gloo.util.merge" (list $ $override "observability.deploymentSpec") }}

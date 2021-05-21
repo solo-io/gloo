@@ -1,9 +1,8 @@
-{{- if .Values.global.extensions.rateLimit.enabled }}
-{{- include "gloo.dataplaneperproxyhelper" $ }}
-{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
-{{- if not $spec.disabled }}
-{{- $rateLimitName := $.Values.global.extensions.rateLimit.service.name }}
-{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- define "ratelimit.serviceSpec" -}}
+{{- $name := (index . 1) }}
+{{- with (first .) }}
+{{- $rateLimitName := .Values.global.extensions.rateLimit.service.name }}
+{{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
 {{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: v1
@@ -13,15 +12,28 @@ metadata:
     app: gloo
     gloo: {{ $rateLimitName }}
   name: {{ $rateLimitName }}
-  namespace: {{ $.Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   ports:
   - name: grpc
-    port: {{ $.Values.global.extensions.rateLimit.service.port }}
+    port: {{ .Values.global.extensions.rateLimit.service.port }}
     protocol: TCP
   selector:
     gloo: {{ $rateLimitName }}
 ---
+{{- end }} {{/* with (first .) */}}
+{{- end }}{{/* define "redis.serviceSpec" */}}
+
+{{- if .Values.global.extensions.rateLimit.enabled }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- $override := dict }}
+{{- if .Values.global.extensions.rateLimit.service}}
+{{- $override = .Values.global.extensions.rateLimit.service.kubeResourceOverride}}
+{{- end }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled}}
+{{- $ctx := (list $ $name $spec)}}
+{{- include "gloo.util.merge" (list $ctx $override "ratelimit.serviceSpec") -}}
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}

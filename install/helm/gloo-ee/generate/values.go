@@ -38,10 +38,11 @@ type GlooEeExtensions struct {
 }
 
 type RateLimit struct {
-	Enabled         bool                 `json:"enabled,omitempty" desc:"if true, deploy rate limit service (default true)"`
-	Deployment      *RateLimitDeployment `json:"deployment,omitempty"`
-	Service         *RateLimitService    `json:"service,omitempty"`
-	CustomRateLimit interface{}          `json:"customRateLimit,omitempty"`
+	Enabled         bool                          `json:"enabled,omitempty" desc:"if true, deploy rate limit service (default true)"`
+	Deployment      *RateLimitDeployment          `json:"deployment,omitempty"`
+	Service         *RateLimitService             `json:"service,omitempty"`
+	Upstream        *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
+	CustomRateLimit interface{}                   `json:"customRateLimit,omitempty"`
 }
 
 type DynamoDb struct {
@@ -61,13 +62,14 @@ type RateLimitDeployment struct {
 	RunAsUser            float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
 	FloatingUserId       bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraRateLimitLabels map[string]string `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
-
+	*glooGen.KubeResourceOverride
 	*glooGen.DeploymentSpec
 }
 
 type RateLimitService struct {
 	Port uint   `json:"port"`
 	Name string `json:"name"`
+	*glooGen.KubeResourceOverride
 }
 
 type Redis struct {
@@ -86,18 +88,24 @@ type RedisDeployment struct {
 	ExtraRedisLabels          map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
 	ClientSideShardingEnabled bool              `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
 	*glooGen.DeploymentSpec
+	*glooGen.KubeResourceOverride
 }
 
 type RedisService struct {
 	Port uint   `json:"port"`
 	Name string `json:"name"`
+	*glooGen.KubeResourceOverride
 }
 
 type Observability struct {
-	Enabled                   bool                     `json:"enabled,omitempty" desc:"if true, deploy observability service (default true)"`
-	Deployment                *ObservabilityDeployment `json:"deployment,omitempty"`
-	CustomGrafana             *CustomGrafana           `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
-	UpstreamDashboardTemplate string                   `json:"upstreamDashboardTemplate" desc:"Provide a custom dashboard template to use when generating per-upstream dashboards. The only variables available for use in this template are: {{.Uid}} and {{.EnvoyClusterName}}. Recommended to use Helm's --set-file to provide this value."`
+	Enabled                   bool                          `json:"enabled,omitempty" desc:"if true, deploy observability service (default true)"`
+	Deployment                *ObservabilityDeployment      `json:"deployment,omitempty"`
+	CustomGrafana             *CustomGrafana                `json:"customGrafana" desc:"Configure a custom grafana deployment to work with Gloo observability, rather than the default Gloo grafana"`
+	UpstreamDashboardTemplate string                        `json:"upstreamDashboardTemplate" desc:"Provide a custom dashboard template to use when generating per-upstream dashboards. The only variables available for use in this template are: {{.Uid}} and {{.EnvoyClusterName}}. Recommended to use Helm's --set-file to provide this value."`
+	Rbac                      *glooGen.KubeResourceOverride `json:"rbac,omitempty"`
+	ServiceAccount            *glooGen.KubeResourceOverride `json:"serviceAccount,omitempty"`
+	ConfigMap                 *glooGen.KubeResourceOverride `json:"configMap,omitempty"`
+	Secret                    *glooGen.KubeResourceOverride `json:"secret,omitempty"`
 }
 
 type ObservabilityDeployment struct {
@@ -108,6 +116,7 @@ type ObservabilityDeployment struct {
 	ExtraObservabilityLabels map[string]string `json:"extraObservabilityLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the Observability deployment."`
 
 	*glooGen.DeploymentSpec
+	*glooGen.KubeResourceOverride
 }
 
 type CustomGrafana struct {
@@ -116,25 +125,28 @@ type CustomGrafana struct {
 	Password string `json:"password,omitempty" desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
 	ApiKey   string `json:"apiKey,omitempty" desc:"Authenticate to the custom grafana instance using this api key"`
 	Url      string `json:"url,omitempty" desc:"The URL for the custom grafana instance"`
-	CaBundle string `json:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
+	CaBundle string `jsonx:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
+	*glooGen.KubeResourceOverride
 }
 
 type ExtAuth struct {
-	Enabled              bool                      `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
-	UserIdHeader         string                    `json:"userIdHeader,omitempty"`
-	Deployment           *ExtAuthDeployment        `json:"deployment,omitempty"`
-	Service              *ExtAuthService           `json:"service,omitempty"`
-	SigningKey           *ExtAuthSigningKey        `json:"signingKey,omitempty"`
-	TlsEnabled           bool                      `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
-	CertPath             string                    `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
-	KeyPath              string                    `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
-	Plugins              map[string]*ExtAuthPlugin `json:"plugins,omitempty"`
-	EnvoySidecar         bool                      `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
-	StandaloneDeployment bool                      `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
-	TransportApiVersion  string                    `json:"transportApiVersion" desc:"Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''"`
-	ServiceName          string                    `json:"serviceName,omitempty"`
-	RequestTimeout       string                    `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
-	HeadersToRedact      string                    `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
+	Enabled              bool                          `json:"enabled,omitempty" desc:"if true, deploy ExtAuth service (default true)"`
+	UserIdHeader         string                        `json:"userIdHeader,omitempty"`
+	Deployment           *ExtAuthDeployment            `json:"deployment,omitempty"`
+	Service              *ExtAuthService               `json:"service,omitempty"`
+	SigningKey           *ExtAuthSigningKey            `json:"signingKey,omitempty"`
+	TlsEnabled           bool                          `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
+	CertPath             string                        `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
+	KeyPath              string                        `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
+	Plugins              map[string]*ExtAuthPlugin     `json:"plugins,omitempty"`
+	EnvoySidecar         bool                          `json:"envoySidecar" desc:"if true, deploy ExtAuth as a sidecar with envoy (defaults to false)"`
+	StandaloneDeployment bool                          `json:"standaloneDeployment" desc:"if true, create a standalone ExtAuth deployment (defaults to true)"`
+	TransportApiVersion  string                        `json:"transportApiVersion" desc:"Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''"`
+	ServiceName          string                        `json:"serviceName,omitempty"`
+	RequestTimeout       string                        `json:"requestTimeout,omitempty" desc:"Timeout for the ext auth service to respond (defaults to 200ms)"`
+	HeadersToRedact      string                        `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
+	Secret               *glooGen.KubeResourceOverride `json:"secret,omitempty"`
+	Upstream             *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 }
 
 type ExtAuthDeployment struct {
@@ -150,11 +162,13 @@ type ExtAuthDeployment struct {
 	ExtraVolume        []v1.Volume       `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
 	ExtraVolumeMount   []v1.VolumeMount  `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
 	*glooGen.DeploymentSpec
+	*glooGen.KubeResourceOverride
 }
 
 type ExtAuthService struct {
 	Port uint   `json:"port"`
 	Name string `json:"name"`
+	*glooGen.KubeResourceOverride
 }
 
 type ExtAuthSigningKey struct {

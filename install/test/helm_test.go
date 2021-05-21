@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+	"strings"
+	"unicode"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
@@ -23,6 +26,7 @@ import (
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
+	. "github.com/onsi/ginkgo/extensions/table"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -74,6 +78,7 @@ var _ = Describe("Helm Test", func() {
 				version = "dev"
 				getPullPolicy = func() v1.PullPolicy { return v1.PullAlways }
 			} else {
+				fmt.Printf("Using TAGGED_VERSION environment variable for version: %s\n", version)
 				version = version[1:]
 				getPullPolicy = func() v1.PullPolicy { return v1.PullIfNotPresent }
 			}
@@ -2863,6 +2868,57 @@ spec:
 			})
 		})
 
+		Context("Kube resource overrides", func() {
+			DescribeTable("overrides YAML in generated sources", func(overrideProperty string, extraArgs ...string) {
+				// Override property should be the path to `kubeResourceOverride`, like gloo.deployment.kubeResourceOverride
+				valueArg := fmt.Sprintf("%s.metadata.labels.overriddenLabel=label", overrideProperty)
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: append(extraArgs, valueArg),
+				})
+				Expect(err).NotTo(HaveOccurred())
+				// We are overriding the generated yaml by adding our own label to the metadata
+				resources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetLabels()["overriddenLabel"] == "label" && resource.GetKind() != ""
+				})
+				Expect(resources.NumResources()).To(Equal(1))
+			},
+				Entry("0-redis-service", "redis.service.kubeResourceOverride"),
+				Entry("1-redis-deployment", "redis.deployment.kubeResourceOverride"),
+				Entry("2-rate-limit-deployment", "global.extensions.rateLimit.deployment.kubeResourceOverride"),
+				Entry("3-rate-limit-service", "global.extensions.rateLimit.service.kubeResourceOverride"),
+				Entry("4-ratelimit-upstream", "global.extensions.rateLimit.upstream.kubeResourceOverride"),
+				Entry("8-observability-service-account", "observability.serviceAccount.kubeResourceOverride", "observability.enabled=true"),
+				Entry("9-observability-configmap", "observability.configMap.kubeResourceOverride"),
+				Entry("9-observability-deployment", "observability.deployment.kubeResourceOverride"),
+				Entry("9-observability-secret", "observability.secret.kubeResourceOverride"),
+				Entry("20-extauth-secret", "global.extensions.extAuth.secret.kubeResourceOverride"),
+				Entry("21-extauth-deployment", "global.extensions.extAuth.deployment.kubeResourceOverride"),
+				Entry("22-extauth-service", "global.extensions.extAuth.service.kubeResourceOverride"),
+			)
+		})
+
+		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
+		It("Should not containing trailing whitespace", func() {
+			out, err := exec.Command("helm", "template", "../helm/gloo-ee").CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+
+			lines := strings.Split(string(out), "\n")
+			// more descriptive fail message that prints out the manifest that includes the trailing whitespace
+			manifestStartingLine := 0
+			for idx, line := range lines {
+				if strings.Contains(line, "---") {
+					manifestStartingLine = idx
+				}
+				if strings.TrimRightFunc(line, unicode.IsSpace) != line {
+					// Ensure that we are only checking this for Gloo charts, and not our subcharts
+					manifest := strings.Join(lines[manifestStartingLine:idx+1], "\n")
+					if strings.Contains(manifest, "# Source: gloo-ee/templates") {
+						Fail(manifest + "\n ^^^ the above line has whitespace")
+					}
+
+				}
+			}
+		})
 	})
 
 })

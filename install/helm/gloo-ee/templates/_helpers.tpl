@@ -217,13 +217,6 @@ Expand the name of a container image
 {{ .registry }}/{{ .repository }}:{{ .tag }}
 {{- end -}}
 
-{{- define "gloo.pullSecret" -}}
-{{- if .pullSecret -}}
-imagePullSecrets:
-- name: {{ .pullSecret }}
-{{ end -}}
-{{- end -}}
-
 {{/*
 Injection point for enterprise-exclusive settings into the settings manifest
 */}}

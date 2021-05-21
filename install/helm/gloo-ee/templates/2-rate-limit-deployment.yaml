@@ -1,12 +1,11 @@
-{{- if .Values.global.extensions.rateLimit.enabled }}
+{{- define "ratelimit.deploymentSpec" -}}
+{{- $name := (index . 1) }}
+{{- with (first .) }}
 {{- $statsConfig := coalesce .Values.global.extensions.rateLimit.deployment.stats .Values.global.glooStats -}}
 {{- $image := merge .Values.global.extensions.rateLimit.deployment.image .Values.global.image }}
-{{- include "gloo.dataplaneperproxyhelper" $ }}
-{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
-{{- if not $spec.disabled }}
-{{- $rateLimitName := $.Values.global.extensions.rateLimit.deployment.name }}
-{{- $redisName := $.Values.redis.service.name }}
-{{- if $.Values.global.extensions.dataplanePerProxy }}
+{{- $rateLimitName := .Values.global.extensions.rateLimit.deployment.name }}
+{{- $redisName := .Values.redis.service.name }}
+{{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
 {{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
@@ -17,11 +16,11 @@ metadata:
     app: gloo
     gloo: {{ $rateLimitName }}
   name: {{ $rateLimitName }}
-  namespace: {{ $.Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
-{{- if not (kindIs "invalid" $.Values.global.extensions.rateLimit.deployment.replicas) }}
-  replicas: {{ $.Values.global.extensions.rateLimit.deployment.replicas }}
-{{- end }} {{/* if not (kindIs "invalid" $.Values.global.extensions.rateLimit.deployment.replicas) */}}
+{{- if not (kindIs "invalid" .Values.global.extensions.rateLimit.deployment.replicas) }}
+  replicas: {{ .Values.global.extensions.rateLimit.deployment.replicas }}
+{{- end }}{{/* if not (kindIs "invalid" .Values.global.extensions.rateLimit.deployment.replicas) */}}
   selector:
     matchLabels:
       gloo: {{ $rateLimitName }}
@@ -29,77 +28,77 @@ spec:
     metadata:
       labels:
         gloo: {{ $rateLimitName }}
-        {{- if $.Values.global.extensions.rateLimit.deployment.extraRateLimitLabels }}
-        {{- range $key, $value :=  $.Values.global.extensions.rateLimit.deployment.extraRateLimitLabels }}
+        {{- if .Values.global.extensions.rateLimit.deployment.extraRateLimitLabels }}
+        {{- range $key, $value :=  .Values.global.extensions.rateLimit.deployment.extraRateLimitLabels }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
-      {{- if or $statsConfig.enabled $.Values.global.istioIntegration.disableAutoinjection }}
+      {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
         {{- if $statsConfig.enabled }}
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
-        {{- end}} {{/* $statsConfig.enabled */}}
-        {{- if $.Values.global.istioIntegration.disableAutoinjection }}
+        {{- end}}{{/* $statsConfig.enabled */}}
+        {{- if .Values.global.istioIntegration.disableAutoinjection }}
         sidecar.istio.io/inject: "false"
         {{- end }}
       {{- end }}
     spec:
-      serviceAccountName: {{ $.Values.global.extensions.rateLimit.service.name }}
+      serviceAccountName: {{ .Values.global.extensions.rateLimit.service.name }}
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
-          {{- if $.Values.global.extensions.rateLimit.deployment.resources }}
+          {{- if .Values.global.extensions.rateLimit.deployment.resources }}
           resources:
-{{ toYaml $.Values.global.extensions.rateLimit.deployment.resources | indent 12}}
-          {{- end}} {{/* $.Values.global.extensions.rateLimit.deployment.resources */}}
+{{ toYaml .Values.global.extensions.rateLimit.deployment.resources | indent 12}}
+          {{- end}}{{/* .Values.global.extensions.rateLimit.deployment.resources */}}
           env:
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: GLOO_ADDRESS
-              {{- if $.Values.global.glooMtls.enabled }}
+              {{- if .Values.global.glooMtls.enabled }}
               value: "127.0.0.1:9955"
               {{- else }}
-              value: {{ $.Values.global.extensions.rateLimit.deployment.glooAddress }}
-              {{- end }} {{/* $.Values.global.glooMtls.enabled */}}
+              value: {{ .Values.global.extensions.rateLimit.deployment.glooAddress }}
+              {{- end }}{{/* .Values.global.glooMtls.enabled */}}
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER
               value: "true"
-            {{- end}} {{/* $statsConfig.enabled */}}
-            {{- if $.Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
+            {{- end}}{{/* $statsConfig.enabled */}}
+            {{- if .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
+                  name: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
                   key: aws_access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
+                  name: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.secretName }}
                   key: aws_secret_access_key
             - name: AWS_REGION
-              value: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.region }}
+              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.region }}
             - name: DYNAMODB_RATE_LIMIT_TABLE_NAME
-              value: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.tableName }}
+              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.tableName }}
             - name: DYNAMODB_CONSISTENT_READS
-              value: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.consistentReads | quote }}
+              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.consistentReads | quote }}
             - name: DYNAMODB_BATCH_SIZE
-              value: {{ $.Values.global.extensions.rateLimit.deployment.dynamodb.batchSize | quote }}
-            {{- else if $.Values.redis.clientSideShardingEnabled }} {{/* end .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+              value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.batchSize | quote }}
+            {{- else if .Values.redis.clientSideShardingEnabled }}{{/* end .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             - name: REDIS_URL
               value: /var/run/envoy/ratelimit.sock
             - name: REDIS_SOCKET_TYPE
               value: unix
             {{- else }}
             - name: REDIS_URL
-              value: {{ printf "%s:%v" $redisName $.Values.redis.service.port }}
+              value: {{ printf "%s:%v" $redisName .Values.redis.service.port }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
-            {{- end }} {{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+            {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             - name: READY_PORT_HTTP
               value: "18080"
             - name: READY_PATH_HTTP
@@ -112,13 +111,13 @@ spec:
             periodSeconds: 5
             failureThreshold: 2
             successThreshold: 1
-          {{- if $.Values.redis.clientSideShardingEnabled }}
+          {{- if .Values.redis.clientSideShardingEnabled }}
           volumeMounts:
             - mountPath: /var/run/envoy/
               name: redis-socket
           {{- end }}
-        {{- if or $.Values.global.glooMtls.enabled $.Values.redis.clientSideShardingEnabled }}
-        {{- $envoyImage := merge $.Values.global.glooMtls.envoy.image $.Values.global.image}}
+        {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
+        {{- $envoyImage := merge .Values.global.glooMtls.envoy.image .Values.global.image}}
         - name: envoy-sidecar
           env:
             - name: ENVOY_SIDECAR
@@ -128,22 +127,22 @@ spec:
           volumeMounts:
             - mountPath: /etc/envoy
               name: rate-limit-sidecar-config
-            {{- if $.Values.global.glooMtls.enabled }}
+            {{- if .Values.global.glooMtls.enabled }}
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
             {{- end }}
-            {{- if $.Values.redis.clientSideShardingEnabled }}
+            {{- if .Values.redis.clientSideShardingEnabled }}
             - mountPath: /var/run/envoy/
               name: redis-socket
             {{- end }}
-          {{- if $.Values.global.glooMtls.envoySidecarResources }}
+          {{- if .Values.global.glooMtls.envoySidecarResources }}
           resources:
-{{ toYaml $.Values.global.glooMtls.envoySidecarResources | indent 12}}
+{{ toYaml .Values.global.glooMtls.envoySidecarResources | indent 12}}
           {{- end}}
-        {{- end }} {{/* End envoy sidecar */}}
-        {{- if $.Values.global.glooMtls.enabled }}
-        {{- $sdsImage := merge $.Values.global.glooMtls.sds.image $.Values.global.image }}
+        {{- end }}{{/* End envoy sidecar */}}
+        {{- if .Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
         - name: sds
           image: {{ template "gloo.image" $sdsImage }}
           imagePullPolicy: {{ $sdsImage.pullPolicy }}
@@ -154,23 +153,22 @@ spec:
             - mountPath: /etc/envoy/ssl
               name: gloo-mtls-certs
               readOnly: true
-          {{- if $.Values.global.glooMtls.sdsResources }}
+          {{- if .Values.global.glooMtls.sdsResources }}
           resources:
-{{ toYaml $.Values.global.glooMtls.sdsResources | indent 12}}
+{{ toYaml .Values.global.glooMtls.sdsResources | indent 12}}
           {{- end }}
-        {{- end }} {{/* End SDS container */}}
-      {{- include "gloo.pullSecret" $image | nindent 6}}
+        {{- end }}{{/* End SDS container */}}
       securityContext:
         runAsNonRoot: true
         {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
         {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
         {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
-        {{- if not $.Values.global.extensions.rateLimit.deployment.floatingUserId }}
-        runAsUser: {{ printf "%.0f" (float64 $.Values.global.extensions.rateLimit.deployment.runAsUser) -}}
+        {{- if not .Values.global.extensions.rateLimit.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.global.extensions.rateLimit.deployment.runAsUser) -}}
         {{- end }}
-      {{- if or $.Values.global.glooMtls.enabled $.Values.redis.clientSideShardingEnabled }}
+      {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
       volumes:
-        {{- if $.Values.global.glooMtls.enabled }}
+        {{- if .Values.global.glooMtls.enabled }}
         - name: gloo-mtls-certs
           secret:
             defaultMode: 420
@@ -179,12 +177,26 @@ spec:
         - name: rate-limit-sidecar-config
           configMap:
             name: rate-limit-sidecar-config
-        {{- if $.Values.redis.clientSideShardingEnabled }}
+        {{- if .Values.redis.clientSideShardingEnabled }}
         - emptyDir: {}
           name: redis-socket
         {{- end }}
-      {{- end }} {{/* .Values.global.glooMtls.enabled || $.Values.redis.clientSideShardingEnabled */}}
+      {{- end }}{{/* .Values.global.glooMtls.enabled || .Values.redis.clientSideShardingEnabled */}}
+{{- include "gloo.pullSecret" $image | nindent 6}}
 ---
-{{- end }} {{/* if not $spec.disabled */}}
-{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }}
+{{- end }}{{/* with (first .) */}}
+{{- end }}{{/* define "ratelimit.deploymentSpec" */}}
+
+{{- if .Values.global.extensions.rateLimit.enabled }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- $override := dict -}}
+{{- if .Values.global.extensions.rateLimit.deployment }}
+{{- $override = .Values.global.extensions.rateLimit.deployment.kubeResourceOverride}}
+{{- end }}{{/* if .Values.rateLimit.deployment */}}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled}}
+{{- $ctx := (list $ $name $spec)}}
+{{- include "gloo.util.merge" (list $ctx $override "ratelimit.deploymentSpec") -}}
+{{- end }}{{/* if not $spec.disabled */}}
+{{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }}{{/* .Values.global.extensions.rateLimit.enabled */}}
