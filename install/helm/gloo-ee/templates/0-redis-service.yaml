@@ -29,7 +29,7 @@ spec:
 
 {{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
-{{- $override := $.Values.redis.service.kubeResourceOverride}}
+{{- $override := .Values.redis.service.kubeResourceOverride}}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- if not $spec.disabled }}
 {{- $ctx := (list $ $name $spec)}}

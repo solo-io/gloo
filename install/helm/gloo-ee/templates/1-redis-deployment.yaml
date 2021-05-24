@@ -35,6 +35,7 @@ spec:
         sidecar.istio.io/inject: "false"
       {{- end }}
     spec:
+      {{- include "gloo.podSpecStandardFields" .Values.redis.deployment | nindent 6 -}}
       containers:
         - image: {{template "glooe.imagenonextended" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
@@ -69,7 +70,7 @@ spec:
 
 {{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
-{{- $override := $.Values.redis.deployment.kubeResourceOverride}}
+{{- $override := .Values.redis.deployment.kubeResourceOverride}}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- if not $spec.disabled }}
 {{- $ctx := (list $ $name $spec)}}

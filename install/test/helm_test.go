@@ -2868,6 +2868,47 @@ spec:
 			})
 		})
 
+		Describe("Standard k8s values", func() {
+			DescribeTable("PodSpec affinity, tolerations, nodeName, hostAliases, nodeSelector, restartPolicy on Deployments and Jobs",
+				func(kind string, resourceName string, value string, extraArgs ...string) {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: append([]string{
+							value + ".nodeSelector.label=someLabel",
+							value + ".nodeName=someNodeName",
+							value + ".tolerations=someToleration",
+							value + ".hostAliases=someHostAlias",
+							value + ".affinity=someNodeAffinity",
+							value + ".restartPolicy=someRestartPolicy",
+						}, extraArgs...),
+					})
+					Expect(err).NotTo(HaveOccurred())
+					resources := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
+						if u.GetKind() == kind && u.GetName() == resourceName {
+							a := getFieldFromUnstructured(u, "spec", "template", "spec", "nodeSelector")
+							Expect(a).To(Equal(map[string]interface{}{"label": "someLabel"}))
+							a = getFieldFromUnstructured(u, "spec", "template", "spec", "nodeName")
+							Expect(a).To(Equal("someNodeName"))
+							a = getFieldFromUnstructured(u, "spec", "template", "spec", "tolerations")
+							Expect(a).To(Equal("someToleration"))
+							a = getFieldFromUnstructured(u, "spec", "template", "spec", "hostAliases")
+							Expect(a).To(Equal("someHostAlias"))
+							a = getFieldFromUnstructured(u, "spec", "template", "spec", "affinity")
+							Expect(a).To(Equal("someNodeAffinity"))
+							a = getFieldFromUnstructured(u, "spec", "template", "spec", "restartPolicy")
+							Expect(a).To(Equal("someRestartPolicy"))
+							return true
+						}
+						return false
+					})
+					Expect(resources.NumResources()).To(Equal(1))
+				},
+				Entry("redis deployment", "Deployment", "redis", "redis.deployment"),
+				Entry("rate limit deployment", "Deployment", "rate-limit", "global.extensions.rateLimit.deployment"),
+				Entry("observability deployment", "Deployment", "observability", "observability.deployment"),
+				Entry("extauth deployment", "Deployment", "extauth", "global.extensions.extAuth.deployment"),
+			)
+		})
+
 		Context("Kube resource overrides", func() {
 			DescribeTable("overrides YAML in generated sources", func(overrideProperty string, extraArgs ...string) {
 				// Override property should be the path to `kubeResourceOverride`, like gloo.deployment.kubeResourceOverride
@@ -2926,4 +2967,17 @@ spec:
 func constructResourceID(resource *unstructured.Unstructured) string {
 	// technically vulnerable to resources that have commas in their names, but that's not a big concern
 	return fmt.Sprintf("%s,%s,%s", resource.GetNamespace(), resource.GetName(), resource.GroupVersionKind().String())
+}
+
+// gets value of field nested within an Unstructured struct.
+// fieldPath is the path to the value, so the value foo.bar.baz would be passed in as "foo", "bar, "baz"
+func getFieldFromUnstructured(uns *unstructured.Unstructured, fieldPath ...string) interface{} {
+	if len(fieldPath) < 1 {
+		return nil
+	}
+	obj := uns.Object[fieldPath[0]]
+	for _, field := range fieldPath[1:] {
+		obj = obj.(map[string]interface{})[field]
+	}
+	return obj
 }

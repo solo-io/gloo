@@ -125,7 +125,8 @@ spec:
                   matchLabels:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
-{{- include "gloo.pullSecret" $image | nindent 6 }}
+  {{- include "gloo.podSpecStandardFields" $extAuth.deployment | nindent 6 }}
+  {{- include "gloo.pullSecret" $image | nindent 6 }}
 ---
 {{- end }} {{/* with */}}
 {{- end }} {{/* define extauth.deploymentSpec */}}

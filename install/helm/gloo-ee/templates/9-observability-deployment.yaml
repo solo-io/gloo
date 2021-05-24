@@ -45,6 +45,7 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: observability
+      {{- include "gloo.podSpecStandardFields" .Values.observability.deployment | nindent 6 -}}
       volumes:
         - name: upstream-dashboard-template
           configMap:
