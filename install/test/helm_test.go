@@ -1375,7 +1375,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
-    ratelimit_server_ref: 
+    ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
   kubernetesArtifactSource: {}
@@ -1432,7 +1432,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
-    ratelimit_server_ref: 
+    ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
   kubernetesArtifactSource: {}
@@ -1491,7 +1491,7 @@ spec:
     awsOptions:
       enableCredentialsDiscovey: true
   ratelimitServer:
-    ratelimit_server_ref:
+    ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
   kubernetesArtifactSource: {}
@@ -1551,7 +1551,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
-    ratelimit_server_ref:
+    ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
   kubernetesArtifactSource: {}
@@ -1620,7 +1620,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
-    ratelimit_server_ref: 
+    ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
   kubernetesArtifactSource: {}

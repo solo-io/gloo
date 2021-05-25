@@ -30,8 +30,10 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/pkg/resource"
 	"github.com/solo-io/skv2/pkg/verifier"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/hashicorp/go-multierror"
@@ -2009,43 +2011,43 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		switch obj := obj.(type) {
 		// insert Services
 		case *v1_types.Service:
-			services.Insert(obj)
+			i.insertService(ctx, obj, services, opts)
 		// insert Pods
 		case *v1_types.Pod:
-			pods.Insert(obj)
+			i.insertPod(ctx, obj, pods, opts)
 		// insert Deployments
 		case *apps_v1_types.Deployment:
-			deployments.Insert(obj)
+			i.insertDeployment(ctx, obj, deployments, opts)
 		// insert DaemonSets
 		case *apps_v1_types.DaemonSet:
-			daemonSets.Insert(obj)
+			i.insertDaemonSet(ctx, obj, daemonSets, opts)
 		// insert Gateways
 		case *gateway_solo_io_v1_types.Gateway:
-			gateways.Insert(obj)
+			i.insertGateway(ctx, obj, gateways, opts)
 		// insert VirtualServices
 		case *gateway_solo_io_v1_types.VirtualService:
-			virtualServices.Insert(obj)
+			i.insertVirtualService(ctx, obj, virtualServices, opts)
 		// insert RouteTables
 		case *gateway_solo_io_v1_types.RouteTable:
-			routeTables.Insert(obj)
+			i.insertRouteTable(ctx, obj, routeTables, opts)
 		// insert Upstreams
 		case *gloo_solo_io_v1_types.Upstream:
-			upstreams.Insert(obj)
+			i.insertUpstream(ctx, obj, upstreams, opts)
 		// insert UpstreamGroups
 		case *gloo_solo_io_v1_types.UpstreamGroup:
-			upstreamGroups.Insert(obj)
+			i.insertUpstreamGroup(ctx, obj, upstreamGroups, opts)
 		// insert Settings
 		case *gloo_solo_io_v1_types.Settings:
-			settings.Insert(obj)
+			i.insertSettings(ctx, obj, settings, opts)
 		// insert Proxies
 		case *gloo_solo_io_v1_types.Proxy:
-			proxies.Insert(obj)
+			i.insertProxy(ctx, obj, proxies, opts)
 		// insert AuthConfigs
 		case *enterprise_gloo_solo_io_v1_types.AuthConfig:
-			authConfigs.Insert(obj)
+			i.insertAuthConfig(ctx, obj, authConfigs, opts)
 		// insert RateLimitConfigs
 		case *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig:
-			rateLimitConfigs.Insert(obj)
+			i.insertRateLimitConfig(ctx, obj, rateLimitConfigs, opts)
 		}
 	})
 
@@ -2066,4 +2068,387 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		authConfigs,
 		rateLimitConfigs,
 	), nil
+}
+
+func (i *inMemoryBuilder) insertService(
+	ctx context.Context,
+	service *v1_types.Service,
+	serviceSet v1_sets.ServiceSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Services.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = service.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(service.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		serviceSet.Insert(service)
+	}
+}
+func (i *inMemoryBuilder) insertPod(
+	ctx context.Context,
+	pod *v1_types.Pod,
+	podSet v1_sets.PodSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Pods.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = pod.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(pod.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		podSet.Insert(pod)
+	}
+}
+
+func (i *inMemoryBuilder) insertDeployment(
+	ctx context.Context,
+	deployment *apps_v1_types.Deployment,
+	deploymentSet apps_v1_sets.DeploymentSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Deployments.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = deployment.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(deployment.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		deploymentSet.Insert(deployment)
+	}
+}
+func (i *inMemoryBuilder) insertDaemonSet(
+	ctx context.Context,
+	daemonSet *apps_v1_types.DaemonSet,
+	daemonSetSet apps_v1_sets.DaemonSetSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.DaemonSets.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = daemonSet.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(daemonSet.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		daemonSetSet.Insert(daemonSet)
+	}
+}
+
+func (i *inMemoryBuilder) insertGateway(
+	ctx context.Context,
+	gateway *gateway_solo_io_v1_types.Gateway,
+	gatewaySet gateway_solo_io_v1_sets.GatewaySet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Gateways.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = gateway.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(gateway.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		gatewaySet.Insert(gateway)
+	}
+}
+func (i *inMemoryBuilder) insertVirtualService(
+	ctx context.Context,
+	virtualService *gateway_solo_io_v1_types.VirtualService,
+	virtualServiceSet gateway_solo_io_v1_sets.VirtualServiceSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.VirtualServices.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = virtualService.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(virtualService.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		virtualServiceSet.Insert(virtualService)
+	}
+}
+func (i *inMemoryBuilder) insertRouteTable(
+	ctx context.Context,
+	routeTable *gateway_solo_io_v1_types.RouteTable,
+	routeTableSet gateway_solo_io_v1_sets.RouteTableSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.RouteTables.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = routeTable.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(routeTable.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		routeTableSet.Insert(routeTable)
+	}
+}
+
+func (i *inMemoryBuilder) insertUpstream(
+	ctx context.Context,
+	upstream *gloo_solo_io_v1_types.Upstream,
+	upstreamSet gloo_solo_io_v1_sets.UpstreamSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Upstreams.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = upstream.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(upstream.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		upstreamSet.Insert(upstream)
+	}
+}
+func (i *inMemoryBuilder) insertUpstreamGroup(
+	ctx context.Context,
+	upstreamGroup *gloo_solo_io_v1_types.UpstreamGroup,
+	upstreamGroupSet gloo_solo_io_v1_sets.UpstreamGroupSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.UpstreamGroups.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = upstreamGroup.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(upstreamGroup.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		upstreamGroupSet.Insert(upstreamGroup)
+	}
+}
+func (i *inMemoryBuilder) insertSettings(
+	ctx context.Context,
+	settings *gloo_solo_io_v1_types.Settings,
+	settingsSet gloo_solo_io_v1_sets.SettingsSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Settings.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = settings.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(settings.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		settingsSet.Insert(settings)
+	}
+}
+func (i *inMemoryBuilder) insertProxy(
+	ctx context.Context,
+	proxy *gloo_solo_io_v1_types.Proxy,
+	proxySet gloo_solo_io_v1_sets.ProxySet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.Proxies.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = proxy.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(proxy.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		proxySet.Insert(proxy)
+	}
+}
+
+func (i *inMemoryBuilder) insertAuthConfig(
+	ctx context.Context,
+	authConfig *enterprise_gloo_solo_io_v1_types.AuthConfig,
+	authConfigSet enterprise_gloo_solo_io_v1_sets.AuthConfigSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.AuthConfigs.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = authConfig.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(authConfig.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		authConfigSet.Insert(authConfig)
+	}
+}
+
+func (i *inMemoryBuilder) insertRateLimitConfig(
+	ctx context.Context,
+	rateLimitConfig *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig,
+	rateLimitConfigSet ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.RateLimitConfigs.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = rateLimitConfig.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(rateLimitConfig.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		rateLimitConfigSet.Insert(rateLimitConfig)
+	}
 }

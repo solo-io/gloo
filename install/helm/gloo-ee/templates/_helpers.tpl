@@ -246,7 +246,7 @@ Injection point for enterprise-exclusive settings into the settings manifest
 {{- end}}
 {{- if $.Values.global.extensions.rateLimit.enabled }}
   ratelimitServer:
-    ratelimit_server_ref:
+    ratelimitServerRef:
       name: rate-limit
       namespace: {{ .Release.Namespace }}
 {{- end }}

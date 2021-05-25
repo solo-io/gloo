@@ -99,6 +99,7 @@ install-go-tools: mod-download
 	mkdir -p $(DEPSGOBIN)
 	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
+	GOBIN=$(DEPSGOBIN) go install github.com/sam-heilbron/protoc-gen-openapi
 	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
 	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go

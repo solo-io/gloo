@@ -12,7 +12,7 @@ metadata:
   name: {{ $extAuthName }}-sidecar
   namespace: {{ $.Release.Namespace }}
 spec:
-  use_http2: true
+  useHttp2: true
   pipe:
     path: "/usr/share/shared-data/.sock"
 {{- end }}
@@ -33,7 +33,7 @@ metadata:
   name: {{ $extAuthName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  use_http2: true
+  useHttp2: true
   healthChecks:
   - timeout: 5s
     interval: 10s
