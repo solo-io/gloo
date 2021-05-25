@@ -2271,6 +2271,95 @@ spec:
 
 		})
 
+		Context("redis deployment", func() {
+
+			var expectedDeployment *appsv1.Deployment
+
+			BeforeEach(func() {
+				labels = map[string]string{
+					"app":  "gloo",
+					"gloo": "redis",
+				}
+				selector = map[string]string{
+					"gloo": "redis",
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "redis",
+					Labels:    labels,
+				}
+
+				nonRootUser := int64(999)
+				nonRoot := true
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsGroup:   &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+					FSGroup:      &nonRootUser,
+				}
+
+				volumes := []v1.Volume{{
+					Name: "data",
+					VolumeSource: v1.VolumeSource{
+						EmptyDir: &v1.EmptyDirVolumeSource{},
+					},
+				}}
+
+				expectedDeployment = rb.GetDeploymentAppsv1()
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:            "redis",
+						Image:           "docker.io/redis:5",
+						ImagePullPolicy: v1.PullAlways,
+						Ports: []v1.ContainerPort{
+							{
+								ContainerPort: 6379,
+							},
+						},
+						Env: []v1.EnvVar{
+							{
+								Name:  "MASTER",
+								Value: "true",
+							},
+						},
+						VolumeMounts: []v1.VolumeMount{
+							{
+								MountPath: "/redis-master-data",
+								Name:      "data",
+							},
+						},
+					},
+				}
+				expectedDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+				expectedDeployment.Spec.Template.Spec.Volumes = volumes
+			})
+
+			It("produces expected default deployment", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("can disable pod security context", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"redis.deployment.enablePodSecurityContext=false",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nil
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+		})
+
 		Context("redis scaled with client-side sharding", func() {
 			var (
 				glooMtlsSecretVolume = v1.Volume{

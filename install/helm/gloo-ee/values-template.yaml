@@ -83,6 +83,7 @@ redis:
     runAsUser: 999
     runAsGroup: 999
     fsGroup: 999
+    enablePodSecurityContext: true
   service:
     port: 6379
     name: redis

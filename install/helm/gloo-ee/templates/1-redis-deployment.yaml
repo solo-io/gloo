@@ -52,6 +52,7 @@ spec:
           resources:
 {{ toYaml .Values.redis.deployment.resources | indent 12}}
           {{- end}}
+      {{- if .Values.redis.deployment.enablePodSecurityContext }}
       securityContext:
         runAsNonRoot: true
         runAsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsGroup) }}
@@ -59,6 +60,7 @@ spec:
         {{- if not .Values.redis.deployment.floatingUserId }}
         runAsUser: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsUser) -}}
         {{- end }}
+      {{- end }}
       volumes:
         - name: data
           emptyDir: {}

@@ -87,6 +87,7 @@ type RedisDeployment struct {
 	FloatingUserId            bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraRedisLabels          map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
 	ClientSideShardingEnabled bool              `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
+	EnablePodSecurityContext  *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }
