@@ -19,7 +19,8 @@ SHA=$(git --no-pager log -1 --format=format:"%H" $COMMIT)
 
 # get the Dockerfile at that version
 
-ENVOY_GLOO_EE_VERSION=$(git show ${SHA}:cmd/envoyinit/Dockerfile.envoyinit | head -n1 | cut -d: -f2)
+# old way: ENVOY_GLOO_EE_VERSION=$(git show ${SHA}:cmd/envoyinit/Dockerfile.envoyinit | head -n1 | cut -d: -f2)
+ENVOY_GLOO_EE_VERSION=$(make -f <(git show ${SHA}:Makefile) print-ENVOY_GLOO_IMAGE| cut -d: -f2)
 
 ENVOY_GLOO_EE_SHA=$(git ls-remote git@github.com:solo-io/envoy-gloo-ee v$ENVOY_GLOO_EE_VERSION | cut -f 1)
 
@@ -34,11 +35,11 @@ ENOVY_BINARY=./envoy-$ENVOY_GLOO_EE_VERSION
 echo envoy-gloo-ee $ENVOY_GLOO_EE_SHA $ENVOY_GLOO_EE_VERSION
 
 if [ -d $ENVOY_GLOO_EE ]; then 
-    ENVOY_GLOO_SHA=$( (cd $ENVOY_GLOO_EE; git show ${ENVOY_GLOO_EE_SHA}:bazel/repository_locations.bzl) | python -c "import sys;exec(sys.stdin.read()); print REPOSITORY_LOCATIONS['envoy_gloo']['commit']")
+    ENVOY_GLOO_SHA=$( (cd $ENVOY_GLOO_EE; git show ${ENVOY_GLOO_EE_SHA}:bazel/repository_locations.bzl) | python -c "import sys;exec(sys.stdin.read()); print(REPOSITORY_LOCATIONS['envoy_gloo']['commit'])")
     echo envoy-gloo $ENVOY_GLOO_SHA
 
     if [ -d $ENVOY_GLOO ]; then 
-        ENVOY_SHA=$( (cd $ENVOY_GLOO; git show ${ENVOY_GLOO_SHA}:bazel/repository_locations.bzl) | python -c "import sys;exec(sys.stdin.read()); print REPOSITORY_LOCATIONS['envoy']['commit']")
+        ENVOY_SHA=$( (cd $ENVOY_GLOO; git show ${ENVOY_GLOO_SHA}:bazel/repository_locations.bzl) | python -c "import sys;exec(sys.stdin.read()); print(REPOSITORY_LOCATIONS['envoy']['commit'])")
         echo envoy $ENVOY_SHA
     fi
 fi
