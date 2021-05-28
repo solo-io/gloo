@@ -424,7 +424,6 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/go-control-plane v0.9.5/go.mod h1:OXl5to++W0ctG+EHWTFUjiypVxC/Y4VLc/KFU+al13s=
 github.com/envoyproxy/go-control-plane v0.9.6-0.20200529035633-fc42e08917e9/go.mod h1:OXl5to++W0ctG+EHWTFUjiypVxC/Y4VLc/KFU+al13s=
 github.com/envoyproxy/go-control-plane v0.9.8/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=
-github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad h1:EmNYJhPYy0pOFjCx2PrgtaBXmee0iUX9hLlxE1xHOJE=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55 h1:JrfVk5s8JgPiHVnissaQqxXTLTBSQ2GXYdX7eXJCfL0=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55/go.mod h1:hliV/p42l8fGbc6Y9bQ70uLwIvmJyVE5k4iMKlh8wCQ=
@@ -1367,8 +1366,8 @@ github.com/solo-io/ext-auth-service v0.7.22 h1:0DA8RdCr1t/I51NTV75Zscy6tkq1z33G5
 github.com/solo-io/ext-auth-service v0.7.22/go.mod h1:0aex9ytZx3AFhwuJ3/Zsk04v1m6aXmcKX9MGs2qoX4U=
 github.com/solo-io/external-apis v0.1.1 h1:QEq7OWR6KEwECXyakgX3skWl3YCg1ZcpviCQXPSY7t4=
 github.com/solo-io/external-apis v0.1.1/go.mod h1:1rwOxotZzR94AtuSA1MTTDG8gaY4ms+KhlH4/+XeLhM=
-github.com/solo-io/gloo v1.6.26 h1:yu8c6qi5b/KRBMVgsI7kWLKfaWv/IkypH/v01zZ94wA=
-github.com/solo-io/gloo v1.6.26/go.mod h1:9OCJPDDJc4KJnj9LD43Ic49ausXP0i394/kbz3LpVpE=
+github.com/solo-io/gloo v1.6.27 h1:ylN501a3SlmsXfUC/u8JbyfOKOrr5T7wIhO5EsnBdSg=
+github.com/solo-io/gloo v1.6.27/go.mod h1:9OCJPDDJc4KJnj9LD43Ic49ausXP0i394/kbz3LpVpE=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
 github.com/solo-io/go-utils v0.16.4/go.mod h1:uIPAgEuwiEwpBaFv1uI7j4CUVaFYR5iHmTYuIUlLY2Q=
@@ -1401,7 +1400,6 @@ github.com/solo-io/skv2 v0.15.1/go.mod h1:m1a3AUh8D+49AO6kwD0yUnOJGSzekiPq/6TUoX
 github.com/solo-io/skv2 v0.15.2 h1:m6IfIcIRXLDv0xokRrP5o1BT7aSiz10CUYWtJKVDq2w=
 github.com/solo-io/skv2 v0.15.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCmrJBL0=
 github.com/solo-io/solo-apis v0.0.0-20201208172621-1ef725df2bff/go.mod h1:4y0+gYZPdlNDPQ09waJs25QjTjht03dkmGUi28AgIrU=
-github.com/solo-io/solo-apis v0.0.0-20210401164327-d51cbf1ee319 h1:sqWeTFlswTFYL8PVO09WY4P2NkN0dN9CmWRXadhlEHo=
 github.com/solo-io/solo-apis v0.0.0-20210401164327-d51cbf1ee319/go.mod h1:4y0+gYZPdlNDPQ09waJs25QjTjht03dkmGUi28AgIrU=
 github.com/solo-io/solo-apis v0.0.0-20210512202809-a92885403740 h1:eVarFfrtqla0DxXv2p/+P9DNa0nKlAjge6UeyQ2OA7w=
 github.com/solo-io/solo-apis v0.0.0-20210512202809-a92885403740/go.mod h1:4y0+gYZPdlNDPQ09waJs25QjTjht03dkmGUi28AgIrU=
