@@ -41,8 +41,8 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.1.12
 	github.com/solo-io/reporting-client v0.2.0
-	// Corresponds to the `gloo-v1.6.19` tag
-	github.com/solo-io/solo-apis v0.0.0-20210512202809-a92885403740
+	// Corresponds to the `gloo-v1.6.27` tag
+	github.com/solo-io/solo-apis v0.0.0-20210528182758-f78472baa342
 	github.com/solo-io/solo-kit v0.17.5
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect

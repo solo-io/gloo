@@ -1,0 +1,5 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-apis
+    dependencyRepo: solo-io
+    dependencyTag: v0.0.0-20210528182758-f78472baa342
