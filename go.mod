@@ -8,10 +8,10 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
 	github.com/deislabs/oras v0.8.1
-	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
 	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/zapr v0.2.0
 	github.com/go-redis/redis/v8 v8.2.3
