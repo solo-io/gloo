@@ -1,0 +1,14 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.17.5
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: 1.6.28
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4801
+    resolvesIssue: false
+    description: >-
+      Fixed bug where envoy crashes when encodeData filters modify body to more than what the buffer size limit allows.
