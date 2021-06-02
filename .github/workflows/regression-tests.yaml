@@ -109,6 +109,7 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           name: kind
+          image: 'kindest/node:v1.17.0'
       - uses: azure/setup-kubectl@v1
         id: kubectl
         with:

@@ -2,6 +2,8 @@
 
 set -ex
 
+kindClusterImage=kindest/node:v1.17.0
+
 if [ "$1" == "" ] || [ "$2" == "" ]; then
   echo "please provide a name for both the master and remote clusters"
   exit 0
@@ -32,7 +34,7 @@ else
     glooctl upgrade --release="$GLOO_VERSION_TEST_INSTALL"
 fi
 
-cat <<EOF | kind create cluster --name $1 --config=-
+cat <<EOF | kind create cluster --name $1 --image $kindClusterImage --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 kubeadmConfigPatches:
@@ -61,7 +63,7 @@ kubeadmConfigPatches:
 EOF
 
 # Add locality labels to remote kind cluster for discovery
-(cat <<EOF | kind create cluster --name "$2" --config=-
+(cat <<EOF | kind create cluster --name "$2" --image $kindClusterImage --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
