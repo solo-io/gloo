@@ -6,10 +6,10 @@ require (
 	cloud.google.com/go/datastore v1.3.0 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.34.9
-	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
 	github.com/envoyproxy/protoc-gen-validate v0.4.0
 	github.com/fgrosse/zaptest v1.1.0
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.4
@@ -34,15 +34,15 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.7.22
-	github.com/solo-io/gloo v1.6.28
+	github.com/solo-io/gloo v1.6.30
 	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.1.12
 	github.com/solo-io/reporting-client v0.2.0
-	// Corresponds to the `gloo-v1.6.27` tag
-	github.com/solo-io/solo-apis v0.0.0-20210528182758-f78472baa342
+	// Corresponds to the `gloo-v1.6.30` tag
+	github.com/solo-io/solo-apis v0.0.0-20210603155740-4befece06944
 	github.com/solo-io/solo-kit v0.17.5
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
@@ -66,16 +66,19 @@ require (
 )
 
 replace (
+	// pin these versions to fix CVEs
+	github.com/apache/thrift => github.com/apache/thrift v0.14.0
+	github.com/crewjam/saml => github.com/crewjam/saml v0.4.5
+	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
+	// to avoid error about it being used for two different module paths
+	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
+
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
-
-	// Lock sys package to fix darwin upgrade issue
-	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
 
 	// kube 0.18.6
 	k8s.io/api => k8s.io/api v0.18.6

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/fgrosse/zaptest"
+	"github.com/form3tech-oss/jwt-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
