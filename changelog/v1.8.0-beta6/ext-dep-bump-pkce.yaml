@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4329
+    description: >
+      Updates OIDC integration to pass the `code_verifier` from the request to envoy to the token endpoint for PKCE.
+    resolvesIssue: false
