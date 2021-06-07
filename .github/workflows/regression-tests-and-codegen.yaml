@@ -54,6 +54,13 @@ jobs:
         uses: styfle/cancel-workflow-action@0.4.1
         with:
           access_token: ${{ github.token }}
+      - name: Clean up pre-installed tools
+        # https://github.com/actions/virtual-environments/issues/1918
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
       - name: Free disk space
         # https://github.com/actions/virtual-environments/issues/709
         run: |
