@@ -6,8 +6,10 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
+import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb from "../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/address_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_http_uri_pb from "../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb from "../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb";
+import * as github_com_solo_io_solo_kit_api_external_envoy_type_semantic_version_pb from "../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/semantic_version_pb";
 import * as validate_validate_pb from "../../../../../../../../../validate/validate_pb";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
@@ -40,6 +42,72 @@ export namespace Locality {
   }
 }
 
+export class BuildVersion extends jspb.Message {
+  hasVersion(): boolean;
+  clearVersion(): void;
+  getVersion(): github_com_solo_io_solo_kit_api_external_envoy_type_semantic_version_pb.SemanticVersion | undefined;
+  setVersion(value?: github_com_solo_io_solo_kit_api_external_envoy_type_semantic_version_pb.SemanticVersion): void;
+
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): google_protobuf_struct_pb.Struct | undefined;
+  setMetadata(value?: google_protobuf_struct_pb.Struct): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BuildVersion.AsObject;
+  static toObject(includeInstance: boolean, msg: BuildVersion): BuildVersion.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BuildVersion, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BuildVersion;
+  static deserializeBinaryFromReader(message: BuildVersion, reader: jspb.BinaryReader): BuildVersion;
+}
+
+export namespace BuildVersion {
+  export type AsObject = {
+    version?: github_com_solo_io_solo_kit_api_external_envoy_type_semantic_version_pb.SemanticVersion.AsObject,
+    metadata?: google_protobuf_struct_pb.Struct.AsObject,
+  }
+}
+
+export class Extension extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getCategory(): string;
+  setCategory(value: string): void;
+
+  getTypeDescriptor(): string;
+  setTypeDescriptor(value: string): void;
+
+  hasVersion(): boolean;
+  clearVersion(): void;
+  getVersion(): BuildVersion | undefined;
+  setVersion(value?: BuildVersion): void;
+
+  getDisabled(): boolean;
+  setDisabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Extension.AsObject;
+  static toObject(includeInstance: boolean, msg: Extension): Extension.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Extension, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Extension;
+  static deserializeBinaryFromReader(message: Extension, reader: jspb.BinaryReader): Extension;
+}
+
+export namespace Extension {
+  export type AsObject = {
+    name: string,
+    category: string,
+    typeDescriptor: string,
+    version?: BuildVersion.AsObject,
+    disabled: boolean,
+  }
+}
+
 export class Node extends jspb.Message {
   getId(): string;
   setId(value: string): void;
@@ -60,6 +128,35 @@ export class Node extends jspb.Message {
   getBuildVersion(): string;
   setBuildVersion(value: string): void;
 
+  getUserAgentName(): string;
+  setUserAgentName(value: string): void;
+
+  hasUserAgentVersion(): boolean;
+  clearUserAgentVersion(): void;
+  getUserAgentVersion(): string;
+  setUserAgentVersion(value: string): void;
+
+  hasUserAgentBuildVersion(): boolean;
+  clearUserAgentBuildVersion(): void;
+  getUserAgentBuildVersion(): BuildVersion | undefined;
+  setUserAgentBuildVersion(value?: BuildVersion): void;
+
+  clearExtensionsList(): void;
+  getExtensionsList(): Array<Extension>;
+  setExtensionsList(value: Array<Extension>): void;
+  addExtensions(value?: Extension, index?: number): Extension;
+
+  clearClientFeaturesList(): void;
+  getClientFeaturesList(): Array<string>;
+  setClientFeaturesList(value: Array<string>): void;
+  addClientFeatures(value: string, index?: number): string;
+
+  clearListeningAddressesList(): void;
+  getListeningAddressesList(): Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb.Address>;
+  setListeningAddressesList(value: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb.Address>): void;
+  addListeningAddresses(value?: github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb.Address, index?: number): github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb.Address;
+
+  getUserAgentVersionTypeCase(): Node.UserAgentVersionTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Node.AsObject;
   static toObject(includeInstance: boolean, msg: Node): Node.AsObject;
@@ -77,6 +174,18 @@ export namespace Node {
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
     locality?: Locality.AsObject,
     buildVersion: string,
+    userAgentName: string,
+    userAgentVersion: string,
+    userAgentBuildVersion?: BuildVersion.AsObject,
+    extensionsList: Array<Extension.AsObject>,
+    clientFeaturesList: Array<string>,
+    listeningAddressesList: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_address_pb.Address.AsObject>,
+  }
+
+  export enum UserAgentVersionTypeCase {
+    USER_AGENT_VERSION_TYPE_NOT_SET = 0,
+    USER_AGENT_VERSION = 7,
+    USER_AGENT_BUILD_VERSION = 8,
   }
 }
 
@@ -377,67 +486,6 @@ export namespace TransportSocket {
     CONFIG_TYPE_NOT_SET = 0,
     CONFIG = 2,
     TYPED_CONFIG = 3,
-  }
-}
-
-export class SocketOption extends jspb.Message {
-  getDescription(): string;
-  setDescription(value: string): void;
-
-  getLevel(): number;
-  setLevel(value: number): void;
-
-  getName(): number;
-  setName(value: number): void;
-
-  hasIntValue(): boolean;
-  clearIntValue(): void;
-  getIntValue(): number;
-  setIntValue(value: number): void;
-
-  hasBufValue(): boolean;
-  clearBufValue(): void;
-  getBufValue(): Uint8Array | string;
-  getBufValue_asU8(): Uint8Array;
-  getBufValue_asB64(): string;
-  setBufValue(value: Uint8Array | string): void;
-
-  getState(): SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap];
-  setState(value: SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap]): void;
-
-  getValueCase(): SocketOption.ValueCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SocketOption.AsObject;
-  static toObject(includeInstance: boolean, msg: SocketOption): SocketOption.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: SocketOption, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SocketOption;
-  static deserializeBinaryFromReader(message: SocketOption, reader: jspb.BinaryReader): SocketOption;
-}
-
-export namespace SocketOption {
-  export type AsObject = {
-    description: string,
-    level: number,
-    name: number,
-    intValue: number,
-    bufValue: Uint8Array | string,
-    state: SocketOption.SocketStateMap[keyof SocketOption.SocketStateMap],
-  }
-
-  export interface SocketStateMap {
-    STATE_PREBIND: 0;
-    STATE_BOUND: 1;
-    STATE_LISTENING: 2;
-  }
-
-  export const SocketState: SocketStateMap;
-
-  export enum ValueCase {
-    VALUE_NOT_SET = 0,
-    INT_VALUE = 4,
-    BUF_VALUE = 5,
   }
 }
 

@@ -15,9 +15,9 @@ import (
 	xdsproto "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/config"
 
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/go-utils/contextutils"
+	core "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

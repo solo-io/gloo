@@ -16,7 +16,6 @@ import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb"
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
-import * as envoy_annotations_deprecation_pb from "../../../../../../../../../../../envoy/annotations/deprecation_pb";
 import * as udpa_annotations_migrate_pb from "../../../../../../../../../../../udpa/annotations/migrate_pb";
 import * as udpa_annotations_status_pb from "../../../../../../../../../../../udpa/annotations/status_pb";
 import * as udpa_annotations_versioning_pb from "../../../../../../../../../../../udpa/annotations/versioning_pb";

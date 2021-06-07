@@ -15,14 +15,18 @@ var global = Function('return this')();
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/address_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_http_uri_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb.js');
+var github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/semantic_version_pb.js');
 var validate_validate_pb = require('../../../../../../../../../validate/validate_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.AsyncDataSource', null, global);
+goog.exportSymbol('proto.solo.io.envoy.api.v2.core.BuildVersion', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.ControlPlane', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.DataSource', null, global);
+goog.exportSymbol('proto.solo.io.envoy.api.v2.core.Extension', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.HeaderMap', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.HeaderValue', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.HeaderValueOption', null, global);
@@ -35,8 +39,6 @@ goog.exportSymbol('proto.solo.io.envoy.api.v2.core.RoutingPriority', null, globa
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.RuntimeFeatureFlag', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.RuntimeFractionalPercent', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.RuntimeUInt32', null, global);
-goog.exportSymbol('proto.solo.io.envoy.api.v2.core.SocketOption', null, global);
-goog.exportSymbol('proto.solo.io.envoy.api.v2.core.SocketOption.SocketState', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.TrafficDirection', null, global);
 goog.exportSymbol('proto.solo.io.envoy.api.v2.core.TransportSocket', null, global);
 
@@ -246,13 +248,518 @@ proto.solo.io.envoy.api.v2.core.Locality.prototype.setSubZone = function(value) 
  * @extends {jspb.Message}
  * @constructor
  */
-proto.solo.io.envoy.api.v2.core.Node = function(opt_data) {
+proto.solo.io.envoy.api.v2.core.BuildVersion = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.solo.io.envoy.api.v2.core.BuildVersion, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.solo.io.envoy.api.v2.core.BuildVersion.displayName = 'proto.solo.io.envoy.api.v2.core.BuildVersion';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.toObject = function(opt_includeInstance) {
+  return proto.solo.io.envoy.api.v2.core.BuildVersion.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.solo.io.envoy.api.v2.core.BuildVersion} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    version: (f = msg.getVersion()) && github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb.SemanticVersion.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.solo.io.envoy.api.v2.core.BuildVersion}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.solo.io.envoy.api.v2.core.BuildVersion;
+  return proto.solo.io.envoy.api.v2.core.BuildVersion.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.solo.io.envoy.api.v2.core.BuildVersion} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.solo.io.envoy.api.v2.core.BuildVersion}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb.SemanticVersion;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb.SemanticVersion.deserializeBinaryFromReader);
+      msg.setVersion(value);
+      break;
+    case 2:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setMetadata(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.solo.io.envoy.api.v2.core.BuildVersion.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.solo.io.envoy.api.v2.core.BuildVersion} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVersion();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb.SemanticVersion.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadata();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional solo.io.envoy.type.SemanticVersion version = 1;
+ * @return {?proto.solo.io.envoy.type.SemanticVersion}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.getVersion = function() {
+  return /** @type{?proto.solo.io.envoy.type.SemanticVersion} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_external_envoy_type_semantic_version_pb.SemanticVersion, 1));
+};
+
+
+/** @param {?proto.solo.io.envoy.type.SemanticVersion|undefined} value */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.setVersion = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.clearVersion = function() {
+  this.setVersion(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.hasVersion = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct metadata = 2;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.getMetadata = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.setMetadata = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.clearMetadata = function() {
+  this.setMetadata(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.BuildVersion.prototype.hasMetadata = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.solo.io.envoy.api.v2.core.Extension = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.solo.io.envoy.api.v2.core.Extension, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.solo.io.envoy.api.v2.core.Extension.displayName = 'proto.solo.io.envoy.api.v2.core.Extension';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.toObject = function(opt_includeInstance) {
+  return proto.solo.io.envoy.api.v2.core.Extension.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.solo.io.envoy.api.v2.core.Extension} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.solo.io.envoy.api.v2.core.Extension.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    category: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    typeDescriptor: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    version: (f = msg.getVersion()) && proto.solo.io.envoy.api.v2.core.BuildVersion.toObject(includeInstance, f),
+    disabled: jspb.Message.getFieldWithDefault(msg, 5, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.solo.io.envoy.api.v2.core.Extension}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.solo.io.envoy.api.v2.core.Extension;
+  return proto.solo.io.envoy.api.v2.core.Extension.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.solo.io.envoy.api.v2.core.Extension} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.solo.io.envoy.api.v2.core.Extension}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCategory(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTypeDescriptor(value);
+      break;
+    case 4:
+      var value = new proto.solo.io.envoy.api.v2.core.BuildVersion;
+      reader.readMessage(value,proto.solo.io.envoy.api.v2.core.BuildVersion.deserializeBinaryFromReader);
+      msg.setVersion(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisabled(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.solo.io.envoy.api.v2.core.Extension.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.solo.io.envoy.api.v2.core.Extension} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.solo.io.envoy.api.v2.core.Extension.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getCategory();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getTypeDescriptor();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getVersion();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.solo.io.envoy.api.v2.core.BuildVersion.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisabled();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string category = 2;
+ * @return {string}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.getCategory = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.setCategory = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string type_descriptor = 3;
+ * @return {string}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.getTypeDescriptor = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.setTypeDescriptor = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional BuildVersion version = 4;
+ * @return {?proto.solo.io.envoy.api.v2.core.BuildVersion}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.getVersion = function() {
+  return /** @type{?proto.solo.io.envoy.api.v2.core.BuildVersion} */ (
+    jspb.Message.getWrapperField(this, proto.solo.io.envoy.api.v2.core.BuildVersion, 4));
+};
+
+
+/** @param {?proto.solo.io.envoy.api.v2.core.BuildVersion|undefined} value */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.setVersion = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Extension.prototype.clearVersion = function() {
+  this.setVersion(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.hasVersion = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional bool disabled = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.getDisabled = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.solo.io.envoy.api.v2.core.Extension.prototype.setDisabled = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.solo.io.envoy.api.v2.core.Node = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.solo.io.envoy.api.v2.core.Node.repeatedFields_, proto.solo.io.envoy.api.v2.core.Node.oneofGroups_);
 };
 goog.inherits(proto.solo.io.envoy.api.v2.core.Node, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.solo.io.envoy.api.v2.core.Node.displayName = 'proto.solo.io.envoy.api.v2.core.Node';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.solo.io.envoy.api.v2.core.Node.repeatedFields_ = [9,10,11];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.solo.io.envoy.api.v2.core.Node.oneofGroups_ = [[7,8]];
+
+/**
+ * @enum {number}
+ */
+proto.solo.io.envoy.api.v2.core.Node.UserAgentVersionTypeCase = {
+  USER_AGENT_VERSION_TYPE_NOT_SET: 0,
+  USER_AGENT_VERSION: 7,
+  USER_AGENT_BUILD_VERSION: 8
+};
+
+/**
+ * @return {proto.solo.io.envoy.api.v2.core.Node.UserAgentVersionTypeCase}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getUserAgentVersionTypeCase = function() {
+  return /** @type {proto.solo.io.envoy.api.v2.core.Node.UserAgentVersionTypeCase} */(jspb.Message.computeOneofCase(this, proto.solo.io.envoy.api.v2.core.Node.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -286,7 +793,15 @@ proto.solo.io.envoy.api.v2.core.Node.toObject = function(includeInstance, msg) {
     cluster: jspb.Message.getFieldWithDefault(msg, 2, ""),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
     locality: (f = msg.getLocality()) && proto.solo.io.envoy.api.v2.core.Locality.toObject(includeInstance, f),
-    buildVersion: jspb.Message.getFieldWithDefault(msg, 5, "")
+    buildVersion: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    userAgentName: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    userAgentVersion: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    userAgentBuildVersion: (f = msg.getUserAgentBuildVersion()) && proto.solo.io.envoy.api.v2.core.BuildVersion.toObject(includeInstance, f),
+    extensionsList: jspb.Message.toObjectList(msg.getExtensionsList(),
+    proto.solo.io.envoy.api.v2.core.Extension.toObject, includeInstance),
+    clientFeaturesList: jspb.Message.getRepeatedField(msg, 10),
+    listeningAddressesList: jspb.Message.toObjectList(msg.getListeningAddressesList(),
+    github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb.Address.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -344,6 +859,33 @@ proto.solo.io.envoy.api.v2.core.Node.deserializeBinaryFromReader = function(msg,
     case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setBuildVersion(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserAgentName(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserAgentVersion(value);
+      break;
+    case 8:
+      var value = new proto.solo.io.envoy.api.v2.core.BuildVersion;
+      reader.readMessage(value,proto.solo.io.envoy.api.v2.core.BuildVersion.deserializeBinaryFromReader);
+      msg.setUserAgentBuildVersion(value);
+      break;
+    case 9:
+      var value = new proto.solo.io.envoy.api.v2.core.Extension;
+      reader.readMessage(value,proto.solo.io.envoy.api.v2.core.Extension.deserializeBinaryFromReader);
+      msg.addExtensions(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addClientFeatures(value);
+      break;
+    case 11:
+      var value = new github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb.Address;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb.Address.deserializeBinaryFromReader);
+      msg.addListeningAddresses(value);
       break;
     default:
       reader.skipField();
@@ -409,6 +951,51 @@ proto.solo.io.envoy.api.v2.core.Node.serializeBinaryToWriter = function(message,
     writer.writeString(
       5,
       f
+    );
+  }
+  f = message.getUserAgentName();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
+  f = message.getUserAgentBuildVersion();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      proto.solo.io.envoy.api.v2.core.BuildVersion.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtensionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      9,
+      f,
+      proto.solo.io.envoy.api.v2.core.Extension.serializeBinaryToWriter
+    );
+  }
+  f = message.getClientFeaturesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      10,
+      f
+    );
+  }
+  f = message.getListeningAddressesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      11,
+      f,
+      github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb.Address.serializeBinaryToWriter
     );
   }
 };
@@ -516,6 +1103,171 @@ proto.solo.io.envoy.api.v2.core.Node.prototype.getBuildVersion = function() {
 /** @param {string} value */
 proto.solo.io.envoy.api.v2.core.Node.prototype.setBuildVersion = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string user_agent_name = 6;
+ * @return {string}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getUserAgentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setUserAgentName = function(value) {
+  jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional string user_agent_version = 7;
+ * @return {string}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getUserAgentVersion = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setUserAgentVersion = function(value) {
+  jspb.Message.setOneofField(this, 7, proto.solo.io.envoy.api.v2.core.Node.oneofGroups_[0], value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Node.prototype.clearUserAgentVersion = function() {
+  jspb.Message.setOneofField(this, 7, proto.solo.io.envoy.api.v2.core.Node.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.hasUserAgentVersion = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional BuildVersion user_agent_build_version = 8;
+ * @return {?proto.solo.io.envoy.api.v2.core.BuildVersion}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getUserAgentBuildVersion = function() {
+  return /** @type{?proto.solo.io.envoy.api.v2.core.BuildVersion} */ (
+    jspb.Message.getWrapperField(this, proto.solo.io.envoy.api.v2.core.BuildVersion, 8));
+};
+
+
+/** @param {?proto.solo.io.envoy.api.v2.core.BuildVersion|undefined} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setUserAgentBuildVersion = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.solo.io.envoy.api.v2.core.Node.oneofGroups_[0], value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Node.prototype.clearUserAgentBuildVersion = function() {
+  this.setUserAgentBuildVersion(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.hasUserAgentBuildVersion = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * repeated Extension extensions = 9;
+ * @return {!Array<!proto.solo.io.envoy.api.v2.core.Extension>}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getExtensionsList = function() {
+  return /** @type{!Array<!proto.solo.io.envoy.api.v2.core.Extension>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.solo.io.envoy.api.v2.core.Extension, 9));
+};
+
+
+/** @param {!Array<!proto.solo.io.envoy.api.v2.core.Extension>} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setExtensionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 9, value);
+};
+
+
+/**
+ * @param {!proto.solo.io.envoy.api.v2.core.Extension=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.solo.io.envoy.api.v2.core.Extension}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.addExtensions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 9, opt_value, proto.solo.io.envoy.api.v2.core.Extension, opt_index);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Node.prototype.clearExtensionsList = function() {
+  this.setExtensionsList([]);
+};
+
+
+/**
+ * repeated string client_features = 10;
+ * @return {!Array<string>}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getClientFeaturesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 10));
+};
+
+
+/** @param {!Array<string>} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setClientFeaturesList = function(value) {
+  jspb.Message.setField(this, 10, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.addClientFeatures = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 10, value, opt_index);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Node.prototype.clearClientFeaturesList = function() {
+  this.setClientFeaturesList([]);
+};
+
+
+/**
+ * repeated Address listening_addresses = 11;
+ * @return {!Array<!proto.solo.io.envoy.api.v2.core.Address>}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.getListeningAddressesList = function() {
+  return /** @type{!Array<!proto.solo.io.envoy.api.v2.core.Address>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_address_pb.Address, 11));
+};
+
+
+/** @param {!Array<!proto.solo.io.envoy.api.v2.core.Address>} value */
+proto.solo.io.envoy.api.v2.core.Node.prototype.setListeningAddressesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 11, value);
+};
+
+
+/**
+ * @param {!proto.solo.io.envoy.api.v2.core.Address=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.solo.io.envoy.api.v2.core.Address}
+ */
+proto.solo.io.envoy.api.v2.core.Node.prototype.addListeningAddresses = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 11, opt_value, proto.solo.io.envoy.api.v2.core.Address, opt_index);
+};
+
+
+proto.solo.io.envoy.api.v2.core.Node.prototype.clearListeningAddressesList = function() {
+  this.setListeningAddressesList([]);
 };
 
 
@@ -2585,370 +3337,6 @@ proto.solo.io.envoy.api.v2.core.TransportSocket.prototype.clearTypedConfig = fun
  */
 proto.solo.io.envoy.api.v2.core.TransportSocket.prototype.hasTypedConfig = function() {
   return jspb.Message.getField(this, 3) != null;
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.solo.io.envoy.api.v2.core.SocketOption = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_);
-};
-goog.inherits(proto.solo.io.envoy.api.v2.core.SocketOption, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.solo.io.envoy.api.v2.core.SocketOption.displayName = 'proto.solo.io.envoy.api.v2.core.SocketOption';
-}
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_ = [[4,5]];
-
-/**
- * @enum {number}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.ValueCase = {
-  VALUE_NOT_SET: 0,
-  INT_VALUE: 4,
-  BUF_VALUE: 5
-};
-
-/**
- * @return {proto.solo.io.envoy.api.v2.core.SocketOption.ValueCase}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getValueCase = function() {
-  return /** @type {proto.solo.io.envoy.api.v2.core.SocketOption.ValueCase} */(jspb.Message.computeOneofCase(this, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_[0]));
-};
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.toObject = function(opt_includeInstance) {
-  return proto.solo.io.envoy.api.v2.core.SocketOption.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.solo.io.envoy.api.v2.core.SocketOption} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    description: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    level: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    name: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    intValue: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    bufValue: msg.getBufValue_asB64(),
-    state: jspb.Message.getFieldWithDefault(msg, 6, 0)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.solo.io.envoy.api.v2.core.SocketOption}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.solo.io.envoy.api.v2.core.SocketOption;
-  return proto.solo.io.envoy.api.v2.core.SocketOption.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.solo.io.envoy.api.v2.core.SocketOption} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.solo.io.envoy.api.v2.core.SocketOption}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDescription(value);
-      break;
-    case 2:
-      var value = /** @type {number} */ (reader.readInt64());
-      msg.setLevel(value);
-      break;
-    case 3:
-      var value = /** @type {number} */ (reader.readInt64());
-      msg.setName(value);
-      break;
-    case 4:
-      var value = /** @type {number} */ (reader.readInt64());
-      msg.setIntValue(value);
-      break;
-    case 5:
-      var value = /** @type {!Uint8Array} */ (reader.readBytes());
-      msg.setBufValue(value);
-      break;
-    case 6:
-      var value = /** @type {!proto.solo.io.envoy.api.v2.core.SocketOption.SocketState} */ (reader.readEnum());
-      msg.setState(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.solo.io.envoy.api.v2.core.SocketOption.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.solo.io.envoy.api.v2.core.SocketOption} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getDescription();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getLevel();
-  if (f !== 0) {
-    writer.writeInt64(
-      2,
-      f
-    );
-  }
-  f = message.getName();
-  if (f !== 0) {
-    writer.writeInt64(
-      3,
-      f
-    );
-  }
-  f = /** @type {number} */ (jspb.Message.getField(message, 4));
-  if (f != null) {
-    writer.writeInt64(
-      4,
-      f
-    );
-  }
-  f = /** @type {!(string|Uint8Array)} */ (jspb.Message.getField(message, 5));
-  if (f != null) {
-    writer.writeBytes(
-      5,
-      f
-    );
-  }
-  f = message.getState();
-  if (f !== 0.0) {
-    writer.writeEnum(
-      6,
-      f
-    );
-  }
-};
-
-
-/**
- * @enum {number}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.SocketState = {
-  STATE_PREBIND: 0,
-  STATE_BOUND: 1,
-  STATE_LISTENING: 2
-};
-
-/**
- * optional string description = 1;
- * @return {string}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getDescription = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setDescription = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional int64 level = 2;
- * @return {number}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getLevel = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
-};
-
-
-/** @param {number} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setLevel = function(value) {
-  jspb.Message.setProto3IntField(this, 2, value);
-};
-
-
-/**
- * optional int64 name = 3;
- * @return {number}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getName = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
-};
-
-
-/** @param {number} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setName = function(value) {
-  jspb.Message.setProto3IntField(this, 3, value);
-};
-
-
-/**
- * optional int64 int_value = 4;
- * @return {number}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getIntValue = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/** @param {number} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setIntValue = function(value) {
-  jspb.Message.setOneofField(this, 4, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_[0], value);
-};
-
-
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.clearIntValue = function() {
-  jspb.Message.setOneofField(this, 4, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_[0], undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.hasIntValue = function() {
-  return jspb.Message.getField(this, 4) != null;
-};
-
-
-/**
- * optional bytes buf_value = 5;
- * @return {!(string|Uint8Array)}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getBufValue = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
-};
-
-
-/**
- * optional bytes buf_value = 5;
- * This is a type-conversion wrapper around `getBufValue()`
- * @return {string}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getBufValue_asB64 = function() {
-  return /** @type {string} */ (jspb.Message.bytesAsB64(
-      this.getBufValue()));
-};
-
-
-/**
- * optional bytes buf_value = 5;
- * Note that Uint8Array is not supported on all browsers.
- * @see http://caniuse.com/Uint8Array
- * This is a type-conversion wrapper around `getBufValue()`
- * @return {!Uint8Array}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getBufValue_asU8 = function() {
-  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
-      this.getBufValue()));
-};
-
-
-/** @param {!(string|Uint8Array)} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setBufValue = function(value) {
-  jspb.Message.setOneofField(this, 5, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_[0], value);
-};
-
-
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.clearBufValue = function() {
-  jspb.Message.setOneofField(this, 5, proto.solo.io.envoy.api.v2.core.SocketOption.oneofGroups_[0], undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.hasBufValue = function() {
-  return jspb.Message.getField(this, 5) != null;
-};
-
-
-/**
- * optional SocketState state = 6;
- * @return {!proto.solo.io.envoy.api.v2.core.SocketOption.SocketState}
- */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.getState = function() {
-  return /** @type {!proto.solo.io.envoy.api.v2.core.SocketOption.SocketState} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
-};
-
-
-/** @param {!proto.solo.io.envoy.api.v2.core.SocketOption.SocketState} value */
-proto.solo.io.envoy.api.v2.core.SocketOption.prototype.setState = function(value) {
-  jspb.Message.setProto3EnumField(this, 6, value);
 };
 
 

@@ -369,11 +369,7 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base.proto
-
-	$(PROTOC) -I$(APISERVER_DIR) \
-	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/http_uri.proto
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

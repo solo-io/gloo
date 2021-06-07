@@ -21,7 +21,6 @@ var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js'
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
-var envoy_annotations_deprecation_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/annotations/deprecation_pb.js');
 var udpa_annotations_status_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/status_pb.js');
 var udpa_annotations_versioning_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/versioning_pb.js');
 var validate_validate_pb = require('../../../../../../../../../../../validate/validate_pb.js');

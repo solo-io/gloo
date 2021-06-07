@@ -10,13 +10,13 @@ import (
 
 	solo_api_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/rate-limiter/pkg/modules"
 	ratelimit "github.com/solo-io/rate-limiter/pkg/service"
+	core "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
