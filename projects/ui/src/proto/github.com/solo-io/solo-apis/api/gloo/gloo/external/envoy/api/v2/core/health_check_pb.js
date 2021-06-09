@@ -14,6 +14,7 @@ var global = Function('return this')();
 
 var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb = require('../../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/range_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/advanced_http/advanced_http_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
@@ -660,7 +661,8 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.toObject = function(
     requestHeadersToRemoveList: jspb.Message.getRepeatedField(msg, 8),
     useHttp2: jspb.Message.getFieldWithDefault(msg, 7, false),
     expectedStatusesList: jspb.Message.toObjectList(msg.getExpectedStatusesList(),
-    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range.toObject, includeInstance),
+    responseAssertions: (f = msg.getResponseAssertions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -726,6 +728,11 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.deserializeBinaryFro
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range.deserializeBinaryFromReader);
       msg.addExpectedStatuses(value);
+      break;
+    case 10:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.deserializeBinaryFromReader);
+      msg.setResponseAssertions(value);
       break;
     default:
       reader.skipField();
@@ -805,6 +812,14 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.serializeBinaryToWri
       9,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range.serializeBinaryToWriter
+    );
+  }
+  f = message.getResponseAssertions();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.serializeBinaryToWriter
     );
   }
 };
@@ -960,6 +975,36 @@ proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.addExpecte
 
 proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.clearExpectedStatusesList = function() {
   this.setExpectedStatusesList([]);
+};
+
+
+/**
+ * optional advancedhttp.options.gloo.solo.io.ResponseAssertions response_assertions = 10;
+ * @return {?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions}
+ */
+proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.getResponseAssertions = function() {
+  return /** @type{?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions, 10));
+};
+
+
+/** @param {?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions|undefined} value */
+proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.setResponseAssertions = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.clearResponseAssertions = function() {
+  this.setResponseAssertions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.api.v2.core.HealthCheck.HttpHealthCheck.prototype.hasResponseAssertions = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

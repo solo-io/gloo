@@ -314,6 +314,19 @@ func (ei *EnvoyInstance) LocalAddr() string {
 	return ei.GlooAddr
 }
 
+func (ei *EnvoyInstance) EnablePanicMode() error {
+	return ei.setRuntimeConfiguration(fmt.Sprintf("upstream.healthy_panic_threshold=%d", 100))
+}
+
+func (ei *EnvoyInstance) DisablePanicMode() error {
+	return ei.setRuntimeConfiguration(fmt.Sprintf("upstream.healthy_panic_threshold=%d", 0))
+}
+
+func (ei *EnvoyInstance) setRuntimeConfiguration(queryParameters string) error {
+	_, err := http.Post(fmt.Sprintf("http://localhost:%d/runtime_modify?%s", ei.AdminPort, queryParameters), "", nil)
+	return err
+}
+
 func (ei *EnvoyInstance) UseDocker() bool {
 	return ei.useDocker
 }

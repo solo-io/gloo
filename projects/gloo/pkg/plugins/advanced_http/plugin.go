@@ -1,21 +1,23 @@
-package http_path
+package advanced_http
 
 import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
+	"github.com/rotisserie/eris"
 	envoy_core_v3_endpoint "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
-	pbhttp_path "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/http_path"
+	envoy_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/advanced_http"
 	envoy_type_matcher_v3_solo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
 	envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloo_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/http_path"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/advanced_http"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 const (
-	HealthCheckerName = "io.solo.health_checkers.http_path"
+	HealthCheckerName = "io.solo.health_checkers.advanced_http"
 )
 
 var (
@@ -36,7 +38,7 @@ func (f *Plugin) Init(_ plugins.InitParams) error {
 }
 
 func (p *Plugin) PluginName() string {
-	return http_path.ExtensionName
+	return advanced_http.ExtensionName
 }
 
 func (p *Plugin) IsUpgrade() bool {
@@ -44,10 +46,18 @@ func (p *Plugin) IsUpgrade() bool {
 }
 
 func shouldProcess(in *gloov1.Upstream) bool {
-	// only do this for static upstreams with custom health path defined.
+	// only do this for static upstreams with custom health path and/or method defined,
 	// so that we only use new logic when we have to. this is done to minimize potential error impact.
 	for _, host := range in.GetStatic().GetHosts() {
 		if host.GetHealthCheckConfig().GetPath() != "" {
+			return true
+		}
+		if host.GetHealthCheckConfig().GetMethod() != "" {
+			return true
+		}
+	}
+	for _, hc := range in.GetHealthChecks() {
+		if hc.GetHttpHealthCheck().GetResponseAssertions() != nil {
 			return true
 		}
 	}
@@ -68,13 +78,21 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 			continue
 		}
 
-		// when gloo transitions to v3, we can just serialize/deserialize the proto
-		// to convert it.
+		// when gloo transitions to v3, we can just serialize/deserialize the proto to convert it.
 		httpOut := convertEnvoyToGloo(httpHealth)
-		healthCheckPath := pbhttp_path.HttpPath{
-			HttpHealthCheck: &httpOut,
+
+		// this plugin is built on the assumption that Gloo and Envoy health checks correlate 1-1 and are in the
+		// same order, per https://github.com/solo-io/gloo/blob/c5e0df157af2f035c365c5453ea9f8abc417088d/projects/gloo/pkg/translator/clusters.go#L142-L160
+		if len(in.GetHealthChecks()) != len(out.GetHealthChecks()) {
+			return eris.Errorf("len(upstream health checks) (%v) != len(envoy health checks) (%v)", len(in.GetHealthChecks()), len(out.GetHealthChecks()))
 		}
-		serializedAny, err := utils.MessageToAny(&healthCheckPath)
+		httpOut.ResponseAssertions = in.GetHealthChecks()[i].GetHttpHealthCheck().GetResponseAssertions()
+
+		advancedHttpHealthCheck := envoy_advanced_http.AdvancedHttp{
+			HttpHealthCheck:    &httpOut,
+			ResponseAssertions: convertGlooToEnvoyRespAssertions(httpOut.ResponseAssertions),
+		}
+		serializedAny, err := utils.MessageToAny(&advancedHttpHealthCheck)
 		if err != nil {
 			return err
 		}
@@ -89,6 +107,83 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 		}
 	}
 	return nil
+}
+
+func convertGlooToEnvoyRespAssertions(assertions *gloo_advanced_http.ResponseAssertions) *envoy_advanced_http.ResponseAssertions {
+	if assertions == nil {
+		return nil
+	}
+
+	return &envoy_advanced_http.ResponseAssertions{
+		ResponseMatchers: convertGlooResponseMatchersToEnvoy(assertions.ResponseMatchers),
+		NoMatchHealth:    convertMatchHealthWithDefault(assertions.NoMatchHealth, envoy_advanced_http.HealthCheckResult_unhealthy),
+	}
+}
+
+func convertMatchHealthWithDefault(mh gloo_advanced_http.HealthCheckResult, defaultHealth envoy_advanced_http.HealthCheckResult) envoy_advanced_http.HealthCheckResult {
+	converted := defaultHealth
+
+	switch mh {
+	case gloo_advanced_http.HealthCheckResult_healthy:
+		converted = envoy_advanced_http.HealthCheckResult_healthy
+	case gloo_advanced_http.HealthCheckResult_degraded:
+		converted = envoy_advanced_http.HealthCheckResult_degraded
+	case gloo_advanced_http.HealthCheckResult_unhealthy:
+		converted = envoy_advanced_http.HealthCheckResult_unhealthy
+	}
+
+	return converted
+}
+
+func convertGlooResponseMatchersToEnvoy(responseMatchers []*gloo_advanced_http.ResponseMatcher) []*envoy_advanced_http.ResponseMatcher {
+	var respMatchers []*envoy_advanced_http.ResponseMatcher
+	for _, rm := range responseMatchers {
+
+		respMatcher := &envoy_advanced_http.ResponseMatcher{
+			ResponseMatch: &envoy_advanced_http.ResponseMatch{
+				JsonKey:            convertGlooJsonKeyToEnvoy(rm.GetResponseMatch().GetJsonKey()),
+				IgnoreErrorOnParse: rm.GetResponseMatch().GetIgnoreErrorOnParse(),
+				Regex:              rm.GetResponseMatch().GetRegex(),
+			},
+			MatchHealth: convertMatchHealthWithDefault(rm.MatchHealth, envoy_advanced_http.HealthCheckResult_healthy),
+		}
+
+		switch typed := rm.GetResponseMatch().GetSource().(type) {
+		case *gloo_advanced_http.ResponseMatch_Header:
+			respMatcher.ResponseMatch.Source = &envoy_advanced_http.ResponseMatch_Header{
+				Header: typed.Header,
+			}
+		case *gloo_advanced_http.ResponseMatch_Body:
+			respMatcher.ResponseMatch.Source = &envoy_advanced_http.ResponseMatch_Body{
+				Body: typed.Body,
+			}
+		}
+
+		respMatchers = append(respMatchers, respMatcher)
+	}
+	return respMatchers
+}
+
+func convertGlooJsonKeyToEnvoy(jsonKey *gloo_advanced_http.JsonKey) *envoy_advanced_http.JsonKey {
+	if jsonKey == nil {
+		return nil
+	}
+
+	var path []*envoy_advanced_http.JsonKey_PathSegment
+	for _, ps := range jsonKey.Path {
+		switch typed := ps.Segment.(type) {
+		case *gloo_advanced_http.JsonKey_PathSegment_Key:
+			segment := &envoy_advanced_http.JsonKey_PathSegment_Key{
+				Key: typed.Key,
+			}
+			path = append(path, &envoy_advanced_http.JsonKey_PathSegment{
+				Segment: segment,
+			})
+		}
+	}
+	return &envoy_advanced_http.JsonKey{
+		Path: path,
+	}
 }
 
 func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthCheck) envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck {

@@ -19,10 +19,10 @@ import (
 	"github.com/solo-io/reporting-client/pkg/client"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/advanced_http"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/http_path"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
@@ -94,7 +94,7 @@ func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setu
 					apiEmitterChan,
 				)
 			},
-			func() plugins.Plugin { return http_path.NewPlugin() },
+			func() plugins.Plugin { return advanced_http.NewPlugin() },
 			func() plugins.Plugin { return wasm.NewPlugin() },
 			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
 			func() plugins.Plugin { return transformer.NewPlugin() },

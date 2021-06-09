@@ -515,7 +515,8 @@ proto.static.options.gloo.solo.io.Host.HealthCheckConfig.prototype.toObject = fu
  */
 proto.static.options.gloo.solo.io.Host.HealthCheckConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
-    path: jspb.Message.getFieldWithDefault(msg, 1, "")
+    path: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    method: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -556,6 +557,10 @@ proto.static.options.gloo.solo.io.Host.HealthCheckConfig.deserializeBinaryFromRe
       var value = /** @type {string} */ (reader.readString());
       msg.setPath(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMethod(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -592,6 +597,13 @@ proto.static.options.gloo.solo.io.Host.HealthCheckConfig.serializeBinaryToWriter
       f
     );
   }
+  f = message.getMethod();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -607,6 +619,21 @@ proto.static.options.gloo.solo.io.Host.HealthCheckConfig.prototype.getPath = fun
 /** @param {string} value */
 proto.static.options.gloo.solo.io.Host.HealthCheckConfig.prototype.setPath = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string method = 2;
+ * @return {string}
+ */
+proto.static.options.gloo.solo.io.Host.HealthCheckConfig.prototype.getMethod = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.static.options.gloo.solo.io.Host.HealthCheckConfig.prototype.setMethod = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

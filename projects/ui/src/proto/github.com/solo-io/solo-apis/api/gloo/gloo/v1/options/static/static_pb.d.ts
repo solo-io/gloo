@@ -82,6 +82,9 @@ export namespace Host {
     getPath(): string;
     setPath(value: string): void;
 
+    getMethod(): string;
+    setMethod(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): HealthCheckConfig.AsObject;
     static toObject(includeInstance: boolean, msg: HealthCheckConfig): HealthCheckConfig.AsObject;
@@ -95,6 +98,7 @@ export namespace Host {
   export namespace HealthCheckConfig {
     export type AsObject = {
       path: string,
+      method: string,
     }
   }
 }

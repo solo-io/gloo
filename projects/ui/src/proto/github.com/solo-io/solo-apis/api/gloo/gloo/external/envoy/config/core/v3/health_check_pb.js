@@ -17,6 +17,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_eve
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_v3_http_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/v3/http_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_v3_range_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/v3/range_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/advanced_http/advanced_http_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
@@ -790,7 +791,8 @@ proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.toObject = functi
     expectedStatusesList: jspb.Message.toObjectList(msg.getExpectedStatusesList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_v3_range_pb.Int64Range.toObject, includeInstance),
     codecClientType: jspb.Message.getFieldWithDefault(msg, 10, 0),
-    serviceNameMatcher: (f = msg.getServiceNameMatcher()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.toObject(includeInstance, f)
+    serviceNameMatcher: (f = msg.getServiceNameMatcher()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.toObject(includeInstance, f),
+    responseAssertions: (f = msg.getResponseAssertions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -867,6 +869,11 @@ proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.deserializeBinary
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.deserializeBinaryFromReader);
       msg.setServiceNameMatcher(value);
+      break;
+    case 12:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.deserializeBinaryFromReader);
+      msg.setResponseAssertions(value);
       break;
     default:
       reader.skipField();
@@ -963,6 +970,14 @@ proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.serializeBinaryTo
       11,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getResponseAssertions();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.serializeBinaryToWriter
     );
   }
 };
@@ -1191,6 +1206,36 @@ proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.clearSe
  */
 proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.hasServiceNameMatcher = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional advancedhttp.options.gloo.solo.io.ResponseAssertions response_assertions = 12;
+ * @return {?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions}
+ */
+proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.getResponseAssertions = function() {
+  return /** @type{?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions, 12));
+};
+
+
+/** @param {?proto.advancedhttp.options.gloo.solo.io.ResponseAssertions|undefined} value */
+proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.setResponseAssertions = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.clearResponseAssertions = function() {
+  this.setResponseAssertions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.config.core.v3.HealthCheck.HttpHealthCheck.prototype.hasResponseAssertions = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

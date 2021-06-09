@@ -8,6 +8,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_cor
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/string_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_v3_http_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/v3/http_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_v3_range_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/v3/range_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/advanced_http/advanced_http_pb";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
@@ -236,6 +237,11 @@ export namespace HealthCheck {
     getServiceNameMatcher(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher | undefined;
     setServiceNameMatcher(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher): void;
 
+    hasResponseAssertions(): boolean;
+    clearResponseAssertions(): void;
+    getResponseAssertions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions | undefined;
+    setResponseAssertions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): HttpHealthCheck.AsObject;
     static toObject(includeInstance: boolean, msg: HttpHealthCheck): HttpHealthCheck.AsObject;
@@ -257,6 +263,7 @@ export namespace HealthCheck {
       expectedStatusesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_v3_range_pb.Int64Range.AsObject>,
       codecClientType: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_v3_http_pb.CodecClientTypeMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_v3_http_pb.CodecClientTypeMap],
       serviceNameMatcher?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.AsObject,
+      responseAssertions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.AsObject,
     }
   }
 
