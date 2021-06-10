@@ -7,5 +7,5 @@ import (
 )
 
 func AddNamespaceFlag(set *pflag.FlagSet, opt *options.Options) {
-	set.StringVarP(&opt.Namespace, "namespace", "n", defaults.GlooFed, "namespace for reading or writing resources")
+	set.StringVarP(&opt.Namespace, "namespace", "n", defaults.GlooSystem, "namespace for reading or writing resources")
 }

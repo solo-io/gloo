@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
 
+	flag "github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/ghodss/yaml"
@@ -23,6 +24,9 @@ const (
 type GenerationArguments struct {
 	Version            string
 	RepoPrefixOverride string
+	// Allows for overriding the gloo-fed chart repo; used in local builds to specify a
+	// local directory instead of the official gloo-fed-helm release repository.
+	GlooFedRepoOverride string
 }
 
 // GenerationConfig represents all the artifact-specific config
@@ -97,10 +101,24 @@ func GetArguments(args *GenerationArguments) error {
 		return errors.New("Must provide version as argument")
 	} else {
 		args.Version = os.Args[1]
+	}
 
-		if len(os.Args) == 3 {
-			args.RepoPrefixOverride = os.Args[2]
-		}
+	// Parse optional arguments
+	var repoPrefixOverride = flag.String(
+		"repo-prefix-override",
+		"",
+		"(Optional) repository prefix override.")
+	var glooFedRepoOverride = flag.String(
+		"gloo-fed-repo-override",
+		"",
+		"(Optional) repository override for gloo-fed chart.")
+	flag.Parse()
+
+	if *repoPrefixOverride != "" {
+		args.RepoPrefixOverride = *repoPrefixOverride
+	}
+	if *glooFedRepoOverride != "" {
+		args.GlooFedRepoOverride = *glooFedRepoOverride
 	}
 	return nil
 }
@@ -117,6 +135,8 @@ func (gc *GenerationConfig) runGeneration() error {
 		gc.GenerationFiles.RequirementsTemplate,
 		gc.GenerationFiles.RequirementsOutput,
 		gc.OsGlooVersion,
+		gc.Arguments.Version,
+		gc.Arguments.GlooFedRepoOverride,
 	); err != nil {
 		return errors.Wrapf(err, "unable to parse requirements.yaml")
 	}

@@ -60,8 +60,7 @@ func StartTestHelper() {
 	valueOverrideFile, cleanupFunc := getHelmaWasmValuesOverrideFile()
 	defer cleanupFunc()
 
-	fedFilePath := filepath.Join(testHelper.TestAssetDir, "gloo-fed-"+testHelper.ChartVersion()+".tgz")
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile, "--gloo-fed-file", fedFilePath))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile, "--with-gloo-fed=false"))
 	Expect(err).NotTo(HaveOccurred())
 
 	// Check that everything is OK

@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 {{- if $.Values.enableMultiClusterRbac }}
 
 # Rbac manifests for gloo-fed-rbac-validating-webhook
@@ -53,4 +54,5 @@ roleRef:
   name: rbac-validating-webhook-{{ .Release.Name }}
   apiGroup: rbac.authorization.k8s.io
 
-{{ end }} # if enableMultiClusterRbac
+{{ end }} {{/* if enableMultiClusterRbac */}}
+{{- end }} {{/* .Values.enabled */}}

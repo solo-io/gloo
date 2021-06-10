@@ -41,7 +41,7 @@ apiVersion: fed.solo.io/v1
 kind: FailoverScheme
 metadata:
   name: failover
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   primary:
     cluster_name: kind-remote

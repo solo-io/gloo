@@ -21,9 +21,8 @@ FED_GCS_PATH := glooctl-fed
 # To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
 IMAGE_REPO := quay.io/solo-io
 
-# TODO: use $(shell git describe --tags)
 ifeq ($(TAGGED_VERSION),)
-	TAGGED_VERSION := vdev
+	TAGGED_VERSION := "v$(shell ./git-semver.sh)"
 	RELEASE := "false"
 endif
 
@@ -285,7 +284,7 @@ CONFIG_YAML=cfg.yaml
 
 .PHONY: run-apiserver
 run-apiserver:
-	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-fed $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
+	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
@@ -543,7 +542,7 @@ cleanup-node-modules:
 .PHONY: cleanup-local-docker-images
 cleanup-local-docker-images:
 	# Remove all of the kind images
-	docker images | grep solo-io | grep -v envoy-gloo-ee |xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:kind
+	docker images | grep solo-io | grep -v envoy-gloo-ee |xargs -L1 echo | cut -d ' ' -f 1 | xargs -I{} docker image rm {}:$(VERSION)
 	# Remove the downloaded envoy-gloo-ee image
 	docker image rm $(ENVOY_GLOO_IMAGE)
 
@@ -761,7 +760,7 @@ $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyin
 #----------------------------------------------------------------------------------
 HELM_SYNC_DIR_FOR_GLOO_EE := $(OUTPUT_DIR)/helm
 HELM_SYNC_DIR_GLOO_FED := $(OUTPUT_DIR)/helm_gloo_fed
-HELM_DIR := install/helm
+HELM_DIR := $(ROOTDIR)/install/helm
 GLOOE_CHART_DIR := $(HELM_DIR)/gloo-ee
 GLOO_FED_CHART_DIR := $(HELM_DIR)/gloo-fed
 MANIFEST_DIR := install/manifest
@@ -779,7 +778,7 @@ helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
 	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
-	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
+	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)"
 
 .PHONY: init-helm
 init-helm: helm-template gloofed-helm-template $(OUTPUT_DIR)/.helm-initialized
@@ -796,11 +795,11 @@ produce-manifests: init-helm gloofed-produce-manifests
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 
 .PHONY: package-gloo-edge-chart
-package-gloo-edge-charts: init-helm
+package-gloo-edge-chart: init-helm
 	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE) $(GLOOE_CHART_DIR)
 
 .PHONY: fetch-package-and-save-helm
-fetch-package-and-save-helm: init-helm package-gloo-fed-charts
+fetch-package-and-save-helm: init-helm package-gloo-fed-chart
 ifeq ($(RELEASE),"true")
 	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
 					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
@@ -835,10 +834,10 @@ gloofed-helm-template:
 
 .PHONY: gloofed-produce-manifests
 gloofed-produce-manifests: gloofed-helm-template
-	helm template gloo-fed install/helm/gloo-fed --namespace gloo-fed > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
+	helm template gloo-fed install/helm/gloo-fed --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
 
-.PHONY: package-gloo-fed-charts
-package-gloo-fed-charts: gloofed-helm-template
+.PHONY: package-gloo-fed-chart
+package-gloo-fed-chart: gloofed-helm-template
 	helm package --destination $(HELM_SYNC_DIR_GLOO_FED) $(GLOO_FED_CHART_DIR)
 
 #----------------------------------------------------------------------------------
@@ -973,11 +972,10 @@ gloo-ee-docker-test: gloo-ee-docker
 gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit gloo-ee-envoy-wrapper-docker
 	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
 
-
 .PHONY: build-test-chart
-build-test-chart:
+build-test-chart: build-test-chart-fed
 	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)"
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee

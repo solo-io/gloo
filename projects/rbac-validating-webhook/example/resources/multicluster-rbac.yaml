@@ -2,11 +2,11 @@ apiVersion: multicluster.solo.io/v1alpha1
 kind: MultiClusterRoleBinding
 metadata:
   name: kind-admin
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   roleRef:
     name: kind-admin
-    namespace: gloo-fed
+    namespace: gloo-system
   subjects:
   - kind: User
     name: kubernetes-admin
@@ -18,7 +18,7 @@ apiVersion: multicluster.solo.io/v1alpha1
 kind: MultiClusterRole
 metadata:
   name: kind-admin
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   rules:
   - apiGroup: fed.solo.io

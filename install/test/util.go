@@ -10,6 +10,8 @@ func GetGlooEServiceAccountPermissions(namespace string) *manifesttestutils.Serv
 	permissions := glooTest.GetServiceAccountPermissions(namespace)
 	ApplyPermissionsForGlooEServiceAccounts(namespace, permissions)
 	ApplyPermissionsForPrometheusServiceAccounts(permissions)
+	ApplyPermissionsForGlooFedServiceAccounts(permissions)
+	ApplyPermissionsForGlooFedConsoleServiceAccounts(permissions)
 	return permissions
 }
 
@@ -303,4 +305,142 @@ func ApplyPermissionsForPrometheusServiceAccounts(permissions *manifesttestutils
 		[]string{"storage.k8s.io"},
 		[]string{"volumeattachments"},
 		[]string{"list", "watch"})
+}
+
+func ApplyPermissionsForGlooFedServiceAccounts(permissions *manifesttestutils.ServiceAccountPermissions) {
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{""},
+		[]string{"secrets"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"apps"},
+		[]string{"deployments"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.enterprise.gloo.solo.io"},
+		[]string{"federatedauthconfigs", "federatedauthconfigs/status"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.gateway.solo.io"},
+		[]string{
+			"federatedgateways",
+			"federatedgateways/status",
+			"federatedroutetables",
+			"federatedroutetables/status",
+			"federatedvirtualservices",
+			"federatedvirtualservices/status",
+		},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.gloo.solo.io"},
+		[]string{
+			"federatedauthconfigs",
+			"federatedauthconfigs/status",
+			"federatedsettings",
+			"federatedsettings/status",
+			"federatedupstreamgroups",
+			"federatedupstreamgroups/status",
+			"federatedupstreams",
+			"federatedupstreams/status",
+		},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.ratelimit.solo.io"},
+		[]string{"federatedratelimitconfigs", "federatedratelimitconfigs/status"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"failoverschemes"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"failoverschemes/status"},
+		[]string{"get", "update"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"glooinstances"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"glooinstances/status"},
+		[]string{"get", "update"})
+}
+
+func ApplyPermissionsForGlooFedConsoleServiceAccounts(permissions *manifesttestutils.ServiceAccountPermissions) {
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{""},
+		[]string{"secrets"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"apps"},
+		[]string{"deployments"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.enterprise.gloo.solo.io"},
+		[]string{"federatedauthconfigs", "federatedauthconfigs/status"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.gateway.solo.io"},
+		[]string{
+			"federatedgateways",
+			"federatedgateways/status",
+			"federatedroutetables",
+			"federatedroutetables/status",
+			"federatedvirtualservices",
+			"federatedvirtualservices/status",
+		},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.gloo.solo.io"},
+		[]string{
+			"federatedauthconfigs",
+			"federatedauthconfigs/status",
+			"federatedsettings",
+			"federatedsettings/status",
+			"federatedupstreamgroups",
+			"federatedupstreamgroups/status",
+			"federatedupstreams",
+			"federatedupstreams/status",
+		},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.ratelimit.solo.io"},
+		[]string{"federatedratelimitconfigs", "federatedratelimitconfigs/status"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"failoverschemes"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"failoverschemes/status"},
+		[]string{"get", "update"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"glooinstances"},
+		[]string{"*"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"fed.solo.io"},
+		[]string{"glooinstances/status"},
+		[]string{"get", "update"})
 }

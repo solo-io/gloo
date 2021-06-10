@@ -171,7 +171,7 @@ var _ = Describe("Processor", func() {
 				instanceCluster1 := &fedv1.GlooInstance{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "instance-1",
-						Namespace: "gloo-fed",
+						Namespace: "gloo-system",
 					},
 					Spec: fed_types.GlooInstanceSpec{
 						Cluster: "one",

@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	glooOsDependencyName = "gloo"
-	glooOsModuleName     = "github.com/solo-io/gloo"
+	glooFedDependencyName = "gloo-fed"
+	glooOsDependencyName  = "gloo"
+	glooOsModuleName      = "github.com/solo-io/gloo"
 )
 
 func GetGlooOsVersion(filesets ...*GenerationFiles) (string, error) {
@@ -79,7 +80,7 @@ func readConfig(path string) (HelmConfig, error) {
 	return config, nil
 }
 
-func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string) error {
+func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string, glooFedVersion string, glooFedRepoOverride string) error {
 	var dl DependencyList
 	if err := readYaml(requirementsTemplatePath, &dl); err != nil {
 		return err
@@ -87,6 +88,14 @@ func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersio
 	for i, v := range dl.Dependencies {
 		if v.Name == glooOsDependencyName && v.Version == "" {
 			dl.Dependencies[i].Version = osGlooVersion
+		}
+		if v.Name == glooFedDependencyName {
+			if v.Version == "" {
+				dl.Dependencies[i].Version = glooFedVersion
+			}
+			if glooFedRepoOverride != "" {
+				dl.Dependencies[i].Repository = glooFedRepoOverride
+			}
 		}
 	}
 	return writeYaml(dl, outputPath)

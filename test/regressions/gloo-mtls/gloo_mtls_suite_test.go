@@ -67,8 +67,7 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	fedFilePath := filepath.Join(testHelper.TestAssetDir, "gloo-fed-"+testHelper.ChartVersion()+".tgz")
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "-v", "--gloo-fed-file", fedFilePath))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "-v", "--with-gloo-fed=false"))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -103,9 +102,6 @@ var _ = AfterSuite(func() {
 		// glooctl should delete the namespace. we do it again just in case it failed
 		// ignore errors
 		_ = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
-
-		// UninstallGloo should handle this, but it doesn't right now
-		_ = testutils.Kubectl("delete", "namespace", "gloo-fed")
 
 		EventuallyWithOffset(1, func() error {
 			return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)

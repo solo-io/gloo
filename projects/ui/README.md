@@ -12,7 +12,7 @@ Gloo Fed has two modes - single cluster and multicluster.
 
 If you are testing a local cluster, you can register the cluster with `glooctl cluster register`: 
 
-`glooctl cluster register --cluster-name gloo-fed-remote --remote-context gke_gloo-ee_us-central1-c_gloo-fed-remote --federation-namespace gloo-fed`
+`glooctl cluster register --cluster-name gloo-fed-remote --remote-context gke_gloo-ee_us-central1-c_gloo-fed-remote --federation-namespace gloo-system`
 
 ## Available Scripts
 

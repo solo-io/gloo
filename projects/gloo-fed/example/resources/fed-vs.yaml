@@ -2,7 +2,7 @@ apiVersion: fed.gateway.solo.io/v1
 kind: FederatedVirtualService
 metadata:
   name: my-federated-vs
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   placement:
     clusters:

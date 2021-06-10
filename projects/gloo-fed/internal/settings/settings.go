@@ -6,9 +6,9 @@ import (
 
 type Settings struct {
 	DebugPort      int    `envconfig:"DEBUG_PORT" default:"9091"`
-	PodNamespace   string `envconfig:"POD_NAMESPACE" default:"gloo-fed"`
+	PodNamespace   string `envconfig:"POD_NAMESPACE" default:"gloo-system"`
 	PodName        string `envconfig:"POD_NAME" default:"gloo-fed"`
-	WriteNamespace string `envconfig:"WRITE_NAMESPACE" default:"gloo-fed"`
+	WriteNamespace string `envconfig:"WRITE_NAMESPACE" default:"gloo-system"`
 	LicenseKey     string `envconfig:"GLOO_LICENSE_KEY" default:""`
 }
 

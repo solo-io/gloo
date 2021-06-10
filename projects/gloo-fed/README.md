@@ -54,8 +54,8 @@ Note that since this is an Enterprise feature, you will need a Gloo License Key 
 GLOO_LICENSE_KEY=<your license key here> ./projects/gloo-fed/ci/setup-kind.sh local remote
 
 # Register the clusters using glooctl.
-glooctl cluster register --cluster-name kind-local --remote-context kind-local --local-cluster-domain-override host.docker.internal --federation-namespace gloo-fed
-glooctl cluster register --cluster-name kind-remote --remote-context kind-remote --local-cluster-domain-override host.docker.internal --federation-namespace gloo-fed
+glooctl cluster register --cluster-name kind-local --remote-context kind-local --local-cluster-domain-override host.docker.internal --federation-namespace gloo-system
+glooctl cluster register --cluster-name kind-remote --remote-context kind-remote --local-cluster-domain-override host.docker.internal --federation-namespace gloo-system
 
 # (Optional) Apply some test data (as of this writing, a FederatedUpstream and FederatedVirtualService) with:
 
@@ -67,7 +67,7 @@ kubectl get upstream -n gloo-system --context kind-remote i-was-federated -oyaml
 # Now we're all set up!
 # Let's view our remote Gloo installation.
 
-kubectl get glooinstance -n gloo-fed -oyaml
+kubectl get glooinstance -n gloo-system -oyaml
 
 # To teardown kind clusters, run
 

@@ -18,7 +18,7 @@ var _ = Describe("RBAC Test", func() {
 		Context("implementation-agnostic permissions", func() {
 			It("correctly assigns permissions for single-namespace gloo", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.glooRbac.namespaced=true"},
+					valuesArgs: []string{"global.glooRbac.namespaced=true", "gloo-fed.enabled=true"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 				permissions := GetGlooEServiceAccountPermissions("gloo-system")
@@ -27,7 +27,7 @@ var _ = Describe("RBAC Test", func() {
 
 			It("correctly assigns permissions for cluster-scoped gloo", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.glooRbac.namespaced=false"},
+					valuesArgs: []string{"global.glooRbac.namespaced=false", "gloo-fed.enabled=true"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 				permissions := GetGlooEServiceAccountPermissions("")
@@ -37,10 +37,12 @@ var _ = Describe("RBAC Test", func() {
 			It("creates no permissions when rbac is disabled", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
+						"gloo-fed.rbac.create=false",
 						"prometheus.rbac.create=false",
 						"prometheus.kube-state-metrics.rbac.create=false",
 						"grafana.testFramework.enabled=false",
 						"global.glooRbac.create=false",
+						"gloo-fed.enabled=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -57,7 +59,8 @@ var _ = Describe("RBAC Test", func() {
 				rbacResources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 					return (resource.GetKind() == "ClusterRole" || resource.GetKind() == "ClusterRoleBinding") &&
 						!strings.Contains(resource.GetName(), "glooe-grafana") &&
-						!strings.Contains(resource.GetName(), "glooe-prometheus")
+						!strings.Contains(resource.GetName(), "glooe-prometheus") &&
+						!strings.Contains(resource.GetName(), "gloo-fed")
 				})
 
 				Expect(rbacResources.NumResources()).NotTo(BeZero())

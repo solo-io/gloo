@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 {{- if .Values.glooFedApiserver.enable }}
 # Deployment manifest for gloo-fed-apiserver
 {{- $glooFedApiserver := $.Values.glooFedApiserver}}
@@ -93,6 +94,8 @@ spec:
             drop:
             - ALL
       - name: console
+        securityContext:
+          runAsUser: 101
         image: {{ $consoleImage.registry }}/{{ $consoleImage.repository }}:{{ $consoleImage.tag }}
         imagePullPolicy: {{ $consoleImage.pullPolicy }}
         volumeMounts:
@@ -185,4 +188,5 @@ metadata:
   name: gloo-fed-console
   namespace: {{ $.Release.Namespace }}
 
-{{- end }} # .Values.glooFedApiserver.enable
+{{- end }} {{/* .Values.glooFedApiserver.enable */}}
+{{- end }} {{/* .Values.enabled */}}

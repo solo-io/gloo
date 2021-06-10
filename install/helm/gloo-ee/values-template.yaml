@@ -251,3 +251,15 @@ grafana:
     gloo: glooe-grafana-custom-dashboards
   testFramework:
     enabled: false
+########################################################################
+###                                                                  ###
+###                        Gloo Fed                                  ###
+###                                                                  ###
+########################################################################
+
+gloo-fed:
+  # TODO(#4556): Enable by default once glooctl changes are made to set this value based on --with-gloo-fed.
+  enabled: false
+  # gloo-fed and gloo-ee both create a 'license' secret by default. When using gloo-fed as a
+  # subchart of gloo-ee we need to prevent the license secret from being created again.
+  create_license_secret: false

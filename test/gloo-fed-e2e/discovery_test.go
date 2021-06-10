@@ -27,7 +27,7 @@ var _ = Describe("Discovery e2e", func() {
 					context.TODO(),
 					types.NamespacedName{
 						Name:      remoteClusterContext + "-gloo-system",
-						Namespace: "gloo-fed",
+						Namespace: "gloo-system",
 					})
 
 			return instance
@@ -82,7 +82,7 @@ var _ = Describe("Discovery e2e", func() {
 					context.TODO(),
 					types.NamespacedName{
 						Name:      localClusterContext + "-gloo-system",
-						Namespace: "gloo-fed",
+						Namespace: "gloo-system",
 					})
 			return instance
 		}, 5*time.Second).ShouldNot(BeNil())

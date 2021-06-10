@@ -1,3 +1,4 @@
+enabled: true
 glooFed:
   image:
     pullPolicy: IfNotPresent
@@ -72,3 +73,5 @@ rbacWebhook:
     requests:
       cpu: 125m
       memory: 256Mi
+rbac:
+  create: true

@@ -43,7 +43,7 @@ var (
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	namespace := "gloo-fed"
+	namespace := "gloo-system"
 	if os.Getenv("REMOTE_CLUSTER_CONTEXT") == "" {
 		return nil
 	}
@@ -105,7 +105,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		for i := 0; i < 60; i++ {
 			failover, err := clientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
 				Name:      "failover-test-scheme",
-				Namespace: "gloo-fed",
+				Namespace: "gloo-system",
 			})
 			if err != nil {
 				continue

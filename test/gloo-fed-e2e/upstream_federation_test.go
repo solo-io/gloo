@@ -29,7 +29,7 @@ var _ = Describe("Upstream federation", func() {
 		upstreamSpec *gloo_types.UpstreamSpec
 		meta         *fed_core_v1.TemplateMetadata
 
-		localGlooHubNamespace = "gloo-fed"
+		localGlooHubNamespace = "gloo-system"
 		remoteGlooNamespace   = "gloo-system"
 
 		fedUpstream *v1.FederatedUpstream

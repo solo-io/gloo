@@ -1,4 +1,5 @@
 # Deployment manifest for gloo-fed
+{{- if .Values.enabled }}
 {{- $glooFed := $.Values.glooFed}}
 {{- $glooFedImage := $glooFed.image }}
 
@@ -75,3 +76,4 @@ metadata:
     app: gloo-fed
   name: gloo-fed
   namespace: {{ $.Release.Namespace }}
+{{- end }} {{/* .Values.enabled */}}

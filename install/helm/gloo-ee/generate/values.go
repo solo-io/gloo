@@ -22,6 +22,7 @@ type Config struct {
 	Grafana             interface{}       `json:"grafana,omitempty"`
 	Prometheus          interface{}       `json:"prometheus,omitempty"`
 	Tags                map[string]string `json:"tags,omitempty"`
+	GlooFed             *GlooFed          `json:"gloo-fed,omitempty"`
 }
 
 // Common
@@ -70,6 +71,11 @@ type RateLimitService struct {
 	Port uint   `json:"port"`
 	Name string `json:"name"`
 	*glooGen.KubeResourceOverride
+}
+
+type GlooFed struct {
+	Enabled             bool `json:"enabled" desc:"If true, deploy federation service (default true)."`
+	CreateLicenseSecret bool `json:"create_license_secret"`
 }
 
 type Redis struct {

@@ -2,7 +2,7 @@ apiVersion: fed.gloo.solo.io/v1
 kind: FederatedUpstream
 metadata:
   name: my-federated-upstream
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   placement:
     clusters:

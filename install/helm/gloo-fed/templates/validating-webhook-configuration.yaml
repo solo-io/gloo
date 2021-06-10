@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 {{- if $.Values.enableMultiClusterRbac }}
 
 apiVersion: admissionregistration.k8s.io/v1
@@ -64,4 +65,5 @@ webhooks:
     resources:
     - failoverschemes
 
-{{ end }} # if enableMultiClusterRbac
+{{ end }} {{/* if enableMultiClusterRbac */}}
+{{- end }} {{/* .Values.enabled */}}

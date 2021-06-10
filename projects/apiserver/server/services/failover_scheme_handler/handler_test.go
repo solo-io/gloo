@@ -30,7 +30,7 @@ var _ = Describe("failover scheme handler", func() {
 		failover1 := fedv1.FailoverScheme{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Name:      "failover-test",
-				Namespace: "gloo-fed",
+				Namespace: "gloo-system",
 			},
 			Spec: types.FailoverSchemeSpec{
 				Primary: &v1.ClusterObjectRef{
@@ -44,7 +44,7 @@ var _ = Describe("failover scheme handler", func() {
 		failover2 := fedv1.FailoverScheme{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Name:      "failover-test-2",
-				Namespace: "gloo-fed",
+				Namespace: "gloo-system",
 			},
 			Spec: types.FailoverSchemeSpec{
 				Primary: &v1.ClusterObjectRef{
@@ -96,7 +96,7 @@ var _ = Describe("failover scheme handler", func() {
 			FailoverScheme: &rpc_v1.FailoverScheme{
 				Metadata: &rpc_v1.ObjectMeta{
 					Name:      "failover-test",
-					Namespace: "gloo-fed",
+					Namespace: "gloo-system",
 				},
 				Spec: &types.FailoverSchemeSpec{
 					Primary: &v1.ClusterObjectRef{

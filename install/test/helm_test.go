@@ -75,8 +75,14 @@ var _ = Describe("Helm Test", func() {
 		BeforeEach(func() {
 			version = os.Getenv("TAGGED_VERSION")
 			if version == "" {
-				version = "dev"
-				getPullPolicy = func() v1.PullPolicy { return v1.PullAlways }
+				version = os.Getenv("VERSION")
+				if version == "" {
+					version = "0.0.0-dev"
+					getPullPolicy = func() v1.PullPolicy { return v1.PullAlways }
+				} else {
+					fmt.Printf("Using VERSION environment variable for version: %s\n", version)
+					getPullPolicy = func() v1.PullPolicy { return v1.PullIfNotPresent }
+				}
 			} else {
 				fmt.Printf("Using TAGGED_VERSION environment variable for version: %s\n", version)
 				version = version[1:]
@@ -142,7 +148,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:  "observability",
-						Image: "quay.io/solo-io/observability-ee:dev",
+						Image: "quay.io/solo-io/observability-ee:" + version,
 						EnvFrom: []v1.EnvFromSource{
 							{ConfigMapRef: &v1.ConfigMapEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-config"}}},
 							{SecretRef: &v1.SecretEnvSource{LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-secrets"}}},
@@ -177,7 +183,7 @@ var _ = Describe("Helm Test", func() {
 							statsEnvVar,
 						},
 						Resources:       v1.ResourceRequirements{},
-						ImagePullPolicy: "Always",
+						ImagePullPolicy: getPullPolicy(),
 					},
 				}
 				observabilityDeployment.Spec.Template.Spec.ServiceAccountName = "observability"
@@ -502,8 +508,8 @@ var _ = Describe("Helm Test", func() {
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:            "extauth",
-						Image:           "quay.io/solo-io/extauth-ee:dev",
-						ImagePullPolicy: "Always",
+						Image:           "quay.io/solo-io/extauth-ee:" + version,
+						ImagePullPolicy: getPullPolicy(),
 						Env: []v1.EnvVar{
 							{
 								Name: "POD_NAMESPACE",
@@ -620,6 +626,8 @@ var _ = Describe("Helm Test", func() {
 					"glooe-grafana",
 					"glooe-prometheus-kube-state-metrics",
 					"glooe-prometheus-server",
+					"gloo-fed",
+					"gloo-fed-console",
 				}
 
 				Expect(err).NotTo(HaveOccurred())
@@ -707,6 +715,8 @@ var _ = Describe("Helm Test", func() {
 					"glooe-grafana",
 					"glooe-prometheus-kube-state-metrics",
 					"glooe-prometheus-server",
+					"gloo-fed",
+					"gloo-fed-console",
 				}
 
 				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
@@ -733,7 +743,7 @@ var _ = Describe("Helm Test", func() {
 
 			It("should add an anti-injection annotation to all pods when disableAutoinjection is enabled", func() {
 				istioAnnotation := "sidecar.istio.io/inject"
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{
 						"global.istioIntegration.disableAutoinjection=true",
 						"glooFedApiserver.enable=true",
@@ -1084,13 +1094,13 @@ global:
 					{
 						Name:            "plugin-first-plugin",
 						Image:           "quay.io/solo-io/ext-auth-plugins:1.2.3",
-						ImagePullPolicy: v1.PullIfNotPresent,
+						ImagePullPolicy: getPullPolicy(),
 						VolumeMounts:    authPluginVolumeMount,
 					},
 					{
 						Name:            "plugin-second-plugin",
 						Image:           "bar/foo:1.2.3",
-						ImagePullPolicy: v1.PullIfNotPresent,
+						ImagePullPolicy: getPullPolicy(),
 						VolumeMounts:    authPluginVolumeMount,
 					},
 				}
@@ -1738,7 +1748,7 @@ spec:
 					gatewayProxyDeployment.Spec.Template.Spec.Containers,
 					v1.Container{
 						Name:            "extauth",
-						Image:           "quay.io/solo-io/extauth-ee:dev",
+						Image:           "quay.io/solo-io/extauth-ee:" + version,
 						Ports:           nil,
 						ImagePullPolicy: getPullPolicy(),
 						Env: []v1.EnvVar{
@@ -1837,7 +1847,7 @@ spec:
 					gatewayProxyDeployment.Spec.Template.Spec.Containers,
 					v1.Container{
 						Name:            "extauth",
-						Image:           "quay.io/solo-io/extauth-ee:dev",
+						Image:           "quay.io/solo-io/extauth-ee:" + version,
 						Ports:           nil,
 						ImagePullPolicy: getPullPolicy(),
 						Env: []v1.EnvVar{
@@ -2312,7 +2322,7 @@ spec:
 					{
 						Name:            "redis",
 						Image:           "docker.io/redis:5",
-						ImagePullPolicy: v1.PullAlways,
+						ImagePullPolicy: getPullPolicy(),
 						Ports: []v1.ContainerPort{
 							{
 								ContainerPort: 6379,
@@ -2513,8 +2523,8 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:            "rate-limit",
-						Image:           "quay.io/solo-io/rate-limit-ee:dev",
-						ImagePullPolicy: "Always",
+						Image:           "quay.io/solo-io/rate-limit-ee:" + version,
+						ImagePullPolicy: getPullPolicy(),
 						Env: []v1.EnvVar{
 							{
 								Name: "POD_NAMESPACE",
@@ -2615,10 +2625,13 @@ spec:
 				uiContainer := v1.Container{
 					Name:            "console",
 					Image:           "quay.io/solo-io/gloo-federation-console:" + version,
-					ImagePullPolicy: v1.PullIfNotPresent,
+					ImagePullPolicy: getPullPolicy(),
 					VolumeMounts: []v1.VolumeMount{
 						{Name: "empty-cache", MountPath: "/var/cache/nginx"},
 						{Name: "empty-run", MountPath: "/var/run"},
+					},
+					SecurityContext: &v1.SecurityContext{
+						RunAsUser: aws.Int64(101),
 					},
 					Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8090, Protocol: v1.ProtocolTCP}},
 					Resources: v1.ResourceRequirements{
@@ -2646,7 +2659,7 @@ spec:
 				grpcServerContainer := v1.Container{
 					Name:            "apiserver",
 					Image:           "quay.io/solo-io/gloo-fed-apiserver:" + version,
-					ImagePullPolicy: v1.PullIfNotPresent,
+					ImagePullPolicy: getPullPolicy(),
 					Ports: []v1.ContainerPort{
 						{Name: "grpc", ContainerPort: 10101, Protocol: v1.ProtocolTCP},
 						{Name: "healthcheck", HostPort: 0, ContainerPort: 8081, Protocol: v1.ProtocolTCP}},
@@ -2682,7 +2695,7 @@ spec:
 				envoyContainer := v1.Container{
 					Name:            "envoy",
 					Image:           "quay.io/solo-io/gloo-fed-apiserver-envoy:" + version,
-					ImagePullPolicy: v1.PullIfNotPresent,
+					ImagePullPolicy: getPullPolicy(),
 					VolumeMounts: []v1.VolumeMount{
 						{Name: "envoy-config", MountPath: "/etc/envoy", ReadOnly: true},
 					},
@@ -2736,19 +2749,19 @@ spec:
 			})
 
 			It("is there by default", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
 			It("does render the default bootstrap config map for the envoy sidecar", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
 			})
 
 			It("correctly sets resource limits", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{
 						"glooFedApiserver.console.resources.limits.cpu=300m",
 						"glooFedApiserver.console.resources.limits.memory=300Mi",
@@ -2806,7 +2819,7 @@ spec:
 			})
 
 			It("allows setting custom runAsUser", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{"glooFedApiserver.runAsUser=10102"},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -2819,7 +2832,7 @@ spec:
 			})
 
 			It("allows setting a custom number of replicas", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{"glooFedApiserver.replicas=2"},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -2831,7 +2844,7 @@ spec:
 			})
 
 			It("correctly sets the GLOO_LICENSE_KEY env", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{
 						"global.license_secret_name=custom-license-secret",
 					},
@@ -2861,7 +2874,7 @@ spec:
 
 				BeforeEach(func() {
 					var err error
-					actualManifest, err = BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					actualManifest, err = BuildTestManifest(install.GlooFed, namespace, helmValues{
 						valuesArgs: []string{
 							"glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
 						},
@@ -2889,7 +2902,7 @@ spec:
 			})
 
 			It("sits behind a service that is not exposed outside of the cluster", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
 					if u.GetKind() != "Service" {
@@ -2920,7 +2933,7 @@ spec:
 				}
 
 				It("via global values", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 						valuesArgs: []string{fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName)},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -2931,7 +2944,7 @@ spec:
 				})
 
 				It("via podTemplate values", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 						valuesArgs: []string{
 							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),
 						},
@@ -2943,7 +2956,7 @@ spec:
 				})
 
 				It("podTemplate values win over global", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, "gloo-fed", helmValues{
+					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 						valuesArgs: []string{
 							"global.image.pullSecret=wrong",
 							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),

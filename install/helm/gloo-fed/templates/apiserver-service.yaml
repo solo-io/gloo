@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 {{- if .Values.glooFedApiserver.enable }}
 {{- $glooFedApiserver := $.Values.glooFedApiserver}}
 apiVersion: v1
@@ -25,4 +26,5 @@ spec:
     app: gloo-fed
     gloo-fed: console
   type: ClusterIP
-{{- end }} # .Values.glooFedApiserver.enable
+{{- end }} {{/* .Values.glooFedApiserver.enable */}}
+{{- end }} {{/* .Values.enabled */}}

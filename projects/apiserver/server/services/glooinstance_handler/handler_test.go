@@ -169,13 +169,13 @@ var _ = Describe("gloo instance and cluster handler", func() {
 					Raw:  "test-proxy-config-dump",
 				},
 			}, nil)
-			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-fed"}).Return(
+			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-system"}).Return(
 				&glooInstance, nil)
 			clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 			resp, err := clusterServer.GetConfigDumps(ctx, &rpc_v1.GetConfigDumpsRequest{
 				GlooInstanceRef: &v1.ObjectRef{
 					Name:      "test",
-					Namespace: "gloo-fed",
+					Namespace: "gloo-system",
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -204,13 +204,13 @@ var _ = Describe("gloo instance and cluster handler", func() {
 			}
 
 			mockGetter.EXPECT().GetConfigs(ctx, glooInstance).Return([]*rpc_v1.ConfigDump{}, eris.New("test"))
-			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-fed"}).Return(
+			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-system"}).Return(
 				&glooInstance, nil)
 			clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 			_, err := clusterServer.GetConfigDumps(ctx, &rpc_v1.GetConfigDumpsRequest{
 				GlooInstanceRef: &v1.ObjectRef{
 					Name:      "test",
-					Namespace: "gloo-fed",
+					Namespace: "gloo-system",
 				},
 			})
 			Expect(err).To(HaveOccurred())

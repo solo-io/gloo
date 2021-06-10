@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 {{- if $.Values.enableMultiClusterRbac }}
 
 # Deployment manifest for gloo-fed-rbac-validating-webhook
@@ -114,6 +115,5 @@ spec:
   - name: webhook
     port: 8443
 
-{{ end }} # if enableMultiClusterRbac
-
-
+{{ end }} {{/* if enableMultiClusterRbac */}}
+{{- end }} {{/* .Values.enabled */}}

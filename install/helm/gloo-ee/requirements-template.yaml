@@ -13,3 +13,5 @@ dependencies:
     condition: grafana.defaultInstallationEnabled
     tags:
       - monitoring
+  - name: gloo-fed
+    repository: https://storage.googleapis.com/gloo-fed-helm

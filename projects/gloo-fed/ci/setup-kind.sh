@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Absolute path to this script, e.g. /home/user/go/.../gloo-fed/ci/setup-kind.sh
+SCRIPT=$(readlink -f "$0")
+# Absolute path this script is in, thus /home/user/go/.../gloo-fed/ci
+CI_DIR=$(dirname "$SCRIPT")
+GIT_SEMVER_SCRIPT="$CI_DIR/../../../git-semver.sh"
+
 set -ex
 
 kindClusterImage=kindest/node:v1.17.0
@@ -20,7 +26,7 @@ go mod tidy
 GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
 # NOTE: If inter-PR dependency is needed, this must be changed to a hard-coded version (ex: v1.7.0-beta25).
 GLOO_VERSION_TEST_INSTALL=$GLOO_VERSION
-VERSION=$(git describe --tags --dirty --always | sed -e "s/^refs\/tags\///" | cut -c 2-)
+VERSION=$(. $GIT_SEMVER_SCRIPT)
 
 # Install glooctl
 if which glooctl;
@@ -106,7 +112,7 @@ EOF
 kubectl config use-context kind-"$1"
 
 yarn --cwd projects/ui build
-make CLUSTER_NAME=$1 VERSION=${VERSION} package-gloo-fed-charts package-gloo-edge-charts gloofed-load-kind-images
+make CLUSTER_NAME=$1 VERSION=${VERSION} package-gloo-fed-chart package-gloo-edge-chart gloofed-load-kind-images
 # Only build and load in the gloo-ee images used in this test
 make VERSION=${VERSION} gloo-ee-docker gloo-ee-envoy-wrapper-docker rate-limit-ee-docker -B
 kind load docker-image quay.io/solo-io/gloo-ee:${VERSION} --name $1
@@ -137,15 +143,16 @@ gloo:
       readConfigMulticluster: true
       service:
         type: NodePort
+gloo-fed:
+  enabled: true
 EOF
 
-glooctl install gateway enterprise --license-key=$GLOO_LICENSE_KEY --file _output/helm/gloo-ee-${VERSION}.tgz --gloo-fed-file _output/helm_gloo_fed/gloo-fed-${VERSION}.tgz --values basic-enterprise.yaml
+glooctl install gateway enterprise --license-key=$GLOO_LICENSE_KEY --file _output/helm/gloo-ee-${VERSION}.tgz --with-gloo-fed=false --values basic-enterprise.yaml
 
 rm basic-enterprise.yaml
 
-# gloo-fed rollout
-kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=1m || true
 # gloo-system rollout
+kubectl -n gloo-system rollout status deployment gloo-fed --timeout=1m || true
 kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
 kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
@@ -205,8 +212,8 @@ case $(uname) in
 esac
 
 # Register the gloo clusters
-glooctl cluster register --cluster-name kind-$1 --remote-context kind-$1 --local-cluster-domain-override $CLUSTER_DOMAIN_MGMT --federation-namespace gloo-fed
-glooctl cluster register --cluster-name kind-$2 --remote-context kind-$2 --local-cluster-domain-override $CLUSTER_DOMAIN_REMOTE --federation-namespace gloo-fed
+glooctl cluster register --cluster-name kind-$1 --remote-context kind-$1 --local-cluster-domain-override $CLUSTER_DOMAIN_MGMT --federation-namespace gloo-system
+glooctl cluster register --cluster-name kind-$2 --remote-context kind-$2 --local-cluster-domain-override $CLUSTER_DOMAIN_REMOTE --federation-namespace gloo-system
 
 echo "Registered gloo clusters kind-$1 and kind-$2"
 
@@ -485,7 +492,7 @@ apiVersion: fed.gloo.solo.io/v1
 kind: FederatedUpstream
 metadata:
   name: default-service-blue
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   placement:
     clusters:
@@ -517,7 +524,7 @@ apiVersion: fed.gateway.solo.io/v1
 kind: FederatedVirtualService
 metadata:
   name: simple-route
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   placement:
     clusters:
@@ -544,7 +551,7 @@ apiVersion: fed.solo.io/v1
 kind: FailoverScheme
 metadata:
   name: failover-test-scheme
-  namespace: gloo-fed
+  namespace: gloo-system
 spec:
   primary:
     clusterName: kind-$1
@@ -559,5 +566,5 @@ spec:
 EOF
 
 # wait for setup to be complete
-kubectl -n gloo-fed rollout status deployment gloo-fed --timeout=2m
+kubectl -n gloo-system rollout status deployment gloo-fed --timeout=2m
 kubectl rollout status deployment echo-blue-deployment --timeout=2m

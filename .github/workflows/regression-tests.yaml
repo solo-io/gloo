@@ -154,9 +154,9 @@ jobs:
         run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Setup test env
         run: |
-          make VERSION=kind LOCAL_BUILD=true CLUSTER_NAME=kind push-kind-images
-          make cleanup-local-docker-images
-          make VERSION=kind build-test-chart-fed build-test-chart glooctl-linux-amd64
+          make VERSION=$(./git-semver.sh) LOCAL_BUILD=true CLUSTER_NAME=kind push-kind-images
+          make VERSION=$(./git-semver.sh) cleanup-local-docker-images
+          make VERSION=$(./git-semver.sh) build-test-chart glooctl-linux-amd64
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}

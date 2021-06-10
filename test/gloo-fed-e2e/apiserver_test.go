@@ -24,7 +24,7 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 	BeforeEach(func() {
 		apiserverPort, err = cliutil.GetFreePort()
 		Expect(err).NotTo(HaveOccurred())
-		portFwd, err = cliutil.PortForward(defaults.GlooFed, "svc/gloo-fed-console", strconv.Itoa(apiserverPort), "10101", false)
+		portFwd, err = cliutil.PortForward(defaults.GlooSystem, "svc/gloo-fed-console", strconv.Itoa(apiserverPort), "10101", false)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -49,7 +49,7 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 		resp, err := client.GetConfigDumps(context.TODO(), &rpc_v1.GetConfigDumpsRequest{
 			GlooInstanceRef: &v1.ObjectRef{
 				Name:      "kind-local-gloo-system",
-				Namespace: "gloo-fed",
+				Namespace: "gloo-system",
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())
