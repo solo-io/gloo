@@ -100,6 +100,10 @@ spec:
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+            {{- if .Values.global.extensions.rateLimit.deployment.loglevel}}
+            - name: LOG_LEVEL
+              value: {{ .Values.global.extensions.rateLimit.deployment.loglevel }}
+            {{- end }}
             - name: READY_PORT_HTTP
               value: "18080"
             - name: READY_PATH_HTTP

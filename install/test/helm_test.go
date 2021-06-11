@@ -266,6 +266,23 @@ var _ = Describe("Helm Test", func() {
 					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
 				})
 
+				It("should support setting the log level env", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{"observability.deployment.log_level=DEBUG"},
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					logLevel := "DEBUG"
+					envs := observabilityDeployment.Spec.Template.Spec.Containers[0].Env
+					for i, env := range envs {
+						if env.Name == "LOG_LEVEL" {
+							envs[i].Value = logLevel
+						}
+					}
+
+					testManifest.ExpectDeploymentAppsV1(observabilityDeployment)
+				})
+
 				It("correctly sets the GLOO_LICENSE_KEY env", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{"license_secret_name=custom-license-secret"},
@@ -2596,6 +2613,23 @@ spec:
 
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
+			It("should support setting the log level env", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.rateLimit.deployment.log_level=DEBUG"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				logLevel := "DEBUG"
+				envs := expectedDeployment.Spec.Template.Spec.Containers[0].Env
+				for i, env := range envs {
+					if env.Name == "LOG_LEVEL" {
+						envs[i].Value = logLevel
+					}
+				}
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 		})
 
 		Context("gloo-fed apiserver deployment", func() {
@@ -2842,7 +2876,6 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 
 			})
-
 			It("correctly sets the GLOO_LICENSE_KEY env", func() {
 				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
 					valuesArgs: []string{

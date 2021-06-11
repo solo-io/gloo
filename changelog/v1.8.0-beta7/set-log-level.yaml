@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/4808
+    description: >
+      Support setting log level for rate-limit and observability deployments without using KubeResourceOverride
