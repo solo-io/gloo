@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >
+      Update the Upstream Network Traffic graph to use `upstream_cx_tx_bytes_total`
+      for bytes sent.
+    issueLink: https://github.com/solo-io/gloo/issues/4876
+    resolvesIssue: true

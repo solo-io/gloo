@@ -236,7 +236,7 @@
           "refId": "A"
         },
         {
-          "expr": "irate(envoy_cluster_upstream_cx_rx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }[1m])",
+          "expr": "irate(envoy_cluster_upstream_cx_tx_bytes_total{ envoy_cluster_name=\"{{.EnvoyClusterName}}\" }[1m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{.NameTemplate}} - out",
