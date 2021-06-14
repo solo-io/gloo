@@ -4,7 +4,7 @@ import (
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	"github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	envoy_core_v3_endpoint "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	envoy_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/advanced_http"
 	envoy_type_matcher_v3_solo "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -46,6 +46,10 @@ func (p *Plugin) IsUpgrade() bool {
 }
 
 func shouldProcess(in *gloov1.Upstream) bool {
+	if len(in.GetHealthChecks()) == 0 {
+		return false
+	}
+
 	// only do this for static upstreams with custom health path and/or method defined,
 	// so that we only use new logic when we have to. this is done to minimize potential error impact.
 	for _, host := range in.GetStatic().GetHosts() {
@@ -71,32 +75,28 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 	if !shouldProcess(in) {
 		return nil
 	}
-	// we have a path, convert the health check
-	for i, h := range out.GetHealthChecks() {
-		httpHealth := h.GetHttpHealthCheck()
-		if httpHealth == nil {
-			continue
+
+	secretList := params.Snapshot.Secrets
+	out.HealthChecks = make([]*envoy_config_core_v3.HealthCheck, len(in.GetHealthChecks()))
+
+	for i, hcCfg := range in.GetHealthChecks() {
+		envoyHc, err := api_conversion.ToEnvoyHealthCheck(hcCfg, &secretList)
+		if err != nil {
+			return err
 		}
 
-		// when gloo transitions to v3, we can just serialize/deserialize the proto to convert it.
-		httpOut := convertEnvoyToGloo(httpHealth)
-
-		// this plugin is built on the assumption that Gloo and Envoy health checks correlate 1-1 and are in the
-		// same order, per https://github.com/solo-io/gloo/blob/c5e0df157af2f035c365c5453ea9f8abc417088d/projects/gloo/pkg/translator/clusters.go#L142-L160
-		if len(in.GetHealthChecks()) != len(out.GetHealthChecks()) {
-			return eris.Errorf("len(upstream health checks) (%v) != len(envoy health checks) (%v)", len(in.GetHealthChecks()), len(out.GetHealthChecks()))
-		}
-		httpOut.ResponseAssertions = in.GetHealthChecks()[i].GetHttpHealthCheck().GetResponseAssertions()
-
+		glooHc := convertEnvoyToGloo(envoyHc.GetHttpHealthCheck())
 		advancedHttpHealthCheck := envoy_advanced_http.AdvancedHttp{
-			HttpHealthCheck:    &httpOut,
-			ResponseAssertions: convertGlooToEnvoyRespAssertions(httpOut.ResponseAssertions),
+			HttpHealthCheck:    &glooHc,
+			ResponseAssertions: convertGlooToEnvoyRespAssertions(hcCfg.GetHttpHealthCheck().GetResponseAssertions()),
 		}
+
 		serializedAny, err := utils.MessageToAny(&advancedHttpHealthCheck)
 		if err != nil {
 			return err
 		}
-		// if upstream has a health check, and its http health check:
+
+		out.HealthChecks[i] = envoyHc
 		out.HealthChecks[i].HealthChecker = &envoy_config_core_v3.HealthCheck_CustomHealthCheck_{
 			CustomHealthCheck: &envoy_config_core_v3.HealthCheck_CustomHealthCheck{
 				Name: HealthCheckerName,

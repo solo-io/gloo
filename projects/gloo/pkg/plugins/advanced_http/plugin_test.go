@@ -87,7 +87,7 @@ var _ = Describe("Plugin", func() {
 			},
 			HealthChecks: []*core2.HealthCheck{check},
 		}
-
+		params = plugins.Params{Snapshot: &v1.ApiSnapshot{}}
 	})
 
 	It("should create a custom health check when static upstream has a path", func() {

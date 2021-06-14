@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      make enterprise advanced http translation code less brittle.
