@@ -22,6 +22,165 @@
   "title": "{{.EnvoyClusterName}}",
   "version": 4,
   "panels": [
+  {
+      "datasource": "gloo",
+      "type": "graph",
+      "title": "Request Time Quantiles",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "id": 22,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.99, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.5, sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le))"
+        }
+      ],
+      "options": {
+        "dataLinks": []
+      },
+      "renderer": "flot",
+      "yaxes": [
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "ms"
+        },
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "show": true,
+        "mode": "time",
+        "name": null,
+        "values": [],
+        "buckets": null
+      },
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      },
+      "lines": true,
+      "fill": 1,
+      "fillGradient": 0,
+      "linewidth": 1,
+      "dashes": false,
+      "hiddenSeries": false,
+      "dashLength": 10,
+      "spaceLength": 10,
+      "points": false,
+      "pointradius": 2,
+      "bars": false,
+      "stack": false,
+      "percentage": false,
+      "legend": {
+        "show": true,
+        "values": false,
+        "min": false,
+        "max": false,
+        "current": false,
+        "total": false,
+        "avg": false
+      },
+      "nullPointMode": "null",
+      "steppedLine": false,
+      "tooltip": {
+        "value_type": "individual",
+        "shared": true,
+        "sort": 0
+      },
+      "timeFrom": null,
+      "timeShift": null,
+      "aliasColors": {},
+      "seriesOverrides": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "description": "This chart shows request time quantiles for the upstream in measurements of P99, P95 and P50."
+    },
+    {
+      "datasource": "gloo",
+      "type": "heatmap",
+      "title": "Request Time Heatmap",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "id": 17,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{ envoy_cluster_name=\"{{.EnvoyClusterName}}\"}[1m])) by (le)",
+          "legendFormat": "\u007B\u007B le \u007D\u007D",
+          "format": "heatmap"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "options": {},
+      "heatmap": {},
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "mode": "spectrum",
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "exponent": 0.5,
+        "colorScheme": "interpolateSpectral"
+      },
+      "legend": {
+        "show": true
+      },
+      "dataFormat": "tsbuckets",
+      "yBucketBound": "auto",
+      "reverseYBuckets": false,
+      "xAxis": {
+        "show": true
+      },
+      "yAxis": {
+        "show": true,
+        "format": "ms",
+        "decimals": null,
+        "logBase": 1,
+        "splitFactor": null,
+        "min": null,
+        "max": null
+      },
+      "xBucketSize": null,
+      "xBucketNumber": null,
+      "yBucketSize": null,
+      "yBucketNumber": null,
+      "tooltip": {
+        "show": true,
+        "showHistogram": true
+      },
+      "highlightCards": true,
+      "hideZeroBuckets": true,
+      "description": "Displays the upstream request times calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers."
+    },    
     {
       "aliasColors": {},
       "bars": false,
@@ -33,7 +192,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 5
+        "y": 16
       },
       "id": 2,
       "legend": {
@@ -118,7 +277,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 5
+        "y": 0
       },
       "id": 4,
       "legend": {
@@ -202,8 +361,8 @@
       "gridPos": {
         "h": 7,
         "w": 12,
-        "x": 0,
-        "y": 19
+        "x": 12,
+        "y": 7
       },
       "id": 15,
       "legend": {

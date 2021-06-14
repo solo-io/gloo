@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Add histogram and heatmap for `envoy_cluster_external_upstream_rq_time_bucket`
+    issueLink: https://github.com/solo-io/gloo/issues/4877
+    resolvesIssue: true
