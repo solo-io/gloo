@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sort"
 
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -71,6 +74,7 @@ func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams)
 func (s *TranslatorSyncerExtension) Sync(
 	ctx context.Context,
 	snap *gloov1.ApiSnapshot,
+	settings *gloov1.Settings,
 	xdsCache envoycache.SnapshotCache,
 	reports reporter.ResourceReports,
 ) (string, error) {
@@ -81,7 +85,7 @@ func (s *TranslatorSyncerExtension) Sync(
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end auth sync %v", snapHash)
 
-	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, xdsCache, reports)
+	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, settings, xdsCache, reports)
 }
 
 func (s *TranslatorSyncerExtension) ExtensionName() string {
@@ -99,6 +103,7 @@ type SnapshotSetter interface {
 func (s *TranslatorSyncerExtension) SyncAndSet(
 	ctx context.Context,
 	snap *gloov1.ApiSnapshot,
+	settings *gloov1.Settings,
 	xdsCache SnapshotSetter,
 	reports reporter.ResourceReports,
 ) error {
@@ -120,19 +125,19 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
 				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
 
-				if err := helper.processAuthExtension(ctx, snap, virtualHost.GetOptions().GetExtauth(), reports, proxy); err != nil {
+				if err := helper.processAuthExtension(ctx, snap, settings, virtualHost.GetOptions().GetExtauth(), reports, proxy); err != nil {
 					// Continue to next virtualHost, error has been added to the report.
 					continue
 				}
 
 				for _, route := range virtualHost.Routes {
-					if err := helper.processAuthExtension(ctx, snap, route.GetOptions().GetExtauth(), reports, proxy); err != nil {
+					if err := helper.processAuthExtension(ctx, snap, settings, route.GetOptions().GetExtauth(), reports, proxy); err != nil {
 						// Continue to next route, error has been added to the report.
 						continue
 					}
 
 					for _, weightedDestination := range route.GetRouteAction().GetMulti().GetDestinations() {
-						if err := helper.processAuthExtension(ctx, snap, weightedDestination.GetOptions().GetExtauth(),
+						if err := helper.processAuthExtension(ctx, snap, settings, weightedDestination.GetOptions().GetExtauth(),
 							reports, proxy); err != nil {
 							// Continue to next weighted destination, error has been added to the report.
 							continue
@@ -197,9 +202,23 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, config *extauth.ExtAuthExtension,
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, settings *gloov1.Settings, config *extauth.ExtAuthExtension,
 	reports reporter.ResourceReports, parentProxy resources.InputResource) error {
-	configRef := config.GetConfigRef()
+	if config.GetConfigRef() != nil {
+		return h.processAuthExtensionConfigRef(ctx, snap, config.GetConfigRef(), reports, parentProxy)
+	}
+
+	if config.GetCustomAuth() != nil {
+		return h.processAuthExtensionCustomAuth(ctx, settings, config.GetCustomAuth(), reports, parentProxy)
+	}
+
+	// Just return if there is nothing to process
+	return nil
+}
+
+func (h *helper) processAuthExtensionConfigRef(ctx context.Context, snap *gloov1.ApiSnapshot, configRef *core.ResourceRef,
+	reports reporter.ResourceReports, parentProxy resources.InputResource) error {
+
 	if configRef == nil {
 		// Just return if there is nothing to translate
 		return nil
@@ -231,6 +250,35 @@ func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnaps
 	}
 
 	h.translatedConfigs[configRef.Key()] = translatedConfig
+	return nil
+}
+
+func (h *helper) processAuthExtensionCustomAuth(ctx context.Context, settings *gloov1.Settings, customAuth *extauth.CustomAuth,
+	reports reporter.ResourceReports, parentProxy resources.InputResource) error {
+
+	customAuthServerName := customAuth.GetName()
+	if customAuthServerName == "" {
+		// If name is not specified, there is nothing to validate
+		return nil
+	}
+
+	namedExtAuthSettings := settings.GetNamedExtauth()
+	if namedExtAuthSettings == nil {
+		// A name is specified, but no settings are configured
+		err := errors.New("Unable to find named_extauth in Settings")
+		contextutils.LoggerFrom(ctx).Warnf("%v", err)
+		reports.AddError(parentProxy, err)
+		return err
+	}
+
+	if _, ok := namedExtAuthSettings[customAuthServerName]; !ok {
+		// A name is specified, but it isn't one of the settings that are configured
+		err := errors.Errorf("Unable to find custom auth server [%s] in named_extauth in Settings", customAuthServerName)
+		contextutils.LoggerFrom(ctx).Warnf("%v", err)
+		reports.AddError(parentProxy, err)
+		return err
+	}
+
 	return nil
 }
 

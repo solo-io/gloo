@@ -1,14 +1,10 @@
 package extauth
 
 import (
-	"fmt"
-
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	errors "github.com/rotisserie/eris"
-	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -17,9 +13,7 @@ import (
 )
 
 const (
-	ExtensionName      = "extauth"
-	SanitizeFilterName = "io.solo.filters.http.sanitize"
-	DefaultAuthHeader  = "x-user-id"
+	DefaultAuthHeader = "x-user-id"
 
 	// when extauth is deployed into a sidecar in the envoy pod, an upstream should
 	// be created that points to that sidecar and has this name. A regression test
@@ -33,6 +27,7 @@ var (
 	_ plugins.RoutePlugin               = new(Plugin)
 	_ plugins.HttpFilterPlugin          = new(Plugin)
 	_ plugins.WeightedDestinationPlugin = new(Plugin)
+	_ plugins.Upgradable                = new(Plugin)
 
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
 
@@ -41,25 +36,17 @@ var (
 	}
 )
 
-const (
-	SourceTypeVirtualHost         = "virtual_host"
-	SourceTypeRoute               = "route"
-	SourceTypeWeightedDestination = "weighted_destination"
-)
-
 type Plugin struct {
-	userIdHeader    string
-	extAuthSettings *extauthapi.Settings
+	userIdHeader         string
+	namedExtAuthSettings map[string]*extauthapi.Settings
+
+	extAuthzConfigGenerator extauth.ExtAuthzConfigGenerator
 }
 
 var _ plugins.Plugin = new(Plugin)
 
 func NewPlugin() *Plugin {
 	return &Plugin{}
-}
-
-func BuildVirtualHostName(proxy *v1.Proxy, listener *v1.Listener, virtualHost *v1.VirtualHost) string {
-	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, virtualHost.Name)
 }
 
 func GetAuthHeader(e *extauthapi.Settings) string {
@@ -71,36 +58,54 @@ func GetAuthHeader(e *extauthapi.Settings) string {
 	return DefaultAuthHeader
 }
 
+func (p *Plugin) PluginName() string {
+	return extauth.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
+}
+
 func (p *Plugin) Init(params plugins.InitParams) error {
 	p.userIdHeader = ""
-	p.extAuthSettings = nil
 
 	settings := params.Settings.GetExtauth()
-	p.extAuthSettings = settings
 	p.userIdHeader = GetAuthHeader(settings)
+
+	p.namedExtAuthSettings = params.Settings.GetNamedExtauth()
+	p.extAuthzConfigGenerator = getEnterpriseConfigGenerator(settings, p.namedExtAuthSettings)
 	return nil
 }
 
-// This function just needs to add the sanitize filter. If extauth has been configured in the settings,
-// the ext_authz will already have been created by the extauth plugin in OS Gloo.
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 
+	// Configure ext_authz http filters
+	stagedFilters, err := extauth.BuildStagedHttpFilters(func() ([]*envoyauth.ExtAuthz, error) {
+		return p.extAuthzConfigGenerator.GenerateListenerExtAuthzConfig(listener, params.Snapshot.Upstreams)
+	}, extauth.FilterStage)
+	if err != nil {
+		return nil, err
+	}
+	filters = append(filters, stagedFilters...)
+
+	// ExtAuth relies on the sanitize filter to achieve some of its functionality
+	// Add sanitize filter if a user ID header is defined in the settings
+	// or if multiple ext_authz filters are configured
 	userIdHeader := listener.GetOptions().GetExtauth().GetUserIdHeader()
 	if userIdHeader == "" {
 		userIdHeader = p.userIdHeader
 	}
 
-	// Add sanitize filter if a user ID header is defined in the settings
-	if userIdHeader != "" {
-		sanitizeConf := &Sanitize{
-			HeadersToRemove: []string{userIdHeader},
-		}
-		stagedFilter, err := plugins.NewStagedFilterWithConfig(SanitizeFilterName, sanitizeConf, sanitizeFilterStage)
+	includeCustomAuthServiceName := len(stagedFilters) >= 2
+	if userIdHeader != "" || includeCustomAuthServiceName {
+		// In the case where multiple ext_authz filters are configured, we want to be sure that at least
+		// the default filter is enabled. To ensure this, we configure the sanitize filter
+		sanitizeFilter, err := buildSanitizeFilter(userIdHeader, includeCustomAuthServiceName)
 		if err != nil {
 			return nil, err
 		}
-		filters = append(filters, stagedFilter)
+		filters = append(filters, sanitizeFilter)
 	}
 
 	return filters, nil
@@ -117,28 +122,23 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return nil
 	}
 
-	extAuthConfig := in.GetOptions().GetExtauth()
-
-	// No config was defined or explicitly disabled, disable the filter for this virtual host
-	if extAuthConfig == nil || extAuthConfig.GetDisable() {
-		return markVirtualHostNoAuth(out)
+	// Configure the sanitize filter in the case of multiple ext_authz filters
+	if p.extAuthzConfigGenerator.IsMulti() {
+		err := setVirtualHostCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		if err != nil {
+			return err
+		}
 	}
 
-	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
-	if extAuthConfig.GetConfigRef() == nil {
-		return nil
-	}
-
-	config, err := buildFilterConfig(
-		SourceTypeVirtualHost,
-		BuildVirtualHostName(params.Proxy, params.Listener, in),
-		extAuthConfig.GetConfigRef().Key(),
-	)
+	// Configure the ext_authz filter per route config
+	extAuthPerRouteConfig, err := p.extAuthzConfigGenerator.GenerateVirtualHostExtAuthzConfig(in, params)
 	if err != nil {
 		return err
 	}
-
-	return pluginutils.SetVhostPerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
+	if extAuthPerRouteConfig == nil {
+		return nil
+	}
+	return pluginutils.SetVhostPerFilterConfig(out, wellknown.HTTPExternalAuthorization, extAuthPerRouteConfig)
 }
 
 // This function generates the ext_authz TypedPerFilterConfig for this route:
@@ -152,29 +152,23 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
-	extAuthConfig := in.GetOptions().GetExtauth()
-
-	// No config was defined, just return
-	if extAuthConfig == nil {
-		return nil
+	// Configure the sanitize filter in the case of multiple ext_authz filters
+	if p.extAuthzConfigGenerator.IsMulti() {
+		err := setRouteCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Explicitly disable the filter for this route
-	if extAuthConfig.GetDisable() {
-		return markRouteNoAuth(out)
-	}
-
-	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
-	if extAuthConfig.GetConfigRef() == nil {
-		return nil
-	}
-
-	config, err := buildFilterConfig(SourceTypeRoute, "", extAuthConfig.GetConfigRef().Key())
+	// Configure the ext_authz filter per route config
+	extAuthPerRouteConfig, err := p.extAuthzConfigGenerator.GenerateRouteExtAuthzConfig(in)
 	if err != nil {
 		return err
 	}
-
-	return pluginutils.SetRoutePerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
+	if extAuthPerRouteConfig == nil {
+		return nil
+	}
+	return pluginutils.SetRoutePerFilterConfig(out, wellknown.HTTPExternalAuthorization, extAuthPerRouteConfig)
 }
 
 // This function generates the ext_authz TypedPerFilterConfig for this weightedDestination:
@@ -188,81 +182,36 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 		return nil
 	}
 
-	extAuthConfig := in.GetOptions().GetExtauth()
-
-	// No config was defined, just return
-	if extAuthConfig == nil {
-		return nil
+	// Configure the sanitize filter in the case of multiple ext_authz filters
+	if p.extAuthzConfigGenerator.IsMulti() {
+		err := setWeightedClusterCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Explicitly disable the filter for this route
-	if extAuthConfig.GetDisable() {
-		return markWeightedClusterNoAuth(out)
-	}
-
-	// No auth config ref provided, must be using custom auth (which has already been configured by open-source plugin)
-	if extAuthConfig.GetConfigRef() == nil {
-		return nil
-	}
-
-	config, err := buildFilterConfig(SourceTypeWeightedDestination, "", extAuthConfig.GetConfigRef().Key())
+	// Configure the ext_authz filter per route config
+	extAuthPerRouteConfig, err := p.extAuthzConfigGenerator.GenerateWeightedDestinationExtAuthzConfig(in)
 	if err != nil {
 		return err
 	}
-
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, config)
-}
-
-func buildFilterConfig(sourceType, sourceName, authConfigRef string) (*envoyauth.ExtAuthzPerRoute, error) {
-	requestContext, err := extauthservice.NewRequestContext(authConfigRef, sourceType, sourceName)
-	if err != nil {
-		return nil, err
+	if extAuthPerRouteConfig == nil {
+		return nil
 	}
-
-	return &envoyauth.ExtAuthzPerRoute{
-		Override: &envoyauth.ExtAuthzPerRoute_CheckSettings{
-			CheckSettings: &envoyauth.CheckSettings{
-				ContextExtensions: requestContext.ToContextExtensions(),
-			},
-		},
-	}, nil
-}
-
-func markVirtualHostNoAuth(out *envoy_config_route_v3.VirtualHost) error {
-	return pluginutils.SetVhostPerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
-}
-
-func markWeightedClusterNoAuth(out *envoy_config_route_v3.WeightedCluster_ClusterWeight) error {
-	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
-}
-
-func markRouteNoAuth(out *envoy_config_route_v3.Route) error {
-	return pluginutils.SetRoutePerFilterConfig(out, wellknown.HTTPExternalAuthorization, getNoAuthConfig())
-}
-
-func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
-	return &envoyauth.ExtAuthzPerRoute{
-		Override: &envoyauth.ExtAuthzPerRoute_Disabled{
-			Disabled: true,
-		},
-	}
+	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, extAuthPerRouteConfig)
 }
 
 func (p *Plugin) isExtAuthzFilterConfigured(listener *v1.HttpListener, upstreams v1.UpstreamList) bool {
-
 	// Call the same function called by HttpFilters to verify whether the filter was created
-	filters, err := extauth.BuildHttpFilters(p.extAuthSettings, listener, upstreams)
+	stagedFilters, err := extauth.BuildStagedHttpFilters(func() ([]*envoyauth.ExtAuthz, error) {
+		return p.extAuthzConfigGenerator.GenerateListenerExtAuthzConfig(listener, upstreams)
+	}, extauth.FilterStage)
+
 	if err != nil {
 		// If it returned an error, the filter was not configured
 		return false
 	}
 
 	// Check for a filter called "envoy.filters.http.ext_authz"
-	for _, filter := range filters {
-		if filter.HttpFilter.GetName() == wellknown.HTTPExternalAuthorization {
-			return true
-		}
-	}
-
-	return false
+	return plugins.StagedFilterListContainsName(stagedFilters, wellknown.HTTPExternalAuthorization)
 }

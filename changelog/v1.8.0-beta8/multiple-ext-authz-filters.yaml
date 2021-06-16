@@ -1,0 +1,16 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4874
+    resolvesIssue: false
+    description: >
+      Support new enterprise-only feature of configuring
+      multiple ext auth servers in Settings. Allow for configuring
+      an ext_authz filter that points to one of those servers per route.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.8.0-beta21
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.8.0-beta21

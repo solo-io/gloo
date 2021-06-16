@@ -111,6 +111,7 @@ func NewTranslatorSyncer(
 func (s *translatorSyncerExtension) Sync(
 	ctx context.Context,
 	snap *gloov1.ApiSnapshot,
+	settings *gloov1.Settings,
 	xdsCache envoycache.SnapshotCache,
 	reports reporter.ResourceReports,
 ) (string, error) {

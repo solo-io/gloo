@@ -1205,7 +1205,8 @@ proto.enterprise.gloo.solo.io.Settings.toObject = function(includeInstance, msg)
     requestBody: (f = msg.getRequestBody()) && proto.enterprise.gloo.solo.io.BufferSettings.toObject(includeInstance, f),
     clearRouteCache: jspb.Message.getFieldWithDefault(msg, 7, false),
     statusOnError: jspb.Message.getFieldWithDefault(msg, 8, 0),
-    transportApiVersion: jspb.Message.getFieldWithDefault(msg, 9, 0)
+    transportApiVersion: jspb.Message.getFieldWithDefault(msg, 9, 0),
+    statPrefix: jspb.Message.getFieldWithDefault(msg, 10, "")
   };
 
   if (includeInstance) {
@@ -1281,6 +1282,10 @@ proto.enterprise.gloo.solo.io.Settings.deserializeBinaryFromReader = function(ms
     case 9:
       var value = /** @type {!proto.enterprise.gloo.solo.io.Settings.ApiVersion} */ (reader.readEnum());
       msg.setTransportApiVersion(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStatPrefix(value);
       break;
     default:
       reader.skipField();
@@ -1375,6 +1380,13 @@ proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter = function(messag
   if (f !== 0.0) {
     writer.writeEnum(
       9,
+      f
+    );
+  }
+  f = message.getStatPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
       f
     );
   }
@@ -1584,6 +1596,21 @@ proto.enterprise.gloo.solo.io.Settings.prototype.getTransportApiVersion = functi
 /** @param {!proto.enterprise.gloo.solo.io.Settings.ApiVersion} value */
 proto.enterprise.gloo.solo.io.Settings.prototype.setTransportApiVersion = function(value) {
   jspb.Message.setProto3EnumField(this, 9, value);
+};
+
+
+/**
+ * optional string stat_prefix = 10;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.Settings.prototype.getStatPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.Settings.prototype.setStatPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
 };
 
 
@@ -2460,7 +2487,8 @@ proto.enterprise.gloo.solo.io.CustomAuth.prototype.toObject = function(opt_inclu
  */
 proto.enterprise.gloo.solo.io.CustomAuth.toObject = function(includeInstance, msg) {
   var f, obj = {
-    contextExtensionsMap: (f = msg.getContextExtensionsMap()) ? f.toObject(includeInstance, undefined) : []
+    contextExtensionsMap: (f = msg.getContextExtensionsMap()) ? f.toObject(includeInstance, undefined) : [],
+    name: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2503,6 +2531,10 @@ proto.enterprise.gloo.solo.io.CustomAuth.deserializeBinaryFromReader = function(
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2536,6 +2568,13 @@ proto.enterprise.gloo.solo.io.CustomAuth.serializeBinaryToWriter = function(mess
   if (f && f.getLength() > 0) {
     f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -2554,6 +2593,21 @@ proto.enterprise.gloo.solo.io.CustomAuth.prototype.getContextExtensionsMap = fun
 
 proto.enterprise.gloo.solo.io.CustomAuth.prototype.clearContextExtensionsMap = function() {
   this.getContextExtensionsMap().clear();
+};
+
+
+/**
+ * optional string name = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.CustomAuth.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.CustomAuth.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -5950,6 +6004,7 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     appUrl: jspb.Message.getFieldWithDefault(msg, 5, ""),
     callbackPath: jspb.Message.getFieldWithDefault(msg, 6, ""),
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
+    afterLogoutUrl: jspb.Message.getFieldWithDefault(msg, 15, ""),
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
@@ -6028,6 +6083,10 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
     case 9:
       var value = /** @type {string} */ (reader.readString());
       msg.setLogoutPath(value);
+      break;
+    case 15:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAfterLogoutUrl(value);
       break;
     case 7:
       var value = /** @type {string} */ (reader.readString());
@@ -6135,6 +6194,13 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
   if (f.length > 0) {
     writer.writeString(
       9,
+      f
+    );
+  }
+  f = message.getAfterLogoutUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      15,
       f
     );
   }
@@ -6326,6 +6392,21 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getLogoutPath = fu
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setLogoutPath = function(value) {
   jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
+/**
+ * optional string after_logout_url = 15;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getAfterLogoutUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 15, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setAfterLogoutUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 15, value);
 };
 
 
@@ -10362,6 +10443,7 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     appUrl: jspb.Message.getFieldWithDefault(msg, 5, ""),
     callbackPath: jspb.Message.getFieldWithDefault(msg, 6, ""),
     logoutPath: jspb.Message.getFieldWithDefault(msg, 9, ""),
+    afterLogoutUrl: jspb.Message.getFieldWithDefault(msg, 15, ""),
     scopesList: jspb.Message.getRepeatedField(msg, 7),
     session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
@@ -10439,6 +10521,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
     case 9:
       var value = /** @type {string} */ (reader.readString());
       msg.setLogoutPath(value);
+      break;
+    case 15:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAfterLogoutUrl(value);
       break;
     case 7:
       var value = /** @type {string} */ (reader.readString());
@@ -10545,6 +10631,13 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
   if (f.length > 0) {
     writer.writeString(
       9,
+      f
+    );
+  }
+  f = message.getAfterLogoutUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      15,
       f
     );
   }
@@ -10721,6 +10814,21 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setLogoutPath = function(value) {
   jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
+/**
+ * optional string after_logout_url = 15;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getAfterLogoutUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 15, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setAfterLogoutUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 15, value);
 };
 
 

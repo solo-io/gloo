@@ -10,6 +10,9 @@ export class Sanitize extends jspb.Message {
   setHeadersToRemoveList(value: Array<string>): void;
   addHeadersToRemove(value: string, index?: number): string;
 
+  getCustomAuthServerName(): string;
+  setCustomAuthServerName(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Sanitize.AsObject;
   static toObject(includeInstance: boolean, msg: Sanitize): Sanitize.AsObject;
@@ -23,5 +26,26 @@ export class Sanitize extends jspb.Message {
 export namespace Sanitize {
   export type AsObject = {
     headersToRemoveList: Array<string>,
+    customAuthServerName: string,
+  }
+}
+
+export class SanitizePerRoute extends jspb.Message {
+  getCustomAuthServerName(): string;
+  setCustomAuthServerName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SanitizePerRoute.AsObject;
+  static toObject(includeInstance: boolean, msg: SanitizePerRoute): SanitizePerRoute.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SanitizePerRoute, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SanitizePerRoute;
+  static deserializeBinaryFromReader(message: SanitizePerRoute, reader: jspb.BinaryReader): SanitizePerRoute;
+}
+
+export namespace SanitizePerRoute {
+  export type AsObject = {
+    customAuthServerName: string,
   }
 }

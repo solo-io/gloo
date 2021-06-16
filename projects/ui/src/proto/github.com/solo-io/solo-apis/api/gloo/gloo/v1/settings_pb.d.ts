@@ -142,6 +142,8 @@ export class SettingsSpec extends jspb.Message {
   getExtauth(): github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings | undefined;
   setExtauth(value?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings): void;
 
+  getNamedExtauthMap(): jspb.Map<string, github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings>;
+  clearNamedExtauthMap(): void;
   hasObservabilityoptions(): boolean;
   clearObservabilityoptions(): void;
   getObservabilityoptions(): SettingsSpec.ObservabilityOptions | undefined;
@@ -193,6 +195,7 @@ export namespace SettingsSpec {
     ratelimitServer?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
     rbac?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb.Settings.AsObject,
     extauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject,
+    namedExtauthMap: Array<[string, github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject]>,
     observabilityoptions?: SettingsSpec.ObservabilityOptions.AsObject,
     upstreamoptions?: UpstreamOptions.AsObject,
   }

@@ -45,6 +45,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		proxy       *gloov1.Proxy
 		apiSnapshot *gloov1.ApiSnapshot
+		settings    *gloov1.Settings
 
 		collectorFactory   *mock_collectors.MockConfigCollectorFactory
 		basic, global, crd *mock_collectors.MockConfigCollector
@@ -75,6 +76,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		apiSnapshot = &gloov1.ApiSnapshot{
 			Proxies: []*gloov1.Proxy{proxy},
 		}
+		settings = &gloov1.Settings{}
 
 		testErr = eris.New("test error")
 
@@ -285,7 +287,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
+				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
 
@@ -319,7 +321,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
+				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -358,7 +360,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
+				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -398,7 +400,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, cache, reports)
+				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
 				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
@@ -474,7 +476,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 
 			Expect(reports).To(HaveLen(0))
 
-			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, cache, make(skreporter.ResourceReports))
+			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
 			Expect(role).To(Equal(rlsyncer.RateLimitServerRole))

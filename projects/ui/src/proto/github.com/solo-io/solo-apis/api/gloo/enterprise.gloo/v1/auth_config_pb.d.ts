@@ -209,6 +209,9 @@ export class Settings extends jspb.Message {
   getTransportApiVersion(): Settings.ApiVersionMap[keyof Settings.ApiVersionMap];
   setTransportApiVersion(value: Settings.ApiVersionMap[keyof Settings.ApiVersionMap]): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -230,6 +233,7 @@ export namespace Settings {
     clearRouteCache: boolean,
     statusOnError: number,
     transportApiVersion: Settings.ApiVersionMap[keyof Settings.ApiVersionMap],
+    statPrefix: string,
   }
 
   export interface ApiVersionMap {
@@ -355,6 +359,9 @@ export namespace BufferSettings {
 export class CustomAuth extends jspb.Message {
   getContextExtensionsMap(): jspb.Map<string, string>;
   clearContextExtensionsMap(): void;
+  getName(): string;
+  setName(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CustomAuth.AsObject;
   static toObject(includeInstance: boolean, msg: CustomAuth): CustomAuth.AsObject;
@@ -368,6 +375,7 @@ export class CustomAuth extends jspb.Message {
 export namespace CustomAuth {
   export type AsObject = {
     contextExtensionsMap: Array<[string, string]>,
+    name: string,
   }
 }
 
@@ -872,6 +880,9 @@ export class OidcAuthorizationCode extends jspb.Message {
   getLogoutPath(): string;
   setLogoutPath(value: string): void;
 
+  getAfterLogoutUrl(): string;
+  setAfterLogoutUrl(value: string): void;
+
   clearScopesList(): void;
   getScopesList(): Array<string>;
   setScopesList(value: Array<string>): void;
@@ -922,6 +933,7 @@ export namespace OidcAuthorizationCode {
     appUrl: string,
     callbackPath: string,
     logoutPath: string,
+    afterLogoutUrl: string,
     scopesList: Array<string>,
     session?: UserSession.AsObject,
     headers?: HeaderConfiguration.AsObject,
@@ -1498,6 +1510,9 @@ export namespace ExtAuthConfig {
     getLogoutPath(): string;
     setLogoutPath(value: string): void;
 
+    getAfterLogoutUrl(): string;
+    setAfterLogoutUrl(value: string): void;
+
     clearScopesList(): void;
     getScopesList(): Array<string>;
     setScopesList(value: Array<string>): void;
@@ -1548,6 +1563,7 @@ export namespace ExtAuthConfig {
       appUrl: string,
       callbackPath: string,
       logoutPath: string,
+      afterLogoutUrl: string,
       scopesList: Array<string>,
       session?: UserSession.AsObject,
       headers?: HeaderConfiguration.AsObject,
