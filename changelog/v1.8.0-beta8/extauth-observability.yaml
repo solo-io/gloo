@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Add histogram and heatmap for `grpc_io_server_server_latency_bucket` to extauth and 
+      separate extauth dashboard from generic upstream dashboard.
+    issueLink: https://github.com/solo-io/gloo/issues/4799
+    resolvesIssue: true

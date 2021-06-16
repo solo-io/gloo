@@ -1,0 +1,377 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Extauth monitoring and metrics. ",
+  "editable": true,
+  "graphTooltip": 0,
+  "uid": "extauth",
+  "id": null,
+  "links": [],
+  "timezone": "",
+  "title": "Extauth Dashboard",
+  "version": 4,
+  "panels": [
+    {
+      "datasource": "gloo",
+      "type": "graph",
+      "title": "Authorization Check GRPC Latency Quantiles",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "id": 1,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le))"
+        }
+      ],
+      "options": {
+        "dataLinks": []
+      },
+      "renderer": "flot",
+      "yaxes": [
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "ms"
+        },
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "show": true,
+        "mode": "time",
+        "name": null,
+        "values": [],
+        "buckets": null
+      },
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      },
+      "lines": true,
+      "fill": 1,
+      "fillGradient": 0,
+      "linewidth": 1,
+      "dashes": false,
+      "hiddenSeries": false,
+      "dashLength": 10,
+      "spaceLength": 10,
+      "points": false,
+      "pointradius": 2,
+      "bars": false,
+      "stack": false,
+      "percentage": false,
+      "legend": {
+        "show": true,
+        "values": false,
+        "min": false,
+        "max": false,
+        "current": false,
+        "total": false,
+        "avg": false
+      },
+      "nullPointMode": "null",
+      "steppedLine": false,
+      "tooltip": {
+        "value_type": "individual",
+        "shared": true,
+        "sort": 0
+      },
+      "timeFrom": null,
+      "timeShift": null,
+      "aliasColors": {},
+      "seriesOverrides": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "description": "This chart shows grpc latency quantiles for extauth in measurements of P99, P95 and P50."
+    },
+    {
+      "datasource": "gloo",
+      "type": "heatmap",
+      "title": "Authorization Check GRPC Latency Heatmap",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "id": 2,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"envoy.service.auth.v3.Authorization/Check\"}[1m])) by (le)",
+          "legendFormat": "\u007B\u007B le \u007D\u007D",
+          "format": "heatmap"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "options": {},
+      "heatmap": {},
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "mode": "spectrum",
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "exponent": 0.5,
+        "colorScheme": "interpolateSpectral"
+      },
+      "legend": {
+        "show": true
+      },
+      "dataFormat": "tsbuckets",
+      "yBucketBound": "auto",
+      "reverseYBuckets": false,
+      "xAxis": {
+        "show": true
+      },
+      "yAxis": {
+        "show": true,
+        "format": "ms",
+        "decimals": null,
+        "logBase": 1,
+        "splitFactor": null,
+        "min": null,
+        "max": null
+      },
+      "xBucketSize": null,
+      "xBucketNumber": null,
+      "yBucketSize": null,
+      "yBucketNumber": null,
+      "tooltip": {
+        "show": true,
+        "showHistogram": true
+      },
+      "highlightCards": true,
+      "hideZeroBuckets": true,
+      "description": "Displays the extauth grpc latency calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers."
+    },
+    {
+      "datasource": "gloo",
+      "type": "heatmap",
+      "title": "Health Check GRPC Latency Heatmap",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "id": 3,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le)",
+          "legendFormat": "\u007B\u007B le \u007D\u007D",
+          "format": "heatmap"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "options": {},
+      "heatmap": {},
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "mode": "spectrum",
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "exponent": 0.5,
+        "colorScheme": "interpolateSpectral"
+      },
+      "legend": {
+        "show": true
+      },
+      "dataFormat": "tsbuckets",
+      "yBucketBound": "auto",
+      "reverseYBuckets": false,
+      "xAxis": {
+        "show": true
+      },
+      "yAxis": {
+        "show": true,
+        "format": "ms",
+        "decimals": null,
+        "logBase": 1,
+        "splitFactor": null,
+        "min": null,
+        "max": null
+      },
+      "xBucketSize": null,
+      "xBucketNumber": null,
+      "yBucketSize": null,
+      "yBucketNumber": null,
+      "tooltip": {
+        "show": true,
+        "showHistogram": true
+      },
+      "highlightCards": true,
+      "hideZeroBuckets": true,
+      "description": "Displays the extauth grpc latency calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers."
+    },
+    {
+      "datasource": "gloo",
+      "type": "graph",
+      "title": "Health Check GRPC Latency Quantiles",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "id": 4,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.99, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.5, sum(rate(grpc_io_server_server_latency_bucket{ grpc_server_method=\"grpc.health.v1.Health/Check\"}[1m])) by (le))"
+        }
+      ],
+      "options": {
+        "dataLinks": []
+      },
+      "renderer": "flot",
+      "yaxes": [
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "ms"
+        },
+        {
+          "label": null,
+          "show": true,
+          "logBase": 1,
+          "min": null,
+          "max": null,
+          "format": "short"
+        }
+      ],
+      "xaxis": {
+        "show": true,
+        "mode": "time",
+        "name": null,
+        "values": [],
+        "buckets": null
+      },
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      },
+      "lines": true,
+      "fill": 1,
+      "fillGradient": 0,
+      "linewidth": 1,
+      "dashes": false,
+      "hiddenSeries": false,
+      "dashLength": 10,
+      "spaceLength": 10,
+      "points": false,
+      "pointradius": 2,
+      "bars": false,
+      "stack": false,
+      "percentage": false,
+      "legend": {
+        "show": true,
+        "values": false,
+        "min": false,
+        "max": false,
+        "current": false,
+        "total": false,
+        "avg": false
+      },
+      "nullPointMode": "null",
+      "steppedLine": false,
+      "tooltip": {
+        "value_type": "individual",
+        "shared": true,
+        "sort": 0
+      },
+      "timeFrom": null,
+      "timeShift": null,
+      "aliasColors": {},
+      "seriesOverrides": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "description": "This chart shows grpc latency quantiles for extauth in measurements of P99, P95 and P50."
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 16,
+  "style": "dark",
+  "tags": ["gloo", "dynamic"],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  }
+}
