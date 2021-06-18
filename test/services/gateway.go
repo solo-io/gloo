@@ -171,12 +171,14 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 
 	return translator.Opts{
-		WriteNamespace:  ns,
-		WatchNamespaces: []string{"default", ns},
-		Gateways:        f,
-		VirtualServices: f,
-		Proxies:         f,
-		RouteTables:     f,
+		WriteNamespace:     ns,
+		WatchNamespaces:    []string{"default", ns},
+		Gateways:           f,
+		VirtualServices:    f,
+		Proxies:            f,
+		RouteTables:        f,
+		RouteOptions:       f,
+		VirtualHostOptions: f,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,

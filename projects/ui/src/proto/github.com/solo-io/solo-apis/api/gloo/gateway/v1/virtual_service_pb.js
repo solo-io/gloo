@@ -22,6 +22,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_proxy_pb = require('../../../.
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.DelegateAction', null, global);
+goog.exportSymbol('proto.gateway.solo.io.DelegateOptionsRefs', null, global);
 goog.exportSymbol('proto.gateway.solo.io.Route', null, global);
 goog.exportSymbol('proto.gateway.solo.io.RouteTableSelector', null, global);
 goog.exportSymbol('proto.gateway.solo.io.RouteTableSelector.Expression', null, global);
@@ -272,7 +273,7 @@ proto.gateway.solo.io.VirtualServiceSpec.prototype.setDisplayName = function(val
  * @constructor
  */
 proto.gateway.solo.io.VirtualHost = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.VirtualHost.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.VirtualHost.repeatedFields_, proto.gateway.solo.io.VirtualHost.oneofGroups_);
 };
 goog.inherits(proto.gateway.solo.io.VirtualHost, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -284,6 +285,31 @@ if (goog.DEBUG && !COMPILED) {
  * @const
  */
 proto.gateway.solo.io.VirtualHost.repeatedFields_ = [2,3];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gateway.solo.io.VirtualHost.oneofGroups_ = [[5]];
+
+/**
+ * @enum {number}
+ */
+proto.gateway.solo.io.VirtualHost.ExternalOptionsConfigCase = {
+  EXTERNAL_OPTIONS_CONFIG_NOT_SET: 0,
+  OPTIONS_CONFIG_REFS: 5
+};
+
+/**
+ * @return {proto.gateway.solo.io.VirtualHost.ExternalOptionsConfigCase}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.getExternalOptionsConfigCase = function() {
+  return /** @type {proto.gateway.solo.io.VirtualHost.ExternalOptionsConfigCase} */(jspb.Message.computeOneofCase(this, proto.gateway.solo.io.VirtualHost.oneofGroups_[0]));
+};
 
 
 
@@ -317,7 +343,8 @@ proto.gateway.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
     domainsList: jspb.Message.getRepeatedField(msg, 2),
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gateway.solo.io.Route.toObject, includeInstance),
-    options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.toObject(includeInstance, f)
+    options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.toObject(includeInstance, f),
+    optionsConfigRefs: (f = msg.getOptionsConfigRefs()) && proto.gateway.solo.io.DelegateOptionsRefs.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -367,6 +394,11 @@ proto.gateway.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, re
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.deserializeBinaryFromReader);
       msg.setOptions(value);
+      break;
+    case 5:
+      var value = new proto.gateway.solo.io.DelegateOptionsRefs;
+      reader.readMessage(value,proto.gateway.solo.io.DelegateOptionsRefs.deserializeBinaryFromReader);
+      msg.setOptionsConfigRefs(value);
       break;
     default:
       reader.skipField();
@@ -418,6 +450,14 @@ proto.gateway.solo.io.VirtualHost.serializeBinaryToWriter = function(message, wr
       4,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getOptionsConfigRefs();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.gateway.solo.io.DelegateOptionsRefs.serializeBinaryToWriter
     );
   }
 };
@@ -513,6 +553,36 @@ proto.gateway.solo.io.VirtualHost.prototype.hasOptions = function() {
 };
 
 
+/**
+ * optional DelegateOptionsRefs options_config_refs = 5;
+ * @return {?proto.gateway.solo.io.DelegateOptionsRefs}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.getOptionsConfigRefs = function() {
+  return /** @type{?proto.gateway.solo.io.DelegateOptionsRefs} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.DelegateOptionsRefs, 5));
+};
+
+
+/** @param {?proto.gateway.solo.io.DelegateOptionsRefs|undefined} value */
+proto.gateway.solo.io.VirtualHost.prototype.setOptionsConfigRefs = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.gateway.solo.io.VirtualHost.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.VirtualHost.prototype.clearOptionsConfigRefs = function() {
+  this.setOptionsConfigRefs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.VirtualHost.prototype.hasOptionsConfigRefs = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -546,7 +616,7 @@ proto.gateway.solo.io.Route.repeatedFields_ = [1];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gateway.solo.io.Route.oneofGroups_ = [[2,3,4,5]];
+proto.gateway.solo.io.Route.oneofGroups_ = [[2,3,4,5],[10]];
 
 /**
  * @enum {number}
@@ -564,6 +634,21 @@ proto.gateway.solo.io.Route.ActionCase = {
  */
 proto.gateway.solo.io.Route.prototype.getActionCase = function() {
   return /** @type {proto.gateway.solo.io.Route.ActionCase} */(jspb.Message.computeOneofCase(this, proto.gateway.solo.io.Route.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.gateway.solo.io.Route.ExternalOptionsConfigCase = {
+  EXTERNAL_OPTIONS_CONFIG_NOT_SET: 0,
+  OPTIONS_CONFIG_REFS: 10
+};
+
+/**
+ * @return {proto.gateway.solo.io.Route.ExternalOptionsConfigCase}
+ */
+proto.gateway.solo.io.Route.prototype.getExternalOptionsConfigCase = function() {
+  return /** @type {proto.gateway.solo.io.Route.ExternalOptionsConfigCase} */(jspb.Message.computeOneofCase(this, proto.gateway.solo.io.Route.oneofGroups_[1]));
 };
 
 
@@ -604,7 +689,8 @@ proto.gateway.solo.io.Route.toObject = function(includeInstance, msg) {
     directResponseAction: (f = msg.getDirectResponseAction()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_proxy_pb.DirectResponseAction.toObject(includeInstance, f),
     delegateAction: (f = msg.getDelegateAction()) && proto.gateway.solo.io.DelegateAction.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions.toObject(includeInstance, f),
-    name: jspb.Message.getFieldWithDefault(msg, 7, "")
+    name: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    optionsConfigRefs: (f = msg.getOptionsConfigRefs()) && proto.gateway.solo.io.DelegateOptionsRefs.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -684,6 +770,11 @@ proto.gateway.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) 
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.setName(value);
+      break;
+    case 10:
+      var value = new proto.gateway.solo.io.DelegateOptionsRefs;
+      reader.readMessage(value,proto.gateway.solo.io.DelegateOptionsRefs.deserializeBinaryFromReader);
+      msg.setOptionsConfigRefs(value);
       break;
     default:
       reader.skipField();
@@ -783,6 +874,14 @@ proto.gateway.solo.io.Route.serializeBinaryToWriter = function(message, writer) 
     writer.writeString(
       7,
       f
+    );
+  }
+  f = message.getOptionsConfigRefs();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      proto.gateway.solo.io.DelegateOptionsRefs.serializeBinaryToWriter
     );
   }
 };
@@ -1041,6 +1140,204 @@ proto.gateway.solo.io.Route.prototype.getName = function() {
 /** @param {string} value */
 proto.gateway.solo.io.Route.prototype.setName = function(value) {
   jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional DelegateOptionsRefs options_config_refs = 10;
+ * @return {?proto.gateway.solo.io.DelegateOptionsRefs}
+ */
+proto.gateway.solo.io.Route.prototype.getOptionsConfigRefs = function() {
+  return /** @type{?proto.gateway.solo.io.DelegateOptionsRefs} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.DelegateOptionsRefs, 10));
+};
+
+
+/** @param {?proto.gateway.solo.io.DelegateOptionsRefs|undefined} value */
+proto.gateway.solo.io.Route.prototype.setOptionsConfigRefs = function(value) {
+  jspb.Message.setOneofWrapperField(this, 10, proto.gateway.solo.io.Route.oneofGroups_[1], value);
+};
+
+
+proto.gateway.solo.io.Route.prototype.clearOptionsConfigRefs = function() {
+  this.setOptionsConfigRefs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.Route.prototype.hasOptionsConfigRefs = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gateway.solo.io.DelegateOptionsRefs = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.DelegateOptionsRefs.repeatedFields_, null);
+};
+goog.inherits(proto.gateway.solo.io.DelegateOptionsRefs, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gateway.solo.io.DelegateOptionsRefs.displayName = 'proto.gateway.solo.io.DelegateOptionsRefs';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.toObject = function(opt_includeInstance) {
+  return proto.gateway.solo.io.DelegateOptionsRefs.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gateway.solo.io.DelegateOptionsRefs} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    delegateOptionsList: jspb.Message.toObjectList(msg.getDelegateOptionsList(),
+    github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gateway.solo.io.DelegateOptionsRefs}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gateway.solo.io.DelegateOptionsRefs;
+  return proto.gateway.solo.io.DelegateOptionsRefs.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gateway.solo.io.DelegateOptionsRefs} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gateway.solo.io.DelegateOptionsRefs}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.addDelegateOptions(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gateway.solo.io.DelegateOptionsRefs.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gateway.solo.io.DelegateOptionsRefs} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getDelegateOptionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated core.solo.io.ResourceRef delegate_options = 1;
+ * @return {!Array<!proto.core.solo.io.ResourceRef>}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.getDelegateOptionsList = function() {
+  return /** @type{!Array<!proto.core.solo.io.ResourceRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {!Array<!proto.core.solo.io.ResourceRef>} value */
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.setDelegateOptionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.core.solo.io.ResourceRef=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.core.solo.io.ResourceRef}
+ */
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.addDelegateOptions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.core.solo.io.ResourceRef, opt_index);
+};
+
+
+proto.gateway.solo.io.DelegateOptionsRefs.prototype.clearDelegateOptionsList = function() {
+  this.setDelegateOptionsList([]);
 };
 
 

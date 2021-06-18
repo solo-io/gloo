@@ -842,7 +842,9 @@ proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.toObject = function(op
 proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     portValue: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    hostname: jspb.Message.getFieldWithDefault(msg, 2, "")
+    hostname: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    path: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    method: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -887,6 +889,14 @@ proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.deserializeBinaryFromReader = fu
       var value = /** @type {string} */ (reader.readString());
       msg.setHostname(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPath(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMethod(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -930,6 +940,20 @@ proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.serializeBinaryToWriter = functi
       f
     );
   }
+  f = message.getPath();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getMethod();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -960,6 +984,36 @@ proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.getHostname = function
 /** @param {string} value */
 proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.setHostname = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string path = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.getPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.setPath = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string method = 4;
+ * @return {string}
+ */
+proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.getMethod = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.prototype.setMethod = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

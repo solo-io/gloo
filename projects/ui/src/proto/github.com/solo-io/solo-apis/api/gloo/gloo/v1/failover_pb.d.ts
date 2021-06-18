@@ -133,6 +133,12 @@ export namespace LbEndpoint {
     getHostname(): string;
     setHostname(value: string): void;
 
+    getPath(): string;
+    setPath(value: string): void;
+
+    getMethod(): string;
+    setMethod(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): HealthCheckConfig.AsObject;
     static toObject(includeInstance: boolean, msg: HealthCheckConfig): HealthCheckConfig.AsObject;
@@ -147,6 +153,8 @@ export namespace LbEndpoint {
     export type AsObject = {
       portValue: number,
       hostname: string,
+      path: string,
+      method: string,
     }
   }
 }

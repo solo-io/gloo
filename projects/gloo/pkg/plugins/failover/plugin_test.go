@@ -44,13 +44,6 @@ var _ = Describe("Failover", func() {
 
 		apiEmitNotificationChan chan struct{}
 
-		sslEndpoint = &gloov1.LbEndpoint{
-			Address: "ssl.address.who.dis",
-			Port:    10101,
-			UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-				Sni: "test",
-			},
-		}
 		tlsContext = &envoytls.UpstreamTlsContext{
 			Sni: "test",
 		}
@@ -60,70 +53,12 @@ var _ = Describe("Failover", func() {
 		ipAddr2 = net.IPAddr{
 			IP: net.IPv4(10, 0, 0, 2),
 		}
-		httpEndpoint = &gloov1.LbEndpoint{
-			Address: "127.0.0.1",
-			Port:    10101,
-			HealthCheckConfig: &gloov1.LbEndpoint_HealthCheckConfig{
-				PortValue: 9090,
-				Hostname:  "new.host.who.dis",
-			},
-			LoadBalancingWeight: &wrappers.UInt32Value{
-				Value: 9999,
-			},
-		}
+		upstream     *gloov1.Upstream
+		httpEndpoint *gloov1.LbEndpoint
+		sslEndpoint  *gloov1.LbEndpoint
 
-		upstream = &gloov1.Upstream{
-			HealthChecks: []*core.HealthCheck{{}},
-			Failover: &gloov1.Failover{
-				PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
-					{
-						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
-							{
-								Locality: &gloov1.Locality{
-									Region:  "p1_region",
-									Zone:    "p1_zone",
-									SubZone: "p1_sub_zone",
-								},
-								LbEndpoints: []*gloov1.LbEndpoint{
-									sslEndpoint,
-								},
-								LoadBalancingWeight: &wrappers.UInt32Value{
-									Value: 8888,
-								},
-							},
-						},
-					},
-					{
-						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
-							{
-								Locality: &gloov1.Locality{
-									Region:  "p2_region",
-									Zone:    "p2_zone",
-									SubZone: "p2_sub_zone",
-								},
-								LbEndpoints: []*gloov1.LbEndpoint{
-									httpEndpoint,
-								},
-								LoadBalancingWeight: &wrappers.UInt32Value{
-									Value: 7777,
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-
-		uniqueName    = failover.PrioritizedEndpointName(sslEndpoint.GetAddress(), sslEndpoint.GetPort(), 1, 0)
-		metadataMatch = &structpb.Struct{
-			Fields: map[string]*structpb.Value{
-				uniqueName: {
-					Kind: &structpb.Value_BoolValue{
-						BoolValue: true,
-					},
-				},
-			},
-		}
+		uniqueName    string
+		metadataMatch *structpb.Struct
 
 		buildExpectedCluster = func() *envoy_config_cluster_v3.Cluster {
 			anyCfg, err := utils.MessageToAny(tlsContext)
@@ -176,6 +111,78 @@ var _ = Describe("Failover", func() {
 		sslTranslator = mock_utils.NewMockSslConfigTranslator(ctrl)
 		dnsResolver = mock_consul.NewMockDnsResolver(ctrl)
 		apiEmitNotificationChan = make(chan struct{})
+
+		httpEndpoint = &gloov1.LbEndpoint{
+			Address: "127.0.0.1",
+			Port:    10101,
+			HealthCheckConfig: &gloov1.LbEndpoint_HealthCheckConfig{
+				PortValue: 9090,
+				Hostname:  "new.host.who.dis",
+			},
+			LoadBalancingWeight: &wrappers.UInt32Value{
+				Value: 9999,
+			},
+		}
+
+		sslEndpoint = &gloov1.LbEndpoint{
+			Address: "ssl.address.who.dis",
+			Port:    10101,
+			UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+				Sni: "test",
+			},
+		}
+
+		upstream = &gloov1.Upstream{
+			HealthChecks: []*core.HealthCheck{{}},
+			Failover: &gloov1.Failover{
+				PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+					{
+						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+							{
+								Locality: &gloov1.Locality{
+									Region:  "p1_region",
+									Zone:    "p1_zone",
+									SubZone: "p1_sub_zone",
+								},
+								LbEndpoints: []*gloov1.LbEndpoint{
+									sslEndpoint,
+								},
+								LoadBalancingWeight: &wrappers.UInt32Value{
+									Value: 8888,
+								},
+							},
+						},
+					},
+					{
+						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+							{
+								Locality: &gloov1.Locality{
+									Region:  "p2_region",
+									Zone:    "p2_zone",
+									SubZone: "p2_sub_zone",
+								},
+								LbEndpoints: []*gloov1.LbEndpoint{
+									httpEndpoint,
+								},
+								LoadBalancingWeight: &wrappers.UInt32Value{
+									Value: 7777,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		uniqueName = failover.PrioritizedEndpointName(sslEndpoint.GetAddress(), sslEndpoint.GetPort(), 1, 0)
+		metadataMatch = &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				uniqueName: {
+					Kind: &structpb.Value_BoolValue{
+						BoolValue: true,
+					},
+				},
+			},
+		}
 	})
 
 	AfterEach(func() {
@@ -482,6 +489,63 @@ var _ = Describe("Failover", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cluster).To(matchers.MatchProto(expectedCluster))
 		Expect(endpoints).To(matchers.MatchProto(expected))
+	})
+
+	It("will set endpoint metadata for advanced http check if path and/or method is set on upstream failover healthcheck", func() {
+
+		secretList := gloov1.SecretList{{}}
+		sslTranslator.EXPECT().
+			ResolveUpstreamSslConfig(secretList, sslEndpoint.GetUpstreamSslConfig()).
+			Return(tlsContext, nil)
+
+		dnsResolver.EXPECT().Resolve(gomock.Any(), sslEndpoint.GetAddress()).Return([]net.IPAddr{ipAddr1, ipAddr2}, nil)
+
+		cluster := &envoy_config_cluster_v3.Cluster{}
+		cluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
+		}
+		expectedCluster := buildExpectedCluster()
+		expectedCluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
+			Type: envoy_config_cluster_v3.Cluster_EDS,
+		}
+		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
+			EdsConfig: &envoy_config_core_v3.ConfigSource{
+				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
+					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
+						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
+						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
+						ClusterNames:        []string{defaults.GlooRestXdsName},
+						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
+						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
+					},
+				},
+			},
+		}
+
+		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
+		params := plugins.Params{
+			Ctx: ctx,
+			Snapshot: &gloov1.ApiSnapshot{
+				Secrets: secretList,
+			},
+		}
+		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
+		upstream.Failover.PrioritizedLocalities[0].LocalityEndpoints[0].LbEndpoints[0].HealthCheckConfig = &gloov1.LbEndpoint_HealthCheckConfig{
+			Path:   "some/path/1",
+			Method: "POST",
+		}
+		err := runPlugin(plugin, params, upstream, cluster, endpoints)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cluster).To(matchers.MatchProto(expectedCluster))
+		filterMetadata := endpoints.GetEndpoints()[0].GetLbEndpoints()[0].GetMetadata().GetFilterMetadata()
+		Expect(filterMetadata).To(HaveKey(static.AdvancedHttpCheckerName))
+		fields := filterMetadata[static.AdvancedHttpCheckerName].GetFields()
+		Expect(fields).To(HaveKey(static.PathFieldName))
+		Expect(fields[static.PathFieldName].GetStringValue()).To(Equal("some/path/1"))
+		Expect(fields).To(HaveKey(static.MethodFieldName))
+		Expect(fields[static.MethodFieldName].GetStringValue()).To(Equal("POST"))
 	})
 
 	It("force emits when a DNS resolution changes", func() {

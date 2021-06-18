@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -266,17 +268,18 @@ func (f *failoverPluginImpl) GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 				v.GetPort(),
 				v.GetLoadBalancingWeight(),
 				addr.String(),
-				v.GetHealthCheckConfig()),
-			)
+				v.GetHealthCheckConfig(),
+			))
 		} else {
 			if strictDns {
+
 				resolvedIPLBEndpoints = append(resolvedIPLBEndpoints, buildLbEndpoint(
 					v.GetAddress(),
 					v.GetPort(),
 					v.GetLoadBalancingWeight(),
 					v.GetAddress(),
-					v.GetHealthCheckConfig()),
-				)
+					v.GetHealthCheckConfig(),
+				))
 			} else {
 				// the address is not an IP, need to do a DnsLookup
 				var ips []net.IPAddr
@@ -305,8 +308,8 @@ func (f *failoverPluginImpl) GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 						v.GetPort(),
 						nil,
 						v.GetAddress(),
-						v.GetHealthCheckConfig()),
-					)
+						v.GetHealthCheckConfig(),
+					))
 				}
 
 				// Add address into list of addresses that should be watched for DNS changes
@@ -357,14 +360,15 @@ func (f *failoverPluginImpl) GlooLocalityLbEndpointToEnvoyLocalityLbEndpoint(
 					},
 				},
 			})
-			// Set the match criteria for the transport socket match on the endpoint
-
 			for i := range resolvedIPLBEndpoints {
-				resolvedIPLBEndpoints[i].Metadata = &envoy_config_core_v3.Metadata{
+				// Set the match criteria for the transport socket match on the endpoint
+				transportSocketMetadata := &envoy_config_core_v3.Metadata{
 					FilterMetadata: map[string]*structpb.Struct{
 						TransportSocketMatchKey: metadataMatch,
 					},
 				}
+				resolvedIPLBEndpoints[i].Metadata = mergeEnvoyMetadata(
+					resolvedIPLBEndpoints[i].GetMetadata(), transportSocketMetadata)
 			}
 		}
 		lbEndpoints = append(lbEndpoints, resolvedIPLBEndpoints...)
@@ -387,12 +391,22 @@ func buildLbEndpoint(
 	envoyHc := &envoy_config_endpoint_v3.Endpoint_HealthCheckConfig{
 		Hostname: hostname,
 	}
+	var endpointMetadata *envoy_config_core_v3.Metadata
 	if hcConfig != nil {
 		envoyHc.Hostname = hcConfig.GetHostname()
 		envoyHc.PortValue = hcConfig.GetPortValue()
+		if hcConfig.GetPath() != "" || hcConfig.GetMethod() != "" {
+			filterMetadata := map[string]*structpb.Struct{}
+			setAdvancedHttpCheckMetadata(filterMetadata, hcConfig.GetPath(), static.PathFieldName)
+			setAdvancedHttpCheckMetadata(filterMetadata, hcConfig.GetMethod(), static.MethodFieldName)
+			endpointMetadata = &envoy_config_core_v3.Metadata{
+				FilterMetadata: filterMetadata,
+			}
+		}
 	}
 
 	return &envoy_config_endpoint_v3.LbEndpoint{
+		Metadata: endpointMetadata,
 		HostIdentifier: &envoy_config_endpoint_v3.LbEndpoint_Endpoint{
 			Endpoint: &envoy_config_endpoint_v3.Endpoint{
 				Hostname:          hostname,
@@ -483,4 +497,38 @@ func (f *failoverPluginImpl) buildFailoverEndpointHash(ctx context.Context) uint
 		}
 	}
 	return hashutils.MustHash(dnsResolutions)
+}
+
+func setAdvancedHttpCheckMetadata(filterMetadata map[string]*structpb.Struct, val string, fieldName string) {
+	if val != "" {
+		if _, ok := filterMetadata[static.AdvancedHttpCheckerName]; !ok {
+			filterMetadata[static.AdvancedHttpCheckerName] = &structpb.Struct{
+				Fields: map[string]*structpb.Value{},
+			}
+		}
+		filterMetadata[static.AdvancedHttpCheckerName].Fields[fieldName] = &structpb.Value{
+			Kind: &structpb.Value_StringValue{
+				StringValue: val,
+			},
+		}
+	}
+}
+
+// Merges src metadata into dest metadata
+// Will overwrite keys in dest filterMetadata
+func mergeEnvoyMetadata(dest *envoy_config_core_v3.Metadata, src *envoy_config_core_v3.Metadata) *envoy_config_core_v3.Metadata {
+	merged := &envoy_config_core_v3.Metadata{
+		FilterMetadata: map[string]*structpb.Struct{},
+	}
+	if src != nil {
+		for k, v := range src.GetFilterMetadata() {
+			merged.FilterMetadata[k] = v
+		}
+	}
+	if dest != nil {
+		for k, v := range dest.GetFilterMetadata() {
+			merged.FilterMetadata[k] = v
+		}
+	}
+	return merged
 }

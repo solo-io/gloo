@@ -60,6 +60,19 @@ func shouldProcess(in *gloov1.Upstream) bool {
 			return true
 		}
 	}
+	// do this for failover endpoints that have custom health path and/or method defined
+	for _, priority := range in.GetFailover().GetPrioritizedLocalities() {
+		for _, localityEndpoints := range priority.GetLocalityEndpoints() {
+			for _, endpoint := range localityEndpoints.GetLbEndpoints() {
+				if endpoint.GetHealthCheckConfig().GetPath() != "" {
+					return true
+				}
+				if endpoint.GetHealthCheckConfig().GetMethod() != "" {
+					return true
+				}
+			}
+		}
+	}
 	for _, hc := range in.GetHealthChecks() {
 		if hc.GetHttpHealthCheck().GetResponseAssertions() != nil {
 			return true

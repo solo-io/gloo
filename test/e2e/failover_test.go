@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
+
 	"github.com/golang/protobuf/ptypes/empty"
 
 	"github.com/fgrosse/zaptest"
@@ -241,6 +243,102 @@ var _ = Describe("Failover", func() {
 				if envoyInstance != nil {
 					envoyInstance.Clean()
 				}
+			})
+
+			It("Will use health check path specified on failover endpoint", func() {
+				unhealthyCtx, unhealthyCancel := context.WithCancel(context.Background())
+
+				secret := helpers.GetKubeSecret("tls", "gloo-system")
+				glooSecret, err := (&kubeconverters.TLSSecretConverter{}).FromKubeSecret(ctx, nil, secret)
+				_, err = testClients.SecretClient.Write(glooSecret.(*gloov1.Secret), clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				testUpstream = v1helpers.NewTestHttpUpstreamWithReply(unhealthyCtx, envoyInstance.LocalAddr(), "hello")
+				testUpstream2 := v1helpers.NewTestHttpsUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "world")
+				testUpstream.Upstream.HealthChecks = []*corev2.HealthCheck{
+					{
+						HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
+							HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
+								Path: "/health",
+								ResponseAssertions: &advanced_http.ResponseAssertions{
+									ResponseMatchers: []*advanced_http.ResponseMatcher{
+										{
+											ResponseMatch: &advanced_http.ResponseMatch{
+												Regex: "OK",
+											},
+										},
+									},
+								},
+							},
+						},
+						HealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						UnhealthyThreshold: &wrappers.UInt32Value{
+							Value: 1,
+						},
+						NoTrafficInterval: ptypes.DurationProto(time.Second / 2),
+						Timeout:           ptypes.DurationProto(timeout),
+						Interval:          ptypes.DurationProto(timeout),
+					},
+				}
+				testUpstream.Upstream.Failover = &gloov1.Failover{
+					PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
+						{
+							LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*gloov1.LbEndpoint{
+										{
+											HealthCheckConfig: &gloov1.LbEndpoint_HealthCheckConfig{
+												Path:   "/lbendpointhealth",
+												Method: "POST",
+											},
+											Address: envoyInstance.LocalAddr(),
+											Port:    testUpstream2.Port,
+											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+													SecretRef: &core.ResourceRef{
+														Name:      "tls",
+														Namespace: "gloo-system",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				_, err = testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				proxy := simpleProxy(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+				EventuallyWithOffset(1, func() (core.Status, error) {
+					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+					if proxy.Status == nil {
+						return core.Status{}, nil
+					}
+					return *proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+
+				testRequestReturns("hello")
+				unhealthyCancel()
+				// Ensure that testUpstream2 recieved a health check request at the failover-config endpoint
+				r := <-testUpstream2.C
+				Expect(r.Method).To(Equal("POST"))
+				Expect(r.URL.Path).To(Equal("/lbendpointhealth"))
+				testRequestReturns("world")
 			})
 
 			It("Will failover to testUpstream2 when the first is unhealthy", func() {

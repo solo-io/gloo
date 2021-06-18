@@ -61,6 +61,12 @@ export class VirtualHost extends jspb.Message {
   getOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions | undefined;
   setOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions): void;
 
+  hasOptionsConfigRefs(): boolean;
+  clearOptionsConfigRefs(): void;
+  getOptionsConfigRefs(): DelegateOptionsRefs | undefined;
+  setOptionsConfigRefs(value?: DelegateOptionsRefs): void;
+
+  getExternalOptionsConfigCase(): VirtualHost.ExternalOptionsConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHost.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHost): VirtualHost.AsObject;
@@ -76,6 +82,12 @@ export namespace VirtualHost {
     domainsList: Array<string>,
     routesList: Array<Route.AsObject>,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.AsObject,
+    optionsConfigRefs?: DelegateOptionsRefs.AsObject,
+  }
+
+  export enum ExternalOptionsConfigCase {
+    EXTERNAL_OPTIONS_CONFIG_NOT_SET = 0,
+    OPTIONS_CONFIG_REFS = 5,
   }
 }
 
@@ -123,7 +135,13 @@ export class Route extends jspb.Message {
   getName(): string;
   setName(value: string): void;
 
+  hasOptionsConfigRefs(): boolean;
+  clearOptionsConfigRefs(): void;
+  getOptionsConfigRefs(): DelegateOptionsRefs | undefined;
+  setOptionsConfigRefs(value?: DelegateOptionsRefs): void;
+
   getActionCase(): Route.ActionCase;
+  getExternalOptionsConfigCase(): Route.ExternalOptionsConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Route.AsObject;
   static toObject(includeInstance: boolean, msg: Route): Route.AsObject;
@@ -145,6 +163,7 @@ export namespace Route {
     delegateAction?: DelegateAction.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteOptions.AsObject,
     name: string,
+    optionsConfigRefs?: DelegateOptionsRefs.AsObject,
   }
 
   export enum ActionCase {
@@ -153,6 +172,33 @@ export namespace Route {
     REDIRECT_ACTION = 3,
     DIRECT_RESPONSE_ACTION = 4,
     DELEGATE_ACTION = 5,
+  }
+
+  export enum ExternalOptionsConfigCase {
+    EXTERNAL_OPTIONS_CONFIG_NOT_SET = 0,
+    OPTIONS_CONFIG_REFS = 10,
+  }
+}
+
+export class DelegateOptionsRefs extends jspb.Message {
+  clearDelegateOptionsList(): void;
+  getDelegateOptionsList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+  setDelegateOptionsList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+  addDelegateOptions(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DelegateOptionsRefs.AsObject;
+  static toObject(includeInstance: boolean, msg: DelegateOptionsRefs): DelegateOptionsRefs.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DelegateOptionsRefs, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DelegateOptionsRefs;
+  static deserializeBinaryFromReader(message: DelegateOptionsRefs, reader: jspb.BinaryReader): DelegateOptionsRefs;
+}
+
+export namespace DelegateOptionsRefs {
+  export type AsObject = {
+    delegateOptionsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
   }
 }
 
