@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
-
 	"github.com/golang/protobuf/ptypes/empty"
 
 	"github.com/fgrosse/zaptest"
@@ -260,15 +258,6 @@ var _ = Describe("Failover", func() {
 						HealthChecker: &corev2.HealthCheck_HttpHealthCheck_{
 							HttpHealthCheck: &corev2.HealthCheck_HttpHealthCheck{
 								Path: "/health",
-								ResponseAssertions: &advanced_http.ResponseAssertions{
-									ResponseMatchers: []*advanced_http.ResponseMatcher{
-										{
-											ResponseMatch: &advanced_http.ResponseMatch{
-												Regex: "OK",
-											},
-										},
-									},
-								},
 							},
 						},
 						HealthyThreshold: &wrappers.UInt32Value{
