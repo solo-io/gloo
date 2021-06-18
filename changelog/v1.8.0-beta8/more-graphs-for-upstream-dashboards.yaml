@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Reorganize the panels in the Upstream dashboards. Adds graphs for retries, circuit breaker and HTTP codes.
+    issueLink: https://github.com/solo-io/gloo/issues/4395

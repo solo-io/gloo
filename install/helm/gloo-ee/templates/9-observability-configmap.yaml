@@ -12,9 +12,11 @@ data:
   {{- if .Values.observability.customGrafana.url}}
   GRAFANA_URL: {{.Values.observability.customGrafana.url}}
   {{- else }}
-  GRAFANA_URL: http://glooe-grafana.{{ .Release.Namespace }}.svc.cluster.local:80
+  GRAFANA_URL: http://glooe-grafana.{{ .Release.Namespace }}.svc.{{ .Values.gloo.k8s.clusterName }}:80
   {{- end }}
-  DASHBOARD_JSON_TEMPLATE: {{ default (.Files.Get "dashboards/upstream-dashboard-template.tmpl") .Values.observability.upstreamDashboardTemplate | toPrettyJson }}
+  DASHBOARD_JSON_TEMPLATE: |
+    {{- "\n" }}
+{{- default (.Files.Get "dashboards/upstream-dashboard-template.tmpl") .Values.observability.upstreamDashboardTemplate | indent 4 }}
 {{- end }}
 {{- end }}{{/* define "observability.configMapSpec */}}
 
