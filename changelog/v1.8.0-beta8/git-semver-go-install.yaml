@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Use 'go install ...' rather than 'go get ...' from a different directory.
