@@ -38,7 +38,9 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		authConfigClient clients.ResourceClient
 		proxyClient      clients.ResourceClient
 		reports          reporter.ResourceReports
+		settings         *gloov1.Settings
 	)
+
 	JustBeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		var err error
@@ -69,7 +71,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 			AuthConfigs: extauth.AuthConfigList{oauthAuthConfig},
 		}
 		snapCache = &mockSetSnapshot{}
-		setupSettings(ctx)
+		settings = setupSettings(ctx)
 	})
 
 	AfterEach(func() {
@@ -77,7 +79,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	})
 
 	translate := func() envoycache.Snapshot {
-		err := translator.SyncAndSet(context.Background(), apiSnapshot, snapCache, reports)
+		err := translator.SyncAndSet(context.Background(), apiSnapshot, settings, snapCache, reports)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(snapCache.Snapshots).To(HaveKey("extauth"))
 		return snapCache.Snapshots["extauth"]
@@ -385,7 +387,7 @@ func (m *mockSetSnapshot) SetSnapshot(node string, snapshot envoycache.Snapshot)
 }
 
 // enable ReplaceInvalidRoutes so we can keep adding good routes after a misconfigured route is present
-func setupSettings(ctx context.Context) {
+func setupSettings(ctx context.Context) *gloov1.Settings {
 	// create a settings object with ReplaceInvalidRoutes & write it
 	settingsClient := helpers.MustSettingsClient(ctx)
 	settings := &gloov1.Settings{
@@ -402,4 +404,5 @@ func setupSettings(ctx context.Context) {
 	_, err := settingsClient.Write(settings, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
 
+	return settings
 }

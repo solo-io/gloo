@@ -23,17 +23,18 @@ import (
 var _ = Describe("Plugin", func() {
 
 	var (
-		params        plugins.Params
-		vhostParams   plugins.VirtualHostParams
-		routeParams   plugins.RouteParams
-		plugin        *Plugin
-		virtualHost   *v1.VirtualHost
-		upstream      *v1.Upstream
-		secret        *v1.Secret
-		route         *v1.Route
-		authConfig    *extauthv1.AuthConfig
-		authExtension *extauthv1.ExtAuthExtension
-		clientSecret  *extauthv1.OauthSecret
+		params                 plugins.Params
+		vhostParams            plugins.VirtualHostParams
+		routeParams            plugins.RouteParams
+		plugin                 *Plugin
+		virtualHost            *v1.VirtualHost
+		defaultExtAuthUpstream *v1.Upstream
+		namedExtAuthUpstream   *v1.Upstream
+		secret                 *v1.Secret
+		defaultExtAuthRoute    *v1.Route
+		authConfig             *extauthv1.AuthConfig
+		authExtension          *extauthv1.ExtAuthExtension
+		clientSecret           *extauthv1.OauthSecret
 	)
 
 	BeforeEach(func() {
@@ -41,24 +42,38 @@ var _ = Describe("Plugin", func() {
 		err := plugin.Init(plugins.InitParams{})
 		Expect(err).ToNot(HaveOccurred())
 
-		upstream = &v1.Upstream{
+		defaultExtAuthUpstream = &v1.Upstream{
 			Metadata: &core.Metadata{
-				Name:      "extauth",
+				Name:      "extauth-default",
 				Namespace: "default",
 			},
 			UpstreamType: &v1.Upstream_Static{
 				Static: &static.UpstreamSpec{
 					Hosts: []*static.Host{{
-						Addr: "test",
+						Addr: "extauth-default",
 						Port: 1234,
 					}},
 				},
 			},
 		}
-		route = &v1.Route{
+		namedExtAuthUpstream = &v1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "extauth-named",
+				Namespace: "default",
+			},
+			UpstreamType: &v1.Upstream_Static{
+				Static: &static.UpstreamSpec{
+					Hosts: []*static.Host{{
+						Addr: "extauth-named",
+						Port: 1235,
+					}},
+				},
+			},
+		}
+		defaultExtAuthRoute = &v1.Route{
 			Matchers: []*matchers.Matcher{{
 				PathSpecifier: &matchers.Matcher_Prefix{
-					Prefix: "/",
+					Prefix: "/default",
 				},
 			}},
 			Action: &v1.Route_RouteAction{
@@ -66,7 +81,7 @@ var _ = Describe("Plugin", func() {
 					Destination: &v1.RouteAction_Single{
 						Single: &v1.Destination{
 							DestinationType: &v1.Destination_Upstream{
-								Upstream: upstream.Metadata.Ref(),
+								Upstream: defaultExtAuthUpstream.Metadata.Ref(),
 							},
 						},
 					},
@@ -122,7 +137,7 @@ var _ = Describe("Plugin", func() {
 			Options: &v1.VirtualHostOptions{
 				Extauth: authExtension,
 			},
-			Routes: []*v1.Route{route},
+			Routes: []*v1.Route{defaultExtAuthRoute},
 		}
 
 		proxy := &v1.Proxy{
@@ -142,7 +157,7 @@ var _ = Describe("Plugin", func() {
 
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies:     v1.ProxyList{proxy},
-			Upstreams:   v1.UpstreamList{upstream},
+			Upstreams:   v1.UpstreamList{defaultExtAuthUpstream, namedExtAuthUpstream},
 			Secrets:     v1.SecretList{secret},
 			AuthConfigs: extauthv1.AuthConfigList{authConfig},
 		}
@@ -157,6 +172,16 @@ var _ = Describe("Plugin", func() {
 		}
 	})
 
+	getOnlySanitizeFilters := func(original plugins.StagedHttpFilterList) plugins.StagedHttpFilterList {
+		var filters plugins.StagedHttpFilterList
+		for _, f := range original {
+			if f.HttpFilter.GetName() == SanitizeFilterName {
+				filters = append(filters, f)
+			}
+		}
+		return filters
+	}
+
 	Context("no extauth settings", func() {
 		It("should provide sanitize filter", func() {
 			filters, err := plugin.HttpFilters(params, nil)
@@ -167,37 +192,40 @@ var _ = Describe("Plugin", func() {
 	})
 
 	Context("with extauth server", func() {
+
 		var (
-			extAuthRef      *core.ResourceRef
 			extAuthSettings *extauthv1.Settings
 		)
+
 		BeforeEach(func() {
-			second := time.Second
-			extAuthRef = &core.ResourceRef{
-				Name:      "extauth",
-				Namespace: "default",
-			}
 			extAuthSettings = &extauthv1.Settings{
-				ExtauthzServerRef: extAuthRef,
+				ExtauthzServerRef: defaultExtAuthUpstream.Metadata.Ref(),
 				FailureModeAllow:  true,
 				RequestBody: &extauthv1.BufferSettings{
 					AllowPartialMessage: true,
 					MaxRequestBytes:     54,
 				},
-				RequestTimeout: ptypes.DurationProto(second),
+				RequestTimeout: ptypes.DurationProto(time.Second),
 			}
 		})
+
 		JustBeforeEach(func() {
 			err := plugin.Init(plugins.InitParams{
-				Settings: &v1.Settings{Extauth: extAuthSettings},
+				Settings: &v1.Settings{
+					Extauth: extAuthSettings,
+				},
 			})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should provide sanitize filter with listener overriding global", func() {
+			// The enterprise plugin is now responsible for creating the ext_authz and sanitize filter
+			// This test is just verifying the behavior of the sanitize filter
+
 			filters, err := plugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(filters).To(HaveLen(1))
+			Expect(filters).To(HaveLen(2))
+			filters = getOnlySanitizeFilters(filters)
 			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
 
 			goTpfc := filters[0].HttpFilter.GetTypedConfig()
@@ -217,7 +245,8 @@ var _ = Describe("Plugin", func() {
 
 			filters, err = plugin.HttpFilters(params, listener)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(filters).To(HaveLen(1))
+			Expect(filters).To(HaveLen(2))
+			filters = getOnlySanitizeFilters(filters)
 			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
 
 			goTpfc = filters[0].HttpFilter.GetTypedConfig()
@@ -249,18 +278,130 @@ var _ = Describe("Plugin", func() {
 				Spec: &extauthv1.ExtAuthExtension_Disable{Disable: true},
 			}
 
-			route.Options = &v1.RouteOptions{
+			defaultExtAuthRoute.Options = &v1.RouteOptions{
 				Extauth: disabled,
 			}
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, route, &out)
+			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
 
 		It("should do nothing to a route that's not explicitly disabled", func() {
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, route, &out)
+			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(IsDisabled(&out)).To(BeFalse())
+		})
+	})
+
+	Context("with multiple extauth servers (1 default, 1 named)", func() {
+
+		var (
+			defaultExtAuthSettings, namedExtAuthSettings *extauthv1.Settings
+		)
+
+		BeforeEach(func() {
+			defaultExtAuthSettings = &extauthv1.Settings{
+				ExtauthzServerRef: defaultExtAuthUpstream.Metadata.Ref(),
+			}
+
+			namedExtAuthSettings = &extauthv1.Settings{
+				ExtauthzServerRef: namedExtAuthUpstream.Metadata.Ref(),
+			}
+		})
+
+		JustBeforeEach(func() {
+			err := plugin.Init(plugins.InitParams{
+				Settings: &v1.Settings{
+					Extauth: defaultExtAuthSettings,
+					NamedExtauth: map[string]*extauthv1.Settings{
+						"named": namedExtAuthSettings,
+					},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should provide sanitize filter with nil listener", func() {
+			filters, err := plugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(3)) // sanitize, 2 ext_authz
+			filters = getOnlySanitizeFilters(filters)
+
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goTpfc := filters[0].HttpFilter.GetTypedConfig()
+			Expect(goTpfc).NotTo(BeNil())
+			var sanitizeCfg extauth.Sanitize
+			err = ptypes.UnmarshalAny(goTpfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{DefaultAuthHeader}))
+		})
+
+		It("should provide sanitize filter with listener overriding global", func() {
+			var sanitizeCfg extauth.Sanitize
+
+			defaultExtAuthSettings.UserIdHeader = "override"
+			listener := &v1.HttpListener{
+				VirtualHosts: []*v1.VirtualHost{
+					virtualHost,
+				},
+				Options: &v1.HttpListenerOptions{
+					Extauth: defaultExtAuthSettings,
+				},
+			}
+
+			filters, err := plugin.HttpFilters(params, listener)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(2))
+			filters = getOnlySanitizeFilters(filters)
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+
+			goTpfc := filters[0].HttpFilter.GetTypedConfig()
+			Expect(goTpfc).NotTo(BeNil())
+			err = ptypes.UnmarshalAny(goTpfc, &sanitizeCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(sanitizeCfg.HeadersToRemove).To(Equal([]string{"override"}))
+		})
+
+		It("should not error processing vhost", func() {
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(IsDisabled(&out)).To(BeFalse())
+		})
+
+		It("should mark vhost with no auth as disabled", func() {
+			// remove auth extension
+			virtualHost.Options.Extauth = nil
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+			ExpectDisabled(&out)
+		})
+
+		It("should mark route with extension as disabled", func() {
+			disabled := &extauthv1.ExtAuthExtension{
+				Spec: &extauthv1.ExtAuthExtension_Disable{
+					Disable: true,
+				},
+			}
+
+			defaultExtAuthRoute.Options = &v1.RouteOptions{
+				Extauth: disabled,
+			}
+			var out envoy_config_route_v3.Route
+			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			Expect(err).NotTo(HaveOccurred())
+			ExpectDisabled(&out)
+		})
+
+		It("should do nothing to a route that's not explicitly disabled", func() {
+			var out envoy_config_route_v3.Route
+			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})

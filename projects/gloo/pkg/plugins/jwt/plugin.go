@@ -20,13 +20,13 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	gloo_jwt "github.com/solo-io/gloo/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"gopkg.in/square/go-jose.v2"
 )
 
 const (
-	ExtensionName     = "jwt"
 	DisableName       = "-any:cf7a7de2-83ff-45ce-b697-f57d6a4775b5-"
 	StateName         = "filterState"
 	PayloadInMetadata = "principal"
@@ -63,7 +63,13 @@ type Plugin struct {
 	perRouteJwtRequirements       map[uint32]map[string]*v3.JwtRequirement
 }
 
-var _ plugins.Plugin = new(Plugin)
+var (
+	_ plugins.Plugin            = new(Plugin)
+	_ plugins.VirtualHostPlugin = new(Plugin)
+	_ plugins.RoutePlugin       = new(Plugin)
+	_ plugins.HttpFilterPlugin  = new(Plugin)
+	_ plugins.Upgradable        = new(Plugin)
+)
 
 func NewPlugin() *Plugin {
 	return &Plugin{}
@@ -84,6 +90,14 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	}
 	p.requireJwtBeforeExtauthFilter = false
 	return nil
+}
+
+func (p *Plugin) PluginName() string {
+	return gloo_jwt.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
 }
 
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {

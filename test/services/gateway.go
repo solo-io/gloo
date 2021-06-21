@@ -9,10 +9,10 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	. "github.com/onsi/gomega"
+	"google.golang.org/grpc"
+
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
-	fds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer"
-	uds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaysyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -22,7 +22,6 @@ import (
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -30,7 +29,11 @@ import (
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
+
+	. "github.com/onsi/gomega"
+	fds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer"
+	uds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer"
+	syncer_setup "github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -144,7 +147,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
-	go syncer.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx))
+	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx))
 	if !what.DisableFds {
 		go fds_syncer.RunFDS(glooOpts)
 	}
@@ -216,11 +219,11 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
 		},
-		ControlPlane: syncer.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
+		ControlPlane: syncer_setup.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, nil, true),
-		ValidationServer: syncer.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
+		ValidationServer: syncer_setup.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, true),

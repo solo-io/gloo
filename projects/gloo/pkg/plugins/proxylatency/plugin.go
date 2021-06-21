@@ -6,12 +6,14 @@ import (
 )
 
 const (
-	FilterName = "io.solo.filters.http.proxy_latency"
+	FilterName    = "io.solo.filters.http.proxy_latency"
+	ExtensionName = "proxylatency"
 )
 
 var (
 	_ plugins.Plugin           = new(Plugin)
 	_ plugins.HttpFilterPlugin = new(Plugin)
+	_ plugins.Upgradable       = new(Plugin)
 
 	// This filter must be last as it is used to measure latency of all the other filters.
 	FilterStage = plugins.AfterStage(plugins.RouteStage)
@@ -28,6 +30,14 @@ func NewPlugin() *Plugin {
 
 func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
+}
+
+func (p *Plugin) PluginName() string {
+	return ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {

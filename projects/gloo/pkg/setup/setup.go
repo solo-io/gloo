@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/reporting-client/pkg/client"
@@ -55,15 +56,15 @@ func Main() error {
 	})
 }
 
-func NewSetupFuncWithRestControlPlaneAndExtensions(extensions syncer.Extensions) setuputils.SetupFunc {
+func NewSetupFuncWithRestControlPlaneAndExtensions(extensions setup.Extensions) setuputils.SetupFunc {
 	runWithExtensions := func(opts bootstrap.Opts) error {
-		return syncer.RunGlooWithExtensions(opts, extensions)
+		return setup.RunGlooWithExtensions(opts, extensions)
 	}
-	return syncer.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
+	return setup.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
 }
 
-func GetGlooEeExtensions(ctx context.Context) syncer.Extensions {
-	return syncer.Extensions{
+func GetGlooEeExtensions(ctx context.Context) setup.Extensions {
+	return setup.Extensions{
 		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,

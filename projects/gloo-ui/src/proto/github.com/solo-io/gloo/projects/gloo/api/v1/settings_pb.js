@@ -190,6 +190,7 @@ proto.gloo.solo.io.Settings.toObject = function(includeInstance, msg) {
     ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
     rbac: (f = msg.getRbac()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.toObject(includeInstance, f),
+    namedExtauthMap: (f = msg.getNamedExtauthMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.Settings.toObject) : [],
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f),
     observabilityoptions: (f = msg.getObservabilityoptions()) && proto.gloo.solo.io.Settings.ObservabilityOptions.toObject(includeInstance, f),
@@ -355,6 +356,12 @@ proto.gloo.solo.io.Settings.deserializeBinaryFromReader = function(msg, reader) 
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.deserializeBinaryFromReader);
       msg.setExtauth(value);
+      break;
+    case 33:
+      var value = msg.getNamedExtauthMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.Settings.deserializeBinaryFromReader, "");
+         });
       break;
     case 14:
       var value = new github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata;
@@ -608,6 +615,10 @@ proto.gloo.solo.io.Settings.serializeBinaryToWriter = function(message, writer) 
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.serializeBinaryToWriter
     );
+  }
+  f = message.getNamedExtauthMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(33, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter);
   }
   f = message.getMetadata();
   if (f != null) {
@@ -4374,6 +4385,24 @@ proto.gloo.solo.io.Settings.prototype.clearExtauth = function() {
  */
 proto.gloo.solo.io.Settings.prototype.hasExtauth = function() {
   return jspb.Message.getField(this, 29) != null;
+};
+
+
+/**
+ * map<string, enterprise.gloo.solo.io.Settings> named_extauth = 33;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.enterprise.gloo.solo.io.Settings>}
+ */
+proto.gloo.solo.io.Settings.prototype.getNamedExtauthMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.enterprise.gloo.solo.io.Settings>} */ (
+      jspb.Message.getMapField(this, 33, opt_noLazyCreate,
+      proto.enterprise.gloo.solo.io.Settings));
+};
+
+
+proto.gloo.solo.io.Settings.prototype.clearNamedExtauthMap = function() {
+  this.getNamedExtauthMap().clear();
 };
 
 

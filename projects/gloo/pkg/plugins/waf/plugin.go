@@ -7,11 +7,11 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	gloo_waf "github.com/solo-io/gloo/projects/gloo/pkg/plugins/waf"
 )
 
 const (
-	FilterName    = "io.solo.filters.http.modsecurity"
-	ExtensionName = "waf"
+	FilterName = "io.solo.filters.http.modsecurity"
 )
 
 type Plugin struct {
@@ -23,6 +23,7 @@ var (
 	_ plugins.VirtualHostPlugin = new(Plugin)
 	_ plugins.RoutePlugin       = new(Plugin)
 	_ plugins.HttpFilterPlugin  = new(Plugin)
+	_ plugins.Upgradable        = new(Plugin)
 
 	// waf should happen before any code is run
 	filterStage = plugins.DuringStage(plugins.WafStage)
@@ -36,6 +37,14 @@ func NewPlugin() *Plugin {
 
 func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
+}
+
+func (p *Plugin) PluginName() string {
+	return gloo_waf.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
 }
 
 func (p *Plugin) addListener(listener *v1.HttpListener) {

@@ -220,6 +220,9 @@ export class Settings extends jspb.Message {
   getStatusOnError(): number;
   setStatusOnError(value: number): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -240,6 +243,7 @@ export namespace Settings {
     requestBody?: BufferSettings.AsObject,
     clearRouteCache: boolean,
     statusOnError: number,
+    statPrefix: string,
   }
 }
 
@@ -359,6 +363,9 @@ export namespace BufferSettings {
 export class CustomAuth extends jspb.Message {
   getContextExtensionsMap(): jspb.Map<string, string>;
   clearContextExtensionsMap(): void;
+  getName(): string;
+  setName(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CustomAuth.AsObject;
   static toObject(includeInstance: boolean, msg: CustomAuth): CustomAuth.AsObject;
@@ -372,6 +379,7 @@ export class CustomAuth extends jspb.Message {
 export namespace CustomAuth {
   export type AsObject = {
     contextExtensionsMap: Array<[string, string]>,
+    name: string,
   }
 }
 

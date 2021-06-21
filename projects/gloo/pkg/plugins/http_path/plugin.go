@@ -10,6 +10,7 @@ import (
 	envoy_type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/http_path"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
@@ -20,6 +21,7 @@ const (
 var (
 	_ plugins.Plugin         = new(Plugin)
 	_ plugins.UpstreamPlugin = new(Plugin)
+	_ plugins.Upgradable     = new(Plugin)
 )
 
 func NewPlugin() *Plugin {
@@ -32,6 +34,15 @@ type Plugin struct {
 func (f *Plugin) Init(_ plugins.InitParams) error {
 	return nil
 }
+
+func (p *Plugin) PluginName() string {
+	return http_path.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
+}
+
 func shouldProcess(in *gloov1.Upstream) bool {
 	// only do this for static upstreams with custom health path defined.
 	// so that we only use new logic when we have to. this is done to minimize potential error impact.

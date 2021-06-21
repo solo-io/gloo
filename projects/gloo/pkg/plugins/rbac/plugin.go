@@ -14,13 +14,13 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	gloo_rbac "github.com/solo-io/gloo/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
 
 const (
-	FilterName    = "envoy.filters.http.rbac"
-	ExtensionName = "rbac"
+	FilterName = "envoy.filters.http.rbac"
 )
 
 var (
@@ -28,6 +28,7 @@ var (
 	_           plugins.RoutePlugin       = new(Plugin)
 	_           plugins.VirtualHostPlugin = new(Plugin)
 	_           plugins.HttpFilterPlugin  = new(Plugin)
+	_           plugins.Upgradable        = new(Plugin)
 	filterStage                           = plugins.DuringStage(plugins.AuthZStage)
 )
 
@@ -42,6 +43,14 @@ func NewPlugin() *Plugin {
 func (p *Plugin) Init(params plugins.InitParams) error {
 	p.settings = params.Settings.GetRbac()
 	return nil
+}
+
+func (p *Plugin) PluginName() string {
+	return gloo_rbac.ExtensionName
+}
+
+func (p *Plugin) IsUpgrade() bool {
+	return true
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {

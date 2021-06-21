@@ -49,6 +49,7 @@ interface ValuesType {
   secretRefNamespace: string | undefined;
   secretRefName: string | undefined;
   scopesList: string[];
+  customAuthServerName: string | undefined;
 }
 const defaultValues: ValuesType = {
   clientId: '',
@@ -57,7 +58,8 @@ const defaultValues: ValuesType = {
   appUrl: '',
   secretRefNamespace: '',
   secretRefName: '',
-  scopesList: []
+  scopesList: [],
+  customAuthServerName: '',
 };
 
 const validationSchema = yup.object().shape({
@@ -107,7 +109,8 @@ export const ExtAuthForm = (props: Props) => {
       issuerUrl,
       secretRefName,
       secretRefNamespace,
-      scopesList
+      scopesList,
+      customAuthServerName
     } = values;
 
     dispatch(
@@ -119,6 +122,7 @@ export const ExtAuthForm = (props: Props) => {
         extAuthConfig: {
           config: {
             customAuth: {
+              name: customAuthServerName!,
               contextExtensionsMap: []
             },
             oauth: {

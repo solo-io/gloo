@@ -14,6 +14,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.4
+	github.com/gogo/googleapis v1.3.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
@@ -35,7 +36,7 @@ require (
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.7.14
-	github.com/solo-io/gloo v1.6.8
+	github.com/solo-io/gloo v1.6.8-patch2
 	github.com/solo-io/go-utils v0.20.3
 	github.com/solo-io/k8s-utils v0.0.6
 	github.com/solo-io/licensing v0.1.17

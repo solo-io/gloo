@@ -143,6 +143,8 @@ export class Settings extends jspb.Message {
   getExtauth(): github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings | undefined;
   setExtauth(value?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings): void;
 
+  getNamedExtauthMap(): jspb.Map<string, github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings>;
+  clearNamedExtauthMap(): void;
   hasMetadata(): boolean;
   clearMetadata(): void;
   getMetadata(): github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata | undefined;
@@ -204,6 +206,7 @@ export namespace Settings {
     ratelimitServer?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
     rbac?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_rbac_rbac_pb.Settings.AsObject,
     extauth?: github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.AsObject,
+    namedExtauthMap: Array<[string, github_com_solo_io_gloo_projects_gloo_api_v1_enterprise_options_extauth_v1_extauth_pb.Settings.AsObject]>,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
     observabilityoptions?: Settings.ObservabilityOptions.AsObject,

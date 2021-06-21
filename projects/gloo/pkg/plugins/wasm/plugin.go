@@ -39,8 +39,11 @@ var (
 )
 
 // Compile-time assertion
-var _ plugins.Plugin = &Plugin{}
-var _ plugins.HttpFilterPlugin = &Plugin{}
+var (
+	_ plugins.Plugin           = &Plugin{}
+	_ plugins.HttpFilterPlugin = &Plugin{}
+	_ plugins.Upgradable       = &Plugin{}
+)
 
 type Plugin struct{}
 
