@@ -1,0 +1,20 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4020
+    description: Add warnings when users try to use enterprise-only Gloo Edge features when running the Open Source edition of Gloo Edge
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4874
+    resolvesIssue: false
+    description: >
+      Introduce API for a new enterprise-only feature of configuring
+      multiple ext auth servers in Settings. Allow for configuring
+      an ext_authz filter that points to one of those servers per route.
+      Allow `stat_prefix` to be enabled for an ext_authz filter.
+      This is an additional prefix that is used when emitting statistics.
+  - type: FIX
+    description: Fix enterprise install commands to use latest patch version based off of the CLI minor version.
+    issueLink: https://github.com/solo-io/gloo/issues/4555
+  - type: NON_USER_FACING
+    description: >
+      Cleanup our docs gen github workflow to ensure that docs are only build on pull requests to master.
+      Consolidate the logic into a single place so that we maintain a single source of truth.
