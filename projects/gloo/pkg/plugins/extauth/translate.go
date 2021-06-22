@@ -308,19 +308,21 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 	}
 
 	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{
-		AppUrl:                  config.AppUrl,
-		ClientId:                config.ClientId,
-		ClientSecret:            secret.GetOauth().GetClientSecret(),
-		IssuerUrl:               config.IssuerUrl,
-		AuthEndpointQueryParams: config.AuthEndpointQueryParams,
-		CallbackPath:            config.CallbackPath,
-		LogoutPath:              config.LogoutPath,
-		Scopes:                  config.Scopes,
-		Session:                 config.Session,
-		Headers:                 config.Headers,
-		DiscoveryOverride:       config.DiscoveryOverride,
-		DiscoveryPollInterval:   config.GetDiscoveryPollInterval(),
-		JwksCacheRefreshPolicy:  config.GetJwksCacheRefreshPolicy(),
+		AppUrl:                   config.AppUrl,
+		ClientId:                 config.ClientId,
+		ClientSecret:             secret.GetOauth().GetClientSecret(),
+		IssuerUrl:                config.IssuerUrl,
+		AuthEndpointQueryParams:  config.AuthEndpointQueryParams,
+		TokenEndpointQueryParams: config.TokenEndpointQueryParams,
+		CallbackPath:             config.CallbackPath,
+		AfterLogoutUrl:           config.AfterLogoutUrl,
+		LogoutPath:               config.LogoutPath,
+		Scopes:                   config.Scopes,
+		Session:                  config.Session,
+		Headers:                  config.Headers,
+		DiscoveryOverride:        config.DiscoveryOverride,
+		DiscoveryPollInterval:    config.GetDiscoveryPollInterval(),
+		JwksCacheRefreshPolicy:   config.GetJwksCacheRefreshPolicy(),
 	}, nil
 }
 

@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4329
+    resolvesIssue: true
+    description: >
+      Fix translation of Oauth2 token endpoint query params so it gets sent properly to the extauth server.

@@ -2,6 +2,7 @@ package extauth_test
 
 import (
 	"context"
+	"reflect"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -93,14 +94,20 @@ var _ = Describe("Translate", func() {
 				Namespace: "gloo-system",
 			},
 			Configs: []*extauth.AuthConfig_Config{{
-				AuthConfig: &extauth.AuthConfig_Config_Oauth{
-					Oauth: &extauth.OAuth{
-						ClientSecretRef:         secretRef,
-						ClientId:                "ClientId",
-						IssuerUrl:               "IssuerUrl",
-						AuthEndpointQueryParams: map[string]string{"test": "additional_query_params"},
-						AppUrl:                  "AppUrl",
-						CallbackPath:            "CallbackPath",
+				AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+					Oauth2: &extauth.OAuth2{
+						OauthType: &extauth.OAuth2_OidcAuthorizationCode{
+
+							OidcAuthorizationCode: &extauth.OidcAuthorizationCode{
+								ClientSecretRef:          secretRef,
+								ClientId:                 "ClientId",
+								IssuerUrl:                "IssuerUrl",
+								AuthEndpointQueryParams:  map[string]string{"test": "additional_auth_query_params"},
+								TokenEndpointQueryParams: map[string]string{"test": "additional_token_query_params"},
+								AppUrl:                   "AppUrl",
+								CallbackPath:             "CallbackPath",
+							},
+						},
 					},
 				},
 			}},
@@ -153,14 +160,25 @@ var _ = Describe("Translate", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 		Expect(translated.Configs).To(HaveLen(1))
-		actual := translated.Configs[0].GetOauth()
-		expected := authConfig.Configs[0].GetOauth()
-		Expect(actual.IssuerUrl).To(Equal(expected.IssuerUrl))
-		Expect(actual.AuthEndpointQueryParams).To(Equal(expected.AuthEndpointQueryParams))
-		Expect(actual.ClientId).To(Equal(expected.ClientId))
-		Expect(actual.ClientSecret).To(Equal(clientSecret.ClientSecret))
-		Expect(actual.AppUrl).To(Equal(expected.AppUrl))
-		Expect(actual.CallbackPath).To(Equal(expected.CallbackPath))
+		actual := translated.Configs[0].GetOauth2()
+		expected := authConfig.Configs[0].GetOauth2()
+		Expect(actual.GetOidcAuthorizationCode().IssuerUrl).To(Equal(expected.GetOidcAuthorizationCode().IssuerUrl))
+		Expect(actual.GetOidcAuthorizationCode().AuthEndpointQueryParams).To(Equal(expected.GetOidcAuthorizationCode().AuthEndpointQueryParams))
+		Expect(actual.GetOidcAuthorizationCode().TokenEndpointQueryParams).To(Equal(expected.GetOidcAuthorizationCode().TokenEndpointQueryParams))
+		Expect(actual.GetOidcAuthorizationCode().ClientId).To(Equal(expected.GetOidcAuthorizationCode().ClientId))
+		Expect(actual.GetOidcAuthorizationCode().ClientSecret).To(Equal(clientSecret.ClientSecret))
+		Expect(actual.GetOidcAuthorizationCode().AppUrl).To(Equal(expected.GetOidcAuthorizationCode().AppUrl))
+		Expect(actual.GetOidcAuthorizationCode().CallbackPath).To(Equal(expected.GetOidcAuthorizationCode().CallbackPath))
+	})
+
+	It("will fail if the oidc auth proto has a new top level field", func() {
+		// This test is important as it checks whether the oidc auth code proto have a new top level field.
+		// This should happen very rarely, and should be used as an indication that the `translateOidcAuthorizationCode` function
+		// most likely needs to change.
+		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
+			Equal(18),
+			"wrong number of fields found",
+		)
 	})
 
 	Context("with api key extauth", func() {
