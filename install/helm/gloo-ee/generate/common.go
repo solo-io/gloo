@@ -9,6 +9,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
+	"github.com/solo-io/k8s-utils/installutils/helmchart"
 )
 
 const (
@@ -110,4 +111,12 @@ func (gc *GenerationConfig) generateChartYaml(chartTemplate, chartOutput, chartV
 	chart.Version = chartVersion
 
 	return writeYaml(&chart, chartOutput)
+}
+
+func writeDocs(docs helmchart.HelmValues, path string) error {
+	err := ioutil.WriteFile(path, []byte(docs.ToMarkdown()), os.ModePerm)
+	if err != nil {
+		return errors.Wrapf(err, "failed writing helm values file")
+	}
+	return nil
 }

@@ -9,6 +9,7 @@ var glooEGenerationFiles = &generate.GenerationFiles{
 	Artifact:             generate.GlooE,
 	ValuesTemplate:       "install/helm/gloo-ee/values-template.yaml",
 	ValuesOutput:         "install/helm/gloo-ee/values.yaml",
+	DocsOutput:           "install/helm/gloo-ee/reference/values.txt",
 	ChartTemplate:        "install/helm/gloo-ee/Chart-template.yaml",
 	ChartOutput:          "install/helm/gloo-ee/Chart.yaml",
 	RequirementsTemplate: "install/helm/gloo-ee/requirements-template.yaml",

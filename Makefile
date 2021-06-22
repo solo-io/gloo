@@ -166,7 +166,7 @@ clean:
 PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 
 .PHONY: generate-all
-generate-all: check-solo-apis generated-code generate-gloo-fed
+generate-all: check-solo-apis generated-code generate-gloo-fed generate-helm-docs
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -197,6 +197,10 @@ generate-gloo-fed-code: clean-fed
 	PATH=$(DEPSGOBIN):$$PATH go generate $(ROOTDIR)/projects/... # Generates mocks
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
+
+.PHONY: generate-helm-docs
+generate-helm-docs: 
+	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go "Version number, ex. 1.8.0" --generate-helm-docs # Generate Helm Documentation
 
 #################
 #     Build     #

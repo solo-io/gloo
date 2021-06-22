@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/3679
+    description: >
+      Added the `--generate-helm-docs` command line argument to `install/helm/gloo-ee/generate.go`.
+      When this is set to `true`, a markdown chart of possible helm values will be created in 
+      `"install/helm/gloo-ee/reference/values.txt"`

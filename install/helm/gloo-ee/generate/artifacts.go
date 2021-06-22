@@ -11,6 +11,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"
+	"github.com/solo-io/k8s-utils/installutils/helmchart"
 )
 
 const (
@@ -27,6 +28,7 @@ type GenerationArguments struct {
 	// Allows for overriding the gloo-fed chart repo; used in local builds to specify a
 	// local directory instead of the official gloo-fed-helm release repository.
 	GlooFedRepoOverride string
+	GenerateHelmDocs    bool
 }
 
 // GenerationConfig represents all the artifact-specific config
@@ -43,6 +45,7 @@ type GenerationFiles struct {
 	Artifact             Artifact
 	ValuesTemplate       string
 	ValuesOutput         string
+	DocsOutput           string
 	ChartTemplate        string
 	ChartOutput          string
 	RequirementsTemplate string
@@ -112,6 +115,10 @@ func GetArguments(args *GenerationArguments) error {
 		"gloo-fed-repo-override",
 		"",
 		"(Optional) repository override for gloo-fed chart.")
+	var generateHelmDocs = flag.Bool(
+		"generate-helm-docs",
+		false,
+		"(Optional) if set, will generate docs for the helm values")
 	flag.Parse()
 
 	if *repoPrefixOverride != "" {
@@ -119,6 +126,9 @@ func GetArguments(args *GenerationArguments) error {
 	}
 	if *glooFedRepoOverride != "" {
 		args.GlooFedRepoOverride = *glooFedRepoOverride
+	}
+	if *generateHelmDocs == true {
+		args.GenerateHelmDocs = *generateHelmDocs
 	}
 	return nil
 }
@@ -140,6 +150,13 @@ func (gc *GenerationConfig) runGeneration() error {
 	); err != nil {
 		return errors.Wrapf(err, "unable to parse requirements.yaml")
 	}
+
+	if gc.Arguments.GenerateHelmDocs {
+		log.Printf("Generating helm value docs in file: %v", gc.GenerationFiles.DocsOutput)
+		if err := gc.generateValueDocs(); err != nil {
+			return errors.Wrapf(err, "Generating values.txt failed")
+		}
+	}
 	return nil
 }
 
@@ -156,10 +173,10 @@ func (gc *GenerationConfig) generateValuesYamls() error {
 // generate Gloo-ee values file
 ////////////////////////////////////////////////////////////////////////////////
 
-func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
+func (gc *GenerationConfig) generateValuesConfig() (*HelmConfig, error) {
 	config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	version := &gc.Arguments.Version
@@ -233,17 +250,33 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 	config.Redis.Deployment.Image.PullPolicy = &pullPolicy
 
 	if err = updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, version); err != nil {
-		return err
+		return nil, err
 	}
 
 	if gc.Arguments.RepoPrefixOverride != "" {
 		config.Global.Image.Registry = &gc.Arguments.RepoPrefixOverride
 	}
+	return &config, nil
+}
 
-	if err := writeYaml(&config, gc.GenerationFiles.ValuesOutput); err != nil {
+func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
+	config, err := gc.generateValuesConfig()
+	if err != nil {
+		return errors.Wrapf(err, "Unable to generate values config")
+	}
+
+	if err := writeYaml(config, gc.GenerationFiles.ValuesOutput); err != nil {
 		return errors.Wrapf(err, "unable to generate GlooE")
 	}
 	return nil
+}
+
+func (gc *GenerationConfig) generateValueDocs() error {
+	config, err := gc.generateValuesConfig()
+	if err != nil {
+		return errors.Wrapf(err, "Unable to generate values config")
+	}
+	return writeDocs(helmchart.Doc(config), gc.GenerationFiles.DocsOutput)
 }
 
 func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, pullPolicy string, version *string) (err error) {
