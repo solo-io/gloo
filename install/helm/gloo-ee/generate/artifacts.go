@@ -173,13 +173,16 @@ func (gc *GenerationConfig) generateValuesYamls() error {
 // generate Gloo-ee values file
 ////////////////////////////////////////////////////////////////////////////////
 
-func (gc *GenerationConfig) generateValuesConfig() (*HelmConfig, error) {
+func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmConfig, error) {
 	config, err := readConfig(gc.GenerationFiles.ValuesTemplate)
 	if err != nil {
 		return nil, err
 	}
 
 	version := &gc.Arguments.Version
+	if versionOverride != "" {
+		version = &versionOverride
+	}
 	tag := &gc.OsGlooVersion
 	if tag == nil {
 		tag = version
@@ -260,7 +263,7 @@ func (gc *GenerationConfig) generateValuesConfig() (*HelmConfig, error) {
 }
 
 func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
-	config, err := gc.generateValuesConfig()
+	config, err := gc.generateValuesConfig("")
 	if err != nil {
 		return errors.Wrapf(err, "Unable to generate values config")
 	}
@@ -272,7 +275,8 @@ func (gc *GenerationConfig) generateValuesYamlForGlooE() error {
 }
 
 func (gc *GenerationConfig) generateValueDocs() error {
-	config, err := gc.generateValuesConfig()
+	// Overwrite the literal version with a description of the field value
+	config, err := gc.generateValuesConfig("Version number, ex. 1.8.0")
 	if err != nil {
 		return errors.Wrapf(err, "Unable to generate values config")
 	}

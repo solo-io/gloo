@@ -200,7 +200,7 @@ generate-gloo-fed-code: clean-fed
 
 .PHONY: generate-helm-docs
 generate-helm-docs: 
-	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go "Version number, ex. 1.8.0" --generate-helm-docs # Generate Helm Documentation
+	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs # Generate Helm Documentation
 
 #################
 #     Build     #

@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/pull/2382
+    resolvesIssue: true
+    description: >
+      Fixes a bug that was created as part of PR #2382.
+      In short, the text "Version number, ex. 1.8.0" was being used in place of the literal version number in install/helm/gloo-ee/values.yaml.
