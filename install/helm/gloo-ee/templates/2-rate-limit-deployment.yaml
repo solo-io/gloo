@@ -100,6 +100,13 @@ spec:
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
+            {{- if .Values.global.extensions.glooRedis.enableAcl }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
+            {{- end }}
             {{- if .Values.global.extensions.rateLimit.deployment.loglevel}}
             - name: LOG_LEVEL
               value: {{ .Values.global.extensions.rateLimit.deployment.loglevel }}

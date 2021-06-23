@@ -12,7 +12,7 @@ const (
 )
 
 func RunDynamoDbContainer() error {
-	image := "amazon/dynamodb-local:latest"
+	image := "amazon/dynamodb-local:1.16.0"
 	args := []string{"-d", "--rm",
 		// we need to port-forward to docker host for locally running tests
 		// (i.e., e2e tests not in docker on the same network)

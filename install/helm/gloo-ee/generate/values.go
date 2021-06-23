@@ -36,6 +36,11 @@ type Rbac struct {
 type GlooEeExtensions struct {
 	ExtAuth   *ExtAuth   `json:"extAuth,omitempty"`
 	RateLimit *RateLimit `json:"rateLimit,omitempty"`
+	GlooRedis *GlooRedis `json:"glooRedis,omitempty"`
+}
+
+type GlooRedis struct {
+	EnableAcl *bool `json:"enableAcl,omitempty" desc:"Whether to include the ACL policy on redis install. Defaults to true."`
 }
 
 type RateLimit struct {
@@ -82,6 +87,7 @@ type GlooFed struct {
 type Redis struct {
 	Deployment *RedisDeployment `json:"deployment,omitempty"`
 	Service    RedisService     `json:"service,omitempty"`
+	AclPrefix  *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
 }
 
 type RedisDeployment struct {

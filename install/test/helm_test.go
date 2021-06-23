@@ -556,6 +556,15 @@ var _ = Describe("Helm Test", func() {
 								},
 							},
 							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
+							},
+							{
 								Name:  "SERVER_PORT",
 								Value: "8083",
 							},
@@ -1004,7 +1013,7 @@ gloo:
 					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "redis"
 					})
-					Expect(redisResources.NumResources()).To(Equal(2), "Expecting Redis Deployment and Service")
+					Expect(redisResources.NumResources()).To(Equal(3), "Expecting Redis Deployment, Service, and Secret")
 
 					extAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "extauth"
@@ -1797,6 +1806,15 @@ spec:
 								},
 							},
 							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
+							},
+							{
 								Name:  "SERVER_PORT",
 								Value: "8083",
 							},
@@ -1894,6 +1912,15 @@ spec:
 										Key: "signing-key",
 									},
 								},
+							},
+							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
 							},
 							{
 								Name:  "SERVER_PORT",
@@ -2326,20 +2353,52 @@ spec:
 					FSGroup:      &nonRootUser,
 				}
 
-				volumes := []v1.Volume{{
-					Name: "data",
-					VolumeSource: v1.VolumeSource{
-						EmptyDir: &v1.EmptyDirVolumeSource{},
+				mode := int32(420)
+				volumes := []v1.Volume{
+					{
+						Name: "data",
+						VolumeSource: v1.VolumeSource{
+							EmptyDir: &v1.EmptyDirVolumeSource{},
+						},
 					},
-				}}
+					{
+						Name: "conf",
+						VolumeSource: v1.VolumeSource{
+							EmptyDir: &v1.EmptyDirVolumeSource{},
+						},
+					},
+					{
+						Name: "acl",
+						VolumeSource: v1.VolumeSource{
+							Secret: &v1.SecretVolumeSource{
+								SecretName:  "redis",
+								DefaultMode: &mode,
+							},
+						},
+					},
+				}
 
 				expectedDeployment = rb.GetDeploymentAppsv1()
 				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
+				expectedDeployment.Spec.Template.Spec.InitContainers = []v1.Container{
+					{
+						Name:    "createconf",
+						Image:   "busybox:1.28",
+						Command: []string{"/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf"},
+						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "conf",
+								MountPath: "/conf",
+							},
+						},
+					},
+				}
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:            "redis",
-						Image:           "docker.io/redis:5",
+						Image:           "docker.io/redis:6.2.4",
 						ImagePullPolicy: getPullPolicy(),
+						Args:            []string{"redis-server", "/redis-acl/users.acl"},
 						Ports: []v1.ContainerPort{
 							{
 								ContainerPort: 6379,
@@ -2355,6 +2414,14 @@ spec:
 							{
 								MountPath: "/redis-master-data",
 								Name:      "data",
+							},
+							{
+								MountPath: "/redis-acl",
+								Name:      "acl",
+							},
+							{
+								MountPath: "/conf",
+								Name:      "conf",
 							},
 						},
 					},
@@ -2563,6 +2630,15 @@ spec:
 							{
 								Name:  "REDIS_SOCKET_TYPE",
 								Value: "tcp",
+							},
+							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
 							},
 							{
 								Name:  "READY_PORT_HTTP",
@@ -3076,7 +3152,7 @@ spec:
 		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
 		It("Should not containing trailing whitespace", func() {
 			out, err := exec.Command("helm", "template", "../helm/gloo-ee").CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred(), string(out))
 
 			lines := strings.Split(string(out), "\n")
 			// more descriptive fail message that prints out the manifest that includes the trailing whitespace

@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4823
+    resolvesIssue: true
+    description: >
+      Allow for configuring ACL rules on the redis server that backs our rate-limit and extauth services. This new
+      feature is *enabled* by default. Redis was also upgraded from redis 5 to redis 6.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: redis
+    dependencyRepo: redis
+    dependencyTag: 6.2.4

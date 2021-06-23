@@ -114,6 +114,13 @@ Expand the name of the chart.
         secretKeyRef:
           name: {{ $extAuth.signingKey.name }}
           key: signing-key
+    {{- if $.Values.global.extensions.glooRedis.enableAcl }}
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: redis
+          key: redis-password
+    {{- end }}
     {{- if $extAuth.deployment.debugPort }}
     - name: DEBUG_PORT
       value: {{ $extAuth.deployment.debugPort | quote }}

@@ -120,7 +120,7 @@ steps:
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
 # Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
-- name: "gcr.io/$PROJECT_ID/e2e-go-mod-ginkgo:0.2.1"
+- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.12"
   dir: *dir
   entrypoint: "bash"
   args:

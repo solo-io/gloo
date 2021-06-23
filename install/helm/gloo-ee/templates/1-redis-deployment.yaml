@@ -36,10 +36,24 @@ spec:
       {{- end }}
     spec:
       {{- include "gloo.podSpecStandardFields" .Values.redis.deployment | nindent 6 -}}
+      {{- if .Values.global.extensions.glooRedis.enableAcl -}}
+      initContainers:
+        - name: createconf
+          image: busybox:1.28
+          command: [ "/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf" ]
+          volumeMounts:
+            - name: conf
+              mountPath: /conf
+      {{- end }}
       containers:
         - image: {{template "glooe.imagenonextended" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
+          {{- if .Values.global.extensions.glooRedis.enableAcl }}
+          args:
+            - redis-server
+            - /redis-acl/users.acl
+          {{- end }}
           ports:
             - containerPort: {{ .Values.redis.deployment.staticPort }}
           env:
@@ -48,6 +62,12 @@ spec:
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
+            {{- if .Values.global.extensions.glooRedis.enableAcl }}
+            - mountPath: /redis-acl
+              name: acl
+            - mountPath: /conf
+              name: conf
+            {{- end }}
           {{- if .Values.redis.deployment.resources }}
           resources:
 {{ toYaml .Values.redis.deployment.resources | indent 12}}
@@ -64,6 +84,14 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+        {{- if .Values.global.extensions.glooRedis.enableAcl }}
+        - name: conf
+          emptyDir: {}
+        - name: acl
+          secret:
+            defaultMode: 420
+            secretName: redis
+        {{- end }}
 {{- include "gloo.pullSecret" $image | nindent 6}}
 
 ---

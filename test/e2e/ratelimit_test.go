@@ -1025,8 +1025,8 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		JustBeforeEach(justBeforeEach)
 
 		AfterEach(func() {
-			cancel()
 			redisSession.Kill()
+			cancel()
 		})
 
 		runAllTests()

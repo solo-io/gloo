@@ -896,7 +896,7 @@
 |gloo.accessLogger.resources.requests.memory|string||amount of memory|
 |gloo.accessLogger.resources.requests.cpu|string||amount of CPUs|
 |gloo.accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|redis.deployment.image.tag|string|5|tag for the container|
+|redis.deployment.image.tag|string|6.2.4|tag for the container|
 |redis.deployment.image.repository|string|redis|image name (repository) for the container.|
 |redis.deployment.image.registry|string|docker.io|image prefix/registry e.g. (quay.io/solo-io)|
 |redis.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -950,6 +950,7 @@
 |redis.service.port|uint|6379||
 |redis.service.name|string|redis||
 |redis.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|redis.aclPrefix|string|user default +@all allkeys on >|The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password.|
 |rateLimit.enabled|bool||if true, deploy rate limit service (default true)|
 |rateLimit.deployment.name|string|||
 |rateLimit.deployment.glooAddress|string|||

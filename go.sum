@@ -1474,8 +1474,8 @@ github.com/solo-io/envoy-operator v0.1.4 h1:haffsWSfiDtQrOHVaAuTL48LUVBvSYsv9nqJ
 github.com/solo-io/envoy-operator v0.1.4/go.mod h1:RX7+5zmyZs0SM4K9q9bkaqPMx4XzoQJVi/zBl3NNsG0=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.16.3 h1:+p6rqp6Kd/Dm8AzdI6YJDVlpWyIPRIE19qq2oDrGcSg=
-github.com/solo-io/ext-auth-service v0.16.3/go.mod h1:eW2Wt550zXF09xLFc9+X0FilXtOY/8I3SsMriCjaKsU=
+github.com/solo-io/ext-auth-service v0.16.4 h1:MiVYe8F+S6lnR72OEOStL8PG+HnM3AkPcK8mPxi5c4s=
+github.com/solo-io/ext-auth-service v0.16.4/go.mod h1:eW2Wt550zXF09xLFc9+X0FilXtOY/8I3SsMriCjaKsU=
 github.com/solo-io/external-apis v0.1.4 h1:OEZ8+3puweHeS0ltDlcbCgL89LLaIEraw+x4e9mQPuM=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/gloo v1.8.0-beta22 h1:mbyZvbVIzBweAo+fPTCF6qPmErfOZ01yqqtaAFQq3Fw=
@@ -1506,8 +1506,8 @@ github.com/solo-io/protoc-gen-ext v0.0.12/go.mod h1:/U/jMDtVI7R6N323sfaUXK9Mmo54
 github.com/solo-io/protoc-gen-ext v0.0.13/go.mod h1:/U/jMDtVI7R6N323sfaUXK9Mmo54D7SY3pP7JtI/kMo=
 github.com/solo-io/protoc-gen-ext v0.0.15 h1:OVPo1essSt2hx5crEfnRxYlA5mwsGvrIWynNQDR/4xo=
 github.com/solo-io/protoc-gen-ext v0.0.15/go.mod h1:ch1ZUyVtN45zxAVwpuZUW+F1IR7aG0rCVAp2JrWKDCc=
-github.com/solo-io/rate-limiter v0.4.0 h1:GyDDZ5Mtfl6Gvp8LF/8F1J04WjGrrM+i0NrGx6DGOc4=
-github.com/solo-io/rate-limiter v0.4.0/go.mod h1:+41iVLnVJjgtauxDwJsCr06sY/kRarlRMpp9OIylllA=
+github.com/solo-io/rate-limiter v0.4.1 h1:sqOPKiyC/Fl11rVGAv8cUyfB4owrUlozgxjxKWT/ZuA=
+github.com/solo-io/rate-limiter v0.4.1/go.mod h1:6r2qQjk3WXPoCfCj54nXjX2r+4t5732ymfPux6VCmFw=
 github.com/solo-io/reporting-client v0.2.0 h1:v4NheU8EQL9G7kC3qrsKvC/sJzydrJyVr/sW4QN/owk=
 github.com/solo-io/reporting-client v0.2.0/go.mod h1:FmBDzwc1zEwayCCrlP+1w7NcpM0FIuvU+NSePj4wJq8=
 github.com/solo-io/skv2 v0.16.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCmrJBL0=
