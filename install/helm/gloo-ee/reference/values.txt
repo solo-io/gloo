@@ -669,8 +669,8 @@
 |gloo.gatewayProxies.gatewayProxy.service.clusterIP|string||static clusterIP (or `None`) when `gatewayProxies[].gatewayProxy.service.type` is `ClusterIP`|
 |gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.NAME|string|||
 |gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.prometheus.io/path|string|/metrics||
-|gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.prometheus.io/path.prometheus.io/port|string|8081||
-|gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.prometheus.io/path.prometheus.io/port.prometheus.io/scrape|string|true||
+|gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.prometheus.io/port|string|8081||
+|gloo.gatewayProxies.gatewayProxy.service.extraAnnotations.prometheus.io/scrape|string|true||
 |gloo.gatewayProxies.gatewayProxy.service.externalTrafficPolicy|string|||
 |gloo.gatewayProxies.gatewayProxy.service.name|string||Custom name override for the service resource of the proxy|
 |gloo.gatewayProxies.gatewayProxy.service.httpsFirst|bool||List HTTPS port before HTTP|

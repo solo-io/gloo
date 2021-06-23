@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/gloo v1.8.0-beta22
 	github.com/solo-io/go-list-licenses v0.1.3
 	github.com/solo-io/go-utils v0.21.7
-	github.com/solo-io/k8s-utils v0.0.8
+	github.com/solo-io/k8s-utils v0.0.9
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/rate-limiter v0.4.0
