@@ -186,6 +186,27 @@ steps:
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   id: "release"
 
+# Configure Docker authentication
+- name: gcr.io/cloud-builders/gcloud
+  args: ['auth', 'configure-docker']
+  dir: *dir
+  waitFor: ['push-docker-images']
+  id: 'gcr-auth'
+
+  # Run make targets to retag and push docker images to GCR
+- name: 'gcr.io/$PROJECT_ID/go-mod-make:0.4.9'
+  args: ['docker-push-extended']
+  env:
+  - "TAGGED_VERSION=$TAG_NAME"
+  - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+  - "TEST_ASSET_ID=$_PR_NUM"
+  - 'IMAGE_REPO=gcr.io/gloo-edge'
+  - 'RETAG_IMAGE_REGISTRY=quay.io/solo-io'
+  dir: *dir
+  secretEnv: ['GITHUB_TOKEN']
+  waitFor: ['gcr-auth']
+  id: 'docker-push-extended-gcr'
+
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
   secretEnv:

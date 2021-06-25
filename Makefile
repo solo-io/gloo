@@ -16,10 +16,10 @@ WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
 # If you just put your username, then that refers to your account at hub.docker.com
-# To use quay images, set the IMAGE_REPO to "quay.io/solo-io"
+# To use quay images, set the IMAGE_REPO to "quay.io/solo-io" (or leave unset)
 # To use dockerhub images, set the IMAGE_REPO to "soloio"
 # To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
-IMAGE_REPO := quay.io/solo-io
+IMAGE_REPO ?= quay.io/solo-io
 
 ifeq ($(TAGGED_VERSION),)
 	TAGGED_VERSION := "v$(shell ./git-semver.sh)"
@@ -894,13 +894,44 @@ ifeq ($(RELEASE),"true")
 	DOCKER_IMAGES := docker
 endif
 
-.PHONY: docker docker-push
- docker: rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
+# check if all images are already built for RETAG_IMAGE_REGISTRY.
+# if so, retag them for the repository specified by IMAGE_REPO.
+# if not, build them with tags for the repository specified by IMAGE_REPO.
+.PHONY: docker
+docker:
+ifeq ($(RELEASE),"true")
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/rate-limit-ee:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-ee:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-ee-envoy-wrapper:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/observability-ee:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/extauth-ee:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/ext-auth-plugins:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-fed:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-fed-apiserver:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-fed-apiserver-envoy:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-federation-console:$(VERSION) >/dev/null 2>&1 && \
+	docker image inspect $(RETAG_IMAGE_REPOSITORY)/gloo-fed-rbac-validating-webhook:$(VERSION) >/dev/null 2>&1 && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/rate-limit-ee:$(VERSION) $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-ee:$(VERSION) $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-ee-envoy-wrapper:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/observability-ee:$(VERSION) $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/extauth-ee:$(VERSION) $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/ext-auth-plugins:$(VERSION) $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-fed:$(VERSION) $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-fed-apiserver:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-fed-apiserver-envoy:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-federation-console:$(VERSION) $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REPOSITORY)/gloo-fed-rbac-validating-webhook:$(VERSION) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) || \
+	make docker-build
+endif
+
+.PHONY: docker-build docker-push
+ docker-build: rate-limit-ee-docker extauth-ee-docker gloo-ee-docker \
        gloo-ee-envoy-wrapper-docker observability-ee-docker ext-auth-plugins-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
-# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
+# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker-build`
 # to be used for local testing.
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
