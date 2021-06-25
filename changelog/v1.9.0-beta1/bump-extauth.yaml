@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the ext-auth-service version to support the new Portal monetization feature.
+    dependencyOwner: solo-io
+    dependencyRepo: https://github.com/solo-io/ext-auth-service
+    dependencyTag: v0.16.7
