@@ -1603,8 +1603,8 @@ github.com/solo-io/envoy-operator v0.1.4 h1:haffsWSfiDtQrOHVaAuTL48LUVBvSYsv9nqJ
 github.com/solo-io/envoy-operator v0.1.4/go.mod h1:RX7+5zmyZs0SM4K9q9bkaqPMx4XzoQJVi/zBl3NNsG0=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.16.7 h1:+ms6EoRZ1P92QNQo/O7Olj8bVQbaSrbDZQOcJfFBCyo=
-github.com/solo-io/ext-auth-service v0.16.7/go.mod h1:qmh3XMlLPtzW+YpDoOVRVa3/1KPz82p191Q5ZG2pcgg=
+github.com/solo-io/ext-auth-service v0.16.8 h1:myyX4p1rG5AH0VXLrwmYjKPWNVkddol6HlSyoY0IEDY=
+github.com/solo-io/ext-auth-service v0.16.8/go.mod h1:qmh3XMlLPtzW+YpDoOVRVa3/1KPz82p191Q5ZG2pcgg=
 github.com/solo-io/external-apis v0.1.4 h1:OEZ8+3puweHeS0ltDlcbCgL89LLaIEraw+x4e9mQPuM=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/gloo v1.8.0-beta22 h1:mbyZvbVIzBweAo+fPTCF6qPmErfOZ01yqqtaAFQq3Fw=
