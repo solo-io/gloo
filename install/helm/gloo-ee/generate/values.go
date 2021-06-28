@@ -80,7 +80,7 @@ type RateLimitService struct {
 }
 
 type GlooFed struct {
-	Enabled             bool `json:"enabled" desc:"If true, deploy federation service (default true)."`
+	Enabled             bool `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
 	CreateLicenseSecret bool `json:"create_license_secret"`
 }
 
