@@ -11,11 +11,10 @@ jobs:
     env:
       SCAN_DIR: _output/scans
       IMAGE_REPO: quay.io/solo-io
-      TAGGED_VERSION: ${{ github.ref }}
     strategy:
       matrix:
         image-type: [ 'access-logger', 'certgen', 'discovery', 'gateway', 'gloo', 'gloo-envoy-wrapper', 'ingress', 'sds' ]
-        gloo-version: [ 'master', 'v1.7.x', 'v1.6.x', 'v1.5.x']
+        gloo-version: [ 'master', 'v1.8.x', 'v1.7.x', 'v1.6.x', 'v1.5.x']
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1
@@ -38,6 +37,11 @@ jobs:
 
           echo "After clearing disk space:"
           df -h
+      - name: Set up Go 1.16.3
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.3
+        id: go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
         with:
@@ -74,12 +78,15 @@ jobs:
           image-ref: ${{ env.IMAGE_REPO }}/${{ matrix.image-type }}:${{ steps.check-scan-exists.outputs.VERSION }}
           format: 'template'
           template: '@hack/utils/security_scan_report/markdown.tpl'
-          output: ${{ env.SCAN_DIR }}/${{ steps.build-docker-image.outputs.VERSION }}/${{ matrix.image-type }}_cve_report.docgen
+          output: ${{ env.SCAN_DIR }}/${{ steps.check-scan-exists.outputs.VERSION }}/${{ matrix.image-type }}_cve_report.docgen
           severity: 'CRITICAL,HIGH'
       - name: Publish Docs
         if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
+        env:
+          TAGGED_VERSION: v${{ steps.check-scan-exists.outputs.VERSION }}
+          SCAN_FILE: ${{ matrix.image-type }}_cve_report.docgen
         run: |
-          VERSION=${{ steps.check-scan-exists.outputs.VERSION }} SCAN_FILE=${{ matrix.image-type }}_cve_report.docgen make publish-security-scan
+          make publish-security-scan
       - name: Run Trivy vulnerability scanner
         if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
         uses: aquasecurity/trivy-action@master
