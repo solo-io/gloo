@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -12,7 +11,6 @@ import (
 	envoytls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
@@ -21,7 +19,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
@@ -465,14 +462,8 @@ var _ = Describe("Failover", func() {
 		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
 				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
-						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
-						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
-						ClusterNames:        []string{defaults.GlooRestXdsName},
-						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
-						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
-					},
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
+					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
 				},
 			},
 		}
@@ -511,14 +502,8 @@ var _ = Describe("Failover", func() {
 		expectedCluster.EdsClusterConfig = &envoy_config_cluster_v3.Cluster_EdsClusterConfig{
 			EdsConfig: &envoy_config_core_v3.ConfigSource{
 				ResourceApiVersion: envoy_config_core_v3.ApiVersion_V3,
-				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_ApiConfigSource{
-					ApiConfigSource: &envoy_config_core_v3.ApiConfigSource{
-						ApiType:             envoy_config_core_v3.ApiConfigSource_REST,
-						TransportApiVersion: envoy_config_core_v3.ApiVersion_V3,
-						ClusterNames:        []string{defaults.GlooRestXdsName},
-						RefreshDelay:        ptypes.DurationProto(time.Second * 5),
-						RequestTimeout:      ptypes.DurationProto(time.Second * 5),
-					},
+				ConfigSourceSpecifier: &envoy_config_core_v3.ConfigSource_Ads{
+					Ads: &envoy_config_core_v3.AggregatedConfigSource{},
 				},
 			},
 		}

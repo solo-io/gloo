@@ -913,6 +913,9 @@ export class OidcAuthorizationCode extends jspb.Message {
   getJwksCacheRefreshPolicy(): JwksOnDemandCacheRefreshPolicy | undefined;
   setJwksCacheRefreshPolicy(value?: JwksOnDemandCacheRefreshPolicy): void;
 
+  getSessionIdHeaderName(): string;
+  setSessionIdHeaderName(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -940,6 +943,7 @@ export namespace OidcAuthorizationCode {
     discoveryOverride?: DiscoveryOverride.AsObject,
     discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
     jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
+    sessionIdHeaderName: string,
   }
 }
 
@@ -1543,6 +1547,9 @@ export namespace ExtAuthConfig {
     getJwksCacheRefreshPolicy(): JwksOnDemandCacheRefreshPolicy | undefined;
     setJwksCacheRefreshPolicy(value?: JwksOnDemandCacheRefreshPolicy): void;
 
+    getSessionIdHeaderName(): string;
+    setSessionIdHeaderName(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1570,6 +1577,7 @@ export namespace ExtAuthConfig {
       discoveryOverride?: DiscoveryOverride.AsObject,
       discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
       jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
+      sessionIdHeaderName: string,
     }
   }
 

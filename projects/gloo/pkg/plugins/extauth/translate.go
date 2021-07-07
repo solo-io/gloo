@@ -316,6 +316,7 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 		TokenEndpointQueryParams: config.TokenEndpointQueryParams,
 		CallbackPath:             config.CallbackPath,
 		AfterLogoutUrl:           config.AfterLogoutUrl,
+		SessionIdHeaderName:      config.SessionIdHeaderName,
 		LogoutPath:               config.LogoutPath,
 		Scopes:                   config.Scopes,
 		Session:                  config.Session,

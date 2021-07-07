@@ -6010,7 +6010,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
     discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f)
+    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
+    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, "")
   };
 
   if (includeInstance) {
@@ -6116,6 +6117,10 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader);
       msg.setJwksCacheRefreshPolicy(value);
+      break;
+    case 16:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSessionIdHeaderName(value);
       break;
     default:
       reader.skipField();
@@ -6249,6 +6254,13 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       13,
       f,
       proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getSessionIdHeaderName();
+  if (f.length > 0) {
+    writer.writeString(
+      16,
+      f
     );
   }
 };
@@ -6586,6 +6598,21 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearJwksCacheRefr
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasJwksCacheRefreshPolicy = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional string session_id_header_name = 16;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getSessionIdHeaderName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 16, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setSessionIdHeaderName = function(value) {
+  jspb.Message.setProto3StringField(this, 16, value);
 };
 
 
@@ -10449,7 +10476,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     headers: (f = msg.getHeaders()) && proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject(includeInstance, f),
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
     discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f)
+    jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
+    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, "")
   };
 
   if (includeInstance) {
@@ -10554,6 +10582,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       var value = new proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.deserializeBinaryFromReader);
       msg.setJwksCacheRefreshPolicy(value);
+      break;
+    case 16:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSessionIdHeaderName(value);
       break;
     default:
       reader.skipField();
@@ -10686,6 +10718,13 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       13,
       f,
       proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.serializeBinaryToWriter
+    );
+  }
+  f = message.getSessionIdHeaderName();
+  if (f.length > 0) {
+    writer.writeString(
+      16,
+      f
     );
   }
 };
@@ -11008,6 +11047,21 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasJwksCacheRefreshPolicy = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional string session_id_header_name = 16;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getSessionIdHeaderName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 16, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setSessionIdHeaderName = function(value) {
+  jspb.Message.setProto3StringField(this, 16, value);
 };
 
 

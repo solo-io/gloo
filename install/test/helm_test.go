@@ -1400,7 +1400,7 @@ spec:
       allowWarnings: true
       warnRouteShortCircuiting: false
   gloo:
-    enableRestEds: true
+    enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1457,7 +1457,7 @@ spec:
       allowWarnings: true
       warnRouteShortCircuiting: false
   gloo:
-    enableRestEds: true
+    enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1514,7 +1514,7 @@ spec:
       allowWarnings: true
       warnRouteShortCircuiting: false
   gloo:
-    enableRestEds: true
+    enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1576,7 +1576,7 @@ spec:
       allowWarnings: true
       warnRouteShortCircuiting: false
   gloo:
-    enableRestEds: true
+    enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
@@ -1641,7 +1641,7 @@ spec:
       allowWarnings: true
       warnRouteShortCircuiting: false
   gloo:
-    enableRestEds: true
+    enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
     disableKubernetesDestinations: false
