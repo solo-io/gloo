@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         image-type: [ 'rate-limit-ee', 'gloo-ee', 'gloo-ee-envoy-wrapper', 'observability-ee', 'extauth-ee' ]
-        gloo-version: [ 'master', 'v1.7.x', 'v1.6.x', 'v1.5.x']
+        gloo-version: [ 'master', 'v1.8.x', 'v1.7.x', 'v1.6.x', 'v1.5.x']
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1
@@ -63,7 +63,7 @@ jobs:
     strategy:
       matrix:
         image-type: [ 'gloo-fed', 'gloo-fed-apiserver', 'gloo-fed-apiserver-envoy', 'gloo-federation-console', 'gloo-fed-rbac-validating-webhook' ]
-        gloo-version: [ 'master', 'v1.7.x' ]
+        gloo-version: [ 'master', 'v1.8.x', 'v1.7.x' ]
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1
