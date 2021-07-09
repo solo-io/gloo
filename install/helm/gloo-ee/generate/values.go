@@ -62,6 +62,7 @@ type DynamoDb struct {
 type RateLimitDeployment struct {
 	Name                 string            `json:"name"`
 	GlooAddress          string            `json:"glooAddress"`
+	GlooPort             uint              `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
 	DynamoDb             DynamoDb          `json:"dynamodb"`
 	Image                *glooGen.Image    `json:"image,omitempty"`
 	Stats                *glooGen.Stats    `json:"stats"`
@@ -85,22 +86,22 @@ type GlooFed struct {
 }
 
 type Redis struct {
-	Deployment *RedisDeployment `json:"deployment,omitempty"`
-	Service    RedisService     `json:"service,omitempty"`
-	AclPrefix  *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
+	Deployment                *RedisDeployment `json:"deployment,omitempty"`
+	Service                   RedisService     `json:"service,omitempty"`
+	ClientSideShardingEnabled bool             `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
+	AclPrefix                 *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
 }
 
 type RedisDeployment struct {
-	Image                     *glooGen.Image    `json:"image,omitempty"`
-	Name                      string            `json:"name"`
-	StaticPort                uint              `json:"staticPort"`
-	RunAsUser                 float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
-	RunAsGroup                float64           `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`
-	FsGroup                   float64           `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as. Default is 999"`
-	FloatingUserId            bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraRedisLabels          map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
-	ClientSideShardingEnabled bool              `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
-	EnablePodSecurityContext  *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
+	Image                    *glooGen.Image    `json:"image,omitempty"`
+	Name                     string            `json:"name"`
+	StaticPort               uint              `json:"staticPort"`
+	RunAsUser                float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 999"`
+	RunAsGroup               float64           `json:"runAsGroup" desc:"Explicitly set the group ID for the container to run as. Default is 999"`
+	FsGroup                  float64           `json:"fsGroup" desc:"Explicitly set the fsGroup ID for the container to run as. Default is 999"`
+	FloatingUserId           bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraRedisLabels         map[string]string `json:"extraRedisLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment."`
+	EnablePodSecurityContext *bool             `json:"enablePodSecurityContext,omitempty" desc:"Whether or not to render the pod security context. Default is true"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }
@@ -167,6 +168,7 @@ type ExtAuth struct {
 type ExtAuthDeployment struct {
 	Name               string            `json:"name"`
 	GlooAddress        string            `json:"glooAddress,omitempty"`
+	GlooPort           uint              `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
 	Port               uint              `json:"port"`
 	Image              *glooGen.Image    `json:"image,omitempty"`
 	Stats              *glooGen.Stats    `json:"stats"`

@@ -64,7 +64,7 @@ spec:
               {{- if .Values.global.glooMtls.enabled }}
               value: "127.0.0.1:9955"
               {{- else }}
-              value: {{ .Values.global.extensions.rateLimit.deployment.glooAddress }}
+              value: {{ .Values.global.extensions.rateLimit.deployment.glooAddress }}:{{ .Values.global.extensions.rateLimit.deployment.glooPort }}
               {{- end }}{{/* .Values.global.glooMtls.enabled */}}
             {{- if $statsConfig.enabled }}
             - name: START_STATS_SERVER

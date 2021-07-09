@@ -96,8 +96,8 @@ Expand the name of the chart.
     - name: SERVICE_NAME
       value: {{ $extAuth.serviceName | quote }}
     - name: GLOO_ADDRESS
-{{- if $extAuth.deployment.glooAddress }}
-      value: {{ $extAuth.deployment.glooAddress }}
+{{- if and $extAuth.deployment.glooAddress $extAuth.deployment.glooPort }}
+      value: {{ $extAuth.deployment.glooAddress }}:{{ $extAuth.deployment.glooPort }}
 {{- else }}
       {{- if $.Values.global.glooMtls.enabled }}
       value: "127.0.0.1:9955"

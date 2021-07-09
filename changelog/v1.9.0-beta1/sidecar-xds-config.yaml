@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4967
+    description: >
+      Gloo XDS server namespace and port can now be configured in Extauth sidecar and Ratelimit sidecar envoy bootstrap configs
+      using the `gloo.k8s.clusterName` and `gloo.gloo.deployment.xdsPort` values.
+  - type: BREAKING_CHANGE
+    issueLink: https://github.com/solo-io/gloo/issues/4967
+    description: >
+      The helm value `global.extensions.extAuth.deployment.glooAddress` does not contain the port of gloo anymore.
+      Previously, this value may have been specified as `gloo:9977`. Now, to achieve the same result, set
+      `global.extensions.extAuth.deployment.glooAddress=gloo` and ``global.extensions.extAuth.deployment.glooPort=9977`.
+      The same change applies to helm value `global.extensions.rateLimit.deployment.glooAddress`.

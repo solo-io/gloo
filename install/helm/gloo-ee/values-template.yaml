@@ -129,7 +129,8 @@ global:
         name: "rate-limit"
         image:
           repository: rate-limit-ee
-        glooAddress: gloo:9977
+        glooAddress: gloo
+        glooPort: 9977
         dynamodb:
           region: us-east-2
           tableName: rate-limits
@@ -158,6 +159,7 @@ global:
         port: 8083
         runAsUser: 10101
         fsGroup: 10101
+        glooPort: 9977
       service:
         port: 8083
         name: extauth

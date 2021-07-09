@@ -909,7 +909,6 @@
 |redis.deployment.fsGroup|float64||Explicitly set the fsGroup ID for the container to run as. Default is 999|
 |redis.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
 |redis.deployment.extraRedisLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment.|
-|redis.deployment.clientSideShardingEnabled|bool|false|If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false.|
 |redis.deployment.enablePodSecurityContext|bool|true|Whether or not to render the pod security context. Default is true|
 |redis.deployment.replicas|int||number of instances to deploy|
 |redis.deployment.customEnv[].name|string|||
@@ -950,10 +949,12 @@
 |redis.service.port|uint|6379||
 |redis.service.name|string|redis||
 |redis.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|redis.clientSideShardingEnabled|bool|false|If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false.|
 |redis.aclPrefix|string|user default +@all allkeys on >|The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password.|
 |rateLimit.enabled|bool||if true, deploy rate limit service (default true)|
 |rateLimit.deployment.name|string|||
 |rateLimit.deployment.glooAddress|string|||
+|rateLimit.deployment.glooPort|uint||Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config|
 |rateLimit.deployment.dynamodb.region|string||aws region to run DynamoDB requests in|
 |rateLimit.deployment.dynamodb.secretName|string||name of the aws secret in gloo's installation namespace that has aws creds (if provided, uses DynamoDB to back rate-limiting service instead of Redis)|
 |rateLimit.deployment.dynamodb.tableName|string||DynamoDB table name used to back rate limit service (default rate-limits)|
