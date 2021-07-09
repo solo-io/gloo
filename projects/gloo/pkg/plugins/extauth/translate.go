@@ -172,16 +172,21 @@ func translateOpaConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extau
 		}
 	}
 
+	options := opa.Options{
+		FastInputConversion: config.GetOptions().GetFastInputConversion(),
+	}
+
 	if strings.TrimSpace(config.Query) == "" {
 		return nil, emptyQueryError
 	}
 
 	// validate that it is a valid opa config
-	_, err := opa.New(ctx, config.Query, modules)
+	_, err := opa.NewWithOptions(ctx, config.Query, modules, options)
 
 	return &extauth.ExtAuthConfig_OpaAuthConfig{
 		Modules: modules,
 		Query:   config.Query,
+		Options: config.Options,
 	}, err
 }
 

@@ -1270,6 +1270,11 @@ export class OpaAuth extends jspb.Message {
   getQuery(): string;
   setQuery(value: string): void;
 
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): OpaAuthOptions | undefined;
+  setOptions(value?: OpaAuthOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OpaAuth.AsObject;
   static toObject(includeInstance: boolean, msg: OpaAuth): OpaAuth.AsObject;
@@ -1284,6 +1289,27 @@ export namespace OpaAuth {
   export type AsObject = {
     modulesList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
     query: string,
+    options?: OpaAuthOptions.AsObject,
+  }
+}
+
+export class OpaAuthOptions extends jspb.Message {
+  getFastInputConversion(): boolean;
+  setFastInputConversion(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OpaAuthOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: OpaAuthOptions): OpaAuthOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OpaAuthOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OpaAuthOptions;
+  static deserializeBinaryFromReader(message: OpaAuthOptions, reader: jspb.BinaryReader): OpaAuthOptions;
+}
+
+export namespace OpaAuthOptions {
+  export type AsObject = {
+    fastInputConversion: boolean,
   }
 }
 
@@ -1874,6 +1900,11 @@ export namespace ExtAuthConfig {
     getQuery(): string;
     setQuery(value: string): void;
 
+    hasOptions(): boolean;
+    clearOptions(): void;
+    getOptions(): OpaAuthOptions | undefined;
+    setOptions(value?: OpaAuthOptions): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OpaAuthConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OpaAuthConfig): OpaAuthConfig.AsObject;
@@ -1888,6 +1919,7 @@ export namespace ExtAuthConfig {
     export type AsObject = {
       modulesMap: Array<[string, string]>,
       query: string,
+      options?: OpaAuthOptions.AsObject,
     }
   }
 

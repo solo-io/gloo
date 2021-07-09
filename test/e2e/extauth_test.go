@@ -845,6 +845,7 @@ var _ = Describe("External auth", func() {
 				}
 				`}}
 							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+							options := &extauth.OpaAuthOptions{FastInputConversion: true}
 
 							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 								Metadata: &core.Metadata{
@@ -861,7 +862,7 @@ var _ = Describe("External auth", func() {
 									},
 									{
 										AuthConfig: &extauth.AuthConfig_Config_OpaAuth{
-											OpaAuth: getOpaConfig(modules),
+											OpaAuth: getOpaConfig(modules, options),
 										},
 									},
 								},
@@ -936,6 +937,7 @@ var _ = Describe("External auth", func() {
 			}
 			`}}
 						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
+						options := &extauth.OpaAuthOptions{FastInputConversion: true}
 						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
@@ -951,7 +953,7 @@ var _ = Describe("External auth", func() {
 								},
 								{
 									AuthConfig: &extauth.AuthConfig_Config_OpaAuth{
-										OpaAuth: getOpaConfig(modules),
+										OpaAuth: getOpaConfig(modules, options),
 									},
 								},
 							},
@@ -1922,6 +1924,7 @@ var _ = Describe("External auth", func() {
 				}
 				`}}
 							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+							options := &extauth.OpaAuthOptions{FastInputConversion: true}
 
 							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 								Metadata: &core.Metadata{
@@ -1936,7 +1939,7 @@ var _ = Describe("External auth", func() {
 									},
 									{
 										AuthConfig: &extauth.AuthConfig_Config_OpaAuth{
-											OpaAuth: getOpaConfig(modules),
+											OpaAuth: getOpaConfig(modules, options),
 										},
 									},
 								},
@@ -2011,6 +2014,8 @@ var _ = Describe("External auth", func() {
 			}
 			`}}
 						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
+						options := &extauth.OpaAuthOptions{FastInputConversion: true}
+
 						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
@@ -2024,7 +2029,7 @@ var _ = Describe("External auth", func() {
 								},
 								{
 									AuthConfig: &extauth.AuthConfig_Config_OpaAuth{
-										OpaAuth: getOpaConfig(modules),
+										OpaAuth: getOpaConfig(modules, options),
 									},
 								},
 							},
@@ -2409,10 +2414,11 @@ func getOidcAndOpaExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getOpaConfig(modules []*core.ResourceRef) *extauth.OpaAuth {
+func getOpaConfig(modules []*core.ResourceRef, options *extauth.OpaAuthOptions) *extauth.OpaAuth {
 	return &extauth.OpaAuth{
 		Modules: modules,
 		Query:   "data.test.allow == true",
+		Options: options,
 	}
 }
 

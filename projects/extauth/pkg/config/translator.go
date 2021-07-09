@@ -271,7 +271,10 @@ func (t *extAuthConfigTranslator) authConfigToService(
 		p, err := t.serviceFactory.LoadAuthPlugin(ctx, cfg.PluginAuth)
 		return p, cfg.PluginAuth.Name, err // plugin name takes precedent over auth config name
 	case *extauthv1.ExtAuthConfig_Config_OpaAuth:
-		opaCfg, err := opa.New(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules)
+		options := opa.Options{
+			FastInputConversion: cfg.OpaAuth.GetOptions().GetFastInputConversion(),
+		}
+		opaCfg, err := opa.NewWithOptions(ctx, cfg.OpaAuth.Query, cfg.OpaAuth.Modules, options)
 		if err != nil {
 			return nil, "", err
 		}

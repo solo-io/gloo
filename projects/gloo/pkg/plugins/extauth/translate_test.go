@@ -472,7 +472,7 @@ var _ = Describe("Translate", func() {
 			}
 		})
 
-		It("should OPA config", func() {
+		It("should translate OPA config without options specified", func() {
 			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
@@ -482,6 +482,27 @@ var _ = Describe("Translate", func() {
 			Expect(actual.Query).To(Equal(expected.Query))
 			data := params.Snapshot.Artifacts[0].Data
 			Expect(actual.Modules).To(Equal(data))
+			Expect(actual.Options).To(Equal(expected.Options))
+		})
+
+		It("Should translate OPA config with options specified", func() {
+			// Specify additional options in Opa Config.
+			opaAuth := authConfig.Configs[0].GetOpaAuth()
+			opaAuth.Options = &extauth.OpaAuthOptions{
+				FastInputConversion: true,
+			}
+
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			Expect(translated.Configs[0].GetOpaAuth().GetOptions().GetFastInputConversion()).To(Equal(true))
+			actual := translated.Configs[0].GetOpaAuth()
+			expected := authConfig.Configs[0].GetOpaAuth()
+			Expect(actual.Query).To(Equal(expected.Query))
+			data := params.Snapshot.Artifacts[0].Data
+			Expect(actual.Modules).To(Equal(data))
+			Expect(actual.Options).To(Equal(expected.Options))
 		})
 	})
 
