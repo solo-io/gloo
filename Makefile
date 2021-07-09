@@ -134,6 +134,12 @@ run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
 
+# command to run e2e tests
+# requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
+.PHONY: run-e2e-tests
+run-e2e-tests: install-go-tools
+	ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+
 .PHONY: update-ui-deps
 update-ui-deps:
 	yarn --cwd=$(APISERVER_UI_DIR) install

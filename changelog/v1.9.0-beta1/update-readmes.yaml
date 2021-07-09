@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Create run-e2e-tests make target, as well as README.md in `test/e2e/`.
