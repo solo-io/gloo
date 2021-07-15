@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/service_spec_pb";
+import * as validate_validate_pb from "../../../../../../../../../validate/validate_pb";
 
 export class UpstreamSpec extends jspb.Message {
   clearHostsList(): void;
@@ -55,6 +56,11 @@ export class Host extends jspb.Message {
   getSniAddr(): string;
   setSniAddr(value: string): void;
 
+  hasLoadBalancingWeight(): boolean;
+  clearLoadBalancingWeight(): void;
+  getLoadBalancingWeight(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setLoadBalancingWeight(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   hasHealthCheckConfig(): boolean;
   clearHealthCheckConfig(): void;
   getHealthCheckConfig(): Host.HealthCheckConfig | undefined;
@@ -75,6 +81,7 @@ export namespace Host {
     addr: string,
     port: number,
     sniAddr: string,
+    loadBalancingWeight?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     healthCheckConfig?: Host.HealthCheckConfig.AsObject,
   }
 

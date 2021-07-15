@@ -15,6 +15,7 @@ var global = Function('return this')();
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_service_spec_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/service_spec_pb.js');
+var validate_validate_pb = require('../../../../../../../../../validate/validate_pb.js');
 goog.exportSymbol('proto.static.options.gloo.solo.io.Host', null, global);
 goog.exportSymbol('proto.static.options.gloo.solo.io.Host.HealthCheckConfig', null, global);
 goog.exportSymbol('proto.static.options.gloo.solo.io.UpstreamSpec', null, global);
@@ -353,6 +354,7 @@ proto.static.options.gloo.solo.io.Host.toObject = function(includeInstance, msg)
     addr: jspb.Message.getFieldWithDefault(msg, 1, ""),
     port: jspb.Message.getFieldWithDefault(msg, 2, 0),
     sniAddr: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    loadBalancingWeight: (f = msg.getLoadBalancingWeight()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     healthCheckConfig: (f = msg.getHealthCheckConfig()) && proto.static.options.gloo.solo.io.Host.HealthCheckConfig.toObject(includeInstance, f)
   };
 
@@ -401,6 +403,11 @@ proto.static.options.gloo.solo.io.Host.deserializeBinaryFromReader = function(ms
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setSniAddr(value);
+      break;
+    case 5:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setLoadBalancingWeight(value);
       break;
     case 3:
       var value = new proto.static.options.gloo.solo.io.Host.HealthCheckConfig;
@@ -455,6 +462,14 @@ proto.static.options.gloo.solo.io.Host.serializeBinaryToWriter = function(messag
     writer.writeString(
       4,
       f
+    );
+  }
+  f = message.getLoadBalancingWeight();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
   f = message.getHealthCheckConfig();
@@ -679,6 +694,36 @@ proto.static.options.gloo.solo.io.Host.prototype.getSniAddr = function() {
 /** @param {string} value */
 proto.static.options.gloo.solo.io.Host.prototype.setSniAddr = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value load_balancing_weight = 5;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.static.options.gloo.solo.io.Host.prototype.getLoadBalancingWeight = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 5));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.static.options.gloo.solo.io.Host.prototype.setLoadBalancingWeight = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.static.options.gloo.solo.io.Host.prototype.clearLoadBalancingWeight = function() {
+  this.setLoadBalancingWeight(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.static.options.gloo.solo.io.Host.prototype.hasLoadBalancingWeight = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
 
 export class Failover extends jspb.Message {
   clearPrioritizedLocalitiesList(): void;

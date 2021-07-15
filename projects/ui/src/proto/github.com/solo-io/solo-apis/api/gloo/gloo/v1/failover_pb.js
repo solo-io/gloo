@@ -15,6 +15,7 @@ var global = Function('return this')();
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var validate_validate_pb = require('../../../../../../../validate/validate_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.Failover', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Failover.PrioritizedLocality', null, global);
 goog.exportSymbol('proto.gloo.solo.io.LbEndpoint', null, global);
