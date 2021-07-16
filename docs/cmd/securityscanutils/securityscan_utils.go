@@ -223,13 +223,28 @@ type SarifMetadata struct {
 	Sarif     string `json:"sarif"`
 }
 
+type Response struct {
+	ShaObject `json:"object"`
+}
+
+type ShaObject struct {
+	Sha string `json:"sha"`
+}
+
 func UploadSecurityScanToGithub(fileName, versionTag string) error {
-	cmd := exec.Command("git", "rev-parse", fmt.Sprintf("refs/tags/v%s", versionTag))
-	out, err := cmd.Output()
+	resp, err := req.Get("https://api.github.com/repos/solo-io/gloo/git/refs/tags/v" + versionTag)
 	if err != nil {
-		fmt.Println(string(out))
-		return eris.Wrapf(err, "error getting commit sha for tag %s", versionTag)
+		return eris.Wrapf(err, "Unable to get commit for version v%s", versionTag)
 	}
+	shaResp := &Response{}
+	resp.ToJSON(shaResp)
+	fmt.Printf("%+v\n", shaResp)
+	//cmd := exec.Command("git", "rev-parse", fmt.Sprintf("refs/tags/v%s", versionTag))
+	//out, err := cmd.Output()
+	//if err != nil {
+	//	fmt.Println(string(out))
+	//	return eris.Wrapf(err, "error getting commit sha for tag %s", versionTag)
+	//}
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	if githubToken == "" {
 		return fmt.Errorf("no GITHUB_TOKEN environment variable specified")
@@ -244,16 +259,17 @@ func UploadSecurityScanToGithub(fileName, versionTag string) error {
 	w.Close()
 	sarifMetadata := SarifMetadata{
 		Ref:       fmt.Sprintf("refs/tags/v%s", versionTag),
-		CommitSha: strings.TrimSpace(string(out)),
+		CommitSha: shaResp.Sha,
 		Sarif:     base64.StdEncoding.EncodeToString(r.Bytes()),
 	}
 	header := req.Header{
 		"Authorization": fmt.Sprintf("token %s", githubToken),
 		"Content-Type":  "application/json",
 	}
-	_, err = req.Post("https://api.github.com/repos/solo-io/gloo/code-scanning/sarifs", req.BodyJSON(sarifMetadata), header)
-	if err != nil {
-		return eris.Wrap(err, "error uploading sarif file to github")
+	res, err := req.Post("https://api.github.com/repos/solo-io/gloo/code-scanning/sarifs", req.BodyJSON(sarifMetadata), header)
+	fmt.Println(res.String())
+	if err != nil || res.Response().StatusCode != 200 {
+		return eris.Wrapf(err, "error uploading sarif file to github, response: \n%s", res)
 	}
 	return nil
 }
