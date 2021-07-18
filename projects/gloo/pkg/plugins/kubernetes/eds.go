@@ -290,7 +290,7 @@ func filterEndpoints(
 							warnsToLog = append(warnsToLog, fmt.Sprintf("error for upstream %v service %v: %v", usRef.Key(), spec.ServiceName, err))
 							continue
 						}
-						if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {
+						if !labels.SelectorFromSet(spec.Selector).Matches(labels.Set(podLabels)) {
 							continue
 						}
 						// pod hasn't been assigned address yet
