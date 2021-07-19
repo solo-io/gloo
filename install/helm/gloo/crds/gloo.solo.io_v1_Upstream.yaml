@@ -1308,6 +1308,19 @@ spec:
                     the upstream to a set of subsets. for each unique set of keys
                     and values, a subset will be created.
                   properties:
+                    defaultSubset:
+                      properties:
+                        values:
+                          additionalProperties:
+                            type: string
+                          type: object
+                      type: object
+                    fallbackPolicy:
+                      enum:
+                      - ANY_ENDPOINT
+                      - DEFAULT_SUBSET
+                      - NO_FALLBACK
+                      type: string
                     selectors:
                       items:
                         properties:
@@ -1315,6 +1328,9 @@ spec:
                             items:
                               type: string
                             type: array
+                          singleHostPerSubset:
+                            description: single_host_per_subset is false by default
+                            type: boolean
                         type: object
                       type: array
                   type: object
