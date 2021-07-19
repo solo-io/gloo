@@ -24,5 +24,5 @@ The outputs of a trivy scan are the following:
 and are uploaded to a google cloud bucket, which we later pull from during docs generation (which happens on merges to `master`), to generate a human-readable markdown
 security scans document, which we [display in our docs](https://docs.solo.io/gloo-edge/master/reference/security-updates/open_source/).
 
-`_output/scans/gloo/serif_results` - a folder which has .sarif files containing scan results for each image of each version of gloo that was scanned.
+`_output/scans/gloo/sarif_results` - a folder which has .sarif files containing scan results for each image of each version of gloo that was scanned.
 These .sarif files are then uploaded to github, and the scan results can be seen on the security tab of the gloo repo.

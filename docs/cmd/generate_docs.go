@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"github.com/solo-io/go-utils/securityscanutils"
 	"io/ioutil"
 	"log"
 	"os"
@@ -114,16 +115,8 @@ func runSecurityScanCmd(opts *options) *cobra.Command {
 		Short: "runs trivy scans on images from repo specified",
 		Long:  "runs trivy vulnerability scans on images from the repo specified. Only reports HIGH and CRITICAL-level vulnerabilities and uploads scan results to google cloud bucket and github security page",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			switch opts.targetRepo {
-			case glooDocGen:
-				err := scanGlooImages(opts.ctx)
-				return err
-			case glooEDocGen:
-				err := scanGlooEImages(opts.ctx)
-				return err
-			default:
-				return InvalidInputError(opts.targetRepo)
-			}
+			err := scanGlooImages(opts.ctx)
+			return err
 		},
 	}
 	return app
@@ -298,40 +291,52 @@ func generateSecurityScanMd(opts *options) error {
 	return err
 }
 
-// List of images included in gloo edge open source
-func OpenSourceImages() []string {
-	return []string{"access-logger", "certgen", "discovery", "gateway", "gloo", "gloo-envoy-wrapper", "ingress", "sds"}
-}
-
-// List of images only included in gloo edge enterprise
-func EnterpriseImages() []string {
-	return []string{"rate-limit-ee", "gloo-ee", "gloo-ee-envoy-wrapper", "observability-ee", "extauth-ee", "gloo-fed", "gloo-fed-apiserver", "gloo-fed-apiserver-envoy", "gloo-federation-console", "gloo-fed-rbac-validating-webhook"}
-}
-
 func scanGlooImages(ctx context.Context) error {
-	client := githubutils.GetClientOrExit(ctx)
-	allReleases, err := githubutils.GetAllRepoReleases(ctx, client, "solo-io", glooOpenSourceRepo)
-	if err != nil {
-		return err
+	var (
+		stableOnlyConstraint *semver.Constraints
+		err                  error
+	)
+	minVersionToScan := os.Getenv("MIN_SCANNED_VERSION")
+	if minVersionToScan == "" {
+		log.Println("MIN_SCANNED_VERSION environment variable not set, scanning all versions from repo")
+	} else {
+		stableOnlyConstraint, err = semver.NewConstraint(fmt.Sprintf(">= %s", minVersionToScan))
+		if err != nil {
+			log.Fatalf("Invalid constraint version: %s", minVersionToScan)
+		}
 	}
-
-	githubutils.SortReleasesBySemver(allReleases)
-	versionsToScan := getVersionsToScan(allReleases)
-	return RunSecurityScanOnVersions(versionsToScan, OpenSourceImages(), "gloo")
-}
-
-func scanGlooEImages(ctx context.Context) error {
-	client, err := githubutils.GetClient(ctx)
-	if err != nil {
-		return err
+	scanner := &securityscanutils.SecurityScanner{
+		Repos: []*securityscanutils.SecurityScanRepo{
+			{
+				Repo:  "gloo",
+				Owner: "solo-io",
+				Opts: &securityscanutils.SecurityScanOpts{
+					OutputDir: "_output/scans",
+					ImagesPerVersion: map[string][]string{
+						">=v1.6.0": OpenSourceImages(),
+					},
+					VersionConstraint:      stableOnlyConstraint,
+					ImageRepo:              "quay.io/solo-io",
+					UploadCodeScanToGithub: true,
+				},
+			},
+			{
+				Repo:  "solo-projects",
+				Owner: "solo-io",
+				Opts: &securityscanutils.SecurityScanOpts{
+					OutputDir: "_output/scans",
+					ImagesPerVersion: map[string][]string{
+						"<=1.6.x":  EnterpriseImages(true),
+						">=v1.7.x": EnterpriseImages(false),
+					},
+					VersionConstraint:      stableOnlyConstraint,
+					ImageRepo:              "quay.io/solo-io",
+					UploadCodeScanToGithub: false,
+				},
+			},
+		},
 	}
-	allReleases, err := githubutils.GetAllRepoReleases(ctx, client, "solo-io", glooEnterpriseRepo)
-	if err != nil {
-		return err
-	}
-	githubutils.SortReleasesBySemver(allReleases)
-	versionsToScan := getVersionsToScan(allReleases)
-	return RunSecurityScanOnVersions(versionsToScan, EnterpriseImages(), "glooe")
+	return scanner.GenerateSecurityScans(ctx)
 }
 
 func generateSecurityScanGloo(ctx context.Context) error {

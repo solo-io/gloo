@@ -697,8 +697,7 @@ SCAN_BUCKET ?= solo-gloo-security-scans
 
 .PHONY: run-security-scans
 run-security-scan:
-	GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r gloo
-	GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r glooe
+	GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan
 
 .PHONY: publish-security-scan
 publish-security-scan:
@@ -706,7 +705,7 @@ publish-security-scan:
 	# of gloo and gloo enterprise. Do NOT change these directories without changing the corresponding output directories in
 	# generate_docs.go
 	gsutil cp -r $(SCAN_DIR)/gloo/markdown_results/** gs://$(SCAN_BUCKET)/gloo
-	gsutil cp -r $(SCAN_DIR)/glooe/markdown_results/** gs://$(SCAN_BUCKET)/glooe
+	gsutil cp -r $(SCAN_DIR)/solo-projects/markdown_results/** gs://$(SCAN_BUCKET)/solo-projects
 
 #----------------------------------------------------------------------------------
 # Third Party License Management

@@ -34,15 +34,10 @@ jobs:
 
           echo "After clearing disk space:"
           df -h
-      - name: Install Trivy and Codeql
+      - name: Install Trivy
         run: |
           wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.deb
           sudo dpkg -i trivy_0.18.3_Linux-64bit.deb
-          wget -O tmp.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip
-          unzip tmp.zip
-          sudo mv codeql /usr/local/bin/codeql
-          PATH="/usr/local/bin/codeql:$PATH"
-          rm -rf tmp.zip codeql
       - name: Set up Go 1.16.3
         uses: actions/setup-go@v2
         with:
@@ -65,9 +60,4 @@ jobs:
         run: |
           mkdir -p ${{ env.SCAN_DIR }}
           make run-security-scan
-#          make publish-security-scan
-      # upload both open source and enterprise scan results to GH security tab
-      - name: Upload Open source Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: _output/scans
+          make publish-security-scan
