@@ -79,7 +79,7 @@ require (
 	github.com/sirupsen/logrus v1.8.0 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/solo-io/go-list-licenses v0.1.0
-	github.com/solo-io/go-utils v0.21.9
+	github.com/solo-io/go-utils v0.21.10-0.20210719182251-2a15506c54ff
 	github.com/solo-io/k8s-utils v0.0.8
 	github.com/solo-io/protoc-gen-ext v0.0.15
 	github.com/solo-io/reporting-client v0.2.0
@@ -137,7 +137,6 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	// Required for proper serialization of CRDs
 	github.com/renstrom/dedent => github.com/lithammer/dedent v1.0.0
-	github.com/solo-io/go-utils => /Users/sai/go/src/github.com/solo-io/go-utils
 
 	// kube 0.19: redirects needed for most k8s.io dependencies because
 	// k8s.io/kubernetes tries to import v0.0.0 of everything.
