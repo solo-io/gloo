@@ -22,6 +22,17 @@ spec:
         spec:
           description: The **RouteTable** is a child routing object for the Gloo Gateway.
           properties:
+            reporterStatus:
+              properties:
+                statuses:
+                  additionalProperties:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  description: 'Mapping from reporter to that reporter''s Status.
+                    Key format: ${POD_NAMESPACE}:${Status.ReportedBy} (i.e. gloo-system:gloo,
+                    gloo-system:gateway, etc)'
+                  type: object
+              type: object
             routes:
               description: The list of routes for the route table
               items:

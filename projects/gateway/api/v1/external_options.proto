@@ -119,6 +119,8 @@ message VirtualHostOption {
 
   // VirtualHost options. See VirtualHost for delegation behavior.
   gloo.solo.io.VirtualHostOptions options = 3;
+
+  core.solo.io.ReporterStatus reporter_status = 4 [(extproto.skip_hashing) = true];
 }
 
 /*
@@ -230,4 +232,6 @@ message RouteOption {
 
   // Route options. See Route for delegation behavior.
   gloo.solo.io.RouteOptions options = 3;
+
+  core.solo.io.ReporterStatus reporter_status = 4 [(extproto.skip_hashing) = true];
 }

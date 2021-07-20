@@ -56,6 +56,16 @@ func (m *AuthConfig) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetReporterStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetReporterStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetReporterStatus(), target.GetReporterStatus()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetMetadata()) {
 			return false

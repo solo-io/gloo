@@ -75,6 +75,8 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 		logger.Debug(syncutil.StringifySnapshot(snap))
 	}
 
+	logger.Debugw("snap", "stringified", syncutil.StringifySnapshot(snap))
+
 	desiredProxies := s.generatedDesiredProxies(ctx, snap)
 
 	return s.reconcile(ctx, desiredProxies)
@@ -226,7 +228,7 @@ func (s *statusSyncer) watchProxiesFromChannel(ctx context.Context, proxies <-ch
 func hashStatuses(proxyList gloov1.ProxyList) (uint64, error) {
 	statuses := make([]interface{}, 0, len(proxyList))
 	for _, proxy := range proxyList {
-		statuses = append(statuses, proxy.GetStatus())
+		statuses = append(statuses, proxy.GetReporterStatus())
 	}
 	return hashutils.HashAllSafe(nil, statuses...)
 }
@@ -237,7 +239,7 @@ func (s *statusSyncer) setStatuses(list gloov1.ProxyList) {
 	for _, proxy := range list {
 		ref := proxy.Metadata.Ref()
 		refKey := gloo_translator.UpstreamToClusterName(ref)
-		status := proxy.Status
+		status := proxy.GetStatusForReporter("gateway")
 		if current, ok := s.proxyToLastStatus[refKey]; ok {
 			current.Status = status
 			s.proxyToLastStatus[refKey] = current
@@ -281,6 +283,7 @@ func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) error {
 	}
 }
 
+// TODO: Start digging into this logic
 func (s *statusSyncer) syncStatus(ctx context.Context) error {
 	var nilProxy *gloov1.Proxy
 	allReports := reporter.ResourceReports{}
@@ -336,7 +339,7 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		// this may be different than the status on the snapshot, as the snapshot doesn't get updated
 		// on status changes.
 		if status, ok := localInputResourceLastStatus[inputResource]; ok {
-			clonedInputResource.SetStatus(status)
+			clonedInputResource.AddToReporterStatus(status)
 		}
 		if err := s.reporter.WriteReports(ctx, reports, currentStatuses); err != nil {
 			errs = multierror.Append(errs, err)

@@ -49,6 +49,8 @@ message Proxy {
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7;
+
+    core.solo.io.ReporterStatus reporter_status = 8 [(extproto.skip_hashing) = true];
 }
 
 // Listeners define the address:port where the proxy will listen for incoming connections
@@ -321,6 +323,8 @@ message UpstreamGroup {
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7;
+
+    core.solo.io.ReporterStatus reporter_status = 8 [(extproto.skip_hashing) = true];
 }
 
 // MultiDestination is a container for a set of weighted destinations. Gloo will load balance traffic for a single

@@ -122,6 +122,7 @@ Notice how the order of VirtualHostOption delegations matters, and that the Virt
 "status": .core.solo.io.Status
 "metadata": .core.solo.io.Metadata
 "options": .gloo.solo.io.VirtualHostOptions
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -130,6 +131,7 @@ Notice how the order of VirtualHostOption delegations matters, and that the Virt
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gateway during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `options` | [.gloo.solo.io.VirtualHostOptions](../../../../gloo/api/v1/options.proto.sk/#virtualhostoptions) | VirtualHost options. See VirtualHost for delegation behavior. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 
@@ -235,6 +237,7 @@ Notice how the order of RouteOption delegations matters, and that the Route-leve
 "status": .core.solo.io.Status
 "metadata": .core.solo.io.Metadata
 "options": .gloo.solo.io.RouteOptions
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -243,6 +246,7 @@ Notice how the order of RouteOption delegations matters, and that the Route-leve
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `options` | [.gloo.solo.io.RouteOptions](../../../../gloo/api/v1/options.proto.sk/#routeoptions) | Route options. See Route for delegation behavior. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 

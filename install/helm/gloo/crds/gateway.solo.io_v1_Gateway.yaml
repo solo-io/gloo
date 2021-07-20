@@ -1401,6 +1401,17 @@ spec:
               items:
                 type: string
               type: array
+            reporterStatus:
+              properties:
+                statuses:
+                  additionalProperties:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  description: 'Mapping from reporter to that reporter''s Status.
+                    Key format: ${POD_NAMESPACE}:${Status.ReportedBy} (i.e. gloo-system:gloo,
+                    gloo-system:gateway, etc)'
+                  type: object
+              type: object
             routeOptions:
               description: Route configuration options that live under Envoy's [RouteConfigurationOptions](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route.proto#config-route-v3-routeconfiguration)
               properties:

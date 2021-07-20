@@ -31,6 +31,10 @@ message AuthConfig {
     // Status is read-only by clients, and set by gloo during validation
     core.solo.io.Status status = 1;
 
+    // ReporterStatus indicates the validation status of this resource.
+    // ReporterStatus is read-only by clients, and set by gloo during validation
+    core.solo.io.ReporterStatus reporter_status = 4;
+
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 2;
 

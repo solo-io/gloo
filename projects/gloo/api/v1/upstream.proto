@@ -110,6 +110,8 @@ message Upstream {
     //
     // Note: if setting this field to a hostname rather than IP:PORT, you may want to also set `host_rewrite` on the route
     google.protobuf.StringValue http_proxy_hostname = 21;
+
+    core.solo.io.ReporterStatus reporter_status = 22 [(extproto.skip_hashing) = true];
 }
 
 // created by discovery services

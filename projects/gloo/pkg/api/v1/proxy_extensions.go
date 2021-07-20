@@ -23,3 +23,11 @@ func (p *Proxy) UnmarshalStatus(status v1.Status) error {
 func (p *Proxy) MarshalStatus() (v1.Status, error) {
 	return compress.MarshalStatus(p)
 }
+
+func (p *Proxy) UnmarshalReporterStatus(status v1.Status) error {
+	return compress.UnmarshalStatus(p, status)
+}
+
+func (p *Proxy) MarshalReporterStatus() (v1.Status, error) {
+	return compress.MarshalStatus(p)
+}

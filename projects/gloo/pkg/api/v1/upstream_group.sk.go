@@ -4,6 +4,7 @@ package v1
 
 import (
 	"log"
+	"os"
 	"sort"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -29,6 +30,39 @@ func (r *UpstreamGroup) SetMetadata(meta *core.Metadata) {
 
 func (r *UpstreamGroup) SetStatus(status *core.Status) {
 	r.Status = status
+}
+
+func (r *UpstreamGroup) SetReporterStatus(status *core.ReporterStatus) {
+	r.ReporterStatus = status
+}
+
+func (r *UpstreamGroup) AddToReporterStatus(status *core.Status) {
+	podNamespace := os.Getenv("POD_NAMESPACE")
+	if podNamespace != "" {
+		if r.ReporterStatus == nil {
+			r.ReporterStatus = &core.ReporterStatus{}
+		}
+		if r.ReporterStatus.Statuses == nil {
+			r.ReporterStatus.Statuses = make(map[string]*core.Status)
+		}
+		key := podNamespace + ":" + status.GetReportedBy()
+		r.ReporterStatus.Statuses[key] = status
+	}
+}
+
+func (r *UpstreamGroup) GetStatusForReporter(reportedBy string) *core.Status {
+	podNamespace := os.Getenv("POD_NAMESPACE")
+	if podNamespace != "" {
+		key := podNamespace + ":" + reportedBy
+		if r.ReporterStatus == nil {
+			return nil
+		}
+		if r.ReporterStatus.Statuses == nil {
+			return nil
+		}
+		return r.ReporterStatus.Statuses[key]
+	}
+	return nil
 }
 
 func (r *UpstreamGroup) MustHash() uint64 {

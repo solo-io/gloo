@@ -59,6 +59,7 @@ Node ID can be specified in Envoy with the `--service-node` flag, or in the Envo
 "listeners": []gloo.solo.io.Listener
 "status": .core.solo.io.Status
 "metadata": .core.solo.io.Metadata
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -67,6 +68,7 @@ Node ID can be specified in Envoy with the `--service-node` flag, or in the Envo
 | `listeners` | [[]gloo.solo.io.Listener](../proxy.proto.sk/#listener) | Define here each listener the proxy should create. Listeners define the a set of behaviors for a single bind address/port where the proxy will listen If no listeners are specified, the instances configured with the proxy resource will not accept connections. |
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 
@@ -365,6 +367,7 @@ IP addresses and ports and load balance traffic between them.
 "destinations": []gloo.solo.io.WeightedDestination
 "status": .core.solo.io.Status
 "metadata": .core.solo.io.Metadata
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -373,6 +376,7 @@ IP addresses and ports and load balance traffic between them.
 | `destinations` | [[]gloo.solo.io.WeightedDestination](../proxy.proto.sk/#weighteddestination) | The destinations that are part of this upstream group. |
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 

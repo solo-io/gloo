@@ -27,8 +27,9 @@ type Gateway struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec   api.Gateway `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status core.Status `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec           api.Gateway         `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status         core.Status         `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	ReporterStatus core.ReporterStatus `json:"reporter_status,omitempty" protobuf:"bytes,4,opt,name=reporter_status"`
 }
 
 func (o *Gateway) MarshalJSON() ([]byte, error) {
@@ -38,12 +39,14 @@ func (o *Gateway) MarshalJSON() ([]byte, error) {
 	}
 	delete(spec, "metadata")
 	delete(spec, "status")
+	delete(spec, "reporter_status")
 	asMap := map[string]interface{}{
-		"metadata":   o.ObjectMeta,
-		"apiVersion": o.TypeMeta.APIVersion,
-		"kind":       o.TypeMeta.Kind,
-		"status":     o.Status,
-		"spec":       spec,
+		"metadata":        o.ObjectMeta,
+		"apiVersion":      o.TypeMeta.APIVersion,
+		"kind":            o.TypeMeta.Kind,
+		"status":          o.Status,
+		"reporter_status": o.ReporterStatus,
+		"spec":            spec,
 	}
 	return json.Marshal(asMap)
 }
@@ -66,6 +69,10 @@ func (o *Gateway) UnmarshalJSON(data []byte) error {
 	if spec.Status != nil {
 		o.Status = *spec.Status
 		o.Spec.Status = nil
+	}
+	if spec.ReporterStatus != nil {
+		o.ReporterStatus = *spec.ReporterStatus
+		o.Spec.ReporterStatus = nil
 	}
 
 	return nil
@@ -90,8 +97,9 @@ type RouteOption struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec   api.RouteOption `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status core.Status     `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec           api.RouteOption     `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status         core.Status         `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	ReporterStatus core.ReporterStatus `json:"reporter_status,omitempty" protobuf:"bytes,4,opt,name=reporter_status"`
 }
 
 func (o *RouteOption) MarshalJSON() ([]byte, error) {
@@ -101,12 +109,14 @@ func (o *RouteOption) MarshalJSON() ([]byte, error) {
 	}
 	delete(spec, "metadata")
 	delete(spec, "status")
+	delete(spec, "reporter_status")
 	asMap := map[string]interface{}{
-		"metadata":   o.ObjectMeta,
-		"apiVersion": o.TypeMeta.APIVersion,
-		"kind":       o.TypeMeta.Kind,
-		"status":     o.Status,
-		"spec":       spec,
+		"metadata":        o.ObjectMeta,
+		"apiVersion":      o.TypeMeta.APIVersion,
+		"kind":            o.TypeMeta.Kind,
+		"status":          o.Status,
+		"reporter_status": o.ReporterStatus,
+		"spec":            spec,
 	}
 	return json.Marshal(asMap)
 }
@@ -129,6 +139,10 @@ func (o *RouteOption) UnmarshalJSON(data []byte) error {
 	if spec.Status != nil {
 		o.Status = *spec.Status
 		o.Spec.Status = nil
+	}
+	if spec.ReporterStatus != nil {
+		o.ReporterStatus = *spec.ReporterStatus
+		o.Spec.ReporterStatus = nil
 	}
 
 	return nil
@@ -153,8 +167,9 @@ type RouteTable struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec   api.RouteTable `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status core.Status    `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec           api.RouteTable      `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status         core.Status         `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	ReporterStatus core.ReporterStatus `json:"reporter_status,omitempty" protobuf:"bytes,4,opt,name=reporter_status"`
 }
 
 func (o *RouteTable) MarshalJSON() ([]byte, error) {
@@ -164,12 +179,14 @@ func (o *RouteTable) MarshalJSON() ([]byte, error) {
 	}
 	delete(spec, "metadata")
 	delete(spec, "status")
+	delete(spec, "reporter_status")
 	asMap := map[string]interface{}{
-		"metadata":   o.ObjectMeta,
-		"apiVersion": o.TypeMeta.APIVersion,
-		"kind":       o.TypeMeta.Kind,
-		"status":     o.Status,
-		"spec":       spec,
+		"metadata":        o.ObjectMeta,
+		"apiVersion":      o.TypeMeta.APIVersion,
+		"kind":            o.TypeMeta.Kind,
+		"status":          o.Status,
+		"reporter_status": o.ReporterStatus,
+		"spec":            spec,
 	}
 	return json.Marshal(asMap)
 }
@@ -192,6 +209,10 @@ func (o *RouteTable) UnmarshalJSON(data []byte) error {
 	if spec.Status != nil {
 		o.Status = *spec.Status
 		o.Spec.Status = nil
+	}
+	if spec.ReporterStatus != nil {
+		o.ReporterStatus = *spec.ReporterStatus
+		o.Spec.ReporterStatus = nil
 	}
 
 	return nil
@@ -216,8 +237,9 @@ type VirtualHostOption struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec   api.VirtualHostOption `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status core.Status           `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec           api.VirtualHostOption `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status         core.Status           `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	ReporterStatus core.ReporterStatus   `json:"reporter_status,omitempty" protobuf:"bytes,4,opt,name=reporter_status"`
 }
 
 func (o *VirtualHostOption) MarshalJSON() ([]byte, error) {
@@ -227,12 +249,14 @@ func (o *VirtualHostOption) MarshalJSON() ([]byte, error) {
 	}
 	delete(spec, "metadata")
 	delete(spec, "status")
+	delete(spec, "reporter_status")
 	asMap := map[string]interface{}{
-		"metadata":   o.ObjectMeta,
-		"apiVersion": o.TypeMeta.APIVersion,
-		"kind":       o.TypeMeta.Kind,
-		"status":     o.Status,
-		"spec":       spec,
+		"metadata":        o.ObjectMeta,
+		"apiVersion":      o.TypeMeta.APIVersion,
+		"kind":            o.TypeMeta.Kind,
+		"status":          o.Status,
+		"reporter_status": o.ReporterStatus,
+		"spec":            spec,
 	}
 	return json.Marshal(asMap)
 }
@@ -255,6 +279,10 @@ func (o *VirtualHostOption) UnmarshalJSON(data []byte) error {
 	if spec.Status != nil {
 		o.Status = *spec.Status
 		o.Spec.Status = nil
+	}
+	if spec.ReporterStatus != nil {
+		o.ReporterStatus = *spec.ReporterStatus
+		o.Spec.ReporterStatus = nil
 	}
 
 	return nil
@@ -279,8 +307,9 @@ type VirtualService struct {
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec   api.VirtualService `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status core.Status        `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec           api.VirtualService  `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status         core.Status         `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	ReporterStatus core.ReporterStatus `json:"reporter_status,omitempty" protobuf:"bytes,4,opt,name=reporter_status"`
 }
 
 func (o *VirtualService) MarshalJSON() ([]byte, error) {
@@ -290,12 +319,14 @@ func (o *VirtualService) MarshalJSON() ([]byte, error) {
 	}
 	delete(spec, "metadata")
 	delete(spec, "status")
+	delete(spec, "reporter_status")
 	asMap := map[string]interface{}{
-		"metadata":   o.ObjectMeta,
-		"apiVersion": o.TypeMeta.APIVersion,
-		"kind":       o.TypeMeta.Kind,
-		"status":     o.Status,
-		"spec":       spec,
+		"metadata":        o.ObjectMeta,
+		"apiVersion":      o.TypeMeta.APIVersion,
+		"kind":            o.TypeMeta.Kind,
+		"status":          o.Status,
+		"reporter_status": o.ReporterStatus,
+		"spec":            spec,
 	}
 	return json.Marshal(asMap)
 }
@@ -318,6 +349,10 @@ func (o *VirtualService) UnmarshalJSON(data []byte) error {
 	if spec.Status != nil {
 		o.Status = *spec.Status
 		o.Spec.Status = nil
+	}
+	if spec.ReporterStatus != nil {
+		o.ReporterStatus = *spec.ReporterStatus
+		o.Spec.ReporterStatus = nil
 	}
 
 	return nil

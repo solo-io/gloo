@@ -20,6 +20,22 @@ var _ resources.CustomInputResource = &RateLimitConfig{}
 
 type RateLimitConfig v1alpha1.RateLimitConfig
 
+func (r *RateLimitConfig) GetReporterStatus() *core.ReporterStatus {
+	panic("implement me")
+}
+
+func (r *RateLimitConfig) GetStatusForReporter(reportedBy string) *core.Status {
+	panic("implement me")
+}
+
+func (r *RateLimitConfig) SetReporterStatus(status *core.ReporterStatus) {
+	panic("implement me")
+}
+
+func (r *RateLimitConfig) AddToReporterStatus(status *core.Status) {
+	panic("implement me")
+}
+
 func (r *RateLimitConfig) GetMetadata() *core.Metadata {
 	return kubeutils.FromKubeMeta(r.ObjectMeta)
 }

@@ -382,6 +382,8 @@ message Settings {
     // When these properties are defined on an upstream, this configuration will be ignored
     UpstreamOptions upstreamOptions = 32;
 
+    core.solo.io.ReporterStatus reporter_status = 34 [(extproto.skip_hashing) = true];
+
 }
 
 // Default configuration to use for upstreams, when not provided by a specific upstream

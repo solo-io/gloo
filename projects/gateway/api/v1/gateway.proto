@@ -81,6 +81,8 @@ message Gateway {
     * Route configuration options that live under Envoy's [RouteConfigurationOptions](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route.proto#config-route-v3-routeconfiguration)
     */
     gloo.solo.io.RouteConfigurationOptions route_options = 13;
+
+    core.solo.io.ReporterStatus reporter_status = 14 [(extproto.skip_hashing) = true];
 }
 
 message HttpGateway {

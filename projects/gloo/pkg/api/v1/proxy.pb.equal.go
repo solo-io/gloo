@@ -83,6 +83,16 @@ func (m *Proxy) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetReporterStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetReporterStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetReporterStatus(), target.GetReporterStatus()) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -898,6 +908,16 @@ func (m *UpstreamGroup) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetReporterStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetReporterStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetReporterStatus(), target.GetReporterStatus()) {
 			return false
 		}
 	}

@@ -130,6 +130,7 @@ constraints:
 "displayName": string
 "status": .core.solo.io.Status
 "metadata": .core.solo.io.Metadata
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -140,6 +141,7 @@ constraints:
 | `displayName` | `string` | Display only, optional descriptive name. Unlike metadata.name, DisplayName can be any string and can be changed after creating the resource. |
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 

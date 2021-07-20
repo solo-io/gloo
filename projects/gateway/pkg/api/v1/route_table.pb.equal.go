@@ -93,5 +93,15 @@ func (m *RouteTable) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetReporterStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetReporterStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetReporterStatus(), target.GetReporterStatus()) {
+			return false
+		}
+	}
+
 	return true
 }

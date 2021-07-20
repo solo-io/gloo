@@ -82,6 +82,7 @@ Represents global settings for all the Gloo components.
 "status": .core.solo.io.Status
 "observabilityOptions": .gloo.solo.io.Settings.ObservabilityOptions
 "upstreamOptions": .gloo.solo.io.UpstreamOptions
+"reporterStatus": .core.solo.io.ReporterStatus
 
 ```
 
@@ -118,6 +119,7 @@ Represents global settings for all the Gloo components.
 | `status` | [.core.solo.io.Status](../../../../../../solo-kit/api/v1/status.proto.sk/#status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation. |
 | `observabilityOptions` | [.gloo.solo.io.Settings.ObservabilityOptions](../settings.proto.sk/#observabilityoptions) | Provides settings related to the observability deployment (enterprise only). |
 | `upstreamOptions` | [.gloo.solo.io.UpstreamOptions](../settings.proto.sk/#upstreamoptions) | Default configuration to use for upstreams, when not provided by specific upstream When these properties are defined on an upstream, this configuration will be ignored. |
+| `reporterStatus` | [.core.solo.io.ReporterStatus](../../../../../../solo-kit/api/v1/status.proto.sk/#reporterstatus) |  |
 
 
 

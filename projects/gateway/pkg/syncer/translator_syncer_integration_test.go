@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/solo-io/go-utils/contextutils"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
@@ -133,12 +135,16 @@ var _ = Describe("TranslatorSyncer integration test", func() {
 			if err != nil {
 				return core.Status_Pending, err
 			}
-			subresouce := newvs.GetStatus().GetSubresourceStatuses()
-			if subresouce == nil {
+			contextutils.LoggerFrom(ctx).Debugf("newvs.GetReporterStatus(): %v", newvs.GetReporterStatus())
+			contextutils.LoggerFrom(ctx).Debugf("newvs.GetStatus(): %v", newvs.GetStatus())
+			subresource := newvs.GetStatusForReporter("gateway").GetSubresourceStatuses()
+			if subresource == nil {
+				contextutils.LoggerFrom(ctx).Debugf("nil subresource")
 				return core.Status_Pending, fmt.Errorf("no status")
 			}
-			proxyState := subresouce["*v1.Proxy.gloo-system.gateway-proxy"]
+			proxyState := subresource["*v1.Proxy.gloo-system.gateway-proxy"]
 			if proxyState == nil {
+				contextutils.LoggerFrom(ctx).Debugf("nil proxyState")
 				return core.Status_Pending, fmt.Errorf("no state")
 			}
 			return proxyState.State, nil
@@ -150,14 +156,18 @@ var _ = Describe("TranslatorSyncer integration test", func() {
 			if err != nil {
 				return core.Status_Pending, err
 			}
-			return proxy.GetStatus().GetState(), nil
+			return proxy.GetStatusForReporter("gateway").GetState(), nil
 		})
 	}
 
 	AcceptProxy := func() {
 		proxy, err := proxyClient.Read("gloo-system", "gateway-proxy", clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		proxy.Status = &core.Status{State: core.Status_Accepted}
+		proxy.AddToReporterStatus(&core.Status{
+			State:      core.Status_Accepted,
+			ReportedBy: "gateway",
+		})
+
 		_, err = proxyClient.Write(proxy, clients.WriteOpts{OverwriteExisting: true})
 		Expect(err).NotTo(HaveOccurred())
 	}
@@ -195,6 +205,7 @@ var _ = Describe("TranslatorSyncer integration test", func() {
 		EventuallyProxyStatus().Should(Equal(core.Status_Pending))
 
 		// wait for the status propagate
+		// TODO(mitchaman): Test is failing here
 		EventuallyProxyStatusInVs().Should(Equal(core.Status_Pending))
 
 		// write the proxy status again to the same status as the one currently in the snapshot

@@ -189,5 +189,7 @@ message RouteTable {
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7;
+
+    core.solo.io.ReporterStatus reporter_status = 8 [(extproto.skip_hashing) = true];
 }
 
