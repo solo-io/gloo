@@ -7,13 +7,14 @@ import (
 	"sort"
 	"time"
 
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	skerrors "github.com/solo-io/solo-kit/pkg/errors"
-
 	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmisssion"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
 	testutils "github.com/solo-io/k8s-utils/testutils/kube"
 
@@ -39,12 +40,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-)
-
-const (
-	configDumpPath = "http://localhost:19000/config_dump"
-	clustersPath   = "http://localhost:19000/clusters"
-	kubeCtx        = ""
 )
 
 var _ = Describe("Robustness tests", func() {
@@ -124,15 +119,11 @@ var _ = Describe("Robustness tests", func() {
 	AfterEach(func() {
 		if virtualService != nil {
 			_ = virtualServiceClient.Delete(virtualService.Metadata.Namespace, virtualService.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
-
-			Eventually(func() bool {
-				_, err := virtualServiceClient.Read(virtualService.Metadata.Namespace, virtualService.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-				if err != nil && skerrors.IsNotExist(err) {
-					return true
-				}
-				return false
-			}, "15s", "0.5s").Should(BeTrue())
+			helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+				return virtualServiceClient.Read(virtualService.Metadata.Namespace, virtualService.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			}, "15s", "0.5s")
 		}
+
 		if appDeployment != nil {
 			err := kubeClient.AppsV1().Deployments(namespace).Delete(ctx, appDeployment.Name, metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
 			Expect(err).NotTo(HaveOccurred())
@@ -143,6 +134,7 @@ var _ = Describe("Robustness tests", func() {
 				return len(deployments.Items) == 0
 			}, "15s", "0.5s").Should(BeTrue())
 		}
+
 		if appService != nil {
 			err := kubeClient.CoreV1().Services(testHelper.InstallNamespace).Delete(ctx, appService.Name, metav1.DeleteOptions{GracePeriodSeconds: pointerToInt64(0)})
 			Expect(err).NotTo(HaveOccurred())
@@ -198,16 +190,9 @@ var _ = Describe("Robustness tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("wait for proxy to be accepted")
-		Eventually(func() error {
-			proxy, err := proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-			if err != nil {
-				return err
-			}
-			if proxy.GetStatus().GetState() == core.Status_Accepted {
-				return nil
-			}
-			return eris.Errorf("waiting for proxy to be accepted, but status is %v", proxy.Status)
-		}, 60*time.Second, 1*time.Second).Should(BeNil())
+		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			return proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+		}, 60*time.Second, 1*time.Second)
 
 		By("verify that we can route to the service")
 		time.Sleep(1 * time.Second) // sleep a sec to save us some unnecessary polling
@@ -259,16 +244,9 @@ var _ = Describe("Robustness tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("wait for proxy to enter warning state")
-		Eventually(func() error {
-			proxy, err := proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-			if err != nil {
-				return err
-			}
-			if proxy.GetStatus().GetState() == core.Status_Warning {
-				return nil
-			}
-			return eris.Errorf("waiting for proxy to be warning, but status is %v", proxy.Status)
-		}, 20*time.Second, 1*time.Second).Should(BeNil())
+		helpers.EventuallyResourceWarning(func() (resources.InputResource, error) {
+			return proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+		}, 20*time.Second, 1*time.Second)
 
 		By("force an update of the service endpoints")
 		initialIps := endpointsFor(kubeClient, appService)
@@ -315,17 +293,11 @@ var _ = Describe("Robustness tests", func() {
 		_, err := upstreamClient.Write(upstream, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
 		Expect(err).ToNot(HaveOccurred())
 
-		gatewayProxyPodName := testutils.FindPodNameByLabel(cfg, ctx, "gloo-system", "gloo=gateway-proxy")
+		gatewayProxyPodName := testutils.FindPodNameByLabel(cfg, ctx, testHelper.InstallNamespace, "gloo=gateway-proxy")
 		// We should consistently be able to modify upstreams
-		Eventually(func() error {
-			// Modify the upstream
-			us, err := upstreamClient.Read(namespace, upstream.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-			Expect(err).NotTo(HaveOccurred())
-			if us.Status.State == core.Status_Accepted {
-				return nil
-			}
-			return eris.Errorf("waiting for proxy to be accepted, but status is %v", us.Status)
-		}, "3m", "5s").Should(BeNil())
+		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			return upstreamClient.Read(namespace, upstream.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		}, 60*time.Second, 1*time.Second)
 
 		By("create a virtual service routing to the service")
 		virtualService, err = virtualServiceClient.Write(&gatewayv1.VirtualService{
@@ -366,16 +338,9 @@ var _ = Describe("Robustness tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("wait for proxy to be accepted")
-		Eventually(func() error {
-			proxy, err := proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-			if err != nil {
-				return err
-			}
-			if proxy.GetStatus().GetState() == core.Status_Accepted {
-				return nil
-			}
-			return eris.Errorf("waiting for proxy to be accepted, but status is %v", proxy.Status)
-		}, 60*time.Second, 1*time.Second).Should(BeNil())
+		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			return proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+		}, 60*time.Second, 1*time.Second)
 
 		By("verify that we can route to the service")
 		time.Sleep(1 * time.Second) // sleep a sec to save us some unnecessary polling
@@ -406,16 +371,9 @@ var _ = Describe("Robustness tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("wait for proxy to enter rejected state")
-		Eventually(func() error {
-			proxy, err := proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-			if err != nil {
-				return err
-			}
-			if proxy.GetStatus().GetState() == core.Status_Rejected {
-				return nil
-			}
-			return eris.Errorf("waiting for proxy to be rejected, but status is %v", proxy.Status)
-		}, 20*time.Second, 1*time.Second).Should(BeNil())
+		helpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
+			return proxyClient.Read(namespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
+		}, 20*time.Second, 1*time.Second)
 
 		By("reset snapshot cache")
 		pods, err := kubeClient.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labels.SelectorFromSet(map[string]string{"gloo": "gloo"}).String()})
@@ -452,8 +410,9 @@ var _ = Describe("Robustness tests", func() {
 		))
 
 		By("verify that the new endpoints have been propagated to Envoy")
+		envoyClustersPath := "http://localhost:19000/clusters" // TODO - this should live in envoy test service
 		Eventually(func() bool {
-			clusters := testutils.CurlWithEphemeralPod(ctx, ioutil.Discard, kubeCtx, "gloo-system", gatewayProxyPodName, clustersPath)
+			clusters := testutils.CurlWithEphemeralPod(ctx, ioutil.Discard, "", namespace, gatewayProxyPodName, envoyClustersPath)
 			testOldClusterEndpoints := regexp.MustCompile(initialIps[0] + ":")
 			oldEndpointMatches := testOldClusterEndpoints.FindAllStringIndex(clusters, -1)
 			testNewClusterEndpoints := regexp.MustCompile(newIps[0] + ":")

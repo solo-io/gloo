@@ -1,6 +1,7 @@
 package samples
 
 import (
+	"fmt"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -171,10 +172,14 @@ func SimpleGatewaySnapshot(us *core.ResourceRef, namespace string) *gwv1.ApiSnap
 }
 
 func AddVsToSnap(snap *gwv1.ApiSnapshot, us *core.ResourceRef, namespace string) *gwv1.ApiSnapshot {
+	return AddNamedVsToSnap(snap, us,namespace, "secondary-vs" )
+}
+
+func AddNamedVsToSnap(snap *gwv1.ApiSnapshot, us *core.ResourceRef, namespace, name string) *gwv1.ApiSnapshot {
 	snap.VirtualServices = append(snap.VirtualServices, &gwv1.VirtualService{
-		Metadata: &core.Metadata{Namespace: namespace, Name: "secondary-vs"},
+		Metadata: &core.Metadata{Namespace: namespace, Name: name},
 		VirtualHost: &gwv1.VirtualHost{
-			Domains: []string{"secondary-vs.com"},
+			Domains: []string{fmt.Sprintf("%s.com", name)},
 			Routes:  SimpleRoute(us),
 		},
 	})
