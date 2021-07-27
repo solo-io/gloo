@@ -39,38 +39,6 @@ gloo:
       image:
         repository: gloo-ee-envoy-wrapper
 
-########################################################################
-###                                                                  ###
-###                        Apiserver                                 ###
-###                                                                  ###
-########################################################################
-apiServer:
-  enterprise: true
-  enable: true
-  enableBeta: true
-  deployment:
-    name: "grpcserver-ui"
-    runAsUser: 10101
-    server:
-      image:
-        name: apiserver
-        repository: grpcserver-ee
-      grpcPort: 10101
-      oauth: {}
-    ui:
-      image:
-        name: "gloo-ui"
-        repository: grpcserver-ui
-      staticPort: 8080
-    envoy:
-      image:
-        name: "grpcserver-envoy"
-        repository: grpcserver-envoy
-      bootstrapConfig:
-        configMapName: default-apiserver-envoy-config
-  service:
-    name: "apiserver-ui"
-    serviceType: ClusterIP
 
 redis:
   aclPrefix: 'user default +@all allkeys on >'

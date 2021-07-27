@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2427
+    description: Allow UI to be installed without Gloo Fed.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2428
+    description: Apiserver and UI changes to get UI to show up without Gloo Fed. Just showing placeholder page for now.
+  - type: NEW_FEATURE
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4933
+    description: Initial apiserver work to enable UI when Gloo Fed is disabled.

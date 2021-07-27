@@ -9,6 +9,7 @@ glooFed:
     requests:
       cpu: 125m
       memory: 256Mi
+# the UI can be enabled independently of gloo-fed
 glooFedApiserver:
   enable: true
   port: 10101

@@ -2864,6 +2864,26 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			It("enables apiserver even if gloo-fed is disabled", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+					valuesArgs: []string{
+						"enabled=false",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("disables apiserver if explicitly disabled", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+					valuesArgs: []string{
+						"glooFedApiserver.enable=false",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.Expect(expectedDeployment.Kind, expectedDeployment.Namespace, expectedDeployment.Name).To(BeNil())
+			})
+
 			It("does render the default bootstrap config map for the envoy sidecar", func() {
 				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())

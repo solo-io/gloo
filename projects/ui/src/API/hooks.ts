@@ -55,6 +55,9 @@ import { WasmFilterApi } from 'proto/github.com/solo-io/solo-projects/projects/a
 import { wasmFilterApi } from './wasm-filter';
 import { VirtualServiceRoutesApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb_service';
 import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
+import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
+import { bootstrapApi } from './bootstrap';
+import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
 
 const normalRefreshInterval = 10000;
 
@@ -305,5 +308,13 @@ export function useGetConfigDumps(glooInstanceRef: ObjectRef.AsObject) {
     {
       refreshInterval: normalRefreshInterval,
     }
+  );
+}
+
+export function useIsGlooFedEnabled() {
+  return useSWR<GlooFedCheckResponse.AsObject>(
+    BootstrapApi.IsGlooFedEnabled.methodName,
+    () => bootstrapApi.isGlooFedEnabled(),
+    { refreshInterval: normalRefreshInterval }
   );
 }

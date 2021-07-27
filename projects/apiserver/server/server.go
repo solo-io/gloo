@@ -11,7 +11,8 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/internal/settings"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	fed_rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	edge_rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/health_check"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
@@ -34,20 +35,21 @@ type grpcServer struct {
 	healthChecker health_check.HealthChecker
 }
 
-func NewGrpcServer(
+func NewGlooFedGrpcServer(
 	ctx context.Context,
-	glooInstanceService rpc_v1.GlooInstanceApiServer,
-	failoverSchemeService rpc_v1.FailoverSchemeApiServer,
-	routeTableSelectorService rpc_v1.VirtualServiceRoutesApiServer,
-	wasmFilterService rpc_v1.WasmFilterApiServer,
-	glooResourceService rpc_v1.GlooResourceApiServer,
-	gatewayResourceService rpc_v1.GatewayResourceApiServer,
-	glooEnterpriseResourceService rpc_v1.EnterpriseGlooResourceApiServer,
-	ratelimitResourceService rpc_v1.RatelimitResourceApiServer,
-	glooFedResourceService rpc_v1.FederatedGlooResourceApiServer,
-	gatewayFedResourceService rpc_v1.FederatedGatewayResourceApiServer,
-	glooEnterpriseFedResourceService rpc_v1.FederatedEnterpriseGlooResourceApiServer,
-	ratelimitFedResourceService rpc_v1.FederatedRatelimitResourceApiServer,
+	bootstrapService edge_rpc_v1.BootstrapApiServer,
+	glooInstanceService fed_rpc_v1.GlooInstanceApiServer,
+	failoverSchemeService fed_rpc_v1.FailoverSchemeApiServer,
+	routeTableSelectorService fed_rpc_v1.VirtualServiceRoutesApiServer,
+	wasmFilterService fed_rpc_v1.WasmFilterApiServer,
+	glooResourceService fed_rpc_v1.GlooResourceApiServer,
+	gatewayResourceService fed_rpc_v1.GatewayResourceApiServer,
+	glooEnterpriseResourceService fed_rpc_v1.EnterpriseGlooResourceApiServer,
+	ratelimitResourceService fed_rpc_v1.RatelimitResourceApiServer,
+	glooFedResourceService fed_rpc_v1.FederatedGlooResourceApiServer,
+	gatewayFedResourceService fed_rpc_v1.FederatedGatewayResourceApiServer,
+	glooEnterpriseFedResourceService fed_rpc_v1.FederatedEnterpriseGlooResourceApiServer,
+	ratelimitFedResourceService fed_rpc_v1.FederatedRatelimitResourceApiServer,
 	healthChecker health_check.HealthChecker,
 ) GrpcServer {
 
@@ -59,18 +61,41 @@ func NewGrpcServer(
 	// register grpc health check
 	healthpb.RegisterHealthServer(server, healthChecker)
 	// register handlers
-	rpc_v1.RegisterGlooInstanceApiServer(server, glooInstanceService)
-	rpc_v1.RegisterFailoverSchemeApiServer(server, failoverSchemeService)
-	rpc_v1.RegisterVirtualServiceRoutesApiServer(server, routeTableSelectorService)
-	rpc_v1.RegisterWasmFilterApiServer(server, wasmFilterService)
-	rpc_v1.RegisterGlooResourceApiServer(server, glooResourceService)
-	rpc_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
-	rpc_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)
-	rpc_v1.RegisterRatelimitResourceApiServer(server, ratelimitResourceService)
-	rpc_v1.RegisterFederatedGlooResourceApiServer(server, glooFedResourceService)
-	rpc_v1.RegisterFederatedGatewayResourceApiServer(server, gatewayFedResourceService)
-	rpc_v1.RegisterFederatedEnterpriseGlooResourceApiServer(server, glooEnterpriseFedResourceService)
-	rpc_v1.RegisterFederatedRatelimitResourceApiServer(server, ratelimitFedResourceService)
+	edge_rpc_v1.RegisterBootstrapApiServer(server, bootstrapService)
+	fed_rpc_v1.RegisterGlooInstanceApiServer(server, glooInstanceService)
+	fed_rpc_v1.RegisterFailoverSchemeApiServer(server, failoverSchemeService)
+	fed_rpc_v1.RegisterVirtualServiceRoutesApiServer(server, routeTableSelectorService)
+	fed_rpc_v1.RegisterWasmFilterApiServer(server, wasmFilterService)
+	fed_rpc_v1.RegisterGlooResourceApiServer(server, glooResourceService)
+	fed_rpc_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
+	fed_rpc_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)
+	fed_rpc_v1.RegisterRatelimitResourceApiServer(server, ratelimitResourceService)
+	fed_rpc_v1.RegisterFederatedGlooResourceApiServer(server, glooFedResourceService)
+	fed_rpc_v1.RegisterFederatedGatewayResourceApiServer(server, gatewayFedResourceService)
+	fed_rpc_v1.RegisterFederatedEnterpriseGlooResourceApiServer(server, glooEnterpriseFedResourceService)
+	fed_rpc_v1.RegisterFederatedRatelimitResourceApiServer(server, ratelimitFedResourceService)
+
+	return &grpcServer{
+		healthChecker: healthChecker,
+		server:        server,
+	}
+}
+
+func NewGlooInstanceGrpcServer(
+	ctx context.Context,
+	bootstrapService edge_rpc_v1.BootstrapApiServer,
+	healthChecker health_check.HealthChecker,
+) GrpcServer {
+	logger := contextutils.LoggerFrom(ctx)
+	server := grpc.NewServer(
+		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		grpc_middleware.WithUnaryServerChain(grpc_zap.UnaryServerInterceptor(logger.Desugar())),
+	)
+	// register grpc health check
+	healthpb.RegisterHealthServer(server, healthChecker)
+
+	// register handlers
+	edge_rpc_v1.RegisterBootstrapApiServer(server, bootstrapService)
 
 	return &grpcServer{
 		healthChecker: healthChecker,

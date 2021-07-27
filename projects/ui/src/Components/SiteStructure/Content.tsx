@@ -17,6 +17,9 @@ import { VirtualServiceDetails } from 'Components/Features/VirtualService/Virtua
 import { Clusters } from 'Components/Features/Admin/Clusters';
 import { UpstreamGroupDetails } from 'Components/Features/Upstream/UpstreamGroupDetails';
 import { WasmLanding } from 'Components/Features/Wasm/WasmLanding';
+import { useIsGlooFedEnabled } from 'API/hooks';
+import { DataError } from 'Components/Common/DataError';
+import { Loading } from 'Components/Common/Loading';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -31,194 +34,210 @@ const Container = styled.div`
 `;
 
 export const Content = () => {
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  if (!!glooFedCheckError) {
+    return <DataError error={glooFedCheckError} />;
+  } else if (!glooFedCheckResponse) {
+    return <Loading />;
+  }
+
   return (
     <ScrollContainer>
       <Breadcrumb />
       <Container>
-        <Routes>
-          <Route
-            path='/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information to get started.</div>
-                }>
-                <OverviewLanding />
-              </ErrorBoundary>
-            }
-          />
+        {glooFedCheckResponse.enabled ? (
+          <Routes>
+            <Route
+              path='/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information to get started.</div>
+                  }>
+                  <OverviewLanding />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/gloo-instances/:namespace/:name/gloo-admin/:adminPage'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Gloo Instances.</div>
-                }>
-                <GlooAdminInnerPagesWrapper />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/gloo-instances/:namespace/:name/gloo-admin/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Gloo Instances.</div>
-                }>
-                <GlooInstanceAdministration />
-              </ErrorBoundary>
-            }
-          />
+            <Route
+              path='/gloo-instances/:namespace/:name/gloo-admin/:adminPage'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Gloo Instances.</div>
+                  }>
+                  <GlooAdminInnerPagesWrapper />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/gloo-instances/:namespace/:name/gloo-admin/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Gloo Instances.</div>
+                  }>
+                  <GlooInstanceAdministration />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/gloo-instances/:namespace/:name/virtual-services/:virtualserviceclustername/:virtualservicenamespace/:virtualservicename'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>
-                    Unable to pull information on Virtual Service Details.
-                  </div>
-                }>
-                <VirtualServiceDetails />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/gloo-instances/:namespace/:name/upstreams/:upstreamClusterName/:upstreamNamespace/:upstreamName'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Upstream Details.</div>
-                }>
-                <UpstreamDetails />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/gloo-instances/:namespace/:name/upstream-groups/:upstreamGroupClusterName/:upstreamGroupNamespace/:upstreamGroupName'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Upstream Details.</div>
-                }>
-                <UpstreamGroupDetails />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/gloo-instances/:namespace/:name/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Gloo Instances.</div>
-                }>
-                <GlooInstancesDetails />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/gloo-instances/*'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Gloo Instances.</div>
-                }>
-                <GlooInstancesLanding />
-              </ErrorBoundary>
-            }
-          />
+            <Route
+              path='/gloo-instances/:namespace/:name/virtual-services/:virtualserviceclustername/:virtualservicenamespace/:virtualservicename'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>
+                      Unable to pull information on Virtual Service Details.
+                    </div>
+                  }>
+                  <VirtualServiceDetails />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/gloo-instances/:namespace/:name/upstreams/:upstreamClusterName/:upstreamNamespace/:upstreamName'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Upstream Details.</div>
+                  }>
+                  <UpstreamDetails />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/gloo-instances/:namespace/:name/upstream-groups/:upstreamGroupClusterName/:upstreamGroupNamespace/:upstreamGroupName'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Upstream Details.</div>
+                  }>
+                  <UpstreamGroupDetails />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/gloo-instances/:namespace/:name/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Gloo Instances.</div>
+                  }>
+                  <GlooInstancesDetails />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/gloo-instances/*'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Gloo Instances.</div>
+                  }>
+                  <GlooInstancesLanding />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/virtual-services/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Virtual Services.</div>
-                }>
-                <VirtualServicesLanding />
-              </ErrorBoundary>
-            }
-          />
+            <Route
+              path='/virtual-services/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Virtual Services.</div>
+                  }>
+                  <VirtualServicesLanding />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/upstreams/'
-            element={
-              <ErrorBoundary
-                fallback={<div>Unable to pull information on Upstreams.</div>}>
-                <UpstreamsLanding />
-              </ErrorBoundary>
-            }
-          />
+            <Route
+              path='/upstreams/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Upstreams.</div>
+                  }>
+                  <UpstreamsLanding />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/wasm-filters/:filterName/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Virtual Services.</div>
-                }>
-                <WasmLanding />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/wasm-filters/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Virtual Services.</div>
-                }>
-                <WasmLanding />
-              </ErrorBoundary>
-            }
-          />
+            <Route
+              path='/wasm-filters/:filterName/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Virtual Services.</div>
+                  }>
+                  <WasmLanding />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/wasm-filters/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Virtual Services.</div>
+                  }>
+                  <WasmLanding />
+                </ErrorBoundary>
+              }
+            />
 
-          <Route
-            path='/admin/clusters'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull administrative information.</div>
-                }>
-                <Clusters />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/admin/federated-resources/:adminPage/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull administrative information.</div>
-                }>
-                <AdminInnerPagesWrapper />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/admin/federated-resources/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull administrative information.</div>
-                }>
-                <AdminInnerPagesWrapper />
-              </ErrorBoundary>
-            }
-          />
-          <Route
-            path='/admin/'
-            element={
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull administrative information.</div>
-                }>
-                <AdminLanding />
-              </ErrorBoundary>
-            }
-          />
-        </Routes>
+            <Route
+              path='/admin/clusters'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull administrative information.</div>
+                  }>
+                  <Clusters />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/admin/federated-resources/:adminPage/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull administrative information.</div>
+                  }>
+                  <AdminInnerPagesWrapper />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/admin/federated-resources/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull administrative information.</div>
+                  }>
+                  <AdminInnerPagesWrapper />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path='/admin/'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull administrative information.</div>
+                  }>
+                  <AdminLanding />
+                </ErrorBoundary>
+              }
+            />
+          </Routes>
+        ) : (
+          <h1>Coming soon...</h1>
+        )}
       </Container>
     </ScrollContainer>
   );

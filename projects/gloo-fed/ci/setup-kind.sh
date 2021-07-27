@@ -130,8 +130,6 @@ global:
       enabled: false
 observability:
   enabled: false
-apiServer:
-  enable: false
 prometheus:
   enabled: false
 grafana:

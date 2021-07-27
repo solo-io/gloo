@@ -300,10 +300,15 @@ run-apiserver:
 run-envoy:
 	envoy -c projects/apiserver/apiserver-envoy/$(CONFIG_YAML) -l debug
 
-.PHONY: run-ui
-run-ui:
+.PHONY: run-fed-ui
+run-fed-ui:
 	./hack/check-gloo-fed.sh && \
  	yarn --cwd $(APISERVER_UI_DIR) install && \
+	yarn --cwd $(APISERVER_UI_DIR) start
+
+.PHONY: run-ee-ui
+run-ee-ui:
+	yarn --cwd $(APISERVER_UI_DIR) install && \
 	yarn --cwd $(APISERVER_UI_DIR) start
 
 #----------------------------------------------------------------------------------
@@ -331,7 +336,7 @@ kind-load-gloo-fed-rbac-validating-webhook: gloo-fed-rbac-validating-webhook-doc
 #----------------------------------------------------------------------------------
 
 # proto sources
-APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/fed.rpc/v1
+APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api
 
 COMMON_PROTOC_FLAGS=-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
 	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
@@ -346,17 +351,12 @@ TS_OUT=--plugin=protoc-gen-ts=$(APISERVER_UI_DIR)/node_modules/.bin/protoc-gen-t
 			--ts_out=service=grpc-web:$(GENERATED_TS_DIR) \
 			--js_out=import_style=commonjs,binary:$(GENERATED_TS_DIR)
 
-# Flags for UI code generation when we need to generate GRPC Web service code
-# TODO find a programmatic way to clean up (or skip generating) _service.(d.ts|js) files
-UI_PROTOC_FLAGS=$(COMMON_PROTOC_FLAGS) $(TS_OUT)
-
 PROTOC=protoc $(COMMON_PROTOC_FLAGS)
-
-JS_PROTOC_COMMAND=$(PROTOC) -I$(APISERVER_DIR) $(UI_PROTOC_FLAGS) $(APISERVER_DIR)
 
 .PHONY: generated-gloo-fed-ui
 generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps
 	mkdir -p $(APISERVER_UI_DIR)/pkg/api/fed.rpc/v1
+	mkdir -p $(APISERVER_UI_DIR)/pkg/api/rpc.edge.gloo/v1
 	./ci/fix-ui-gen.sh
 
 .PHONY: generated-gloo-fed-ui-deps
@@ -506,7 +506,7 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/*.proto
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/apiserver/api/*/*/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

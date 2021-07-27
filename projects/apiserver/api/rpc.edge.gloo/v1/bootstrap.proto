@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package rpc.edge.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1";
+
+message GlooFedCheckRequest {
+}
+
+message GlooFedCheckResponse {
+  // returns true if Gloo Fed is enabled in the current Gloo Edge installation
+  bool enabled = 1;
+}
+
+service BootstrapApi {
+  rpc IsGlooFedEnabled (GlooFedCheckRequest) returns (GlooFedCheckResponse) {}
+}
