@@ -63,6 +63,7 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           skipClusterCreation: "true"
+          version: v0.11.1
       - name: Yarn Install
         uses: borales/actions-yarn@v2.0.0
         with:
@@ -138,7 +139,8 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           name: kind
-          image: 'kindest/node:v1.17.0'
+          image: 'kindest/node:v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00'
+          version: v0.11.1
       - uses: azure/setup-kubectl@v1
         id: kubectl
         with:
