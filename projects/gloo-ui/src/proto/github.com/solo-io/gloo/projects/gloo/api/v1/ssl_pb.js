@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.CallCredentials', null, global);
@@ -110,7 +111,7 @@ proto.gloo.solo.io.SslConfig.toObject = function(includeInstance, msg) {
     verifySubjectAltNameList: jspb.Message.getRepeatedField(msg, 5),
     parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
     alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7),
-    oneWayTls: jspb.Message.getFieldWithDefault(msg, 8, false)
+    oneWayTls: (f = msg.getOneWayTls()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -180,7 +181,8 @@ proto.gloo.solo.io.SslConfig.deserializeBinaryFromReader = function(msg, reader)
       msg.addAlpnProtocols(value);
       break;
     case 8:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setOneWayTls(value);
       break;
     default:
@@ -266,10 +268,11 @@ proto.gloo.solo.io.SslConfig.serializeBinaryToWriter = function(message, writer)
     );
   }
   f = message.getOneWayTls();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       8,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -483,19 +486,32 @@ proto.gloo.solo.io.SslConfig.prototype.clearAlpnProtocolsList = function() {
 
 
 /**
- * optional bool one_way_tls = 8;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue one_way_tls = 8;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.gloo.solo.io.SslConfig.prototype.getOneWayTls = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 8, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 8));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.gloo.solo.io.SslConfig.prototype.setOneWayTls = function(value) {
-  jspb.Message.setProto3BooleanField(this, 8, value);
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.SslConfig.prototype.clearOneWayTls = function() {
+  this.setOneWayTls(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SslConfig.prototype.hasOneWayTls = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

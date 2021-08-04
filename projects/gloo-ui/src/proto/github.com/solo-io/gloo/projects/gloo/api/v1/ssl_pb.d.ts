@@ -3,6 +3,7 @@
 // file: github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as extproto_ext_pb from "../../../../../../../protoc-gen-ext/extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 
@@ -42,8 +43,10 @@ export class SslConfig extends jspb.Message {
   setAlpnProtocolsList(value: Array<string>): void;
   addAlpnProtocols(value: string, index?: number): string;
 
-  getOneWayTls(): boolean;
-  setOneWayTls(value: boolean): void;
+  hasOneWayTls(): boolean;
+  clearOneWayTls(): void;
+  getOneWayTls(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setOneWayTls(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
@@ -65,7 +68,7 @@ export namespace SslConfig {
     verifySubjectAltNameList: Array<string>,
     parameters?: SslParameters.AsObject,
     alpnProtocolsList: Array<string>,
-    oneWayTls: boolean,
+    oneWayTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export enum SslSecretsCase {

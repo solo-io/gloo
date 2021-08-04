@@ -825,6 +825,28 @@ export namespace GlooOptions {
   }
 }
 
+export class VirtualServiceOptions extends jspb.Message {
+  hasOneWayTls(): boolean;
+  clearOneWayTls(): void;
+  getOneWayTls(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setOneWayTls(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VirtualServiceOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: VirtualServiceOptions): VirtualServiceOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VirtualServiceOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VirtualServiceOptions;
+  static deserializeBinaryFromReader(message: VirtualServiceOptions, reader: jspb.BinaryReader): VirtualServiceOptions;
+}
+
+export namespace VirtualServiceOptions {
+  export type AsObject = {
+    oneWayTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+  }
+}
+
 export class GatewayOptions extends jspb.Message {
   getValidationServerAddr(): string;
   setValidationServerAddr(value: string): void;
@@ -843,6 +865,11 @@ export class GatewayOptions extends jspb.Message {
   getCompressedProxySpec(): boolean;
   setCompressedProxySpec(value: boolean): void;
 
+  hasVirtualServiceOptions(): boolean;
+  clearVirtualServiceOptions(): void;
+  getVirtualServiceOptions(): VirtualServiceOptions | undefined;
+  setVirtualServiceOptions(value?: VirtualServiceOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GatewayOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GatewayOptions): GatewayOptions.AsObject;
@@ -860,6 +887,7 @@ export namespace GatewayOptions {
     readGatewaysFromAllNamespaces: boolean,
     alwaysSortRouteTableRoutes: boolean,
     compressedProxySpec: boolean,
+    virtualServiceOptions?: VirtualServiceOptions.AsObject,
   }
 
   export class ValidationOptions extends jspb.Message {
