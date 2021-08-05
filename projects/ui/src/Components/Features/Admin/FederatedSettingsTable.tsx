@@ -40,7 +40,9 @@ export const FederatedSettingsTable = () => {
   useEffect(() => {
     if (settings) {
       setTableData(
-        settings.map(setting => {
+        settings
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(setting => {
           return {
             key: setting.metadata?.uid ?? 'An setting was provided with no UID',
             name: setting.metadata?.name ?? '',

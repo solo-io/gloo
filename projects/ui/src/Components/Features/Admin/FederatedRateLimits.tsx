@@ -39,7 +39,9 @@ export const FederatedRateLimits = () => {
   useEffect(() => {
     if (rateLimits) {
       setTableData(
-        rateLimits.map(rateLimit => {
+        rateLimits
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(rateLimit => {
           return {
             key:
               rateLimit.metadata?.uid ??

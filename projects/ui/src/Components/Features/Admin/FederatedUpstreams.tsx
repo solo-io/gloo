@@ -51,7 +51,9 @@ export const FederatedUpstreams = () => {
   useEffect(() => {
     if (upstreams) {
       setTableData(
-        upstreams.map(upstream => {
+        upstreams
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(upstream => {
           return {
             key:
               upstream.metadata?.uid ?? 'An upstream was provided with no UID',

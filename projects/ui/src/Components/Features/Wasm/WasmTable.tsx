@@ -104,6 +104,7 @@ export const WasmPageTable = ({
               })) &&
             wasmFilter.name.includes(nameFilter)
         )
+        .sort((gA, gB) => gA.name.localeCompare(gB.name) || (gA.locationsList[0]?.glooInstanceRef?.name ?? '').localeCompare(gB.locationsList[0]?.glooInstanceRef?.name ?? ''))
         .forEach(filter => {
           newTableData.push({
             key: filter.name,

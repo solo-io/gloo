@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Tables now have a consistent alphabetical row order
+    issueLink: https://github.com/solo-io/gloo/issues/4644

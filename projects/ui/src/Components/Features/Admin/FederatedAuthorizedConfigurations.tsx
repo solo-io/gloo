@@ -42,7 +42,9 @@ export const FederatedAuthorizedConfigurations = () => {
   useEffect(() => {
     if (authConfigs) {
       setTableData(
-        authConfigs.map(authConfig => {
+        authConfigs
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(authConfig => {
           return {
             key:
               authConfig.metadata?.uid ??

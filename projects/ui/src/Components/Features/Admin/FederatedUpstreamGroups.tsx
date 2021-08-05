@@ -44,7 +44,9 @@ export const FederatedUpstreamGroups = () => {
   useEffect(() => {
     if (upstreamGroups) {
       setTableData(
-        upstreamGroups.map(upstreamGroup => {
+        upstreamGroups
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(upstreamGroup => {
           return {
             key:
               upstreamGroup.metadata?.uid ??

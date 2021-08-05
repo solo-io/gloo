@@ -57,7 +57,9 @@ export const FederatedRouteTables = () => {
   useEffect(() => {
     if (routeTables) {
       setTableData(
-        routeTables.map(routeTable => {
+        routeTables
+        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+        .map(routeTable => {
           return {
             key:
               routeTable.metadata?.uid ??

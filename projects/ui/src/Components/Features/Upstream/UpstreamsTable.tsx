@@ -110,6 +110,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
                   props.glooInstanceFilter
                 ))
           )
+          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (!props.wholePage ? 0 : (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? '')))
           .map(upstream => {
             const glooInstNamespace = upstream.glooInstance?.namespace;
             const glooInstName = upstream.glooInstance?.name;

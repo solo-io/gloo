@@ -61,6 +61,7 @@ export const FederatedVirtualServices = (props: Props) => {
       setTableData(
         virtualServices
           .filter(vs => vs.metadata?.name.includes(props.nameFilter ?? ''))
+          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
           .map(vs => {
             let dataItem: VirtualServiceTableFields = {
               key:

@@ -99,6 +99,7 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
                   props.glooInstanceFilter
                 ))
           )
+          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (!props.wholePage ? 0 : (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? '')))
           .map(group => {
             return {
               key: group.metadata?.uid ?? 'An group was provided with no UID',
