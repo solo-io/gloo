@@ -46,7 +46,6 @@ endif
 
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 GCFLAGS := 'all=-N -l'
-BUILDFLAGS := -trimpath
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64
 
@@ -228,7 +227,7 @@ GLOO_FED_DIR=$(ROOTDIR)/projects/gloo-fed
 GLOO_FED_SOURCES=$(shell find $(GLOO_FED_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-fed-linux-amd64: $(GLOO_FED_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_DIR)/cmd/main.go
 
 .PHONY: gloo-fed
 gloo-fed: $(OUTPUT_DIR)/gloo-fed-linux-amd64
@@ -258,7 +257,7 @@ GLOO_FED_APISERVER_DIR=$(ROOTDIR)/projects/apiserver
 APISERVER_SOURCES=$(shell find $(APISERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64: $(APISERVER_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_APISERVER_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_APISERVER_DIR)/cmd/main.go
 
 .PHONY: gloo-fed-apiserver
 gloo-fed-apiserver: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64
@@ -319,7 +318,7 @@ GLOO_FED_RBAC_WEBHOOK_DIR=$(ROOTDIR)/projects/rbac-validating-webhook
 GLOO_FED_RBAC_WEBHOOK_SOURCES=$(shell find $(GLOO_FED_RBAC_WEBHOOK_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-amd64: $(GLOO_FED_RBAC_WEBHOOK_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/main.go
 
 .PHONY: gloo-fed-rbac-validating-webhook
 gloo-fed-rbac-validating-webhook: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-amd64
@@ -566,7 +565,7 @@ RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | gr
 RATELIMIT_OUT_DIR=$(OUTPUT_DIR)/rate-limit
 
 $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
 
 .PHONY: rate-limit
 rate-limit: $(RATELIMIT_OUT_DIR)/rate-limit-linux-amd64
@@ -603,7 +602,6 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DI
 		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
 		--build-arg VERSION=$(VERSION) \
-		--build-arg BUILDFLAGS=$(BUILDFLAGS) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg GITHUB_TOKEN \
 		.
@@ -631,7 +629,6 @@ extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugin
 ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
-		--build-arg BUILDFLAGS=$(BUILDFLAGS) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
@@ -654,7 +651,7 @@ OBSERVABILITY_SOURCES=$(shell find $(OBSERVABILITY_DIR) -name "*.go" | grep -v t
 OBS_OUT_DIR=$(OUTPUT_DIR)/observability
 
 $(OBS_OUT_DIR)/observability-linux-amd64: $(OBSERVABILITY_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
 
 .PHONY: observability
 observability: $(OBS_OUT_DIR)/observability-linux-amd64
@@ -678,7 +675,7 @@ GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v gene
 GLOO_OUT_DIR=$(OUTPUT_DIR)/gloo
 
 $(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 
 .PHONY: gloo
@@ -708,16 +705,16 @@ gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 CLI_DIR=projects/gloo/cli
 
 $(OUTPUT_DIR)/glooctl: $(SOURCES)
-	GO111MODULE=on go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+	GO111MODULE=on go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
 $(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
 $(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=darwin go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
 $(OUTPUT_DIR)/glooctl-windows-amd64.exe: $(SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=windows go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+	$(GO_BUILD_FLAGS) GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
 .PHONY: glooctl
 glooctl: $(OUTPUT_DIR)/glooctl
@@ -747,7 +744,7 @@ ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | gr
 ENVOYINIT_OUT_DIR=$(OUTPUT_DIR)/envoyinit
 
 $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build $(BUILDFLAGS) -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go $(ENVOYINIT_DIR)/filter_types.gen.go
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go $(ENVOYINIT_DIR)/filter_types.gen.go
 
 .PHONY: envoyinit
 envoyinit: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-amd64

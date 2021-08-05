@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: >-
+      Undo change in 1.9.0-beta1 to build enterprise components with `-trimpath`, which was unnecessary
+      since the plugins and extauth themselves are already built in the same environment / docker container.
+    issueLink: https://github.com/solo-io/gloo/issues/5124

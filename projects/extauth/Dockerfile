@@ -11,7 +11,6 @@ ARG GO_BUILD_IMAGE
 FROM $GO_BUILD_IMAGE as build-env
 
 ARG VERSION
-ARG BUILDFLAGS
 ARG GCFLAGS
 ARG GITHUB_TOKEN
 
@@ -29,7 +28,6 @@ RUN go env -w GOPRIVATE=github.com/solo-io/ext-auth-service
 
 # Build ext-auth server with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
-    "$BUILDFLAGS" \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION" \
     -o extauth-linux-amd64 \
@@ -37,7 +35,6 @@ RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
 
 # Build script to verify if a plugin can be loaded by the ext-auth server
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
-    "$BUILDFLAGS" \
     -gcflags="$GCFLAGS" \
     -o verify-plugins-linux-amd64 \
     projects/extauth/scripts/verify_plugins.go
