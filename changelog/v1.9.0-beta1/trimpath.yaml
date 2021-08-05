@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Build enterprise components with `-trimpath`, which improves build reproducibility.
+    issueLink: https://github.com/solo-io/gloo/issues/5124

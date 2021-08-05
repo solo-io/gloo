@@ -5,7 +5,7 @@ import (
 	"github.com/solo-io/solo-projects/test/extauth/plugins/is_header_present/plugin"
 )
 
-//go:generate go build -buildmode=plugin -o ./../IsHeaderPresent.so interface.go
+//go:generate go build -buildmode=plugin -trimpath -o ./../IsHeaderPresent.so interface.go
 
 func main() {}
 

@@ -8,7 +8,7 @@ In order to be able to debug the loader tests locally, you need to disable compi
 when building the plugins via the additional `gcflags` option:
 
 ```bash
-go build -buildmode=plugin -gcflags="all=-N -l" -o TestPlugin.so interface.go
+go build -buildmode=plugin -trimpath -gcflags="all=-N -l" -o TestPlugin.so interface.go
 ```
 
 This is because `dlv` builds everything with `-gcflags="all=-N -l"` and the plugins must be compiled in the

@@ -120,14 +120,18 @@ steps:
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
 # Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
-- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.12"
+- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.14"
   dir: *dir
   entrypoint: "bash"
   args:
     - "-ce"
     - |
       go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-      VERSION=$(./git-semver.sh) /builder/bin/ginkgo.bash -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
+      # should be able to avoid separate go test and ginkgo invocations for tests by passing -asmflags='-trimpath' to
+      # ginkgo, but this flag doesn't appear to be honored in my testing
+      go test -trimpath ./projects/extauth/plugins/required_header/...
+      go test -trimpath ./projects/extauth/scripts/...
+      VERSION=$(./git-semver.sh) /builder/bin/ginkgo.bash -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=./projects/extauth/plugins/required_header,./projects/extauth/scripts ./...
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "ENVOY_BINARY=/workspace/envoy"

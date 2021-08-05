@@ -11,7 +11,7 @@ import (
 )
 
 // This will be called in CI before tests are run to generate the RequiredHeader.so file needed by this test.
-//go:generate go build -buildmode=plugin -o RequiredHeader.so plugin.go
+//go:generate go build -buildmode=plugin -trimpath -o RequiredHeader.so plugin.go
 
 var _ = Describe("Plugin", func() {
 
