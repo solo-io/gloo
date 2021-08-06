@@ -13,7 +13,9 @@ var goog = jspb;
 var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
+goog.exportSymbol('proto.options.gloo.solo.io.FallbackPolicy', null, global);
 goog.exportSymbol('proto.options.gloo.solo.io.Selector', null, global);
+goog.exportSymbol('proto.options.gloo.solo.io.Subset', null, global);
 goog.exportSymbol('proto.options.gloo.solo.io.SubsetSpec', null, global);
 
 /**
@@ -70,7 +72,9 @@ proto.options.gloo.solo.io.SubsetSpec.prototype.toObject = function(opt_includeI
 proto.options.gloo.solo.io.SubsetSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     selectorsList: jspb.Message.toObjectList(msg.getSelectorsList(),
-    proto.options.gloo.solo.io.Selector.toObject, includeInstance)
+    proto.options.gloo.solo.io.Selector.toObject, includeInstance),
+    fallbackpolicy: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    defaultSubset: (f = msg.getDefaultSubset()) && proto.options.gloo.solo.io.Subset.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -112,6 +116,15 @@ proto.options.gloo.solo.io.SubsetSpec.deserializeBinaryFromReader = function(msg
       reader.readMessage(value,proto.options.gloo.solo.io.Selector.deserializeBinaryFromReader);
       msg.addSelectors(value);
       break;
+    case 2:
+      var value = /** @type {!proto.options.gloo.solo.io.FallbackPolicy} */ (reader.readEnum());
+      msg.setFallbackpolicy(value);
+      break;
+    case 3:
+      var value = new proto.options.gloo.solo.io.Subset;
+      reader.readMessage(value,proto.options.gloo.solo.io.Subset.deserializeBinaryFromReader);
+      msg.setDefaultSubset(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -149,6 +162,21 @@ proto.options.gloo.solo.io.SubsetSpec.serializeBinaryToWriter = function(message
       proto.options.gloo.solo.io.Selector.serializeBinaryToWriter
     );
   }
+  f = message.getFallbackpolicy();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      2,
+      f
+    );
+  }
+  f = message.getDefaultSubset();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.options.gloo.solo.io.Subset.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -180,6 +208,51 @@ proto.options.gloo.solo.io.SubsetSpec.prototype.addSelectors = function(opt_valu
 
 proto.options.gloo.solo.io.SubsetSpec.prototype.clearSelectorsList = function() {
   this.setSelectorsList([]);
+};
+
+
+/**
+ * optional FallbackPolicy fallbackPolicy = 2;
+ * @return {!proto.options.gloo.solo.io.FallbackPolicy}
+ */
+proto.options.gloo.solo.io.SubsetSpec.prototype.getFallbackpolicy = function() {
+  return /** @type {!proto.options.gloo.solo.io.FallbackPolicy} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {!proto.options.gloo.solo.io.FallbackPolicy} value */
+proto.options.gloo.solo.io.SubsetSpec.prototype.setFallbackpolicy = function(value) {
+  jspb.Message.setProto3EnumField(this, 2, value);
+};
+
+
+/**
+ * optional Subset default_subset = 3;
+ * @return {?proto.options.gloo.solo.io.Subset}
+ */
+proto.options.gloo.solo.io.SubsetSpec.prototype.getDefaultSubset = function() {
+  return /** @type{?proto.options.gloo.solo.io.Subset} */ (
+    jspb.Message.getWrapperField(this, proto.options.gloo.solo.io.Subset, 3));
+};
+
+
+/** @param {?proto.options.gloo.solo.io.Subset|undefined} value */
+proto.options.gloo.solo.io.SubsetSpec.prototype.setDefaultSubset = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.options.gloo.solo.io.SubsetSpec.prototype.clearDefaultSubset = function() {
+  this.setDefaultSubset(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.options.gloo.solo.io.SubsetSpec.prototype.hasDefaultSubset = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -237,7 +310,8 @@ proto.options.gloo.solo.io.Selector.prototype.toObject = function(opt_includeIns
  */
 proto.options.gloo.solo.io.Selector.toObject = function(includeInstance, msg) {
   var f, obj = {
-    keysList: jspb.Message.getRepeatedField(msg, 1)
+    keysList: jspb.Message.getRepeatedField(msg, 1),
+    singleHostPerSubset: jspb.Message.getFieldWithDefault(msg, 2, false)
   };
 
   if (includeInstance) {
@@ -278,6 +352,10 @@ proto.options.gloo.solo.io.Selector.deserializeBinaryFromReader = function(msg, 
       var value = /** @type {string} */ (reader.readString());
       msg.addKeys(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSingleHostPerSubset(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -314,6 +392,13 @@ proto.options.gloo.solo.io.Selector.serializeBinaryToWriter = function(message, 
       f
     );
   }
+  f = message.getSingleHostPerSubset();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -345,5 +430,175 @@ proto.options.gloo.solo.io.Selector.prototype.clearKeysList = function() {
   this.setKeysList([]);
 };
 
+
+/**
+ * optional bool single_host_per_subset = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.options.gloo.solo.io.Selector.prototype.getSingleHostPerSubset = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.options.gloo.solo.io.Selector.prototype.setSingleHostPerSubset = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.options.gloo.solo.io.Subset = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.options.gloo.solo.io.Subset, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.options.gloo.solo.io.Subset.displayName = 'proto.options.gloo.solo.io.Subset';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.options.gloo.solo.io.Subset.prototype.toObject = function(opt_includeInstance) {
+  return proto.options.gloo.solo.io.Subset.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.options.gloo.solo.io.Subset} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.options.gloo.solo.io.Subset.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    valuesMap: (f = msg.getValuesMap()) ? f.toObject(includeInstance, undefined) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.options.gloo.solo.io.Subset}
+ */
+proto.options.gloo.solo.io.Subset.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.options.gloo.solo.io.Subset;
+  return proto.options.gloo.solo.io.Subset.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.options.gloo.solo.io.Subset} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.options.gloo.solo.io.Subset}
+ */
+proto.options.gloo.solo.io.Subset.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getValuesMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.options.gloo.solo.io.Subset.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.options.gloo.solo.io.Subset.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.options.gloo.solo.io.Subset} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.options.gloo.solo.io.Subset.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getValuesMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * map<string, string> values = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.options.gloo.solo.io.Subset.prototype.getValuesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.options.gloo.solo.io.Subset.prototype.clearValuesMap = function() {
+  this.getValuesMap().clear();
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.options.gloo.solo.io.FallbackPolicy = {
+  ANY_ENDPOINT: 0,
+  DEFAULT_SUBSET: 1,
+  NO_FALLBACK: 2
+};
 
 goog.object.extend(exports, proto.options.gloo.solo.io);
