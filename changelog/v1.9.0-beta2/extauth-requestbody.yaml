@@ -1,0 +1,8 @@
+changelog:
+  - type: HELM
+    description: |
+      Extauth request body settings are now exposed as `global.extensions.extAuth.requestBody` in the helm chart.
+      The three available settings are `maxRequestBytes`, `allowPartialMessage`, and `packAsBytes`. For instance, setting
+      `global.extensions.extAuth.requestBody.maxRequestBytes=64000` would set the maximum size of a message body the extauth filter
+      will hold in memory to 64KiB.
+    issueLink: https://github.com/solo-io/gloo/issues/5016

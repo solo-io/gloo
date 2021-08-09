@@ -1423,6 +1423,68 @@ spec:
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
 
+			It("creates settings with extauth request body", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.requestBody.maxRequestBytes=64000",
+						"global.extensions.extAuth.requestBody.packAsBytes=true",
+						"global.extensions.extAuth.enabled=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    requestBody:
+      maxRequestBytes: 64000
+      packAsBytes: true
+    userIdHeader: "x-user-id"
+  gateway:
+    readGatewaysFromAllNamespaces: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+  gloo:
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+
 			It("correctly sets the ext auth transport API version", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{

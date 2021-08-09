@@ -245,6 +245,10 @@ Injection point for enterprise-exclusive settings into the settings manifest
     {{- if $extauth.requestTimeout }}
     requestTimeout: {{ quote $extauth.requestTimeout }}
     {{- end }}
+    {{- if $extauth.requestBody }}
+    requestBody:
+    {{- toYaml $extauth.requestBody | nindent 6 }}
+    {{- end }}
     {{- if $extauth.userIdHeader }}
     userIdHeader: {{ quote $extauth.userIdHeader }}
     {{- end }}

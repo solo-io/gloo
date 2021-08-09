@@ -163,6 +163,7 @@ type ExtAuth struct {
 	HeadersToRedact      string                        `json:"headersToRedact,omitempty" desc:"Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value"`
 	Secret               *glooGen.KubeResourceOverride `json:"secret,omitempty"`
 	Upstream             *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
+	RequestBody          *BufferSettings               `json:"requestBody,omitempty" desc:"Set in order to send the body of the request, and not just the headers"`
 }
 
 type ExtAuthDeployment struct {
@@ -195,6 +196,12 @@ type ExtAuthSigningKey struct {
 
 type ExtAuthPlugin struct {
 	Image *glooGen.Image `json:"image,omitempty"`
+}
+
+type BufferSettings struct {
+	MaxRequestBytes     uint32 `json:"max_request_bytes,omitempty" desc:"Sets the maximum size of a message body that the filter will hold in memory, returning 413 and *not* initiating the authorization process when reaching the maximum (defaults to 4KB)"`
+	AllowPartialMessage bool   `json:"allow_partial_message,omitempty" desc:"if true, Envoy will buffer the message until max_request_bytes is reached, dispatch the authorization request, and not return an error"`
+	PackAsBytes         bool   `json:"pack_as_bytes,omitempty" desc:"if true, Envoy will send the body sent to the external authorization service with raw bytes"`
 }
 
 type OAuth struct {
