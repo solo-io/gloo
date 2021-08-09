@@ -1,5 +1,6 @@
 import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { WeightedDestination } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
+import { ServiceSpec } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/service_spec_pb';
 
 export const TYPE_AWS = 'AWS';
 export const TYPE_AZURE = 'Azure';
@@ -70,3 +71,34 @@ export const getWeightedDestinationType = (
 
   return TYPE_OTHER;
 };
+
+export function getFunctionList(upstream?: Upstream.AsObject): string[] {
+  const spec = upstream?.spec;
+  if (spec) {
+    if (spec.aws && spec.aws?.lambdaFunctionsList?.length > 0) {
+      return spec.aws.lambdaFunctionsList.map(lambda => lambda.logicalName);
+    }
+    if (spec.azure && spec.azure?.functionsList?.length > 0) {
+      return spec.azure.functionsList.map(func => func.functionName);
+    }
+    if (spec.consul) {
+      return serviceSpecToFunctionsList(spec.consul.serviceSpec);
+    }
+    if (spec.kube) {
+      return serviceSpecToFunctionsList(spec.kube.serviceSpec);
+    }
+    if (spec.pb_static) {
+      return serviceSpecToFunctionsList(spec.pb_static.serviceSpec);
+    }
+  }
+  return [];
+}
+function serviceSpecToFunctionsList(serviceSpec?:ServiceSpec.AsObject) {
+  if (serviceSpec && serviceSpec.rest) {
+    return serviceSpec.rest.transformationsMap.map(([func]) => func);
+  }
+  if (serviceSpec && serviceSpec.grpc) {
+    return serviceSpec.grpc.grpcServicesList.map(svc => svc.functionNamesList).flat();
+  }
+  return [];
+}

@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Functions list added to upstream page
+    issueLink: https://github.com/solo-io/gloo/issues/4934

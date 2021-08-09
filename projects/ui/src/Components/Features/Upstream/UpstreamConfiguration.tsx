@@ -2,6 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import {
+  getFunctionList,
   getUpstreamType,
   TYPE_AWS,
   TYPE_AZURE,
@@ -14,6 +15,7 @@ import {
 } from 'Components/Common/Card';
 import { Loading } from 'Components/Common/Loading';
 import { SoloInput } from 'Components/Common/SoloInput';
+import { StringCardsList } from 'Components/Common/StringCardsList';
 
 const Wrapper = styled(CardSubsectionWrapper)`
   display: grid;
@@ -48,6 +50,25 @@ const SecuritySection = styled(CardSubsectionContent)`
   grid-template-rows: 1fr 1fr;
   grid-gap: 18px 10px;
   height: auto;
+`;
+const FunctionsContainer = styled.div`
+  position: relative;
+  grid-column: span 3;
+  margin-top: 18px;
+`;
+const FunctionsSection = styled(CardSubsectionContent)`
+  height: auto;
+`;
+
+const ListBlock = styled.div`
+  margin: 8px 0 5px;
+  .ant-list {
+    background: white;
+    
+    .ant-list-item {
+      padding: 0 5px;
+    }
+  }
 `;
 
 type Field = {
@@ -147,7 +168,9 @@ type Props = {
 
 const UpstreamConfiguration = ({ upstream }: Props) => {
   const upstreamConfig = getUpstreamTypeConfig(upstream);
+  const functionsList = getFunctionList(upstream);
   const cols = upstreamConfig?.cols || 1;
+
   return upstream ? (
     <Wrapper>
       {upstreamConfig && (
@@ -185,6 +208,14 @@ const UpstreamConfiguration = ({ upstream }: Props) => {
           />
         </SecuritySection>
       </SecurityContainer>
+      {functionsList.length > 0 && (
+        <FunctionsContainer>
+          <SectionTitle>Functions</SectionTitle>
+          <FunctionsSection>
+            <StringCardsList values={functionsList} />
+          </FunctionsSection>
+        </FunctionsContainer>
+      )}
     </Wrapper>
   ) : (
     <Loading message='Retrieving upstream details...' />
